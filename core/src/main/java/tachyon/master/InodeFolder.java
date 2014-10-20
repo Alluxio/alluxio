@@ -33,14 +33,13 @@ public class InodeFolder extends Inode {
    * @throws IOException
    */
   static InodeFolder loadImage(JsonParser parser, ImageElement ele) throws IOException {
-    long creationTimeMs = ele.getLong("creationTimeMs");
-    int fileId = ele.getInt("id");
-    String fileName = ele.getString("name");
-    int parentId = ele.getInt("parentId");
-    boolean isPinned = ele.getBoolean("pinned");
+    final long creationTimeMs = ele.getLong("creationTimeMs");
+    final int fileId = ele.getInt("id");
+    final boolean isPinned = ele.getBoolean("pinned");
+    final String fileName = ele.getString("name");
+    final int parentId = ele.getInt("parentId");
     List<Integer> childrenIds = ele.get("childrenIds", new TypeReference<List<Integer>>() {});
-    long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
-
+    final long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
     int numberOfChildren = childrenIds.size();
     Inode[] children = new Inode[numberOfChildren];
     for (int k = 0; k < numberOfChildren; k ++) {
@@ -51,7 +50,7 @@ public class InodeFolder extends Inode {
         throw e;
       }
 
-      switch (ele.type) {
+      switch (ele.mType) {
         case InodeFile: {
           children[k] = InodeFile.loadImage(ele);
           break;

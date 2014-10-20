@@ -17,8 +17,8 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -76,8 +76,8 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws IOException
    */
-  private void downloadFile(TachyonURI path, HttpServletRequest request, HttpServletResponse response)
-      throws FileDoesNotExistException, IOException {
+  private void downloadFile(TachyonURI path, HttpServletRequest request,
+      HttpServletResponse response) throws FileDoesNotExistException, IOException {
     String masterAddress =
         Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
             + mMasterInfo.getMasterAddress().getPort();

@@ -1,7 +1,7 @@
 package tachyon;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 public class Version {
   public static final String VERSION;
 
-  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   static {
     InputStream in = null;
@@ -25,10 +25,12 @@ public class Version {
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
     } finally {
-      try {
-        in.close();
-      } catch (Exception e) {
-        LOG.error(e.getMessage(), e);
+      if (in != null) {
+        try {
+          in.close();
+        } catch (Exception e) {
+          LOG.error(e.getMessage(), e);
+        }
       }
     }
 

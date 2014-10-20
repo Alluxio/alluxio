@@ -8,8 +8,8 @@ import java.util.concurrent.Callable;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 
 /**
@@ -81,7 +81,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     return file;
   }
 
-  private boolean read(TachyonFS client, TachyonURI filePath, ReadType readType) throws IOException {
+  private boolean read(TachyonFS client, TachyonURI filePath, ReadType readType)
+      throws IOException {
     TachyonFile file = client.getFile(filePath);
     DataInputStream input = new DataInputStream(file.getInStream(readType));
     boolean passes = true;

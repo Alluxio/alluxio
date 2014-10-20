@@ -40,10 +40,10 @@ public abstract class OutStream extends OutputStream {
   public abstract void flush() throws IOException;
 
   @Override
-  public abstract void write(byte b[]) throws IOException;
+  public abstract void write(byte[] b) throws IOException;
 
   @Override
-  public abstract void write(byte b[], int off, int len) throws IOException;
+  public abstract void write(byte[] b, int off, int len) throws IOException;
 
   @Override
   public abstract void write(int b) throws IOException;

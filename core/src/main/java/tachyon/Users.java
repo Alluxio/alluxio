@@ -21,8 +21,8 @@ import tachyon.util.CommonUtils;
  * <code>Users</code> represents and manages all users contacting to a worker.
  */
 public class Users {
-  public static final int sDATASERVER_USER_ID = -1;
-  public static final int sCHECKPOINT_USER_ID = -2;
+  public static final int DATASERVER_USER_ID = -1;
+  public static final int CHECKPOINT_USER_ID = -2;
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

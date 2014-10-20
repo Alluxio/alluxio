@@ -10,21 +10,21 @@ import tachyon.worker.netty.ChannelType;
 import tachyon.worker.netty.FileTransferType;
 
 public class WorkerConf extends Utils {
-  private static WorkerConf WORKER_CONF = null;
+  private static WorkerConf sWorkerConf = null;
 
   /**
    * This is for unit test only. DO NOT use it for other purpose.
    */
   public static synchronized void clear() {
-    WORKER_CONF = null;
+    sWorkerConf = null;
   }
 
   public static synchronized WorkerConf get() {
-    if (WORKER_CONF == null) {
-      WORKER_CONF = new WorkerConf();
+    if (sWorkerConf == null) {
+      sWorkerConf = new WorkerConf();
     }
 
-    return WORKER_CONF;
+    return sWorkerConf;
   }
 
   public final String MASTER_HOSTNAME;

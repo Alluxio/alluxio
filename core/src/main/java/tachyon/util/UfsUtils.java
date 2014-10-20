@@ -20,7 +20,7 @@ import tachyon.client.TachyonFS;
  * Utilities related to under filesystem
  */
 public class UfsUtils {
-  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Build a new path relative to a given mTachyonFS root by retrieving the given path relative to
@@ -51,8 +51,8 @@ public class UfsUtils {
    * @param excludePaths paths to exclude from ufsRootPath, which will not be loaded in mTachyonFS.
    * @throws IOException
    */
-  public static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath, String excludePaths)
-      throws IOException {
+  public static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath,
+      String excludePaths) throws IOException {
     TachyonFS tfs = TachyonFS.get(tfsAddrRootPath);
 
     PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");

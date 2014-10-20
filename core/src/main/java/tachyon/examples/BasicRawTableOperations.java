@@ -13,14 +13,14 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonByteBuffer;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 
 public class BasicRawTableOperations implements Callable<Boolean> {
-  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final int COLS = 3;
 
@@ -31,7 +31,8 @@ public class BasicRawTableOperations implements Callable<Boolean> {
   private final int mMetadataLength = 5;
   private int mId;
 
-  public BasicRawTableOperations(TachyonURI masterAddress, TachyonURI tablePath, WriteType writeType) {
+  public BasicRawTableOperations(TachyonURI masterAddress, TachyonURI tablePath,
+      WriteType writeType) {
     mMasterAddress = masterAddress;
     mTablePath = tablePath;
     mWriteType = writeType;
@@ -76,9 +77,9 @@ public class BasicRawTableOperations implements Callable<Boolean> {
         tFile.recache();
         buf = tFile.readByteBuffer(0);
       }
-      buf.DATA.order(ByteOrder.nativeOrder());
+      buf.mData.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mDataLength; k ++) {
-        pass = pass && (buf.DATA.getInt() == k);
+        pass = pass && (buf.mData.getInt() == k);
       }
       buf.close();
     }

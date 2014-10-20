@@ -4,21 +4,21 @@ import tachyon.Constants;
 import tachyon.client.WriteType;
 
 public class UserConf extends Utils {
-  private static UserConf USER_CONF = null;
+  private static UserConf sUserConf = null;
 
   /**
    * This is for unit test only. DO NOT use it for other purpose.
    */
   public static synchronized void clear() {
-    USER_CONF = null;
+    sUserConf = null;
   }
 
   public static synchronized UserConf get() {
-    if (USER_CONF == null) {
-      USER_CONF = new UserConf();
+    if (sUserConf == null) {
+      sUserConf = new UserConf();
     }
 
-    return USER_CONF;
+    return sUserConf;
   }
 
   public final int FAILED_SPACE_REQUEST_LIMITS;

@@ -13,23 +13,23 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonByteBuffer;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.util.CommonUtils;
 
 public class BasicOperations implements Callable<Boolean> {
-  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonURI mMasterLocation;
   private final TachyonURI mFilePath;
-  private final WriteType sWriteType;
+  private final WriteType mWriteType;
   private final int mNumbers = 20;
 
-  public BasicOperations(TachyonURI mMasterLocation, TachyonURI mFilePath, WriteType sWriteType) {
-    this.mMasterLocation = mMasterLocation;
-    this.mFilePath = mFilePath;
-    this.sWriteType = sWriteType;
+  public BasicOperations(TachyonURI masterLocation, TachyonURI filePath, WriteType writeType) {
+    mMasterLocation = masterLocation;
+    mFilePath = filePath;
+    mWriteType = writeType;
   }
 
   @Override
@@ -60,7 +60,7 @@ public class BasicOperations implements Callable<Boolean> {
 
     long startTimeMs = CommonUtils.getCurrentMs();
     TachyonFile file = tachyonClient.getFile(mFilePath);
-    OutStream os = file.getOutStream(sWriteType);
+    OutStream os = file.getOutStream(mWriteType);
     os.write(buf.array());
     os.close();
 
@@ -71,16 +71,16 @@ public class BasicOperations implements Callable<Boolean> {
     boolean pass = true;
     LOG.debug("Reading data...");
 
-    long startTimeMs = CommonUtils.getCurrentMs();
+    final long startTimeMs = CommonUtils.getCurrentMs();
     TachyonFile file = tachyonClient.getFile(mFilePath);
     TachyonByteBuffer buf = file.readByteBuffer(0);
     if (buf == null) {
       file.recache();
       buf = file.readByteBuffer(0);
     }
-    buf.DATA.order(ByteOrder.nativeOrder());
+    buf.mData.order(ByteOrder.nativeOrder());
     for (int k = 0; k < mNumbers; k ++) {
-      pass = pass && (buf.DATA.getInt() == k);
+      pass = pass && (buf.mData.getInt() == k);
     }
     buf.close();
 
@@ -94,7 +94,7 @@ public class BasicOperations implements Callable<Boolean> {
           + "-jar-with-dependencies.jar "
           + "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
       System.exit(-1);
-    };
+    }
 
     Utils.runExample(new BasicOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
         WriteType.getOpType(args[2])));

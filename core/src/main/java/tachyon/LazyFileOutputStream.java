@@ -13,12 +13,12 @@ import java.io.OutputStream;
  */
 public class LazyFileOutputStream extends OutputStream {
 
-  private FileOutputStream fos;
-  private File file;
-  private boolean append;
-  private boolean alwaysCreate;
-  private boolean opened = false;
-  private boolean closed = false;
+  private FileOutputStream mFos;
+  private File mFile;
+  private boolean mAppend;
+  private boolean mAlwaysCreate;
+  private boolean mOpened = false;
+  private boolean mClosed = false;
 
   /**
    * Creates a stream that will eventually write to the file with the given name and replace it.
@@ -69,9 +69,9 @@ public class LazyFileOutputStream extends OutputStream {
    * @param alwaysCreate if true create the file even if nothing to write.
    */
   public LazyFileOutputStream(File file, boolean append, boolean alwaysCreate) {
-    this.file = file;
-    this.append = append;
-    this.alwaysCreate = alwaysCreate;
+    mFile = file;
+    mAppend = append;
+    mAlwaysCreate = alwaysCreate;
   }
 
   /**
@@ -93,13 +93,13 @@ public class LazyFileOutputStream extends OutputStream {
    * @throws IOException if there is an error.
    */
   public synchronized void close() throws IOException {
-    if (alwaysCreate && !closed) {
+    if (mAlwaysCreate && !mClosed) {
       ensureOpened();
     }
-    if (opened) {
-      fos.close();
+    if (mOpened) {
+      mFos.close();
     }
-    closed = true;
+    mClosed = true;
   }
 
   /**
@@ -122,7 +122,7 @@ public class LazyFileOutputStream extends OutputStream {
    */
   public synchronized void write(byte[] b, int offset, int len) throws IOException {
     ensureOpened();
-    fos.write(b, offset, len);
+    mFos.write(b, offset, len);
   }
 
   /**
@@ -133,17 +133,17 @@ public class LazyFileOutputStream extends OutputStream {
    */
   public synchronized void write(int b) throws IOException {
     ensureOpened();
-    fos.write(b);
+    mFos.write(b);
   }
 
   private synchronized void ensureOpened() throws IOException {
-    if (closed) {
-      throw new IOException(file + " has already been closed.");
+    if (mClosed) {
+      throw new IOException(mFile + " has already been closed.");
     }
 
-    if (!opened) {
-      fos = new FileOutputStream(file.getAbsolutePath(), append);
-      opened = true;
+    if (!mOpened) {
+      mFos = new FileOutputStream(mFile.getAbsolutePath(), mAppend);
+      mOpened = true;
     }
   }
 }
