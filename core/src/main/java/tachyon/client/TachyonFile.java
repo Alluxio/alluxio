@@ -522,7 +522,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
         try {
           Blocks.copy(inputStream, channel, length);
           channel.close();
-        } catch (IOException e){
+        } catch (IOException e) {
           channel.cancel();
           return false;
         }

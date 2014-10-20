@@ -140,36 +140,6 @@ public class RemoteBlockInStream extends BlockInStream {
     }
   }
 
-  @Override
-  public int read() throws IOException {
-    mReadByte++;
-    if (mReadByte > mBlockInfo.length) {
-      doneRecache();
-      return -1;
-    }
-
-    if (mCurrentBuffer != null) {
-      if (mCurrentBuffer.remaining() == 0) {
-        mBufferStartPosition = mReadByte - 1;
-        updateCurrentBuffer();
-      }
-      if (mCurrentBuffer != null) {
-        int ret = mCurrentBuffer.get() & 0xFF;
-        if (mRecache) {
-          mBlockOutStream.write(wrap((byte) ret));
-        }
-        return ret;
-      }
-      setupStreamFromUnderFs(mBlockInfo.offset + mReadByte - 1, mUFSConf);
-    }
-
-    int ret = mCheckpointInputStream.read() & 0xFF;
-    if (mRecache) {
-      mBlockOutStream.write(wrap((byte) ret));
-    }
-    return ret;
-  }
-
   private ByteBuffer wrap(byte data) {
     ByteBuffer buffer = ByteBuffer.allocate(1);
     buffer.put(data);
@@ -234,6 +204,36 @@ public class RemoteBlockInStream extends BlockInStream {
       }
     }
     return (int) ret;
+  }
+
+  @Override
+  public int read() throws IOException {
+    mReadByte ++;
+    if (mReadByte > mBlockInfo.length) {
+      doneRecache();
+      return -1;
+    }
+
+    if (mCurrentBuffer != null) {
+      if (mCurrentBuffer.remaining() == 0) {
+        mBufferStartPosition = mReadByte - 1;
+        updateCurrentBuffer();
+      }
+      if (mCurrentBuffer != null) {
+        int ret = mCurrentBuffer.get() & 0xFF;
+        if (mRecache) {
+          mBlockOutStream.write(wrap((byte) ret));
+        }
+        return ret;
+      }
+      setupStreamFromUnderFs(mBlockInfo.offset + mReadByte - 1, mUFSConf);
+    }
+
+    int ret = mCheckpointInputStream.read() & 0xFF;
+    if (mRecache) {
+      mBlockOutStream.write(wrap((byte) ret));
+    }
+    return ret;
   }
 
   private ByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo, long offset, long len) {

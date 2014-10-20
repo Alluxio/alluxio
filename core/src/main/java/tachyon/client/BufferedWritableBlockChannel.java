@@ -8,11 +8,11 @@ import java.nio.ByteBuffer;
  * {@link #close()} is called, the remaining buffer will be flushed to the underline channel.
  */
 final class BufferedWritableBlockChannel extends ForwardingWritableBlockChannel {
-  private final ByteBuffer buffer;
+  private final ByteBuffer mBuffer;
 
   public BufferedWritableBlockChannel(int bufferSize, WritableBlockChannel delegate) {
     super(delegate);
-    buffer = ByteBuffer.allocate(bufferSize);
+    mBuffer = ByteBuffer.allocate(bufferSize);
   }
 
 
@@ -22,27 +22,27 @@ final class BufferedWritableBlockChannel extends ForwardingWritableBlockChannel 
       flush();
     }
 
-    if (src.remaining() >= buffer.capacity()) {
+    if (src.remaining() >= mBuffer.capacity()) {
       // skip buffer since its large enough
       return delegate().write(src);
     } else {
       // write to local buffer and return
       int r = src.remaining();
-      buffer.put(src);
+      mBuffer.put(src);
       return r;
     }
   }
 
   private boolean shouldFlush(ByteBuffer src) {
-    return buffer.position() + src.remaining() > buffer.limit();
+    return mBuffer.position() + src.remaining() > mBuffer.limit();
   }
 
   private void flush() throws IOException {
-    if (buffer.position() != 0) {
+    if (mBuffer.position() != 0) {
       // empty, so ignore
-      buffer.flip();
-      delegate().write(buffer);
-      buffer.clear();
+      mBuffer.flip();
+      delegate().write(mBuffer);
+      mBuffer.clear();
     }
   }
 

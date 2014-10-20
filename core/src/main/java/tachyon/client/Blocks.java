@@ -52,7 +52,7 @@ final class Blocks {
    */
   public static void copy(InputStream inputStream, WritableBlockChannel channel, long length)
       throws IOException {
-    final byte buffer[] = new byte[UserConf.get().FILE_BUFFER_BYTES * 4];
+    final byte[] buffer = new byte[UserConf.get().FILE_BUFFER_BYTES * 4];
     int limit;
     while (length > 0 && ((limit = inputStream.read(buffer)) >= 0)) {
       if (limit != 0) {
