@@ -1,7 +1,5 @@
 package tachyon.client;
 
-import java.io.IOException;
-
 /**
  * Different write types for a TachyonFile.
  */
@@ -32,22 +30,10 @@ public enum WriteType {
    * 
    * @param op the String format of the write type
    * @return the write type
-   * @throws IOException
+   * @throws RuntimeException
    */
-  public static WriteType getOpType(String op) throws IOException {
-    if (op.equals("MUST_CACHE")) {
-      return MUST_CACHE;
-    } else if (op.equals("TRY_CACHE")) {
-      return TRY_CACHE;
-    } else if (op.equals("CACHE_THROUGH")) {
-      return CACHE_THROUGH;
-    } else if (op.equals("THROUGH")) {
-      return THROUGH;
-    } else if (op.equals("ASYNC_THROUGH")) {
-      return ASYNC_THROUGH;
-    }
-
-    throw new IOException("Unknown WriteType : " + op);
+  public static WriteType getOpType(String op) throws RuntimeException {
+    return Enum.valueOf(WriteType.class, op);
   }
 
   private final int mValue;
