@@ -164,4 +164,10 @@
                value="Static member name ''{0}'' must match pattern ''{1}''."/>
     </module>
   </module>
+  <!-- TODO: This is needed to excuse Tachyon Configuration members' name from being checked -->
+  <!-- because the members are define using all upper case. -->
+  <!-- Once the new configuration is implemented we wil remove this exception -->
+  <module name="SuppressionFilter">
+    <property name="file" value="core/src/main/resources/tachyon_checkstyle_suppressions.xml"/>
+  </module>
 </module>
