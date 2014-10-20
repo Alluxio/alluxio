@@ -236,6 +236,12 @@ service MasterService {
     throws (1: TableDoesNotExistException eT, 2: TachyonException eTa)
 
   string user_getUfsAddress()
+  
+  /**
+   * Returns if the message was received. Intended to check if the client can still connect to the
+   * master.
+  */
+  void user_heartbeat();
 }
 
 service WorkerService {

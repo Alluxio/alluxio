@@ -233,6 +233,11 @@ public class MasterServiceHandler implements MasterService.Iface {
     }
     return ret;
   }
+  
+  @Override
+  public void user_heartbeat() throws TException {
+    return;
+  }
 
   @Override
   public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException,

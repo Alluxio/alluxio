@@ -596,6 +596,10 @@ public class TachyonFS extends AbstractTachyonFS {
     String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
     return new TachyonURI(scheme, authority, TachyonURI.SEPARATOR);
   }
+  
+  synchronized long getUserId() throws IOException {
+    return mMasterClient.getUserId();
+  }
 
   /**
    * @return all the works' info
