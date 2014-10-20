@@ -1,5 +1,6 @@
 #!/bin/sh
-set -x
+# uncomment it for debugging
+#set -x
 mkdir -p /vagrant/shared
 cd /vagrant/shared
 

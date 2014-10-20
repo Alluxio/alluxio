@@ -65,22 +65,25 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       if Provider == "aws"
         n.vm.box = "dummy"
         n.vm.box_url = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
-        n.ssh.username = "ec2-user"
-        n.ssh.private_key_path = "~/.ssh/aws-east.pem"
-        n.vm.provider :aws do |aws, override|
-          aws.keypair_name = "aws-east"
-          aws.security_groups =  	["test"]
-          # RHEL 6.5
-          aws.ami = "ami-b06a98d8"
-          aws.region = "us-east-1"
-          aws.user_data = "#!/bin/bash\necho 'Defaults:root !requiretty' > /etc/sudoers.d/998-vagrant-cloud-init-requiretty && echo 'Defaults:ec2-user !requiretty' > /etc/sudoers.d/999-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/998-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/999-vagrant-cloud-init-requiretty"    
-                   
-          n.vm.synced_folder "../../", "/tachyon", type: "rsync", 
-          rsync__exclude: ["../../.git/", "shared/"]
-          n.vm.synced_folder "./", "/vagrant", type: "rsync", 
-          rsync__exclude: ["shared/"]
+        @ec2 = YAML.load_file('ec2-config.yml')
+        puts @ec2.inspect
+        KEYPAIR=@ec2['Keypair']
+        KEY_PATH=@ec2['Key_Path']
+        AMI=@ec2['AMI']
+        REGION=@ec2['Region']
+        SECURITY_GROUP=@ec2['Security_Group']
+        SUBNET_ID=@ec2['Subnet_Id']
+        INSTANCE_TYPE = @ec2['Instance_Type']
+        AVAILABILITY_ZONE  = @ec2['Availability_Zone']
 
-        end
+        n.ssh.username = "ec2-user"
+        n.ssh.private_key_path = KEY_PATH
+        n.vm.synced_folder "../../", "/tachyon", type: "rsync", 
+           rsync__exclude: ["../../.git/", "shared/"]
+        n.vm.synced_folder "./", "/vagrant", type: "rsync", 
+           rsync__exclude: ["shared/"]
+        eval File.open('config_aws.rb').read
+        config_aws(n, i, Total, name)
       end
     end
   end
