@@ -11,6 +11,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.StorageLevelAlias;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.BlockHandler;
@@ -58,7 +59,7 @@ public class StorageTierTest {
       for (int i = 0; i < dirPaths.length; i ++) {
         dirPaths[i] = dirPaths[i].trim();
       }
-      String Alias = WorkerConf.get().STORAGE_LEVEL_ALIAS[level];
+      StorageLevelAlias Alias = WorkerConf.get().STORAGE_LEVEL_ALIAS[level];
       String[] strDirCapacities = WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level].split(",");
       long[] dirCapacities = new long[dirPaths.length];
       for (int i = 0, j = 0; i < dirPaths.length; i ++) {
@@ -134,7 +135,6 @@ public class StorageTierTest {
     Assert.assertEquals(true, request);
     Assert.assertEquals(499, dir.getAvailableBytes());
     Assert.assertEquals(501, dir.getUsedBytes());
-    Assert.assertTrue(mStorageTiers[0].getRemovedBlockIdList().contains(blockId));
     Assert.assertTrue(mStorageTiers[1].containsBlock(blockId));
     Assert.assertEquals(500, mStorageTiers[1].getUsedBytes());
     request = mStorageTiers[0].requestSpace(dir, mUserId, 500, new HashSet<Integer>());
