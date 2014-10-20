@@ -75,7 +75,19 @@ function killAll {
   keyword=$1
   count=0
   for pid in `ps -A -o pid,command | grep -i "[j]ava" | grep $keyword | awk '{print $1}'`; do
-    kill -9 $pid 2> /dev/null
+    kill -15 "$pid" > /dev/null 2>&1
+    local cnt=30
+    while kill -0 "$pid" > /dev/null 2>&1; do
+      if [ $cnt -gt 1 ]; then
+        # still not dead, wait
+        cnt=`expr $cnt - 1`
+        sleep 1
+      else
+        # waited long enough, kill the process
+        echo "Process did not complete after 30 seconds, killing."
+        kill -9 $pid 2> /dev/null
+      fi
+    done
     count=`expr $count + 1`
   done
   echo "Killed $count processes"
