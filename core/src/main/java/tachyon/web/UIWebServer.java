@@ -32,7 +32,7 @@ public class UIWebServer {
 
   /**
    * Constructor that pairs urls with servlets and sets the webapp folder.
-   * 
+   *
    * @param serverName Name of the server
    * @param address Address of the server
    * @param masterInfo MasterInfo for the tachyon filesystem this UIWebServer supports
@@ -62,7 +62,7 @@ public class UIWebServer {
     webappcontext.addServlet(new ServletHolder(new WebInterfaceDownloadServlet(masterInfo)),
         "/download");
 
-    final HandlerList handlers = new HandlerList();
+    HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {webappcontext, new DefaultHandler()});
     mServer.setHandler(handlers);
   }

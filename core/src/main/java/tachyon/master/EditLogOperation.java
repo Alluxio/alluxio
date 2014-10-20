@@ -33,7 +33,7 @@ class EditLogOperation extends JsonObject {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("type", mType).add("mTransId", mTransId)
+    return Objects.toStringHelper(this).add("type", mType).add("transId", mTransId)
         .add("parameters", mParameters).toString();
   }
 
