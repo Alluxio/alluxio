@@ -167,8 +167,8 @@ public final class MasterClient implements Closeable {
         mHeartbeatThread.start();
       } catch (TTransportException e) {
         lastException = e;
-        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress + " : "
-            + e.getMessage());
+        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress
+            + " : " + e.getMessage());
         if (mHeartbeatThread != null) {
           mHeartbeatThread.shutdown();
         }
