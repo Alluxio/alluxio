@@ -3,8 +3,8 @@ package tachyon.client.table;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.master.MasterInfo;
 import tachyon.util.CommonUtils;
 

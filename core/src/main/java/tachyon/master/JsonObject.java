@@ -28,14 +28,14 @@ abstract class JsonObject {
 
   private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
 
-  public Map<String, JsonNode> parameters = Maps.newHashMap();
+  public Map<String, JsonNode> mParameters = Maps.newHashMap();
 
   /**
    * Generic parameter getter, useful for custom classes or enums. Use a more specific getter, like
    * getLong(), when available.
    */
   public <T> T get(String name, Class<T> clazz) {
-    return OBJECT_MAPPER.convertValue(parameters.get(name), clazz);
+    return OBJECT_MAPPER.convertValue(mParameters.get(name), clazz);
   }
 
   /**
@@ -43,7 +43,7 @@ abstract class JsonObject {
    * using the help of <code>TypeReference</code>
    */
   public <T> T get(String name, TypeReference<T> typeReference) {
-    return OBJECT_MAPPER.convertValue(parameters.get(name), typeReference);
+    return OBJECT_MAPPER.convertValue(mParameters.get(name), typeReference);
   }
 
   public Boolean getBoolean(String name) {
@@ -92,7 +92,7 @@ abstract class JsonObject {
 
   /** Adds the given named parameter to the Json object. Value must be JSON-serializable. */
   public JsonObject withParameter(String name, Object value) {
-    parameters.put(name, OBJECT_MAPPER.convertValue(value, JsonNode.class));
+    mParameters.put(name, OBJECT_MAPPER.convertValue(value, JsonNode.class));
     return this;
   }
 }

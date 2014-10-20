@@ -36,8 +36,8 @@ import tachyon.util.CommonUtils;
 public class EditLog {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static int mBackUpLogStartNum = -1;
-  private static long mCurrentTId = 0;
+  private static int sBackUpLogStartNum = -1;
+  private static long sCurrentTId = 0;
 
   /**
    * Load edit log.
@@ -56,7 +56,7 @@ public class EditLog {
     }
     LOG.info("currentLogNum passed in was " + currentLogFileNum);
     int completedLogs = currentLogFileNum;
-    mBackUpLogStartNum = currentLogFileNum;
+    sBackUpLogStartNum = currentLogFileNum;
     String completedPath =
         path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     if (!ufs.exists(completedPath)) {
@@ -74,7 +74,7 @@ public class EditLog {
     loadSingleLog(info, path);
 
     ufs.close();
-    return mCurrentTId;
+    return sCurrentTId;
   }
 
   /**
@@ -104,9 +104,9 @@ public class EditLog {
         }
       }
 
-      mCurrentTId = op.transId;
+      sCurrentTId = op.mTransId;
       try {
-        switch (op.type) {
+        switch (op.mType) {
           case ADD_BLOCK: {
             info.opAddBlock(op.getInt("fileId"), op.getInt("blockIndex"),
                 op.getLong("blockLength"), op.getLong("opTimeMs"));
@@ -183,7 +183,7 @@ public class EditLog {
   }
 
   /**
-   * Make the edit log up-to-date, It will delete all editlogs since mBackUpLogStartNum.
+   * Make the edit log up-to-date, It will delete all editlogs since sBackUpLogStartNum.
    * 
    * @param path The path of the edit logs
    */
@@ -192,26 +192,26 @@ public class EditLog {
     String folder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     try {
       // delete all loaded editlogs since mBackupLogStartNum.
-      String toDelete = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
+      String toDelete = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
       while (ufs.exists(toDelete)) {
         LOG.info("Deleting editlog " + toDelete);
         ufs.delete(toDelete, true);
-        mBackUpLogStartNum ++;
-        toDelete = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
+        sBackUpLogStartNum++;
+        toDelete = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
       }
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
-    mBackUpLogStartNum = -1;
+    sBackUpLogStartNum = -1;
   }
 
-  /** When a master is replaying an edit log, mark the current edit log as an INACTIVE one. */
-  private final boolean INACTIVE;
+  /** When a master is replaying an edit log, mark the current edit log as an mInactive one. */
+  private final boolean mInactive;
 
-  private final String PATH;
+  private final String mPath;
 
   /** Writer used to serialize Operations into the edit log. */
-  private final ObjectWriter WRITER;
+  private final ObjectWriter mWriter;
 
   private UnderFileSystem mUfs;
 
@@ -239,28 +239,28 @@ public class EditLog {
    * @throws IOException
    */
   public EditLog(String path, boolean inactive, long transactionId) throws IOException {
-    INACTIVE = inactive;
+    mInactive = inactive;
 
-    if (!INACTIVE) {
+    if (!mInactive) {
       LOG.info("Creating edit log file " + path);
-      PATH = path;
+      mPath = path;
       mUfs = UnderFileSystem.get(path);
-      if (mBackUpLogStartNum != -1) {
+      if (sBackUpLogStartNum != -1) {
+        LOG.info("Deleting completed editlogs that are part of the image.");
+        deleteCompletedLogs(path, sBackUpLogStartNum);
+        LOG.info("Backing up logs from " + sBackUpLogStartNum + " since image is not updated.");
         String folder =
             path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "/completed";
-        LOG.info("Deleting completed editlogs that are part of the image.");
-        deleteCompletedLogs(path, mBackUpLogStartNum);
-        LOG.info("Backing up logs from " + mBackUpLogStartNum + " since image is not updated.");
         mUfs.mkdirs(folder, true);
-        String toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
+        String toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
         int currentLogFileNum = 0;
         String dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
         while (mUfs.exists(toRename)) {
           mUfs.rename(toRename, dstPath);
           LOG.info("Rename " + toRename + " to " + dstPath);
           currentLogFileNum ++;
-          mBackUpLogStartNum ++;
-          toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
+          sBackUpLogStartNum++;
+          toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
           dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
         }
         if (mUfs.exists(path)) {
@@ -269,7 +269,7 @@ public class EditLog {
           LOG.info("Rename " + path + " to " + dstPath);
           currentLogFileNum ++;
         }
-        mBackUpLogStartNum = -1;
+        sBackUpLogStartNum = -1;
       }
 
       // In case this file is created by different dfs-clients, which has been
@@ -282,13 +282,13 @@ public class EditLog {
       LOG.info("Created file " + path);
       mFlushedTransactionId = transactionId;
       mTransactionId = transactionId;
-      WRITER = JsonObject.createObjectMapper().writer();
+      mWriter = JsonObject.createObjectMapper().writer();
     } else {
-      PATH = null;
+      mPath = null;
       mUfs = null;
       mOs = null;
       mDos = null;
-      WRITER = null;
+      mWriter = null;
     }
   }
 
@@ -317,7 +317,7 @@ public class EditLog {
    * @param opTimeMs The time of the addBlock operation, in milliseconds
    */
   public synchronized void addBlock(int fileId, int blockIndex, long blockLength, long opTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -338,7 +338,7 @@ public class EditLog {
    */
   public synchronized void addCheckpoint(int fileId, long length, TachyonURI checkpointPath,
       long opTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -353,7 +353,7 @@ public class EditLog {
    * Close the log.
    */
   public synchronized void close() {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -372,7 +372,7 @@ public class EditLog {
    * @param opTimeMs The time of the completeFile operation, in milliseconds
    */
   public synchronized void completeFile(int fileId, long opTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -400,7 +400,7 @@ public class EditLog {
   public synchronized void createDependency(List<Integer> parents, List<Integer> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, DependencyType dependencyType, int depId, long creationTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -428,7 +428,7 @@ public class EditLog {
    */
   public synchronized void createFile(boolean recursive, TachyonURI path, boolean directory,
       long blockSizeByte, long creationTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -448,7 +448,7 @@ public class EditLog {
    * @param metadata Additional metadata about the table
    */
   public synchronized void createRawTable(int tableId, int columns, ByteBuffer metadata) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -467,7 +467,7 @@ public class EditLog {
    * @param opTimeMs The time of the delete operation, in milliseconds
    */
   public synchronized void delete(int fileId, boolean recursive, long opTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -502,7 +502,7 @@ public class EditLog {
    * Flush the log onto the storage.
    */
   public synchronized void flush() {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -512,7 +512,7 @@ public class EditLog {
         ((FSDataOutputStream) mOs).sync();
       }
       if (mDos.size() > mMaxLogSize) {
-        rotateEditLog(PATH);
+        rotateEditLog(mPath);
       }
     } catch (IOException e) {
       throw Throwables.propagate(e);
@@ -538,7 +538,7 @@ public class EditLog {
    * @param opTimeMs The time of the rename operation, in milliseconds
    */
   public synchronized void rename(int fileId, TachyonURI dstPath, long opTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -555,7 +555,7 @@ public class EditLog {
    * @param path The path of the edit log
    */
   public void rotateEditLog(String path) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -596,7 +596,7 @@ public class EditLog {
    * @param num
    */
   static void setBackUpLogStartNum(int num) {
-    mBackUpLogStartNum = num;
+    sBackUpLogStartNum = num;
   }
 
   /**
@@ -607,7 +607,7 @@ public class EditLog {
    * @param opTimeMs The time of the setPinned operation, in milliseconds
    */
   public synchronized void setPinned(int fileId, boolean pinned, long opTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -625,7 +625,7 @@ public class EditLog {
    * @param metadata The new metadata of the raw table
    */
   public synchronized void updateRawTableMetadata(int tableId, ByteBuffer metadata) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -638,7 +638,7 @@ public class EditLog {
 
   private void writeOperation(EditLogOperation operation) {
     try {
-      WRITER.writeValue(mDos, operation);
+      mWriter.writeValue(mDos, operation);
       mDos.writeByte('\n');
     } catch (IOException e) {
       throw Throwables.propagate(e);

@@ -13,7 +13,8 @@ public enum FileTransferType {
 
   /**
    * Uses
-   * {@link java.nio.channels.FileChannel#transferTo(long, long, java.nio.channels.WritableByteChannel)}
+   * {@link java.nio.channels.FileChannel#transferTo(long, long,
+   * java.nio.channels.WritableByteChannel)}
    * to transfer data over the network
    */
   TRANSFER

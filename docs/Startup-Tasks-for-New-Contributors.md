@@ -88,7 +88,11 @@ leverage the Scala shell, as discussed in this
           public void someMethod() { 
             LOG.info("Hello world");
           }
-        }       
+        }  
+-  To verify that the coding standards match, you should run [checkstyle](http://checkstyle.sourceforge.net) 
+   before sending a pull-request to verify no new warnings are introduced: 
+   
+        mvn checkstyle:checkstyle
 
 ### FindBugs
 

@@ -47,7 +47,6 @@ public class UIWebServer {
     webappcontext.setContextPath(TachyonURI.SEPARATOR);
     File warPath = new File(CommonConf.get().WEB_RESOURCES);
     webappcontext.setWar(warPath.getAbsolutePath());
-    HandlerList handlers = new HandlerList();
     webappcontext
         .addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)), "/home");
     webappcontext.addServlet(new ServletHolder(new WebInterfaceWorkersServlet(masterInfo)),
@@ -63,6 +62,7 @@ public class UIWebServer {
     webappcontext.addServlet(new ServletHolder(new WebInterfaceDownloadServlet(masterInfo)),
         "/download");
 
+    final HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {webappcontext, new DefaultHandler()});
     mServer.setHandler(handlers);
   }

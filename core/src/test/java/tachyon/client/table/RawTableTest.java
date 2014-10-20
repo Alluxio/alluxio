@@ -13,8 +13,8 @@ import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonByteBuffer;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.CommonConf;
 import tachyon.master.LocalTachyonCluster;
@@ -163,7 +163,7 @@ public class RawTableTest {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
       TachyonByteBuffer buf = file.readByteBuffer(0);
-      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.mData);
       buf.close();
     }
 
@@ -171,7 +171,7 @@ public class RawTableTest {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
       TachyonByteBuffer buf = file.readByteBuffer(0);
-      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.mData);
       buf.close();
     }
   }

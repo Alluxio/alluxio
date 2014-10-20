@@ -22,7 +22,7 @@ public class LocalBlockInStream extends BlockInStream {
     super(file, readType, blockIndex);
 
     mTachyonBuffer = buf;
-    mBuffer = mTachyonBuffer.DATA;
+    mBuffer = mTachyonBuffer.mData;
   }
 
   @Override
@@ -43,12 +43,12 @@ public class LocalBlockInStream extends BlockInStream {
   }
 
   @Override
-  public int read(byte b[]) throws IOException {
+  public int read(byte[] b) throws IOException {
     return read(b, 0, b.length);
   }
 
   @Override
-  public int read(byte b[], int off, int len) throws IOException {
+  public int read(byte[] b, int off, int len) throws IOException {
     if (b == null) {
       throw new NullPointerException();
     } else if (off < 0 || len < 0 || len > b.length - off) {

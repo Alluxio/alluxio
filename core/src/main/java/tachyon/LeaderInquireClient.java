@@ -19,16 +19,16 @@ public class LeaderInquireClient {
   private static final int MAX_TRY = 10;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static HashMap<String, LeaderInquireClient> createdClients =
+  private static HashMap<String, LeaderInquireClient> sCreatedClients =
       new HashMap<String, LeaderInquireClient>();
 
   public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
       String leaderPath) {
     String key = zookeeperAddress + leaderPath;
-    if (!createdClients.containsKey(key)) {
-      createdClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
+    if (!sCreatedClients.containsKey(key)) {
+      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
     }
-    return createdClients.get(key);
+    return sCreatedClients.get(key);
   }
 
   private final String mZookeeperAddress;
