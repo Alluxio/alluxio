@@ -146,13 +146,9 @@ public final class CommonUtils {
   }
 
   public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
-    StringBuilder sb = new StringBuilder(data.length);
-    for (int i = offset; i < length; i ++) {
-      if (data[i] < 128) {
-        sb.append((char) data[i]);
-      } else {
-        return null;
-      }
+    StringBuilder sb = new StringBuilder(length);
+    for (int i = offset; i < length && i < data.length; i ++) {
+      sb.append((char) data[i]);
     }
     return sb.toString();
   }
