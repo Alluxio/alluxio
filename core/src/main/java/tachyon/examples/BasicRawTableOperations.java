@@ -111,7 +111,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
     }
   }
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws IllegalArgumentException {
     if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION
           + "-jar-with-dependencies.jar "
@@ -119,6 +119,6 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       System.exit(-1);
     }
     Utils.runExample(new BasicRawTableOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
-        WriteType.getOpType(args[2])));
+        WriteType.valueOf(args[2])));
   }
 }
