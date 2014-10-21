@@ -35,7 +35,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * Class to make referencing file objects more intuitive. Mainly to avoid implicit association by
    * array indexes.
    */
-  public static class UiBlockInfo implements Comparable<UiBlockInfo> {
+  public static final class UiBlockInfo {
     private final long mId;
     private final long mBlockLength;
     private final boolean mInMemory;
@@ -44,11 +44,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       mId = blockInfo.mBlockId;
       mBlockLength = blockInfo.mLength;
       mInMemory = blockInfo.isInMemory();
-    }
-
-    @Override
-    public int compareTo(UiBlockInfo p) {
-      return (mId < p.mId ? -1 : (mId == p.mId ? 0 : 1));
     }
 
     public long getBlockLength() {
