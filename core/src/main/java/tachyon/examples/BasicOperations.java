@@ -88,7 +88,7 @@ public class BasicOperations implements Callable<Boolean> {
     return pass;
   }
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws IllegalArgumentException {
     if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION
           + "-jar-with-dependencies.jar "
@@ -97,6 +97,6 @@ public class BasicOperations implements Callable<Boolean> {
     }
 
     Utils.runExample(new BasicOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
-        WriteType.getOpType(args[2])));
+        WriteType.valueOf(args[2])));
   }
 }
