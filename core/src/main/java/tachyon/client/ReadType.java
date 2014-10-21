@@ -1,7 +1,5 @@
 package tachyon.client;
 
-import java.io.IOException;
-
 /**
  * Different read types for a TachyonFile.
  */
@@ -14,23 +12,6 @@ public enum ReadType {
    * Read the file and cache it.
    */
   CACHE(2);
-
-  /**
-   * Parse the read type
-   * 
-   * @param op the String format of the read type
-   * @return the read type
-   * @throws IOException
-   */
-  public static ReadType getOpType(String op) throws IOException {
-    if (op.equals("NO_CACHE")) {
-      return NO_CACHE;
-    } else if (op.equals("CACHE")) {
-      return CACHE;
-    }
-
-    throw new IOException("Unknown ReadType : " + op);
-  }
 
   private final int mValue;
 
