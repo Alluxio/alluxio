@@ -18,10 +18,10 @@ public enum ReadType {
    * 
    * @param op the String format of the read type
    * @return the read type
-   * @throws RuntimeException
+   * @throws IllegalArgumentException
    */
-  public static ReadType getOpType(String op) throws RuntimeException {
-    return Enum.valueOf(ReadType.class, op);
+  public static ReadType getOpType(String op) throws IllegalArgumentException {
+    return ReadType.valueOf(op);
   }
 
   private final int mValue;
