@@ -1,6 +1,5 @@
 package tachyon.examples;
 
-import java.io.IOException;
 import java.util.concurrent.Callable;
 
 import tachyon.Constants;
@@ -53,7 +52,7 @@ public final class Utils {
     if (index < args.length && index >= 0) {
       try {
         return WriteType.getOpType(args[index]);
-      } catch (RuntimeException e) {
+      } catch (IllegalArgumentException e) {
         System.err.println("Unable to parse WriteType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);
         return defaultValue;
@@ -67,7 +66,7 @@ public final class Utils {
     if (index < args.length && index >= 0) {
       try {
         return ReadType.getOpType(args[index]);
-      } catch (RuntimeException e) {
+      } catch (IllegalArgumentException e) {
         System.err.println("Unable to parse ReadType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);
         return defaultValue;
