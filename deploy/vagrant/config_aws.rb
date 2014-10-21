@@ -6,10 +6,10 @@
 def config_aws(config, i, total, name)
   config.vm.provider :aws do |aws, override|
     aws.keypair_name = KEYPAIR
-    aws.security_groups =  	SECURITY_GROUP
+    aws.security_groups = SECURITY_GROUP
     aws.ami = AMI
     aws.region = REGION
-    aws.instance_type= INSTANCE_TYPE
+    aws.instance_type = INSTANCE_TYPE
     aws.tags = {
       'Name' => name,
     }

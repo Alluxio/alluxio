@@ -16,12 +16,16 @@ Once Vagrant is installed, starting an Tachyon cluster requires only `vagrant up
 
 `init.yml` is the configuration file that sets different cluster parameters. The file is self-explanatory.  
 
+## VirtualBox VM
+
+Run command `vagrant up [--provider=virtualbox]` to start VirtualBox VM. After VM is up, login to the VM as `root` and password as `vagrant`.
+
 ## Amazon EC2 Instances
 
 Install aws vagrant plugin first. To date, 0.5.0 plugin is tested.
 
 `vagrant plugin install vagrant-aws`
 
-Then update configurations in `ec2-config.yml`. 
+Then update configurations in `ec2-config.yml` and shell environment variables `AWS_ACCESS_KEY` and `AWS_SECRET_KEY`.
 
-Run `vagrant up --provider=aws` to create EC2 instances.
+Run `vagrant up --provider=aws [--no-parallel]` to create EC2 instances.

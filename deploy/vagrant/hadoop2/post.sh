@@ -6,7 +6,8 @@
 echo "check hadoop processes ..."
 jps
 echo "check node list..."
-/hadoop/bin/yarn node -list
+until /hadoop/bin/yarn node -list -all ; do sleep 1; done
 echo "check storage space..."
-/hadoop/bin/hadoop fs -df -h /
+until /hadoop/bin/hdfs dfsadmin -report ; do sleep 1; done;
+
 
