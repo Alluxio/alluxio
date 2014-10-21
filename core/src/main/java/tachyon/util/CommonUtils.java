@@ -145,9 +145,9 @@ public final class CommonUtils {
     return retPath;
   }
 
-  public static String convertByteArrayToStringWithoutEscape(byte[] data) {
+  public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
     StringBuilder sb = new StringBuilder(data.length);
-    for (int i = 0; i < data.length; i ++) {
+    for (int i = offset; i < length; i ++) {
       if (data[i] < 128) {
         sb.append((char) data[i]);
       } else {
