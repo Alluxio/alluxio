@@ -25,17 +25,6 @@ public enum WriteType {
    */
   ASYNC_THROUGH(5);
 
-  /**
-   * Parse the write type
-   * 
-   * @param op the String format of the write type
-   * @return the write type
-   * @throws IllegalArgumentException
-   */
-  public static WriteType getOpType(String op) throws IllegalArgumentException {
-    return WriteType.valueOf(op);
-  }
-
   private final int mValue;
 
   private WriteType(int value) {

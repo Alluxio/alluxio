@@ -51,7 +51,7 @@ public final class Utils {
   public static WriteType option(String[] args, int index, WriteType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
-        return WriteType.getOpType(args[index]);
+        return WriteType.valueOf(args[index]);
       } catch (IllegalArgumentException e) {
         System.err.println("Unable to parse WriteType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);
@@ -65,7 +65,7 @@ public final class Utils {
   public static ReadType option(String[] args, int index, ReadType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
-        return ReadType.getOpType(args[index]);
+        return ReadType.valueOf(args[index]);
       } catch (IllegalArgumentException e) {
         System.err.println("Unable to parse ReadType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);

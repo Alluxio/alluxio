@@ -13,17 +13,6 @@ public enum ReadType {
    */
   CACHE(2);
 
-  /**
-   * Parse the read type
-   * 
-   * @param op the String format of the read type
-   * @return the read type
-   * @throws IllegalArgumentException
-   */
-  public static ReadType getOpType(String op) throws IllegalArgumentException {
-    return ReadType.valueOf(op);
-  }
-
   private final int mValue;
 
   private ReadType(int value) {
