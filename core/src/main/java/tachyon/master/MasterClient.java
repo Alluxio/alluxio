@@ -80,8 +80,7 @@ public class MasterClient implements Closeable {
   }
 
   /**
-   * @param workerId
-   *          if -1, means the checkpoint is added directly by the client from underlayer fs.
+   * @param workerId if -1, means the checkpoint is added directly by the client from underlayer fs.
    * @param fileId
    * @param length
    * @param checkpointPath
