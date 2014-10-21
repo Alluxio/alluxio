@@ -597,7 +597,12 @@ public class TachyonFS extends AbstractTachyonFS {
     return new TachyonURI(scheme, authority, TachyonURI.SEPARATOR);
   }
   
-  synchronized long getUserId() throws IOException {
+  /**
+   * Returns the userId of the master client. This is only used for testing.
+   * @return the userId of the master client
+   * @throws IOException
+   */
+  long getUserId() throws IOException {
     return mMasterClient.getUserId();
   }
 
