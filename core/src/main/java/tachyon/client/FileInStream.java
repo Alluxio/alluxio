@@ -136,7 +136,9 @@ public class FileInStream extends InStream {
       tLen -= tRead;
       tOff += tRead;
     }
-
+    if(tLen == len){
+        return -1;
+    }
     return len - tLen;
   }
 
