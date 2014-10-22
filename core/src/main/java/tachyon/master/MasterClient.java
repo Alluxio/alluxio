@@ -92,13 +92,17 @@ public class MasterClient implements Closeable {
   public synchronized boolean addCheckpoint(long workerId, int fileId, long length,
       String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException,
       BlockInfoException, IOException {
-    mustConnect();
-    try {
-      return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return false;
   }
 
   /**
@@ -120,56 +124,81 @@ public class MasterClient implements Closeable {
   }
 
   /**
-   * Tries to connect to the Tachyon Master; an exception is thrown if this fails. Most methods will
-   * use the mustConnect method, which tries connecting multiple times before failing.
+   * Connects to the Tachyon Master; an exception is thrown if this fails.
    */
-  private synchronized void connect() throws IOException {
+  public synchronized void connect() throws IOException {
     if (mConnected) {
       return;
     }
+
     close();
 
-    mMasterAddress = getMasterAddress();
-    LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect master @ "
-        + mMasterAddress);
-
-    mProtocol =
-        new TBinaryProtocol(new TFramedTransport(new TSocket(
-            NetworkUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
-    mClient = new MasterService.Client(mProtocol);
-    try {
-      mProtocol.getTransport().open();
-      mHeartbeatThread =
-          new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(this),
-              UserConf.get().HEARTBEAT_INTERVAL_MS);
-      mHeartbeatThread.start();
-    } catch (TTransportException e) {
-      close();
-      throw new IOException("Failed to connect to master " + mMasterAddress + " : "
-          + e.getMessage());
+    if (mIsShutdown) {
+      throw new IOException("Client is shutdown, will not try to connect");
     }
 
-    try {
-      mUserId = mClient.user_getUserId();
-    } catch (TException e) {
-      close();
-      throw new IOException(e.getMessage());
+    int tries = 0;
+    Exception lastException = null;
+    while (tries ++ < MAX_CONNECT_TRY && !mIsShutdown) {
+      mMasterAddress = getMasterAddress();
+
+      LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect master @ "
+          + mMasterAddress);
+
+      mProtocol =
+          new TBinaryProtocol(new TFramedTransport(new TSocket(
+              NetworkUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
+      mClient = new MasterService.Client(mProtocol);
+      try {
+        mProtocol.getTransport().open();
+
+        mHeartbeatThread =
+            new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(this),
+                UserConf.get().HEARTBEAT_INTERVAL_MS / 2);
+        mHeartbeatThread.start();
+      } catch (TTransportException e) {
+        lastException = e;
+        LOG.error("Failed to connect (" + tries + ") to master " + mMasterAddress + " : "
+            + e.getMessage());
+        if (mHeartbeatThread != null) {
+          mHeartbeatThread.shutdown();
+        }
+        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
+        continue;
+      }
+
+      try {
+        mUserId = mClient.user_getUserId();
+      } catch (TException e) {
+        lastException = e;
+        LOG.error(e.getMessage(), e);
+        continue;
+      }
+      LOG.info("User registered at the master " + mMasterAddress + " got UserId " + mUserId);
+
+      mConnected = true;
+      return;
     }
 
-    LOG.info("User registered at the master " + mMasterAddress + " got UserId " + mUserId);
-    mConnected = true;
+    // Reaching here indicates that we did not successfully connect.
+    throw new IOException("Failed to connect to master " + mMasterAddress + " after " + (tries - 1)
+        + " attempts", lastException);
   }
 
   public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
-    mustConnect();
-    try {
-      return mClient.user_getClientDependencyInfo(did);
-    } catch (DependencyDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_getClientDependencyInfo(did);
+      } catch (DependencyDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return null;
   }
 
   public synchronized ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
@@ -179,15 +208,20 @@ public class MasterClient implements Closeable {
     if (fileId == -1 && !path.startsWith(TachyonURI.SEPARATOR)) {
       throw new IOException("Illegal path parameter: " + path);
     }
-    mustConnect();
-    try {
-      return mClient.getFileStatus(fileId, path);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.getFileStatus(fileId, path);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return null;
   }
 
   private synchronized InetSocketAddress getMasterAddress() {
@@ -208,18 +242,27 @@ public class MasterClient implements Closeable {
   }
 
   public synchronized long getUserId() throws IOException {
-    mustConnect();
-    return mUserId;
+    while (!mIsShutdown) {
+      connect();
+
+      return mUserId;
+    }
+
+    return -1;
   }
 
   public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
-    mustConnect();
-    try {
-      return mClient.getWorkersInfo();
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.getWorkersInfo();
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return null;
   }
 
   public synchronized boolean isConnected() {
@@ -227,37 +270,20 @@ public class MasterClient implements Closeable {
   }
 
   public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
-    mustConnect();
-    try {
-      return mClient.liststatus(path);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  synchronized void mustConnect() throws IOException {
-    if (mIsShutdown) {
-      throw new IOException("Client is shutdown, will not try to connect");
-    }
-    for (int tries = 0; tries < MAX_CONNECT_TRY; ++ tries) {
+    while (!mIsShutdown) {
+      connect();
       try {
-        connect();
-      } catch (IOException e) {
-        String errmsg =
-            "Failed to connect to master at address " + mMasterAddress + " after (" + (tries + 1)
-            + "): " + e.getMessage();
-        if (tries == MAX_CONNECT_TRY - 1) {
-          throw new IOException(errmsg);
-        } else {
-          LOG.error(errmsg);
-        }
+        return mClient.liststatus(path);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
+    return null;
   }
 
   private synchronized void parameterCheck(int id, String path) throws IOException {
@@ -268,46 +294,53 @@ public class MasterClient implements Closeable {
       throw new IOException("Illegal path parameter: " + path);
     }
   }
-  
+
   public synchronized void shutdown() {
     close();
     mIsShutdown = true;
   }
 
   public synchronized void user_completeFile(int fId) throws IOException {
-    mustConnect();
-    try {
-      mClient.user_completeFile(fId);
-      return;
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        mClient.user_completeFile(fId);
+        return;
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
   }
 
   public synchronized int user_createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
-    mustConnect();
-    try {
-      return mClient.user_createDependency(parents, children, commandPrefix, data, comment,
-          framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
-    } catch (BlockInfoException e) {
-      throw new IOException(e);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_createDependency(parents, children, commandPrefix, data, comment,
+            framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return -1;
   }
 
   public synchronized int user_createFile(String path, String ufsPath, long blockSizeByte,
@@ -319,33 +352,41 @@ public class MasterClient implements Closeable {
       ufsPath = "";
     }
 
-    mustConnect();
-    try {
-      return mClient.user_createFile(path, ufsPath, blockSizeByte, recursive);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (BlockInfoException e) {
-      throw new IOException(e);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_createFile(path, ufsPath, blockSizeByte, recursive);
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return -1;
   }
 
   public synchronized long user_createNewBlock(int fId) throws IOException {
-    mustConnect();
-    try {
-      return mClient.user_createNewBlock(fId);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_createNewBlock(fId);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return -1;
   }
 
   public synchronized int user_createRawTable(String path, int columns, ByteBuffer metadata)
@@ -353,276 +394,350 @@ public class MasterClient implements Closeable {
     if (metadata == null) {
       metadata = ByteBuffer.allocate(0);
     }
-    mustConnect();
-    try {
-      return mClient.user_createRawTable(path, columns, metadata);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (TableColumnException e) {
-      throw new IOException(e);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_createRawTable(path, columns, metadata);
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TableColumnException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return -1;
   }
 
   public synchronized boolean user_delete(int fileId, String path, boolean recursive)
       throws IOException {
-    mustConnect();
-    try {
-      return mClient.user_delete(fileId, path, recursive);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_delete(fileId, path, recursive);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return false;
   }
 
   public synchronized long user_getBlockId(int fId, int index) throws IOException {
-    mustConnect();
-    try {
-      return mClient.user_getBlockId(fId, index);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_getBlockId(fId, index);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return -1;
   }
 
   public synchronized ClientBlockInfo user_getClientBlockInfo(long blockId) throws IOException {
-    mustConnect();
-    try {
-      return mClient.user_getClientBlockInfo(blockId);
-    } catch (FileDoesNotExistException e) {
-      throw new FileNotFoundException(e.getMessage());
-    } catch (BlockInfoException e) {
-      throw new IOException(e.getMessage(), e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_getClientBlockInfo(blockId);
+      } catch (FileDoesNotExistException e) {
+        throw new FileNotFoundException(e.getMessage());
+      } catch (BlockInfoException e) {
+        throw new IOException(e.getMessage(), e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return null;
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfo(int id, String path)
       throws IOException {
     parameterCheck(id, path);
-    mustConnect();
-    try {
-      ClientRawTableInfo ret = mClient.user_getClientRawTableInfo(id, path);
-      ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
-      return ret;
-    } catch (TableDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        ClientRawTableInfo ret = mClient.user_getClientRawTableInfo(id, path);
+        ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
+        return ret;
+      } catch (TableDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return null;
   }
 
   public synchronized List<ClientBlockInfo> user_getFileBlocks(int fileId, String path)
       throws IOException {
     parameterCheck(fileId, path);
-    mustConnect();
-    try {
-      return mClient.user_getFileBlocks(fileId, path);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_getFileBlocks(fileId, path);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return null;
   }
 
   public synchronized int user_getRawTableId(String path) throws IOException {
-    mustConnect();
-    try {
-      return mClient.user_getRawTableId(path);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_getRawTableId(path);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return -1;
   }
 
   public synchronized String user_getUfsAddress() throws IOException {
-    mustConnect();
-    try {
-      return mClient.user_getUfsAddress();
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_getUfsAddress();
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return null;
   }
 
   public synchronized NetAddress user_getWorker(boolean random, String hostname)
       throws NoWorkerException, IOException {
-    mustConnect();
-    try {
-      return mClient.user_getWorker(random, hostname);
-    } catch (NoWorkerException e) {
-      throw e;
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_getWorker(random, hostname);
+      } catch (NoWorkerException e) {
+        throw e;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return null;
   }
-  
+
   public synchronized void user_heartbeat() throws IOException {
-    mustConnect();
-    try {
-      mClient.user_heartbeat();
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+      try {
+        mClient.user_heartbeat();
+        return;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
   }
 
   public synchronized boolean user_mkdirs(String path, boolean recursive) throws IOException {
-    mustConnect();
-    try {
-      return mClient.user_mkdirs(path, recursive);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_mkdirs(path, recursive);
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return false;
   }
 
   public synchronized boolean user_rename(int fileId, String srcPath, String dstPath)
       throws IOException {
     parameterCheck(fileId, srcPath);
-    mustConnect();
-    try {
-      return mClient.user_rename(fileId, srcPath, dstPath);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_rename(fileId, srcPath, dstPath);
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return false;
   }
 
   public synchronized void user_reportLostFile(int fileId) throws IOException {
-    mustConnect();
-    try {
-      mClient.user_reportLostFile(fileId);
-      return;
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        mClient.user_reportLostFile(fileId);
+        return;
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
   }
 
   public synchronized void user_requestFilesInDependency(int depId) throws IOException {
-    mustConnect();
-    try {
-      mClient.user_requestFilesInDependency(depId);
-      return;
-    } catch (DependencyDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        mClient.user_requestFilesInDependency(depId);
+        return;
+      } catch (DependencyDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
   }
 
   public synchronized void user_setPinned(int id, boolean pinned) throws IOException {
-    mustConnect();
-    try {
-      mClient.user_setPinned(id, pinned);
-      return;
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        mClient.user_setPinned(id, pinned);
+        return;
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
   }
 
   public synchronized void user_updateRawTableMetadata(int id, ByteBuffer metadata)
       throws IOException {
-    mustConnect();
-    try {
-      mClient.user_updateRawTableMetadata(id, metadata);
-      return;
-    } catch (TableDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        mClient.user_updateRawTableMetadata(id, metadata);
+        return;
+      } catch (TableDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
   }
 
   public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId,
       long length) throws IOException, FileDoesNotExistException, SuspectedFileSizeException,
       BlockInfoException {
-    mustConnect();
-    try {
-      mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
-      return;
-    } catch (FileDoesNotExistException e) {
-      throw e;
-    } catch (SuspectedFileSizeException e) {
-      throw e;
-    } catch (BlockInfoException e) {
-      throw e;
-    } catch (TTransportException e) {
-      mConnected = false;
-      throw new IOException(e);
-    } catch (TException e) {
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
+        return;
+      } catch (FileDoesNotExistException e) {
+        throw e;
+      } catch (SuspectedFileSizeException e) {
+        throw e;
+      } catch (BlockInfoException e) {
+        throw e;
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      } catch (TException e) {
+        throw new IOException(e);
+      }
     }
   }
 
   public synchronized Set<Integer> worker_getPinIdList() throws IOException {
-    mustConnect();
-    try {
-      return mClient.worker_getPinIdList();
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.worker_getPinIdList();
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return null;
   }
 
   public synchronized List<Integer> worker_getPriorityDependencyList() throws IOException {
-    mustConnect();
-    try {
-      return mClient.worker_getPriorityDependencyList();
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.worker_getPriorityDependencyList();
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return new ArrayList<Integer>();
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
       List<Long> removedPartitionList) throws BlockInfoException, IOException {
-    mustConnect();
-    try {
-      return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return null;
   }
 
   /**
@@ -633,6 +748,7 @@ public class MasterClient implements Closeable {
    * @param totalBytes
    *          Worker's capacity
    * @param usedBytes
+    return null;
    *          Worker's used storage
    * @param currentBlockList
    *          Blocks in worker's space.
@@ -642,16 +758,20 @@ public class MasterClient implements Closeable {
    */
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
       long usedBytes, List<Long> currentBlockList) throws BlockInfoException, IOException {
-    mustConnect();
-    try {
-      long ret =
-          mClient.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList);
-      LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress
-          + " , got WorkerId " + ret);
-      return ret;
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        long ret =
+            mClient.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList);
+        LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress
+            + " , got WorkerId " + ret);
+        return ret;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
     }
+    return -1;
   }
 }
