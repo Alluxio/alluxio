@@ -10,12 +10,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -39,8 +40,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
   private final UserConf mUserConf = UserConf.get();
 
   private Object mUFSConf = null;
-
-  private final Map<Integer, ClientBlockInfo> mBlockInfos = new HashMap<Integer, ClientBlockInfo>();
+  private final Cache<Integer, ClientBlockInfo> mBlockInfos = CacheBuilder.newBuilder()
+      .<Integer, ClientBlockInfo>build();
 
   /**
    * A Tachyon File handler, based file id
@@ -111,13 +112,12 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
-    if (mBlockInfos.containsKey(blockIndex)) {
-      return mBlockInfos.get(blockIndex);
-    } else {
-      ClientBlockInfo blockInfo = mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
+    ClientBlockInfo blockInfo = mBlockInfos.getIfPresent(blockIndex);
+    if (blockInfo == null) {
+      blockInfo = mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
       mBlockInfos.put(blockIndex, blockInfo);
-      return blockInfo;
     }
+    return blockInfo;
   }
 
   /**
