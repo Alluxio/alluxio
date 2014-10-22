@@ -15,3 +15,5 @@ journal/
 logs/
 script/
 target/
+deploy/vagrant/shared
+deploy/vagrant/.vagrant/
