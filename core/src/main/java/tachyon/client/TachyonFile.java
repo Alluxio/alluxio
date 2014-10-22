@@ -2,15 +2,17 @@ package tachyon.client;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
   private final UserConf mUserConf = UserConf.get();
 
   private Object mUFSConf = null;
+
+  private final Map<Integer, ClientBlockInfo> mBlockInfos = new HashMap<Integer, ClientBlockInfo>();
 
   /**
    * A Tachyon File handler, based file id
@@ -107,7 +111,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
-    return mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
+    if (mBlockInfos.containsKey(blockIndex)) {
+      return mBlockInfos.get(blockIndex);
+    } else {
+      ClientBlockInfo blockInfo = mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
+      mBlockInfos.put(blockIndex, blockInfo);
+      return blockInfo;
+    }
   }
 
   /**
