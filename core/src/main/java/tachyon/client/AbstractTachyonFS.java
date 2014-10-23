@@ -53,32 +53,6 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   }
 
   /**
-   * Deletes the file denoted by the file id.
-   * 
-   * @param fid file id
-   * @param recursive if delete the path recursively.
-   * @return true if deletion succeed (including the case the file does not exist in the first
-   *         place), false otherwise.
-   * @throws IOException
-   */
-  public synchronized boolean delete(int fid, boolean recursive) throws IOException {
-    return delete(fid, TachyonURI.EMPTY_URI, recursive);
-  }
-
-  /**
-   * Deletes the file denoted by the path.
-   * 
-   * @param path the file path
-   * @param recursive if delete the path recursively.
-   * @return true if the deletion succeed (including the case that the path does not exist in the
-   *         first place), false otherwise.
-   * @throws IOException
-   */
-  public synchronized boolean delete(TachyonURI path, boolean recursive) throws IOException {
-    return delete(-1, path, recursive);
-  }
-
-  /**
    * Create a directory if it does not exist. The method also creates necessary non-existing parent
    * folders.
    * 
@@ -88,29 +62,5 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    */
   public synchronized boolean mkdir(TachyonURI path) throws IOException {
     return mkdirs(path, true);
-  }
-
-  /**
-   * Renames the file
-   * 
-   * @param fileId the file id
-   * @param dstPath the new path of the file in the file system.
-   * @return true if succeed, false otherwise
-   * @throws IOException
-   */
-  public synchronized boolean rename(int fileId, TachyonURI dstPath) throws IOException {
-    return rename(fileId, TachyonURI.EMPTY_URI, dstPath);
-  }
-
-  /**
-   * Rename the srcPath to the dstPath
-   * 
-   * @param srcPath The path of the source file / folder.
-   * @param dstPath The path of the destination file / folder.
-   * @return true if succeed, false otherwise.
-   * @throws IOException
-   */
-  public synchronized boolean rename(TachyonURI srcPath, TachyonURI dstPath) throws IOException {
-    return rename(-1, srcPath, dstPath);
   }
 }

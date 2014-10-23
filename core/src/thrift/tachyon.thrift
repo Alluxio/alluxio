@@ -187,7 +187,10 @@ service MasterService {
   NetAddress user_getWorker(1: bool random, 2: string host)
     throws (1: NoWorkerException e)
 
-  ClientFileInfo getFileStatus(1: i32 fileId, 2: string path)
+  ClientFileInfo getFileStatus(1: string path)
+    throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
+
+  ClientFileInfo getFileStatusById(1: i32 fileId)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 
   /**
@@ -199,13 +202,23 @@ service MasterService {
   /**
    * Get file blocks info.
    */
-  list<ClientBlockInfo> user_getFileBlocks(1: i32 fileId, 2: string path)
+  list<ClientBlockInfo> user_getFileBlocks(1: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 
-  bool user_delete(1: i32 fileId, 2: string path, 3: bool recursive) // Delete file
+  list<ClientBlockInfo> user_getFileBlocksById(1: i32 fileId)
+    throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
+
+  bool user_delete(1: string path, 3: bool recursive) // Delete file
     throws (1: TachyonException e)
 
-  bool user_rename(1: i32 fileId, 2: string srcPath, 3: string dstPath)
+  bool user_deleteById(1: i32 fileId, 2: bool recursive) // Delete file
+    throws (1: TachyonException e)
+
+  bool user_rename(1: string srcPath, 2: string dstPath)
+    throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF,
+      3: InvalidPathException eI)
+
+  bool user_renameById(1: i32 fileId, 2: string dstPath)
     throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF,
       3: InvalidPathException eI)
 
@@ -229,7 +242,10 @@ service MasterService {
    * Get RawTable's info; Return a ClientRawTable instance with id 0 if the system does not contain
    * the table. path if valid iff id is -1.
    */
-  ClientRawTableInfo user_getClientRawTableInfo(1: i32 id, 2: string path)
+  ClientRawTableInfo user_getClientRawTableInfo(1: string path)
+    throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI)
+
+  ClientRawTableInfo user_getClientRawTableInfoById(1: i32 id)
     throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI)
 
   void user_updateRawTableMetadata(1: i32 tableId, 2: binary metadata)

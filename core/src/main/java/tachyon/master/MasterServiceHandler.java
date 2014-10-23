@@ -58,14 +58,15 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException,
+  public ClientFileInfo getFileStatus(String path) throws InvalidPathException,
       TException {
-    if (fileId != -1) {
-      return mMasterInfo.getClientFileInfo(fileId);
-
-    }
-
     return mMasterInfo.getClientFileInfo(new TachyonURI(path));
+  }
+
+  @Override
+  public ClientFileInfo getFileStatusById(int fileId) throws InvalidPathException,
+      TException {
+    return mMasterInfo.getClientFileInfo(fileId);
   }
 
   @Override
@@ -143,12 +144,15 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean user_delete(int fileId, String path, boolean recursive) throws TachyonException,
+  public boolean user_delete(String path, boolean recursive) throws TachyonException,
       TException {
-    if (fileId != -1) {
-      return mMasterInfo.delete(fileId, recursive);
-    }
     return mMasterInfo.delete(new TachyonURI(path), recursive);
+  }
+
+  @Override
+  public boolean user_deleteById(int fileId, boolean recursive) throws TachyonException,
+      TException {
+    return mMasterInfo.delete(fileId, recursive);
   }
 
   @Override
@@ -175,29 +179,35 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public ClientRawTableInfo user_getClientRawTableInfo(int id, String path)
+  public ClientRawTableInfo user_getClientRawTableInfo(String path)
       throws TableDoesNotExistException, InvalidPathException, TException {
-    if (id != -1) {
-      return mMasterInfo.getClientRawTableInfo(id);
-    }
-
     return mMasterInfo.getClientRawTableInfo(new TachyonURI(path));
   }
 
   @Override
-  public List<ClientBlockInfo> user_getFileBlocks(int fileId, String path)
+  public ClientRawTableInfo user_getClientRawTableInfoById(int id)
+      throws TableDoesNotExistException, InvalidPathException, TException {
+    return mMasterInfo.getClientRawTableInfo(id);
+  }
+
+  @Override
+  public List<ClientBlockInfo> user_getFileBlocks(String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
-    List<ClientBlockInfo> ret = null;
     try {
-      if (fileId != -1) {
-        ret = mMasterInfo.getFileBlocks(fileId);
-      } else {
-        ret = mMasterInfo.getFileBlocks(new TachyonURI(path));
-      }
+      return mMasterInfo.getFileBlocks(new TachyonURI(path));
     } catch (IOException e) {
       throw new FileDoesNotExistException(e.getMessage());
     }
-    return ret;
+  }
+
+  @Override
+  public List<ClientBlockInfo> user_getFileBlocksById(int fileId)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    try {
+      return mMasterInfo.getFileBlocks(fileId);
+    } catch (IOException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    }
   }
 
   @Override
@@ -241,14 +251,17 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean user_rename(int fileId, String srcPath, String dstPath)
+  public boolean user_rename(String srcPath, String dstPath)
       throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException,
       TException {
-    if (fileId != -1) {
-      return mMasterInfo.rename(fileId, new TachyonURI(dstPath));
-    }
-
     return mMasterInfo.rename(new TachyonURI(srcPath), new TachyonURI(dstPath));
+  }
+
+  @Override
+  public boolean user_renameById(int fileId, String dstPath)
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException,
+      TException {
+    return mMasterInfo.rename(fileId, new TachyonURI(dstPath));
   }
 
   @Override
