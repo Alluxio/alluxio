@@ -44,7 +44,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   private Object mUFSConf = null;
   private final LoadingCache<Integer, ClientBlockInfo> mBlockInfos = CacheBuilder.newBuilder()
-      .maximumSize(100).expireAfterWrite(1000, TimeUnit.MILLISECONDS)
+      .maximumSize(100).expireAfterWrite(2, TimeUnit.SECONDS)
       .build(new CacheLoader<Integer, ClientBlockInfo>() {
         @Override
         public ClientBlockInfo load(Integer blockIndex) throws IOException {
@@ -124,7 +124,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     try {
       return mBlockInfos.get(blockIndex);
     } catch (ExecutionException e) {
-      throw new IOException(e);
+      throw new IOException(e.getCause());
     }
   }
 
