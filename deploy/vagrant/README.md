@@ -12,7 +12,7 @@ Tachyon uses a variety of under filesystems. Some of these filesystems must be i
 
 This directory contains Vagrant recipe to create VirtualBox images and Amazon EC2 instances and configurations to initialize Hadoop (both 1.x and 2.x), CephFS, and GlusterFS.
 
-Once Vagrant is installed, starting an Tachyon cluster requires only `vagrant up` command. A two-VM cluster is then created. `vagrant destroy` command destroys the cluster.
+Please download and install Vagrant (at least version 1.6.5). Once Vagrant is installed, starting an Tachyon cluster requires only `vagrant up` command. A two-VM cluster is then created. `vagrant destroy` command destroys the cluster.
 
 `init.yml` is the configuration file that sets different cluster parameters. They are explained below.  
 
@@ -48,7 +48,7 @@ Run command `vagrant up [--provider=virtualbox]` to start VirtualBox VM. After V
 
 Install aws vagrant plugin first. To date, 0.5.0 plugin is tested.
 
-`vagrant plugin install vagrant-aws`
+    `vagrant plugin install vagrant-aws`
 
 Then update configurations in `ec2-config.yml` and shell environment variables `AWS_ACCESS_KEY` and `AWS_SECRET_KEY`.
 
@@ -60,7 +60,7 @@ A sample `init.yml.glusterfs` is provided. Copy or link it to `init.yml`. Make s
 
 Then start the clusters.
 
-   vagrant up --provider=virtualbox
+    vagrant up --provider=virtualbox
 
 ## Examples of Running AWS Clusters Using HDFS 2.4 as Underfilesystem
 
@@ -68,7 +68,7 @@ A sample `init.yml.aws` is provided. Copy or link it to `init.yml`. Make sure pa
 
 Then start the clusters.
 
-   vagrant up --provider=aws [--no-parallel]
+    vagrant up --provider=aws [--no-parallel]
 
 The `no-parallel` option starts the cluster nodes serially. 
 
@@ -80,4 +80,4 @@ Once clusters are up running, tachyon is installed and configured. The tachyon s
 
 To stop and destroy the images, run command
 
-   vagrant destroy [-f]
+    vagrant destroy [-f]
