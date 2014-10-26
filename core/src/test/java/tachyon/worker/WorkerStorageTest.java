@@ -62,13 +62,17 @@ public class WorkerStorageTest {
     mTfs.delete(fid, true);
 
     WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
-    ws.initialize(mWorkerAddress);
-    String orpahnblock = ws.getUfsOrphansFolder() + TachyonURI.SEPARATOR + bid;
-    UnderFileSystem ufs = UnderFileSystem.get(orpahnblock);
-    Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", new File(
-        mWorkerDataFolder + TachyonURI.SEPARATOR + bid).exists());
-    Assert.assertTrue("UFS hasn't the orphan block file ", ufs.exists(orpahnblock));
-    Assert.assertTrue("Orpahblock file size is changed", ufs.getFileSize(orpahnblock) == filesize);
+    try {
+      ws.initialize(mWorkerAddress);
+      String orpahnblock = ws.getUfsOrphansFolder() + TachyonURI.SEPARATOR + bid;
+      UnderFileSystem ufs = UnderFileSystem.get(orpahnblock);
+      Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", new File(
+          mWorkerDataFolder + TachyonURI.SEPARATOR + bid).exists());
+      Assert.assertTrue("UFS hasn't the orphan block file ", ufs.exists(orpahnblock));
+      Assert.assertTrue("Orpahblock file size is changed", ufs.getFileSize(orpahnblock) == filesize);
+    } finally {
+      ws.stop();
+    }
   }
 
   /**
@@ -130,6 +134,10 @@ public class WorkerStorageTest {
     File unknownFile = new File(mWorkerDataFolder + TachyonURI.SEPARATOR + "xyz");
     unknownFile.createNewFile();
     WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
-    ws.initialize(mWorkerAddress);
+    try {
+      ws.initialize(mWorkerAddress);
+    } finally {
+      ws.stop();
+    }
   }
 }

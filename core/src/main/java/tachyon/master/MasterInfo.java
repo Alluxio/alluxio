@@ -20,8 +20,13 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,7 +153,7 @@ public class MasterInfo extends ImageWriter {
   public class RecomputationScheduler implements Runnable {
     @Override
     public void run() {
-      while (true) {
+      while (!Thread.currentThread().isInterrupted()) {
         boolean hasLostFiles = false;
         boolean launched = false;
         List<String> cmds = new ArrayList<String>();
@@ -197,7 +202,10 @@ public class MasterInfo extends ImageWriter {
         for (String cmd : cmds) {
           String filePath =
               CommonConf.get().TACHYON_HOME + "/logs/rerun-" + mRerunCounter.incrementAndGet();
-          new Thread(new RecomputeCommand(cmd, filePath)).start();
+          //TODO use bounded threads (ExecutorService)
+          Thread thread = new Thread(new RecomputeCommand(cmd, filePath));
+          thread.setName("recompute-command-" + cmd);
+          thread.start();
         }
 
         if (!launched) {
@@ -260,7 +268,8 @@ public class MasterInfo extends ImageWriter {
 
   private HeartbeatThread mHeartbeatThread;
 
-  private Thread mRecomputeThread;
+  private final ExecutorService mRecomputeExecutor = Executors.newFixedThreadPool(1,
+      new ThreadFactoryBuilder().setNameFormat("recompute-scheduler-%d").build());
 
   public MasterInfo(InetSocketAddress address, Journal journal) throws IOException {
     mMasterConf = MasterConf.get();
@@ -1767,8 +1776,7 @@ public class MasterInfo extends ImageWriter {
             mMasterConf.HEARTBEAT_INTERVAL_MS);
     mHeartbeatThread.start();
 
-    mRecomputeThread = new Thread(new RecomputationScheduler());
-    mRecomputeThread.start();
+    mRecomputeExecutor.submit(new RecomputationScheduler());
   }
 
   /**
@@ -2125,7 +2133,17 @@ public class MasterInfo extends ImageWriter {
    * Stops the heartbeat thread.
    */
   public void stop() {
-    mHeartbeatThread.shutdown();
+    try {
+      mHeartbeatThread.shutdown();
+    } finally {
+      mRecomputeExecutor.shutdownNow();
+      try {
+        mRecomputeExecutor.awaitTermination(5, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        // if we take this long, its a bug that must be fixed
+        throw Throwables.propagate(e);
+      }
+    }
   }
 
   /**
