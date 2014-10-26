@@ -38,7 +38,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     if i == Total 
       name = "TachyonMaster"
     else
-      name = "TachyonSlave#{i}"
+      name = "TachyonWorker#{i}"
     end
     config.vm.define "#{name}" do |n|
       # common config
