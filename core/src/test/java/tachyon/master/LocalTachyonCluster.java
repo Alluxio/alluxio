@@ -223,6 +223,10 @@ public final class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.memory.size");
     System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
+    System.clearProperty("tachyon.master.selector.threads");
+    System.clearProperty("tachyon.master.server.threads");
+    System.clearProperty("tachyon.worker.selector.threads");
+    System.clearProperty("tachyon.worker.server.threads");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
   }
 
