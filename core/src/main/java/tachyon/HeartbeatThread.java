@@ -24,6 +24,7 @@ public class HeartbeatThread extends Thread {
   public HeartbeatThread(String threadName, HeartbeatExecutor hbExecutor,
       long fixedExecutionIntervalMs) {
     mThreadName = threadName;
+    setName(threadName);
     mExecutor = hbExecutor;
     mFixedExecutionIntervalMs = fixedExecutionIntervalMs;
     setDaemon(true);
