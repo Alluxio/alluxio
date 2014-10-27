@@ -4,6 +4,11 @@ import java.util.Random;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Each retry will cause a sleep to happen. This sleep will grow over time exponentially
+ * so each sleep gets much larger than the last. To make sure that this growth does not
+ * grow out of control, a max sleep is used as a bounding.
+ */
 public final class ExponentialBackoffRetry extends SleepingRetry {
   private final Random mRandom = new Random();
   private final int mBaseSleepTimeMs;
