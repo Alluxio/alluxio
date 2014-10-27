@@ -6,10 +6,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.thrift.TException;
-
-import com.google.common.base.Throwables;
-
 /**
  * Handle local block locking.
  */
@@ -36,11 +32,7 @@ public class BlocksLocker {
   public synchronized int lock(long blockId) {
     int locker = mBlockLockId.incrementAndGet();
     if (!mLockedBlockIds.containsKey(blockId)) {
-      try {
-        mWorkerStorage.lockBlock(blockId, mUserId);
-      } catch (TException e) {
-        throw Throwables.propagate(e);
-      }
+      mWorkerStorage.lockBlock(blockId, mUserId);
       mLockedBlockIds.put(blockId, new HashSet<Integer>());
     }
     mLockedBlockIds.get(blockId).add(locker);
@@ -69,11 +61,7 @@ public class BlocksLocker {
       lockers.remove(lockId);
       if (lockers.isEmpty()) {
         mLockedBlockIds.remove(blockId);
-        try {
-          mWorkerStorage.unlockBlock(blockId, mUserId);
-        } catch (TException e) {
-          throw Throwables.propagate(e);
-        }
+        mWorkerStorage.unlockBlock(blockId, mUserId);
       }
     }
   }
