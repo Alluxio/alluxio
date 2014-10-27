@@ -23,7 +23,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +61,7 @@ public class WorkerStorage {
     }
 
     // This method assumes the mDependencyLock has been acquired.
-    private int getFileIdBasedOnPriorityDependency() throws TException {
+    private int getFileIdBasedOnPriorityDependency() {
       if (mPriorityDependencies.isEmpty()) {
         return -1;
       }
@@ -76,7 +75,7 @@ public class WorkerStorage {
     }
 
     // This method assumes the mDependencyLock has been acquired.
-    private int getFileIdFromOneDependency(int depId) throws TException {
+    private int getFileIdFromOneDependency(int depId) {
       Set<Integer> fileIds = mDepIdToFiles.get(depId);
       if (fileIds != null && !fileIds.isEmpty()) {
         int fileId = fileIds.iterator().next();
@@ -91,7 +90,7 @@ public class WorkerStorage {
     }
 
     // This method assumes the mDependencyLock has been acquired.
-    private int getRandomUncheckpointedFile() throws TException {
+    private int getRandomUncheckpointedFile() {
       if (mUncheckpointFiles.isEmpty()) {
         return -1;
       }
@@ -229,8 +228,6 @@ public class WorkerStorage {
           LOG.error(e.getMessage(), e);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
-        } catch (TException e) {
-          LOG.warn(e.getMessage(), e);
         }
       }
     }
@@ -398,9 +395,8 @@ public class WorkerStorage {
    * @param fileId The id of the file
    * @return true if succeed, false otherwise
    * @throws IOException
-   * @throws TException
    */
-  public boolean asyncCheckpoint(int fileId) throws IOException, TException {
+  public boolean asyncCheckpoint(int fileId) throws IOException {
     ClientFileInfo fileInfo = mMasterClient.getFileStatus(fileId, "");
 
     if (fileInfo.getDependencyId() != -1) {
@@ -476,11 +472,7 @@ public class WorkerStorage {
         mLockedBlocksPerUser.remove(userId);
         if (blockds != null) {
           for (long blockId : blockds) {
-            try {
-              unlockBlock(blockId, userId);
-            } catch (TException e) {
-              throw Throwables.propagate(e);
-            }
+            unlockBlock(blockId, userId);
           }
         }
       }
@@ -529,9 +521,8 @@ public class WorkerStorage {
 
   /**
    * @return The root local data folder of the worker
-   * @throws TException
    */
-  public String getDataFolder() throws TException {
+  public String getDataFolder() {
     return mLocalDataFolder.toString();
   }
 
@@ -558,9 +549,8 @@ public class WorkerStorage {
    *
    * @param userId The id of the user
    * @return The local user temporary folder of the specified user
-   * @throws IOException
    */
-  public String getUserLocalTempFolder(long userId) throws IOException {
+  public String getUserLocalTempFolder(long userId) {
     String ret = mUsers.getUserTempFolder(userId);
     LOG.info("Return UserTempFolder for " + userId + " : " + ret);
     return ret;
@@ -580,9 +570,8 @@ public class WorkerStorage {
    *
    * @param userId The id of the user
    * @return The user temporary folder in the under file system
-   * @throws IOException
    */
-  public String getUserUfsTempFolder(long userId) throws IOException {
+  public String getUserUfsTempFolder(long userId) {
     String ret = mUsers.getUserUfsTempFolder(userId);
     LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;
@@ -674,9 +663,8 @@ public class WorkerStorage {
    *
    * @param blockId The id of the block
    * @param userId The id of the user who locks the block
-   * @throws TException
    */
-  public void lockBlock(long blockId, long userId) throws TException {
+  public void lockBlock(long blockId, long userId) {
     synchronized (mLockedBlockIdToUserId) {
       if (!mLockedBlockIdToUserId.containsKey(blockId)) {
         mLockedBlockIdToUserId.put(blockId, new HashSet<Long>());
@@ -761,9 +749,8 @@ public class WorkerStorage {
    * @param userId The id of the user who send the request
    * @param requestBytes The requested space size, in bytes
    * @return true if succeed, false otherwise
-   * @throws TException
    */
-  public boolean requestSpace(long userId, long requestBytes) throws TException {
+  public boolean requestSpace(long userId, long requestBytes) {
     LOG.info("requestSpace(" + userId + ", " + requestBytes + "): Current available: "
         + mSpaceCounter.getAvailableBytes() + " requested: " + requestBytes);
     if (mSpaceCounter.getCapacityBytes() < requestBytes) {
@@ -785,10 +772,8 @@ public class WorkerStorage {
 
   /**
    * Set a new MasterClient and connect to it.
-   *
-   * @throws TException
    */
-  public void resetMasterClient() throws IOException {
+  public void resetMasterClient() {
     MasterClient tMasterClient = new MasterClient(mMasterAddress);
     mMasterClient = tMasterClient;
   }
@@ -798,9 +783,8 @@ public class WorkerStorage {
    *
    * @param userId The id of the user who wants to return the space
    * @param returnedBytes The returned space size, in bytes
-   * @throws TException
    */
-  public void returnSpace(long userId, long returnedBytes) throws TException {
+  public void returnSpace(long userId, long returnedBytes) {
     long preAvailableBytes = mSpaceCounter.getAvailableBytes();
     if (returnedBytes > mUsers.ownBytes(userId)) {
       LOG.error("User " + userId + " does not own " + returnedBytes + " bytes.");
@@ -862,9 +846,8 @@ public class WorkerStorage {
    * 
    * @param blockId The id of the block
    * @param userId The id of the user who unlocks the block
-   * @throws TException
    */
-  public void unlockBlock(long blockId, long userId) throws TException {
+  public void unlockBlock(long blockId, long userId) {
     synchronized (mLockedBlockIdToUserId) {
       if (mLockedBlockIdToUserId.containsKey(blockId)) {
         mLockedBlockIdToUserId.get(blockId).remove(userId);
@@ -883,9 +866,8 @@ public class WorkerStorage {
    * Handle the user's heartbeat.
    * 
    * @param userId The id of the user
-   * @throws TException
    */
-  public void userHeartbeat(long userId) throws TException {
+  public void userHeartbeat(long userId) {
     mUsers.userHeartbeat(userId);
   }
 }
