@@ -6,7 +6,7 @@ package tachyon;
  * @param <T1> the first element of the Pair.
  * @param <T2> the second element of the Pair.
  */
-public class Pair<T1, T2> {
+public final class Pair<T1, T2> {
   private T1 mFirst;
   private T2 mSecond;
 
@@ -19,15 +19,6 @@ public class Pair<T1, T2> {
   public Pair(T1 first, T2 second) {
     mFirst = first;
     mSecond = second;
-  }
-
-  @Override
-  public synchronized boolean equals(Object o) {
-    if (!(o instanceof Pair)) {
-      return false;
-    }
-    return mFirst.equals(((Pair<?, ?>) o).getFirst())
-        && mSecond.equals(((Pair<?, ?>) o).getSecond());
   }
 
   /**
