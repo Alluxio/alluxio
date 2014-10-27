@@ -14,7 +14,6 @@ AMI: "ami-b06a98d8"
 # For more information, check out
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html
 Security_Group: "test"
-Subnet_Id: "subnet-9dddc8db"
 Region: "us-east-1"
 Availability_Zone: "us-east-1b"
 

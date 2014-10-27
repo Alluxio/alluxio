@@ -73,7 +73,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         AMI=@ec2['AMI']
         REGION=@ec2['Region']
         SECURITY_GROUP=@ec2['Security_Group']
-        SUBNET_ID=@ec2['Subnet_Id']
         INSTANCE_TYPE = @ec2['Instance_Type']
         AVAILABILITY_ZONE  = @ec2['Availability_Zone']
 
