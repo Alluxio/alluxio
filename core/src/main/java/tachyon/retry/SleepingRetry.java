@@ -16,10 +16,6 @@ public abstract class SleepingRetry implements RetryPolicy {
     mMaxRetries = maxRetries;
   }
 
-  protected int getMaxRetries() {
-    return mMaxRetries;
-  }
-
   @Override
   public int getRetryCount() {
     return mCount;
@@ -27,10 +23,10 @@ public abstract class SleepingRetry implements RetryPolicy {
 
   @Override
   public boolean attemptRetry() {
-    if (getMaxRetries() > mCount) {
+    if (mMaxRetries > mCount) {
       try {
-        TimeUnit.MILLISECONDS.sleep(getSleepTime());
-        mCount++;
+        getSleepUnit().sleep(getSleepTime());
+        mCount ++;
         return true;
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
@@ -40,5 +36,17 @@ public abstract class SleepingRetry implements RetryPolicy {
     return false;
   }
 
+  /**
+   * Unit of time that {@link #getSleepTime()} is measured in. Defaults to
+   * {@link java.util.concurrent.TimeUnit#MILLISECONDS}.
+   */
+  protected TimeUnit getSleepUnit() {
+    return TimeUnit.MILLISECONDS;
+  }
+
+  /**
+   * How long to sleep before the next retry is performed. This method is used with
+   * {@link #getSleepUnit()}, so all time given here must match the unit provided.
+   */
   protected abstract long getSleepTime();
 }
