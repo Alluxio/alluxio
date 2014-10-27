@@ -35,7 +35,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * Class to make referencing file objects more intuitive. Mainly to avoid implicit association by
    * array indexes.
    */
-  public static class UiBlockInfo implements Comparable<UiBlockInfo> {
+  public static final class UiBlockInfo {
     private final long mId;
     private final long mBlockLength;
     private final boolean mInMemory;
@@ -44,11 +44,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       mId = blockInfo.mBlockId;
       mBlockLength = blockInfo.mLength;
       mInMemory = blockInfo.isInMemory();
-    }
-
-    @Override
-    public int compareTo(UiBlockInfo p) {
-      return (mId < p.mId ? -1 : (mId == p.mId ? 0 : 1));
     }
 
     public long getBlockLength() {
@@ -68,7 +63,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private MasterInfo mMasterInfo;
+  private final transient MasterInfo mMasterInfo;
 
   public WebInterfaceBrowseServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
@@ -97,15 +92,32 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     if (tFile.isComplete()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
-      int len = (int) Math.min(5 * Constants.KB, tFile.length() - offset);
-      byte[] data = new byte[len];
-      is.skip(offset);
-      is.read(data, 0, len);
-      fileData = CommonUtils.convertByteArrayToStringWithoutEscape(data);
-      if (fileData == null) {
-        fileData = "The requested file is not completely encoded in ascii";
+      try {
+        int len = (int) Math.min(5 * Constants.KB, tFile.length() - offset);
+        byte[] data = new byte[len];
+        long skipped = is.skip(offset);
+        if (skipped < 0) {
+          // nothing was skipped
+          fileData = "Unable to traverse to offset; is file empty?";
+        } else if (skipped < offset) {
+          // couldn't skip all the way to offset
+          fileData = "Unable to traverse to offset; is offset larger than the file?";
+        } else {
+          // read may not read up to len, so only convert what was read
+          int read = is.read(data, 0, len);
+          if (read < 0) {
+            // stream couldn't read anything, skip went to EOF?
+            fileData = "Unable to read file";
+          } else {
+            fileData = CommonUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
+          }
+          if (fileData == null) {
+            fileData = "The requested file is not completely encoded in ascii";
+          }
+        }
+      } finally {
+        is.close();
       }
-      is.close();
     } else {
       fileData = "The requested file is not complete yet.";
     }
@@ -211,7 +223,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     Collections.sort(fileInfos);
 
-    request.setAttribute("nTotalFile", new Integer(fileInfos.size()));
+    request.setAttribute("nTotalFile", Integer.valueOf(fileInfos.size()));
 
     // URL can not determine offset and limit, let javascript in jsp determine and redirect
     if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
