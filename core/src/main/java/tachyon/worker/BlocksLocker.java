@@ -11,12 +11,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class BlocksLocker {
   // All Blocks has been locked.
-  private Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
+  private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
   // Each user facing block has a unique block lock id.
-  private AtomicInteger mBlockLockId = new AtomicInteger(0);
+  private final AtomicInteger mBlockLockId = new AtomicInteger(0);
 
-  private int mUserId;
-  private WorkerStorage mWorkerStorage;
+  private final int mUserId;
+  private final WorkerStorage mWorkerStorage;
 
   public BlocksLocker(WorkerStorage workerStorage, int userId) {
     mUserId = userId;
