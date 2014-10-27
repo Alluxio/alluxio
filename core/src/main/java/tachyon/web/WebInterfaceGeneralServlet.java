@@ -20,7 +20,7 @@ import tachyon.util.CommonUtils;
 public class WebInterfaceGeneralServlet extends HttpServlet {
   private static final long serialVersionUID = 2335205655766736309L;
 
-  private MasterInfo mMasterInfo;
+  private final transient MasterInfo mMasterInfo;
 
   public WebInterfaceGeneralServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;

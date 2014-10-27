@@ -20,7 +20,7 @@ import tachyon.thrift.InvalidPathException;
  */
 public class WebInterfaceMemoryServlet extends HttpServlet {
   private static final long serialVersionUID = 4293149962399443914L;
-  private MasterInfo mMasterInfo;
+  private final transient MasterInfo mMasterInfo;
 
   public WebInterfaceMemoryServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;

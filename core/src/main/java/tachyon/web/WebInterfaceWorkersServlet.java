@@ -82,7 +82,7 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
 
   private static final long serialVersionUID = -7454493761603179826L;
 
-  private MasterInfo mMasterInfo;
+  private final transient MasterInfo mMasterInfo;
 
   public WebInterfaceWorkersServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
