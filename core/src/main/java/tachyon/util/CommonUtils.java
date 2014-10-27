@@ -145,14 +145,10 @@ public final class CommonUtils {
     return retPath;
   }
 
-  public static String convertByteArrayToStringWithoutEscape(byte[] data) {
-    StringBuilder sb = new StringBuilder(data.length);
-    for (int i = 0; i < data.length; i ++) {
-      if (data[i] < 128) {
-        sb.append((char) data[i]);
-      } else {
-        return null;
-      }
+  public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
+    StringBuilder sb = new StringBuilder(length);
+    for (int i = offset; i < length && i < data.length; i ++) {
+      sb.append((char) data[i]);
     }
     return sb.toString();
   }
