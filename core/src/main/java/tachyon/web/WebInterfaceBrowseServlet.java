@@ -221,7 +221,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       }
       fileInfos.add(toAdd);
     }
-    Collections.sort(fileInfos);
+    Collections.sort(fileInfos, UiFileInfo.PATH_STRING_COMPARE);
 
     request.setAttribute("nTotalFile", Integer.valueOf(fileInfos.size()));
 
