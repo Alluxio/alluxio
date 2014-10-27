@@ -125,13 +125,13 @@ public class TachyonWorker implements Runnable {
   private TServer mServer;
 
   private TNonblockingServerSocket mServerTNonblockingServerSocket;
-  private WorkerStorage mWorkerStorage;
+  private final WorkerStorage mWorkerStorage;
 
-  private WorkerServiceHandler mWorkerServiceHandler;
+  private final WorkerServiceHandler mWorkerServiceHandler;
 
   private final DataServer mDataServer;
 
-  private Thread mHeartbeatThread;
+  private final Thread mHeartbeatThread;
 
   private volatile boolean mStop = false;
 
