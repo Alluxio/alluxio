@@ -125,13 +125,13 @@ public class TachyonWorker implements Runnable {
   private TServer mServer;
 
   private TNonblockingServerSocket mServerTNonblockingServerSocket;
-  private WorkerStorage mWorkerStorage;
+  private final WorkerStorage mWorkerStorage;
 
-  private WorkerServiceHandler mWorkerServiceHandler;
+  private final WorkerServiceHandler mWorkerServiceHandler;
 
   private final DataServer mDataServer;
 
-  private Thread mHeartbeatThread;
+  private final Thread mHeartbeatThread;
 
   private volatile boolean mStop = false;
 
@@ -249,11 +249,7 @@ public class TachyonWorker implements Runnable {
         LOG.error(e.getMessage(), e);
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        try {
-          mWorkerStorage.resetMasterClient();
-        } catch (IOException e2) {
-          LOG.error("Received exception while attempting to reset client", e2);
-        }
+        mWorkerStorage.resetMasterClient();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         cmd = null;
         if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf.get().HEARTBEAT_TIMEOUT_MS) {
