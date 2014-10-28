@@ -229,6 +229,7 @@ public final class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.selector.threads");
     System.clearProperty("tachyon.worker.server.threads");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
+    System.clearProperty("tachyon.master.web.threads");
   }
 
   /**
