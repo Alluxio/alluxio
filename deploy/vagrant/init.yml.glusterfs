@@ -1,7 +1,6 @@
 # Ufs = {glusterfs|hadoop2|dummy}
 Ufs: 'hadoop2'
 # Provider = {vb|aws}
-# Currently only vb is implemented
 Provider: 'vb'
 # Memory is the amount memory allocated to each VM
 Memory: 1024 #MB
