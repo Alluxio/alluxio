@@ -14,12 +14,12 @@ import tachyon.master.MasterInfo;
 /**
  * Servlet that provides data for displaying the system's configuration.
  */
-public class WebInterfaceConfigurationServlet extends HttpServlet {
+public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
 
-  private MasterInfo mMasterInfo;
-  private CommonConf mCommonConf;
-  private MasterConf mMasterConf;
+  private final transient MasterInfo mMasterInfo;
+  private final transient CommonConf mCommonConf;
+  private final transient MasterConf mMasterConf;
 
   public WebInterfaceConfigurationServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
