@@ -9,6 +9,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.CommonConf;
+import tachyon.conf.MasterConf;
 import tachyon.master.MasterInfo;
 
 /**
@@ -41,6 +43,10 @@ public class UIWebServer {
     mAddress = address;
     mServerName = serverName;
     mServer = new Server(mAddress);
+
+    QueuedThreadPool threadPool = new QueuedThreadPool();
+    threadPool.setMaxThreads(MasterConf.get().WEB_THREAD_COUNT);
+    mServer.setThreadPool(threadPool);
 
     WebAppContext webappcontext = new WebAppContext();
 

@@ -156,6 +156,7 @@ public final class LocalTachyonCluster {
     System.setProperty("tachyon.worker.selector.threads", Integer.toString(1));
     System.setProperty("tachyon.worker.server.threads", Integer.toString(2));
     System.setProperty("tachyon.worker.network.netty.worker.threads", Integer.toString(2));
+    System.setProperty("tachyon.master.web.threads", Integer.toString(1));
 
     CommonConf.clear();
     MasterConf.clear();
@@ -228,6 +229,7 @@ public final class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.selector.threads");
     System.clearProperty("tachyon.worker.server.threads");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
+    System.clearProperty("tachyon.master.web.threads");
   }
 
   /**
