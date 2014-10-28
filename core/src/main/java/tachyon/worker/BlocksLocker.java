@@ -6,21 +6,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.thrift.TException;
-
-import com.google.common.base.Throwables;
-
 /**
  * Handle local block locking.
  */
 public class BlocksLocker {
   // All Blocks has been locked.
-  private Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
+  private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
   // Each user facing block has a unique block lock id.
-  private AtomicInteger mBlockLockId = new AtomicInteger(0);
+  private final AtomicInteger mBlockLockId = new AtomicInteger(0);
 
-  private int mUserId;
-  private WorkerStorage mWorkerStorage;
+  private final int mUserId;
+  private final WorkerStorage mWorkerStorage;
 
   public BlocksLocker(WorkerStorage workerStorage, int userId) {
     mUserId = userId;
@@ -36,11 +32,7 @@ public class BlocksLocker {
   public synchronized int lock(long blockId) {
     int locker = mBlockLockId.incrementAndGet();
     if (!mLockedBlockIds.containsKey(blockId)) {
-      try {
-        mWorkerStorage.lockBlock(blockId, mUserId);
-      } catch (TException e) {
-        throw Throwables.propagate(e);
-      }
+      mWorkerStorage.lockBlock(blockId, mUserId);
       mLockedBlockIds.put(blockId, new HashSet<Integer>());
     }
     mLockedBlockIds.get(blockId).add(locker);
@@ -69,11 +61,7 @@ public class BlocksLocker {
       lockers.remove(lockId);
       if (lockers.isEmpty()) {
         mLockedBlockIds.remove(blockId);
-        try {
-          mWorkerStorage.unlockBlock(blockId, mUserId);
-        } catch (TException e) {
-          throw Throwables.propagate(e);
-        }
+        mWorkerStorage.unlockBlock(blockId, mUserId);
       }
     }
   }

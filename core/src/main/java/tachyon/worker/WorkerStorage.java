@@ -2,8 +2,8 @@ package tachyon.worker;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
@@ -23,7 +23,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +61,7 @@ public class WorkerStorage {
     }
 
     // This method assumes the mDependencyLock has been acquired.
-    private int getFileIdBasedOnPriorityDependency() throws TException {
+    private int getFileIdBasedOnPriorityDependency() {
       if (mPriorityDependencies.isEmpty()) {
         return -1;
       }
@@ -76,7 +75,7 @@ public class WorkerStorage {
     }
 
     // This method assumes the mDependencyLock has been acquired.
-    private int getFileIdFromOneDependency(int depId) throws TException {
+    private int getFileIdFromOneDependency(int depId) {
       Set<Integer> fileIds = mDepIdToFiles.get(depId);
       if (fileIds != null && !fileIds.isEmpty()) {
         int fileId = fileIds.iterator().next();
@@ -91,7 +90,7 @@ public class WorkerStorage {
     }
 
     // This method assumes the mDependencyLock has been acquired.
-    private int getRandomUncheckpointedFile() throws TException {
+    private int getRandomUncheckpointedFile() {
       if (mUncheckpointFiles.isEmpty()) {
         return -1;
       }
@@ -229,8 +228,6 @@ public class WorkerStorage {
           LOG.error(e.getMessage(), e);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
-        } catch (TException e) {
-          LOG.warn(e.getMessage(), e);
         }
       }
     }
@@ -240,25 +237,25 @@ public class WorkerStorage {
 
   private final CommonConf mCommonConf;
   private volatile MasterClient mMasterClient;
-  private InetSocketAddress mMasterAddress;
+  private final InetSocketAddress mMasterAddress;
   private NetAddress mWorkerAddress;
-  private SpaceCounter mSpaceCounter;
+  private final SpaceCounter mSpaceCounter;
 
   private long mWorkerId;
-  private Set<Long> mMemoryData = new HashSet<Long>();
-  private Map<Long, Long> mBlockSizes = new HashMap<Long, Long>();
+  private final Set<Long> mMemoryData = new HashSet<Long>();
+  private final Map<Long, Long> mBlockSizes = new HashMap<Long, Long>();
 
   private final Map<Long, Long> mBlockIdToLatestAccessTimeMs = new HashMap<Long, Long>();
   private final Map<Long, Set<Long>> mLockedBlockIdToUserId = new HashMap<Long, Set<Long>>();
 
-  private Map<Long, Set<Long>> mLockedBlocksPerUser = new HashMap<Long, Set<Long>>();
-  private BlockingQueue<Long> mRemovedBlockList = new ArrayBlockingQueue<Long>(
+  private final Map<Long, Set<Long>> mLockedBlocksPerUser = new HashMap<Long, Set<Long>>();
+  private final BlockingQueue<Long> mRemovedBlockList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
 
-  private BlockingQueue<Long> mAddedBlockList = new ArrayBlockingQueue<Long>(
+  private final BlockingQueue<Long> mAddedBlockList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
-  private File mLocalDataFolder;
-  private File mLocalUserFolder;
+  private final File mLocalDataFolder;
+  private final File mLocalUserFolder;
   private String mUfsWorkerFolder;
   private String mUfsWorkerDataFolder;
   private String mUfsOrphansFolder;
@@ -268,9 +265,9 @@ public class WorkerStorage {
   private Users mUsers;
   // Dependency related lock
   private final Object mDependencyLock = new Object();
-  private Set<Integer> mUncheckpointFiles = new HashSet<Integer>();
+  private final Set<Integer> mUncheckpointFiles = new HashSet<Integer>();
   // From dependencyId to files in that set.
-  private Map<Integer, Set<Integer>> mDepIdToFiles = new HashMap<Integer, Set<Integer>>();
+  private final Map<Integer, Set<Integer>> mDepIdToFiles = new HashMap<Integer, Set<Integer>>();
 
   private List<Integer> mPriorityDependencies = new ArrayList<Integer>();
 
@@ -280,10 +277,10 @@ public class WorkerStorage {
 
   /**
    * Main logic behind the worker process.
-   *
+   * 
    * This object is lazily initialized. Before an object of this call should be used,
    * {@link #initialize} must be called.
-   *
+   * 
    * @param masterAddress The TachyonMaster's address
    * @param dataFolder This TachyonWorker's local folder's path
    * @param memoryCapacityBytes The maximum memory space this TachyonWorker can use, in bytes
@@ -332,7 +329,7 @@ public class WorkerStorage {
 
   /**
    * Update the latest block access time on the worker.
-   *
+   * 
    * @param blockId The id of the block
    */
   void accessBlock(long blockId) {
@@ -351,13 +348,13 @@ public class WorkerStorage {
 
   /**
    * Add the checkpoint information of a file. The information is from the user <code>userId</code>.
-   *
+   * 
    * This method is normally triggered from {@link tachyon.client.FileOutStream#close()} if and only
    * if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
    * checkpointing is that through {@link tachyon.client.WriteType} operations write to
    * {@link tachyon.UnderFileSystem} on the client's write path, but under a user temp directory
    * (temp directory is defined in the worker as {@link #getUserUfsTempFolder(long)}).
-   *
+   * 
    * @param userId The user id of the client who send the notification
    * @param fileId The id of the checkpointed file
    * @throws FileDoesNotExistException
@@ -394,13 +391,12 @@ public class WorkerStorage {
 
   /**
    * Notify the worker to checkpoint the file asynchronously.
-   *
+   * 
    * @param fileId The id of the file
    * @return true if succeed, false otherwise
    * @throws IOException
-   * @throws TException
    */
-  public boolean asyncCheckpoint(int fileId) throws IOException, TException {
+  public boolean asyncCheckpoint(int fileId) throws IOException {
     ClientFileInfo fileInfo = mMasterClient.getFileStatus(fileId, "");
 
     if (fileInfo.getDependencyId() != -1) {
@@ -419,17 +415,17 @@ public class WorkerStorage {
 
   /**
    * Notify the worker the block is cached.
-   *
+   * 
    * This call is called remotely from {@link tachyon.client.TachyonFS#cacheBlock(long)} which is
    * only ever called from {@link tachyon.client.BlockOutStream#close()} (though its a public api so
    * anyone could call it). There are a few interesting preconditions for this to work.
-   *
+   * 
    * 1) Client process writes to files locally under a tachyon defined temp directory. 2) Worker
    * process is on the same node as the client 3) Client is talking to the local worker directly
-   *
+   * 
    * If all conditions are true, then and only then can this method ever be called; all operations
    * work on local files.
-   *
+   * 
    * @param userId The user id of the client who send the notification
    * @param blockId The id of the block
    * @throws FileDoesNotExistException
@@ -476,11 +472,7 @@ public class WorkerStorage {
         mLockedBlocksPerUser.remove(userId);
         if (blockds != null) {
           for (long blockId : blockds) {
-            try {
-              unlockBlock(blockId, userId);
-            } catch (TException e) {
-              throw Throwables.propagate(e);
-            }
+            unlockBlock(blockId, userId);
           }
         }
       }
@@ -489,7 +481,7 @@ public class WorkerStorage {
 
   /**
    * Remove a block from the memory.
-   *
+   * 
    * @param blockId The block to be removed.
    * @return Removed file size in bytes.
    */
@@ -515,10 +507,10 @@ public class WorkerStorage {
 
   /**
    * Remove blocks from the memory.
-   *
+   * 
    * This is triggered when the worker heartbeats to the master, which sends a
    * {@link tachyon.thrift.Command} with type {@link tachyon.thrift.CommandType#Free}
-   *
+   * 
    * @param blocks The list of blocks to be removed.
    */
   public void freeBlocks(List<Long> blocks) {
@@ -529,9 +521,8 @@ public class WorkerStorage {
 
   /**
    * @return The root local data folder of the worker
-   * @throws TException
    */
-  public String getDataFolder() throws TException {
+  public String getDataFolder() {
     return mLocalDataFolder.toString();
   }
 
@@ -544,23 +535,22 @@ public class WorkerStorage {
 
   /**
    * Get the local user temporary folder of the specified user.
-   *
+   * 
    * This method is a wrapper around {@link tachyon.Users#getUserTempFolder(long)}, and as such
    * should be referentially transparent with {@link tachyon.Users#getUserTempFolder(long)}. In the
    * context of {@code this}, this call will output the result of path concat of
    * {@link #mLocalUserFolder} with the provided {@literal userId}.
-   *
+   * 
    * This method differs from {@link #getUserUfsTempFolder(long)} in the context of where write
    * operations end up. This temp folder generated lives inside the tachyon file system, and as
    * such, will be stored in memory.
-   *
+   * 
    * @see tachyon.Users#getUserTempFolder(long)
-   *
+   * 
    * @param userId The id of the user
    * @return The local user temporary folder of the specified user
-   * @throws IOException
    */
-  public String getUserLocalTempFolder(long userId) throws IOException {
+  public String getUserLocalTempFolder(long userId) {
     String ret = mUsers.getUserTempFolder(userId);
     LOG.info("Return UserTempFolder for " + userId + " : " + ret);
     return ret;
@@ -568,21 +558,20 @@ public class WorkerStorage {
 
   /**
    * Get the user temporary folder in the under file system of the specified user.
-   *
+   * 
    * This method is a wrapper around {@link tachyon.Users#getUserUfsTempFolder(long)}, and as such
    * should be referentially transparent with {@link Users#getUserUfsTempFolder(long)}. In the
    * context of {@code this}, this call will output the result of path concat of
    * {@link #mUfsWorkerFolder} with the provided {@literal userId}.
-   *
+   * 
    * This method differs from {@link #getUserLocalTempFolder(long)} in the context of where write
    * operations end up. This temp folder generated lives inside the {@link tachyon.UnderFileSystem},
    * and as such, will be stored remotely, most likely on disk.
-   *
+   * 
    * @param userId The id of the user
    * @return The user temporary folder in the under file system
-   * @throws IOException
    */
-  public String getUserUfsTempFolder(long userId) throws IOException {
+  public String getUserUfsTempFolder(long userId) {
     String ret = mUsers.getUserUfsTempFolder(userId);
     LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;
@@ -590,7 +579,7 @@ public class WorkerStorage {
 
   /**
    * Heartbeat with the TachyonMaster. Send the removed block list to the Master.
-   *
+   * 
    * @return The Command received from the Master
    * @throws BlockInfoException
    * @throws IOException
@@ -665,18 +654,17 @@ public class WorkerStorage {
 
   /**
    * Lock the block
-   *
+   * 
    * Used internally to make sure blocks are unmodified, but also used in
    * {@link tachyon.client.TachyonFS} for caching blocks locally for users. When a user tries to
    * read a block ({@link tachyon.client.TachyonFile#readByteBuffer(int)} ()}), the client will
    * attempt to cache the block on the local users's node, while the user is reading from the local
    * block, the given block is locked and unlocked once read.
-   *
+   * 
    * @param blockId The id of the block
    * @param userId The id of the user who locks the block
-   * @throws TException
    */
-  public void lockBlock(long blockId, long userId) throws TException {
+  public void lockBlock(long blockId, long userId) {
     synchronized (mLockedBlockIdToUserId) {
       if (!mLockedBlockIdToUserId.containsKey(blockId)) {
         mLockedBlockIdToUserId.put(blockId, new HashSet<Long>());
@@ -692,7 +680,7 @@ public class WorkerStorage {
 
   /**
    * Use local LRU to evict data, and get <code> requestBytes </code> available space.
-   *
+   * 
    * @param requestBytes The data requested.
    * @return <code> true </code> if the space is granted, <code> false </code> if not.
    */
@@ -757,13 +745,12 @@ public class WorkerStorage {
 
   /**
    * Request space from the worker
-   *
+   * 
    * @param userId The id of the user who send the request
    * @param requestBytes The requested space size, in bytes
    * @return true if succeed, false otherwise
-   * @throws TException
    */
-  public boolean requestSpace(long userId, long requestBytes) throws TException {
+  public boolean requestSpace(long userId, long requestBytes) {
     LOG.info("requestSpace(" + userId + ", " + requestBytes + "): Current available: "
         + mSpaceCounter.getAvailableBytes() + " requested: " + requestBytes);
     if (mSpaceCounter.getCapacityBytes() < requestBytes) {
@@ -785,22 +772,19 @@ public class WorkerStorage {
 
   /**
    * Set a new MasterClient and connect to it.
-   *
-   * @throws TException
    */
-  public void resetMasterClient() throws IOException {
+  public void resetMasterClient() {
     MasterClient tMasterClient = new MasterClient(mMasterAddress);
     mMasterClient = tMasterClient;
   }
 
   /**
    * Return the space which has been requested
-   *
+   * 
    * @param userId The id of the user who wants to return the space
    * @param returnedBytes The returned space size, in bytes
-   * @throws TException
    */
-  public void returnSpace(long userId, long returnedBytes) throws TException {
+  public void returnSpace(long userId, long returnedBytes) {
     long preAvailableBytes = mSpaceCounter.getAvailableBytes();
     if (returnedBytes > mUsers.ownBytes(userId)) {
       LOG.error("User " + userId + " does not own " + returnedBytes + " bytes.");
@@ -862,9 +846,8 @@ public class WorkerStorage {
    * 
    * @param blockId The id of the block
    * @param userId The id of the user who unlocks the block
-   * @throws TException
    */
-  public void unlockBlock(long blockId, long userId) throws TException {
+  public void unlockBlock(long blockId, long userId) {
     synchronized (mLockedBlockIdToUserId) {
       if (mLockedBlockIdToUserId.containsKey(blockId)) {
         mLockedBlockIdToUserId.get(blockId).remove(userId);
@@ -883,9 +866,8 @@ public class WorkerStorage {
    * Handle the user's heartbeat.
    * 
    * @param userId The id of the user
-   * @throws TException
    */
-  public void userHeartbeat(long userId) throws TException {
+  public void userHeartbeat(long userId) {
     mUsers.userHeartbeat(userId);
   }
 }
