@@ -144,7 +144,7 @@ number.
 </tr>
 <tr>
   <td>tachyon.master.web.threads</td>
-  <td>5</td>
+  <td>9</td>
   <td>How many threads to use for the web server.</td>
 </tr>
 </table>
