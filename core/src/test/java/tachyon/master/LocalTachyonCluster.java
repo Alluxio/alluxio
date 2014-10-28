@@ -3,6 +3,7 @@ package tachyon.master;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -82,6 +83,10 @@ public final class LocalTachyonCluster {
     return mMaster.getMetaPort();
   }
 
+  public InetSocketAddress getMasterWebAddress() {
+    return mMaster.getWebAddress();
+  }
+
   public String getTachyonHome() {
     return mTachyonHome;
   }
@@ -156,7 +161,13 @@ public final class LocalTachyonCluster {
     System.setProperty("tachyon.worker.selector.threads", Integer.toString(1));
     System.setProperty("tachyon.worker.server.threads", Integer.toString(2));
     System.setProperty("tachyon.worker.network.netty.worker.threads", Integer.toString(2));
-    System.setProperty("tachyon.master.web.threads", Integer.toString(9));
+    // can't go any lower or it looks like jetty hangs
+    System.setProperty("tachyon.master.web.threads", Integer.toString(5));
+
+    // tachyon home wont have the resource
+    // so use current working dir
+    System.setProperty("tachyon.web.resources",
+        System.getProperty("user.dir") + "/core/src/main/webapp");
 
     CommonConf.clear();
     MasterConf.clear();
@@ -230,6 +241,7 @@ public final class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.server.threads");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
     System.clearProperty("tachyon.master.web.threads");
+    System.clearProperty("tachyon.web.resources");
   }
 
   /**

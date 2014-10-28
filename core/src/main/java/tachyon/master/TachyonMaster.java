@@ -129,6 +129,13 @@ public class TachyonMaster {
     return mPort;
   }
 
+  /**
+   * Returns the address that http server uses
+   */
+  InetSocketAddress getWebAddress() {
+    return mWebServer.getAddress();
+  }
+
   private boolean isFormatted(String folder, String path) throws IOException {
     if (!folder.endsWith(TachyonURI.SEPARATOR)) {
       folder += TachyonURI.SEPARATOR;

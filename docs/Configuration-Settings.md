@@ -144,8 +144,8 @@ number.
 </tr>
 <tr>
   <td>tachyon.master.web.threads</td>
-  <td>9</td>
-  <td>How many threads to use for the web server.</td>
+  <td>5</td>
+  <td>How many threads to use for the web server. Lower than 5 threads is unsupported (jetty hangs).</td>
 </tr>
 </table>
 

@@ -171,6 +171,10 @@ public final class LocalTachyonMaster {
     return mTachyonMaster.getMetaPort();
   }
 
+  public InetSocketAddress getWebAddress() {
+    return mTachyonMaster.getWebAddress();
+  }
+
   public String getUri() {
     return Constants.HEADER + mHostname + ":" + getMetaPort();
   }
