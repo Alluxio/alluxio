@@ -25,27 +25,13 @@ interface TachyonFSCore extends Closeable {
       throws IOException;
 
   /**
-   * Deletes a file or folder
-   * 
-   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
-   *        Otherwise, the method uses the path parameter.
-   * @param path The path of the file / folder. It could be empty iff id is not -1.
-   * @param recursive If fileId or path represents a non-empty folder, delete the folder recursively
-   *        or not
-   * @return true if deletes successfully, false otherwise.
-   * @throws IOException
-   */
-  boolean delete(int fileId, TachyonURI path, boolean recursive) throws IOException;
-
-  /**
-   * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
-   * 
-   * @param fileId the file id of the file or folder.
-   * @param path the path of the file or folder. valid iff fileId is -1.
+   * Gets the ClientFileInfo object that represents the path.
+   *
+   * @param path the path of the file or folder.
    * @return the ClientFileInfo of the file or folder, null if the file or folder does not exist.
    * @throws IOException
    */
-  ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException;
+  ClientFileInfo getFileStatus(TachyonURI path) throws IOException;
 
   /** Returns a URI whose scheme and authority identify this FileSystem. */
   TachyonURI getUri();
@@ -69,16 +55,4 @@ interface TachyonFSCore extends Closeable {
    * @throws IOException
    */
   boolean mkdirs(TachyonURI path, boolean recursive) throws IOException;
-
-  /**
-   * Renames a file or folder to another path.
-   * 
-   * @param fileId The id of the source file / folder. If it is not -1, path parameter is ignored.
-   *        Otherwise, the method uses the srcPath parameter.
-   * @param srcPath The path of the source file / folder. It could be empty iff id is not -1.
-   * @param dstPath The path of the destination file / folder. It could be empty iff id is not -1.
-   * @return true if renames successfully, false otherwise.
-   * @throws IOException
-   */
-  boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
 }

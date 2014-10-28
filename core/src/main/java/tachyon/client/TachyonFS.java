@@ -334,21 +334,30 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Deletes a file or folder
+   * Deletes the file denoted by the file id.
    *
-   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
-   *        Otherwise, the method uses the path parameter.
-   * @param path The path of the file / folder. It could be empty iff id is not -1.
-   * @param recursive If fileId or path represents a non-empty folder, delete the folder recursively
-   *        or not
-   * @return true if deletes successfully, false otherwise.
+   * @param fid file id
+   * @param recursive if delete the path recursively.
+   * @return true if deletion succeed (including the case the file does not exist in the first
+   *         place), false otherwise.
    * @throws IOException
    */
-  @Override
-  public synchronized boolean delete(int fileId, TachyonURI path, boolean recursive)
-      throws IOException {
+  public synchronized boolean delete(int fid, boolean recursive) throws IOException {
+    return mMasterClient.user_deleteById(fid, recursive);
+  }
+
+  /**
+   * Deletes the file denoted by the path.
+   *
+   * @param path the file path
+   * @param recursive if delete the path recursively.
+   * @return true if the deletion succeed (including the case that the path does not exist in the
+   *         first place), false otherwise.
+   * @throws IOException
+   */
+  public synchronized boolean delete(TachyonURI path, boolean recursive) throws IOException {
     validateUri(path);
-    return mMasterClient.user_delete(fileId, path.getPath(), recursive);
+    return mMasterClient.user_delete(path.getPath(), recursive);
   }
 
   /**
@@ -450,7 +459,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
     if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
-      ClientFileInfo clientFileInfo = getFileStatus(fid, TachyonURI.EMPTY_URI);
+      ClientFileInfo clientFileInfo = mMasterClient.getFileStatusById(fid);
       if (clientFileInfo == null) {
         return null;
       }
@@ -516,7 +525,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized List<ClientBlockInfo> getFileBlocks(int fid) throws IOException {
     // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
-    return mMasterClient.user_getFileBlocks(fid, "");
+    return mMasterClient.user_getFileBlocksById(fid);
   }
 
   /**
@@ -535,9 +544,9 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   @Override
-  public ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException {
+  public ClientFileInfo getFileStatus(TachyonURI path) throws IOException {
     validateUri(path);
-    ClientFileInfo info = mMasterClient.getFileStatus(fileId, path.getPath());
+    ClientFileInfo info = mMasterClient.getFileStatus(path.getPath());
     return info.getId() == -1 ? null : info;
   }
 
@@ -575,7 +584,7 @@ public class TachyonFS extends AbstractTachyonFS {
     if (fileId != -1) {
       info = mIdToClientFileInfo.get(fileId);
       if (!useCachedMetadata || info == null) {
-        info = getFileStatus(fileId, TachyonURI.EMPTY_URI);
+        info = mMasterClient.getFileStatusById(fileId);
         updated = true;
       }
 
@@ -588,7 +597,7 @@ public class TachyonFS extends AbstractTachyonFS {
     } else {
       info = mPathToClientFileInfo.get(path.getPath());
       if (!useCachedMetadata || info == null) {
-        info = getFileStatus(-1, path);
+        info = getFileStatus(path);
         updated = true;
       }
 
@@ -617,7 +626,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   public synchronized RawTable getRawTable(int id) throws IOException {
-    ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfo(id, "");
+    ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfoById(id);
     return new RawTable(this, clientRawTableInfo);
   }
 
@@ -631,7 +640,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized RawTable getRawTable(TachyonURI path) throws IOException {
     validateUri(path);
     ClientRawTableInfo clientRawTableInfo =
-        mMasterClient.user_getClientRawTableInfo(-1, path.getPath());
+        mMasterClient.user_getClientRawTableInfo(path.getPath());
     return new RawTable(this, clientRawTableInfo);
   }
 
@@ -763,17 +772,29 @@ public class TachyonFS extends AbstractTachyonFS {
    * 
    * @param fileId The id of the source file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the srcPath parameter.
-   * @param srcPath The path of the source file / folder. It could be empty iff id is not -1.
+   * @param dstPath The path of the destination file / folder.
+   * @return true if renames successfully, false otherwise.
+   * @throws IOException
+   */
+  public synchronized boolean rename(int fileId, TachyonURI dstPath)
+      throws IOException {
+    validateUri(dstPath);
+    return mMasterClient.user_renameById(fileId, dstPath.getPath());
+  }
+
+  /**
+   * Renames a file or folder to another path.
+   *
+   * @param srcPath The path of the source file / folder.
    * @param dstPath The path of the destination file / folder. It could be empty iff id is not -1.
    * @return true if renames successfully, false otherwise.
    * @throws IOException
    */
-  @Override
-  public synchronized boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath)
+  public synchronized boolean rename(TachyonURI srcPath, TachyonURI dstPath)
       throws IOException {
     validateUri(srcPath);
     validateUri(dstPath);
-    return mMasterClient.user_rename(fileId, srcPath.getPath(), dstPath.getPath());
+    return mMasterClient.user_rename(srcPath.getPath(), dstPath.getPath());
   }
 
   /**
