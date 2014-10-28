@@ -1,5 +1,8 @@
 package tachyon.web;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -10,11 +13,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import tachyon.Constants;
 import tachyon.master.LocalTachyonCluster;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
 
 public final class WorkersTest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -27,7 +28,8 @@ public final class WorkersTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
+    // can't go lower than 5 or it hangs
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, true);
     mLocalTachyonCluster.start();
   }
 

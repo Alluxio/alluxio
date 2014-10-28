@@ -3,7 +3,6 @@ package tachyon.master;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URI;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -46,9 +45,17 @@ public final class LocalTachyonCluster {
   private String mLocalhostName = null;
 
   private LocalTachyonMaster mMaster;
+  private final boolean mEnableHttp;
 
   public LocalTachyonCluster(long workerCapacityBytes) {
     mWorkerCapacityBytes = workerCapacityBytes;
+    // takes too many resources and most tests don't care
+    mEnableHttp = false;
+  }
+
+  public LocalTachyonCluster(long workerCapacityBytes, boolean disableHttp) {
+    mWorkerCapacityBytes = workerCapacityBytes;
+    mEnableHttp = disableHttp;
   }
 
   public TachyonFS getClient() throws IOException {
@@ -161,13 +168,13 @@ public final class LocalTachyonCluster {
     System.setProperty("tachyon.worker.selector.threads", Integer.toString(1));
     System.setProperty("tachyon.worker.server.threads", Integer.toString(2));
     System.setProperty("tachyon.worker.network.netty.worker.threads", Integer.toString(2));
-    // can't go any lower or it looks like jetty hangs
-    System.setProperty("tachyon.master.web.threads", Integer.toString(5));
 
     // tachyon home wont have the resource
     // so use current working dir
     System.setProperty("tachyon.web.resources",
         System.getProperty("user.dir") + "/core/src/main/webapp");
+
+    System.setProperty("tachyon.master.web.enabled", Boolean.toString(mEnableHttp));
 
     CommonConf.clear();
     MasterConf.clear();
@@ -241,7 +248,7 @@ public final class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.server.threads");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
     System.clearProperty("tachyon.master.web.threads");
-    System.clearProperty("tachyon.web.resources");
+    System.clearProperty("tachyon.master.web.enabled");
   }
 
   /**

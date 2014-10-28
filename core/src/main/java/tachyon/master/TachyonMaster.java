@@ -133,7 +133,10 @@ public class TachyonMaster {
    * Returns the address that http server uses
    */
   InetSocketAddress getWebAddress() {
-    return mWebServer.getAddress();
+    if (mWebServer != null) {
+      return mWebServer.getAddress();
+    }
+    return null;
   }
 
   private boolean isFormatted(String folder, String path) throws IOException {
@@ -177,9 +180,11 @@ public class TachyonMaster {
     }
     mMasterInfo.init();
 
-    mWebServer =
-        new UIWebServer("Tachyon Master Server", new InetSocketAddress(
-            NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo);
+    if (MasterConf.get().WEB_ENABLED) {
+      mWebServer =
+          new UIWebServer("Tachyon Master Server", new InetSocketAddress(
+              NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo);
+    }
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
@@ -219,7 +224,9 @@ public class TachyonMaster {
               LOG.error(e.getMessage(), e);
               throw Throwables.propagate(e);
             }
-            mWebServer.startWebServer();
+            if (mWebServer != null) {
+              mWebServer.startWebServer();
+            }
             LOG.info("The master (leader) server started @ " + mMasterAddress);
             mMasterServiceServer.serve();
             LOG.info("The master (previous leader) server ended @ " + mMasterAddress);
@@ -245,7 +252,9 @@ public class TachyonMaster {
         throw Throwables.propagate(e);
       }
 
-      mWebServer.startWebServer();
+      if (mWebServer != null) {
+        mWebServer.startWebServer();
+      }
       LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
       mMasterServiceServer.serve();
       LOG.info("Tachyon Master version " + Version.VERSION + " ended @ " + mMasterAddress);
@@ -254,7 +263,9 @@ public class TachyonMaster {
 
   public void stop() throws Exception {
     if (mIsStarted) {
-      mWebServer.shutdownWebServer();
+      if(mWebServer != null) {
+        mWebServer.shutdownWebServer();
+      }
       mMasterInfo.stop();
       mMasterServiceServer.stop();
       mServerTNonblockingServerSocket.close();
