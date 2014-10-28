@@ -17,7 +17,7 @@ import tachyon.thrift.FileDoesNotExistException;
 
 public class WebInterfaceDependencyServlet extends HttpServlet {
   private static final long serialVersionUID = 2071462168900313417L;
-  private MasterInfo mMasterInfo;
+  private final transient MasterInfo mMasterInfo;
 
   public WebInterfaceDependencyServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
@@ -35,10 +35,10 @@ public class WebInterfaceDependencyServlet extends HttpServlet {
     try {
       ClientDependencyInfo dependencyInfo = mMasterInfo.getClientDependencyInfo(dependencyId);
       for (int pId : dependencyInfo.parents) {
-        parentFileNames.add(mMasterInfo.getPath(pId));
+        parentFileNames.add(mMasterInfo.getPath(pId).toString());
       }
       for (int cId : dependencyInfo.children) {
-        childrenFileNames.add(mMasterInfo.getPath(cId));
+        childrenFileNames.add(mMasterInfo.getPath(cId).toString());
       }
     } catch (DependencyDoesNotExistException ddnee) {
       request.setAttribute("error", ddnee.getMessage());

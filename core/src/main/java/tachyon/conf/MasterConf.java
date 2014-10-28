@@ -11,21 +11,21 @@ import tachyon.util.NetworkUtils;
  * Configurations used by master only.
  */
 public class MasterConf extends Utils {
-  private static MasterConf MASTER_CONF = null;
+  private static MasterConf sMasterConf = null;
 
   /**
    * This is for unit test only. DO NOT use it for other purpose.
    */
   public static synchronized void clear() {
-    MASTER_CONF = null;
+    sMasterConf = null;
   }
 
   public static synchronized MasterConf get() {
-    if (MASTER_CONF == null) {
-      MASTER_CONF = new MasterConf();
+    if (sMasterConf == null) {
+      sMasterConf = new MasterConf();
     }
 
-    return MASTER_CONF;
+    return sMasterConf;
   }
 
   public final String JOURNAL_FOLDER;
@@ -42,6 +42,7 @@ public class MasterConf extends Utils {
 
   public final int SERVER_THREADS;
   public final int WORKER_TIMEOUT_MS;
+  public final int WEB_THREAD_COUNT;
 
   public final ArrayList<String> WHITELIST = new ArrayList<String>();
 
@@ -60,6 +61,7 @@ public class MasterConf extends Utils {
         (CommonConf.get().USE_ZOOKEEPER ? Constants.HEADER_FT : Constants.HEADER) + HOSTNAME + ":"
             + PORT;
     WEB_PORT = getIntProperty("tachyon.master.web.port", Constants.DEFAULT_MASTER_WEB_PORT);
+    WEB_THREAD_COUNT = getIntProperty("tachyon.master.web.threads", 9);
     TEMPORARY_FOLDER = getProperty("tachyon.master.temporary.folder", "/tmp");
 
     HEARTBEAT_INTERVAL_MS =

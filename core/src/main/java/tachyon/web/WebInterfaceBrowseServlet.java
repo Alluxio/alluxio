@@ -18,8 +18,8 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.master.BlockInfo;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -35,7 +35,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * Class to make referencing file objects more intuitive. Mainly to avoid implicit association by
    * array indexes.
    */
-  public static class UiBlockInfo implements Comparable<UiBlockInfo> {
+  public static final class UiBlockInfo {
     private final long mId;
     private final long mBlockLength;
     private final boolean mInMemory;
@@ -44,11 +44,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       mId = blockInfo.mBlockId;
       mBlockLength = blockInfo.mLength;
       mInMemory = blockInfo.isInMemory();
-    }
-
-    @Override
-    public int compareTo(UiBlockInfo p) {
-      return (mId < p.mId ? -1 : (mId == p.mId ? 0 : 1));
     }
 
     public long getBlockLength() {
@@ -68,7 +63,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private MasterInfo mMasterInfo;
+  private final transient MasterInfo mMasterInfo;
 
   public WebInterfaceBrowseServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
@@ -84,28 +79,45 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws IOException
    * @throws InvalidPathException
    */
-  private void displayFile(String path, HttpServletRequest request, long offset)
+  private void displayFile(TachyonURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     String masterAddress =
         Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
             + mMasterInfo.getMasterAddress().getPort();
     TachyonFS tachyonClient = TachyonFS.get(new TachyonURI(masterAddress));
-    TachyonFile tFile = tachyonClient.getFile(new TachyonURI(path));
+    TachyonFile tFile = tachyonClient.getFile(path);
     String fileData = null;
     if (tFile == null) {
-      throw new FileDoesNotExistException(path);
+      throw new FileDoesNotExistException(path.toString());
     }
     if (tFile.isComplete()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
-      int len = (int) Math.min(5 * Constants.KB, tFile.length() - offset);
-      byte[] data = new byte[len];
-      is.skip(offset);
-      is.read(data, 0, len);
-      fileData = CommonUtils.convertByteArrayToStringWithoutEscape(data);
-      if (fileData == null) {
-        fileData = "The requested file is not completely encoded in ascii";
+      try {
+        int len = (int) Math.min(5 * Constants.KB, tFile.length() - offset);
+        byte[] data = new byte[len];
+        long skipped = is.skip(offset);
+        if (skipped < 0) {
+          // nothing was skipped
+          fileData = "Unable to traverse to offset; is file empty?";
+        } else if (skipped < offset) {
+          // couldn't skip all the way to offset
+          fileData = "Unable to traverse to offset; is offset larger than the file?";
+        } else {
+          // read may not read up to len, so only convert what was read
+          int read = is.read(data, 0, len);
+          if (read < 0) {
+            // stream couldn't read anything, skip went to EOF?
+            fileData = "Unable to read file";
+          } else {
+            fileData = CommonUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
+          }
+          if (fileData == null) {
+            fileData = "The requested file is not completely encoded in ascii";
+          }
+        }
+      } finally {
+        is.close();
       }
-      is.close();
     } else {
       fileData = "The requested file is not complete yet.";
     }
@@ -142,16 +154,20 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
     request.setAttribute("invalidPathError", "");
     List<ClientFileInfo> filesInfo = null;
-    String currentPath = request.getParameter("path");
-    if (currentPath == null || currentPath.isEmpty()) {
-      currentPath = TachyonURI.SEPARATOR;
+    String requestPath = request.getParameter("path");
+    if (requestPath == null || requestPath.isEmpty()) {
+      requestPath = TachyonURI.SEPARATOR;
     }
-    request.setAttribute("currentPath", currentPath);
+    TachyonURI currentPath = new TachyonURI(requestPath);
+    request.setAttribute("currentPath", currentPath.toString());
     request.setAttribute("viewingOffset", 0);
 
     try {
       ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
       UiFileInfo currentFileInfo = new UiFileInfo(clientFileInfo);
+      if (null == currentFileInfo.getAbsolutePath()) {
+        throw new FileDoesNotExistException(currentPath.toString());
+      }
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
       if (!currentFileInfo.getIsDirectory()) {
@@ -169,12 +185,11 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
         } else if (offset > clientFileInfo.getLength()) {
           offset = clientFileInfo.getLength();
         }
-        displayFile(currentFileInfo.getAbsolutePath(), request, offset);
+        displayFile(new TachyonURI(currentFileInfo.getAbsolutePath()), request, offset);
         request.setAttribute("viewingOffset", offset);
         getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
         return;
       }
-      CommonUtils.validatePath(currentPath);
       setPathDirectories(currentPath, request);
       filesInfo = mMasterInfo.getFilesInfo(currentPath);
     } catch (FileDoesNotExistException fdne) {
@@ -206,9 +221,9 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       }
       fileInfos.add(toAdd);
     }
-    Collections.sort(fileInfos);
+    Collections.sort(fileInfos, UiFileInfo.PATH_STRING_COMPARE);
 
-    request.setAttribute("nTotalFile", new Integer(fileInfos.size()));
+    request.setAttribute("nTotalFile", Integer.valueOf(fileInfos.size()));
 
     // URL can not determine offset and limit, let javascript in jsp determine and redirect
     if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
@@ -248,19 +263,19 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  private void setPathDirectories(String path, HttpServletRequest request)
+  private void setPathDirectories(TachyonURI path, HttpServletRequest request)
       throws FileDoesNotExistException, InvalidPathException {
-    if (path.equals(TachyonURI.SEPARATOR)) {
+    if (path.isRoot()) {
       request.setAttribute("pathInfos", new UiFileInfo[0]);
       return;
     }
 
-    String[] splitPath = path.split(TachyonURI.SEPARATOR);
+    String[] splitPath = CommonUtils.getPathComponents(path.toString());
     UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
-    String currentPath = TachyonURI.SEPARATOR;
+    TachyonURI currentPath = new TachyonURI(TachyonURI.SEPARATOR);
     pathInfos[0] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     for (int i = 1; i < splitPath.length - 1; i ++) {
-      currentPath = CommonUtils.concat(currentPath, splitPath[i]);
+      currentPath = currentPath.join(splitPath[i]);
       pathInfos[i] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     }
     request.setAttribute("pathInfos", pathInfos);

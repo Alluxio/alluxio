@@ -1,7 +1,7 @@
 package tachyon.client;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOException;
 
 /**
  * <code>InStream</code> is the base input stream class for TachyonFile streaming input methods. It
@@ -30,10 +30,10 @@ public abstract class InStream extends InputStream {
   public abstract int read() throws IOException;
 
   @Override
-  public abstract int read(byte b[]) throws IOException;
+  public abstract int read(byte[] b) throws IOException;
 
   @Override
-  public abstract int read(byte b[], int off, int len) throws IOException;
+  public abstract int read(byte[] b, int off, int len) throws IOException;
 
   /**
    * Sets the stream pointer offset, measured from the beginning of this stream, at which the next

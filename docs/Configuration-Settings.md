@@ -142,6 +142,11 @@ number.
   <td>/</td>
   <td>The comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Tachyon will try to cache the cacheable file when it is read for the first time.</td>
 </tr>
+<tr>
+  <td>tachyon.master.web.threads</td>
+  <td>9</td>
+  <td>How many threads to use for the web server.</td>
+</tr>
 </table>
 
 # Worker Configuration
@@ -182,11 +187,20 @@ number.
   <td>Selects netty's channel implementation.  On linux, epoll is used; valid options are NIO and EPOLL.</td>
 </tr>
 <tr>
+  <td>tachyon.worker.network.netty.boss.threads</td>
+  <td>1</td>
+  <td>How many threads to use for accepting new requests.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.worker.threads</td>
+  <td>0</td>
+  <td>How many threads to use for processing requests. Zero defaults to #cpuCores * 2</td>
+</tr>
+<tr>
   <td>tachyon.worker.network.netty.file.transfer</td>
   <td>MAPPED</td>
   <td>When returning files to the user, select how the data is transferred; valid options are MAPPED (uses java MappedByteBuffer) and TRANSFER (uses Java FileChannel.transferTo).</td>
 </tr>
-
 <tr>
   <td>tachyon.worker.network.netty.watermark.high</td>
   <td>32768</td>

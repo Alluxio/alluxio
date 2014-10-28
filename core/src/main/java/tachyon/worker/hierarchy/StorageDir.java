@@ -20,10 +20,11 @@ import com.google.common.collect.Multimaps;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.client.BlockHandler;
 import tachyon.util.CommonUtils;
-import tachyon.worker.WorkerSpaceCounter;
+import tachyon.worker.SpaceCounter;
 
 /**
  * Used to store and manage block files in storage's directory on different under file systems.
@@ -39,15 +40,15 @@ public final class StorageDir {
   private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
   /** Space counter of current StorageDir */
-  private final WorkerSpaceCounter mSpaceCounter;
+  private final SpaceCounter mSpaceCounter;
   /** Id of StorageDir */
   private final long mStorageDirId;
-  /** Path of the data directory in current StorageDir */
-  private final String mDataPath;
+  /** Path of the data in current StorageDir */
+  private final TachyonURI mDataPath;
   /** Root path of the current StorageDir */
-  private final String mDirPath;
+  private final TachyonURI mDirPath;
   /** Path of user temporary directory in current StorageDir */
-  private final String mUserTempPath;
+  private final TachyonURI mUserTempPath;
   /** Under file system of current StorageDir */
   private final UnderFileSystem mFs;
   /** Configuration of under file system */
@@ -73,13 +74,13 @@ public final class StorageDir {
    */
   StorageDir(long storageDirId, String dirPath, long capacityBytes, String dataFolder,
       String userTempFolder, Object conf) {
-    mDirPath = dirPath;
+    mDirPath = new TachyonURI(dirPath);
     mConf = conf;
-    mFs = UnderFileSystem.get(mDirPath, conf);
-    mSpaceCounter = new WorkerSpaceCounter(capacityBytes);
+    mFs = UnderFileSystem.get(dirPath, conf);
+    mSpaceCounter = new SpaceCounter(capacityBytes);
     mStorageDirId = storageDirId;
-    mDataPath = CommonUtils.concat(mDirPath, dataFolder);
-    mUserTempPath = CommonUtils.concat(mDirPath, userTempFolder);
+    mDataPath = mDirPath.join(dataFolder);
+    mUserTempPath = mDirPath.join(userTempFolder);
   }
 
   /**
@@ -95,7 +96,7 @@ public final class StorageDir {
    * Add information of a block in current StorageDir
    * 
    * @param blockId Id of the block
-   * @param size size of the block in bytes
+   * @param sizeBytes size of the block in bytes
    */
   private void addBlockId(long blockId, long sizeBytes) {
     accessBlock(blockId);
@@ -254,7 +255,7 @@ public final class StorageDir {
    * @return file path of the block
    */
   String getBlockFilePath(long blockId) {
-    return CommonUtils.concat(mDataPath, blockId);
+    return mDataPath.join("" + blockId).toString();
   }
 
   /**
@@ -320,7 +321,7 @@ public final class StorageDir {
    * 
    * @return data path of current StorageDir
    */
-  public String getDirDataPath() {
+  public TachyonURI getDirDataPath() {
     return mDataPath;
   }
 
@@ -329,7 +330,7 @@ public final class StorageDir {
    * 
    * @return root path of StorageDir
    */
-  public String getDirPath() {
+  public TachyonURI getDirPath() {
     return mDirPath;
   }
 
@@ -395,7 +396,16 @@ public final class StorageDir {
    * @return temporary file path of the block
    */
   String getUserTempFilePath(long userId, long blockId) {
-    return CommonUtils.concat(mUserTempPath, userId, blockId);
+    return mUserTempPath.join("" + userId).join("" + blockId).toString();
+  }
+
+  /**
+   * Get root temporary path of users
+   * 
+   * @return TachyonURI of users' temporary path
+   */
+  public TachyonURI getUserTempPath() {
+    return mUserTempPath;
   }
 
   /**
@@ -405,7 +415,7 @@ public final class StorageDir {
    * @return temporary path of the user
    */
   public String getUserTempPath(long userId) {
-    return CommonUtils.concat(mUserTempPath, userId);
+    return mUserTempPath.join("" + userId).toString();
   }
 
   /**
@@ -414,29 +424,31 @@ public final class StorageDir {
    * @throws IOException
    */
   public void initailize() throws IOException {
-    if (!mFs.exists(mDataPath)) {
+    String dataPath = mDataPath.toString();
+    if (!mFs.exists(dataPath)) {
       LOG.info("Data folder " + mDataPath + " does not exist. Creating a new one.");
-      mFs.mkdirs(mDataPath, true);
-      mFs.setPermission(mDataPath, "775");
-    } else if (mFs.isFile(mDataPath)) {
+      mFs.mkdirs(dataPath, true);
+      mFs.setPermission(dataPath, "775");
+    } else if (mFs.isFile(dataPath)) {
       String msg = "Data folder " + mDataPath + " is not a folder!";
       throw new IllegalArgumentException(msg);
     }
 
-    if (!mFs.exists(mUserTempPath)) {
+    String userTempPath = mUserTempPath.toString();
+    if (!mFs.exists(userTempPath)) {
       LOG.info("User temp folder " + mUserTempPath + " does not exist. Creating a new one.");
-      mFs.mkdirs(mUserTempPath, true);
-      mFs.setPermission(mUserTempPath, "775");
-    } else if (mFs.isFile(mUserTempPath)) {
+      mFs.mkdirs(userTempPath, true);
+      mFs.setPermission(userTempPath, "775");
+    } else if (mFs.isFile(userTempPath)) {
       String msg = "User temp folder " + mUserTempPath + " is not a folder!";
       throw new IllegalArgumentException(msg);
     }
 
     int cnt = 0;
-    for (String name : mFs.list(mDataPath)) {
-      String path = CommonUtils.concat(mDataPath, name);
+    for (String name : mFs.list(dataPath)) {
+      String path = mDataPath.join(name).toString();
       if (mFs.isFile(path)) {
-        cnt++;
+        cnt ++;
         long fileSize = mFs.getFileSize(path);
         LOG.debug("File " + cnt + ": " + path + " with size " + fileSize + " Bs.");
         long blockId = CommonUtils.getBlockIdFromFileName(name);

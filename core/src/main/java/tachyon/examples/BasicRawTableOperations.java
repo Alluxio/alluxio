@@ -3,6 +3,7 @@ package tachyon.examples;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,59 +13,59 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonByteBuffer;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 
-public class BasicRawTableOperations {
-  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+public class BasicRawTableOperations implements Callable<Boolean> {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final int COLS = 3;
-  private static TachyonFS sTachyonClient;
-  private static TachyonURI sTablePath = null;
-  private static int mId;
-  private static WriteType sWriteType = null;
-  private static int sDataLength = 20;
-  private static int sMetadataLength = 5;
-  private static boolean sPass = true;
 
-  public static void createRawTable() throws IOException {
-    ByteBuffer data = ByteBuffer.allocate(sMetadataLength * 4);
+  private final TachyonURI mMasterAddress;
+  private final TachyonURI mTablePath;
+  private final WriteType mWriteType;
+  private final int mDataLength = 20;
+  private final int mMetadataLength = 5;
+  private int mId;
+
+  public BasicRawTableOperations(TachyonURI masterAddress, TachyonURI tablePath,
+      WriteType writeType) {
+    mMasterAddress = masterAddress;
+    mTablePath = tablePath;
+    mWriteType = writeType;
+  }
+
+  @Override
+  public Boolean call() throws Exception {
+    TachyonFS tachyonClient = TachyonFS.get(mMasterAddress);
+    createRawTable(tachyonClient);
+    write(tachyonClient);
+    return read(tachyonClient);
+  }
+
+  private void createRawTable(TachyonFS tachyonClient) throws IOException {
+    ByteBuffer data = ByteBuffer.allocate(mMetadataLength * 4);
     data.order(ByteOrder.nativeOrder());
-    for (int k = -sMetadataLength; k < 0; k ++) {
+    for (int k = -mMetadataLength; k < 0; k ++) {
       data.putInt(k);
     }
     data.flip();
-    mId = sTachyonClient.createRawTable(sTablePath, 3, data);
+    mId = tachyonClient.createRawTable(mTablePath, 3, data);
   }
 
-  public static void main(String[] args) throws IOException {
-    if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION
-          + "-jar-with-dependencies.jar "
-          + "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
-      System.exit(-1);
-    }
-    sTachyonClient = TachyonFS.get(new TachyonURI(args[0]));
-    sTablePath = new TachyonURI(args[1]);
-    sWriteType = WriteType.getOpType(args[2]);
-    createRawTable();
-    write();
-    read();
-    Utils.printPassInfo(sPass);
-    System.exit(0);
-  }
+  private boolean read(TachyonFS tachyonClient) throws IOException {
+    boolean pass = true;
 
-  public static void read() throws IOException {
     LOG.debug("Reading data...");
-    RawTable rawTable = sTachyonClient.getRawTable(mId);
+    RawTable rawTable = tachyonClient.getRawTable(mId);
     ByteBuffer metadata = rawTable.getMetadata();
     LOG.debug("Metadata: ");
     metadata.order(ByteOrder.nativeOrder());
-    for (int k = -sMetadataLength; k < 0; k ++) {
-      sPass = sPass && (metadata.getInt() == k);
+    for (int k = -mMetadataLength; k < 0; k ++) {
+      pass = pass && (metadata.getInt() == k);
     }
 
     for (int column = 0; column < COLS; column ++) {
@@ -76,36 +77,48 @@ public class BasicRawTableOperations {
         tFile.recache();
         buf = tFile.readByteBuffer(0);
       }
-      buf.DATA.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < sDataLength; k ++) {
-        sPass = sPass && (buf.DATA.getInt() == k);
+      buf.mData.order(ByteOrder.nativeOrder());
+      for (int k = 0; k < mDataLength; k ++) {
+        pass = pass && (buf.mData.getInt() == k);
       }
       buf.close();
     }
+    return pass;
   }
 
-  public static void write() throws IOException {
-    RawTable rawTable = sTachyonClient.getRawTable(sTablePath);
+  private void write(TachyonFS tachyonClient) throws IOException {
+    RawTable rawTable = tachyonClient.getRawTable(mTablePath);
 
     LOG.debug("Writing data...");
     for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       if (!rawColumn.createPartition(0)) {
-        throw new IOException("Failed to create partition in table " + sTablePath
+        throw new IOException("Failed to create partition in table " + mTablePath
             + " under column " + column);
       }
 
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < sDataLength; k ++) {
+      for (int k = 0; k < mDataLength; k ++) {
         buf.putInt(k);
       }
       buf.flip();
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      OutStream os = tFile.getOutStream(sWriteType);
+      OutStream os = tFile.getOutStream(mWriteType);
       os.write(buf.array());
       os.close();
     }
+  }
+
+  public static void main(String[] args) throws IllegalArgumentException {
+    if (args.length != 3) {
+      System.out.println("java -cp target/tachyon-" + Version.VERSION
+          + "-jar-with-dependencies.jar "
+          + "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
+      System.exit(-1);
+    }
+    Utils.runExample(new BasicRawTableOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
+        WriteType.valueOf(args[2])));
   }
 }

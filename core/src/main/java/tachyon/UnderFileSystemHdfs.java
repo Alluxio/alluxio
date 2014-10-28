@@ -238,6 +238,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
           return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
         case SPACE_FREE:
           return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
+        default:
+          throw new IOException("Unknown getSpace parameter: " + type);
       }
     }
     return -1;
@@ -306,8 +308,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   public boolean rename(String src, String dst) throws IOException {
-    IOException te = null;
-    int cnt = 0;
     LOG.debug("Renaming from {} to {}", src, dst);
     if (!exists(src)) {
       LOG.error("File " + src + " does not exist. Therefore rename to " + dst + " failed.");
@@ -317,6 +317,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       LOG.error("File " + dst + " does exist. Therefore rename from " + src + " failed.");
     }
 
+    int cnt = 0;
+    IOException te = null;
     while (cnt < MAX_TRY) {
       try {
         return mFs.rename(new Path(src), new Path(dst));

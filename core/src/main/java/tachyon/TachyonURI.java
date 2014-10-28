@@ -276,8 +276,8 @@ public final class TachyonURI implements Comparable<TachyonURI> {
         && path.length() >= start + 2
         && (!slashed || path.charAt(0) == '/')
         && path.charAt(start + 1) == ':'
-        && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') || (path.charAt(start) >= 'a' && path
-            .charAt(start) <= 'z'));
+        && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') || (path.charAt(start) >= 'a'
+        && path.charAt(start) <= 'z'));
   }
 
   /**
@@ -322,23 +322,23 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Add a suffix to the end of the Tachyon URI.
+   * Append additional path elements to the end of a TachyonURI.
    * 
    * @param suffix the suffix to add
    * @return the new TachyonURI
    */
   public TachyonURI join(String suffix) {
-    return new TachyonURI(toString() + suffix);
+    return new TachyonURI(toString() + TachyonURI.SEPARATOR + suffix);
   }
 
   /**
-   * Add a suffix to the end of the Tachyon URI.
+   * Append additional path elements to the end of a TachyonURI.
    * 
    * @param suffix the suffix to add
    * @return the new TachyonURI
    */
   public TachyonURI join(TachyonURI suffix) {
-    return new TachyonURI(toString() + suffix.toString());
+    return join(suffix.toString());
   }
 
   /**

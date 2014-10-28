@@ -17,8 +17,8 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -32,7 +32,7 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private MasterInfo mMasterInfo;
+  private final transient MasterInfo mMasterInfo;
 
   public WebInterfaceDownloadServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
@@ -47,13 +47,17 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    String currentPath = request.getParameter("path");
-    if (currentPath == null || currentPath.isEmpty()) {
-      currentPath = TachyonURI.SEPARATOR;
+    String requestPath = request.getParameter("path");
+    if (requestPath == null || requestPath.isEmpty()) {
+      requestPath = TachyonURI.SEPARATOR;
     }
+    TachyonURI currentPath = new TachyonURI(requestPath);
     try {
       ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
-      downloadFile(clientFileInfo.getPath(), request, response);
+      if (null == clientFileInfo) {
+        throw new FileDoesNotExistException(currentPath.toString());
+      }
+      downloadFile(new TachyonURI(clientFileInfo.getPath()), request, response);
     } catch (FileDoesNotExistException fdne) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
@@ -72,18 +76,18 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws IOException
    */
-  private void downloadFile(String path, HttpServletRequest request, HttpServletResponse response)
-      throws FileDoesNotExistException, IOException {
+  private void downloadFile(TachyonURI path, HttpServletRequest request,
+      HttpServletResponse response) throws FileDoesNotExistException, IOException {
     String masterAddress =
         Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
             + mMasterInfo.getMasterAddress().getPort();
     TachyonFS tachyonClient = TachyonFS.get(new TachyonURI(masterAddress));
-    TachyonFile tFile = tachyonClient.getFile(new TachyonURI(path));
+    TachyonFile tFile = tachyonClient.getFile(path);
     if (tFile == null) {
-      throw new FileDoesNotExistException(path);
+      throw new FileDoesNotExistException(path.toString());
     }
     long len = tFile.length();
-    String fileName = new TachyonURI(path).getName();
+    String fileName = path.getName();
     response.setContentType("application/octet-stream");
     if (len <= Integer.MAX_VALUE) {
       response.setContentLength((int) len);
@@ -99,9 +103,13 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
       out = response.getOutputStream();
       ByteStreams.copy(is, out);
     } finally {
-      out.flush();
-      out.close();
-      is.close();
+      if (out != null) {
+        out.flush();
+        out.close();
+      }
+      if (is != null) {
+        is.close();
+      }
     }
     try {
       tachyonClient.close();

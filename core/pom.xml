@@ -83,6 +83,11 @@
       <version>${log4j.version}</version>
     </dependency>
     <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>2.4</version>
@@ -197,12 +202,6 @@
           <artifactId>commons-httpclient</artifactId>
           <version>3.0.1</version>
           <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>commons-codec</groupId>
-          <artifactId>commons-codec</artifactId>
-          <version>1.4</version>
-          <scope>provided</scope>
         </dependency>
       </dependencies>
     </profile>
@@ -359,7 +358,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.14</version>
         <configuration>
-          <argLine>-Dufs=${ufs}</argLine>
+          <argLine>-Dufs=${ufs} -Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
           <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
         </configuration>
       </plugin>
@@ -392,6 +391,26 @@
           <xmlOutput>true</xmlOutput>
           <effort>Max</effort>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.13</version>
+        <configuration>
+          <configLocation>src/main/resources/tachyon_checks.xml</configLocation>
+          <excludes>**/tachyon/thrift/**</excludes>
+          <encoding>UTF-8</encoding>
+          <consoleOutput>true</consoleOutput>
+          <failsOnError>false</failsOnError>
+          <linkXRef>false</linkXRef>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>5.9</version>
+          </dependency>
+        </dependencies>
       </plugin>
     </plugins>
   </build>

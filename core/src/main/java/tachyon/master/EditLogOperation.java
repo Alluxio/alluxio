@@ -13,12 +13,12 @@ import com.google.common.base.Objects;
  */
 class EditLogOperation extends JsonObject {
   // NB: These type names are used in the serialized JSON. They should be concise but readable.
-  public EditLogOperationType type;
-  public long transId;
+  public EditLogOperationType mType;
+  public long mTransId;
 
   public EditLogOperation(EditLogOperationType type, long transId) {
-    this.type = type;
-    this.transId = transId;
+    mType = type;
+    mTransId = transId;
   }
 
   /** Constructor used for deserializing Operations. */
@@ -26,15 +26,15 @@ class EditLogOperation extends JsonObject {
   public EditLogOperation(@JsonProperty("type") EditLogOperationType type,
       @JsonProperty("transId") long transId,
       @JsonProperty("parameters") Map<String, JsonNode> parameters) {
-    this.type = type;
-    this.transId = transId;
-    this.parameters = parameters;
+    mType = type;
+    mTransId = transId;
+    mParameters = parameters;
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("type", type).add("transId", transId)
-        .add("parameters", parameters).toString();
+    return Objects.toStringHelper(this).add("type", mType).add("transId", mTransId)
+        .add("parameters", mParameters).toString();
   }
 
   @Override

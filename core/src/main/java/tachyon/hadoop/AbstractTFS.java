@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
@@ -46,7 +46,7 @@ abstract class AbstractTFS extends FileSystem {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public static String mUnderFSAddress;
+  public static String sUnderFSAddress;
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(TachyonURI.SEPARATOR);
@@ -204,8 +204,9 @@ abstract class AbstractTFS extends FileSystem {
       Path hdfsPath = Utils.getHDFSPath(path);
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       if (fs.exists(hdfsPath)) {
-        TachyonURI ufsUri = new TachyonURI(mUnderFSAddress);
-        TachyonURI ufsAddrPath = new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(), path.getPath());
+        TachyonURI ufsUri = new TachyonURI(sUnderFSAddress);
+        TachyonURI ufsAddrPath = new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(),
+            path.getPath());
         // Set the path as the TFS root path.
         UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
       }
@@ -323,8 +324,8 @@ abstract class AbstractTFS extends FileSystem {
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
     mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode());
     mUri = URI.create(mTachyonHeader);
-    mUnderFSAddress = mTFS.getUfsAddress();
-    LOG.info(mTachyonHeader + " " + mUri + " " + mUnderFSAddress);
+    sUnderFSAddress = mTFS.getUfsAddress();
+    LOG.info(mTachyonHeader + " " + mUri + " " + sUnderFSAddress);
   }
 
   /**
@@ -408,6 +409,6 @@ abstract class AbstractTFS extends FileSystem {
    */
   @Deprecated
   private boolean useHdfs() {
-    return mUnderFSAddress != null && URI.create(mUnderFSAddress).getScheme() != null;
+    return sUnderFSAddress != null && URI.create(sUnderFSAddress).getScheme() != null;
   }
 }

@@ -2,9 +2,7 @@ package tachyon.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -13,13 +11,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Scanner;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -51,10 +50,9 @@ public final class CommonUtils {
       ProcessBuilder builder = new ProcessBuilder(commands);
       Process process = builder.start();
 
-      redirectStreamAsync(process.getInputStream(), System.out);
-      redirectStreamAsync(process.getErrorStream(), System.err);
-
       process.waitFor();
+
+      redirectIO(process);
 
       if (process.exitValue() != 0) {
         throw new IOException("Can not change the file " + file.getAbsolutePath()
@@ -63,6 +61,26 @@ public final class CommonUtils {
     } catch (InterruptedException e) {
       LOG.error(e.getMessage());
       throw new IOException(e);
+    }
+  }
+
+  /**
+   * Blocking operation that copies the processes stdout/stderr to this JVM's stdout/stderr.
+   */
+  private static void redirectIO(final Process process) throws IOException {
+    // Because chmod doesn't have a lot of error or output messages, its safe to process the output
+    // after the process is done. As of java 7, you can have the process redirect to System.out
+    // and System.err without forking a process.
+    // TODO when java 6 support is dropped, switch to
+    // http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html#inheritIO()
+    Closer closer = Closer.create();
+    try {
+      ByteStreams.copy(closer.register(process.getInputStream()), System.out);
+      ByteStreams.copy(closer.register(process.getErrorStream()), System.err);
+    } catch (Throwable e) {
+      throw closer.rethrow(e);
+    } finally {
+      closer.close();
     }
   }
 
@@ -127,14 +145,10 @@ public final class CommonUtils {
     return retPath;
   }
 
-  public static String convertByteArrayToStringWithoutEscape(byte[] data) {
-    StringBuilder sb = new StringBuilder(data.length);
-    for (int i = 0; i < data.length; i ++) {
-      if (data[i] < 128) {
-        sb.append((char) data[i]);
-      } else {
-        return null;
-      }
+  public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
+    StringBuilder sb = new StringBuilder(length);
+    for (int i = offset; i < length && i < data.length; i ++) {
+      sb.append((char) data[i]);
     }
     return sb.toString();
   }
@@ -381,8 +395,8 @@ public final class CommonUtils {
     } else if (end.equals("pb")) {
       // When parsing petabyte values, we can't multiply with doubles and longs, since that will
       // lose presicion with such high numbers. Therefore we use a BigDecimal.
-      BigDecimal PBDecimal = new BigDecimal(Constants.PB);
-      return PBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
+      BigDecimal pBDecimal = new BigDecimal(Constants.PB);
+      return pBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
     } else {
       throw new IllegalArgumentException("Fail to parse " + ori + " as memory size");
     }
@@ -403,19 +417,6 @@ public final class CommonUtils {
 
   public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
     logger.info(message + " took " + (getCurrentNs() - startTimeNs) + " ns.");
-  }
-
-  static void redirectStreamAsync(final InputStream input, final PrintStream output) {
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        Scanner scanner = new Scanner(input);
-        while (scanner.hasNextLine()) {
-          output.println(scanner.nextLine());
-        }
-        scanner.close();
-      }
-    }).start();
   }
 
   /**

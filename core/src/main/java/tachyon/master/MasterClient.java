@@ -27,6 +27,8 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
+import tachyon.retry.ExponentialBackoffRetry;
+import tachyon.retry.RetryPolicy;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -53,7 +55,7 @@ import tachyon.util.NetworkUtils;
  * 
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
-public class MasterClient implements Closeable {
+public final class MasterClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_CONNECT_TRY = 5;
 
@@ -116,11 +118,14 @@ public class MasterClient implements Closeable {
       LOG.debug("Disconnecting from the master {}", mMasterAddress);
       mConnected = false;
     }
-    if (mProtocol != null) {
-      mProtocol.getTransport().close();
-    }
-    if (mHeartbeatThread != null) {
-      mHeartbeatThread.shutdown();
+    try {
+      if (mProtocol != null) {
+        mProtocol.getTransport().close();
+      }
+    } finally {
+      if (mHeartbeatThread != null) {
+        mHeartbeatThread.shutdown();
+      }
     }
   }
 
@@ -139,9 +144,9 @@ public class MasterClient implements Closeable {
       throw new IOException("Client is shutdown, will not try to connect");
     }
 
-    int tries = 0;
     Exception lastException = null;
-    while (tries ++ < MAX_CONNECT_TRY && !mIsShutdown) {
+    RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, MAX_CONNECT_TRY);
+    do {
       mMasterAddress = getMasterAddress();
 
       LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect master @ "
@@ -162,12 +167,11 @@ public class MasterClient implements Closeable {
         mHeartbeatThread.start();
       } catch (TTransportException e) {
         lastException = e;
-        LOG.error("Failed to connect (" + tries + ") to master " + mMasterAddress + " : "
-            + e.getMessage());
+        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress
+            + " : " + e.getMessage());
         if (mHeartbeatThread != null) {
           mHeartbeatThread.shutdown();
         }
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         continue;
       }
 
@@ -182,11 +186,11 @@ public class MasterClient implements Closeable {
 
       mConnected = true;
       return;
-    }
+    } while (retry.attemptRetry() && !mIsShutdown);
 
     // Reaching here indicates that we did not successfully connect.
-    throw new IOException("Failed to connect to master " + mMasterAddress + " after " + (tries - 1)
-        + " attempts", lastException);
+    throw new IOException("Failed to connect to master " + mMasterAddress + " after "
+        + (retry.getRetryCount()) + " attempts", lastException);
   }
 
   public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {

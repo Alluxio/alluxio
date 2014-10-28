@@ -3,12 +3,12 @@ package tachyon;
 /**
  * A pair representation defined by two elements (of type First and type Second).
  * 
- * @param <First> the first element of the Pair.
- * @param <Second> the second element of the Pair.
+ * @param <T1> the first element of the Pair.
+ * @param <T2> the second element of the Pair.
  */
-public class Pair<First, Second> {
-  private First mFirst;
-  private Second mSecond;
+public final class Pair<T1, T2> {
+  private T1 mFirst;
+  private T2 mSecond;
 
   /**
    * Constructs and initializes a Pair specified by the two input elements.
@@ -16,31 +16,22 @@ public class Pair<First, Second> {
    * @param first the first element of the pair (of type First)
    * @param second the second element of the pair (of type Second)
    */
-  public Pair(First first, Second second) {
+  public Pair(T1 first, T2 second) {
     mFirst = first;
     mSecond = second;
-  }
-
-  @Override
-  public synchronized boolean equals(Object o) {
-    if (!(o instanceof Pair)) {
-      return false;
-    }
-    return mFirst.equals(((Pair<?, ?>) o).getFirst())
-        && mSecond.equals(((Pair<?, ?>) o).getSecond());
   }
 
   /**
    * @return the first element of the pair.
    */
-  public First getFirst() {
+  public T1 getFirst() {
     return mFirst;
   }
 
   /**
    * @return the second element of the pair.
    */
-  public Second getSecond() {
+  public T2 getSecond() {
     return mSecond;
   }
 
@@ -49,7 +40,7 @@ public class Pair<First, Second> {
    * 
    * @param first the value to be set.
    */
-  public void setFirst(First first) {
+  public void setFirst(T1 first) {
     mFirst = first;
   }
 
@@ -58,7 +49,7 @@ public class Pair<First, Second> {
    * 
    * @param second the value to be set.
    */
-  public void setSecond(Second second) {
+  public void setSecond(T2 second) {
     mSecond = second;
   }
 

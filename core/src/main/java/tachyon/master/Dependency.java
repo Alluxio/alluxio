@@ -259,11 +259,11 @@ public class Dependency extends ImageWriter {
   /**
    * Reset the uncheckpointed children files with the specified input
    * 
-   * @param uncheckpointedChildrenFiles The new uncheckpointed children files' id
+   * @param uckdChildrenFiles The new uncheckpointed children files' id
    */
-  synchronized void resetUncheckpointedChildrenFiles(Collection<Integer> uncheckpointedChildrenFiles) {
+  synchronized void resetUncheckpointedChildrenFiles(Collection<Integer> uckdChildrenFiles) {
     mUncheckpointedChildrenFiles.clear();
-    mUncheckpointedChildrenFiles.addAll(uncheckpointedChildrenFiles);
+    mUncheckpointedChildrenFiles.addAll(uckdChildrenFiles);
   }
 
   @Override

@@ -13,7 +13,7 @@ Tachyon is Hadoop compatible. Existing Spark and MapReduce programs can run on t
 any code change. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
 multiple companies. It has more than
-[40 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 15 institutions,
+[50 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 20 institutions,
 including Yahoo, Intel, and Redhat. The project is the storage layer of the Berkeley Data Analytics
 Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
@@ -58,6 +58,9 @@ to interact with Tachyon, e.g. copy data in and out of the file system.
 [Running Tachyon Locally](Running-Tachyon-Locally.html): Get Tachyon up and running on a single node
 for a quick spin in ~ 5 minutes.
 
+[Configure Under Filesystem](Setup-UFS.html): Learn how to configure under file system or to create
+a new one.
+
 [Running Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html): Get Tachyon up and running on
 your own cluster.
 
@@ -78,8 +81,6 @@ line.
 
 [Syncing the Underlying Filesystem](Syncing-the-Underlying-Filesystem.html): Make Tachyon understand
 an existing underlayer filesystem.
-
-[Configure Glusterfs as UnderFileSystem](Setup-GlusterFs-as-UnderFileSystem.html)
 
 [Tachyon Java API (Javadoc)](api/java/index.html)
 

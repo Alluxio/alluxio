@@ -10,6 +10,8 @@ import java.io.InputStreamReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.io.Closer;
+
 import tachyon.Constants;
 
 /**
@@ -38,21 +40,26 @@ public class RecomputeCommand implements Runnable {
       LOG.info("Exec " + mCommand + " output to " + mFilePath);
       Process p = java.lang.Runtime.getRuntime().exec(mCommand);
       String line;
-      BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
-      BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-      File file = new File(mFilePath);
-      FileWriter fw = new FileWriter(file.getAbsoluteFile());
-      BufferedWriter bw = new BufferedWriter(fw);
-      while ((line = bri.readLine()) != null) {
-        bw.write(line + "\n");
+      Closer closer = Closer.create();
+      try {
+        BufferedReader bri =
+            closer.register(new BufferedReader(new InputStreamReader(p.getInputStream())));
+        BufferedReader bre =
+            closer.register(new BufferedReader(new InputStreamReader(p.getErrorStream())));
+        File file = new File(mFilePath);
+        FileWriter fw = new FileWriter(file.getAbsoluteFile());
+        BufferedWriter bw = closer.register(new BufferedWriter(fw));
+        while ((line = bri.readLine()) != null) {
+          bw.write(line + "\n");
+        }
+        while ((line = bre.readLine()) != null) {
+          bw.write(line + "\n");
+        }
+        bw.flush();
+      } finally {
+        closer.close();
       }
-      bri.close();
-      while ((line = bre.readLine()) != null) {
-        bw.write(line + "\n");
-      }
-      bre.close();
-      bw.flush();
-      bw.close();
+
       p.waitFor();
       LOG.info("Exec " + mCommand + " output to " + mFilePath + " done.");
     } catch (IOException e) {

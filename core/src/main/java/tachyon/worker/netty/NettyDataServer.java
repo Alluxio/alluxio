@@ -1,5 +1,10 @@
 package tachyon.worker.netty;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.concurrent.ThreadFactory;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
@@ -9,11 +14,6 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.concurrent.ThreadFactory;
 
 import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -97,18 +97,21 @@ public final class NettyDataServer implements DataServer {
    * preset. Current channel type supported are nio and epoll.
    */
   private ServerBootstrap setupGroups(final ServerBootstrap boot, final ChannelType type) {
-    ThreadFactory workerFactory = createThreadFactory("data-server-%d");
+    ThreadFactory bossThreadFactory = createThreadFactory("data-server-boss-%d");
+    ThreadFactory workerThreadFactory = createThreadFactory("data-server-worker-%d");
     EventLoopGroup bossGroup;
     EventLoopGroup workerGroup;
+    int bossThreadCount = WorkerConf.get().NETTY_BOSS_THREADS;
+    int workerThreadCount = WorkerConf.get().NETTY_WORKER_THREADS;
     switch (type) {
       case EPOLL:
-        bossGroup = new EpollEventLoopGroup(0, workerFactory);
-        workerGroup = bossGroup;
+        bossGroup = new EpollEventLoopGroup(bossThreadCount, bossThreadFactory);
+        workerGroup = new EpollEventLoopGroup(workerThreadCount, workerThreadFactory);
         boot.channel(EpollServerSocketChannel.class);
         break;
       default:
-        bossGroup = new NioEventLoopGroup(0, workerFactory);
-        workerGroup = bossGroup;
+        bossGroup = new NioEventLoopGroup(bossThreadCount, bossThreadFactory);
+        workerGroup = new NioEventLoopGroup(workerThreadCount, workerThreadFactory);
         boot.channel(NioServerSocketChannel.class);
     }
     boot.group(bossGroup, workerGroup);

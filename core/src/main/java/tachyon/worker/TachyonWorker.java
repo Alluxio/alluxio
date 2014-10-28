@@ -125,13 +125,13 @@ public class TachyonWorker implements Runnable {
   private TServer mServer;
 
   private TNonblockingServerSocket mServerTNonblockingServerSocket;
-  private WorkerStorage mWorkerStorage;
+  private final WorkerStorage mWorkerStorage;
 
-  private WorkerServiceHandler mWorkerServiceHandler;
+  private final WorkerServiceHandler mWorkerServiceHandler;
 
   private final DataServer mDataServer;
 
-  private Thread mHeartbeatThread;
+  private final Thread mHeartbeatThread;
 
   private volatile boolean mStop = false;
 
@@ -167,7 +167,7 @@ public class TachyonWorker implements Runnable {
     // In a production or any real deployment setup, port '0' should not be used as it will make
     // deployment more complicated.
     InetSocketAddress dataAddress = new InetSocketAddress(workerAddress.getHostName(), dataPort);
-    BlocksLocker blockLocker = new BlocksLocker(mWorkerStorage, Users.sDATASERVER_USER_ID);
+    BlocksLocker blockLocker = new BlocksLocker(mWorkerStorage, Users.DATASERVER_USER_ID);
     mDataServer = createDataServer(dataAddress, blockLocker);
     mDataPort = mDataServer.getPort();
 
@@ -249,11 +249,7 @@ public class TachyonWorker implements Runnable {
         LOG.error(e.getMessage(), e);
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        try {
-          mWorkerStorage.resetMasterClient();
-        } catch (IOException e2) {
-          LOG.error("Received exception while attempting to reset client", e2);
-        }
+        mWorkerStorage.resetMasterClient();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         cmd = null;
         if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf.get().HEARTBEAT_TIMEOUT_MS) {

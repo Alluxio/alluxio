@@ -1,6 +1,6 @@
 package tachyon.examples;
 
-import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import tachyon.Constants;
 import tachyon.client.ReadType;
@@ -51,8 +51,8 @@ public final class Utils {
   public static WriteType option(String[] args, int index, WriteType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
-        return WriteType.getOpType(args[index]);
-      } catch (IOException e) {
+        return WriteType.valueOf(args[index]);
+      } catch (IllegalArgumentException e) {
         System.err.println("Unable to parse WriteType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);
         return defaultValue;
@@ -65,8 +65,8 @@ public final class Utils {
   public static ReadType option(String[] args, int index, ReadType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
-        return ReadType.getOpType(args[index]);
-      } catch (IOException e) {
+        return ReadType.valueOf(args[index]);
+      } catch (IllegalArgumentException e) {
         System.err.println("Unable to parse ReadType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);
         return defaultValue;
@@ -74,5 +74,16 @@ public final class Utils {
     } else {
       return defaultValue;
     }
+  }
+
+  public static void runExample(final Callable<Boolean> example) {
+    boolean result;
+    try {
+      result = example.call();
+    } catch (Exception e) {
+      result = false;
+    }
+    Utils.printPassInfo(result);
+    System.exit(result ? 0 : 1);
   }
 }

@@ -3,12 +3,13 @@ package tachyon.examples;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 
 /**
@@ -22,35 +23,33 @@ import tachyon.client.WriteType;
  * {@link tachyon.client.ReadType} is something that can be set, as well as ability to delete file
  * if exists.
  */
-public final class BasicNonByteBufferOperations {
-  private static void usage() {
-    System.out.println("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-        + BasicNonByteBufferOperations.class.getName()
-        + " <master address> <file path> [write type] [read type] [delete file] [num writes]");
-    System.exit(-1);
+public final class BasicNonByteBufferOperations implements Callable<Boolean> {
+  private final TachyonURI mMasterLocation;
+  private final TachyonURI mFilePath;
+  private final WriteType mWriteType;
+  private final ReadType mReadType;
+  private final boolean mDeleteIfExists;
+  private final int mLength;
+
+  public BasicNonByteBufferOperations(TachyonURI masterLocation, TachyonURI filePath,
+      WriteType writeType, ReadType readType, boolean deleteIfExists, int length) {
+    mMasterLocation = masterLocation;
+    mFilePath = filePath;
+    mWriteType = writeType;
+    mReadType = readType;
+    mDeleteIfExists = deleteIfExists;
+    mLength = length;
   }
 
-  public static void main(final String[] args) throws IOException {
-    if (args.length < 2 || args.length > 6) {
-      usage();
-    }
+  @Override
+  public Boolean call() throws Exception {
+    TachyonFS client = TachyonFS.get(mMasterLocation);
 
-    TachyonURI filePath = new TachyonURI(args[1]);
-    WriteType writeType = Utils.option(args, 2, WriteType.MUST_CACHE);
-    ReadType readType = Utils.option(args, 3, ReadType.NO_CACHE);
-    boolean deleteIfExists = Utils.option(args, 4, true);
-    int length = Utils.option(args, 5, 20);
-
-    TachyonFS client = TachyonFS.get(new TachyonURI(args[0]));
-
-    write(client, filePath, writeType, deleteIfExists, length);
-    boolean passes = read(client, filePath, readType);
-
-    Utils.printPassInfo(passes);
-    System.exit(0);
+    write(client, mFilePath, mWriteType, mDeleteIfExists, mLength);
+    return read(client, mFilePath, mReadType);
   }
 
-  private static void write(TachyonFS client, TachyonURI filePath, WriteType writeType,
+  private void write(TachyonFS client, TachyonURI filePath, WriteType writeType,
       boolean deleteIfExists, int length) throws IOException {
     // If the file exists already, we will override it.
     TachyonFile file = getOrCreate(client, filePath, deleteIfExists);
@@ -65,8 +64,8 @@ public final class BasicNonByteBufferOperations {
     }
   }
 
-  private static TachyonFile getOrCreate(TachyonFS client, TachyonURI filePath,
-      boolean deleteIfExists) throws IOException {
+  private TachyonFile getOrCreate(TachyonFS client, TachyonURI filePath, boolean deleteIfExists)
+      throws IOException {
     TachyonFile file = client.getFile(filePath);
     if (file == null) {
       // file doesn't exist yet, so create it
@@ -82,7 +81,7 @@ public final class BasicNonByteBufferOperations {
     return file;
   }
 
-  private static boolean read(TachyonFS client, TachyonURI filePath, ReadType readType)
+  private boolean read(TachyonFS client, TachyonURI filePath, ReadType readType)
       throws IOException {
     TachyonFile file = client.getFile(filePath);
     DataInputStream input = new DataInputStream(file.getInStream(readType));
@@ -96,5 +95,22 @@ public final class BasicNonByteBufferOperations {
       input.close();
     }
     return passes;
+  }
+
+  public static void main(final String[] args) throws IOException {
+    if (args.length < 2 || args.length > 6) {
+      usage();
+    }
+
+    Utils.runExample(new BasicNonByteBufferOperations(new TachyonURI(args[0]), new TachyonURI(
+        args[1]), Utils.option(args, 2, WriteType.MUST_CACHE), Utils.option(args, 3,
+        ReadType.NO_CACHE), Utils.option(args, 4, true), Utils.option(args, 5, 20)));
+  }
+
+  private static void usage() {
+    System.out.println("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
+        + BasicNonByteBufferOperations.class.getName()
+        + " <master address> <file path> [write type] [read type] [delete file] [num writes]");
+    System.exit(-1);
   }
 }

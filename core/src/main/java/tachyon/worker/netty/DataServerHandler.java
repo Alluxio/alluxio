@@ -1,13 +1,14 @@
 package tachyon.worker.netty;
 
+
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +71,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       if (file != null) {
-        Closeables.closeQuietly(file);
+        Closeables.close(file, true);
       }
     } finally {
       mLocker.unlock(blockId, lockId);
