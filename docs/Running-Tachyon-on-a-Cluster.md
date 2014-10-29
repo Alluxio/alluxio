@@ -50,3 +50,36 @@ on each worker.  This amount can be changed by editing the created
 ## EC2 cluster with Spark
 
 If you use Spark to launch an EC2 cluster, `Tachyon` will be installed and configured by default.
+
+## Deploy Tachyon Cluster via Vagrant
+
+[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster locally on [VirtualBox](https://www.virtualbox.org/) or in the cloud at [AWS EC2 VPC](http://aws.amazon.com/vpc/). 
+
+A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant` directory:
+```
+©À©¤©¤ vagrant/
+©¦   ©À©¤©¤ README.md
+©¦   ©À©¤©¤ Vagrantfile
+©¦   ©À©¤©¤ init.yml
+©¦   ©À©¤©¤ ec2-config.yml
+©¦   ©À©¤©¤ init.yml.hdfs2
+©¦   ©À©¤©¤ init.yml.glusterfs
+©¦   ©À©¤©¤ hadoop2
+©¦   ©¦   ©À©¤©¤ init.sh
+©¦   ©¦   ©À©¤©¤ post.sh
+©¦   ©À©¤©¤ glusterfs
+©¦   ©¦   ©À©¤©¤ init.sh
+©¦   ©¦   ©À©¤©¤ post.sh
+©¦   ©À©¤©¤ ...
+```
+
+To start a Tachyon cluster on VirtualBox, first edit `init.yml`, set the under filesystems and other parameters. Then run 
+
+    $ vagrant up 
+
+To spawn a Tachyon cluster on AWS VPC, run command
+
+    $ vagrant up --provider=aws
+
+Detailed instruction can be found in `tachyon/deploy/vagrant/README.md`. 
+
