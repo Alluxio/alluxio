@@ -57,20 +57,22 @@ If you use Spark to launch an EC2 cluster, `Tachyon` will be installed and confi
 
 A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant` directory:
 ```
-©À©¤©¤ vagrant/
-©¦   ©À©¤©¤ README.md
-©¦   ©À©¤©¤ Vagrantfile
-©¦   ©À©¤©¤ init.yml
-©¦   ©À©¤©¤ ec2-config.yml
-©¦   ©À©¤©¤ init.yml.hdfs2
-©¦   ©À©¤©¤ init.yml.glusterfs
-©¦   ©À©¤©¤ hadoop2
-©¦   ©¦   ©À©¤©¤ init.sh
-©¦   ©¦   ©À©¤©¤ post.sh
-©¦   ©À©¤©¤ glusterfs
-©¦   ©¦   ©À©¤©¤ init.sh
-©¦   ©¦   ©À©¤©¤ post.sh
-©¦   ©À©¤©¤ ...
+vagrant
+â”œâ”€â”€ ec2-config.yml
+â”œâ”€â”€ glusterfs
+â”‚Â Â  â”œâ”€â”€ init.sh
+â”‚Â Â  â””â”€â”€ post.sh
+â”œâ”€â”€ hadoop2
+â”‚Â Â  â”œâ”€â”€ init.sh
+â”‚Â Â  â””â”€â”€ post.sh
+â”œâ”€â”€ init.sh
+â”œâ”€â”€ init.yml -> init.yml.hdfs2
+â”œâ”€â”€ init.yml.aws
+â”œâ”€â”€ init.yml.glusterfs
+â”œâ”€â”€ init.yml.hdfs2
+â”œâ”€â”€ README.md
+â”œâ”€â”€ start_tachyon_cluster.sh
+â””â”€â”€ Vagrantfile
 ```
 
 To start a Tachyon cluster on VirtualBox, first edit `init.yml`, set the under filesystems and other parameters. Then run 
