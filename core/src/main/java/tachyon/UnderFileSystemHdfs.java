@@ -54,7 +54,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     } else {
       tConf = new Configuration();
     }
-   // tConf.set("fs.defaultFS", fsDefaultName);
   
     if (!fsDefaultName.startsWith("hdfs:")) {
       tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
