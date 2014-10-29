@@ -1,8 +1,6 @@
 package tachyon.util;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -81,7 +79,7 @@ public class UfsUtils {
       // resolve and replace hostname embedded in the given ufsAddress
       TachyonURI oldPath = ufsAddrRootPath;
       ufsAddrRootPath = NetworkUtils.replaceHostName(ufsAddrRootPath);
-      if (!ufsAddrRootPath.getHost().equalsIgnoreCase(oldPath.getHost())) {
+      if (ufsAddrRootPath.getHost()!=null && !ufsAddrRootPath.getHost().equalsIgnoreCase(oldPath.getHost())) {
         System.out.println("UnderFS hostname resolved: " + ufsAddrRootPath);
       }
     } catch (UnknownHostException e) {
@@ -133,21 +131,9 @@ public class UfsUtils {
           for (String filePath : files) {
             LOG.info("Get: " + filePath);
             String aPath = CommonUtils.concat(ufsPath, filePath);
-<<<<<<< HEAD
-            String checkPath = null;
-            try {
-                checkPath = new URI(aPath).getPath();
-            } catch (URISyntaxException e) {
-              throw new IOException("Error while parsing URI: " + e);
-            }
-            
-            if (checkPath.startsWith(Constants.PATH_SEPARATOR)) {
-              checkPath = checkPath.substring(Constants.PATH_SEPARATOR.length());
-=======
             String checkPath = aPath.substring(ufsAddrRootPath.toString().length());
             if (checkPath.startsWith(TachyonURI.SEPARATOR)) {
               checkPath = checkPath.substring(TachyonURI.SEPARATOR.length());
->>>>>>> upstream/master
             }
             if (excludePathPrefix.inList(checkPath)) {
               LOG.info("excluded: " + checkPath);

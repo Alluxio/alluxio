@@ -7,8 +7,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
@@ -90,24 +88,12 @@ public final class NetworkUtils {
       return null;
     }
 
-    URI uri = null;
-    try {
-        uri = new URI(addr);
-        String hostname = uri.getHost();
-        if(hostname==null) return addr;
-        
-        String newHost = resolveHostName(hostname);
-        
-        if(newHost!=null){
-            URI newURI = new URI(uri.getScheme(), uri.getUserInfo(), newHost, uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
-            return newURI.toString();
-        }
-        
-    } catch (URISyntaxException e) {
-        throw new UnknownHostException("Error parsing host: " + e);
+    if (path.hasAuthority()) {
+      String authority = resolveHostName(path.getHost()) + ":" + path.getPort();
+      return new TachyonURI(path.getScheme(), authority, path.getPath());
+    } else {
+      return path;
     }
-    return addr;
-
   }
 
   /**
