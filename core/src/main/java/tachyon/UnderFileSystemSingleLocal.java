@@ -30,7 +30,12 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public OutputStream create(String path) throws IOException {
     FileOutputStream stream = new FileOutputStream(path);
-    setPermission(path, "777");
+    try {
+      setPermission(path, "777");
+    } catch (IOException e) {
+      stream.close();
+      throw e;
+    }
     CommonUtils.setLocalFileStickyBit(path);
     return stream;
   }
