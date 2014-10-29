@@ -2,11 +2,16 @@ package tachyon.examples;
 
 import java.util.concurrent.Callable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import tachyon.Constants;
 import tachyon.client.ReadType;
 import tachyon.client.WriteType;
 
 public final class Utils {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private Utils() {}
 
   public static void printPassInfo(boolean pass) {
@@ -81,6 +86,7 @@ public final class Utils {
     try {
       result = example.call();
     } catch (Exception e) {
+      LOG.error("Exception running test: " + example, e);
       result = false;
     }
     Utils.printPassInfo(result);
