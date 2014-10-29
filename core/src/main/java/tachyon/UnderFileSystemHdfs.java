@@ -259,7 +259,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         // only return the relative path, to keep consistent with java.io.File.list()
         try {
             rtn[i ++] = new URI(path).relativize(status.getPath().toUri()).getPath();
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException e){
           throw new IOException ("Problem with URIs:" + e);
         }
       }

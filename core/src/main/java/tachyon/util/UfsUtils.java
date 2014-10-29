@@ -79,7 +79,8 @@ public class UfsUtils {
       // resolve and replace hostname embedded in the given ufsAddress
       TachyonURI oldPath = ufsAddrRootPath;
       ufsAddrRootPath = NetworkUtils.replaceHostName(ufsAddrRootPath);
-      if (ufsAddrRootPath.getHost()!=null && !ufsAddrRootPath.getHost().equalsIgnoreCase(oldPath.getHost())) {
+      if (ufsAddrRootPath.getHost() != null && 
+          !ufsAddrRootPath.getHost().equalsIgnoreCase(oldPath.getHost())) {
         System.out.println("UnderFS hostname resolved: " + ufsAddrRootPath);
       }
     } catch (UnknownHostException e) {
