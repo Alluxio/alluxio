@@ -104,6 +104,7 @@ public class TachyonMaster {
             new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS, conf.ZOOKEEPER_ELECTION_PATH,
                 conf.ZOOKEEPER_LEADER_PATH, name);
         mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
+        //TODO move this to executor service when the shared thread patch goes in
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();
       }
