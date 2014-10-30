@@ -300,9 +300,9 @@ public final class MasterClient implements Closeable {
 
   private synchronized void parameterCheck(int id, String path) throws IOException {
     if (path == null) {
-      throw new IOException("Illegal path parameter: " + path + " ; Please use an empty string.");
+      throw new NullPointerException("Paths may not be null; empty is the null state");
     }
-    if (id == -1 && (path == null || !path.startsWith(TachyonURI.SEPARATOR))) {
+    if (id == -1 && !path.startsWith(TachyonURI.SEPARATOR)) {
       throw new IOException("Illegal path parameter: " + path);
     }
   }
