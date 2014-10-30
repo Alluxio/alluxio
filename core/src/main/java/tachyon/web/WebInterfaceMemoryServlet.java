@@ -54,7 +54,7 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
         return;
       }
     }
-    request.setAttribute("inMemoryFileNum", new Integer(fileInfos.size()));
+    request.setAttribute("inMemoryFileNum", Integer.valueOf(fileInfos.size()));
 
     // URL is "./memory", can not determine offset and limit, let javascript in jsp determine
     // and redirect to "./memory?offset=xxx&limit=xxx"

@@ -40,7 +40,7 @@ public class WorkerConf extends Utils {
   public final int QUEUE_SIZE_PER_SELECTOR;
   public final int SERVER_THREADS;
   public final int USER_TIMEOUT_MS;
-  public final String USER_TEMP_RELATIVE_FOLDER = "users";
+  public static final String USER_TEMP_RELATIVE_FOLDER = "users";
 
   public final int WORKER_CHECKPOINT_THREADS;
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
