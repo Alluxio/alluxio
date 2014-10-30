@@ -2,7 +2,7 @@
 set -e
 
 HADOOP_VERSION="1.0.4"
-nodes=`cat /tachyon/conf/slaves`
+NODES=`cat /tachyon/conf/slaves`
 
 cd /vagrant/shared
 
@@ -14,13 +14,13 @@ then
     tar xzf hadoop-${HADOOP_VERSION}-bin.tar.gz  
 fi
 
-if [ ! -f /hadoop ]
+if [ ! -d /hadoop ]
 then
-    ln -fs `pwd`/hadoop-${HADOOP_VERSION} /hadoop
+    ln -s `pwd`/hadoop-${HADOOP_VERSION} /hadoop
 
     # setup hadoop
     rm -f /hadoop/conf/slaves
-    for i in ${nodes[@]}
+    for i in ${NODES[@]}
     do 
         echo $i >> /hadoop/conf/slaves
     done
@@ -28,7 +28,7 @@ then
     # choose the last node as namenode
     namenode=$i
     mkdir -p /hadoop/tmp-store
-    cat > /hadoop/conf//core-site.xml << EOF
+    cat > /hadoop/conf/core-site.xml << EOF
 <configuration>
    <property>
       <name>hadoop.tmp.dir</name>
@@ -58,7 +58,7 @@ EOF
 </configuration>
 EOF
 
-    cat > /hadoop/conf//mapred-site.xml << EOF
+    cat > /hadoop/conf/mapred-site.xml << EOF
 <configuration>
   <property>
      <name>mapred.job.tracker</name>
