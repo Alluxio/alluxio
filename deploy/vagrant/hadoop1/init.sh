@@ -6,6 +6,9 @@ NODES=`cat /tachyon/conf/slaves`
 
 cd /vagrant/shared
 
+mkdir -p /tmp/hdfs-datanode
+mkdir -p /tmp/hadoop-tmpstore
+
 if [ ! -f hadoop-${HADOOP_VERSION}-bin.tar.gz ]
 then
     # download hadoop
@@ -32,7 +35,7 @@ then
 <configuration>
    <property>
       <name>hadoop.tmp.dir</name>
-      <value>/hadoop/tmp-store</value>
+      <value>/tmp/hadoop-tmpstore</value>
    </property>
    <property>
       <name>fs.default.name</name>
@@ -46,6 +49,10 @@ EOF
   <property>
      <name>dfs.replication</name>
      <value>1</value>
+  </property>
+  <property>
+     <name>dfs.data.dir</name>
+     <value>/tmp/hdfs-datanode</value>
   </property>
   <property>
      <name>dfs.support.broken.append</name>
