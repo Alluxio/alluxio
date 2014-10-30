@@ -29,7 +29,7 @@ below.
     <th>Parameter</th><th>Description</th><th>Values</th>
 </tr>
 <tr>
-    <td>Ufs</td><td>Tachyon Underfilesystem</td><td>glusterfs|ceph|hadoop2</td>
+    <td>Ufs</td><td>Tachyon Underfilesystem</td><td>glusterfs|ceph|hadoop2|hadoop1</td>
 </tr>
 <tr>
     <td>Provider</td><td>Vagrant Providers</td><td>vb|aws</td>
