@@ -44,25 +44,35 @@ function runTest {
     MASTER_ADDRESS=localhost
   fi
 
-  if [[ "$1" == "Basic" ]]; then
-    $bin/tachyon tfs rm /BasicFile_$2
-    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicOperations tachyon://$MASTER_ADDRESS:19998 /BasicFile_$2 $2
-    exit 0
-  elif [[ "$1" == "BasicRawTable" ]]; then
-    $bin/tachyon tfs rm /BasicRawTable_$2
-    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicRawTableOperations tachyon://$MASTER_ADDRESS:19998 /BasicRawTable_$2 $2
-    exit 0
-  elif [[ "$1" == "BasicCheckpoint" ]]; then
-    $bin/tachyon tfs rm /BasicCheckpoint
-    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicCheckpoint tachyon://$MASTER_ADDRESS:19998 /BasicCheckpoint 10
-    exit 0
-  elif [[ "$1" == "BasicNonByteBuffer" ]]; then
-    $bin/tachyon tfs rm /BasicNonByteBuffer_$2
-    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicNonByteBufferOperations tachyon://$MASTER_ADDRESS:19998 /BasicNonByteBuffer_$2 "$2"
-    exit 0
-  fi
-
-  echo $Usage
+  local file=""
+  local class=""
+  local args="$2"
+  case "$1" in
+    Basic)
+      file="/BasicFile_$2"
+      class="tachyon.examples.BasicOperations"
+      ;;
+    BasicRawTable)
+      file="/BasicRawTable_$2"
+      class="tachyon.examples.BasicRawTableOperations"
+      ;;
+    BasicCheckpoint)
+      file="/BasicCheckpoint"
+      class="tachyon.examples.BasicCheckpoint"
+      args="10"
+      ;;
+    BasicNonByteBuffer)
+      file="/BasicNonByteBuffer_$2"
+      class="tachyon.examples.BasicNonByteBufferOperations"
+      ;;
+    *)
+      echo "Unknown test: $1 with type $2" 1>&2
+      echo "$Usage"
+      exit 1
+      ;;
+  esac
+  $bin/tachyon tfs rm "$file"
+  $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS "$class" tachyon://$MASTER_ADDRESS:19998 "$file" "$args"
 }
 
 function killAll {
@@ -184,20 +194,26 @@ elif [ "$COMMAND" == "loadufs" ]; then
   CLASS=tachyon.util.UfsUtils
 elif [ "$COMMAND" == "runTest" ]; then
   runTest "$@"
-  exit 0
+  exit $?
 elif [ "$COMMAND" == "runTests" ]; then
   declare -a opArr=(MUST_CACHE TRY_CACHE CACHE_THROUGH THROUGH ASYNC_THROUGH)
 
+  failed=0
   for op in ${opArr[@]}
   do
     for example in Basic BasicRawTable BasicCheckpoint BasicNonByteBuffer
     do
       echo $bin/tachyon runTest $example $op
       $bin/tachyon runTest $example $op
+      st=$?
+      failed=$(( $failed + $st ))
     done
   done
 
-  exit 0
+  if [ $failed -gt 0 ]; then
+    echo "Number of failed tests: $failed" 1>&2
+  fi
+  exit $failed
 elif [ "$COMMAND" == "killAll" ]; then
   killAll "$@"
   exit 0
