@@ -44,7 +44,7 @@ function runTest {
     MASTER_ADDRESS=localhost
   fi
 
-  local file="/tmp_test_files"
+  local file="/default_tests_files"
   local class=""
   local args="$2"
   case "$1" in
