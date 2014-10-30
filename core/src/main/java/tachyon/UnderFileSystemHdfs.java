@@ -54,7 +54,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     } else {
       tConf = new Configuration();
     }
-  
+
     if (!fsDefaultName.startsWith("hdfs:")) {
       tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
 
@@ -231,14 +231,14 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     // as Tachyon can load/store data out of entire HDFS cluster
     if (mFs instanceof DistributedFileSystem) {
       switch (type) {
-        case SPACE_TOTAL:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
-        case SPACE_USED:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
-        case SPACE_FREE:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
-        default:
-          throw new IOException("Unknown getSpace parameter: " + type);
+      case SPACE_TOTAL:
+        return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
+      case SPACE_USED:
+        return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
+      case SPACE_FREE:
+        return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
+      default:
+        throw new IOException("Unknown getSpace parameter: " + type);
       }
     }
     return -1;
@@ -258,9 +258,9 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       for (FileStatus status : files) {
         // only return the relative path, to keep consistent with java.io.File.list()
         try {
-            rtn[i ++] = new URI(path).relativize(status.getPath().toUri()).getPath();
-        } catch (URISyntaxException e){
-          throw new IOException ("Problem with URIs:" + e);
+          rtn[i ++] = new URI(path).relativize(status.getPath().toUri()).getPath();
+        } catch (URISyntaxException e) {
+          throw new IOException("Problem with URIs:" + e);
         }
       }
       return rtn;
