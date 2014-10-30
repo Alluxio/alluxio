@@ -397,7 +397,13 @@
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>2.13</version>
         <configuration>
-          <configLocation>src/main/resources/tachyon_checks.xml</configLocation>
+          <configLocation>${project.basedir}/src/main/resources/tachyon_checks.xml</configLocation>
+          <!-- TODO: This is needed to excuse Tachyon Configuration members' name from being -->
+          <!-- checked because the members are define using all upper case. -->
+          <!-- Once the new configuration is implemented we wil remove this exception -->
+          <suppressionsLocation>
+            ${project.basedir}/src/main/resources/tachyon_checkstyle_suppressions.xml
+          </suppressionsLocation>
           <excludes>**/tachyon/thrift/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
