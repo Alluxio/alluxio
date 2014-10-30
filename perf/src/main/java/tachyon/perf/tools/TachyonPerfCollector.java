@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import tachyon.perf.basic.PerfTaskContext;
 import tachyon.perf.basic.PerfTotalReport;
-import tachyon.perf.basic.TaskType;
+import tachyon.perf.basic.TestCase;
 import tachyon.perf.conf.PerfConf;
 
 /**
@@ -14,12 +14,12 @@ import tachyon.perf.conf.PerfConf;
 public class TachyonPerfCollector {
   public static void main(String[] args) {
     if (args.length != 2) {
-      System.err.println("Wrong program arguments. Should be <TaskType> <reports dir>");
+      System.err.println("Wrong program arguments. Should be <TestCase> <reports dir>");
       System.exit(-1);
     }
 
     try {
-      PerfTotalReport summaryReport = TaskType.get().getTotalReportClass(args[0]);
+      PerfTotalReport summaryReport = TestCase.get().getTotalReportClass(args[0]);
       summaryReport.initialSet(args[0]);
       File contextsDir = new File(args[1]);
       File[] contextFiles = contextsDir.listFiles();
@@ -28,7 +28,7 @@ public class TachyonPerfCollector {
       }
       PerfTaskContext[] taskContexts = new PerfTaskContext[contextFiles.length];
       for (int i = 0; i < contextFiles.length; i ++) {
-        taskContexts[i] = TaskType.get().getTaskContextClass(args[0]);
+        taskContexts[i] = TestCase.get().getTaskContextClass(args[0]);
         taskContexts[i].loadFromFile(contextFiles[i]);
       }
       summaryReport.initialFromTaskContexts(taskContexts);

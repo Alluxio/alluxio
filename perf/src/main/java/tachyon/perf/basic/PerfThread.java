@@ -12,15 +12,15 @@ public abstract class PerfThread implements Runnable {
   protected static final Logger LOG = Logger.getLogger(PerfConstants.PERF_LOGGER_TYPE);
 
   protected int mId;
-  protected int mTaskId;
   protected String mNodeName;
-  protected String mTaskType;
+  protected int mTaskId;
+  protected String mTestCase;
 
-  public void initialSet(int threadId, int taskId, String nodeName, String taskType) {
+  public void initialSet(int threadId, int taskId, String nodeName, String testCase) {
     mId = threadId;
     mTaskId = taskId;
     mNodeName = nodeName;
-    mTaskType = taskType;
+    mTestCase = testCase;
   }
 
   /**

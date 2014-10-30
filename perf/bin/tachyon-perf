@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 function printUsage {
-  echo "Usage: tachyon-perf <TaskType>"
-  echo "now TaskType is one of:"
+  echo "Usage: tachyon-perf <TestCase>"
+  echo "now TestCase is one of:"
   echo -e "  SimpleWrite SimpleRead SkipRead Metadata"
-  echo "the detailed configurations are in conf/testSuite/"
+  echo "the detailed configurations are in conf/testsuite/"
 }
 
 # if less than 1 args specified, show usage
@@ -27,7 +27,7 @@ UNIQ_SLAVES=`sort "$NODELIST" | uniq | sed  "s/#.*$//;/^$/d"`
 for slave in $UNIQ_SLAVES; do
   echo -n "Copy configurations to $slave... "
   scp $TACHYON_PERF_CONF_DIR/tachyon-perf-env.sh $slave:$TACHYON_PERF_CONF_DIR/tachyon-perf-env.sh
-  scp $TACHYON_PERF_CONF_DIR/testSuite/$1.xml $slave:$TACHYON_PERF_CONF_DIR/testSuite/$1.xml
+  scp $TACHYON_PERF_CONF_DIR/testsuite/$1.xml $slave:$TACHYON_PERF_CONF_DIR/testsuite/$1.xml
   sleep 0.02
 done
 wait

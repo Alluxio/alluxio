@@ -108,7 +108,7 @@ public class SimpleTotalReport extends PerfTotalReport {
   @Override
   public void writeToFile(File file) throws IOException {
     BufferedWriter fout = new BufferedWriter(new FileWriter(file));
-    fout.write(mTaskType + " Test - ID : " + mId + "\n");
+    fout.write(mTestCase + " Test - ID : " + mId + "\n");
     if (mFailedTasks == 0) {
       fout.write("Finished Successfully\n");
     } else {

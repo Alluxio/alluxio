@@ -8,9 +8,9 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * This class is used to parse the conf/task-type.xml.
+ * This class is used to parse the conf/.xml.
  */
-public class SAXTaskType extends DefaultHandler {
+public class SAXTestCase extends DefaultHandler {
   private String mCurrentTag = null;
   private String mCurrentType = null;
   private Map<String, String> mTaskClasses;

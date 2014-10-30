@@ -65,7 +65,7 @@ public class TachyonPerfMaster {
   public static void main(String[] args) {
     int slavesNum = 0;
     Set<String> slaves = null;
-    String taskType = null;
+    String testCase = null;
     try {
       int index = 0;
       slavesNum = Integer.parseInt(args[0]);
@@ -76,13 +76,13 @@ public class TachyonPerfMaster {
           throw new Exception("Slave name replicated: " + slaveName);
         }
       }
-      taskType = args[index];
-      System.out.println("Supervise Tachyon-Perf " + taskType + " Test");
+      testCase = args[index];
+      System.out.println("Supervise Tachyon-Perf " + testCase + " Test");
     } catch (Exception e) {
       abortAllSlaves();
       e.printStackTrace();
-      System.err.println("Wrong arguments. Should be <SlavesNum> [Slaves...] <TaskType>");
-      LOG.error("Wrong arguments. Should be <SlavesNum> [Slaves...] <TaskType>", e);
+      System.err.println("Wrong arguments. Should be <SlavesNum> [Slaves...] <TestCase>");
+      LOG.error("Wrong arguments. Should be <SlavesNum> [Slaves...] <TestCase>", e);
     }
     TachyonPerfMaster master = new TachyonPerfMaster(slavesNum, slaves);
     if (!master.start()) {

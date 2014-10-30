@@ -16,17 +16,17 @@ public abstract class PerfTaskContext {
 
   protected int mId;
   protected String mNodeName;
-  protected String mTaskType;
+  protected String mTestCase;
 
   // The basic statistics of a test.
   protected long mFinishTimeMs;
   protected long mStartTimeMs;
   protected boolean mSuccess;
 
-  public void initialSet(int id, String nodeName, String taskType, TaskConfiguration taskConf) {
+  public void initialSet(int id, String nodeName, String testCase, TaskConfiguration taskConf) {
     mId = id;
     mNodeName = nodeName;
-    mTaskType = taskType;
+    mTestCase = testCase;
     mStartTimeMs = System.currentTimeMillis();
     mFinishTimeMs = mStartTimeMs;
     mSuccess = true;
@@ -52,8 +52,8 @@ public abstract class PerfTaskContext {
     return mSuccess;
   }
 
-  public String getTaskType() {
-    return mTaskType;
+  public String getTestCase() {
+    return mTestCase;
   }
 
   /**

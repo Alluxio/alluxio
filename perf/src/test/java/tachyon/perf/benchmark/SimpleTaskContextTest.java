@@ -38,7 +38,7 @@ public class SimpleTaskContextTest {
     SimpleTaskContext context2 = new SimpleTaskContext();
     context2.loadFromFile(contextFile);
 
-    Assert.assertEquals(context1.getTaskType(), context2.getTaskType());
+    Assert.assertEquals(context1.getTestCase(), context2.getTestCase());
     Assert.assertEquals(context1.getId(), context2.getId());
     Assert.assertEquals(context1.getNodeName(), context2.getNodeName());
     Assert.assertEquals(context1.getSuccess(), context2.getSuccess());

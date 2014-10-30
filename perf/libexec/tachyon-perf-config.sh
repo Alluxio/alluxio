@@ -12,7 +12,6 @@ script=`basename "$this"`
 config_bin=`cd "$config_bin"; pwd`
 this="$config_bin/$script"
 
-
 export TACHYON_PERF_PREFIX=`dirname "$this"`/..
 export TACHYON_PERF_HOME=${TACHYON_PERF_PREFIX}
 export TACHYON_PERF_CONF_DIR="$TACHYON_PERF_HOME/conf"
