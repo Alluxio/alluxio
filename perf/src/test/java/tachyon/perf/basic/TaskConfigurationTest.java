@@ -15,15 +15,15 @@ public class TaskConfigurationTest {
 
   @After
   public final void after() {
-    File xmlFile = new File(J_TMP_DIR + "/tachyon-perf-test/conf/testSuite/Foo.xml");
+    File xmlFile = new File(J_TMP_DIR + "/tachyon-perf-test/conf/testsuite/Foo.xml");
     xmlFile.delete();
   }
 
   @Before
   public final void before() throws IOException {
-    File tmpDir = new File(J_TMP_DIR + "/tachyon-perf-test/conf/testSuite");
+    File tmpDir = new File(J_TMP_DIR + "/tachyon-perf-test/conf/testsuite");
     tmpDir.mkdirs();
-    File xmlFile = new File(J_TMP_DIR + "/tachyon-perf-test/conf/testSuite/Foo.xml");
+    File xmlFile = new File(J_TMP_DIR + "/tachyon-perf-test/conf/testsuite/Foo.xml");
     xmlFile.delete();
     BufferedWriter fout = new BufferedWriter(new FileWriter(xmlFile));
     fout.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -41,7 +41,7 @@ public class TaskConfigurationTest {
   @Test
   public void parseFileTest() throws Exception {
     TaskConfiguration taskConf =
-        new TaskConfiguration(J_TMP_DIR + "/tachyon-perf-test/conf/testSuite/Foo.xml");
+        new TaskConfiguration(J_TMP_DIR + "/tachyon-perf-test/conf/testsuite/Foo.xml");
     Assert.assertEquals(1, taskConf.getAllProperties().size());
     Assert.assertEquals("yyy", taskConf.getProperty("xxx"));
   }

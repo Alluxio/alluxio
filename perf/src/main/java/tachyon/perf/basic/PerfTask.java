@@ -20,15 +20,15 @@ public abstract class PerfTask {
   protected int mId;
   protected String mNodeName;
   protected TaskConfiguration mTaskConf;
-  protected String mTaskType;
+  protected String mTestCase;
 
   private PerfThread[] mThreads;
 
-  public void initialSet(int id, String nodeName, TaskConfiguration taskConf, String taskType) {
+  public void initialSet(int id, String nodeName, TaskConfiguration taskConf, String testCase) {
     mId = id;
     mNodeName = nodeName;
     mTaskConf = taskConf;
-    mTaskType = taskType;
+    mTestCase = testCase;
   }
 
 
@@ -47,7 +47,7 @@ public abstract class PerfTask {
         outDir.mkdirs();
       }
       String reportFileName =
-          outDirPath + "/" + PerfConstants.PERF_CONTEXT_FILE_NAME_PREFIX + mTaskType + "-" + mId
+          outDirPath + "/" + PerfConstants.PERF_CONTEXT_FILE_NAME_PREFIX + mTestCase + "-" + mId
               + "@" + mNodeName;
       taskContext.writeToFile(new File(reportFileName));
     } catch (IOException e) {
@@ -102,8 +102,8 @@ public abstract class PerfTask {
     mThreads = new PerfThread[PerfConf.get().THREADS_NUM];
     try {
       for (int i = 0; i < mThreads.length; i ++) {
-        mThreads[i] = TaskType.get().getTaskThreadClass(mTaskType);
-        mThreads[i].initialSet(i, mId, mNodeName, mTaskType);
+        mThreads[i] = TestCase.get().getTaskThreadClass(mTestCase);
+        mThreads[i].initialSet(i, mId, mNodeName, mTestCase);
         ret &= mThreads[i].setupThread(mTaskConf);
       }
     } catch (Exception e) {

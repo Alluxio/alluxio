@@ -9,10 +9,10 @@ import java.io.IOException;
  */
 public abstract class PerfTotalReport {
 
-  protected String mTaskType;
+  protected String mTestCase;
 
-  public void initialSet(String taskType) {
-    mTaskType = taskType;
+  public void initialSet(String testCase) {
+    mTestCase = testCase;
   }
 
   /**

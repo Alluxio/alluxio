@@ -9,23 +9,23 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.log4j.Logger;
 
 import tachyon.perf.conf.PerfConf;
-import tachyon.perf.util.SAXTaskType;
+import tachyon.perf.util.SAXTestCase;
 
 /**
  * Manage the different type of tasks.
  */
-public class TaskType {
+public class TestCase {
   private static final Logger LOG = Logger.getLogger("");
 
-  private static TaskType sTaskType = null;
+  private static TestCase sTaskType = null;
 
-  public static synchronized TaskType get() {
+  public static synchronized TestCase get() {
     if (sTaskType == null) {
       try {
-        sTaskType = new TaskType(PerfConf.get().TACHYON_PERF_HOME + "/conf/task-type.xml");
+        sTaskType = new TestCase(PerfConf.get().TACHYON_PERF_HOME + "/conf/test-case.xml");
       } catch (Exception e) {
-        LOG.error("Error when parse conf/task-type.xml", e);
-        throw new RuntimeException("Failed to parse conf/task-type.xml");
+        LOG.error("Error when parse conf/test-case.xml", e);
+        throw new RuntimeException("Failed to parse conf/test-case.xml");
       }
     }
     return sTaskType;
@@ -36,11 +36,11 @@ public class TaskType {
   private Map<String, String> mTaskThreadClasses;
   private Map<String, String> mTotalReportClasses;
 
-  private TaskType(String xmlFileName) throws Exception {
+  private TestCase(String xmlFileName) throws Exception {
     SAXParserFactory spf = SAXParserFactory.newInstance();
     SAXParser saxParser = spf.newSAXParser();
     File xmlFile = new File(xmlFileName);
-    SAXTaskType saxTaskType = new SAXTaskType();
+    SAXTestCase saxTaskType = new SAXTestCase();
     saxParser.parse(xmlFile, saxTaskType);
     mTaskClasses = saxTaskType.getTaskClasses();
     mTaskContextClasses = saxTaskType.getTaskContextClasses();
