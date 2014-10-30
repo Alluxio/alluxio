@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -226,8 +227,8 @@ public class MasterInfo extends ImageWriter {
   private final long mStartTimeNSPrefix;
   private final long mStartTimeMs;
   private final MasterConf mMasterConf;
-  private final Counters mCheckpointInfo = new Counters(0, 0, 0);
 
+  private final AtomicLong mEditTransactionId = new AtomicLong(0);
   private final AtomicInteger mInodeCounter = new AtomicInteger(0);
   private final AtomicInteger mDependencyCounter = new AtomicInteger(0);
   private final AtomicInteger mRerunCounter = new AtomicInteger(0);
@@ -1766,10 +1767,15 @@ public class MasterInfo extends ImageWriter {
   }
 
   public void init() throws IOException {
-    mCheckpointInfo.updateEditTransactionCounter(mJournal.loadEditLog(this));
+    long current;
+    long max;
+    do {
+      current = mEditTransactionId.get();
+      max = Math.max(current, mJournal.loadEditLog(this));
+    } while (!mEditTransactionId.compareAndSet(current, max));
 
     mJournal.createImage(this);
-    mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
+    mJournal.createEditLog(mEditTransactionId.get());
 
     mHeartbeatThread =
         new HeartbeatThread("Master Heartbeat", new MasterInfoHeartbeatExecutor(),
@@ -1854,8 +1860,18 @@ public class MasterInfo extends ImageWriter {
         }
         case Checkpoint: {
           mInodeCounter.set(ele.getInt("inodeCounter"));
-          mCheckpointInfo.updateEditTransactionCounter(ele.getLong("editTransactionCounter"));
-          mCheckpointInfo.updateDependencyCounter(ele.getInt("dependencyCounter"));
+          long current;
+          long max;
+          do {
+            current = mEditTransactionId.get();
+            max = Math.max(current, ele.getLong("editTransactionCounter"));
+          } while (!mEditTransactionId.compareAndSet(current, max));
+          int depCurrent;
+          int depMax;
+          do {
+            depCurrent = mDependencyCounter.get();
+            depMax = Math.max(depCurrent, ele.getInt("dependencyCounter"));
+          } while (!mDependencyCounter.compareAndSet(depCurrent, depMax));
           break;
         }
         case Dependency: {
@@ -2310,8 +2326,8 @@ public class MasterInfo extends ImageWriter {
       ele =
           new ImageElement(ImageElementType.Checkpoint)
               .withParameter("inodeCounter", mInodeCounter.get())
-              .withParameter("editTransactionCounter", mCheckpointInfo.getEditTransactionCounter())
-              .withParameter("dependencyCounter", mCheckpointInfo.getDependencyCounter());
+              .withParameter("editTransactionCounter", mEditTransactionId.get())
+              .withParameter("dependencyCounter", mDependencyCounter.get());
 
       writeElement(objWriter, dos, ele);
     }
