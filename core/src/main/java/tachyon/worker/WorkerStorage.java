@@ -294,7 +294,7 @@ public class WorkerStorage {
     mLocalDataFolder = new File(dataFolder);
 
     mSpaceCounter = new SpaceCounter(memoryCapacityBytes);
-    mLocalUserFolder = new File(mLocalDataFolder, WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
+    mLocalUserFolder = new File(mLocalDataFolder, WorkerConf.USER_TEMP_RELATIVE_FOLDER);
   }
 
   public void initialize(final NetAddress address) {
