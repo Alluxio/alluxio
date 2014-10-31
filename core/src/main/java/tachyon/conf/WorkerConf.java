@@ -97,7 +97,7 @@ public class WorkerConf extends Utils {
     NETTY_SEND_BUFFER =
         Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.buffer.send", null));
     NETTY_RECIEVE_BUFFER =
-        Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.buffer.recieve",
+        Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.buffer.receive",
             null));
   }
 }
