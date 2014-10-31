@@ -154,6 +154,7 @@ public final class LocalTachyonMaster {
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.master.hostname");
     System.clearProperty("tachyon.master.port");
+    System.clearProperty("tachyon.web.resources");
   }
 
   public void clearClients() throws IOException {
