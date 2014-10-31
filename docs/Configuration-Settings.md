@@ -222,7 +222,7 @@ number.
   <td>Sets SO_SNDBUF for the socket; more details can be found in the socket man page.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.network.netty.buffer.recieve</td>
+  <td>tachyon.worker.network.netty.buffer.receive</td>
   <td>platform specific</td>
   <td>Sets SO_RCVBUF for the socket; more details can be found in the socket man page.</td>
 </tr>
