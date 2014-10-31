@@ -82,6 +82,7 @@ public final class LocalTachyonMaster {
     WorkerConf.clear();
     UserConf.clear();
 
+    System.setProperty("tachyon.web.resources", System.getProperty("user.dir") + "/src/main/webapp");
     mTachyonMaster = new TachyonMaster(new InetSocketAddress(mHostname, 0), 0, 1, 1, 1);
 
     System.setProperty("tachyon.master.port", Integer.toString(getMetaPort()));
