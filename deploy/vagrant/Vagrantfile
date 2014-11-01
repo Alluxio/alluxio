@@ -14,39 +14,39 @@ Addr = @cmd['Addresses']
 Init = "#{Ufs}"+"/init.sh"
 Post = "#{Ufs}"+"/post.sh"
 
-# config cluster
-(1..Total).each do |i|    
-  if i == 1
-     file = File.open("../../conf/slaves","w")
+# config cluster and create /etc/hosts 
+NameArr = Array.new
+file = File.open("../../conf/slaves","w")
+system 'mkdir', '-p', './files'
+hosts = File.open("files/hosts","w")
+for i in (1..Total)
+  if i == Total 
+    NameArr[i] = "TachyonMaster"
   else
-     file = File.open("../../conf/slaves","a")
+    NameArr[i] = "TachyonWorker#{i}"
   end
   if file != nil
-     file.write(Addr[i - 1])
-     file.write("\n")
+     file.write(NameArr[i] + ".local"  + "\n")
   end
-  file.close unless file == nil
+  if hosts != nil
+     hosts.write(Addr[i - 1] + " " + 
+                 NameArr[i] + ".local" + "\n")
+  end
 end
-  
+file.close unless file == nil
+hosts.close unless hosts == nil
+
 # Vagrantfile API/syntax version. 
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.require_version ">= 1.6.5"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   (1..Total).each do |i|    
     # multi vm config
-    name = ""
-    if i == Total 
-      name = "TachyonMaster"
-    else
-      name = "TachyonWorker#{i}"
-    end
+    name = NameArr[i]
     config.vm.define "#{name}" do |n|
       # common config
       n.vm.provision "shell", path: "init.sh"
       n.vm.provision "shell", path: Init
-
-      # files shared by VMs go into shared folder
-      # system 'mkdir', '-p', './shared'
 
       # Provider specific init
       if Provider == "vb"
