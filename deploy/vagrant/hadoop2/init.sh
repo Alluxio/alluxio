@@ -10,13 +10,13 @@ if [ ! -f hadoop-${HADOOP_VERSION}.tar.gz ]
 then
     # download hadoop
     echo "Downloading hadoop ${HADOOP_VERSION} ..." 
-    wget -q http://www.us.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz  
+    wget -q http://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz
     tar xzf hadoop-${HADOOP_VERSION}.tar.gz  
 fi
 
-if [ ! -f /hadoop ]
+if [ ! -d /hadoop ]
 then
-    ln -fs `pwd`/hadoop-${HADOOP_VERSION} /hadoop
+    ln -s `pwd`/hadoop-${HADOOP_VERSION} /hadoop
 
     # setup hadoop
     rm -f /hadoop/etc/hadoop/slaves
