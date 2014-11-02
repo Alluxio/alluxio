@@ -227,7 +227,7 @@ public class WorkerStorage {
           } finally {
             closer.close();
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-              unlockBlock(Users.CHECKPOINT_USER_ID, StorageDirId.unknownId(),
+              unlockBlock(Users.CHECKPOINT_USER_ID, storageDirs[k].getStorageDirId(),
                   fileInfo.blockIds.get(k));
             }
           }
@@ -532,6 +532,13 @@ public class WorkerStorage {
     }
   }
 
+  /**
+   * Get information of block file
+   * 
+   * @param blockId the id of the block
+   * @return the information of the block file
+   * @throws FileDoesNotExistException
+   */
   public WorkerFileInfo getBlockFileInfo(long blockId) throws FileDoesNotExistException {
     StorageDir storageDir = getStorageDirByBlockId(blockId);
     if (storageDir == null) {
@@ -548,6 +555,12 @@ public class WorkerStorage {
     return mDataFolder;
   }
 
+  /**
+   * Get StorageDir which contains specified block
+   * 
+   * @param blockId the id of the block
+   * @return StorageDir which contains the block
+   */
   public StorageDir getStorageDirByBlockId(long blockId) {
     StorageDir storageDir = null;
     for (StorageTier storageTier : mStorageTiers) {
@@ -559,6 +572,12 @@ public class WorkerStorage {
     return null;
   }
 
+  /**
+   * Get StorageDir specified by id
+   * 
+   * @param storageDirId the id of the StorageDir
+   * @return StorageDir specified by the id
+   */
   public StorageDir getStorageDirById(long storageDirId) {
     int storageLevel = StorageDirId.getStorageLevel(storageDirId);
     int dirIndex = StorageDirId.getStorageDirIndex(storageDirId);
@@ -578,6 +597,11 @@ public class WorkerStorage {
     return mUfsOrphansFolder;
   }
 
+  /**
+   * Get used bytes of current WorkerStorage
+   * 
+   * @return used bytes of current WorkerStorage
+   */
   private long getUsedBytes() {
     long usedBytes = 0;
     for (StorageTier curTier : mStorageTiers) {
@@ -630,6 +654,11 @@ public class WorkerStorage {
     return ret;
   }
 
+  /**
+   * The list of StorageDirs' information on current WorkerStorage
+   * 
+   * @return list of StorageDirs' information
+   */
   public List<WorkerDirInfo> getWorkerDirInfos() {
     List<WorkerDirInfo> dirInfos = new ArrayList<WorkerDirInfo>();
     for (StorageTier storageTier : mStorageTiers) {
@@ -657,14 +686,21 @@ public class WorkerStorage {
 
     for (StorageTier storageTier : mStorageTiers) {
       for (StorageDir storageDir : storageTier.getStorageDirs()) {
-        removedBlockIds.put(storageDir.getStorageDirId(), storageDir.getRemovedBlockIdList());
-        addedBlockIds.put(storageDir.getStorageDirId(), storageDir.getRemovedBlockIdList());
+        List<Long> removedBlockIdList = storageDir.getRemovedBlockIdList();
+        List<Long> addedBlockIdList = storageDir.getAddedBlockIdList();
+        removedBlockIds.put(storageDir.getStorageDirId(), removedBlockIdList);
+        addedBlockIds.put(storageDir.getStorageDirId(), addedBlockIdList);
       }
     }
     return mMasterClient
         .worker_heartbeat(mWorkerId, getUsedBytes(), removedBlockIds, addedBlockIds);
   }
 
+  /**
+   * Initialize StorageTiers on current WorkerStorage
+   * 
+   * @throws IOException
+   */
   public void initializeStorageTier() throws IOException {
     mStorageTiers = new StorageTier[WorkerConf.get().MAX_HIERARCHY_STORAGE_LEVEL];
     StorageTier nextStorageTier = null;
@@ -718,6 +754,17 @@ public class WorkerStorage {
     }
   }
 
+  /**
+   * Promote block back to top StorageTier
+   * 
+   * @param userId the id of the user
+   * @param storageDirId the id of the StorageDir which contains the block
+   * @param blockId the id of the block
+   * @return true if success, false otherwise
+   * @throws FileDoesNotExistException
+   * @throws SuspectedFileSizeException
+   * @throws BlockInfoException
+   */
   public boolean promoteBlock(long userId, long storageDirId, long blockId)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
     StorageDir srcStorageDir;
@@ -826,7 +873,7 @@ public class WorkerStorage {
    * @param userId The id of the user who send the request
    * @param storageDirId The id of the StorageDir specified
    * @param requestBytes The requested space size, in bytes
-   * @return return true if succeed, false otherwise
+   * @return true if succeed, false otherwise
    */
   public boolean requestSpace(long userId, long storageDirId, long requestBytes) {
     Set<Integer> pinList;

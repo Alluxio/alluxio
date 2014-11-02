@@ -62,15 +62,13 @@ public class TachyonWorker implements Runnable {
    * @param selectorThreads The number of selector threads of the worker's thrift server
    * @param acceptQueueSizePerThreads The accept queue size per thread of the worker's thrift server
    * @param workerThreads The number of threads of the worker's thrift server
-   * @param localFolder This TachyonWorker's local folder's path
-   * @param spaceLimitBytes The maximum memory space this TachyonWorker can use, in bytes
    * @return The new TachyonWorker
    */
   public static synchronized TachyonWorker createWorker(InetSocketAddress masterAddress,
       InetSocketAddress workerAddress, int dataPort, int selectorThreads,
-      int acceptQueueSizePerThreads, int workerThreads/* , String localFolder */) {
+      int acceptQueueSizePerThreads, int workerThreads) {
     return new TachyonWorker(masterAddress, workerAddress, dataPort, selectorThreads,
-        acceptQueueSizePerThreads, workerThreads/* , localFolder */);
+        acceptQueueSizePerThreads, workerThreads);
   }
 
   /**
@@ -82,8 +80,6 @@ public class TachyonWorker implements Runnable {
    * @param selectorThreads The number of selector threads of the worker's thrift server
    * @param acceptQueueSizePerThreads The accept queue size per thread of the worker's thrift server
    * @param workerThreads The number of threads of the worker's thrift server
-   * @param localFolder This TachyonWorker's local folder's path
-   * @param spaceLimitBytes The maximum memory space this TachyonWorker can use, in bytes
    * @return The new TachyonWorker
    */
   public static synchronized TachyonWorker createWorker(String masterAddress, String workerAddress,
@@ -166,8 +162,6 @@ public class TachyonWorker implements Runnable {
    * @param selectorThreads The number of selector threads of the worker's thrift server
    * @param acceptQueueSizePerThreads The accept queue size per thread of the worker's thrift server
    * @param workerThreads The number of threads of the worker's thrift server
-   * @param dataFolder This TachyonWorker's local folder's path
-   * @param memoryCapacityBytes The maximum memory space this TachyonWorker can use, in bytes
    */
   private TachyonWorker(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads) {

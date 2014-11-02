@@ -331,9 +331,16 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return mTachyonFS.getFileStatus(mFileId, false).isPinned;
   }
 
+  /**
+   * Promote block after access it
+   * 
+   * @param blockIndex the index of the block
+   * @return true if success, false otherwise
+   * @throws IOException
+   */
   public boolean promoteBlock(int blockIndex) throws IOException {
-    long blockId = getBlockId(blockIndex);
-    return mTachyonFS.promoteBlock(blockId);
+    ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
+    return mTachyonFS.promoteBlock(blockInfo);
   }
 
   /**

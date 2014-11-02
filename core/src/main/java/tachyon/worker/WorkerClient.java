@@ -301,6 +301,11 @@ public class WorkerClient implements Closeable {
     return mDataFolder;
   }
 
+  /**
+   * Get NetAddress of the worker
+   * 
+   * @return the NetAddress of the worker
+   */
   public synchronized NetAddress getNetAddress() {
     return mWorkerNetAddress;
   }
@@ -342,7 +347,7 @@ public class WorkerClient implements Closeable {
   /**
    * Get information of StorageDirs on worker.
    * 
-   * @return The list of the information of the StorageDir on worker
+   * @return The list of the information of StorageDirs on worker
    * @throws IOException
    */
   public synchronized List<WorkerDirInfo> getWorkerDirInfos() throws IOException {
@@ -435,7 +440,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Request space from the worker's memory
+   * Request space from the worker
    * 
    * @param userId The id of the user who send the request
    * @param requestBytes The requested space size, in bytes
@@ -454,7 +459,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Request space from the worker's memory
+   * Request space from the worker in specified StorageDir
    * 
    * @param userId The id of the user who send the request
    * @param storageDirId The id of StorageDir that space will be allocated in

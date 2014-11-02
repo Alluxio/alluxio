@@ -83,6 +83,12 @@ public abstract class BlockHandler implements Closeable {
    */
   public abstract ByteChannel getChannel();
 
+  /**
+   * Get length of the block file
+   * 
+   * @return the length of the block file
+   * @throws IOException
+   */
   public abstract long getLength() throws IOException;
 
   /**
