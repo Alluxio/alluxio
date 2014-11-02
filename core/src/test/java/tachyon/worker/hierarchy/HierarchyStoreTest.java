@@ -18,6 +18,7 @@ import tachyon.client.WriteType;
 import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.WorkerFileInfo;
+import tachyon.util.CommonUtils;
 
 /**
  * Unit tests for tachyon.worker.StorageTier.
@@ -26,7 +27,8 @@ public class HierarchyStoreTest {
   private final int mMemCapacityBytes = 1000;
   private final int mDiskCapacityBytes = 10000;
   private final int mUserQuotaUnitBytes = 100;
-  private final int mHeatBeatIntervalMs = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
+  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS
+      = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTFS = null;
@@ -63,19 +65,20 @@ public class HierarchyStoreTest {
     int fileId5 =
         TestUtils.createByteFile(mTFS, "/root/test5", WriteType.TRY_CACHE, mMemCapacityBytes / 2);
 
+    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     TachyonFile file1 = mTFS.getFile(fileId1);
     TachyonFile file2 = mTFS.getFile(fileId2);
     TachyonFile file3 = mTFS.getFile(fileId3);
     TachyonFile file4 = mTFS.getFile(fileId4);
     TachyonFile file5 = mTFS.getFile(fileId5);
 
-    Thread.sleep(2 * mHeatBeatIntervalMs);
     Assert.assertEquals(file1.isInMemory(), false);
     Assert.assertEquals(file2.isInMemory(), false);
     Assert.assertEquals(file3.isInMemory(), false);
     Assert.assertEquals(file4.isInMemory(), true);
     Assert.assertEquals(file5.isInMemory(), true);
 
+    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     WorkerFileInfo fileInfo = mTFS.getBlockFileInfo(file1.getBlockId(0));
     long storageDirId1 = fileInfo.getStorageDirId();
     fileInfo = mTFS.getBlockFileInfo(file2.getBlockId(0));
@@ -87,7 +90,6 @@ public class HierarchyStoreTest {
     fileInfo = mTFS.getBlockFileInfo(file5.getBlockId(0));
     long storageDirId5 = fileInfo.getStorageDirId();
 
-    Thread.sleep(2 * mHeatBeatIntervalMs);
     Assert.assertEquals(StorageLevelAlias.HDD.getValue(),
         StorageDirId.getStorageLevelAliasValue(storageDirId1));
     Assert.assertEquals(StorageLevelAlias.HDD.getValue(),
@@ -103,17 +105,17 @@ public class HierarchyStoreTest {
   @Test
   public void promoteBlock() throws IOException, InterruptedException {
     int fileId1 =
-        TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, mMemCapacityBytes / 6);
+        TestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, mMemCapacityBytes / 6);
     int fileId2 =
-        TestUtils.createByteFile(mTFS, "/root/test4", WriteType.TRY_CACHE, mMemCapacityBytes / 2);
+        TestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, mMemCapacityBytes / 2);
     int fileId3 =
-        TestUtils.createByteFile(mTFS, "/root/test5", WriteType.TRY_CACHE, mMemCapacityBytes / 2);
+        TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, mMemCapacityBytes / 2);
 
+    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     TachyonFile file1 = mTFS.getFile(fileId1);
     TachyonFile file2 = mTFS.getFile(fileId2);
     TachyonFile file3 = mTFS.getFile(fileId3);
 
-    Thread.sleep(2 * mHeatBeatIntervalMs);
     Assert.assertEquals(false, file1.isInMemory());
     Assert.assertEquals(true, file2.isInMemory());
     Assert.assertEquals(true, file3.isInMemory());
@@ -122,7 +124,7 @@ public class HierarchyStoreTest {
     byte[] buf = new byte[mMemCapacityBytes / 6];
     int len = is.read(buf);
 
-    Thread.sleep(2 * mHeatBeatIntervalMs);
+    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     Assert.assertEquals(mMemCapacityBytes / 6, len);
     Assert.assertEquals(true, file1.isInMemory());
     Assert.assertEquals(false, file2.isInMemory());

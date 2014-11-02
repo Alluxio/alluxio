@@ -41,6 +41,7 @@ public class BlocksLocker {
   /**
    * Lock a block.
    * 
+   * @param storageDirId The id of the StorageDir which contains the block
    * @param blockId The id of the block.
    * @return The lockId of this lock.
    */
@@ -67,6 +68,7 @@ public class BlocksLocker {
   /**
    * Unlock a block with a lock id.
    * 
+   * @param storageDirId The id of the StorageDir which contains the block
    * @param blockId The id of the block.
    * @param lockId The lock id of the lock.
    */

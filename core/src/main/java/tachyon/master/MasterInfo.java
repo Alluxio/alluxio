@@ -800,8 +800,8 @@ public class MasterInfo extends ImageWriter {
       if (srcInode == null) {
         return false;
       }
-      if (((InodeFolder) dstParentInode).getChild(dstComponents[dstComponents.length - 1])
-          != null) {
+      if (((InodeFolder) dstParentInode)
+          .getChild(dstComponents[dstComponents.length - 1]) != null) {
         return false;
       }
 
@@ -964,8 +964,8 @@ public class MasterInfo extends ImageWriter {
 
   public int createDependency(List<TachyonURI> parents, List<TachyonURI> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, DependencyType dependencyType) throws InvalidPathException,
-      FileDoesNotExistException {
+      String frameworkVersion, DependencyType dependencyType)
+      throws InvalidPathException, FileDoesNotExistException {
     synchronized (mRootLock) {
       LOG.info("ParentList: " + CommonUtils.listToString(parents));
       List<Integer> parentsIdList = getFilesIds(parents);
@@ -1111,6 +1111,13 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
+  /**
+   * Get blocks which is actually removed
+   * 
+   * @param removedBlockIds mapping from id of the StorageDir to the id list of removed blocks
+   * @param addedBlockIds mapping from id of the StorageDir to the id list of added blocks
+   * @return id list of actually removed blocks
+   */
   private List<Long> getActuallyRemovedBlockIds(Map<Long, List<Long>> removedBlockIds,
       Map<Long, List<Long>> addedBlockIds) {
     List<Long> actuallyRemovedBlockIds = new ArrayList<Long>();
@@ -1416,8 +1423,8 @@ public class MasterInfo extends ImageWriter {
         new LinkedList<Pair<InodeFolder, TachyonURI>>();
     synchronized (mRootLock) {
       // TODO: Verify we want to use absolute path.
-      nodesQueue
-          .add(new Pair<InodeFolder, TachyonURI>(mRoot, new TachyonURI(TachyonURI.SEPARATOR)));
+      nodesQueue.add(
+          new Pair<InodeFolder, TachyonURI>(mRoot, new TachyonURI(TachyonURI.SEPARATOR)));
       while (!nodesQueue.isEmpty()) {
         Pair<InodeFolder, TachyonURI> tPair = nodesQueue.poll();
         InodeFolder tFolder = tPair.getFirst();
@@ -1515,8 +1522,8 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    * @throws FileDoesNotExistException
    */
-  public int getNumberOfFiles(TachyonURI path) throws InvalidPathException,
-      FileDoesNotExistException {
+  public int getNumberOfFiles(TachyonURI path)
+      throws InvalidPathException, FileDoesNotExistException {
     Inode inode = getInode(path);
     if (inode == null) {
       throw new FileDoesNotExistException(path.toString());
@@ -2016,7 +2023,7 @@ public class MasterInfo extends ImageWriter {
    * @param workerNetAddress The address of the worker to register
    * @param totalBytes The capacity of the worker in bytes
    * @param usedBytes The number of bytes already used in the worker
-   * @param currentBlockIds The id's of the blocks held by the worker
+   * @param currentBlockIds Mapping from id of the StorageDir to id list of the blocks
    * @return the new id of the registered worker
    * @throws BlockInfoException
    */
@@ -2352,7 +2359,8 @@ public class MasterInfo extends ImageWriter {
    * 
    * @param workerId The id of the worker to deal with
    * @param usedBytes The number of bytes used in the worker
-   * @param removedBlockIds The id's of the blocks that have been removed
+   * @param removedBlockIds Mapping from id of the StorageDir and id list of removed blocks
+   * @param addedBlockIds Mapping from id of the StorageDir and id list of added blocks
    * @return a command specifying an action to take
    * @throws BlockInfoException
    */
@@ -2387,8 +2395,6 @@ public class MasterInfo extends ImageWriter {
               LOG.error("File " + fileId + " does not exist");
             } else if (inode.isFile()) {
               ((InodeFile) inode).removeLocation(blockIndex, workerId, storageDirId);
-              LOG.debug("File {} with block {} was evicted from worker {} ", fileId, blockIndex,
-                  workerId);
             }
           }
         }

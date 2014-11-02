@@ -140,10 +140,13 @@ public class TachyonFS extends AbstractTachyonFS {
   // Each user facing block has a unique block lock id.
   private final AtomicInteger mBlockLockId = new AtomicInteger(0);
 
-  // Available space of each StorageDir for this client.
+  // Mapping from Id to Available space of each StorageDir.
   private final Map<Long, Long> mIdToAvailableSpaceBytes = new HashMap<Long, Long>();
+  // Mapping from Id to root path of each StorageDir.
   private final Map<Long, String> mIdToWorkerDirPath = new HashMap<Long, String>();
+  // Mapping from Id to under file system of each StorageDir
   private final Map<Long, UnderFileSystem> mIdToDirFS = new HashMap<Long, UnderFileSystem>();
+  // Mapping from Id to user temporary path of each StorageDir.
   private final Map<Long, String> mIdToUserLocalTempFolder = new HashMap<Long, String>();
 
   private TachyonFS(TachyonURI tachyonURI) throws IOException {
@@ -255,6 +258,7 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Create a user local temporary folder and return it
    * 
+   * @param storageDirId the id of the StorageDir which the temporary folder will be created in.
    * @return the local temporary folder for the user or null if unable to allocate one.
    * @throws IOException
    */
@@ -285,6 +289,7 @@ public class TachyonFS extends AbstractTachyonFS {
         ret = dirFS.mkdirs(userLocalTempFolder, true);
       }
       if (ret) {
+        // Only supports local folder
         CommonUtils.changeLocalFileToFullPermission(userLocalTempFolder);
         LOG.info("Folder " + userLocalTempFolder + " was created!");
         mIdToUserLocalTempFolder.put(storageDirId, userLocalTempFolder);
@@ -546,16 +551,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get <code>TachyonFile</code> based on the path. If useCachedMetadata, this will not see changes
-   * to the file's pin setting, or other dynamic properties.
-   */
-  @Deprecated
-  public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
-      throws IOException {
-    return getFile(new TachyonURI(path), useCachedMetadata);
-  }
-
-  /**
    * Get <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
    * 
    * @param path file path.
@@ -577,6 +572,16 @@ public class TachyonFS extends AbstractTachyonFS {
   @Deprecated
   public synchronized TachyonFile getFile(String path) throws IOException {
     return getFile(new TachyonURI(path));
+  }
+
+  /**
+   * Get <code>TachyonFile</code> based on the path. If useCachedMetadata, this will not see changes
+   * to the file's pin setting, or other dynamic properties.
+   */
+  @Deprecated
+  public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
+      throws IOException {
+    return getFile(new TachyonURI(path), useCachedMetadata);
   }
 
   /**
@@ -694,7 +699,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get space from available space of each StorageDir for the user
+   * Get space from available space of StorageDirs
    * 
    * @param requestSpaceBytes size to request in bytes
    * @return the id of the StorageDir allocated
@@ -733,15 +738,37 @@ public class TachyonFS extends AbstractTachyonFS {
     return ret;
   }
 
+  /**
+   * Get path of the block file
+   * 
+   * @param blockInfo information of the block
+   * @return the path of the block file
+   * @throws IOException
+   */
   synchronized String getLocalBlockFilePath(ClientBlockInfo blockInfo) throws IOException {
     if (blockInfo != null) {
       Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
       NetAddress workerNetAddress = mWorkerClient.getNetAddress();
       if (storageDirIds.containsKey(workerNetAddress)) {
-        String dirPath = mIdToWorkerDirPath.get(storageDirIds.get(workerNetAddress));
-        String dataFolder = getLocalDataFolder();
-        return CommonUtils.concat(dirPath, dataFolder, blockInfo.getBlockId());
+        return getLocalBlockFilePath(storageDirIds.get(workerNetAddress), blockInfo.getBlockId());
       }
+    }
+    return null;
+  }
+
+  /**
+   * Get path of the block file in certain StorageDir
+   * 
+   * @param storageDirId the id of the StorageDir which contains the block
+   * @param blockId the id of the block
+   * @return the path of the block file
+   * @throws IOException
+   */
+  synchronized String getLocalBlockFilePath(long storageDirId, long blockId) throws IOException {
+    if (mIdToWorkerDirPath.containsKey(storageDirId)) {
+      String dirPath = mIdToWorkerDirPath.get(storageDirId);
+      String dataFolder = getLocalDataFolder();
+      return CommonUtils.concat(dirPath, dataFolder, blockId);
     }
     return null;
   }
@@ -913,6 +940,16 @@ public class TachyonFS extends AbstractTachyonFS {
     return lockBlock(StorageDirId.unknownId(), blockId, blockLockId);
   }
 
+  /**
+   * Lock a block in certain StorageDir in the current TachyonFS.
+   * 
+   * @param storageDirId the id of the StorageDir which contains the block
+   * @param blockId The id of the block to lock. <code>blockId</code> must be positive.
+   * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
+   *        non-negative.
+   * @return
+   * @throws IOException
+   */
   synchronized boolean lockBlock(long storageDirId, long blockId, int blockLockId)
       throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
@@ -972,7 +1009,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Release space to some StorageDir
+   * Release space to some StorageDir.
    * 
    * @param storageDirId the id of the StorageDir which the space will be release to
    * @param releaseSpaceBytes the size of the space to be released in bytes
@@ -987,16 +1024,32 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Promote block file back to the top StorageTier, after the block file is accessed
+   * Promote block file back to the top StorageTier, after the block file is accessed.
    * 
-   * @param blockId id of the block which will be promoted
+   * @param blockInfo information of the block which will be promoted
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public boolean promoteBlock(long blockId) throws IOException {
-    return promoteBlock(StorageDirId.unknownId(), blockId);
+  public boolean promoteBlock(ClientBlockInfo blockInfo) throws IOException {
+    Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
+    NetAddress workerNetAddress = mWorkerClient.getNetAddress();
+
+    if (storageDirIds.keySet().contains(workerNetAddress)) {
+      long storageDirId = storageDirIds.get(workerNetAddress);
+      return promoteBlock(storageDirId, blockInfo.getBlockId());
+    } else {
+      return false;
+    }
   }
 
+  /**
+   * Promote block file back to the top StorageTier, after the block file is accessed.
+   * 
+   * @param storageDirId the id of the StorageDir which contains the block
+   * @param blockId the id of the block
+   * @return true if success, false otherwise
+   * @throws IOException
+   */
   public boolean promoteBlock(long storageDirId, long blockId) throws IOException {
     if (mWorkerClient.isLocal()) {
       return mWorkerClient.promoteBlock(mMasterClient.getUserId(), storageDirId, blockId);
@@ -1152,6 +1205,16 @@ public class TachyonFS extends AbstractTachyonFS {
     return unlockBlock(StorageDirId.unknownId(), blockId, blockLockId);
   }
 
+  /**
+   * Unlock a block in the current TachyonFS.
+   * 
+   * @param storageDirId the id of the StorageDir which contains the block
+   * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
+   * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
+   *        non-negative.
+   * @return true if successfully unlock the block with <code>blockLockId</code>, false otherwise
+   *         (or invalid parameter).
+   */
   synchronized boolean unlockBlock(long storageDirId, long blockId, int blockLockId)
       throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
