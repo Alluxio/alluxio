@@ -214,7 +214,7 @@ public final class LocalTachyonCluster {
 
     mWorker =
         TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1/* , mWorkerDataFolder */);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {

@@ -141,6 +141,9 @@ public final class StorageDir {
     String srcPath = getUserTempFilePath(userId, blockId);
     String dstPath = getBlockFilePath(blockId);
     long blockSize = mFs.getFileSize(srcPath);
+    if (blockSize < 0) {
+      throw new IOException("Negative size of block! size:" + blockSize);
+    }
     boolean result = mFs.rename(srcPath, dstPath);
     if (result) {
       addBlockId(blockId, blockSize);

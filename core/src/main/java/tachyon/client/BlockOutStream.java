@@ -160,6 +160,12 @@ public class BlockOutStream extends OutStream {
     mClosed = true;
   }
 
+  /**
+   * Create temporary folder for the user in some StorageDir
+   * 
+   * @return the path of the folder
+   * @throws IOException
+   */
   private String createUserTempFolder() throws IOException {
     String tempFolder = null;
     tempFolder = mTachyonFS.createAndGetUserLocalTempFolder(mStorageDirId);

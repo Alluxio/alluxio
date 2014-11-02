@@ -198,6 +198,7 @@ public class BlockInfo {
    * Remove the worker from the block's locations
    * 
    * @param workerId The id of the removed worker
+   * @param storageDirId The id of the StorageDir which contains the block
    */
   public synchronized void removeLocation(long workerId, long storageDirId) {
     if (mLocations.containsKey(workerId)) {

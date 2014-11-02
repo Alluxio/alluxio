@@ -59,10 +59,8 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
-
     final int lockId = mLocker.lock(storageDirId, blockId);
 
-    // RandomAccessFile file = null;
     BlockHandler handler = null;
     try {
       validateInput(req);
@@ -84,9 +82,6 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
       BlockResponse resp = BlockResponse.createErrorResponse(storageDirId, blockId);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
-      /*
-       * if (file != null) { Closeables.close(file, true); }
-       */
       if (handler != null) {
         handler.close();
       }
