@@ -16,4 +16,4 @@ The following steps show how to run a Tachyon-Perf test.
 6. In addition, command `./bin/tachyon-perf-clean` is used to clean the workspace directory on Tachyon.
 
 ##Acknowledgement
-Tachyon-Perf is a project started in the Nanjing University [PASA Lab](http://pasa-bigdata.nju.edu.cn/English/index.html) and contributed to Tachyon. Any suggestions and furthure contributions from others are appreciated.
+Tachyon-Perf is a project started in the Nanjing University [PASA Lab](http://pasa-bigdata.nju.edu.cn/English/index.html) and contributed to Tachyon. Any suggestions and furthure contributions are appreciated.
