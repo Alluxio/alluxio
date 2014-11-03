@@ -82,7 +82,7 @@ public class WorkerConf extends Utils {
 
   public final EvictStrategyType EVICT_STRATEGY_TYPE;
   public final AllocateStrategyType ALLOCATE_STRATEGY_TYPE;
-  public final boolean DROP_AFTER_PROMOTE = true;
+
   public final int MAX_HIERARCHY_STORAGE_LEVEL;
   public final StorageLevelAlias[] STORAGE_LEVEL_ALIAS;
   public final String[] STORAGE_TIER_DIRS;
