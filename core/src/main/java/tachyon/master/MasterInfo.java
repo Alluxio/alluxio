@@ -2408,13 +2408,13 @@ public class MasterInfo extends ImageWriter {
             Inode inode = mFileIdToInodes.get(fileId);
             if (inode == null) {
               LOG.error("File " + fileId + " does not exist");
-            } else if (inode.isFile()) { // add block for a file
+            } else if (inode.isFile()) {
               List<BlockInfo> blockInfoList = ((InodeFile) inode).getBlockList();
               NetAddress workerAddress = mWorkers.get(workerId).getAddress();
               BlockInfo blockInfo = null;
               if (blockInfoList.size() <= blockIndex) {
                 throw new BlockInfoException("not found block info, blockIndex:" + blockIndex);
-              } else { // add or update storageId for a block
+              } else {
                 blockInfo = blockInfoList.get(blockIndex);
               }
               blockInfo.addLocation(workerId, workerAddress, storageDirId);
