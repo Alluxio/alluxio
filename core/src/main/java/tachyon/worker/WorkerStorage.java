@@ -234,8 +234,9 @@ public class WorkerStorage {
             unlockBlock(fileInfo.blockIds.get(k), Users.CHECKPOINT_USER_ID);
           }
 
-          long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB
-              / WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
+          int cap = WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
+          long shouldTakeMs =
+              (long) (1000.0 * fileSizeByte / Constants.MB / cap);
           long currentTimeMs = System.currentTimeMillis();
           if (startCopyTimeMs + shouldTakeMs > currentTimeMs) {
             long shouldSleepMs = startCopyTimeMs + shouldTakeMs - currentTimeMs;
