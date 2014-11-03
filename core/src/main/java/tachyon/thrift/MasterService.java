@@ -8436,6 +8436,8 @@ public class MasterService {
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField MASTERVERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("masterVersion", org.apache.thrift.protocol.TType.STRING, (short)2);
+    private static final org.apache.thrift.protocol.TField FORMATTIME_FIELD_DESC = new org.apache.thrift.protocol.TField("formatTime", org.apache.thrift.protocol.TType.DOUBLE, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -8445,11 +8447,16 @@ public class MasterService {
 
     public long success; // required
     public BlockInfoException e; // required
+    public String masterVersion;//required
+    public long formatTime;//required
+
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E((short)1, "e");
+      E((short)1, "e"),
+      MASTERVERSION((short)2, "masterVersion"),
+      FORMATTIME((short)3, "formatTime");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -8468,6 +8475,10 @@ public class MasterService {
             return SUCCESS;
           case 1: // E
             return E;
+          case 2: //MASTER VERSION
+          return MASTERVERSION;
+          case 3: //FORMAT TIME
+          return FORMATTIME;
           default:
             return null;
         }
@@ -8517,6 +8528,10 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.MASTERVERSION, new org.apache.thrift.meta_data.FieldMetaData("masterVersion", org.apache.thrift.TFieldRequirementType.DEFAULT,
+               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.FORMATTIME, new org.apache.thrift.meta_data.FieldMetaData("formatTime", org.apache.thrift.TFieldRequirementType.DEFAULT,
+                new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(worker_register_result.class, metaDataMap);
     }
@@ -8532,6 +8547,7 @@ public class MasterService {
       this.success = success;
       setSuccessIsSet(true);
       this.e = e;
+
     }
 
     /**
@@ -8540,6 +8556,8 @@ public class MasterService {
     public worker_register_result(worker_register_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
+      this.masterVersion=other.masterVersion;
+      this.formatTime=other.formatTime;
       if (other.isSetE()) {
         this.e = new BlockInfoException(other.e);
       }
@@ -8554,6 +8572,8 @@ public class MasterService {
       setSuccessIsSet(false);
       this.success = 0;
       this.e = null;
+      this.formatTime=0;
+      this.masterVersion="";
     }
 
     public long getSuccess() {
@@ -8564,6 +8584,24 @@ public class MasterService {
       this.success = success;
       setSuccessIsSet(true);
       return this;
+    }
+
+    public worker_register_result setMasterVersion(String masterVersion) {
+      this.masterVersion = masterVersion;
+      return this;
+    }
+
+    public void unsetMasterVersion() {
+      this.masterVersion = null;
+    }
+
+    public worker_register_result setFormatTime(long formatTime) {
+          this.formatTime = formatTime;
+          return this;
+    }
+
+    public void unsetFormatTime() {
+          this.formatTime = 0l;
     }
 
     public void unsetSuccess() {
@@ -8581,6 +8619,14 @@ public class MasterService {
 
     public BlockInfoException getE() {
       return this.e;
+    }
+
+    public String getMasterVersion() {
+          return this.masterVersion;
+    }
+
+    public Long getFormatTime() {
+          return this.formatTime;
     }
 
     public worker_register_result setE(BlockInfoException e) {
@@ -8605,33 +8651,51 @@ public class MasterService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((Long)value);
-        }
-        break;
+          case SUCCESS:
+              if (value == null) {
+                  unsetSuccess();
+              } else {
+                  setSuccess((Long) value);
+              }
+              break;
 
-      case E:
-        if (value == null) {
-          unsetE();
-        } else {
-          setE((BlockInfoException)value);
-        }
-        break;
+          case E:
+              if (value == null) {
+                  unsetE();
+              } else {
+                  setE((BlockInfoException) value);
+              }
+              break;
 
+
+          case MASTERVERSION:
+              if (value == null) {
+                  unsetMasterVersion();
+              } else {
+                  setMasterVersion((String) value);
+              }
+
+          case FORMATTIME:
+              if (value == null) {
+                  unsetFormatTime();
+              } else {
+                  setFormatTime((Long) value);
+              }
       }
+
+
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case SUCCESS:
-        return Long.valueOf(getSuccess());
-
-      case E:
-        return getE();
-
+          case SUCCESS:
+              return Long.valueOf(getSuccess());
+          case E:
+              return getE();
+          case MASTERVERSION:
+              return getMasterVersion();
+          case FORMATTIME:
+              return getFormatTime();
       }
       throw new IllegalStateException();
     }
