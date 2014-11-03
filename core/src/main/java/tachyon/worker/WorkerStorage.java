@@ -285,7 +285,6 @@ public class WorkerStorage {
   private final ExecutorService mExecutorService;
   private long mCapacityBytes;
   private StorageTier[] mStorageTiers;
-  private final boolean mDropAfterPromote;
 
   /**
    * Main logic behind the worker process.
@@ -305,7 +304,6 @@ public class WorkerStorage {
 
     mDataFolder = WorkerConf.get().DATA_FOLDER;
     mUserFolder = CommonUtils.concat(mDataFolder, WorkerConf.USER_TEMP_RELATIVE_FOLDER);
-    mDropAfterPromote = WorkerConf.get().DROP_AFTER_PROMOTE; // can be set by per StorageTier
   }
 
   public void initialize(final NetAddress address) {
@@ -786,11 +784,7 @@ public class WorkerStorage {
       }
       boolean result;
       try {
-        if (mDropAfterPromote) {
-          result = srcStorageDir.moveBlock(blockId, dstStorageDir);
-        } else {
-          result = srcStorageDir.copyBlock(blockId, dstStorageDir);
-        }
+        result = srcStorageDir.moveBlock(blockId, dstStorageDir);
         mMasterClient.worker_cacheBlock(mWorkerId, mCapacityBytes, dstStorageDir.getStorageDirId(),
             blockId, blockSize);
       } catch (IOException e) {
