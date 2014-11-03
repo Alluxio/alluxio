@@ -11,6 +11,24 @@
   <packaging>jar</packaging>
   <description>Tachyon-Perf: A Performance Test Framework for Tachyon</description>
   <name>Tachyon Project Perf</name>
+  <developers>
+    <developer>
+    <id>RongGu</id>
+    <name>Rong Gu</name>
+    <email>gurongwalker@gmail.com</email>
+    <url>http://pasa-bigdata.nju.edu.cn/people/ronggu/</url>
+    <organization>PASA Lab of Nanjing University</organization>
+    <organizationUrl>http://pasa-bigdata.nju.edu.cn/English/index.html</organizationUrl>
+    </developer>
+    <developer>
+    <id>swatDong</id>
+    <name>Qianhao Dong</name>
+    <email>09122swat@gmail.com</email>
+    <url>https://github.com/swatDong</url>
+    <organization>PASA Lab of Nanjing University</organization>
+    <organizationUrl>http://pasa-bigdata.nju.edu.cn/English/index.html</organizationUrl>
+    </developer>
+  </developers>
 
   <properties>
     <failIfNoTests>false</failIfNoTests>
