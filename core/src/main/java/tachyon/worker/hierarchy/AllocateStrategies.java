@@ -34,12 +34,12 @@ public class AllocateStrategies {
    * Allocate space on StorageDirs randomly
    */
   private static class AllocateRandom extends AllocateStrategyBase {
-    Random rand = new Random(System.currentTimeMillis());
+    Random mRandm = new Random(System.currentTimeMillis());
 
     @Override
     public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestSizeBytes) {
       StorageDir availableDir = null;
-      int i = rand.nextInt(storageDirs.length);
+      int i = mRandm.nextInt(storageDirs.length);
       for (StorageDir dir : storageDirs) {
         if (i == storageDirs.length) {
           i = 0;
@@ -85,7 +85,7 @@ public class AllocateStrategies {
   /**
    * Base class for AllocateStrategy, which provides basic function for AllocateStrategy
    */
-  private static abstract class AllocateStrategyBase implements AllocateStrategy {
+  private abstract static class AllocateStrategyBase implements AllocateStrategy {
     @Override
     public boolean fitInPossible(StorageDir[] storageDirs, long requestSizeBytes) {
       boolean isPossible = false;
