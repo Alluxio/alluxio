@@ -18,10 +18,10 @@ public enum StorageLevelAlias {
    */
   HDD(3);
 
-  private int VALUE;
+  private int mValue;
 
   private StorageLevelAlias(int value) {
-    this.VALUE = value;
+    this.mValue = value;
   }
 
   /**
@@ -30,6 +30,6 @@ public enum StorageLevelAlias {
    * @return value of the storage level alias
    */
   public int getValue() {
-    return VALUE;
+    return mValue;
   }
 }

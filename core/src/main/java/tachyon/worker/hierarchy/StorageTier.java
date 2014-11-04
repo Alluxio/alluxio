@@ -40,7 +40,7 @@ public class StorageTier {
   /** Capacity of current StorageTier in bytes */
   private final long mCapacityBytes;
   /** Max retry times when requesting space from current StorageTier */
-  private static final int mRequestSpaceMaxTryTimes = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
+  private static final int FAILED_SPACE_REQUEST_LIMITS = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
 
   /**
    * Create a new StorageTier
@@ -249,7 +249,7 @@ public class StorageTier {
     if (dirSelected != null) {
       return dirSelected;
     } else if (mSpaceAllocator.fitInPossible(dirCandidates, requestSizeBytes)) {
-      for (int attempt = 0; attempt < mRequestSpaceMaxTryTimes; attempt ++) {
+      for (int attempt = 0; attempt < FAILED_SPACE_REQUEST_LIMITS; attempt ++) {
         Pair<StorageDir, List<BlockInfo>> evictInfo =
             mBlockEvictor.getDirCandidate(dirCandidates, pinList, requestSizeBytes);
         if (evictInfo == null) {
