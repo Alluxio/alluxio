@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
+import com.google.common.io.Closer;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import tachyon.Constants;
@@ -186,30 +187,34 @@ public class WorkerStorage {
           for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
             lockBlock(fileInfo.blockIds.get(k), Users.CHECKPOINT_USER_ID);
           }
-          OutputStream os = mCheckpointUfs.create(midPath, (int) fileInfo.getBlockSizeByte());
+          Closer closer = Closer.create();
           long fileSizeByte = 0;
-          for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-            File tempFile =
-                new File(CommonUtils.concat(mLocalDataFolder.toString(), fileInfo.blockIds.get(k)));
-            fileSizeByte += tempFile.length();
-            InputStream is = new FileInputStream(tempFile);
-            byte[] buf = new byte[16 * Constants.KB];
-            int got = is.read(buf);
-            while (got != -1) {
-              os.write(buf, 0, got);
-              got = is.read(buf);
+          try {
+            OutputStream os = 
+                closer.register(mCheckpointUfs.create(midPath, (int) fileInfo.getBlockSizeByte()));
+            for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
+              File tempFile =
+                  new File(CommonUtils.concat(mLocalDataFolder.toString(),
+                      fileInfo.blockIds.get(k)));
+              fileSizeByte += tempFile.length();
+              InputStream is = closer.register(new FileInputStream(tempFile));
+              byte[] buf = new byte[16 * Constants.KB];
+              int got = is.read(buf);
+              while (got != -1) {
+                os.write(buf, 0, got);
+                got = is.read(buf);
+              }
             }
-            is.close();
-          }
-          os.close();
-          if (!mCheckpointUfs.rename(midPath, dstPath)) {
-            LOG.error("Failed to rename from " + midPath + " to " + dstPath);
+            if (!mCheckpointUfs.rename(midPath, dstPath)) {
+              LOG.error("Failed to rename from " + midPath + " to " + dstPath);
+            }
+          } finally {
+            closer.close();
+            for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
+              unlockBlock(fileInfo.blockIds.get(k), Users.CHECKPOINT_USER_ID);
+            }
           }
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
-          for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-            unlockBlock(fileInfo.blockIds.get(k), Users.CHECKPOINT_USER_ID);
-          }
-
           long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB
               / WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
           long currentTimeMs = System.currentTimeMillis();
