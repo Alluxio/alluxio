@@ -250,8 +250,9 @@ public class WorkerClient implements Closeable {
    */
   public synchronized String getDataFolder() throws IOException {
     if (mDataFolder == null) {
+      mustConnect();
+
       try {
-        mustConnect();
         mDataFolder = mClient.getDataFolder();
       } catch (TException e) {
         mDataFolder = null;
@@ -275,6 +276,7 @@ public class WorkerClient implements Closeable {
     try {
       return mClient.getUserTempFolder(mMasterClient.getUserId());
     } catch (TException e) {
+      mConnected = false;
       throw new IOException(e);
     }
   }
@@ -419,6 +421,7 @@ public class WorkerClient implements Closeable {
     try {
       mClient.userHeartbeat(userId);
     } catch (TException e) {
+      mConnected = false;
       throw new IOException(e);
     }
   }
