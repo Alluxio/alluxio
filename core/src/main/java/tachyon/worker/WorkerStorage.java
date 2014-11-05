@@ -205,14 +205,14 @@ public class WorkerStorage {
                 got = is.read(buf);
               }
             }
-            if (!mCheckpointUfs.rename(midPath, dstPath)) {
-              LOG.error("Failed to rename from " + midPath + " to " + dstPath);
-            }
           } finally {
             closer.close();
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
               unlockBlock(fileInfo.blockIds.get(k), Users.CHECKPOINT_USER_ID);
             }
+          }
+          if (!mCheckpointUfs.rename(midPath, dstPath)) {
+            LOG.error("Failed to rename from " + midPath + " to " + dstPath);
           }
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
           long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB
