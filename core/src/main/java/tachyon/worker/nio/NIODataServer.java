@@ -223,6 +223,7 @@ public class NIODataServer implements Runnable, DataServer {
         data =
             storageDir.getBlockData(tMessage.getBlockId(), tMessage.getOffset(),
                 (int) tMessage.getLength());
+        storageDir.accessBlock(tMessage.getBlockId());
         dataLen = data.limit();
       } catch (Exception e) {
         LOG.error(e.getMessage());

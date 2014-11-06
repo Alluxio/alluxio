@@ -394,14 +394,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
     if (!mTachyonFS.lockBlock(blockId, blockLockId)) {
       return null;
     }
+
     Closer closer = Closer.create();
-    WorkerFileInfo fileInfo = mTachyonFS.getBlockFileInfo(blockId);
-    if (fileInfo != null) {
+    String localFileName = mTachyonFS.getLocalBlockFilePath(info);
+    if (localFileName != null) {
       try {
-        String localFileName = fileInfo.getFilePath();
         RandomAccessFile localFile = closer.register(new RandomAccessFile(localFileName, "r"));
 
-        long fileLength = fileInfo.getFileSize();// localFile.length();
+        long fileLength = localFile.length();
         String error = null;
         if (offset > fileLength) {
           error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
@@ -421,12 +421,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
         FileChannel localFileChannel = closer.register(localFile.getChannel());
         final ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
-        mTachyonFS.accessLocalBlock(blockId);
+        localFileChannel.close();
+        localFile.close();
+        mTachyonFS.accessLocalBlock(info);
         return new TachyonByteBuffer(mTachyonFS, buf, blockId, blockLockId);
       } catch (FileNotFoundException e) {
-        LOG.info("block is not on local disk! blockId:" + blockId);
+        LOG.info(localFileName + " is not on local disk.");
       } catch (IOException e) {
-        LOG.warn("Failed to read local file " + blockId + " because:", e);
+        LOG.warn("Failed to read local file " + localFileName + " because:", e);
       } finally {
         closer.close();
       }

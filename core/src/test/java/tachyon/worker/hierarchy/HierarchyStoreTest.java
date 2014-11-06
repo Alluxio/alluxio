@@ -60,15 +60,21 @@ public class HierarchyStoreTest {
         TestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, mMemCapacityBytes / 6);
     int fileId3 =
         TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, mMemCapacityBytes / 6);
+
+    TachyonFile file1 = mTFS.getFile(fileId1);
+    TachyonFile file2 = mTFS.getFile(fileId2);
+    TachyonFile file3 = mTFS.getFile(fileId3);
+
+    Assert.assertEquals(file1.isInMemory(), true);
+    Assert.assertEquals(file2.isInMemory(), true);
+    Assert.assertEquals(file3.isInMemory(), true);
+
     int fileId4 =
         TestUtils.createByteFile(mTFS, "/root/test4", WriteType.TRY_CACHE, mMemCapacityBytes / 2);
     int fileId5 =
         TestUtils.createByteFile(mTFS, "/root/test5", WriteType.TRY_CACHE, mMemCapacityBytes / 2);
 
     CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    TachyonFile file1 = mTFS.getFile(fileId1);
-    TachyonFile file2 = mTFS.getFile(fileId2);
-    TachyonFile file3 = mTFS.getFile(fileId3);
     TachyonFile file4 = mTFS.getFile(fileId4);
     TachyonFile file5 = mTFS.getFile(fileId5);
 

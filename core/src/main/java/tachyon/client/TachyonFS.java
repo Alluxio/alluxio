@@ -170,11 +170,16 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Update the latest block access time on the worker.
    * 
-   * @param blockId the local block's id
+   * @param blockInfo the information of the block
    * @throws IOException
    */
-  synchronized void accessLocalBlock(long blockId) throws IOException {
-    mWorkerClient.accessBlock(StorageDirId.unknownId(), blockId);
+  synchronized void accessLocalBlock(ClientBlockInfo blockInfo) throws IOException {
+    Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
+    long blockId = blockInfo.getBlockId();
+    NetAddress workerNetAddress = mWorkerClient.getNetAddress();
+    if (storageDirIds.containsKey(workerNetAddress)) {
+      mWorkerClient.accessBlock(storageDirIds.get(workerNetAddress), blockId);
+    }
   }
 
   /**
@@ -1116,7 +1121,14 @@ public class TachyonFS extends AbstractTachyonFS {
       }
       for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
         long toRequestSpaceBytes = Math.max(requestSpaceBytes, mUserQuotaUnitBytes);
-        storageDirId = mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes);
+        storageDirId = StorageDirId.unknownId();
+        try {
+          storageDirId = 
+              mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes);
+        } catch (IOException e) {
+          LOG.error(String.format("Request space failed! requestSpaceBytes(%d), attempt(%d)",
+              toRequestSpaceBytes, attempt));
+        }
         if (!StorageDirId.isUnknown(storageDirId)) {
           availableSpaceBytes += toRequestSpaceBytes;
           if (availableSpaceBytes >= requestSpaceBytes) {
@@ -1154,17 +1166,22 @@ public class TachyonFS extends AbstractTachyonFS {
       for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
         long toRequestSpaceBytes =
             Math.max(requestSpaceBytes - availableSpaceBytes, mUserQuotaUnitBytes);
-        boolean ret =
-            mWorkerClient
+        boolean reqResult = false;
+        try {
+          reqResult = mWorkerClient
                 .requestSpace(mMasterClient.getUserId(), storageDirId, toRequestSpaceBytes);
-        if (ret) {
-          availableSpaceBytes += toRequestSpaceBytes;
+        } catch (IOException e) {
+          LOG.error(String.format("Request space failed! storageDirId(%d), requestSpaceBytes(%d),"
+              + " attempt(%d)", storageDirId, toRequestSpaceBytes, attempt));
         }
-        if (availableSpaceBytes >= requestSpaceBytes) {
-          mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
-          return true;
-        } else {
-          mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes);
+        if (reqResult) {
+          availableSpaceBytes += toRequestSpaceBytes;
+          if (availableSpaceBytes >= requestSpaceBytes) {
+            mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
+            return true;
+          } else {
+            mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes);
+          }
         }
       }
       return false;
