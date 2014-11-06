@@ -256,9 +256,9 @@ public class StorageTier {
    * @return the StorageDir assigned.
    * @throws IOException
    */
-  // TODO make block eviction asynchronous
-  private StorageDir requestSpace(StorageDir[] dirCandidates, long userId, long requestSizeBytes,
-      Set<Integer> pinList) throws IOException {
+  // TODO make block eviction asynchronous, then no need to be synchronized
+  private synchronized StorageDir requestSpace(StorageDir[] dirCandidates, long userId,
+      long requestSizeBytes, Set<Integer> pinList) throws IOException {
     StorageDir dirSelected = mSpaceAllocator.getStorageDir(dirCandidates, userId, requestSizeBytes);
     if (dirSelected != null) {
       return dirSelected;
@@ -277,13 +277,16 @@ public class StorageTier {
             long blockId = blockInfo.getBlockId();
             if (isLastTier()) {
               srcDir.deleteBlock(blockId);
-            } else if (mNextStorageTier.containsBlock(blockId)) {
-              srcDir.deleteBlock(blockId);
             } else {
+              StorageDir storageDir = mNextStorageTier.getStorageDirByBlockId(blockId);
+              if (storageDir != null) {
+                storageDir.deleteBlock(blockId);
+              }
               StorageDir dstDir =
                   mNextStorageTier.requestSpace(userId, blockInfo.getBlockSize(), pinList);
               srcDir.moveBlock(blockId, dstDir);
             }
+            LOG.debug("Evicted block Id:" + blockId);
           }
         }
         if (dirSelected.requestSpace(userId, requestSizeBytes)) {
@@ -294,7 +297,8 @@ public class StorageTier {
         }
       }
     }
-    throw new IOException("No StorageDir is allocated!");
+    throw new IOException("No StorageDir is allocated! requestSize:" + requestSizeBytes
+        + " usedSpace:" + getUsedBytes() + " capacity:" + getCapacityBytes());
   }
 
   @Override

@@ -108,7 +108,9 @@ public final class StorageDir {
    * @param blockId Id of the block
    */
   public void accessBlock(long blockId) {
-    mLastBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
+    if (containsBlock(blockId)) {
+      mLastBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
+    }
   }
 
   /**
@@ -118,7 +120,7 @@ public final class StorageDir {
    * @param sizeBytes size of the block in bytes
    */
   private void addBlockId(long blockId, long sizeBytes) {
-    accessBlock(blockId);
+    mLastBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
     if (mBlockSizes.containsKey(blockId)) {
       returnSpace(mBlockSizes.remove(blockId));
     }
@@ -174,7 +176,7 @@ public final class StorageDir {
    * @return true if StorageDir contains the block, false otherwise
    */
   public boolean containsBlock(long blockId) {
-    return mLastBlockAccessTimeMs.containsKey(blockId);
+    return mLastBlockAccessTimeMs.containsKey(blockId) || isBlockLocked(blockId);
   }
 
   /**
@@ -220,6 +222,7 @@ public final class StorageDir {
       String blockfile = getBlockFilePath(blockId);
       boolean result = false;
       try {
+        // Should check lock status here 
         if (!isBlockLocked(blockId)) {
           result = mFs.delete(blockfile, true);
         }
@@ -234,7 +237,7 @@ public final class StorageDir {
       }
       return result;
     } else {
-      LOG.error("Block " + blockId + " does not exist in current StorageDir.");
+      LOG.warn("Block " + blockId + " does not exist in current StorageDir.");
       return false;
     }
   }
@@ -543,7 +546,7 @@ public final class StorageDir {
    * @return true if success, false otherwise
    */
   public boolean lockBlock(long blockId, long userId) {
-    if (!containsBlock(blockId) && !isBlockLocked(blockId)) {
+    if (!containsBlock(blockId)) {
       return false;
     }
     mUserPerLockedBlock.put(blockId, userId);
@@ -637,7 +640,7 @@ public final class StorageDir {
    * @return true if success, false otherwise
    */
   public boolean unlockBlock(long blockId, long userId) {
-    if (!containsBlock(blockId) && !isBlockLocked(blockId)) {
+    if (!containsBlock(blockId)) {
       return false;
     }
     mUserPerLockedBlock.remove(blockId, userId);
