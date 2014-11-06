@@ -219,15 +219,13 @@ public class RemoteBlockInStream extends BlockInStream {
       for (NetAddress blockLocation : blockLocations) {
         String host = blockLocation.mHost;
         int port = blockLocation.mSecondaryPort;
-        long storageDirId;
+        long storageDirId = StorageDirId.unknownId();
         if (storageDirIds.containsKey(blockLocation)) {
           storageDirId = storageDirIds.get(blockLocation);
-        } else {
-          storageDirId = StorageDirId.unknownId();
         }
 
         // The data is not in remote machine's memory if port == -1.
-        if (port == -1) {
+        if (StorageDirId.isUnknown(storageDirId) || port == -1) {
           continue;
         }
         if (host.equals(InetAddress.getLocalHost().getHostName())
