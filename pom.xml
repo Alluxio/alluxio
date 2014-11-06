@@ -173,6 +173,9 @@
           <target>${java.version}</target>
           <encoding>UTF-8</encoding>
           <maxmem>1024m</maxmem>
+          <compilerArgument>-Xlint:all</compilerArgument>
+          <showWarnings>true</showWarnings>
+          <showDeprecation>true</showDeprecation>
         </configuration>
       </plugin>
       <plugin>
