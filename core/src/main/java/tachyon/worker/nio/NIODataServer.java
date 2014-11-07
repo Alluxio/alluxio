@@ -217,6 +217,10 @@ public class NIODataServer implements Runnable, DataServer {
       LOG.info("Get request for " + tMessage.getBlockId());
       int lockId = mBlockLocker.lock(tMessage.getStorageDirId(), tMessage.getBlockId());
       StorageDir storageDir = mWorkerStorage.getStorageDirById(tMessage.getStorageDirId());
+      if (storageDir == null || !storageDir.containsBlock(tMessage.getBlockId())) {
+        LOG.error("Information on master for block " + tMessage.getBlockId() + " is outdated!");
+        storageDir = mWorkerStorage.getStorageDirByBlockId(tMessage.getBlockId());
+      }
       ByteBuffer data = null;
       int dataLen = 0;
       try {
