@@ -15,6 +15,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.io.Closer;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
@@ -381,9 +383,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
       return null;
     }
     String localFileName = getLocalFilename(blockIndex);
+    Closer closer = Closer.create();
     if (localFileName != null) {
       try {
-        RandomAccessFile localFile = new RandomAccessFile(localFileName, "r");
+        RandomAccessFile localFile = closer.register(new RandomAccessFile(localFileName, "r"));
 
         long fileLength = localFile.length();
         String error = null;
@@ -396,7 +399,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
                   len, fileLength);
         }
         if (error != null) {
-          localFile.close();
           throw new IOException(error);
         }
 
@@ -404,16 +406,16 @@ public class TachyonFile implements Comparable<TachyonFile> {
           len = fileLength - offset;
         }
 
-        FileChannel localFileChannel = localFile.getChannel();
+        FileChannel localFileChannel = closer.register(localFile.getChannel());
         final ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
-        localFileChannel.close();
-        localFile.close();
         mTachyonFS.accessLocalBlock(blockId);
         return new TachyonByteBuffer(mTachyonFS, buf, blockId, blockLockId);
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");
       } catch (IOException e) {
         LOG.warn("Failed to read local file " + localFileName + " because:", e);
+      } finally {
+        closer.close();
       }
     }
 
