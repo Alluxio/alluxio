@@ -2,6 +2,7 @@
 # vi: set ft=ruby :
 
 require 'yaml'
+require "./EnvSetup"
 
 @cmd = YAML.load_file('init.yml')
 puts @cmd.inspect
@@ -16,25 +17,7 @@ Post = "#{Ufs}"+"/post.sh"
 
 # config cluster and create /etc/hosts 
 NameArr = Array.new
-file = File.open("../../conf/slaves","w")
-system 'mkdir', '-p', './files'
-hosts = File.open("files/hosts","w")
-for i in (1..Total)
-  if i == Total 
-    NameArr[i] = "TachyonMaster"
-  else
-    NameArr[i] = "TachyonWorker#{i}"
-  end
-  if file != nil
-     file.write(NameArr[i] + ".local"  + "\n")
-  end
-  if hosts != nil
-     hosts.write(Addr[i - 1] + " " + 
-                 NameArr[i] + ".local" + "\n")
-  end
-end
-file.close unless file == nil
-hosts.close unless hosts == nil
+config_hosts(NameArr)
 
 # Vagrantfile API/syntax version. 
 VAGRANTFILE_API_VERSION = "2"
@@ -66,16 +49,18 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       if Provider == "aws"
         n.vm.box = "dummy"
         n.vm.box_url = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
-        @ec2 = YAML.load_file('ec2-config.yml')
-        puts @ec2.inspect
-        KEYPAIR=@ec2['Keypair']
-        KEY_PATH=@ec2['Key_Path']
-        AMI=@ec2['AMI']
-        REGION=@ec2['Region']
-        SECURITY_GROUP=@ec2['Security_Group']
-        INSTANCE_TYPE = @ec2['Instance_Type']
-        AVAILABILITY_ZONE  = @ec2['Availability_Zone']
-
+        if (defined?(@ec2)).nil?
+          @ec2 = YAML.load_file('ec2-config.yml')
+          puts @ec2.inspect
+          KEYPAIR=@ec2['Keypair']
+          KEY_PATH=@ec2['Key_Path']
+          AMI=@ec2['AMI']
+          REGION=@ec2['Region']
+          SECURITY_GROUP=@ec2['Security_Group']
+          INSTANCE_TYPE = @ec2['Instance_Type']
+          AVAILABILITY_ZONE  = @ec2['Availability_Zone']
+          TAG = @ec2['Tag']
+        end
         n.ssh.username = "ec2-user"
         n.ssh.private_key_path = KEY_PATH
         n.vm.synced_folder "../../", "/tachyon", type: "rsync", 
@@ -84,6 +69,32 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
            rsync__exclude: ["shared/"]
         eval File.open('config_aws.rb').read
         config_aws(n, i, Total, name)
+      end
+
+      if Provider == "openstack"
+        n.vm.box = "dummy"
+        n.vm.box_url = "https://github.com/cloudbau/vagrant-openstack-plugin/raw/master/dummy.box"
+        if (defined?(@os)).nil?
+          @os = YAML.load_file('openstack-config.yml')
+          puts @os.inspect
+          FLAVOR = @os['Flavor']
+          IMAGE =  @os['Image']
+          KEY_PATH = @os['Key_Path']
+          KEYPAIR_NAME = @os['Keypair_Name']
+          TENENT = @os['Tenent']
+          KEYSTONE = @os['Keystone_URL']
+          SECURITY_GROUP = @os['Security_Group']
+          SSH_USERNAME = @os['SSH_Username']
+          TAG = @os['Tag']
+        end
+        # Make sure the private key from the key pair is provided
+        n.ssh.private_key_path = KEY_PATH
+        n.vm.synced_folder "../../", "/tachyon", type: "rsync", 
+                           rsync__exclude: ["../../.git/", "shared/"]
+        n.vm.synced_folder "./", "/vagrant", type: "rsync", 
+                          rsync__exclude: ["shared/"]
+        eval File.open('config_os.rb').read
+        config_os(n, i, Total, name)
       end
     end
   end

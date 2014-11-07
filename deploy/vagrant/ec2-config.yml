@@ -18,3 +18,7 @@ Region: "us-east-1"
 Availability_Zone: "us-east-1b"
 
 Instance_Type: "m1.small"
+
+# tag to the instance name
+# to avoid name conflict during mutiple deployment
+Tag: "my-"
