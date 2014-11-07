@@ -65,6 +65,10 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     try {
       validateInput(req);
       StorageDir storageDir = mWorkerStorage.getStorageDirById(storageDirId);
+      if (storageDir == null || !storageDir.containsBlock(blockId)) {
+        LOG.error("Information on master for block " + blockId + " is outdated!");
+        storageDir = mWorkerStorage.getStorageDirByBlockId(blockId);
+      }
       handler = storageDir.getBlockHandler(blockId);
 
       final long fileLength = handler.getLength();

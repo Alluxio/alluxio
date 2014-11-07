@@ -407,9 +407,18 @@ public class TachyonFile implements Comparable<TachyonFile> {
     String localFileName = mTachyonFS.getLocalBlockFilePath(info);
     if (localFileName != null) {
       try {
-        RandomAccessFile localFile = closer.register(new RandomAccessFile(localFileName, "r"));
+        RandomAccessFile localFile;
+        long fileLength;
+        try {
+          localFile = closer.register(new RandomAccessFile(localFileName, "r"));
+          fileLength = localFile.length();
+        } catch (FileNotFoundException e) {
+          LOG.error("Information on master for block " + blockId + " is outdated!");
+          WorkerFileInfo fileInfo = mTachyonFS.getBlockFileInfo(blockId);
+          localFile = closer.register(new RandomAccessFile(fileInfo.getFilePath(), "r"));
+          fileLength = fileInfo.getFileSize();
+        }
 
-        long fileLength = localFile.length();
         String error = null;
         if (offset > fileLength) {
           error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
