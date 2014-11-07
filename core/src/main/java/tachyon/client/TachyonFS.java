@@ -599,6 +599,7 @@ public class TachyonFS extends AbstractTachyonFS {
   
   /**
    * Returns the userId of the master client. This is only used for testing.
+   * 
    * @return the userId of the master client
    * @throws IOException
    */

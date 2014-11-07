@@ -748,7 +748,6 @@ public class MasterClient implements Closeable {
    * @param totalBytes
    *          Worker's capacity
    * @param usedBytes
-    return null;
    *          Worker's used storage
    * @param currentBlockList
    *          Blocks in worker's space.
