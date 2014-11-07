@@ -2,8 +2,8 @@ package tachyon.client;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -11,9 +11,15 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -37,6 +43,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
   private final UserConf mUserConf = UserConf.get();
 
   private Object mUFSConf = null;
+  private final LoadingCache<Integer, ClientBlockInfo> mBlockInfos = CacheBuilder.newBuilder()
+      .maximumSize(100).expireAfterWrite(2, TimeUnit.SECONDS)
+      .build(new CacheLoader<Integer, ClientBlockInfo>() {
+        @Override
+        public ClientBlockInfo load(Integer blockIndex) throws IOException {
+          return mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
+        }
+      });
 
   /**
    * A Tachyon File handler, based file id
@@ -107,7 +121,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
-    return mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
+    try {
+      return mBlockInfos.get(blockIndex);
+    } catch (ExecutionException e) {
+      throw new IOException(e.getCause());
+    }
   }
 
   /**
