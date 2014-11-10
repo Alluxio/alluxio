@@ -125,7 +125,7 @@ public class MasterInfo extends ImageWriter {
                 InodeFile tFile = (InodeFile) mFileIdToInodes.get(fileId);
                 if (tFile != null) {
                   int blockIndex = BlockInfo.computeBlockIndex(blockId);
-                  tFile.removeLocation(blockIndex, worker.getId(), StorageDirId.unknownId());
+                  tFile.removeLocation(blockIndex, worker.getId());
                   if (!tFile.hasCheckpointed() && tFile.getBlockLocations(blockIndex).size() == 0) {
                     LOG.info("Block " + blockId + " got lost from worker " + worker.getId() + " .");
                     int depId = tFile.getDependencyId();
@@ -1109,33 +1109,6 @@ public class MasterInfo extends ImageWriter {
       }
       return delete(inode.getId(), recursive);
     }
-  }
-
-  /**
-   * Get blocks which is actually removed
-   * 
-   * @param removedBlockIds mapping from id of the StorageDir to the id list of removed blocks
-   * @param addedBlockIds mapping from id of the StorageDir to the id list of added blocks
-   * @return id list of actually removed blocks
-   */
-  private List<Long> getActuallyRemovedBlockIds(Map<Long, List<Long>> removedBlockIds,
-      Map<Long, List<Long>> addedBlockIds) {
-    List<Long> actuallyRemovedBlockIds = new ArrayList<Long>();
-    for (List<Long> removedBlocks : removedBlockIds.values()) {
-      for (long blockId : removedBlocks) {
-        boolean removed = true;
-        for (List<Long> addedBlocks : addedBlockIds.values()) {
-          if (addedBlocks.contains(blockId)) {
-            removed = false;
-            break;
-          }
-        }
-        if (removed) {
-          actuallyRemovedBlockIds.add(blockId);
-        }
-      }
-    }
-    return actuallyRemovedBlockIds;
   }
 
   public long getBlockIdBasedOnOffset(int fileId, long offset) throws FileDoesNotExistException {
@@ -2359,13 +2332,13 @@ public class MasterInfo extends ImageWriter {
    * 
    * @param workerId The id of the worker to deal with
    * @param usedBytes The number of bytes used in the worker
-   * @param removedBlockIds Mapping from id of the StorageDir and id list of removed blocks
-   * @param addedBlockIds Mapping from id of the StorageDir and id list of added blocks
+   * @param removedBlockIds The list of removed block ids
+   * @param evictedBlockIds Mapping from id of the StorageDir and id list of blocks evicted in
    * @return a command specifying an action to take
    * @throws BlockInfoException
    */
-  public Command workerHeartbeat(long workerId, long usedBytes,
-      Map<Long, List<Long>> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
+  public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds,
+      Map<Long, List<Long>> evictedBlockIds)
       throws BlockInfoException {
     LOG.debug("WorkerId: {}", workerId);
     synchronized (mRootLock) {
@@ -2378,28 +2351,25 @@ public class MasterInfo extends ImageWriter {
           return new Command(CommandType.Register, new ArrayList<Long>());
         }
 
-        List<Long> actuallyRemovedBlockIds =
-            getActuallyRemovedBlockIds(removedBlockIds, addedBlockIds);
         tWorkerInfo.updateUsedBytes(usedBytes);
-        tWorkerInfo.updateBlocks(false, actuallyRemovedBlockIds);
-        tWorkerInfo.updateToRemovedBlocks(false, actuallyRemovedBlockIds);
+        tWorkerInfo.updateBlocks(false, removedBlockIds);
+        tWorkerInfo.updateToRemovedBlocks(false, removedBlockIds);
         tWorkerInfo.updateLastUpdatedTimeMs();
 
-        for (Entry<Long, List<Long>> removedBlocks : removedBlockIds.entrySet()) {
-          long storageDirId = removedBlocks.getKey();
-          for (long blockId : removedBlocks.getValue()) {
-            int fileId = BlockInfo.computeInodeId(blockId);
-            int blockIndex = BlockInfo.computeBlockIndex(blockId);
-            Inode inode = mFileIdToInodes.get(fileId);
-            if (inode == null) {
-              LOG.error("File " + fileId + " does not exist");
-            } else if (inode.isFile()) {
-              ((InodeFile) inode).removeLocation(blockIndex, workerId, storageDirId);
-            }
+        for (long blockId : removedBlockIds) {
+          int fileId = BlockInfo.computeInodeId(blockId);
+          int blockIndex = BlockInfo.computeBlockIndex(blockId);
+          Inode inode = mFileIdToInodes.get(fileId);
+          if (inode == null) {
+            LOG.error("File " + fileId + " does not exist");
+          } else if (inode.isFile()) {
+            ((InodeFile) inode).removeLocation(blockIndex, workerId);
+            LOG.debug("File {} with block {} was evicted from worker {} ", fileId, blockIndex,
+                workerId);
           }
         }
 
-        for (Entry<Long, List<Long>> addedBlocks : addedBlockIds.entrySet()) {
+        for (Entry<Long, List<Long>> addedBlocks : evictedBlockIds.entrySet()) {
           long storageDirId = addedBlocks.getKey();
           for (long blockId : addedBlocks.getValue()) {
             int fileId = BlockInfo.computeInodeId(blockId);
@@ -2410,13 +2380,12 @@ public class MasterInfo extends ImageWriter {
             } else if (inode.isFile()) {
               List<BlockInfo> blockInfoList = ((InodeFile) inode).getBlockList();
               NetAddress workerAddress = mWorkers.get(workerId).getAddress();
-              BlockInfo blockInfo = null;
               if (blockInfoList.size() <= blockIndex) {
-                throw new BlockInfoException("not found block info, blockIndex:" + blockIndex);
+                throw new BlockInfoException("BlockInfo not found! blockIndex:" + blockIndex);
               } else {
-                blockInfo = blockInfoList.get(blockIndex);
+                BlockInfo blockInfo = blockInfoList.get(blockIndex);
+                blockInfo.addLocation(workerId, workerAddress, storageDirId);
               }
-              blockInfo.addLocation(workerId, workerAddress, storageDirId);
             }
           }
         }
