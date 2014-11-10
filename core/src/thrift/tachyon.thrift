@@ -153,8 +153,8 @@ service MasterService {
       4: map<i64, list<i64>> currentBlocks)
     throws (1: BlockInfoException e)
 
-  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: map<i64, list<i64>> removedBlockIds,
-      4: map<i64, list<i64>> addedBlockIds)
+  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlockIds,
+      4: map<i64, list<i64>> evictedBlockIds)
     throws (1: BlockInfoException e)
 
   void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 storageDirId, 4: i64 blockId, 5: i64 length)

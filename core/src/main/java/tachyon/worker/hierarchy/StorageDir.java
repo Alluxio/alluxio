@@ -52,11 +52,8 @@ public final class StorageDir {
   /** Mapping from blockId to its last access time in milliseconds */
   private final ConcurrentMap<Long, Long> mLastBlockAccessTimeMs =
       new ConcurrentHashMap<Long, Long>();
-  /** List of added block Ids */
+  /** List of added block Ids to be reported */
   private final BlockingQueue<Long> mAddedBlockIdList = new ArrayBlockingQueue<Long>(
-      Constants.WORKER_BLOCKS_QUEUE_SIZE);
-  /** List of removed block Ids */
-  private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
   /** Space counter of current StorageDir */
   private final SpaceCounter mSpaceCounter;
@@ -118,16 +115,16 @@ public final class StorageDir {
    * 
    * @param blockId Id of the block
    * @param sizeBytes size of the block in bytes
+   * @param need to be reported During heart beat with master
    */
-  private void addBlockId(long blockId, long sizeBytes) {
+  private void addBlockId(long blockId, long sizeBytes, boolean report) {
     mLastBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
     if (mBlockSizes.containsKey(blockId)) {
       returnSpace(mBlockSizes.remove(blockId));
     }
     mBlockSizes.put(blockId, sizeBytes);
-    mAddedBlockIdList.add(blockId);
-    if (mRemovedBlockIdList.contains(blockId)) {
-      mRemovedBlockIdList.remove(blockId);
+    if (report) {
+      mAddedBlockIdList.add(blockId);
     }
   }
 
@@ -148,7 +145,7 @@ public final class StorageDir {
     }
     boolean result = mFs.rename(srcPath, dstPath);
     if (result) {
-      addBlockId(blockId, blockSize);
+      addBlockId(blockId, blockSize, false);
     }
     return result;
   }
@@ -204,7 +201,7 @@ public final class StorageDir {
       closer.close();
     }
     if (copySuccess) {
-      dstDir.addBlockId(blockId, size);
+      dstDir.addBlockId(blockId, size, true);
     }
     return copySuccess;
   }
@@ -250,7 +247,6 @@ public final class StorageDir {
   private void deleteBlockId(long blockId) {
     mLastBlockAccessTimeMs.remove(blockId);
     returnSpace(mBlockSizes.remove(blockId));
-    mRemovedBlockIdList.add(blockId);
     if (mAddedBlockIdList.contains(blockId)) {
       mAddedBlockIdList.remove(blockId);
     }
@@ -406,17 +402,6 @@ public final class StorageDir {
   }
 
   /**
-   * Get Ids of removed blocks
-   * 
-   * @return list of removed block Ids
-   */
-  public List<Long> getRemovedBlockIdList() {
-    List<Long> removedBlockIdList = new ArrayList<Long>();
-    mRemovedBlockIdList.drainTo(removedBlockIdList);
-    return removedBlockIdList;
-  }
-
-  /**
    * Get Id of current StorageDir
    * 
    * @return Id of current StorageDir
@@ -518,7 +503,7 @@ public final class StorageDir {
         long blockId = CommonUtils.getBlockIdFromFileName(name);
         boolean success = requestSpace(fileSize);
         if (success) {
-          addBlockId(blockId, fileSize);
+          addBlockId(blockId, fileSize, true);
         } else {
           mFs.delete(path, true);
           throw new RuntimeException("Pre-existing files exceed storage capacity.");

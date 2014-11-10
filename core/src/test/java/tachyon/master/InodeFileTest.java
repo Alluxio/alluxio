@@ -92,17 +92,17 @@ public class InodeFileTest {
     Assert.assertFalse(inodeFile.isFullyInMemory());
     inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
     Assert.assertTrue(inodeFile.isFullyInMemory());
-    inodeFile.removeLocation(0, 1, storageDirId);
+    inodeFile.removeLocation(0, 1);
     Assert.assertFalse(inodeFile.isFullyInMemory());
     inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
     inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
     Assert.assertTrue(inodeFile.isFullyInMemory());
-    inodeFile.removeLocation(0, 1, storageDirId);
+    inodeFile.removeLocation(0, 1);
     Assert.assertFalse(inodeFile.isFullyInMemory());
     inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
     inodeFile.addLocation(0, 2, new NetAddress("testhost1", 1001, 1002), storageDirId);
     Assert.assertTrue(inodeFile.isFullyInMemory());
-    inodeFile.removeLocation(0, 1, storageDirId);
+    inodeFile.removeLocation(0, 1);
     Assert.assertTrue(inodeFile.isFullyInMemory());
   }
 

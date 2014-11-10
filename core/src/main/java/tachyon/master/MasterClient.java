@@ -784,8 +784,8 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      Map<Long, List<Long>> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
-      throws IOException {
+      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
+      throws BlockInfoException, IOException {
     while (!mIsShutdown) {
       connect();
 

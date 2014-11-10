@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -285,6 +287,8 @@ public class WorkerStorage {
   private final ExecutorService mExecutorService;
   private long mCapacityBytes;
   private StorageTier[] mStorageTiers;
+  private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
+      Constants.WORKER_BLOCKS_QUEUE_SIZE);
 
   /**
    * Main logic behind the worker process.
@@ -510,6 +514,7 @@ public class WorkerStorage {
         }
       }
     }
+    mRemovedBlockIdList.add(blockId);
   }
 
   /**
@@ -679,19 +684,18 @@ public class WorkerStorage {
    * @throws IOException
    */
   public Command heartbeat() throws IOException {
-    Map<Long, List<Long>> removedBlockIds = new HashMap<Long, List<Long>>();
-    Map<Long, List<Long>> addedBlockIds = new HashMap<Long, List<Long>>();
+    List<Long> removedBlockIds = new ArrayList<Long>();
+    Map<Long, List<Long>> evictedBlockIds = new HashMap<Long, List<Long>>();
+
+    mRemovedBlockIdList.drainTo(removedBlockIds);
 
     for (StorageTier storageTier : mStorageTiers) {
       for (StorageDir storageDir : storageTier.getStorageDirs()) {
-        List<Long> removedBlockIdList = storageDir.getRemovedBlockIdList();
-        List<Long> addedBlockIdList = storageDir.getAddedBlockIdList();
-        removedBlockIds.put(storageDir.getStorageDirId(), removedBlockIdList);
-        addedBlockIds.put(storageDir.getStorageDirId(), addedBlockIdList);
+        evictedBlockIds.put(storageDir.getStorageDirId(), storageDir.getAddedBlockIdList());
       }
     }
     return mMasterClient
-        .worker_heartbeat(mWorkerId, getUsedBytes(), removedBlockIds, addedBlockIds);
+        .worker_heartbeat(mWorkerId, getUsedBytes(), removedBlockIds, evictedBlockIds);
   }
 
   /**
@@ -847,12 +851,17 @@ public class WorkerStorage {
       pinList = new HashSet<Integer>();
     }
 
-    StorageDir storageDir = null;
+    StorageDir storageDir;
+    List<Long> removedBlockIds = new ArrayList<Long>();
     try {
-      storageDir = mStorageTiers[0].requestSpace(userId, requestBytes, pinList);
+      storageDir = mStorageTiers[0].requestSpace(userId, requestBytes, pinList, removedBlockIds);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       storageDir = null;
+    } finally {
+      if (removedBlockIds.size() > 0) {
+        mRemovedBlockIdList.addAll(removedBlockIds);
+      }
     }
 
     if (storageDir != null) {
@@ -881,11 +890,18 @@ public class WorkerStorage {
 
     StorageDir storageDir = getStorageDirById(storageDirId);
     boolean result;
+    List<Long> removedBlockIds = new ArrayList<Long>();
     try {
-      result = mStorageTiers[0].requestSpace(storageDir, userId, requestBytes, pinList);
+      result = 
+          mStorageTiers[0].requestSpace(storageDir, userId, requestBytes, pinList,
+              removedBlockIds);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       result = false;
+    } finally {
+      if (removedBlockIds.size() > 0) {
+        mRemovedBlockIdList.addAll(removedBlockIds);
+      }
     }
 
     if (result) {
