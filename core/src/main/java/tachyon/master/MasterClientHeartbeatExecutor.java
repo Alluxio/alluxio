@@ -1,7 +1,11 @@
 package tachyon.master;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
@@ -12,19 +16,18 @@ import tachyon.HeartbeatExecutor;
 class MasterClientHeartbeatExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final MasterClient mClient;
-  private final long mMaxNoneAccessIntervalMs;
 
-  public MasterClientHeartbeatExecutor(MasterClient client, long maxNoneAccessIntervalMs) {
+  public MasterClientHeartbeatExecutor(MasterClient client) {
     mClient = client;
-    mMaxNoneAccessIntervalMs = maxNoneAccessIntervalMs;
   }
 
   @Override
   public void heartbeat() {
-    long internalMs = System.currentTimeMillis() - mClient.getLastAccessedMs();
-    if (internalMs > mMaxNoneAccessIntervalMs) {
-      LOG.debug("The last Heartbeat was {} ago.", internalMs);
+    try {
+      mClient.user_heartbeat();
+    } catch (IOException e) {
       mClient.close();
+      Throwables.propagate(e);
     }
   }
 }
