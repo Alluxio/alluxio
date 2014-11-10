@@ -222,6 +222,18 @@ public class TachyonFSTest {
   }
 
   @Test
+  public void getFileStatusTest() throws IOException {
+    int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
+    TachyonURI uri = new TachyonURI("/file");
+    int fileId = TestUtils.createByteFile(mTfs, uri, WriteType.MUST_CACHE, writeBytes);
+    TachyonFile file = mTfs.getFile(fileId);
+    Assert.assertTrue(file.isInMemory());
+    Assert.assertTrue(mTfs.exist(uri));
+    ClientFileInfo fileInfo = mTfs.getFileStatus(fileId, false);
+    Assert.assertTrue(fileInfo.getPath().equals("/file"));
+  }
+
+  @Test
   public void getFileStatusCacheTest() throws IOException {
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     TachyonURI uri = new TachyonURI("/file");
@@ -235,18 +247,6 @@ public class TachyonFSTest {
     ClientFileInfo fileInfoNotCached = mTfs.getFileStatus(fileId, false);
     Assert.assertTrue(fileInfo == fileInfoCached);
     Assert.assertFalse(fileInfo == fileInfoNotCached);
-  }
-
-  @Test
-  public void getFileStatusTest() throws IOException {
-    int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
-    TachyonURI uri = new TachyonURI("/file");
-    int fileId = TestUtils.createByteFile(mTfs, uri, WriteType.MUST_CACHE, writeBytes);
-    TachyonFile file = mTfs.getFile(fileId);
-    Assert.assertTrue(file.isInMemory());
-    Assert.assertTrue(mTfs.exist(uri));
-    ClientFileInfo fileInfo = mTfs.getFileStatus(fileId, false);
-    Assert.assertTrue(fileInfo.getPath().equals("/file"));
   }
 
   @Test(expected = IOException.class)
