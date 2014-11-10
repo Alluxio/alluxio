@@ -373,15 +373,14 @@ public class InodeFile extends Inode {
    * 
    * @param blockIndex The index of the block in the file
    * @param workerId The id of the removed location worker
-   * @param storageDirid The id of the StorageDir which contains the block
    * @throws BlockInfoException
    */
-  public synchronized void removeLocation(int blockIndex, long workerId, long storageDirId)
+  public synchronized void removeLocation(int blockIndex, long workerId)
       throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
-    mBlocks.get(blockIndex).removeLocation(workerId, storageDirId);
+    mBlocks.get(blockIndex).removeLocation(workerId);
   }
 
   /**

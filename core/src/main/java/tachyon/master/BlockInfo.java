@@ -98,15 +98,8 @@ public class BlockInfo {
    * @param storageDirId The id of the StorageDir which block is located in
    */
   public synchronized void addLocation(long workerId, NetAddress workerAddress, long storageDirId) {
-    if (!mLocations.containsKey(workerId)) {
-      mLocations.put(workerId, workerAddress);
-      mStorageDirIds.put(workerAddress, storageDirId);
-    } else {
-      long storageDirIdOld = mStorageDirIds.get(workerAddress);
-      if (StorageDirId.compareStorageLevel(storageDirId, storageDirIdOld) <= 0) {
-        mStorageDirIds.put(workerAddress, storageDirId);
-      }
-    }
+    mLocations.put(workerId, workerAddress);
+    mStorageDirIds.put(workerAddress, storageDirId);
   }
 
   /**
@@ -198,14 +191,10 @@ public class BlockInfo {
    * Remove the worker from the block's locations
    * 
    * @param workerId The id of the removed worker
-   * @param storageDirId The id of the StorageDir which contains the block
    */
-  public synchronized void removeLocation(long workerId, long storageDirId) {
+  public synchronized void removeLocation(long workerId) {
     if (mLocations.containsKey(workerId)) {
-      NetAddress netAddress = mLocations.get(workerId);
-      if (storageDirId == mStorageDirIds.get(netAddress) || StorageDirId.isUnknown(storageDirId)) {
-        mStorageDirIds.remove(mLocations.remove(workerId));
-      }
+      mStorageDirIds.remove(mLocations.remove(workerId));
     }
   }
 

@@ -107,9 +107,9 @@ public class BlockInfoTest {
     Assert.assertEquals(3, tInfo.getLocations().size());
     tInfo.addLocation(29, new NetAddress("gh", 3, 31), storageDirId);
     Assert.assertEquals(3, tInfo.getLocations().size());
-    tInfo.removeLocation(15, storageDirId);
+    tInfo.removeLocation(15);
     Assert.assertEquals(2, tInfo.getLocations().size());
-    tInfo.removeLocation(10, storageDirId);
+    tInfo.removeLocation(10);
     Assert.assertEquals(2, tInfo.getLocations().size());
   }
 }
