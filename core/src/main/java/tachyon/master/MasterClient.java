@@ -65,7 +65,6 @@ public final class MasterClient implements Closeable {
   private TProtocol mProtocol = null;
   private volatile boolean mConnected;
   private volatile boolean mIsShutdown;
-  private volatile long mLastAccessedMs;
   private volatile long mUserId = -1;
   private HeartbeatThread mHeartbeatThread = null;
 
@@ -133,7 +132,6 @@ public final class MasterClient implements Closeable {
    * Connects to the Tachyon Master; an exception is thrown if this fails.
    */
   public synchronized void connect() throws IOException {
-    mLastAccessedMs = System.currentTimeMillis();
     if (mConnected) {
       return;
     }
@@ -156,14 +154,12 @@ public final class MasterClient implements Closeable {
           new TBinaryProtocol(new TFramedTransport(new TSocket(
               NetworkUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
       mClient = new MasterService.Client(mProtocol);
-      mLastAccessedMs = System.currentTimeMillis();
       try {
         mProtocol.getTransport().open();
 
         mHeartbeatThread =
-            new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(this,
-                UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
-                UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
+            new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(this),
+                UserConf.get().HEARTBEAT_INTERVAL_MS / 2);
         mHeartbeatThread.start();
       } catch (TTransportException e) {
         lastException = e;
@@ -230,10 +226,6 @@ public final class MasterClient implements Closeable {
       }
     }
     return null;
-  }
-
-  synchronized long getLastAccessedMs() {
-    return mLastAccessedMs;
   }
 
   private synchronized InetSocketAddress getMasterAddress() {
@@ -307,15 +299,9 @@ public final class MasterClient implements Closeable {
     }
   }
 
-  /**
-   * TODO Consolidate this with close()
-   */
   public synchronized void shutdown() {
-    mIsShutdown = true;
-    if (mProtocol != null) {
-      mProtocol.getTransport().close();
-    }
     close();
+    mIsShutdown = true;
   }
 
   public synchronized void user_completeFile(int fId) throws IOException {
@@ -570,6 +556,19 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
+  public synchronized void user_heartbeat() throws IOException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        mClient.user_heartbeat();
+        return;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+  }
+
   public synchronized boolean user_mkdirs(String path, boolean recursive) throws IOException {
     while (!mIsShutdown) {
       connect();
@@ -720,7 +719,6 @@ public final class MasterClient implements Closeable {
   public synchronized List<Integer> worker_getPriorityDependencyList() throws IOException {
     while (!mIsShutdown) {
       connect();
-
       try {
         return mClient.worker_getPriorityDependencyList();
       } catch (TException e) {
@@ -749,10 +747,14 @@ public final class MasterClient implements Closeable {
   /**
    * Register the worker to the master.
    * 
-   * @param workerNetAddress Worker's NetAddress
-   * @param totalBytes Worker's capacity
-   * @param usedBytes Worker's used storage
-   * @param currentBlockList Blocks in worker's space.
+   * @param workerNetAddress
+   *          Worker's NetAddress
+   * @param totalBytes
+   *          Worker's capacity
+   * @param usedBytes
+   *          Worker's used storage
+   * @param currentBlockList
+   *          Blocks in worker's space.
    * @return the worker id assigned by the master.
    * @throws BlockInfoException
    * @throws TException
