@@ -1,5 +1,6 @@
 package tachyon.worker.hierarchy;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -23,7 +24,6 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
-import tachyon.client.BlockHandler;
 import tachyon.util.CommonUtils;
 import tachyon.worker.SpaceCounter;
 
@@ -104,24 +104,24 @@ public final class StorageDir {
     mBlockSizes.put(blockId, sizeBytes);
   }
 
-  /**
-   * Move the cached block file from user temporary directory to data directory
-   * 
-   * @param userId Id of the user
-   * @param blockId Id of the block
-   * @return true if success, false otherwise
-   * @throws IOException
-   */
-  public boolean cacheBlock(long userId, long blockId) throws IOException {
-    String srcPath = getUserTempFilePath(userId, blockId);
-    String dstPath = getBlockFilePath(blockId);
-    long blockSize = mFs.getFileSize(srcPath);
-    boolean result = mFs.rename(srcPath, dstPath);
-    if (result) {
-      addBlockId(blockId, blockSize);
-    }
-    return result;
-  }
+//  /**
+//   * Move the cached block file from user temporary directory to data directory
+//   *
+//   * @param userId Id of the user
+//   * @param blockId Id of the block
+//   * @return true if success, false otherwise
+//   * @throws IOException
+//   */
+//  public boolean cacheBlock(long userId, long blockId) throws IOException {
+//    String srcPath = getUserTempFilePath(userId, blockId);
+//    String dstPath = getBlockFilePath(blockId);
+//    long blockSize = mFs.getFileSize(srcPath);
+//    boolean result = mFs.rename(srcPath, dstPath);
+//    if (result) {
+//      addBlockId(blockId, blockSize);
+//    }
+//    return result;
+//  }
 
   /**
    * Check status of the users, removedUsers can't be modified any more after being passed down from
@@ -166,10 +166,9 @@ public final class StorageDir {
     boolean copySuccess = false;
     Closer closer = Closer.create();
     try {
-      BlockHandler bhSrc = closer.register(getBlockHandler(blockId));
-      BlockHandler bhDst = closer.register(dstDir.getBlockHandler(blockId));
-      ByteBuffer srcBuf = bhSrc.read(0, (int) size);
-      copySuccess = (bhDst.append(0, srcBuf) == size);
+      SeekableByteChannel src = closer.register(getBlock(blockId));
+      SeekableByteChannel dest = closer.register(dstDir.getBlock(blockId));
+      copySuccess = src.transferTo(0, size, dest) > -1;
     } finally {
       closer.close();
     }
@@ -241,11 +240,17 @@ public final class StorageDir {
    * @throws IOException
    */
   public ByteBuffer getBlockData(long blockId, long offset, int length) throws IOException {
-    BlockHandler bh = getBlockHandler(blockId);
+    SeekableByteChannel block = getBlock(blockId);
     try {
-      return bh.read(offset, length);
+      if (length == -1) {
+        length = new Long(block.size()).intValue();
+      }
+      ByteBuffer buffer = ByteBuffer.allocate(length);
+      block.position(offset).read(buffer);
+      buffer.flip();
+      return buffer;
     } finally {
-      bh.close();
+      block.close();
     }
   }
 
@@ -259,20 +264,8 @@ public final class StorageDir {
     return mDataPath.join("" + blockId).toString();
   }
 
-  /**
-   * Get block handler used to access the block file
-   * 
-   * @param blockId Id of the block
-   * @return block handler of the block file
-   * @throws IOException
-   */
-  private BlockHandler getBlockHandler(long blockId) throws IOException {
-    String filePath = getBlockFilePath(blockId);
-    try {
-      return BlockHandler.get(filePath);
-    } catch (IllegalArgumentException e) {
-      throw new IOException(e.getMessage());
-    }
+  public SeekableByteChannel getBlock(long blockId) throws IOException {
+    return new SeekableFileChannel(getBlockFilePath(blockId));
   }
 
   /**
@@ -601,5 +594,15 @@ public final class StorageDir {
     mUserPerLockedBlock.remove(blockId, userId);
     mLockedBlocksPerUser.remove(userId, blockId);
     return true;
+  }
+
+  public boolean addBlock(long blockId) {
+    File path = new File(getBlockFilePath(blockId));
+    if (path.exists()) {
+      addBlockId(blockId, path.length());
+      return true;
+    } else {
+      return false;
+    }
   }
 }
