@@ -10,6 +10,6 @@ def config_vb(config, i, total, name)
   config.vm.host_name =  "#{name}"
   if i == total # last VM starts tachyon
     config.vm.provision "shell", path: Post
-    config.vm.provision "shell", path: "start_tachyon_cluster.sh"
+    config.vm.provision "shell", path: "core/start_tachyon_cluster.sh"
   end
 end

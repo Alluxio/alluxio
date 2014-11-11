@@ -18,7 +18,7 @@ def config_aws(config, i, total, name)
     aws.user_data = "#!/bin/bash\necho 'Defaults:root !requiretty' > /etc/sudoers.d/998-vagrant-cloud-init-requiretty && echo 'Defaults:ec2-user !requiretty' > /etc/sudoers.d/999-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/998-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/999-vagrant-cloud-init-requiretty"      
   if i == total # last VM starts tachyon
     config.vm.provision "shell", path: Post
-    config.vm.provision "shell", path: "start_tachyon_cluster.sh"
+    config.vm.provision "shell", path: "core/start_tachyon_cluster.sh"
   end
 
   end
