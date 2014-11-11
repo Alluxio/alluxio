@@ -450,8 +450,8 @@ public final class MasterClient implements Closeable {
    * <p/>
    * If the directory or folder does not exist the operation completes without an exception.
    *
-   * @param fileId the id of the file or folder to delete.
-   * @param path the path of the file or folder to delete.
+   * @param fileId    the id of the file or folder to delete.
+   * @param path      the path of the file or folder to delete.
    * @param recursive whether to descend deletion into a directory.
    * @return true if the file or folder is deleted even if it does not exist. false otherwise
    * @throws IOException if the underlying Thrift operation failed.
