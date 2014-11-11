@@ -660,6 +660,16 @@ public class TachyonFS extends AbstractTachyonFS {
     String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
     return new TachyonURI(scheme, authority, TachyonURI.SEPARATOR);
   }
+  
+  /**
+   * Returns the userId of the master client. This is only used for testing.
+   * 
+   * @return the userId of the master client
+   * @throws IOException
+   */
+  long getUserId() throws IOException {
+    return mMasterClient.getUserId();
+  }
 
   /**
    * @return all the works' info

@@ -33,7 +33,7 @@ import tachyon.util.CommonUtils;
 /**
  * Master operation journal.
  */
-public class EditLog {
+public final class EditLog {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static int sBackUpLogStartNum = -1;

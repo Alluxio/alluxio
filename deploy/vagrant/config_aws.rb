@@ -11,7 +11,7 @@ def config_aws(config, i, total, name)
     aws.region = REGION
     aws.instance_type = INSTANCE_TYPE
     aws.tags = {
-      'Name' => name,
+      'Name' => TAG + name,
     }
 	aws.availability_zone = AVAILABILITY_ZONE
     aws.private_ip_address = Addr[i - 1]

@@ -22,6 +22,7 @@ public class CommonConf extends Utils {
   public static final ImmutableList<String> DEFAULT_HADOOP_UFS_PREFIX = ImmutableList.of(
       "hdfs:", "s3:", "s3n:", "glusterfs:");
 
+  private static final String DEFAULT_HOME = "/mnt/tachyon_default_home";
   /**
    * This is for unit test only. DO NOT use it for other purpose.
    */
@@ -67,13 +68,13 @@ public class CommonConf extends Utils {
 
   private CommonConf() {
     if (System.getProperty("tachyon.home") == null) {
-      LOG.warn("tachyon.home is not set. Using /mnt/tachyon_default_home as the default value.");
-      File file = new File("/mnt/tachyon_default_home");
+      LOG.warn("tachyon.home is not set. Using {} as the default value.", DEFAULT_HOME);
+      File file = new File(DEFAULT_HOME);
       if (!file.exists()) {
         file.mkdirs();
       }
     }
-    TACHYON_HOME = getProperty("tachyon.home", "/mnt/tachyon_default_home");
+    TACHYON_HOME = getProperty("tachyon.home", DEFAULT_HOME);
     WEB_RESOURCES = getProperty("tachyon.web.resources", TACHYON_HOME + "/core/src/main/webapp");
     UNDERFS_ADDRESS = getProperty("tachyon.underfs.address", TACHYON_HOME + "/underfs");
     UNDERFS_DATA_FOLDER = getProperty("tachyon.data.folder", UNDERFS_ADDRESS + "/tachyon/data");

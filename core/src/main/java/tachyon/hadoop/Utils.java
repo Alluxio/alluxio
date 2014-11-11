@@ -31,11 +31,11 @@ public final class Utils {
     }
   }
 
-  public static Path getHDFSPath(TachyonURI path) {
+  public static Path getHDFSPath(TachyonURI path, String ufsAddress) {
     if (path.isPathAbsolute()) {
-      return new Path(TFS.sUnderFSAddress + path.getPath());
+      return new Path(ufsAddress + path.getPath());
     } else {
-      return new Path(TFS.sUnderFSAddress + TachyonURI.SEPARATOR + path.getPath());
+      return new Path(ufsAddress + TachyonURI.SEPARATOR + path.getPath());
     }
   }
 
