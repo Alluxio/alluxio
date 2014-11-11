@@ -57,12 +57,22 @@ the VM as `root` and password as `vagrant`.
 
 Install aws vagrant plugin first. To date, 0.5.0 plugin is tested.
 
-    `vagrant plugin install vagrant-aws`
+    vagrant plugin install vagrant-aws
 
 Then update configurations in `ec2-config.yml` and shell environment variables `AWS_ACCESS_KEY` and
 `AWS_SECRET_KEY`.
 
-Run `vagrant up --provider=aws [--no-parallel]` to create EC2 instances.
+Run `./run_aws.sh` to create EC2 VPC instances.
+
+## OpenStack Provider
+
+Install openstack vagrant plugin first. To date, 0.8.0 plugin is tested.
+
+    vagrant plugin install vagrant-openstack-plugin
+
+Then update configurations in `openstack-config.yml` and shell environment variables `OS_USERNAME` and `OS_PASSWORD`.
+
+Run `run_openstack.sh` to create OpenStack Compute Node instances.
 
 ## Examples of Running VirtualBox Clusters Using Glusterfs as Underfilesystem
 
@@ -81,9 +91,18 @@ what you want if necessary.
 
 Then start the clusters.
 
-    vagrant up --provider=aws [--no-parallel]
+    ./run_aws.sh
 
-The `no-parallel` option starts the cluster nodes serially.
+
+## Examples of Running OpenStack Compute Node Clusters Using HDFS 2.4 as Underfilesystem
+
+A sample `init.yml.os` is provided. Copy or link it to `init.yml`. Make sure parameter `Ufs` is
+`hadoop2` and `Provider` is `openstack`. The `Addresses` are currently not used. 
+
+Then start the clusters.
+
+    ./run_openstack.sh
+
 
 ## Use Tachyon Cluster
 
