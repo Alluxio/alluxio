@@ -73,11 +73,12 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * A master client bound to the given hostname and port. If zookeeper mode is enabled, the {@link LeaderInquireClient}is used to get
+   * A master client bound to the given hostname and port.
+   * If zookeeper mode is enabled, the {@link LeaderInquireClient}is used to get
    * the address of the current master.
    *
-   * @param masterAddress
-   * @param useZookeeper
+   * @param masterAddress the host and port the master is bound to
+   * @param useZookeeper  whether or not to use zookeeper
    */
   public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper) {
     mUseZookeeper = useZookeeper;
@@ -89,7 +90,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * @param workerId       if -1, means the checkpoint is added directly by the client from underlayer fs.
+   * @param workerId if -1, means the checkpoint is added directly by the client from underlayer fs.
    * @param fileId
    * @param length
    * @param checkpointPath
@@ -136,7 +137,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Connects to the Tachyon Master if it is not already connected; an exception is thrown if this fails.
+   * Connects to the Tachyon Master if it is not already connected;
+   * an exception is thrown if this fails.
    */
   public synchronized void connect() throws IOException {
     if (mConnected) {
@@ -213,11 +215,12 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Gets information on file paths, block sizes and ids, ufsPaths, cache and pinned status and other properties defined in {@link tachyon.thrift.ClientFileInfo}
+   * Gets information on file paths, block sizes and ids, ufsPaths, cache and pinned status
+   * and other properties defined in {@link tachyon.thrift.ClientFileInfo}
    *
-   * @param fileId
-   * @param path
-   * @return
+   * @param fileId the id of the file
+   * @param path the path of the file
+   * @return clientInfo detailing paths, block sizes and other file information.
    * @throws IOException if the fileId is not specified or the path does not start with /
    */
   public synchronized ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
@@ -446,7 +449,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Attempts to delete the file or directory denoted by this path. If the path is a directory it must be non-empty or have recursive set to be true.
+   * Attempts to delete the file or directory denoted by this path.
+   * If the path is a directory it must be non-empty or have recursive set to be true.
    * <p/>
    * If the directory or folder does not exist the operation completes without an exception.
    *
