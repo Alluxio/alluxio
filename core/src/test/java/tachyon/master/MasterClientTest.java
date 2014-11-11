@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NoWorkerException;
@@ -45,6 +46,52 @@ public class MasterClientTest {
     Assert.assertTrue(masterClient.isConnected());
     masterClient.user_createFile("/file", "", Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     Assert.assertTrue(masterClient.getFileStatus(-1, "/file") != null);
+    masterClient.close();
+    Assert.assertFalse(masterClient.isConnected());
+    masterClient.connect();
+    Assert.assertTrue(masterClient.isConnected());
+    Assert.assertTrue(masterClient.getFileStatus(-1, "/file") != null);
+  }
+
+
+  @Test
+  public void openDeleteTest() throws FileAlreadyExistException, InvalidPathException, TException,
+      IOException {
+    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress());
+    Assert.assertFalse(masterClient.isConnected());
+    masterClient.connect();
+    Assert.assertTrue(masterClient.isConnected());
+    masterClient.user_createFile("/file", "", Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    masterClient.user_delete(-1, "/file", false);
+    ClientFileInfo fileStatus = masterClient.getFileStatus(-1, "/file");
+    Assert.assertTrue( fileStatus!= null);
+    Assert.assertEquals(false,fileStatus.isCache );
+    Assert.assertEquals(0,fileStatus.getInMemoryPercentage() );
+    Assert.assertNull(fileStatus.getBlockIds() );
+    Assert.assertNull(fileStatus.getName() );
+    Assert.assertNull(fileStatus.getPath() );
+    masterClient.close();
+    Assert.assertFalse(masterClient.isConnected());
+    masterClient.connect();
+    Assert.assertTrue(masterClient.isConnected());
+    Assert.assertTrue(masterClient.getFileStatus(-1, "/file") != null);
+  }
+
+  @Test
+  public void deleteNonExistentTest() throws FileAlreadyExistException, InvalidPathException, TException,
+      IOException {
+    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress());
+    Assert.assertFalse(masterClient.isConnected());
+    masterClient.connect();
+    Assert.assertTrue(masterClient.isConnected());
+    masterClient.user_delete(-1, "/neverexisted", false);
+    ClientFileInfo fileStatus = masterClient.getFileStatus(-1, "/neverexisted");
+    Assert.assertTrue( fileStatus!= null);
+    Assert.assertEquals(false,fileStatus.isCache );
+    Assert.assertEquals(0,fileStatus.getInMemoryPercentage() );
+    Assert.assertNull(fileStatus.getBlockIds() );
+    Assert.assertNull(fileStatus.getName() );
+    Assert.assertNull(fileStatus.getPath() );
     masterClient.close();
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
