@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 require 'yaml'
-require "./EnvSetup"
+require "./core/EnvSetup"
 
 @cmd = YAML.load_file('init.yml')
 puts @cmd.inspect
@@ -12,8 +12,8 @@ Total = @cmd['Total']
 Provider = @cmd['Provider']
 Memory = @cmd['Memory']
 Addr = @cmd['Addresses']
-Init = "#{Ufs}"+"/init.sh"
-Post = "#{Ufs}"+"/post.sh"
+Init = "ufs/#{Ufs}"+"/init.sh"
+Post = "ufs/#{Ufs}"+"/post.sh"
 
 # config cluster and create /etc/hosts 
 NameArr = Array.new
@@ -28,7 +28,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     name = NameArr[i]
     config.vm.define "#{name}" do |n|
       # common config
-      n.vm.provision "shell", path: "init.sh"
+      n.vm.provision "shell", path: "core/init.sh"
       n.vm.provision "shell", path: Init
 
       # Provider specific init
@@ -41,7 +41,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             vb.customize ["modifyvm", :id, "--memory", Memory]
           end
           vb.gui = true
-          eval File.open('config_vb.rb').read
+          eval File.open('core/config_vb.rb').read
           config_vb(n, i, Total, name)
         end
       end
@@ -67,7 +67,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
            rsync__exclude: ["../../.git/", "shared/"]
         n.vm.synced_folder "./", "/vagrant", type: "rsync", 
            rsync__exclude: ["shared/"]
-        eval File.open('config_aws.rb').read
+        eval File.open('core/config_aws.rb').read
         config_aws(n, i, Total, name)
       end
 
@@ -93,7 +93,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
                            rsync__exclude: ["../../.git/", "shared/"]
         n.vm.synced_folder "./", "/vagrant", type: "rsync", 
                           rsync__exclude: ["shared/"]
-        eval File.open('config_os.rb').read
+        eval File.open('core/config_os.rb').read
         config_os(n, i, Total, name)
       end
     end

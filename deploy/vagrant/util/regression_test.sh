@@ -21,5 +21,5 @@ do
     # get the status, error 124 is timeout.
     echo " Status: "$?
     # clean up the cluster
-    vagrant destroy -f
+    vagrant destroy -f > /dev/null 2>&1
 done
