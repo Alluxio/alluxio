@@ -415,6 +415,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
         } catch (FileNotFoundException e) {
           LOG.error("Information on master for block " + blockId + " is outdated!");
           WorkerFileInfo fileInfo = mTachyonFS.getBlockFileInfo(blockId);
+          if (fileInfo == null) {
+            throw e;
+          }
           localFile = closer.register(new RandomAccessFile(fileInfo.getFilePath(), "r"));
           fileLength = fileInfo.getFileSize();
         }
@@ -438,8 +441,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
         FileChannel localFileChannel = closer.register(localFile.getChannel());
         final ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
-        localFileChannel.close();
-        localFile.close();
         mTachyonFS.accessLocalBlock(info);
         return new TachyonByteBuffer(mTachyonFS, buf, blockId, blockLockId);
       } catch (FileNotFoundException e) {
