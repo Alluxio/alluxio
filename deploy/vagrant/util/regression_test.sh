@@ -5,7 +5,7 @@
 # a successful deployment will yield status 0.
 
 PROVIDERS=("aws" "openstack" "virtualbox")
-CONFIGS=("init.yml.aws" "init.yml.os" "init.yml.hdfs2")
+CONFIGS=("init.yml.aws" "init.yml.openstack" "init.yml.hdfs2")
 CMDS=("sh ./run_aws.sh" "sh ./run_openstack.sh" "vagrant up")
 TIMEOUT=1200s # 20 minutes for timeout
 for (( i = 0 ; i < ${#PROVIDERS[@]} ; i++ )) 
