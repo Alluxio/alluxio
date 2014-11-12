@@ -690,9 +690,9 @@ public class MasterInfoTest {
     // test the elements
     Assert.assertNotNull(checkpoint);
     Assert.assertEquals(checkpoint.mType, ImageElementType.Checkpoint);
-    Assert.assertEquals(Constants.JOURNAL_VERSION, (int) version.getInt("version"));
-    Assert.assertEquals(1, (int) checkpoint.getInt("inodeCounter"));
-    Assert.assertEquals(0, (int) checkpoint.getInt("editTransactionCounter"));
-    Assert.assertEquals(0, (int) checkpoint.getInt("dependencyCounter"));
+    Assert.assertEquals(Constants.JOURNAL_VERSION, version.getInt("version").intValue());
+    Assert.assertEquals(1, checkpoint.getInt("inodeCounter").intValue());
+    Assert.assertEquals(0, checkpoint.getInt("editTransactionCounter").intValue());
+    Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
   }
 }
