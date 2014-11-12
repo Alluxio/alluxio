@@ -1,7 +1,6 @@
 package tachyon.master;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -11,6 +10,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -647,5 +649,58 @@ public class MasterInfoTest {
       TableColumnException, TachyonException {
     mMasterInfo.createRawTable(new TachyonURI("/testTable"), CommonConf.get().MAX_COLUMNS + 1,
         (ByteBuffer) null);
+  }
+
+  @Test
+  public void writeImageTest() throws IOException {
+    // initialize the MasterInfo
+    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+
+    // create the output streams
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(os);
+    ObjectMapper mapper = JsonObject.createObjectMapper();
+    ObjectWriter writer = mapper.writer();
+    ImageElement version = null;
+    ImageElement checkpoint = null;
+
+    // write the image
+    try {
+      info.writeImage(writer, dos);
+    } catch (IOException ioe) {
+      Assert.fail("Unexpected IOException: " + ioe.getMessage());
+    }
+
+    // parse the written bytes and look for the Checkpoint and Version ImageElements
+    JsonParser parser = mapper.getFactory().createParser(os.toByteArray());
+    while (true) {
+      ImageElement ele;
+      try {
+        ele = parser.readValueAs(ImageElement.class);
+      } catch (IOException e) {
+        if (e.getMessage().contains("end-of-input")) {
+          break;
+        } else {
+          throw e;
+        }
+      }
+
+      if (ele.mType.equals(ImageElementType.Checkpoint)) {
+        checkpoint = ele;
+      }
+
+      if (ele.mType.equals(ImageElementType.Version)) {
+        version = ele;
+      }
+    }
+
+    // test the elements
+    Assert.assertNotNull(checkpoint);
+    Assert.assertEquals(checkpoint.mType, ImageElementType.Checkpoint);
+    Assert.assertEquals(Constants.JOURNAL_VERSION, (int) version.getInt("version"));
+    Assert.assertEquals(1, (int) checkpoint.getInt("inodeCounter"));
+    Assert.assertEquals(0, (int) checkpoint.getInt("editTransactionCounter"));
+    Assert.assertEquals(0, (int) checkpoint.getInt("dependencyCounter"));
   }
 }
