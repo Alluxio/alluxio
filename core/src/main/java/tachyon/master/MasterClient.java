@@ -91,9 +91,9 @@ public final class MasterClient implements Closeable {
 
   /**
    * @param workerId if -1, means the checkpoint is added directly by the client from underlayer fs.
-   * @param fileId
-   * @param length
-   * @param checkpointPath
+   * @param fileId the id of the file to be checkpointed
+   * @param length the size of the file to be checkpointed
+   * @param checkpointPath the path where the checkpoint will be saved
    * @return true if checkpoint is added for the <code>fileId</code> and false otherwise
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
@@ -219,7 +219,7 @@ public final class MasterClient implements Closeable {
    * and other properties defined in {@link tachyon.thrift.ClientFileInfo}
    *
    * @param fileId the id of the file
-   * @param path the path of the file
+   * @param path   the path of the file
    * @return clientInfo detailing paths, block sizes and other file information.
    * @throws IOException if the fileId is not specified or the path does not start with /
    */
@@ -365,16 +365,6 @@ public final class MasterClient implements Closeable {
     return -1;
   }
 
-  /**
-   * Creates a file by copy the (local) file onto the UFS.
-   *
-   * @param path
-   * @param ufsPath
-   * @param blockSizeByte
-   * @param recursive
-   * @return
-   * @throws IOException if no path is specified or if the path does not begin with /
-   */
   public synchronized int user_createFile(String path, String ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
     if (path == null || !path.startsWith(TachyonURI.SEPARATOR)) {
