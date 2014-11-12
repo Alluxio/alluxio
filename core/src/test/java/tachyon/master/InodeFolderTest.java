@@ -1,7 +1,16 @@
 package tachyon.master;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Unit tests for tachyon.InodeFolder
@@ -128,5 +137,39 @@ public class InodeFolderTest {
     Assert.assertEquals(0, inode1.getParentId());
     inode1.setParentId(2);
     Assert.assertEquals(2, inode1.getParentId());
+  }
+
+  @Test
+  public void writeImageTest() {
+    // create the InodeFolder and the output streams
+    long creationTime = System.currentTimeMillis();
+    InodeFolder inode1 = new InodeFolder("test1", 1, 0, creationTime);
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(os);
+    ObjectMapper mapper = JsonObject.createObjectMapper();
+    ObjectWriter writer = mapper.writer();
+
+    // write the image
+    try {
+      inode1.writeImage(writer, dos);
+    } catch (IOException ioe) {
+      Assert.fail("Unexpected IOException: " + ioe.getMessage());
+    }
+
+    // decode the written bytes
+    ImageElement decoded = null;
+    try {
+      decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
+    } catch (Exception e) {
+      Assert.fail("Unexpected " + e.getClass() + ": " + e.getMessage());
+    }
+
+    // test the decoded ImageElement
+    Assert.assertEquals(creationTime, (long) decoded.getLong("creationTimeMs"));
+    Assert.assertEquals(1, (int) decoded.getInt("id"));
+    Assert.assertEquals("test1", decoded.getString("name"));
+    Assert.assertEquals(0, (int) decoded.getInt("parentId"));
+    Assert.assertEquals(new ArrayList<Integer>(), decoded.get("childrenIds", new TypeReference<List<Integer>>() {}));
+    Assert.assertEquals(creationTime, (long) decoded.getLong("lastModificationTimeMs"));
   }
 }

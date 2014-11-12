@@ -1,9 +1,13 @@
 package tachyon.master;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -207,5 +211,44 @@ public class InodeFileTest {
     InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
     // cant get a block that is missing
     inode1.getClientBlockInfo(-1);
+  }
+
+  @Test
+  public void writeImageTest() {
+    // create the InodeFile and the output streams
+    long creationTime = System.currentTimeMillis();
+    InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, creationTime);
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(os);
+    ObjectMapper mapper = JsonObject.createObjectMapper();
+    ObjectWriter writer = mapper.writer();
+
+    // write the image
+    try {
+      inode1.writeImage(writer, dos);
+    } catch (IOException ioe) {
+      Assert.fail("Unexpected IOException: " + ioe.getMessage());
+    }
+
+    // decode the element
+    ImageElement decoded = null;
+    try {
+      decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
+    } catch (Exception e) {
+      Assert.fail("Unexpected " + e.getClass() + ": " + e.getMessage());
+    }
+
+    // test the decoded image element
+    Assert.assertEquals(creationTime, (long) decoded.getLong("creationTimeMs"));
+    Assert.assertEquals(1, (int) decoded.getInt("id"));
+    Assert.assertEquals(0, (int) decoded.getInt("parentId"));
+    Assert.assertEquals(1000, (int) decoded.getInt("blockSizeByte"));
+    Assert.assertEquals(0, (long) decoded.getLong("length"));
+    Assert.assertEquals(false, decoded.getBoolean("complete"));
+    Assert.assertEquals(false, decoded.getBoolean("pin"));
+    Assert.assertEquals(false, decoded.getBoolean("cache"));
+    Assert.assertEquals("", decoded.getString("ufsPath"));
+    Assert.assertEquals(-1, (int) decoded.getInt("depId"));
+    Assert.assertEquals(creationTime, (long) decoded.getLong("lastModificationTimeMs"));
   }
 }
