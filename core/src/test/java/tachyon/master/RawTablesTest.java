@@ -10,9 +10,8 @@ import java.util.List;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import org.junit.Assert;
 import org.junit.Test;
-
-import junit.framework.Assert;
 
 import tachyon.thrift.TachyonException;
 
@@ -21,7 +20,7 @@ import tachyon.thrift.TachyonException;
  */
 public class RawTablesTest {
   @Test
-  public void writeImageTest() {
+  public void writeImageTest() throws IOException, TachyonException {
     // crate the RawTables, byte buffers, and output streams
     RawTables rt = new RawTables();
     ByteBuffer bb1 = ByteBuffer.allocate(1);
@@ -33,34 +32,20 @@ public class RawTablesTest {
     ObjectMapper mapper = JsonObject.createObjectMapper();
     ObjectWriter writer = mapper.writer();
 
-
     // add elements to the RawTables
-    try {
-      rt.addRawTable(0, 1, bb1);
-      rt.addRawTable(1, 1, bb2);
-      rt.addRawTable(2, 1, bb3);
-    } catch (TachyonException te) {
-      Assert.fail("Unexpected TachyonException: " + te.getMessage());
-    }
+    rt.addRawTable(0, 1, bb1);
+    rt.addRawTable(1, 1, bb2);
+    rt.addRawTable(2, 1, bb3);
 
     // write the image
-    try {
-      rt.writeImage(writer, dos);
-    } catch (IOException ioe) {
-      Assert.fail("Unexpected IOException: " + ioe.getMessage());
-    }
+    rt.writeImage(writer, dos);
 
     List<Integer> ids = Arrays.asList(0, 1, 2);
     List<Integer> columns = Arrays.asList(1, 1, 1);
     List<ByteBuffer> data = Arrays.asList(bb1, bb2, bb3);
 
     // decode the written bytes
-    ImageElement decoded = null;
-    try {
-      decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
-    } catch (Exception e) {
-      Assert.fail("Unexpected " + e.getClass() + ": " + e.getMessage());
-    }
+    ImageElement decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
 
     // test the decoded ImageElement
     Assert.assertEquals(ids, decoded.get("ids", new TypeReference<List<Integer>>() {}));

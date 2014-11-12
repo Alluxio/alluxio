@@ -1,6 +1,9 @@
 package tachyon.master;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -654,7 +657,7 @@ public class MasterInfoTest {
   @Test
   public void writeImageTest() throws IOException {
     // initialize the MasterInfo
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
+    Journal journal = new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
 
     // create the output streams
@@ -666,27 +669,16 @@ public class MasterInfoTest {
     ImageElement checkpoint = null;
 
     // write the image
-    try {
-      info.writeImage(writer, dos);
-    } catch (IOException ioe) {
-      Assert.fail("Unexpected IOException: " + ioe.getMessage());
-    }
+    info.writeImage(writer, dos);
 
     // parse the written bytes and look for the Checkpoint and Version ImageElements
-    JsonParser parser = mapper.getFactory().createParser(os.toByteArray());
-    while (true) {
-      ImageElement ele;
-      try {
-        ele = parser.readValueAs(ImageElement.class);
-      } catch (IOException e) {
-        if (e.getMessage().contains("end-of-input")) {
-          break;
-        } else {
-          throw e;
-        }
-      }
+    String[] splits = new String(os.toByteArray()).split("\n");
+    for (String split: splits) {
+      byte[] bytes = split.getBytes();
+      JsonParser parser = mapper.getFactory().createParser(bytes);
+      ImageElement ele = parser.readValueAs(ImageElement.class);
 
-      if (ele.mType.equals(ImageElementType.Checkpoint)) {
+       if (ele.mType.equals(ImageElementType.Checkpoint)) {
         checkpoint = ele;
       }
 
