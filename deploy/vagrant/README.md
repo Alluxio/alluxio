@@ -29,10 +29,10 @@ below.
     <th>Parameter</th><th>Description</th><th>Values</th>
 </tr>
 <tr>
-    <td>Ufs</td><td>Tachyon Underfilesystem</td><td>glusterfs|ceph|hadoop2|hadoop1</td>
+    <td>Ufs</td><td>Tachyon Underfilesystem</td><td>glusterfs|hadoop2|hadoop1</td>
 </tr>
 <tr>
-    <td>Provider</td><td>Vagrant Providers</td><td>vb|aws</td>
+    <td>Provider</td><td>Vagrant Providers</td><td>vb|aws|openstack</td>
 </tr>
 <tr>
     <td>Memory</td><td>Memory (in MB) to allocate for Virtualbox image</td><td>at least 1024</td>
@@ -97,7 +97,7 @@ Then start the clusters.
 
 ## Examples of Running OpenStack Compute Node Clusters Using HDFS 2.4 as Underfilesystem
 
-A sample `conf/init.yml.os` is provided. Copy or link it to `init.yml`. Make sure parameter `Ufs` is
+A sample `conf/init.yml.openstack` is provided. Copy or link it to `init.yml`. Make sure parameter `Ufs` is
 `hadoop2` and `Provider` is `openstack`. The `Addresses` are currently not used. 
 
 Then start the clusters.

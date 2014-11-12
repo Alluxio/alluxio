@@ -3,9 +3,6 @@
 
 require 'yaml'
 require "./core/EnvSetup"
-require "./core/config_vb"
-require "./core/config_aws"
-require "./core/config_os"
 
 # load configuration from init.yml
 @cmd = YAML.load_file('init.yml')
@@ -16,8 +13,10 @@ Total = @cmd['Total']
 Provider = @cmd['Provider']
 Memory = @cmd['Memory']
 Addr = @cmd['Addresses']
-Init = "ufs/#{Ufs}"+"/init.sh"
-Post = "ufs/#{Ufs}"+"/post.sh"
+Init = "ufs/#{Ufs}/init.sh"
+Post = "ufs/#{Ufs}/post.sh"
+
+require "./core/config_#{Provider}"
 
 # config cluster and create /etc/hosts 
 NameArr = Array.new
