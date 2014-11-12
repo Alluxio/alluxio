@@ -16,3 +16,7 @@ journal/
 logs/
 script/
 target/
+deploy/vagrant/conf/
+deploy/vagrant/files/
+deploy/vagrant/shared/
+deploy/vagrant/.vagrant/

@@ -21,7 +21,7 @@ Please download and install Vagrant (at least version 1.6.5). Once Vagrant is in
 Tachyon cluster requires only `vagrant up` command. A two-VM cluster is then created. `vagrant
 destroy` command destroys the cluster.
 
-`init.yml` is the configuration file that sets different cluster parameters. They are explained
+`conf/init.yml` is the configuration file that sets different cluster parameters. They are explained
 below.
 
 <table class="table">
@@ -44,6 +44,7 @@ below.
     <td>Addresses</td><td>Internal IPs given to each VM. The last one is designated as Tachyon master.
 For VirtualBox, the addresses can be arbitrary.
 For AWS, the addresses should be within the same availability zone.
+For OpenStack, since the compute node instances use DHCP, these addresses are not used. 
 </td><td>IPv4 address string</td>
 </tr>
 </table>
@@ -59,7 +60,7 @@ Install aws vagrant plugin first. To date, 0.5.0 plugin is tested.
 
     vagrant plugin install vagrant-aws
 
-Then update configurations in `ec2-config.yml` and shell environment variables `AWS_ACCESS_KEY` and
+Then update configurations in `conf/ec2-config.yml` and shell environment variables `AWS_ACCESS_KEY` and
 `AWS_SECRET_KEY`.
 
 Run `./run_aws.sh` to create EC2 VPC instances.
@@ -70,13 +71,13 @@ Install openstack vagrant plugin first. To date, 0.8.0 plugin is tested.
 
     vagrant plugin install vagrant-openstack-plugin
 
-Then update configurations in `openstack-config.yml` and shell environment variables `OS_USERNAME` and `OS_PASSWORD`.
+Then update configurations in `conf/openstack-config.yml` and shell environment variables `OS_USERNAME` and `OS_PASSWORD`.
 
 Run `run_openstack.sh` to create OpenStack Compute Node instances.
 
 ## Examples of Running VirtualBox Clusters Using Glusterfs as Underfilesystem
 
-A sample `init.yml.glusterfs` is provided. Copy or link it to `init.yml`. Make sure parameter `Ufs`
+A sample `conf/init.yml.glusterfs` is provided. Copy or link it to `init.yml`. Make sure parameter `Ufs`
 is `glusterfs` and `Provider` is `vb`. Change the rest of parameters to what you want if necessary.
 
 Then start the clusters.
@@ -85,7 +86,7 @@ Then start the clusters.
 
 ## Examples of Running AWS Clusters Using HDFS 2.4 as Underfilesystem
 
-A sample `init.yml.aws` is provided. Copy or link it to `init.yml`. Make sure parameter `Ufs` is
+A sample `conf/init.yml.aws` is provided. Copy or link it to `init.yml`. Make sure parameter `Ufs` is
 `hadoop2` and `Provider` is `aws`. Change the rest of parameters, especially network addresses, to
 what you want if necessary.
 
@@ -96,7 +97,7 @@ Then start the clusters.
 
 ## Examples of Running OpenStack Compute Node Clusters Using HDFS 2.4 as Underfilesystem
 
-A sample `init.yml.os` is provided. Copy or link it to `init.yml`. Make sure parameter `Ufs` is
+A sample `conf/init.yml.os` is provided. Copy or link it to `init.yml`. Make sure parameter `Ufs` is
 `hadoop2` and `Provider` is `openstack`. The `Addresses` are currently not used. 
 
 Then start the clusters.
