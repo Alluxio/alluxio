@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <property>
+    <name>files.per.thread</name>
+    <value>2</value>
+    <description>the number of files to read for each read thread</description>
+  </property>
+  <property>
+    <name>read.mode</name>
+    <value>SEQUENCE</value>
+    <description>the read mode of read test, should be RANDOM or SEQUENCE</description>
+  </property>
+  <property>
+    <name>buffer.size.bytes</name>
+    <value>4194304</value>
+    <description>the size of the buffer read once</description>
+  </property>
+  <property>
+    <name>read.type</name>
+    <value>NO_CACHE</value>
+    <description>the ReadType of the read operation, no it only used for Tachyon</description>
+  </property>
+  <property>
+    <name>read.bytes</name>
+    <value>16777216</value>
+    <description>the read bytes for each skip-and-read operator</description>
+  </property>
+  <property>
+    <name>skip.bytes</name>
+    <value>16777216</value>
+    <description>the skip bytes for each skip-and-read operator</description>
+  </property>
+  <property>
+    <name>skip.times.per.file</name>
+    <value>2</value>
+    <description>the skip-and-read times for each read file</description>
+  </property>
+  <property>
+    <name>skip.mode</name>
+    <value>FORWARD</value>
+    <description>the skip mode, should be FORWARD or RANDOM</description>
+  </property>
+</configuration>
+
