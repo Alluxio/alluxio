@@ -15,7 +15,7 @@ do
     # print them out for sanity check
     echo -n "Provider: "${PROVIDERS[i]} " Config: "${CONFIGS[i]} " CMD: "${CMDS[i]}
     # create a cluster configuration
-    ln -fs ${CONFIGS[i]} init.yml
+    ln -fs conf/${CONFIGS[i]} init.yml
     # provision the cluster
     ${CMDS[i]} > buildlog.${PROVIDERS[i]} 2>&1
     # get the status, error 124 is timeout.

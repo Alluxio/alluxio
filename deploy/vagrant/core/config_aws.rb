@@ -4,6 +4,16 @@
 # AWS specific configurations go here
 
 def config_aws(config, i, total, name)
+  config.vm.box = "dummy"
+  config.vm.box_url = 
+    "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
+  config.ssh.username = "ec2-user"
+  config.ssh.private_key_path = KEY_PATH
+  config.vm.synced_folder "../../", "/tachyon", type: "rsync", 
+            rsync__exclude: ["../../.git/", "shared/"]
+  config.vm.synced_folder "./", "/vagrant", type: "rsync", 
+            rsync__exclude: ["shared/"]
+
   config.vm.provider :aws do |aws, override|
     aws.keypair_name = KEYPAIR
     aws.security_groups = SECURITY_GROUP
