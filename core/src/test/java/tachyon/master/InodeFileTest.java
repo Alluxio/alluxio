@@ -214,7 +214,7 @@ public class InodeFileTest {
   }
 
   @Test
-  public void writeImageTest() {
+  public void writeImageTest() throws IOException {
     // create the InodeFile and the output streams
     long creationTime = System.currentTimeMillis();
     InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, creationTime);
@@ -224,31 +224,23 @@ public class InodeFileTest {
     ObjectWriter writer = mapper.writer();
 
     // write the image
-    try {
-      inode1.writeImage(writer, dos);
-    } catch (IOException ioe) {
-      Assert.fail("Unexpected IOException: " + ioe.getMessage());
-    }
+    inode1.writeImage(writer, dos);
 
     // decode the element
     ImageElement decoded = null;
-    try {
-      decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
-    } catch (Exception e) {
-      Assert.fail("Unexpected " + e.getClass() + ": " + e.getMessage());
-    }
+    decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
 
     // test the decoded image element
-    Assert.assertEquals(creationTime, (long) decoded.getLong("creationTimeMs"));
-    Assert.assertEquals(1, (int) decoded.getInt("id"));
-    Assert.assertEquals(0, (int) decoded.getInt("parentId"));
-    Assert.assertEquals(1000, (int) decoded.getInt("blockSizeByte"));
-    Assert.assertEquals(0, (long) decoded.getLong("length"));
+    Assert.assertEquals(creationTime, decoded.getLong("creationTimeMs").longValue());
+    Assert.assertEquals(1, decoded.getInt("id").intValue());
+    Assert.assertEquals(0, decoded.getInt("parentId").intValue());
+    Assert.assertEquals(1000, decoded.getInt("blockSizeByte").intValue());
+    Assert.assertEquals(0,  decoded.getLong("length").longValue());
     Assert.assertEquals(false, decoded.getBoolean("complete"));
     Assert.assertEquals(false, decoded.getBoolean("pin"));
     Assert.assertEquals(false, decoded.getBoolean("cache"));
     Assert.assertEquals("", decoded.getString("ufsPath"));
-    Assert.assertEquals(-1, (int) decoded.getInt("depId"));
-    Assert.assertEquals(creationTime, (long) decoded.getLong("lastModificationTimeMs"));
+    Assert.assertEquals(-1, decoded.getInt("depId").intValue());
+    Assert.assertEquals(creationTime, decoded.getLong("lastModificationTimeMs").longValue());
   }
 }

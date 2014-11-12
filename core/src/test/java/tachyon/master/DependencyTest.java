@@ -1,9 +1,5 @@
 package tachyon.master;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -51,7 +50,7 @@ public class DependencyTest {
   }
 
   @Test
-  public void writeImageTest() {
+  public void writeImageTest() throws IOException {
     // create the dependency, output streams, and associated objects
     ByteArrayOutputStream os = new ByteArrayOutputStream();
     DataOutputStream dos = new DataOutputStream(os);
@@ -68,33 +67,25 @@ public class DependencyTest {
             DependencyType.Narrow, parentDependencies, 0L);
 
     // write the image
-    try {
-      dep.writeImage(writer, dos);
-    } catch (IOException ioe) {
-      Assert.fail("Unexpected IOException: " + ioe.getMessage());
-    }
+    dep.writeImage(writer, dos);
 
     // decode the written bytes
-    ImageElement decoded = null;
-    try {
-      decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
-    } catch (Exception e) {
-      Assert.fail("Unexpected " + e.getClass() + ": " + e.getMessage());
-    }
+    ImageElement decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
+    TypeReference<List<Integer>> intListRef = new TypeReference<List<Integer>>() {};
 
     // test the decoded ImageElement
     // can't use equals(decoded) because ImageElement doesn't have an equals method and can have variable fields
-    Assert.assertEquals(0, (int) decoded.getInt("depID"));
-    Assert.assertEquals(parents, decoded.get("parentFiles", new TypeReference<List<Integer>>() {}));
-    Assert.assertEquals(children, decoded.get("childrenFiles", new TypeReference<List<Integer>>() {}));
+    Assert.assertEquals(0, decoded.getInt("depID").intValue());
+    Assert.assertEquals(parents, decoded.get("parentFiles", intListRef));
+    Assert.assertEquals(children, decoded.get("childrenFiles", intListRef));
     Assert.assertEquals(data, decoded.get("data", new TypeReference<List<ByteBuffer>>() {}));
-    Assert.assertEquals(parentDependencies, decoded.get("parentDeps", new TypeReference<Collection<Integer>>() {}));
+    Assert.assertEquals(parentDependencies, decoded.get("parentDeps", intListRef));
     Assert.assertEquals(cmd, decoded.getString("commandPrefix"));
     Assert.assertEquals("Dependency Test", decoded.getString("comment"));
     Assert.assertEquals("Tachyon Tests", decoded.getString("framework"));
     Assert.assertEquals("0.4", decoded.getString("frameworkVersion"));
     Assert.assertEquals(DependencyType.Narrow, decoded.get("depType", new TypeReference<DependencyType>() {}));
-    Assert.assertEquals(0L, (long) decoded.getLong("creationTimeMs"));
-    Assert.assertEquals(dep.getUncheckpointedChildrenFiles(), decoded.get("unCheckpointedChildrenFiles", new TypeReference<List<Integer>>() {}));
+    Assert.assertEquals(0L, decoded.getLong("creationTimeMs").longValue());
+    Assert.assertEquals(dep.getUncheckpointedChildrenFiles(), decoded.get("unCheckpointedChildrenFiles", intListRef));
   }
 }

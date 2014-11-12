@@ -1,16 +1,16 @@
 package tachyon.master;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for tachyon.InodeFolder
@@ -140,7 +140,7 @@ public class InodeFolderTest {
   }
 
   @Test
-  public void writeImageTest() {
+  public void writeImageTest() throws IOException {
     // create the InodeFolder and the output streams
     long creationTime = System.currentTimeMillis();
     InodeFolder inode1 = new InodeFolder("test1", 1, 0, creationTime);
@@ -150,26 +150,17 @@ public class InodeFolderTest {
     ObjectWriter writer = mapper.writer();
 
     // write the image
-    try {
-      inode1.writeImage(writer, dos);
-    } catch (IOException ioe) {
-      Assert.fail("Unexpected IOException: " + ioe.getMessage());
-    }
+    inode1.writeImage(writer, dos);
 
     // decode the written bytes
-    ImageElement decoded = null;
-    try {
-      decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
-    } catch (Exception e) {
-      Assert.fail("Unexpected " + e.getClass() + ": " + e.getMessage());
-    }
+    ImageElement decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
 
     // test the decoded ImageElement
-    Assert.assertEquals(creationTime, (long) decoded.getLong("creationTimeMs"));
-    Assert.assertEquals(1, (int) decoded.getInt("id"));
+    Assert.assertEquals(creationTime, decoded.getLong("creationTimeMs").longValue());
+    Assert.assertEquals(1, decoded.getInt("id").intValue());
     Assert.assertEquals("test1", decoded.getString("name"));
-    Assert.assertEquals(0, (int) decoded.getInt("parentId"));
+    Assert.assertEquals(0, decoded.getInt("parentId").intValue());
     Assert.assertEquals(new ArrayList<Integer>(), decoded.get("childrenIds", new TypeReference<List<Integer>>() {}));
-    Assert.assertEquals(creationTime, (long) decoded.getLong("lastModificationTimeMs"));
+    Assert.assertEquals(creationTime, decoded.getLong("lastModificationTimeMs").longValue());
   }
 }
