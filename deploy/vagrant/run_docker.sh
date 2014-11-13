@@ -3,6 +3,11 @@ set -e
 # clean up environment
 rm -rf files
 
+# Changes to Dockerfile need to be validated by docker command.
+# Vagrant output is not quite helpful.
+# To validate the Dockerfile, run
+# docker build  .
+
 vagrant up --provider=docker --no-provision
 
 # generate key
