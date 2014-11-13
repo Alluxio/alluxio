@@ -25,9 +25,9 @@ EOF
     # ssh config
     mkdir -p ~/.ssh
     src="/tachyon/deploy/vagrant/files"
-    if [ ! -d ${src} ]
+    mkdir -p ${src}
+    if [ ! -f ${src}/id_rsa ]
     then
-        mkdir ${src}
         # ensure we have ssh-keygen rpm installed
         sudo yum install -y -q openssh
         # generate key

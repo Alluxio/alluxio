@@ -53,35 +53,44 @@ If you use Spark to launch an EC2 cluster, `Tachyon` will be installed and confi
 
 ## Deploy Tachyon Cluster via Vagrant
 
-[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster locally on [VirtualBox](https://www.virtualbox.org/) or in the cloud at [AWS EC2 VPC](http://aws.amazon.com/vpc/). 
+[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster locally on
+[VirtualBox](https://www.virtualbox.org/), in the cloud at [AWS EC2 VPC](http://aws.amazon.com/vpc/),
+or in [OpenStack Compute](http://www.openstack.org/software/openstack-compute/).
 
-A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant` directory:
+A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant`
+directory:
+
 ```
 vagrant
-├── ec2-config.yml
-├── glusterfs
-│   ├── init.sh
-│   └── post.sh
-├── hadoop2
-│   ├── init.sh
-│   └── post.sh
-├── init.sh
-├── init.yml -> init.yml.hdfs2
-├── init.yml.aws
-├── init.yml.glusterfs
-├── init.yml.hdfs2
+├── conf
+│   ├── ec2-config.yml
+│   ├── init.yml.aws
+│   ├── init.yml.glusterfs
+│   ├── init.yml.hdfs1
+│   ├── init.yml.hdfs2
+│   ├── init.yml.os
+│   └── openstack-config.yml
+├── init.yml -> conf/init.yml.hdfs2
 ├── README.md
-├── start_tachyon_cluster.sh
-└── Vagrantfile
+├── run_aws.sh
+├── run_openstack.sh
+├── Vagrantfile
+└── ...
 ```
 
-To start a Tachyon cluster on VirtualBox, first edit `init.yml`, set the under filesystems and other parameters. Then run 
+To start a Tachyon cluster on VirtualBox, first edit `init.yml`, set the under filesystems and other
+parameters. Then run
 
-    $ vagrant up 
+    $ vagrant up
 
-To spawn a Tachyon cluster on AWS VPC, run command
+To spawn a Tachyon cluster on AWS VPC, setup credentials and parameters in `conf/ec2-config.yml`,
+select under filesystem in `init.yml`, and run command
 
-    $ vagrant up --provider=aws
+    $ ./run_aws.sh
 
-Detailed instruction can be found in `tachyon/deploy/vagrant/README.md`. 
+To spawn a Tachyon cluster on OpenStack Compute Node, setup credentials and parameters in
+`conf/openstack-config.yml`, select under filesystem in `init.yml`, and run command
 
+    $ ./run_openstack.sh
+
+Detailed instruction can be found in `tachyon/deploy/vagrant/README.md`.
