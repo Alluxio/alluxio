@@ -1,24 +1,24 @@
 FROM centos:centos7
-RUN yum -y update 
-RUN yum install -y -q openssh-server wget systemd-sys sudo tar net-tools openssh-clients hostname
-RUN useradd -c "vagrant" -d /home/vagrant -m -s /bin/bash -G wheel vagrant
-RUN echo 'root:vagrant' | chpasswd
-RUN echo 'vagrant:vagrant' | chpasswd
-RUN mkdir -p /root/.ssh/ /home/vagrant/.ssh/
-RUN wget --no-check-certificate https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant -O /root/.ssh/id_rsa
-RUN wget --no-check-certificate https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub -O /root/.ssh/id_rsa.pub
-RUN wget --no-check-certificate https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant -O /home/vagrant/.ssh/id_rsa
-RUN wget --no-check-certificate https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub -O /home/vagrant/.ssh/id_rsa.pub
-RUN chmod 600 /home/vagrant/.ssh/id*
-RUN chmod 600 /root/.ssh/id*
-RUN cp /root/.ssh/id_rsa /etc/ssh/ssh_host_key
-RUN cp /root/.ssh/id_rsa /etc/ssh/ssh_host_rsa_key
-RUN cp /root/.ssh/id_rsa /etc/ssh/ssh_host_ecdsa_key
-RUN grep -v requiretty /etc/sudoers > /etc/sudoers2
-RUN mv /etc/sudoers2 /etc/sudoers
+RUN yum -y update && \
+    yum install -y -q openssh-server systemd-sys sudo tar net-tools openssh-clients hostname && \
+    useradd -c "vagrant" -d /home/vagrant -m -s /bin/bash -G wheel vagrant && \
+    echo 'root:vagrant' | chpasswd && \
+    echo 'vagrant:vagrant' | chpasswd && \
+    mkdir -p /root/.ssh/ && \
+    mkdir -p /home/vagrant/.ssh/ 
 
-RUN chmod 600 /root/.ssh/id*
+ADD https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant /root/.ssh/id_rsa
+ADD https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub /root/.ssh/id_rsa.pub
+ADD https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant /home/vagrant/.ssh/id_rsa
+ADD https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub /home/vagrant/.ssh/id_rsa.pub
 
-#RUN /etc/init.d/sshd start
+RUN chmod 600 /home/vagrant/.ssh/id* && \
+    chmod 600 /root/.ssh/id* && \
+    cp /root/.ssh/id_rsa /etc/ssh/ssh_host_key && \
+    cp /root/.ssh/id_rsa /etc/ssh/ssh_host_rsa_key && \
+    cp /root/.ssh/id_rsa /etc/ssh/ssh_host_ecdsa_key && \
+    grep -v requiretty /etc/sudoers > /etc/sudoers2 && \
+    mv /etc/sudoers2 /etc/sudoers
+
 EXPOSE 22 
 CMD /usr/sbin/sshd -D

@@ -54,7 +54,7 @@ If you use Spark to launch an EC2 cluster, `Tachyon` will be installed and confi
 ## Deploy Tachyon Cluster via Vagrant
 
 [Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster locally on
-[VirtualBox](https://www.virtualbox.org/) or [container](http://en.wikipedia.org/wiki/Docker_(software)) , in the cloud at [AWS EC2 VPC](http://aws.amazon.com/vpc/),
+[VirtualBox](https://www.virtualbox.org/), [container](https://www.docker.com/), in the cloud at [AWS EC2 VPC](http://aws.amazon.com/vpc/),
 or in [OpenStack Compute](http://www.openstack.org/software/openstack-compute/).
 
 A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant`
