@@ -20,14 +20,5 @@ RUN mv /etc/sudoers2 /etc/sudoers
 RUN chmod 600 /root/.ssh/id*
 
 #RUN /etc/init.d/sshd start
-RUN echo "CREATED /shared"
 EXPOSE 22 
-# Required: A default command for docker run.
-#CMD ls /vagrant
-#CMD cat /etc/passwd
-#CMD setenforce 0
-#RUN systemctl restart sshd
-#RUN systemctl enable ssh.service
 CMD /usr/sbin/sshd -D
-#CMD /usr/sbin/sshd -D
-#RUN /etc/init.d/sshd stop
