@@ -1,22 +1,17 @@
 package tachyon.examples;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tachyon.Constants;
+import tachyon.TachyonURI;
+import tachyon.Version;
+import tachyon.client.*;
+import tachyon.util.CommonUtils;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.concurrent.Callable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import tachyon.Constants;
-import tachyon.TachyonURI;
-import tachyon.Version;
-import tachyon.client.OutStream;
-import tachyon.client.TachyonByteBuffer;
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFile;
-import tachyon.client.WriteType;
-import tachyon.util.CommonUtils;
 
 public class BasicOperations implements Callable<Boolean> {
   private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
