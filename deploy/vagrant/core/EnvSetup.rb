@@ -16,7 +16,8 @@ def config_hosts(name)
   end
   file.close unless file == nil
   
-  if not Provider == "openstack"
+  if not (Provider == "openstack" or
+          Provider == "docker" )
     hosts = File.open("files/hosts","w")
     for i in (1..Total)
       if i == Total 
