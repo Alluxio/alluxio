@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
@@ -15,19 +18,19 @@ import tachyon.thrift.ClientFileInfo;
  *
  */
 public class CountCommand extends AbstractCommands {
+  public static final String NAME = "count";
+  public static final String DESCRIPTION =
+          "Displays the number of folders and files matching the specified prefix in argv.";
+
   /**
    * Displays the number of folders and files matching the specified prefix in argv.
    *
-   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @param cmdl Arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws java.io.IOException
    */
-  public int count(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs count <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int count(CommandLine cmdl) throws IOException {
+    TachyonURI path = new TachyonURI(cmdl.getOptions()[0].getValue());
     long[] values = countHelper(path);
     String format = "%-25s%-25s%-15s%n";
     System.out.format(format, "File Count", "Folder Count", "Total Bytes");
@@ -57,7 +60,7 @@ public class CountCommand extends AbstractCommands {
   }
 
   @Override
-  public int execute(String[] argv) throws IOException {
-    return count(argv);
+  public int execute(CommandLine cmdl) throws IOException, ParseException {
+    return count(cmdl);
   }
 }

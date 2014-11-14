@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.command.AbstractCommands;
@@ -15,24 +18,24 @@ import tachyon.util.CommonUtils;
  *
  */
 public class LsCommand extends AbstractCommands {
+  public static final String NAME = "ls";
+  public static final String DESCRIPTION =
+  "Displays information for all directories and files directly under the path specified in argv.";
+
   @Override
-  public int execute(String[] argv)  throws IOException {
-      return ls(argv);
+  public int execute(CommandLine cmdl)  throws IOException, ParseException {
+      return ls(cmdl);
   }
 
   /**
   * Displays information for all directories and files directly under the path specified in argv.
   *
-  * @param argv [] Array of arguments given by the user's input from the terminal
+  * @param cmdl Arguments given by the user's input from the terminal
   * @return 0 if command is successful, -1 if an error occurred.
   * @throws java.io.IOException
   */
-  public int ls(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs ls <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int ls(CommandLine cmdl) throws IOException {
+    TachyonURI path = new TachyonURI(cmdl.getOptions()[0].getValue());
     TachyonFS tachyonClient = createFS(path);
     List<ClientFileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);

@@ -3,6 +3,8 @@ package tachyon.command.commands;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.apache.commons.cli.CommandLine;
+
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
@@ -14,24 +16,24 @@ import tachyon.command.AbstractCommands;
  *
  */
 public class TouchCommand extends AbstractCommands {
+  public static final String NAME = "touch";
+  public static final String DESCRIPTION =
+            "Creates a 0 byte file specified by argv.";
+
   @Override
-  public int execute(String[] argv) throws IOException {
-    return touch(argv);
+  public int execute(CommandLine cmdl) throws IOException {
+    return touch(cmdl);
   }
 
   /**
    * Creates a 0 byte file specified by argv.
    *
-   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @param cmdl Arguments given by the user's input from the terminal
    * @return 0 if command if successful, -1 if an error occurred.
    * @throws java.io.IOException
    */
-  public int touch(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs touch <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int touch(CommandLine cmdl) throws IOException {
+    TachyonURI path = new TachyonURI(cmdl.getOptions()[0].getValue());
     TachyonFS tachyonClient = createFS(path);
     TachyonFile tFile = tachyonClient.getFile(tachyonClient.createFile(path));
     OutputStream out = tFile.getOutStream(WriteType.THROUGH);

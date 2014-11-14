@@ -2,6 +2,9 @@ package tachyon.command.commands;
 
 import java.io.IOException;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.InStream;
@@ -15,24 +18,24 @@ import tachyon.command.AbstractCommands;
  *
  */
 public class TailCommand extends AbstractCommands {
+  public static final String NAME = "tail";
+  public static final String DESCRIPTION =
+            "Prints the file's last 1KB of contents to the console.";
+
   @Override
-  public int execute(String[] argv) throws IOException {
-    return tail(argv);
+  public int execute(CommandLine cmdl) throws IOException, ParseException {
+    return tail(cmdl);
   }
   
   /**
    * Prints the file's last 1KB of contents to the console.
    *
-   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @param cmdl Arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.f
    * @throws java.io.IOException
    */
-  public int tail(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs tail <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int tail(CommandLine cmdl) throws IOException {
+    TachyonURI path = new TachyonURI(cmdl.getOptions()[0].getValue());
     TachyonFS tachyonClient = createFS(path);
     TachyonFile tFile = tachyonClient.getFile(path);
 

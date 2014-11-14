@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.command.AbstractCommands;
@@ -16,25 +19,25 @@ import tachyon.util.CommonUtils;
  *
  */
 public class LsrCommand extends AbstractCommands {
+  public static final String NAME = "lsr";
+  public static final String DESCRIPTION =
+     "Displays information for all directories and files under the path specified recursively.";
+
   @Override
-  public int execute(String[] argv) throws IOException {
-    return lsr(argv);
+  public int execute(CommandLine cmdl) throws IOException, ParseException {
+    return lsr(cmdl.getOptions()[0].getValue());
   }
 
   /**
    * Displays information for all directories and files under the path specified in argv
    * recursively.
    *
-   * @param argv
-   * @return
+   * @param fileParse Arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int lsr(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs lsr <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int lsr(String fileParse) throws IOException {
+    TachyonURI path = new TachyonURI(fileParse);
     TachyonFS tachyonClient = createFS(path);
     List<ClientFileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);
@@ -51,7 +54,7 @@ public class LsrCommand extends AbstractCommands {
       System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
           CommonUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
       if (file.isFolder) {
-        lsr(new String[] {"lsr", file.getPath()});
+        lsr(file.getPath());
       }
     }
     return 0;

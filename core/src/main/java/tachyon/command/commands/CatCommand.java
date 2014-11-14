@@ -2,6 +2,9 @@ package tachyon.command.commands;
 
 import java.io.IOException;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.TachyonURI;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
@@ -14,19 +17,18 @@ import tachyon.command.AbstractCommands;
  *
  */
 public class CatCommand extends AbstractCommands {
+  public static final String NAME = "cat";
+  public static final String DESCRIPTION = "Prints the file's contents to the console.";
+
   /**
    * Prints the file's contents to the console.
    *
-   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @param cmdl  parse of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws java.io.IOException
    */
-  public int cat(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs cat <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int cat(CommandLine cmdl) throws IOException {
+    TachyonURI path = new TachyonURI(cmdl.getOptions()[0].getValue());
     TachyonFS tachyonClient = createFS(path);
     TachyonFile tFile = tachyonClient.getFile(path);
 
@@ -54,7 +56,7 @@ public class CatCommand extends AbstractCommands {
   }
 
   @Override
-  public int execute(String[] argv)  throws IOException {
-    return cat(argv);
+  public int execute(CommandLine cmdl)  throws IOException, ParseException {
+    return cat(cmdl);
   }
 }

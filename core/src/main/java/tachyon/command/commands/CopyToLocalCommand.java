@@ -6,6 +6,9 @@ import java.io.IOException;
 
 import com.google.common.io.Closer;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.TachyonURI;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
@@ -18,21 +21,26 @@ import tachyon.command.AbstractCommands;
  *
  */
 public class CopyToLocalCommand extends AbstractCommands {
+  public static final String NAME = "copyToLocal";
+  public static final String DESCRIPTION =
+            " Copies a file specified by argv from the filesystem to the local filesystem.";
+
   /**
    * Copies a file specified by argv from the filesystem to the local filesystem.
    *
-   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @param cmdl Arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws java.io.IOException
    */
-  public int copyToLocal(String[] argv) throws IOException {
-    if (argv.length != 3) {
-      System.out.println("Usage: tfs copyToLocal <src> <localdst>");
-      return -1;
+  public int copyToLocal(CommandLine cmdl) throws IOException, ParseException {
+    TachyonURI srcPath = null;
+    String dstPath = null;
+    try {
+      srcPath = new TachyonURI(cmdl.getOptions()[0].getValue(0));
+      dstPath = cmdl.getOptions()[0].getValue(1);
+    } catch (Exception e) {
+      throw new ParseException("Missing second argument for option: copyToLocal");
     }
-
-    TachyonURI srcPath = new TachyonURI(argv[1]);
-    String dstPath = argv[2];
     File dst = new File(dstPath);
     TachyonFS tachyonClient = createFS(srcPath);
     TachyonFile tFile = tachyonClient.getFile(srcPath);
@@ -60,7 +68,7 @@ public class CopyToLocalCommand extends AbstractCommands {
   }
 
   @Override
-  public int execute(String[] argv) throws IOException {
-    return copyToLocal(argv);
+  public int execute(CommandLine cmdl) throws IOException, ParseException {
+    return copyToLocal(cmdl);
   }
 }

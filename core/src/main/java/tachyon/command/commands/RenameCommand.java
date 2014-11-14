@@ -2,6 +2,9 @@ package tachyon.command.commands;
 
 import java.io.IOException;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.command.AbstractCommands;
@@ -11,25 +14,31 @@ import tachyon.command.AbstractCommands;
  *
  */
 public class RenameCommand extends AbstractCommands {
+  public static final String NAME = "rename";
+  public static final String DESCRIPTION =
+          "Renames a file or directory specified by argv.";
+
   @Override
-  public int execute(String[] argv) throws IOException {
-    return rename(argv);
+  public int execute(CommandLine cmdl) throws IOException, ParseException {
+    return rename(cmdl);
   }
 
   /**
    * Renames a file or directory specified by argv. Will fail if the new path name already exists.
    *
-   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @param cmdl Arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
-   * @throws java.io.IOException
+   * @throws java.io.IOException, ParseException
    */
-  public int rename(String[] argv) throws IOException {
-    if (argv.length != 3) {
-      System.out.println("Usage: tfs mv <src> <dst>");
-      return -1;
+  public int rename(CommandLine cmdl) throws IOException, ParseException {
+    TachyonURI srcPath = null;
+    TachyonURI dstPath = null;
+    try {
+      srcPath = new TachyonURI(cmdl.getOptions()[0].getValue(0));
+      dstPath = new TachyonURI(cmdl.getOptions()[0].getValue(1));
+    } catch (Exception e) {
+      throw new ParseException("Missing second argument for option: rename");
     }
-    TachyonURI srcPath = new TachyonURI(argv[1]);
-    TachyonURI dstPath = new TachyonURI(argv[2]);
     TachyonFS tachyonClient = createFS(srcPath);
     if (tachyonClient.rename(srcPath, dstPath)) {
       System.out.println("Renamed " + srcPath + " to " + dstPath);

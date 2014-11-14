@@ -8,6 +8,9 @@ import java.nio.channels.FileChannel;
 
 import com.google.common.io.Closer;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.OutStream;
@@ -22,22 +25,32 @@ import tachyon.conf.UserConf;
  *
  */
 public class CopyFromLocalCommand extends AbstractCommands {
+  public static final String NAME = "copyFromLocal";
+  public static final String DESCRIPTION =
+    "Copies a file or directory specified by argv from the local filesystem to the filesystem.";
+
   /**
    * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
    * fail if the path given already exists in the filesystem.
    *
-   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @param cmdl  Arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws java.io.IOException
    */
-  public int copyFromLocal(String[] argv) throws IOException {
-    if (argv.length != 3) {
+  public int copyFromLocal(CommandLine cmdl) throws IOException, ParseException {
+    /*if (cmdl.getOptions()[0].getValue(0) == null || null == cmdl.getOptions()[0].getValue(1) ) {
       System.out.println("Usage: tfs copyFromLocal <src> <remoteDst>");
       return -1;
-    }
+    }*/
+    String srcPath = null;
+    TachyonURI dstPath = null;
+    try {
+      srcPath = cmdl.getOptions()[0].getValue(0);
+      dstPath = new TachyonURI(cmdl.getOptions()[0].getValue(1));
+    } catch (Exception e) {
+        throw new ParseException("Missing second argument for option: copyFromLocal");
 
-    String srcPath = argv[1];
-    TachyonURI dstPath = new TachyonURI(argv[2]);
+    }
     File src = new File(srcPath);
     if (!src.exists()) {
       System.out.println("Local path " + srcPath + " does not exist.");
@@ -86,7 +99,7 @@ public class CopyFromLocalCommand extends AbstractCommands {
   }
 
   @Override
-  public int execute(String[] argv) throws IOException {
-    return copyFromLocal(argv);
+  public int execute(CommandLine cmdl) throws IOException, ParseException {
+    return copyFromLocal(cmdl);
   }
 }

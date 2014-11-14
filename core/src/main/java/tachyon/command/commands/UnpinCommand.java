@@ -2,6 +2,9 @@ package tachyon.command.commands;
 
 import java.io.IOException;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.command.AbstractCommands;
@@ -12,25 +15,25 @@ import tachyon.command.AbstractCommands;
  *
  */
 public class UnpinCommand extends AbstractCommands {
+  public static final String NAME = "unpin";
+  public static final String DESCRIPTION =
+            "Unpins the given file or folder.";
+
   @Override
-  public int execute(String[] argv) throws IOException {
-    return unpin(argv);
+  public int execute(CommandLine cmdl) throws IOException, ParseException {
+    return unpin(cmdl);
   }
   
   /**
    * Unpins the given file or folder (recursively unpinning all children if a folder). Pinned files
    * are never evicted from memory, so this method will allow such files to be evicted.
    *
-   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @param cmdl Arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws java.io.IOException
    */
-  public int unpin(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs unpin <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int unpin(CommandLine cmdl) throws IOException {
+    TachyonURI path = new TachyonURI(cmdl.getOptions()[0].getValue());
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
     try {
