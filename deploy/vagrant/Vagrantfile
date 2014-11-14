@@ -16,6 +16,8 @@ Addr = @cmd['Addresses']
 Init = "ufs/#{Ufs}/init.sh"
 Post = "ufs/#{Ufs}/post.sh"
 
+validate_provider(Provider)
+
 require "./core/config_#{Provider}"
 
 # config cluster and create /etc/hosts 
