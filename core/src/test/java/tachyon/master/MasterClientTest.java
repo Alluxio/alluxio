@@ -105,8 +105,6 @@ public class MasterClientTest {
       Assert.assertNull(fileStatus.getBlockIds());
       Assert.assertNull(fileStatus.getName());
       Assert.assertNull(fileStatus.getPath());
-      masterClient.close();
-      Assert.assertFalse(masterClient.isConnected());
     } finally {
       masterClient.close();
       Assert.assertFalse(masterClient.isConnected());
@@ -122,7 +120,6 @@ public class MasterClientTest {
       // in the cases we don't want to disconnect from master
       masterClient = new MasterClient(mMasterInfo.getMasterAddress());
       masterClient.user_getClientBlockInfo(Long.MAX_VALUE);
-      masterClient.close();
     } finally {
       masterClient.close();
       Assert.assertFalse(masterClient.isConnected());
@@ -138,7 +135,6 @@ public class MasterClientTest {
     try {
       masterClient = new MasterClient(mMasterInfo.getMasterAddress());
       masterClient.user_getWorker(false, "host.doesnotexist.fail");
-      masterClient.close();
     } finally {
       masterClient.close();
       Assert.assertFalse(masterClient.isConnected());
