@@ -49,7 +49,6 @@ import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerDirInfo;
-import tachyon.thrift.WorkerFileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerClient;
@@ -136,6 +135,8 @@ public class TachyonFS extends AbstractTachyonFS {
 
   // All Blocks has been locked.
   private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
+  // Mapping from block id to id of the StorageDir in which the block is locked
+  private final Map<Long, Long> mLockedBlockIdToStorageDirId = new HashMap<Long, Long>();
 
   // Each user facing block has a unique block lock id.
   private final AtomicInteger mBlockLockId = new AtomicInteger(0);
@@ -454,22 +455,6 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized boolean exist(TachyonURI path) throws IOException {
     return getFileStatus(-1, path, false) != null;
-  }
-
-  /**
-   * Get information of block file in the StorageDir
-   * 
-   * @param blockId the id of the block
-   * @return information of the block file
-   * @throws IOException
-   */
-  // if StorageDirId is known, no need RPC
-  public synchronized WorkerFileInfo getBlockFileInfo(long blockId) throws IOException {
-    if (mWorkerClient.isLocal()) {
-      return mWorkerClient.getBlockFileInfo(blockId);
-    } else {
-      return null;
-    }
   }
 
   /**
@@ -936,45 +921,56 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Lock a block in the current TachyonFS.
    * 
-   * @param blockId The id of the block to lock. <code>blockId</code> must be positive.
+   * @param blockInfo The information of the block to lock.
    * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
    *        non-negative.
-   * @return true if successfully lock the block, false otherwise (or invalid parameter).
+   * @return the Id of the StorageDir in which the block is locked.
    */
-  synchronized boolean lockBlock(long blockId, int blockLockId) throws IOException {
-    return lockBlock(StorageDirId.unknownId(), blockId, blockLockId);
+  synchronized long lockBlock(ClientBlockInfo blockInfo, int blockLockId) throws IOException {
+    if (blockInfo != null) {
+      Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
+      NetAddress workerNetAddress = mWorkerClient.getNetAddress();
+      if (storageDirIds.containsKey(workerNetAddress)) {
+        return lockBlock(storageDirIds.get(workerNetAddress), blockInfo.getBlockId(), blockLockId);
+      }
+    }
+    return StorageDirId.unknownId();
   }
 
   /**
    * Lock a block in certain StorageDir in the current TachyonFS.
    * 
-   * @param storageDirId the id of the StorageDir which contains the block
+   * @param storageDirId the id of the StorageDir which contains the block.
    * @param blockId The id of the block to lock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
    *        non-negative.
-   * @return
+   * @return the Id of the StorageDir in which the block is locked
    * @throws IOException
    */
-  synchronized boolean lockBlock(long storageDirId, long blockId, int blockLockId)
+  synchronized long lockBlock(long storageDirId, long blockId, int blockLockId)
       throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
-      return false;
+      return StorageDirId.unknownId();
     }
 
     if (mLockedBlockIds.containsKey(blockId)) {
       mLockedBlockIds.get(blockId).add(blockLockId);
-      return true;
+      return mLockedBlockIdToStorageDirId.get(blockId);
     }
 
     if (!mWorkerClient.isLocal()) {
-      return false;
+      return StorageDirId.unknownId();
     }
-    mWorkerClient.lockBlock(mMasterClient.getUserId(), storageDirId, blockId);
+    long storageDirIdLocked =
+        mWorkerClient.lockBlock(mMasterClient.getUserId(), storageDirId, blockId);
 
-    Set<Integer> lockIds = new HashSet<Integer>(4);
-    lockIds.add(blockLockId);
-    mLockedBlockIds.put(blockId, lockIds);
-    return true;
+    if (!StorageDirId.isUnknown(storageDirIdLocked)) {
+      Set<Integer> lockIds = new HashSet<Integer>(4);
+      lockIds.add(blockLockId);
+      mLockedBlockIds.put(blockId, lockIds);
+      mLockedBlockIdToStorageDirId.put(blockId, storageDirIdLocked);
+    }
+    return storageDirIdLocked;
   }
 
   /**
@@ -1212,14 +1208,21 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Unlock a block in the current TachyonFS.
    * 
-   * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
+   * @param blockInfo The information of the block to unlock.
    * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
    *        non-negative.
-   * @return true if successfully unlock the block with <code>blockLockId</code>, false otherwise
-   *         (or invalid parameter).
+   * @return the Id of the StorageDir in which the block is unlocked.
    */
-  synchronized boolean unlockBlock(long blockId, int blockLockId) throws IOException {
-    return unlockBlock(StorageDirId.unknownId(), blockId, blockLockId);
+  synchronized long unlockBlock(ClientBlockInfo blockInfo, int blockLockId) throws IOException {
+    if (blockInfo != null) {
+      Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
+      NetAddress workerNetAddress = mWorkerClient.getNetAddress();
+      if (storageDirIds.containsKey(workerNetAddress)) {
+        return unlockBlock(storageDirIds.get(workerNetAddress), blockInfo.getBlockId(),
+            blockLockId);
+      }
+    }
+    return StorageDirId.unknownId();
   }
 
   /**
@@ -1229,32 +1232,32 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
    *        non-negative.
-   * @return true if successfully unlock the block with <code>blockLockId</code>, false otherwise
-   *         (or invalid parameter).
+   * @return the Id of the StorageDir in which the block is unlocked.
    */
-  synchronized boolean unlockBlock(long storageDirId, long blockId, int blockLockId)
+  synchronized long unlockBlock(long storageDirId, long blockId, int blockLockId)
       throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
-      return false;
+      return StorageDirId.unknownId();
     }
 
     if (!mLockedBlockIds.containsKey(blockId)) {
-      return true;
+      return StorageDirId.unknownId();
     }
     Set<Integer> lockIds = mLockedBlockIds.get(blockId);
     lockIds.remove(blockLockId);
+
     if (!lockIds.isEmpty()) {
-      return true;
+      return mLockedBlockIdToStorageDirId.get(blockId);
+    } else {
+      mLockedBlockIdToStorageDirId.remove(blockId);
+      mLockedBlockIds.remove(blockId);
     }
 
     if (!mWorkerClient.isLocal()) {
-      return false;
+      return StorageDirId.unknownId();
     }
 
-    mWorkerClient.unlockBlock(mMasterClient.getUserId(), storageDirId, blockId);
-    mLockedBlockIds.remove(blockId);
-
-    return true;
+    return mWorkerClient.unlockBlock(mMasterClient.getUserId(), storageDirId, blockId);
   }
 
   /** Alias for setPinned(fid, false). */

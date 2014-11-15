@@ -7,8 +7,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.StorageDirId;
-import tachyon.StorageLevelAlias;
 import tachyon.TestUtils;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
@@ -17,7 +15,6 @@ import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.thrift.WorkerFileInfo;
 import tachyon.util.CommonUtils;
 
 /**
@@ -83,29 +80,6 @@ public class HierarchyStoreTest {
     Assert.assertEquals(file3.isInMemory(), false);
     Assert.assertEquals(file4.isInMemory(), true);
     Assert.assertEquals(file5.isInMemory(), true);
-
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    WorkerFileInfo fileInfo = mTFS.getBlockFileInfo(file1.getBlockId(0));
-    long storageDirId1 = fileInfo.getStorageDirId();
-    fileInfo = mTFS.getBlockFileInfo(file2.getBlockId(0));
-    long storageDirId2 = fileInfo.getStorageDirId();
-    fileInfo = mTFS.getBlockFileInfo(file3.getBlockId(0));
-    long storageDirId3 = fileInfo.getStorageDirId();
-    fileInfo = mTFS.getBlockFileInfo(file4.getBlockId(0));
-    long storageDirId4 = fileInfo.getStorageDirId();
-    fileInfo = mTFS.getBlockFileInfo(file5.getBlockId(0));
-    long storageDirId5 = fileInfo.getStorageDirId();
-
-    Assert.assertEquals(StorageLevelAlias.HDD.getValue(),
-        StorageDirId.getStorageLevelAliasValue(storageDirId1));
-    Assert.assertEquals(StorageLevelAlias.HDD.getValue(),
-        StorageDirId.getStorageLevelAliasValue(storageDirId2));
-    Assert.assertEquals(StorageLevelAlias.HDD.getValue(),
-        StorageDirId.getStorageLevelAliasValue(storageDirId3));
-    Assert.assertEquals(StorageLevelAlias.MEM.getValue(),
-        StorageDirId.getStorageLevelAliasValue(storageDirId4));
-    Assert.assertEquals(StorageLevelAlias.MEM.getValue(),
-        StorageDirId.getStorageLevelAliasValue(storageDirId5));
   }
 
   @Test

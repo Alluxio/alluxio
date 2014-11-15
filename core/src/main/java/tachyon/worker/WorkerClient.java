@@ -45,7 +45,6 @@ import tachyon.thrift.NoWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerDirInfo;
-import tachyon.thrift.WorkerFileInfo;
 import tachyon.thrift.WorkerService;
 import tachyon.util.NetworkUtils;
 
@@ -262,26 +261,6 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Get information of StorageDirs on worker.
-   * 
-   * @param blockId the id of the block
-   * @return The information of the block file
-   * @throws IOException
-   */
-  public synchronized WorkerFileInfo getBlockFileInfo(long blockId) throws IOException {
-    mustConnect();
-
-    try {
-      return mClient.getBlockFileInfo(blockId);
-    } catch (FileDoesNotExistException e) {
-      return null;
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  /**
    * @return The root local data folder of the worker
    * @throws IOException
    */
@@ -390,14 +369,15 @@ public class WorkerClient implements Closeable {
    * @param userId The id of the user who wants to lock the block
    * @param storageDirId The id of the StorageDir which contains the block
    * @param blockId The id of the block
+   * @return the Id of the StorageDir in which the block is locked
    * @throws IOException
    */
-  public synchronized void lockBlock(long userId, long storageDirId, long blockId)
+  public synchronized long lockBlock(long userId, long storageDirId, long blockId)
       throws IOException {
     mustConnect();
 
     try {
-      mClient.lockBlock(userId, storageDirId, blockId);
+      return mClient.lockBlock(userId, storageDirId, blockId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -505,14 +485,15 @@ public class WorkerClient implements Closeable {
    * @param userId The id of the user who wants to unlock the block
    * @param storageDirId The id of the StorageDir which contains the block
    * @param blockId The id of the block
+   * @return the Id of the StorageDir in which the block is unlocked
    * @throws IOException
    */
-  public synchronized void unlockBlock(long userId, long storageDirId, long blockId)
+  public synchronized long unlockBlock(long userId, long storageDirId, long blockId)
       throws IOException {
     mustConnect();
 
     try {
-      mClient.unlockBlock(userId, storageDirId, blockId);
+      return mClient.unlockBlock(userId, storageDirId, blockId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

@@ -54,7 +54,6 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.WorkerDirInfo;
-import tachyon.thrift.WorkerFileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.hierarchy.StorageDir;
@@ -198,21 +197,25 @@ public class WorkerStorage {
             LOG.error("File " + fileInfo + " is not complete!");
             continue;
           }
-          StorageDir[] storageDirs = new StorageDir[fileInfo.blockIds.size()];
-          for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-            long blockId = fileInfo.blockIds.get(k);
-            storageDirs[k] = getStorageDirByBlockId(blockId);
-            lockBlock(Users.CHECKPOINT_USER_ID, storageDirs[k].getStorageDirId(),
-                fileInfo.blockIds.get(k));
-          }
+
+          long[] storageDirIds = new long[fileInfo.blockIds.size()];
           Closer closer = Closer.create();
           long fileSizeByte = 0;
           try {
+            for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
+              long blockId = fileInfo.blockIds.get(k);
+              storageDirIds[k] = lockBlock(Users.CHECKPOINT_USER_ID, StorageDirId.unknownId(),
+                  blockId);
+              if (StorageDirId.isUnknown(storageDirIds[k])) {
+                throw new FileDoesNotExistException("Block doesn't exist!");
+              }
+            }
             OutputStream os = 
                 closer.register(mCheckpointUfs.create(midPath, (int) fileInfo.getBlockSizeByte()));
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
+              StorageDir storageDir = getStorageDirById(storageDirIds[k]);
               BlockHandler handler = 
-                  closer.register(storageDirs[k].getBlockHandler(fileInfo.blockIds.get(k)));
+                  closer.register(storageDir.getBlockHandler(fileInfo.blockIds.get(k)));
               ByteBuffer byteBuffer = handler.read(0, -1);
               byte[] buf = new byte[16 * Constants.KB];
               int writeLen;
@@ -229,8 +232,8 @@ public class WorkerStorage {
           } finally {
             closer.close();
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-              unlockBlock(Users.CHECKPOINT_USER_ID, storageDirs[k].getStorageDirId(),
-                  fileInfo.blockIds.get(k));
+              long blockId = fileInfo.blockIds.get(k);
+              unlockBlock(Users.CHECKPOINT_USER_ID, storageDirIds[k], blockId);
             }
           }
           if (!mCheckpointUfs.rename(midPath, dstPath)) {
@@ -536,22 +539,6 @@ public class WorkerStorage {
   }
 
   /**
-   * Get information of block file
-   * 
-   * @param blockId the id of the block
-   * @return the information of the block file
-   * @throws FileDoesNotExistException
-   */
-  public WorkerFileInfo getBlockFileInfo(long blockId) throws FileDoesNotExistException {
-    StorageDir storageDir = getStorageDirByBlockId(blockId);
-    if (storageDir == null) {
-      throw new FileDoesNotExistException("Block file doesn't exist! blockId:" + blockId);
-    }
-    return new WorkerFileInfo(storageDir.getStorageDirId(), storageDir.getBlockFilePath(blockId),
-        storageDir.getBlockSize(blockId));
-  }
-
-  /**
    * @return The root local data folder of the worker
    */
   public String getDataFolder() {
@@ -743,17 +730,28 @@ public class WorkerStorage {
    * @param userId The id of the user who locks the block
    * @param storageDirId The id of the StorageDir
    * @param blockId The id of the block
+   * @return the Id of the StorageDir in which the block is locked
    */
-  public void lockBlock(long userId, long storageDirId, long blockId) {
-    StorageDir storageDir;
-    if (StorageDirId.isUnknown(storageDirId)) {
-      storageDir = getStorageDirByBlockId(blockId);
-    } else {
-      storageDir = getStorageDirById(storageDirId);
-    }
+  public long lockBlock(long userId, long storageDirId, long blockId) {
+    StorageDir storageDir = getStorageDirById(storageDirId);
     if (storageDir != null) {
-      storageDir.lockBlock(blockId, userId);
+      if (storageDir.lockBlock(blockId, userId)) {
+        return storageDir.getStorageDirId();
+      }
     }
+
+    storageDir = getStorageDirByBlockId(blockId);
+    if (storageDir != null) {
+      if (storageDir.lockBlock(blockId, userId)) {
+        LOG.warn(String.format("Attempt to lock block in storageDirId(%d), but actually in"
+            + " storageDirId(%d), blockId(%d)", storageDirId, storageDir.getStorageDirId(),
+            blockId));
+        return storageDir.getStorageDirId();
+      }
+    }
+    LOG.warn(String.format("Failed to lock block! storageDirId(%d), blockId(%d)",
+        storageDirId, blockId));
+    return StorageDirId.unknownId();
   }
 
   /**
@@ -769,21 +767,18 @@ public class WorkerStorage {
    */
   public boolean promoteBlock(long userId, long storageDirId, long blockId)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
-    StorageDir srcStorageDir;
-    if (StorageDirId.isUnknown(storageDirId)) {
-      srcStorageDir = getStorageDirByBlockId(blockId);
-      storageDirId = srcStorageDir.getStorageDirId();
-    } else {
-      srcStorageDir = getStorageDirById(storageDirId);
-    }
-    if (StorageDirId.getStorageLevelAliasValue(storageDirId) != mStorageTiers[0]
+
+    long storageDirIdLocked = lockBlock(userId, storageDirId, blockId);
+    if (StorageDirId.isUnknown(storageDirIdLocked)) {
+      return false;
+    } else if (StorageDirId.getStorageLevelAliasValue(storageDirIdLocked) != mStorageTiers[0]
         .getStorageLevelAlias().getValue()) {
-      lockBlock(userId, storageDirId, blockId);
+      StorageDir srcStorageDir = getStorageDirById(storageDirIdLocked);
       long blockSize = srcStorageDir.getBlockSize(blockId);
       StorageDir dstStorageDir = requestSpace(userId, blockSize);
-      if (StorageDirId.isUnknown(storageDirId)) {
+      if (dstStorageDir == null) {
         LOG.error("Failed to promote block! blockId:" + blockId);
-        unlockBlock(userId, storageDirId, blockId);
+        unlockBlock(userId, storageDirIdLocked, blockId);
         return false;
       }
       boolean result;
@@ -795,10 +790,11 @@ public class WorkerStorage {
         LOG.error("Failed to promote block! blockId:" + blockId);
         return false;
       } finally {
-        unlockBlock(userId, storageDirId, blockId);
+        unlockBlock(userId, storageDirIdLocked, blockId);
       }
       return result;
     } else {
+      unlockBlock(userId, storageDirIdLocked, blockId);
       return true;
     }
   }
@@ -988,17 +984,28 @@ public class WorkerStorage {
    * @param userId The id of the user who unlocks the block
    * @param storageDirId The id of the StorageDir
    * @param blockId The id of the block
+   * @return the Id of the StorageDir in which the block is unlocked
    */
-  public void unlockBlock(long userId, long storageDirId, long blockId) {
-    StorageDir storageDir;
-    if (StorageDirId.isUnknown(storageDirId)) {
-      storageDir = getStorageDirByBlockId(blockId);
-    } else {
-      storageDir = getStorageDirById(blockId);
-    }
+  public long unlockBlock(long userId, long storageDirId, long blockId) {
+    StorageDir storageDir = getStorageDirById(storageDirId);
     if (storageDir != null) {
-      storageDir.unlockBlock(blockId, userId);
+      if (storageDir.unlockBlock(blockId, userId)) {
+        return storageDir.getStorageDirId();
+      }
     }
+
+    storageDir = getStorageDirByBlockId(blockId);
+    if (storageDir != null) {
+      if (storageDir.unlockBlock(blockId, userId)) {
+        LOG.warn(String.format("Attempt to unlock block in storageDirId(%d), but actually in"
+            + " storageDirId(%d), blockId(%d)", storageDirId, storageDir.getStorageDirId(),
+            blockId));
+        return storageDir.getStorageDirId();
+      }
+    }
+    LOG.warn(String.format("Failed to lock block! storageDirId(%d), blockId(%d)",
+        storageDirId, blockId));
+    return StorageDirId.unknownId();
   }
 
   /**
