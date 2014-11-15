@@ -274,6 +274,15 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public boolean user_freepath(int fileId, String path, boolean recursive) throws TachyonException,
+      TException {
+    if (fileId != -1) {
+      return mMasterInfo.freepath(fileId, recursive);
+    }
+    return mMasterInfo.freepath(new TachyonURI(path), recursive);
+  }
+
+  @Override
   public void user_updateRawTableMetadata(int tableId, ByteBuffer metadata)
       throws TableDoesNotExistException, TachyonException, TException {
     mMasterInfo.updateRawTableMetadata(tableId,
