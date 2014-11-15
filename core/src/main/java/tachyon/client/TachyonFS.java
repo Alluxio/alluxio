@@ -764,6 +764,23 @@ public class TachyonFS extends AbstractTachyonFS {
     setPinned(fid, true);
   }
 
+ /**
+  * Frees in memory file or folder
+  * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+  *        Otherwise, the method uses the path parameter.
+  * @param path The path of the file / folder. It could be empty iff id is not -1.
+  * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
+  *        or not
+  * @return true if in-memory free successfully, false otherwise.
+  * @throws IOException
+  */
+  @Override
+  public synchronized boolean freepath(int fileId, TachyonURI path, boolean recursive)
+      throws IOException {
+    validateUri(path);
+    return mMasterClient.user_freepath(fileId, path.getPath(), recursive);
+  }
+
   public synchronized void releaseSpace(long releaseSpaceBytes) {
     mAvailableSpaceBytes += releaseSpaceBytes;
   }

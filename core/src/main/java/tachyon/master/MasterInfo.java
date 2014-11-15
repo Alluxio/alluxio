@@ -2129,6 +2129,85 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
+ /**
+  * Free the file/folder based on the files' ID
+  *
+  * @param fileId the file/folder to be freed.
+  * @param recursive whether free the folder recursively or not
+  * @return succeed or not
+  * @throws TachyonException
+  */
+  boolean freepath(int fileId, boolean recursive) throws TachyonException {
+    LOG.info("free(" + fileId + ")");
+    synchronized (mRootLock) {
+      Inode inode = mFileIdToInodes.get(fileId);
+      if (inode == null) {
+        LOG.error("File " + fileId + " does not exist");
+        return true;
+      }
+
+      if (inode.isDirectory() && !recursive && ((InodeFolder) inode).getNumberOfChildren() > 0) {
+        // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
+        // true
+        return false;
+      }
+
+      if (inode.getId() == mRoot.getId()) {
+        // The root cannot be freed.
+        return false;
+      }
+
+      List<Inode> freeInodes = new ArrayList<Inode>();
+      freeInodes.add(inode);
+      if (inode.isDirectory()) {
+        freeInodes.addAll(getInodeChildrenRecursive((InodeFolder) inode));
+      }
+
+      // We go through each inode.
+      for (int i = freeInodes.size() - 1; i >= 0; i --) {
+        Inode freeInode = freeInodes.get(i);
+
+        if (freeInode.isFile()) {
+          List<Pair<Long, Long>> blockIdWorkerIdList
+              = ((InodeFile) freeInode).getBlockIdWorkerIdPairs();
+          synchronized (mWorkers) {
+            for (Pair<Long, Long> blockIdWorkerId : blockIdWorkerIdList) {
+              MasterWorkerInfo workerInfo = mWorkers.get(blockIdWorkerId.getSecond());
+              if (workerInfo != null) {
+                workerInfo.updateToRemovedBlock(true, blockIdWorkerId.getFirst());
+              }
+            }
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+ /**
+  * Frees files based on the path
+  *
+  * @param path The file to be freed.
+  * @param recursive whether delete the file recursively or not.
+  * @return succeed or not
+  * @throws TachyonException
+  */
+  public boolean freepath(TachyonURI path, boolean recursive) throws TachyonException {
+    LOG.info("free(" + path + ")");
+    synchronized (mRootLock) {
+      Inode inode = null;
+      try {
+        inode = getInode(path);
+      } catch (InvalidPathException e) {
+        return false;
+      }
+      if (inode == null) {
+        return true;
+      }
+      return freepath(inode.getId(), recursive);
+    }
+  }
+
   /**
    * Stops the heartbeat thread.
    */
