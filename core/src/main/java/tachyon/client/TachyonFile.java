@@ -28,13 +28,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
+import tachyon.StorageDirId;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.WorkerFileInfo;
 
 /**
  * Tachyon File.
@@ -391,28 +391,19 @@ public class TachyonFile implements Comparable<TachyonFile> {
     long blockId = info.blockId;
 
     int blockLockId = mTachyonFS.getBlockLockId();
-    if (!mTachyonFS.lockBlock(blockId, blockLockId)) {
+    long storageDirIdLocked = mTachyonFS.lockBlock(info, blockLockId);
+    if (StorageDirId.isUnknown(storageDirIdLocked)) {
       return null;
     }
 
     Closer closer = Closer.create();
-    String localFileName = mTachyonFS.getLocalBlockFilePath(info);
+    String localFileName = mTachyonFS.getLocalBlockFilePath(storageDirIdLocked, blockId);
     if (localFileName != null) {
       try {
         RandomAccessFile localFile;
         long fileLength;
-        try {
-          localFile = closer.register(new RandomAccessFile(localFileName, "r"));
-          fileLength = localFile.length();
-        } catch (FileNotFoundException e) {
-          LOG.error("Information on master for block " + blockId + " is outdated!");
-          WorkerFileInfo fileInfo = mTachyonFS.getBlockFileInfo(blockId);
-          if (fileInfo == null) {
-            throw e;
-          }
-          localFile = closer.register(new RandomAccessFile(fileInfo.getFilePath(), "r"));
-          fileLength = fileInfo.getFileSize();
-        }
+        localFile = closer.register(new RandomAccessFile(localFileName, "r"));
+        fileLength = localFile.length();
 
         String error = null;
         if (offset > fileLength) {
@@ -434,7 +425,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
         FileChannel localFileChannel = closer.register(localFile.getChannel());
         final ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
         mTachyonFS.accessLocalBlock(info);
-        return new TachyonByteBuffer(mTachyonFS, buf, blockId, blockLockId);
+        return new TachyonByteBuffer(mTachyonFS, buf, storageDirIdLocked, blockId, blockLockId);
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");
       } catch (IOException e) {
@@ -444,7 +435,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       }
     }
 
-    mTachyonFS.unlockBlock(blockId, blockLockId);
+    mTachyonFS.unlockBlock(storageDirIdLocked, blockId, blockLockId);
     return null;
   }
 
@@ -458,7 +449,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
     // We call into the remote block in stream class to read a remote byte buffer
     ByteBuffer buf = RemoteBlockInStream.readRemoteByteBuffer(mTachyonFS,
         blockInfo, 0, blockInfo.length);
-    return (buf == null) ? null : new TachyonByteBuffer(mTachyonFS, buf, blockInfo.blockId, -1);
+    return (buf == null) ? null : new TachyonByteBuffer(mTachyonFS, buf, StorageDirId.unknownId(),
+        blockInfo.blockId, -1);
   }
 
   

@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.StorageDirId;
 import tachyon.conf.CommonConf;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
@@ -215,12 +216,12 @@ public class NIODataServer implements Runnable, DataServer {
 
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getBlockId());
-      int lockId = mBlockLocker.lock(tMessage.getStorageDirId(), tMessage.getBlockId());
-      StorageDir storageDir = mWorkerStorage.getStorageDirById(tMessage.getStorageDirId());
-      if (storageDir == null || !storageDir.containsBlock(tMessage.getBlockId())) {
-        LOG.error("Information on master for block " + tMessage.getBlockId() + " is outdated!");
-        storageDir = mWorkerStorage.getStorageDirByBlockId(tMessage.getBlockId());
-      }
+      final long storageDirId = tMessage.getStorageDirId();
+      final long blockId = tMessage.getBlockId();
+      final int lockId = mBlockLocker.getLockId();
+      final long storageDirIdLocked = mBlockLocker.lock(storageDirId, blockId, lockId);
+
+      StorageDir storageDir = mWorkerStorage.getStorageDirById(storageDirIdLocked);
       ByteBuffer data = null;
       int dataLen = 0;
       try {
@@ -234,9 +235,10 @@ public class NIODataServer implements Runnable, DataServer {
         data = null;
       }
       DataServerMessage tResponseMessage =
-          DataServerMessage.createBlockResponseMessage(true, tMessage.getStorageDirId(),
-              tMessage.getBlockId(), tMessage.getOffset(), dataLen, data);
+          DataServerMessage.createBlockResponseMessage(true, storageDirIdLocked,
+              blockId, tMessage.getOffset(), dataLen, data);
       tResponseMessage.setLockId(lockId);
+      mBlockLocker.unlock(storageDirIdLocked, blockId, lockId);
       mSendingData.put(socketChannel, tResponseMessage);
     }
   }

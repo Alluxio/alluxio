@@ -27,7 +27,6 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerDirInfo;
-import tachyon.thrift.WorkerFileInfo;
 import tachyon.thrift.WorkerService;
 import tachyon.worker.hierarchy.StorageDir;
 
@@ -76,12 +75,6 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public WorkerFileInfo getBlockFileInfo(long blockId)
-      throws FileDoesNotExistException, TException {
-    return mWorkerStorage.getBlockFileInfo(blockId);
-  }
-
-  @Override
   public String getDataFolder() throws TException {
     return mWorkerStorage.getDataFolder();
   }
@@ -102,8 +95,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void lockBlock(long userId, long storageDirId, long blockId) throws TException {
-    mWorkerStorage.lockBlock(userId, storageDirId, blockId);
+  public long lockBlock(long userId, long storageDirId, long blockId) throws TException {
+    return mWorkerStorage.lockBlock(userId, storageDirId, blockId);
   }
 
   @Override
@@ -133,8 +126,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void unlockBlock(long userId, long storageDirId, long blockId) throws TException {
-    mWorkerStorage.unlockBlock(userId, storageDirId, blockId);
+  public long unlockBlock(long userId, long storageDirId, long blockId) throws TException {
+    return mWorkerStorage.unlockBlock(userId, storageDirId, blockId);
   }
 
   @Override

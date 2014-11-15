@@ -16,9 +16,6 @@
 package tachyon.worker.netty;
 
 
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
@@ -29,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.StorageDirId;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.WorkerStorage;
@@ -59,23 +57,21 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
-    final int lockId = mLocker.lock(storageDirId, blockId);
+    final int lockId = mLocker.getLockId();
+    final long storageDirIdLocked = mLocker.lock(storageDirId, blockId, lockId);
 
     BlockHandler handler = null;
     try {
       validateInput(req);
-      StorageDir storageDir = mWorkerStorage.getStorageDirById(storageDirId);
-      if (storageDir == null || !storageDir.containsBlock(blockId)) {
-        LOG.error("Information on master for block " + blockId + " is outdated!");
-        storageDir = mWorkerStorage.getStorageDirByBlockId(blockId);
-      }
+      StorageDir storageDir = mWorkerStorage.getStorageDirById(storageDirIdLocked);
       handler = storageDir.getBlockHandler(blockId);
 
       final long fileLength = handler.getLength();
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
       ChannelFuture future =
-          ctx.writeAndFlush(new BlockResponse(storageDirId, blockId, offset, readLength, handler));
+          ctx.writeAndFlush(new BlockResponse(storageDirIdLocked, blockId, offset, readLength,
+              handler));
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(handler));
       storageDir.accessBlock(blockId);
@@ -84,14 +80,14 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     } catch (Exception e) {
       // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);
-      BlockResponse resp = BlockResponse.createErrorResponse(storageDirId, blockId);
+      BlockResponse resp = BlockResponse.createErrorResponse(storageDirIdLocked, blockId);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       if (handler != null) {
         handler.close();
       }
     } finally {
-      mLocker.unlock(storageDirId, blockId, lockId);
+      mLocker.unlock(storageDirIdLocked, blockId, lockId);
     }
   }
 
