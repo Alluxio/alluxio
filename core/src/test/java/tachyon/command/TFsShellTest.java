@@ -515,4 +515,11 @@ public class TFsShellTest {
     assertThat(getCommandOutput(argv), equalTo(mOutput.toString()));
     assertThat(tFile.isFile(), equalTo(true));
   }
+
+  @Test
+  public void freeTest() throws IOException {
+    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    mFsShell.free(new String[]{"free", "/testFile"});
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testFile")).isInMemory()) ;
+  }
 }

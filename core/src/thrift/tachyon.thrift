@@ -240,8 +240,11 @@ service MasterService {
   /**
    * Returns if the message was received. Intended to check if the client can still connect to the
    * master.
-  */
+   */
   void user_heartbeat();
+
+  bool user_freepath(1: i32 fileId, 2: string path, 3: bool recursive)
+    throws (1: FileDoesNotExistException e)
 }
 
 service WorkerService {
