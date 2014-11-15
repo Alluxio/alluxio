@@ -25,6 +25,8 @@ import java.nio.ByteBuffer;
 public class TachyonByteBuffer implements Closeable {
   // ByteBuffer contains data.
   public final ByteBuffer mData;
+  
+  private final long mStorageDirId;
 
   private final long mBlockId;
 
@@ -37,11 +39,14 @@ public class TachyonByteBuffer implements Closeable {
   /**
    * @param tfs the Tachyon file system
    * @param buf the ByteBuffer wrapped on
+   * @param storageDirId the Id of the StorageDir in which the block is locked
    * @param blockId the id of the block
    * @param blockLockId the id of the block's lock
    */
-  TachyonByteBuffer(TachyonFS tfs, ByteBuffer buf, long blockId, int blockLockId) {
+  TachyonByteBuffer(TachyonFS tfs, ByteBuffer buf, long storageDirId, long blockId,
+      int blockLockId) {
     mData = buf;
+    mStorageDirId = storageDirId;
     mBlockId = blockId;
     mBlockLockId = blockLockId;
     mTachyonFS = tfs;
@@ -60,7 +65,7 @@ public class TachyonByteBuffer implements Closeable {
 
     mClosed = true;
     if (mBlockLockId >= 0) {
-      mTachyonFS.unlockBlock(mBlockId, mBlockLockId);
+      mTachyonFS.unlockBlock(mStorageDirId, mBlockId, mBlockLockId);
     }
   }
 }

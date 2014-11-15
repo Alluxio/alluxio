@@ -80,12 +80,6 @@ struct WorkerDirInfo {
   3: binary conf
 }
 
-struct WorkerFileInfo {
-  1: i64 storageDirId
-  2: string filePath
-  3: i64 fileSize
-}
-
 exception BlockInfoException {
   1: string message
 }
@@ -275,9 +269,6 @@ service WorkerService {
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: BlockInfoException eB)
 
-  WorkerFileInfo getBlockFileInfo(1: i64 blockId)
-    throws (1: FileDoesNotExistException eP)
-
   string getDataFolder()
 
   list<WorkerDirInfo> getWorkerDirInfos()
@@ -286,7 +277,7 @@ service WorkerService {
 
   string getUserUfsTempFolder(1: i64 userId)
 
-  void lockBlock(1: i64 userId 2: i64 storageDirId 3: i64 blockId) // Lock the file in memory while the user is reading it.
+  i64 lockBlock(1: i64 userId 2: i64 storageDirId 3: i64 blockId) // Lock the file in memory while the user is reading it.
 
   bool promoteBlock(1: i64 userId, 2: i64 storageDirId, 3: i64 blockId)
 
@@ -296,7 +287,7 @@ service WorkerService {
 
   bool requestSpaceInPlace(1: i64 userId, 2: i64 storageDirId, 3: i64 requestBytes)
 
-  void unlockBlock(1: i64 userId 2: i64 storageDirId 3: i64 blockId) // unlock the file
+  i64 unlockBlock(1: i64 userId 2: i64 storageDirId 3: i64 blockId) // unlock the file
 
   void userHeartbeat(1: i64 userId)   // Local user send heartbeat to local worker to keep its temp folder.
 }
