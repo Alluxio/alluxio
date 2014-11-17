@@ -1,4 +1,4 @@
-# Ufs = {glusterfs|hadoop2|dummy}
+# Ufs = {glusterfs|hadoop2|hadoop1}
 Ufs: 'hadoop2'
 # Provider = {vb|aws}
 Provider: 'vb'

@@ -536,9 +536,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   @Override
   public ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException {
-    validateUri(path);
-    ClientFileInfo info = mMasterClient.getFileStatus(fileId, path.getPath());
-    return info.getId() == -1 ? null : info;
+    return getFileStatus(fileId, path, false);
   }
 
   /**
@@ -575,11 +573,11 @@ public class TachyonFS extends AbstractTachyonFS {
     if (fileId != -1) {
       info = mIdToClientFileInfo.get(fileId);
       if (!useCachedMetadata || info == null) {
-        info = getFileStatus(fileId, TachyonURI.EMPTY_URI);
+        info = mMasterClient.getFileStatus(fileId, TachyonURI.EMPTY_URI.getPath());
         updated = true;
       }
 
-      if (info == null) {
+      if (info.getId() == -1) {
         mIdToClientFileInfo.remove(fileId);
         return null;
       }
@@ -588,11 +586,11 @@ public class TachyonFS extends AbstractTachyonFS {
     } else {
       info = mPathToClientFileInfo.get(path.getPath());
       if (!useCachedMetadata || info == null) {
-        info = getFileStatus(-1, path);
+        info = mMasterClient.getFileStatus(-1, path.getPath());
         updated = true;
       }
 
-      if (info == null) {
+      if (info.getId() == -1) {
         mPathToClientFileInfo.remove(path.getPath());
         return null;
       }
@@ -659,6 +657,16 @@ public class TachyonFS extends AbstractTachyonFS {
     String scheme = CommonConf.get().USE_ZOOKEEPER ? Constants.SCHEME_FT : Constants.SCHEME;
     String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
     return new TachyonURI(scheme, authority, TachyonURI.SEPARATOR);
+  }
+  
+  /**
+   * Returns the userId of the master client. This is only used for testing.
+   * 
+   * @return the userId of the master client
+   * @throws IOException
+   */
+  long getUserId() throws IOException {
+    return mMasterClient.getUserId();
   }
 
   /**

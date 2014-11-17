@@ -1,5 +1,14 @@
 package tachyon.master;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -128,5 +137,30 @@ public class InodeFolderTest {
     Assert.assertEquals(0, inode1.getParentId());
     inode1.setParentId(2);
     Assert.assertEquals(2, inode1.getParentId());
+  }
+
+  @Test
+  public void writeImageTest() throws IOException {
+    // create the InodeFolder and the output streams
+    long creationTime = System.currentTimeMillis();
+    InodeFolder inode1 = new InodeFolder("test1", 1, 0, creationTime);
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(os);
+    ObjectMapper mapper = JsonObject.createObjectMapper();
+    ObjectWriter writer = mapper.writer();
+
+    // write the image
+    inode1.writeImage(writer, dos);
+
+    // decode the written bytes
+    ImageElement decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
+
+    // test the decoded ImageElement
+    Assert.assertEquals(creationTime, decoded.getLong("creationTimeMs").longValue());
+    Assert.assertEquals(1, decoded.getInt("id").intValue());
+    Assert.assertEquals("test1", decoded.getString("name"));
+    Assert.assertEquals(0, decoded.getInt("parentId").intValue());
+    Assert.assertEquals(new ArrayList<Integer>(), decoded.get("childrenIds", new TypeReference<List<Integer>>() {}));
+    Assert.assertEquals(creationTime, decoded.getLong("lastModificationTimeMs").longValue());
   }
 }

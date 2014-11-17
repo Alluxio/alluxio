@@ -70,7 +70,7 @@ leverage the Scala shell, as discussed in this
     -  Static variable names should be prefixed with `s`, for example `public static String sUnderFSAddress;`
     -  Do not add `public` or `abstract` modifier to methods defined in an Java interface because
        method declaration in the body of an interface is implicitly public and abstract.
-       (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)  
+       (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)
 -   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml)
     -  If you use IntelliJ IDEA: you can either use our formatter with the help from
        [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
@@ -80,18 +80,18 @@ leverage the Scala shell, as discussed in this
 
         import org.slf4j.Logger;
         import org.slf4j.LoggerFactory;
-        
-        public MyClass {    
-        
+
+        public MyClass {
+
           private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-        
-          public void someMethod() { 
+
+          public void someMethod() {
             LOG.info("Hello world");
           }
-        }  
--  To verify that the coding standards match, you should run [checkstyle](http://checkstyle.sourceforge.net) 
-   before sending a pull-request to verify no new warnings are introduced: 
-   
+        }
+-  To verify that the coding standards match, you should run [checkstyle](http://checkstyle.sourceforge.net)
+   before sending a pull-request to verify no new warnings are introduced:
+
         mvn checkstyle:checkstyle
 
 ### FindBugs
@@ -105,7 +105,7 @@ Before submitting the pull-request, run the latest code against
 
 You can generate an Eclipse configuration file by running:
 
-    mvn clean test -Dtest.profile=hdfs -DskipTests eclipse:eclipse
+    mvn clean -Dtest.profile=hdfs -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
 
 Then import the folder into Eclipse.
 
@@ -128,11 +128,14 @@ You may also have to add the classpath variable M2_REPO by running:
 
 ### Presentations:
 
+-   Strata and Hadoop World 2014 (October, 2014) [pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pdf) [pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pptx)
 -   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
 -   Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
 
 ### Readings
 
+-   [Tachyon: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
+Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *SOCC 2014*.
 -   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_tachyon.pdf)
 Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *UC Berkeley EECS 2014*.
 -   [Tachyon: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)

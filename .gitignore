@@ -9,6 +9,10 @@ conf/tachyon-env.sh
 conf/slaves
 core/dependency-reduced-pom.xml
 data/
+deploy/vagrant/conf/
+deploy/vagrant/files/
+deploy/vagrant/shared/
+deploy/vagrant/.vagrant/
 docs/_site
 docs/api
 docs/serve/
