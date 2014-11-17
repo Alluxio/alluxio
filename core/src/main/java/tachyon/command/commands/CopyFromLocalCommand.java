@@ -27,7 +27,7 @@ import tachyon.conf.UserConf;
 public class CopyFromLocalCommand extends AbstractCommands {
   public static final String NAME = "copyFromLocal";
   public static final String DESCRIPTION =
-    "Copies a file or directory specified by argv from the local filesystem to the filesystem.";
+      "Copies a file or directory specified by argv from the local filesystem to the filesystem.";
 
   /**
    * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
@@ -48,8 +48,7 @@ public class CopyFromLocalCommand extends AbstractCommands {
       srcPath = cmdl.getOptions()[0].getValue(0);
       dstPath = new TachyonURI(cmdl.getOptions()[0].getValue(1));
     } catch (Exception e) {
-        throw new ParseException("Missing second argument for option: copyFromLocal");
-
+      throw new ParseException("Missing second argument for option: copyFromLocal");
     }
     File src = new File(srcPath);
     if (!src.exists()) {

@@ -21,7 +21,7 @@ import tachyon.util.CommonUtils;
 public class LsrCommand extends AbstractCommands {
   public static final String NAME = "lsr";
   public static final String DESCRIPTION =
-     "Displays information for all directories and files under the path specified recursively.";
+      "Displays information for all directories and files under the path specified recursively.";
 
   @Override
   public int execute(CommandLine cmdl) throws IOException, ParseException {

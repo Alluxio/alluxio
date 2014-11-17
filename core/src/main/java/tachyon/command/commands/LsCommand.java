@@ -20,11 +20,12 @@ import tachyon.util.CommonUtils;
 public class LsCommand extends AbstractCommands {
   public static final String NAME = "ls";
   public static final String DESCRIPTION =
-  "Displays information for all directories and files directly under the path specified in argv.";
+      "Displays information for all directories and "
+              + "files directly under the path specified in argv.";
 
   @Override
   public int execute(CommandLine cmdl)  throws IOException, ParseException {
-      return ls(cmdl);
+    return ls(cmdl);
   }
 
   /**
@@ -50,8 +51,8 @@ public class LsCommand extends AbstractCommands {
         }
       }
       System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
-      CommonUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
+          CommonUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
     }
     return 0;
-    }
+  }
 }

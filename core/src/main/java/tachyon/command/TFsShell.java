@@ -5,7 +5,14 @@ import java.io.IOException;
 
 import com.google.common.io.Closer;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
 
 import tachyon.command.commands.CatCommand;
 import tachyon.command.commands.CopyFromLocalCommand;
@@ -209,7 +216,7 @@ public class TFsShell implements Closeable {
     HelpFormatter formatter = new HelpFormatter();
     formatter.setOptPrefix("");
 
-    Option o = options.getOption(message.substring(message.lastIndexOf(':')+1).trim());
+    Option o = options.getOption(message.substring(message.lastIndexOf(':') + 1).trim());
     formatter.printHelp(" ", new Options().addOption(o));
   }
 }

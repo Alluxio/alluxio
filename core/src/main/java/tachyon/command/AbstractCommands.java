@@ -44,11 +44,11 @@ public abstract class AbstractCommands {
     return mCloser.register(TachyonFS.get(new TachyonURI(qualifiedPath)));
   }
 
-    public Closer getmCloser() {
-        return mCloser;
-    }
+  public Closer getmCloser() {
+    return mCloser;
+  }
 
-    public void setmCloser(Closer mCloser) {
-        this.mCloser = mCloser;
-    }
+  public void setmCloser(Closer mCloser) {
+    this.mCloser = mCloser;
+  }
 }

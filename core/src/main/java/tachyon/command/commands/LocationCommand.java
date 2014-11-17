@@ -17,9 +17,9 @@ import tachyon.command.AbstractCommands;
 public class LocationCommand extends AbstractCommands {
   public static final String NAME = "location";
   public static final String DESCRIPTION =
-          "Displays a list of hosts that have the file specified in argv stored.";
+      "Displays a list of hosts that have the file specified in argv stored.";
 
-    @Override
+  @Override
   public int execute(CommandLine cmdl) throws IOException, ParseException {
     return location(cmdl);
   }
