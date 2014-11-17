@@ -8,7 +8,7 @@ def config_docker(config, i, total, name)
   config.vm.synced_folder "./", "/vagrant"
   config.ssh.username = "root"
   config.ssh.password = "vagrant"
-
+  config.ssh.private_key_path = "files/id_rsa"
   config.vm.provider "docker" do |d|
     d.build_dir = "."
     config.ssh.port ="22"
