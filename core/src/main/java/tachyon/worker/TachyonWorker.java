@@ -68,9 +68,9 @@ public class TachyonWorker implements Runnable {
    */
   public static synchronized TachyonWorker createWorker(InetSocketAddress masterAddress,
       InetSocketAddress workerAddress, int dataPort, int selectorThreads,
-      int acceptQueueSizePerThreads, int workerThreads, String localFolder, long spaceLimitBytes) {
+      int acceptQueueSizePerThreads, int workerThreads/* , String localFolder */) {
     return new TachyonWorker(masterAddress, workerAddress, dataPort, selectorThreads,
-        acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
+        acceptQueueSizePerThreads, workerThreads/* , localFolder */);
   }
 
   /**
@@ -87,14 +87,13 @@ public class TachyonWorker implements Runnable {
    * @return The new TachyonWorker
    */
   public static synchronized TachyonWorker createWorker(String masterAddress, String workerAddress,
-      int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
-      String localFolder, long spaceLimitBytes) {
+      int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads) {
     String[] address = masterAddress.split(":");
     InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
     address = workerAddress.split(":");
     InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
     return new TachyonWorker(master, worker, dataPort, selectorThreads, acceptQueueSizePerThreads,
-        workerThreads, localFolder, spaceLimitBytes);
+        workerThreads);
   }
 
   private static String getMasterLocation(String[] args) {
@@ -131,7 +130,7 @@ public class TachyonWorker implements Runnable {
     TachyonWorker worker =
         TachyonWorker.createWorker(getMasterLocation(args), resolvedWorkerHost + ":" + wConf.PORT,
             wConf.DATA_PORT, wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
-            wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
+            wConf.SERVER_THREADS);
     try {
       worker.start();
     } catch (Exception e) {
@@ -171,8 +170,7 @@ public class TachyonWorker implements Runnable {
    * @param memoryCapacityBytes The maximum memory space this TachyonWorker can use, in bytes
    */
   private TachyonWorker(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
-      int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
-      String dataFolder, long memoryCapacityBytes) {
+      int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads) {
     CommonConf.assertValidPort(masterAddress);
     CommonConf.assertValidPort(workerAddress);
     CommonConf.assertValidPort(dataPort);
@@ -180,7 +178,7 @@ public class TachyonWorker implements Runnable {
     mMasterAddress = masterAddress;
 
     mWorkerStorage =
-        new WorkerStorage(mMasterAddress, dataFolder, memoryCapacityBytes, mExecutorService);
+        new WorkerStorage(mMasterAddress, mExecutorService);
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
@@ -220,9 +218,9 @@ public class TachyonWorker implements Runnable {
       final BlocksLocker blockLocker) {
     switch (WorkerConf.get().NETWORK_TYPE) {
       case NIO:
-        return new NIODataServer(dataAddress, blockLocker);
+        return new NIODataServer(dataAddress, blockLocker, mWorkerStorage);
       case NETTY:
-        return new NettyDataServer(dataAddress, blockLocker);
+        return new NettyDataServer(dataAddress, blockLocker, mWorkerStorage);
       default:
         throw new AssertionError("Unknown network type: " + WorkerConf.get().NETWORK_TYPE);
     }

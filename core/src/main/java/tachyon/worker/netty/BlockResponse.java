@@ -15,7 +15,7 @@
 
 package tachyon.worker.netty;
 
-import java.nio.MappedByteBuffer;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.List;
 
@@ -29,6 +29,7 @@ import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 
 import tachyon.conf.WorkerConf;
+import tachyon.worker.BlockHandler;
 import tachyon.worker.nio.DataServerMessage;
 
 /**
@@ -46,6 +47,7 @@ public final class BlockResponse {
     private ByteBuf createHeader(final ChannelHandlerContext ctx, final BlockResponse msg) {
       ByteBuf header = ctx.alloc().buffer(MESSAGE_LENGTH);
       header.writeShort(DataServerMessage.DATA_SERVER_RESPONSE_MESSAGE);
+      header.writeLong(msg.getStorageDirId());
       header.writeLong(msg.getBlockId());
       header.writeLong(msg.getOffset());
       header.writeLong(msg.getLength());
@@ -56,17 +58,22 @@ public final class BlockResponse {
     protected void encode(final ChannelHandlerContext ctx, final BlockResponse msg,
         final List<Object> out) throws Exception {
       out.add(createHeader(ctx, msg));
-      if (msg.getChannel() != null) {
+      BlockHandler handler = msg.getHandler();
+      if (handler != null) {
         switch (WorkerConf.get().NETTY_FILE_TRANSFER_TYPE) {
           case MAPPED:
-            MappedByteBuffer data =
-                msg.getChannel().map(FileChannel.MapMode.READ_ONLY, msg.getOffset(),
-                    msg.getLength());
+            ByteBuffer data = handler.read(msg.getOffset(), (int) msg.getLength());
             out.add(Unpooled.wrappedBuffer(data));
-            msg.getChannel().close();
+            handler.close();
             break;
           case TRANSFER:
-            out.add(new DefaultFileRegion(msg.getChannel(), msg.getOffset(), msg.getLength()));
+            if (handler.getChannel() instanceof FileChannel) {
+              out.add(new DefaultFileRegion((FileChannel) handler.getChannel(), msg.getOffset(),
+                  msg.getLength()));
+            } else {
+              handler.close();
+              throw new Exception("Only FileChannel is supported!");
+            }
             break;
           default:
             throw new AssertionError("Unknown file transfer type: "
@@ -80,30 +87,33 @@ public final class BlockResponse {
    * Creates a {@link tachyon.worker.netty.BlockResponse} that represents a error case for the given
    * block.
    */
-  public static BlockResponse createErrorResponse(final long blockId) {
-    return new BlockResponse(-blockId, 0, 0, null);
+  public static BlockResponse createErrorResponse(final long storageDirId, final long blockId) {
+    return new BlockResponse(-storageDirId, -blockId, 0, 0, null);
   }
 
+  private final long mStorageDirId;
   private final long mBlockId;
   private final long mOffset;
 
   private final long mLength;
 
-  private final FileChannel mChannel;
+  private final BlockHandler mHandler;
 
-  public BlockResponse(long blockId, long offset, long length, FileChannel channel) {
+  public BlockResponse(long storageDirId, long blockId, long offset, long length,
+      BlockHandler handler) {
+    mStorageDirId = storageDirId;
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
-    mChannel = channel;
+    mHandler = handler;
   }
 
   public long getBlockId() {
     return mBlockId;
   }
 
-  public FileChannel getChannel() {
-    return mChannel;
+  public BlockHandler getHandler() {
+    return mHandler;
   }
 
   public long getLength() {
@@ -112,5 +122,9 @@ public final class BlockResponse {
 
   public long getOffset() {
     return mOffset;
+  }
+
+  public long getStorageDirId() {
+    return mStorageDirId;
   }
 }

@@ -15,7 +15,6 @@
 
 package tachyon.client;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
@@ -26,6 +25,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,13 +33,14 @@ import org.slf4j.LoggerFactory;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
+import tachyon.StorageDirId;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.util.CommonUtils;
+import tachyon.thrift.WorkerFileInfo;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.nio.DataServerMessage;
 
@@ -184,15 +185,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   public String getLocalFilename(int blockIndex) throws IOException {
     ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
 
-    String rootFolder = mTachyonFS.getLocalDataFolder();
-    if (rootFolder != null) {
-      String localFileName = CommonUtils.concat(rootFolder, blockInfo.getBlockId());
-      File file = new File(localFileName);
-      if (file.exists()) {
-        return localFileName;
-      }
-    }
-    return null;
+    return mTachyonFS.getLocalBlockFilePath(blockInfo);
   }
 
   /**
@@ -338,6 +331,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return mTachyonFS.getFileStatus(mFileId, false).isPinned;
   }
 
+  public boolean promoteBlock(int blockIndex) throws IOException {
+    long blockId = getBlockId(blockIndex);
+    return mTachyonFS.promoteBlock(blockId);
+  }
+
   /**
    * Advanced API.
    * 
@@ -397,13 +395,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
     if (!mTachyonFS.lockBlock(blockId, blockLockId)) {
       return null;
     }
-    String localFileName = getLocalFilename(blockIndex);
     Closer closer = Closer.create();
-    if (localFileName != null) {
+    WorkerFileInfo fileInfo = mTachyonFS.getBlockFileInfo(blockId);
+    if (fileInfo != null) {
       try {
+        String localFileName = fileInfo.getFilePath();
         RandomAccessFile localFile = closer.register(new RandomAccessFile(localFileName, "r"));
 
-        long fileLength = localFile.length();
+        long fileLength = fileInfo.getFileSize();// localFile.length();
         String error = null;
         if (offset > fileLength) {
           error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
@@ -426,9 +425,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
         mTachyonFS.accessLocalBlock(blockId);
         return new TachyonByteBuffer(mTachyonFS, buf, blockId, blockLockId);
       } catch (FileNotFoundException e) {
-        LOG.info(localFileName + " is not on local disk.");
+        LOG.info("block is not on local disk! blockId:" + blockId);
       } catch (IOException e) {
-        LOG.warn("Failed to read local file " + localFileName + " because:", e);
+        LOG.warn("Failed to read local file " + blockId + " because:", e);
       } finally {
         closer.close();
       }
@@ -448,40 +447,43 @@ public class TachyonFile implements Comparable<TachyonFile> {
     ByteBuffer buf = null;
 
     LOG.info("Try to find and read from remote workers.");
-    try {
-      List<NetAddress> blockLocations = blockInfo.getLocations();
-      LOG.info("readByteBufferFromRemote() " + blockLocations);
 
-      for (int k = 0; k < blockLocations.size(); k ++) {
-        String host = blockLocations.get(k).mHost;
-        int port = blockLocations.get(k).mSecondaryPort;
+    List<NetAddress> blockLocations = blockInfo.getLocations();
+    Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
+    LOG.info("readByteBufferFromRemote() " + blockLocations);
 
-        // The data is not in remote machine's memory if port == -1.
-        if (port == -1) {
-          continue;
-        }
-        final String hostname = NetworkUtils.getLocalHostName();
-        final String hostaddress = NetworkUtils.getLocalIpAddress();
-        if (host.equals(hostname) || host.equals(hostaddress)) {
-          String localFileName =
-              CommonUtils.concat(mTachyonFS.getLocalDataFolder(), blockInfo.blockId);
-          LOG.warn("Reading remotely even though request is local; file is " + localFileName);
-        }
-        LOG.info(host + ":" + port + " current host is " + hostname + " " + hostaddress);
-
-        try {
-          buf = retrieveRemoteByteBuffer(new InetSocketAddress(host, port), blockInfo.blockId);
-          if (buf != null) {
-            break;
-          }
-        } catch (IOException e) {
-          LOG.error("Fail to retrieve byte buffer for block " + blockInfo.blockId + " from remote "
-              + host + ":" + port, e);
-          buf = null;
-        }
+    for (NetAddress blockLocation : blockLocations) {
+      String host = blockLocation.mHost;
+      int port = blockLocation.mSecondaryPort;
+      long storageDirId;
+      if (storageDirIds.containsKey(blockLocation)) {
+        storageDirId = storageDirIds.get(blockLocation);
+      } else {
+        storageDirId = StorageDirId.unknownId();
       }
-    } catch (IOException e) {
-      LOG.error("Failed to get read data from remote ", e);
+      // The data is not in remote machine's memory if port == -1.
+      if (port == -1) {
+        continue;
+      }
+      final String hostname = NetworkUtils.getLocalHostName();
+      final String hostaddress = NetworkUtils.getLocalIpAddress();
+      if (host.equals(hostname) || host.equals(hostaddress)) {
+        LOG.warn("Reading remotely even though request is local!");
+      }
+      LOG.info(host + ":" + port + " current host is " + hostname + " " + hostaddress);
+
+      try {
+        buf =
+            retrieveRemoteByteBuffer(new InetSocketAddress(host, port), storageDirId,
+                blockInfo.blockId);
+        if (buf != null) {
+          break;
+        }
+      } catch (IOException e) {
+        LOG.error("Fail to retrieve byte buffer for block " + blockInfo.blockId + " from remote "
+            + host + ":" + port, e);
+        buf = null;
+      }
     }
 
     return buf == null ? null : new TachyonByteBuffer(mTachyonFS, buf, blockInfo.blockId, -1);
@@ -569,21 +571,23 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return mTachyonFS.rename(mFileId, path);
   }
 
-  private ByteBuffer retrieveRemoteByteBuffer(InetSocketAddress address, long blockId)
-      throws IOException {
+  private ByteBuffer retrieveRemoteByteBuffer(InetSocketAddress address, long storageDirId,
+      long blockId) throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     try {
       socketChannel.connect(address);
 
       LOG.info("Connected to remote machine " + address + " sent");
-      DataServerMessage sendMsg = DataServerMessage.createBlockRequestMessage(blockId);
+      DataServerMessage sendMsg =
+          DataServerMessage.createBlockRequestMessage(storageDirId, blockId);
       while (!sendMsg.finishSending()) {
         sendMsg.send(socketChannel);
       }
 
       LOG.info("Data " + blockId + " to remote machine " + address + " sent");
 
-      DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
+      DataServerMessage recvMsg =
+          DataServerMessage.createBlockResponseMessage(false, storageDirId, blockId, null);
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {

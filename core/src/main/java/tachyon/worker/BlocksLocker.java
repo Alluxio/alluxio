@@ -44,10 +44,10 @@ public class BlocksLocker {
    * @param blockId The id of the block.
    * @return The lockId of this lock.
    */
-  public synchronized int lock(long blockId) {
+  public synchronized int lock(long storageDirId, long blockId) {
     int locker = mBlockLockId.incrementAndGet();
     if (!mLockedBlockIds.containsKey(blockId)) {
-      mWorkerStorage.lockBlock(blockId, mUserId);
+      mWorkerStorage.lockBlock(mUserId, storageDirId, blockId);
       mLockedBlockIds.put(blockId, new HashSet<Integer>());
     }
     mLockedBlockIds.get(blockId).add(locker);
@@ -70,13 +70,13 @@ public class BlocksLocker {
    * @param blockId The id of the block.
    * @param lockId The lock id of the lock.
    */
-  public synchronized void unlock(long blockId, int lockId) {
+  public synchronized void unlock(long storageDirId, long blockId, int lockId) {
     Set<Integer> lockers = mLockedBlockIds.get(blockId);
     if (lockers != null) {
       lockers.remove(lockId);
       if (lockers.isEmpty()) {
         mLockedBlockIds.remove(blockId);
-        mWorkerStorage.unlockBlock(blockId, mUserId);
+        mWorkerStorage.unlockBlock(mUserId, storageDirId, blockId);
       }
     }
   }

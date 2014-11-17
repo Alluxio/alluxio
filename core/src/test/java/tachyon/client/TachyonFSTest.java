@@ -16,6 +16,7 @@ package tachyon.client;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
@@ -220,18 +222,6 @@ public class TachyonFSTest {
   }
 
   @Test
-  public void getFileStatusTest() throws IOException {
-    int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
-    TachyonURI uri = new TachyonURI("/file");
-    int fileId = TestUtils.createByteFile(mTfs, uri, WriteType.MUST_CACHE, writeBytes);
-    TachyonFile file = mTfs.getFile(fileId);
-    Assert.assertTrue(file.isInMemory());
-    Assert.assertTrue(mTfs.exist(uri));
-    ClientFileInfo fileInfo = mTfs.getFileStatus(fileId, false);
-    Assert.assertTrue(fileInfo.getPath().equals("/file"));
-  }
-
-  @Test
   public void getFileStatusCacheTest() throws IOException {
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     TachyonURI uri = new TachyonURI("/file");
@@ -245,6 +235,18 @@ public class TachyonFSTest {
     ClientFileInfo fileInfoNotCached = mTfs.getFileStatus(fileId, false);
     Assert.assertTrue(fileInfo == fileInfoCached);
     Assert.assertFalse(fileInfo == fileInfoNotCached);
+  }
+
+  @Test
+  public void getFileStatusTest() throws IOException {
+    int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
+    TachyonURI uri = new TachyonURI("/file");
+    int fileId = TestUtils.createByteFile(mTfs, uri, WriteType.MUST_CACHE, writeBytes);
+    TachyonFile file = mTfs.getFile(fileId);
+    Assert.assertTrue(file.isInMemory());
+    Assert.assertTrue(mTfs.exist(uri));
+    ClientFileInfo fileInfo = mTfs.getFileStatus(fileId, false);
+    Assert.assertTrue(fileInfo.getPath().equals("/file"));
   }
 
   @Test(expected = IOException.class)
@@ -455,9 +457,10 @@ public class TachyonFSTest {
   }
 
   @Test
-  public void toStringTest() throws IOException {
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://127.0.0.1:19998"));
-    Assert.assertEquals(tfs.toString(), "tachyon:///127.0.0.1:19998");
+  public void toStringTest() throws IOException, InterruptedException {
+    InetSocketAddress masterAddress = mLocalTachyonCluster.getMasterInfo().getMasterAddress();
+    TachyonFS tfs = TachyonFS.get(new TachyonURI(mLocalTachyonCluster.getMasterUri()));
+    Assert.assertEquals(tfs.toString(), Constants.HEADER + masterAddress.toString());
   }
 
   @Test
