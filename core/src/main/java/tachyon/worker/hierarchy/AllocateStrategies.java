@@ -49,12 +49,12 @@ public class AllocateStrategies {
    * Allocate space on StorageDirs randomly
    */
   private static class AllocateRandom extends AllocateStrategyBase {
-    Random mRand = new Random(System.currentTimeMillis());
+    Random mRandm = new Random(System.currentTimeMillis());
 
     @Override
     public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestSizeBytes) {
       StorageDir availableDir = null;
-      int i = mRand.nextInt(storageDirs.length);
+      int i = mRandm.nextInt(storageDirs.length);
       for (StorageDir dir : storageDirs) {
         if (i == storageDirs.length) {
           i = 0;

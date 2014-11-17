@@ -223,8 +223,7 @@ public class StorageTier {
    * @throws IOException
    */
   public StorageDir requestSpace(long userId, long requestSizeBytes, Set<Integer> pinList,
-      List<Long> removedBlockIds)
-      throws IOException {
+      List<Long> removedBlockIds) throws IOException {
     return requestSpace(mStorageDirs, userId, requestSizeBytes, pinList, removedBlockIds);
   }
 
@@ -240,8 +239,7 @@ public class StorageTier {
    * @throws IOException
    */
   public boolean requestSpace(StorageDir storageDir, long userId, long requestSizeBytes,
-      Set<Integer> pinList, List<Long> removedBlockIds)
-      throws IOException {
+      Set<Integer> pinList, List<Long> removedBlockIds) throws IOException {
     if (StorageDirId.getStorageLevel(storageDir.getStorageDirId()) != mStorageLevel) {
       return false;
     }
@@ -286,10 +284,6 @@ public class StorageTier {
               srcDir.deleteBlock(blockId);
               removedBlockIds.add(blockId);
             } else {
-              StorageDir storageDir = mNextStorageTier.getStorageDirByBlockId(blockId);
-              if (storageDir != null) {
-                storageDir.deleteBlock(blockId);
-              }
               StorageDir dstDir =
                   mNextStorageTier.requestSpace(userId, blockInfo.getBlockSize(), pinList,
                       removedBlockIds);

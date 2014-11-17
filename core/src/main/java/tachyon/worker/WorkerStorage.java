@@ -501,6 +501,10 @@ public class WorkerStorage {
         curDir.checkStatus(removedUsers);
       }
     }
+
+    for (long userId : removedUsers) {
+      mUsers.removeUser(userId);
+    }
   }
 
   /**
@@ -672,17 +676,17 @@ public class WorkerStorage {
    */
   public Command heartbeat() throws IOException {
     List<Long> removedBlockIds = new ArrayList<Long>();
-    Map<Long, List<Long>> evictedBlockIds = new HashMap<Long, List<Long>>();
+    Map<Long, List<Long>> addedBlockIds = new HashMap<Long, List<Long>>();
 
     mRemovedBlockIdList.drainTo(removedBlockIds);
 
     for (StorageTier storageTier : mStorageTiers) {
       for (StorageDir storageDir : storageTier.getStorageDirs()) {
-        evictedBlockIds.put(storageDir.getStorageDirId(), storageDir.getAddedBlockIdList());
+        addedBlockIds.put(storageDir.getStorageDirId(), storageDir.getAddedBlockIdList());
       }
     }
     return mMasterClient
-        .worker_heartbeat(mWorkerId, getUsedBytes(), removedBlockIds, evictedBlockIds);
+        .worker_heartbeat(mWorkerId, getUsedBytes(), removedBlockIds, addedBlockIds);
   }
 
   /**
