@@ -7,10 +7,10 @@ RUN yum -y update && \
     mkdir -p /root/.ssh/ && \
     mkdir -p /home/vagrant/.ssh/ 
 
-ADD https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant /root/.ssh/id_rsa
-ADD https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub /root/.ssh/id_rsa.pub
-ADD https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant /home/vagrant/.ssh/id_rsa
-ADD https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub /home/vagrant/.ssh/id_rsa.pub
+ADD files/id_rsa /root/.ssh/id_rsa
+ADD files/id_rsa.pub /root/.ssh/id_rsa.pub
+ADD files/id_rsa /home/vagrant/.ssh/id_rsa
+ADD files/id_rsa.pub /home/vagrant/.ssh/id_rsa.pub
 
 RUN chmod 600 /home/vagrant/.ssh/id* && \
     chmod 600 /root/.ssh/id* && \
