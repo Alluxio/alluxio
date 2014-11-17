@@ -424,7 +424,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
         FileChannel localFileChannel = closer.register(localFile.getChannel());
         final ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
-        mTachyonFS.accessLocalBlock(info);
+        mTachyonFS.accessLocalBlock(storageDirIdLocked, blockId);
         return new TachyonByteBuffer(mTachyonFS, buf, storageDirIdLocked, blockId, blockLockId);
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");

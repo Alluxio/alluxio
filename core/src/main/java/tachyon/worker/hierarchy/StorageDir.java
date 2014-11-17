@@ -287,6 +287,7 @@ public final class StorageDir {
       return bh.read(offset, length);
     } finally {
       bh.close();
+      accessBlock(blockId);
     }
   }
 

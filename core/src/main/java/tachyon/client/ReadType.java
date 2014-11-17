@@ -52,7 +52,7 @@ public enum ReadType {
    * @return true if the read type is CACHE, false otherwise
    */
   public boolean isCache() {
-    return mValue == CACHE.mValue;
+    return mValue == CACHE.mValue || mValue == CACHE_PROMOTE.mValue;
   }
 
   /**
