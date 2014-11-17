@@ -207,7 +207,7 @@ public class WorkerStorage {
               storageDirIds[k] = lockBlock(Users.CHECKPOINT_USER_ID, StorageDirId.unknownId(),
                   blockId);
               if (StorageDirId.isUnknown(storageDirIds[k])) {
-                throw new FileDoesNotExistException("Block doesn't exist!");
+                throw new IOException("Block doesn't exist!");
               }
             }
             OutputStream os = 

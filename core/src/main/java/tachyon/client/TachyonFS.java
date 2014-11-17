@@ -268,7 +268,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the local temporary folder for the user or null if unable to allocate one.
    * @throws IOException
    */
-  synchronized String createAndGetUserLocalTempFolder(long storageDirId) throws IOException {
+  public synchronized String createAndGetUserLocalTempFolder(long storageDirId) throws IOException {
     String userTempFolder = mWorkerClient.getUserTempFolder();
 
     if (StringUtils.isBlank(userTempFolder)) {
