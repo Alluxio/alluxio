@@ -113,8 +113,8 @@ public class TachyonFS extends AbstractTachyonFS {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mUserQuotaUnitBytes = UserConf.get().QUOTA_UNIT_BYTES;
-  private final int mUserFailedSpaceRequestLimits = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
   private final ExecutorService mExecutorService;
+  private static final int FAILED_SPACE_REQUEST_LIMITS = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
 
   // The RPC client talks to the system master.
   private final MasterClient mMasterClient;
@@ -178,8 +178,9 @@ public class TachyonFS extends AbstractTachyonFS {
     Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
     long blockId = blockInfo.getBlockId();
     NetAddress workerNetAddress = mWorkerClient.getNetAddress();
-    if (storageDirIds.containsKey(workerNetAddress)) {
-      mWorkerClient.accessBlock(storageDirIds.get(workerNetAddress), blockId);
+    Long storageDirId = storageDirIds.get(workerNetAddress);
+    if (storageDirId != null) {
+      accessLocalBlock(storageDirId, blockId);
     }
   }
 
@@ -717,15 +718,14 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   private synchronized boolean getFromAvaliableSpace(long storageDirId, long requestSpaceBytes)
       throws IOException {
-    boolean ret = false;
     if (mIdToAvailableSpaceBytes.containsKey(storageDirId)) {
       long availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
       if (availableSpaceBytes >= requestSpaceBytes) {
         mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
-        ret = true;
+        return true;
       }
     }
-    return ret;
+    return false;
   }
 
   /**
@@ -739,8 +739,9 @@ public class TachyonFS extends AbstractTachyonFS {
     if (blockInfo != null) {
       Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
       NetAddress workerNetAddress = mWorkerClient.getNetAddress();
-      if (storageDirIds.containsKey(workerNetAddress)) {
-        return getLocalBlockFilePath(storageDirIds.get(workerNetAddress), blockInfo.getBlockId());
+      Long storageDirId = storageDirIds.get(workerNetAddress);
+      if (storageDirId != null) {
+        return getLocalBlockFilePath(storageDirId, blockInfo.getBlockId());
       }
     }
     return null;
@@ -755,8 +756,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   synchronized String getLocalBlockFilePath(long storageDirId, long blockId) throws IOException {
-    if (mIdToWorkerDirPath.containsKey(storageDirId)) {
-      String dirPath = mIdToWorkerDirPath.get(storageDirId);
+    String dirPath = mIdToWorkerDirPath.get(storageDirId);
+    if (dirPath != null) {
       String dataFolder = getLocalDataFolder();
       return CommonUtils.concat(dirPath, dataFolder, blockId);
     }
@@ -842,11 +843,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return path of the StorageDir
    */
   public String getWorkerDirPath(long storageDirId) {
-    if (mIdToWorkerDirPath.containsKey(storageDirId)) {
-      return mIdToWorkerDirPath.get(storageDirId);
-    } else {
-      return null;
-    }
+    return mIdToWorkerDirPath.get(storageDirId);
   }
 
   /**
@@ -872,6 +869,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   private void initializeDirFS(List<WorkerDirInfo> workerDirInfos) throws IOException {
+    if (workerDirInfos == null) {
+      return;
+    }
     for (WorkerDirInfo dirInfo : workerDirInfos) {
       long storageDirId = dirInfo.getStorageDirId();
       mIdToWorkerDirPath.put(storageDirId, dirInfo.getDirPath());
@@ -930,8 +930,9 @@ public class TachyonFS extends AbstractTachyonFS {
     if (blockInfo != null) {
       Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
       NetAddress workerNetAddress = mWorkerClient.getNetAddress();
-      if (storageDirIds.containsKey(workerNetAddress)) {
-        return lockBlock(storageDirIds.get(workerNetAddress), blockInfo.getBlockId(), blockLockId);
+      Long storageDirId = storageDirIds.get(workerNetAddress);
+      if (storageDirId != null) {
+        return lockBlock(storageDirId, blockInfo.getBlockId(), blockLockId);
       }
     }
     return StorageDirId.unknownId();
@@ -1034,13 +1035,12 @@ public class TachyonFS extends AbstractTachyonFS {
   public boolean promoteBlock(ClientBlockInfo blockInfo) throws IOException {
     Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
     NetAddress workerNetAddress = mWorkerClient.getNetAddress();
+    Long storageDirId = storageDirIds.get(workerNetAddress);
 
-    if (storageDirIds.keySet().contains(workerNetAddress)) {
-      long storageDirId = storageDirIds.get(workerNetAddress);
+    if (storageDirId != null) {
       return promoteBlock(storageDirId, blockInfo.getBlockId());
-    } else {
-      return false;
     }
+    return false;
   }
 
   /**
@@ -1115,16 +1115,10 @@ public class TachyonFS extends AbstractTachyonFS {
       if (mIdToAvailableSpaceBytes.containsKey(storageDirId)) {
         availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
       }
-      for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
+      for (int attempt = 0; attempt < FAILED_SPACE_REQUEST_LIMITS; attempt ++) {
         long toRequestSpaceBytes = Math.max(requestSpaceBytes, mUserQuotaUnitBytes);
-        storageDirId = StorageDirId.unknownId();
-        try {
-          storageDirId = 
-              mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes);
-        } catch (IOException e) {
-          LOG.error(String.format("Request space failed! requestSpaceBytes(%d), attempt(%d)",
-              toRequestSpaceBytes, attempt));
-        }
+        storageDirId = 
+            mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes);
         if (!StorageDirId.isUnknown(storageDirId)) {
           availableSpaceBytes += toRequestSpaceBytes;
           if (availableSpaceBytes >= requestSpaceBytes) {
@@ -1159,17 +1153,12 @@ public class TachyonFS extends AbstractTachyonFS {
       if (mIdToAvailableSpaceBytes.containsKey(storageDirId)) {
         availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
       }
-      for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
+      for (int attempt = 0; attempt < FAILED_SPACE_REQUEST_LIMITS; attempt ++) {
         long toRequestSpaceBytes =
             Math.max(requestSpaceBytes - availableSpaceBytes, mUserQuotaUnitBytes);
-        boolean reqResult = false;
-        try {
-          reqResult = mWorkerClient
-                .requestSpace(mMasterClient.getUserId(), storageDirId, toRequestSpaceBytes);
-        } catch (IOException e) {
-          LOG.error(String.format("Request space failed! storageDirId(%d), requestSpaceBytes(%d),"
-              + " attempt(%d)", storageDirId, toRequestSpaceBytes, attempt));
-        }
+        boolean reqResult = 
+            mWorkerClient.requestSpace(mMasterClient.getUserId(), storageDirId,
+                toRequestSpaceBytes);
         if (reqResult) {
           availableSpaceBytes += toRequestSpaceBytes;
           if (availableSpaceBytes >= requestSpaceBytes) {
@@ -1217,9 +1206,9 @@ public class TachyonFS extends AbstractTachyonFS {
     if (blockInfo != null) {
       Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
       NetAddress workerNetAddress = mWorkerClient.getNetAddress();
-      if (storageDirIds.containsKey(workerNetAddress)) {
-        return unlockBlock(storageDirIds.get(workerNetAddress), blockInfo.getBlockId(),
-            blockLockId);
+      Long storageDirId = storageDirIds.get(workerNetAddress);
+      if (storageDirId != null) {
+        return unlockBlock(storageDirId, blockInfo.getBlockId(), blockLockId);
       }
     }
     return StorageDirId.unknownId();
