@@ -16,9 +16,7 @@ final class Blocks {
    */
   private static final int DEFAULT_BUFFER_SIZE = UserConf.get().FILE_BUFFER_BYTES;
 
-  private Blocks() {
-
-  }
+  private Blocks() {}
 
   /**
    * Attempts to create a new block channel for the given {@code blockIndex}. This block will reject
@@ -52,7 +50,7 @@ final class Blocks {
    */
   public static void copy(InputStream inputStream, WritableBlockChannel channel, long length)
       throws IOException {
-    final byte[] buffer = new byte[UserConf.get().FILE_BUFFER_BYTES * 4];
+    final byte[] buffer = new byte[UserConf.get().FILE_BUFFER_BYTES];
     int limit;
     while (length > 0 && ((limit = inputStream.read(buffer)) >= 0)) {
       if (limit != 0) {
