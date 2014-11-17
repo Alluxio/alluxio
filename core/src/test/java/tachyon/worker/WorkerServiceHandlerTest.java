@@ -22,6 +22,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.StorageDirId;
+import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
@@ -58,6 +60,7 @@ public class WorkerServiceHandlerTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
+
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mWorkerServiceHandler = mLocalTachyonCluster.getWorker().getWorkerServiceHandler();
@@ -96,34 +99,53 @@ public class WorkerServiceHandlerTest {
   }
 
   @Test
-  public void overCapacityRequestSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES * 10L));
+  public void overCapacityRequestSpaceTest() throws TException, IOException {
+    long storageDirId = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L);
+    Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
+        storageDirId);
+    storageDirId = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    Assert.assertEquals(StorageDirId.unknownId(), storageDirId);
   }
 
   @Test
-  public void overReturnSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 10));
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 10));
-    mWorkerServiceHandler.returnSpace(1, WORKER_CAPACITY_BYTES);
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
+  public void overReturnSpaceTest() throws TException, IOException {
+    long storageDirId = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L);
+    Assert.assertEquals(storageDirId,
+        StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0));
+    mWorkerServiceHandler.returnSpace(1L, storageDirId, WORKER_CAPACITY_BYTES);
+    storageDirId = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    Assert.assertEquals(StorageDirId.unknownId(), storageDirId);
   }
 
   @Test
   public void returnSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
-    mWorkerServiceHandler.returnSpace(1, WORKER_CAPACITY_BYTES);
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
-    mWorkerServiceHandler.returnSpace(2, WORKER_CAPACITY_BYTES);
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 10));
+    long storageDirId0 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
+        storageDirId0);
+    long storageDirId1 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    Assert.assertEquals(StorageDirId.unknownId(), storageDirId1);
+    mWorkerServiceHandler.returnSpace(1L, storageDirId0, WORKER_CAPACITY_BYTES);
+    long storageDirId2 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
+        storageDirId2);
+    mWorkerServiceHandler.returnSpace(2L, storageDirId2, WORKER_CAPACITY_BYTES);
+    long storageDirId3 = mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES / 10);
+    Assert.assertEquals(StorageDirId.unknownId(), storageDirId3);
   }
 
   @Test
   public void totalOverCapacityRequestSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2));
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2));
+    long storageDirId = mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2);
+    Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
+        storageDirId);
+    storageDirId = mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES + 1);
+    Assert.assertEquals(StorageDirId.unknownId(), storageDirId);
+    storageDirId = mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2);
+    Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
+        storageDirId);
+    storageDirId = mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2);
+    Assert.assertEquals(StorageDirId.unknownId(), storageDirId);
+    storageDirId = mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2);
+    Assert.assertEquals(StorageDirId.unknownId(), storageDirId);
   }
 }

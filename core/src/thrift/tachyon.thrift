@@ -15,6 +15,7 @@ struct ClientBlockInfo {
   2: i64 offset
   3: i64 length
   4: list<NetAddress> locations
+  5: map<NetAddress, i64> storageDirIds
 }
 
 struct ClientWorkerInfo {
@@ -71,6 +72,18 @@ enum CommandType {
 struct Command {
   1: CommandType mCommandType
   2: list<i64> mData
+}
+
+struct WorkerDirInfo {
+  1: i64 storageDirId
+  2: string dirPath //TODO add classname to make it pluggable
+  3: binary conf
+}
+
+struct WorkerFileInfo {
+  1: i64 storageDirId
+  2: string filePath
+  3: i64 fileSize
 }
 
 exception BlockInfoException {
@@ -137,13 +150,14 @@ service MasterService {
    * @return value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
    */
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes,
-      4: list<i64> currentBlocks)
+      4: map<i64, list<i64>> currentBlocks)
     throws (1: BlockInfoException e)
 
-  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlocks)
+  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: map<i64, list<i64>> removedBlockIds,
+      4: map<i64, list<i64>> addedBlockIds)
     throws (1: BlockInfoException e)
 
-  void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 blockId, 4: i64 length)
+  void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 storageDirId, 4: i64 blockId, 5: i64 length)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
 
   set<i32> worker_getPinIdList()
@@ -248,7 +262,7 @@ service MasterService {
 }
 
 service WorkerService {
-  void accessBlock(1: i64 blockId)
+  void accessBlock(1: i64 storageDirId, 2: i64 blockId)
 
   void addCheckpoint(1: i64 userId, 2: i32 fileId)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
@@ -257,23 +271,32 @@ service WorkerService {
   bool asyncCheckpoint(1: i32 fileId)
     throws (1: TachyonException e)
 
-  void cacheBlock(1: i64 userId, 2: i64 blockId)
+  void cacheBlock(1: i64 userId, 2: i64 storageDirId, 3: i64 blockId)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: BlockInfoException eB)
 
+  WorkerFileInfo getBlockFileInfo(1: i64 blockId)
+    throws (1: FileDoesNotExistException eP)
+
   string getDataFolder()
+
+  list<WorkerDirInfo> getWorkerDirInfos()
 
   string getUserTempFolder(1: i64 userId)
 
   string getUserUfsTempFolder(1: i64 userId)
 
-  void lockBlock(1: i64 blockId, 2: i64 userId) // Lock the file in memory while the user is reading it.
+  void lockBlock(1: i64 userId 2: i64 storageDirId 3: i64 blockId) // Lock the file in memory while the user is reading it.
 
-  void returnSpace(1: i64 userId, 2: i64 returnedBytes)
+  bool promoteBlock(1: i64 userId, 2: i64 storageDirId, 3: i64 blockId)
 
-  bool requestSpace(1: i64 userId, 2: i64 requestBytes)   // Should change this to return i64, means how much space to grant.
+  void returnSpace(1: i64 userId, 2: i64 storageDirId 3: i64 returnedBytes)
 
-  void unlockBlock(1: i64 blockId, 2: i64 userId) // unlock the file
+  i64 requestSpace(1: i64 userId, 2: i64 requestBytes)
+
+  bool requestSpaceInPlace(1: i64 userId, 2: i64 storageDirId, 3: i64 requestBytes)
+
+  void unlockBlock(1: i64 userId 2: i64 storageDirId 3: i64 blockId) // unlock the file
 
   void userHeartbeat(1: i64 userId)   // Local user send heartbeat to local worker to keep its temp folder.
 }

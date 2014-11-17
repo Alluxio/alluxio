@@ -24,9 +24,9 @@ import org.junit.Test;
 
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
-import tachyon.client.BlockHandler;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
+import tachyon.worker.BlockHandler;
 
 public class StorageDirTest {
   private StorageDir mSrcDir;
