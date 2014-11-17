@@ -26,7 +26,12 @@ public enum ReadType {
   /**
    * Read the file and cache it.
    */
-  CACHE(2);
+  CACHE(2),
+
+  /**
+   * Read the file and promote it back to top StorageTier
+   */
+  CACHE_PROMOTE(3);
 
   private final int mValue;
 
@@ -48,5 +53,12 @@ public enum ReadType {
    */
   public boolean isCache() {
     return mValue == CACHE.mValue;
+  }
+
+  /**
+   * @return true if the read type is CACHE_PROMOTE, false otherwise
+   */
+  public boolean isPromote() {
+    return mValue == CACHE_PROMOTE.mValue;
   }
 }

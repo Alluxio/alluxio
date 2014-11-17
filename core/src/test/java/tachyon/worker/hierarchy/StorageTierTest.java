@@ -28,10 +28,10 @@ import org.junit.Test;
 import tachyon.StorageLevelAlias;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
-import tachyon.client.BlockHandler;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
+import tachyon.worker.BlockHandler;
 
 public class StorageTierTest {
 
@@ -48,6 +48,7 @@ public class StorageTierTest {
     System.clearProperty("tachyon.worker.hierarchystore.level1.alias");
     System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.path");
     System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.quota");
+    WorkerConf.clear();
   }
 
   @Before
@@ -73,7 +74,7 @@ public class StorageTierTest {
       for (int i = 0; i < dirPaths.length; i ++) {
         dirPaths[i] = dirPaths[i].trim();
       }
-      StorageLevelAlias Alias = WorkerConf.get().STORAGE_LEVEL_ALIAS[level];
+      StorageLevelAlias storageLevelAlias = WorkerConf.get().STORAGE_LEVEL_ALIAS[level];
       String[] strDirCapacities = WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level].split(",");
       long[] dirCapacities = new long[dirPaths.length];
       for (int i = 0, j = 0; i < dirPaths.length; i ++) {
@@ -84,7 +85,8 @@ public class StorageTierTest {
         }
       }
       StorageTier curTier =
-          new StorageTier(level, Alias, dirPaths, dirCapacities, "/data", "/user", nextTier, null);
+          new StorageTier(level, storageLevelAlias, dirPaths, dirCapacities, "/data", "/user",
+              nextTier, null);
       mStorageTiers[level] = curTier;
       curTier.initialize();
       for (StorageDir dir : curTier.getStorageDirs()) {

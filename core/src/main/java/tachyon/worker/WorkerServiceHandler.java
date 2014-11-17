@@ -16,15 +16,20 @@
 package tachyon.worker;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.thrift.TException;
 
+import tachyon.StorageDirId;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
+import tachyon.thrift.WorkerDirInfo;
+import tachyon.thrift.WorkerFileInfo;
 import tachyon.thrift.WorkerService;
+import tachyon.worker.hierarchy.StorageDir;
 
 /**
  * <code>WorkerServiceHandler</code> handles all the RPC calls to the worker.
@@ -37,8 +42,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void accessBlock(long blockId) throws TException {
-    mWorkerStorage.accessBlock(blockId);
+  public void accessBlock(long storageDirId, long blockId) throws TException {
+    mWorkerStorage.accessBlock(storageDirId, blockId);
   }
 
   @Override
@@ -61,13 +66,19 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException, TException {
+  public void cacheBlock(long userId, long storageDirId, long blockId)
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     try {
-      mWorkerStorage.cacheBlock(userId, blockId);
+      mWorkerStorage.cacheBlock(userId, storageDirId, blockId);
     } catch (IOException e) {
       throw new TException(e);
     }
+  }
+
+  @Override
+  public WorkerFileInfo getBlockFileInfo(long blockId)
+      throws FileDoesNotExistException, TException {
+    return mWorkerStorage.getBlockFileInfo(blockId);
   }
 
   @Override
@@ -86,23 +97,44 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void lockBlock(long blockId, long userId) throws TException {
-    mWorkerStorage.lockBlock(blockId, userId);
+  public List<WorkerDirInfo> getWorkerDirInfos() throws TException {
+    return mWorkerStorage.getWorkerDirInfos();
   }
 
   @Override
-  public boolean requestSpace(long userId, long requestBytes) throws TException {
-    return mWorkerStorage.requestSpace(userId, requestBytes);
+  public void lockBlock(long userId, long storageDirId, long blockId) throws TException {
+    mWorkerStorage.lockBlock(userId, storageDirId, blockId);
   }
 
   @Override
-  public void returnSpace(long userId, long returnedBytes) throws TException {
-    mWorkerStorage.returnSpace(userId, returnedBytes);
+  public boolean promoteBlock(long userId, long storageDirId, long blockId) throws TException {
+    return mWorkerStorage.promoteBlock(userId, storageDirId, blockId);
   }
 
   @Override
-  public void unlockBlock(long blockId, long userId) throws TException {
-    mWorkerStorage.unlockBlock(blockId, userId);
+  public long requestSpace(long userId, long requestBytes) throws TException {
+    StorageDir storageDir = mWorkerStorage.requestSpace(userId, requestBytes);
+    if (storageDir == null) {
+      return StorageDirId.unknownId();
+    } else {
+      return storageDir.getStorageDirId();
+    }
+  }
+
+  @Override
+  public boolean requestSpaceInPlace(long userId, long storageDirId, long requestBytes)
+      throws TException {
+    return mWorkerStorage.requestSpace(userId, storageDirId, requestBytes);
+  }
+
+  @Override
+  public void returnSpace(long userId, long storageDirId, long returnedBytes) throws TException {
+    mWorkerStorage.returnSpace(userId, storageDirId, returnedBytes);
+  }
+
+  @Override
+  public void unlockBlock(long userId, long storageDirId, long blockId) throws TException {
+    mWorkerStorage.unlockBlock(userId, storageDirId, blockId);
   }
 
   @Override

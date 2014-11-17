@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.List;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -43,6 +44,8 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
+import tachyon.thrift.WorkerDirInfo;
+import tachyon.thrift.WorkerFileInfo;
 import tachyon.thrift.WorkerService;
 import tachyon.util.NetworkUtils;
 
@@ -59,6 +62,7 @@ public class WorkerClient implements Closeable {
   private WorkerService.Client mClient;
   private TProtocol mProtocol;
   private InetSocketAddress mWorkerAddress;
+  private NetAddress mWorkerNetAddress;
   private boolean mConnected = false;
   private boolean mIsLocal = false;
   private String mDataFolder = null;
@@ -81,13 +85,14 @@ public class WorkerClient implements Closeable {
   /**
    * Update the latest block access time on the worker.
    * 
+   * @param storageDirId The id of the StorageDir which contains block
    * @param blockId The id of the block
    * @throws IOException
    */
-  public synchronized void accessBlock(long blockId) throws IOException {
+  public synchronized void accessBlock(long storageDirId, long blockId) throws IOException {
     if (connect()) {
       try {
-        mClient.accessBlock(blockId);
+        mClient.accessBlock(storageDirId, blockId);
       } catch (TException e) {
         LOG.error("TachyonClient accessLocalBlock(" + blockId + ") failed");
         mConnected = false;
@@ -145,14 +150,15 @@ public class WorkerClient implements Closeable {
   /**
    * Notify the worker the block is cached.
    * 
+   * @param storageDirId The id of StorageDir that the block is stored in
    * @param blockId The id of the block
    * @throws IOException
    */
-  public synchronized void cacheBlock(long blockId) throws IOException {
+  public synchronized void cacheBlock(long storageDirId, long blockId) throws IOException {
     mustConnect();
 
     try {
-      mClient.cacheBlock(mMasterClient.getUserId(), blockId);
+      mClient.cacheBlock(mMasterClient.getUserId(), storageDirId, blockId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (BlockInfoException e) {
@@ -219,6 +225,7 @@ public class WorkerClient implements Closeable {
         return false;
       }
 
+      mWorkerNetAddress = workerNetAddress;
       mWorkerAddress =
           new InetSocketAddress(NetworkUtils.getFqdnHost(workerNetAddress), workerNetAddress.mPort);
       LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
@@ -255,6 +262,26 @@ public class WorkerClient implements Closeable {
   }
 
   /**
+   * Get information of StorageDirs on worker.
+   * 
+   * @param blockId the id of the block
+   * @return The information of the block file
+   * @throws IOException
+   */
+  public synchronized WorkerFileInfo getBlockFileInfo(long blockId) throws IOException {
+    mustConnect();
+
+    try {
+      return mClient.getBlockFileInfo(blockId);
+    } catch (FileDoesNotExistException e) {
+      return null;
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  /**
    * @return The root local data folder of the worker
    * @throws IOException
    */
@@ -272,6 +299,10 @@ public class WorkerClient implements Closeable {
     }
 
     return mDataFolder;
+  }
+
+  public synchronized NetAddress getNetAddress() {
+    return mWorkerNetAddress;
   }
 
   /**
@@ -309,6 +340,23 @@ public class WorkerClient implements Closeable {
   }
 
   /**
+   * Get information of StorageDirs on worker.
+   * 
+   * @return The list of the information of the StorageDir on worker
+   * @throws IOException
+   */
+  public synchronized List<WorkerDirInfo> getWorkerDirInfos() throws IOException {
+    mustConnect();
+
+    try {
+      return mClient.getWorkerDirInfos();
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  /**
    * @return true if it's connected to the worker, false otherwise.
    */
   public synchronized boolean isConnected() {
@@ -334,15 +382,17 @@ public class WorkerClient implements Closeable {
    * Lock the block, therefore, the worker will lock evict the block from the memory untill it is
    * unlocked.
    * 
-   * @param blockId The id of the block
    * @param userId The id of the user who wants to lock the block
+   * @param storageDirId The id of the StorageDir which contains the block
+   * @param blockId The id of the block
    * @throws IOException
    */
-  public synchronized void lockBlock(long blockId, long userId) throws IOException {
+  public synchronized void lockBlock(long userId, long storageDirId, long blockId)
+      throws IOException {
     mustConnect();
 
     try {
-      mClient.lockBlock(blockId, userId);
+      mClient.lockBlock(userId, storageDirId, blockId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -365,14 +415,34 @@ public class WorkerClient implements Closeable {
   }
 
   /**
+   * Promote block back to the top StorageTier
+   * 
+   * @param userId The id of the user who wants to promote block
+   * @param storageDirId The id of the StorageDir which contains the block
+   * @param blockId The id of the block that will be promoted
+   * @throws IOException
+   */
+  public synchronized boolean promoteBlock(long userId, long storageDirId, long blockId)
+      throws IOException {
+    mustConnect();
+
+    try {
+      return mClient.promoteBlock(userId, storageDirId, blockId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  /**
    * Request space from the worker's memory
    * 
    * @param userId The id of the user who send the request
    * @param requestBytes The requested space size, in bytes
-   * @return true if succeed, false otherwise
+   * @return the id of The StorageDir allocated
    * @throws IOException
    */
-  public synchronized boolean requestSpace(long userId, long requestBytes) throws IOException {
+  public synchronized long requestSpace(long userId, long requestBytes) throws IOException {
     mustConnect();
 
     try {
@@ -384,17 +454,40 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Return the space which has been requested
+   * Request space from the worker's memory
    * 
-   * @param userId The id of the user who wants to return the space
-   * @param returnSpaceBytes The returned space size, in bytes
+   * @param userId The id of the user who send the request
+   * @param storageDirId The id of StorageDir that space will be allocated in
+   * @param requestBytes The requested space size, in bytes
+   * @return true if succeed, false otherwise
    * @throws IOException
    */
-  public synchronized void returnSpace(long userId, long returnSpaceBytes) throws IOException {
+  public synchronized boolean requestSpace(long userId, long storageDirId, long requestBytes)
+      throws IOException {
     mustConnect();
 
     try {
-      mClient.returnSpace(userId, returnSpaceBytes);
+      return mClient.requestSpaceInPlace(userId, storageDirId, requestBytes);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  /**
+   * Return the space which has been requested
+   * 
+   * @param userId The id of the user who wants to return the space
+   * @param storageDirId The Id of the StorageDir that space will be returned
+   * @param returnSpaceBytes The returned space size, in bytes
+   * @throws IOException
+   */
+  public synchronized void returnSpace(long userId, long storageDirId, long returnSpaceBytes)
+      throws IOException {
+    mustConnect();
+
+    try {
+      mClient.returnSpace(userId, storageDirId, returnSpaceBytes);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -404,15 +497,17 @@ public class WorkerClient implements Closeable {
   /**
    * Unlock the block
    * 
-   * @param blockId The id of the block
    * @param userId The id of the user who wants to unlock the block
+   * @param storageDirId The id of the StorageDir which contains the block
+   * @param blockId The id of the block
    * @throws IOException
    */
-  public synchronized void unlockBlock(long blockId, long userId) throws IOException {
+  public synchronized void unlockBlock(long userId, long storageDirId, long blockId)
+      throws IOException {
     mustConnect();
 
     try {
-      mClient.unlockBlock(blockId, userId);
+      mClient.unlockBlock(userId, storageDirId, blockId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

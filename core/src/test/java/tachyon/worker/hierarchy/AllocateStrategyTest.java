@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
-import tachyon.client.BlockHandler;
+import tachyon.worker.BlockHandler;
 import tachyon.master.BlockInfo;
 import tachyon.util.CommonUtils;
 

@@ -44,23 +44,26 @@ public final class BlockRequest {
 
       // read the type and ignore it. Currently only one type exists
       in.readShort(); // == DataServerMessage.DATA_SERVER_REQUEST_MESSAGE;
+      long storageDirId = in.readLong();
       long blockId = in.readLong();
       long offset = in.readLong();
       long length = in.readLong();
 
-      out.add(new BlockRequest(blockId, offset, length));
+      out.add(new BlockRequest(storageDirId, blockId, offset, length));
 
       // remove this from the pipeline so it won't be called again for this connection
       ctx.channel().pipeline().remove(this);
     }
   }
 
+  private final long mStorageDirId;
   private final long mBlockId;
   private final long mOffset;
 
   private final long mLength;
 
-  public BlockRequest(long blockId, long offset, long length) {
+  public BlockRequest(long storageDirId, long blockId, long offset, long length) {
+    mStorageDirId = storageDirId;
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
@@ -76,5 +79,9 @@ public final class BlockRequest {
 
   public long getOffset() {
     return mOffset;
+  }
+
+  public long getStorageDirId() {
+    return mStorageDirId;
   }
 }

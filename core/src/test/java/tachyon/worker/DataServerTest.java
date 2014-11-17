@@ -43,7 +43,7 @@ import tachyon.util.CommonUtils;
 import tachyon.worker.nio.DataServerMessage;
 
 /**
- * Unit tests for tachyon.DataServer.
+ * Unit tests for tachyon.worker.DataServer.
  */
 @RunWith(Parameterized.class)
 public class DataServerTest {
@@ -212,8 +212,9 @@ public class DataServerTest {
    */
   private DataServerMessage request(final ClientBlockInfo block, final long offset,
       final long length) throws IOException {
+    long storageDirId = block.getStorageDirIds().get(block.getLocations().get(0));
     DataServerMessage sendMsg =
-        DataServerMessage.createBlockRequestMessage(block.blockId, offset, length);
+        DataServerMessage.createBlockRequestMessage(storageDirId, block.blockId, offset, length);
     SocketChannel socketChannel =
         SocketChannel.open(new InetSocketAddress(block.getLocations().get(0).mHost, block
             .getLocations().get(0).mSecondaryPort));
@@ -222,7 +223,8 @@ public class DataServerTest {
         sendMsg.send(socketChannel);
       }
       DataServerMessage recvMsg =
-          DataServerMessage.createBlockResponseMessage(false, block.blockId, offset, length);
+          DataServerMessage.createBlockResponseMessage(false, storageDirId, block.blockId, offset,
+              length, null);
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {

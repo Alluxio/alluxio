@@ -76,7 +76,7 @@ public class InodeFile extends Inode {
   private boolean mCache = false;
   private String mUfsPath = "";
 
-  private List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(3);
+  private final List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(3);
 
   private int mDependencyId;
 
@@ -133,14 +133,15 @@ public class InodeFile extends Inode {
    * @param blockIndex The index of the block in the file
    * @param workerId The id of the worker
    * @param workerAddress The net address of the worker
+   * @param storageDirId The id of the StorageDir which block is located in
    * @throws BlockInfoException
    */
-  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress)
-      throws BlockInfoException {
+  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress,
+      long storageDirId) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
-    mBlocks.get(blockIndex).addLocation(workerId, workerAddress);
+    mBlocks.get(blockIndex).addLocation(workerId, workerAddress, storageDirId);
   }
 
   @Override
@@ -372,13 +373,15 @@ public class InodeFile extends Inode {
    * 
    * @param blockIndex The index of the block in the file
    * @param workerId The id of the removed location worker
+   * @param storageDirid The id of the StorageDir which contains the block
    * @throws BlockInfoException
    */
-  public synchronized void removeLocation(int blockIndex, long workerId) throws BlockInfoException {
+  public synchronized void removeLocation(int blockIndex, long workerId, long storageDirId)
+      throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
-    mBlocks.get(blockIndex).removeLocation(workerId);
+    mBlocks.get(blockIndex).removeLocation(workerId, storageDirId);
   }
 
   /**

@@ -38,8 +38,8 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
-import tachyon.client.BlockHandler;
 import tachyon.util.CommonUtils;
+import tachyon.worker.BlockHandler;
 import tachyon.worker.SpaceCounter;
 
 /**
@@ -52,6 +52,9 @@ public final class StorageDir {
   /** Mapping from blockId to its last access time in milliseconds */
   private final ConcurrentMap<Long, Long> mLastBlockAccessTimeMs =
       new ConcurrentHashMap<Long, Long>();
+  /** List of added block Ids */
+  private final BlockingQueue<Long> mAddedBlockIdList = new ArrayBlockingQueue<Long>(
+      Constants.WORKER_BLOCKS_QUEUE_SIZE);
   /** List of removed block Ids */
   private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
@@ -116,7 +119,14 @@ public final class StorageDir {
    */
   private void addBlockId(long blockId, long sizeBytes) {
     accessBlock(blockId);
+    if (mBlockSizes.containsKey(blockId)) {
+      returnSpace(mBlockSizes.remove(blockId));
+    }
     mBlockSizes.put(blockId, sizeBytes);
+    mAddedBlockIdList.add(blockId);
+    if (mRemovedBlockIdList.contains(blockId)) {
+      mRemovedBlockIdList.remove(blockId);
+    }
   }
 
   /**
@@ -172,7 +182,7 @@ public final class StorageDir {
    * @return true if success, false otherwise
    * @throws IOException
    */
-  boolean copyBlock(long blockId, StorageDir dstDir) throws IOException {
+  public boolean copyBlock(long blockId, StorageDir dstDir) throws IOException {
     long size = getBlockSize(blockId);
     if (size == -1) {
       LOG.error("Block file doesn't exist! blockId:" + blockId);
@@ -235,6 +245,20 @@ public final class StorageDir {
     mLastBlockAccessTimeMs.remove(blockId);
     returnSpace(mBlockSizes.remove(blockId));
     mRemovedBlockIdList.add(blockId);
+    if (mAddedBlockIdList.contains(blockId)) {
+      mAddedBlockIdList.remove(blockId);
+    }
+  }
+
+  /**
+   * Get Ids of newly added blocks
+   * 
+   * @return list of added block Ids
+   */
+  public List<Long> getAddedBlockIdList() {
+    List<Long> addedBlockIdList = new ArrayList<Long>();
+    mAddedBlockIdList.drainTo(addedBlockIdList);
+    return addedBlockIdList;
   }
 
   /**
@@ -270,7 +294,7 @@ public final class StorageDir {
    * @param blockId Id of the block
    * @return file path of the block
    */
-  String getBlockFilePath(long blockId) {
+  public String getBlockFilePath(long blockId) {
     return mDataPath.join("" + blockId).toString();
   }
 
@@ -281,7 +305,7 @@ public final class StorageDir {
    * @return block handler of the block file
    * @throws IOException
    */
-  private BlockHandler getBlockHandler(long blockId) throws IOException {
+  public BlockHandler getBlockHandler(long blockId) throws IOException {
     String filePath = getBlockFilePath(blockId);
     try {
       return BlockHandler.get(filePath);
@@ -381,9 +405,9 @@ public final class StorageDir {
    * @return list of removed block Ids
    */
   public List<Long> getRemovedBlockIdList() {
-    List<Long> removedBlockIds = new ArrayList<Long>();
-    mRemovedBlockIdList.drainTo(removedBlockIds);
-    return removedBlockIds;
+    List<Long> removedBlockIdList = new ArrayList<Long>();
+    mRemovedBlockIdList.drainTo(removedBlockIdList);
+    return removedBlockIdList;
   }
 
   /**
