@@ -233,9 +233,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
 
     if (pos < 0) {
-      throw new IOException("Seek position is negative: " + pos);
+      throw new IllegalArgumentException("Seek position is negative: " + pos);
     } else if (pos > mTachyonFile.length()) {
-      throw new IOException("Seek position is past EOF: " + pos + ", fileSize = "
+      throw new IllegalArgumentException("Seek position is past EOF: " + pos + ", fileSize = "
           + mTachyonFile.length());
     }
 
