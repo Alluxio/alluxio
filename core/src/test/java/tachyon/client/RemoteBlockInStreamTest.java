@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import tachyon.TestUtils;
+import tachyon.conf.CommonConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -54,6 +55,10 @@ public class RemoteBlockInStreamTest {
         "tachyon.client.tcp.TCPRemoteBlockReader" } });
     list.add(new Object[] { new String[] { "tachyon.worker.nio.NIODataServer",
         "tachyon.client.tcp.TCPRemoteBlockReader" } });
+    if (CommonConf.get().JXIO_ENABLED) {
+      list.add(new Object[] { new String[] { "tachyon.worker.rdma.RDMADataServer",
+          "tachyon.client.rdma.RDMARemoteBlockReader" } });
+    }
     return list;
   }
 

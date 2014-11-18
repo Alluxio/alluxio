@@ -34,6 +34,7 @@ import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.WorkerConf;
+import tachyon.conf.CommonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -56,6 +57,9 @@ public class DataServerTest {
     List<Object[]> list = new ArrayList<Object[]>();
     list.add(new Object[] { "tachyon.worker.netty.NettyDataServer" });
     list.add(new Object[] { "tachyon.worker.nio.NIODataServer" });
+    if (CommonConf.get().JXIO_ENABLED) {
+      list.add(new Object[] { "tachyon.worker.rdma.RDMADataServer" });
+    }
     return list;
   }
 
@@ -211,7 +215,12 @@ public class DataServerTest {
    */
   protected DataServerMessage request(final ClientBlockInfo block, final long offset,
       final long length) throws IOException {
-    return createRequest("tachyon.worker.TCPDataServerRequest").request(block, offset, length);
+    if (System.getProperty("tachyon.worker.data.server.class").equals(
+        "tachyon.worker.rdma.RDMADataServer")) {
+      return createRequest("tachyon.worker.RDMADataServerRequest").request(block, offset, length);
+    } else {
+      return createRequest("tachyon.worker.TCPDataServerRequest").request(block, offset, length);
+    }
 
   }
 

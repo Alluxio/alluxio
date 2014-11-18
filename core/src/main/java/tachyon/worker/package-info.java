@@ -40,17 +40,22 @@
  * This service is the main interaction between users and reading blocks. Currently this service
  * only supports reading blocks (writing is to local disk).
  * 
- * There are two different implementations of this layer:
- * {@link tachyon.worker.netty.NettyDataServer} and {@link tachyon.worker.nio.NIODataServer}; netty
- * is the default. To support both, a {@link tachyon.worker.DataServer} interface is used that just
- * defines how to start/stop, and get port details; to start, object init is used.
+ * There are three different implementations of this layer:
+ * {@link tachyon.worker.netty.NettyDataServer}, {@link tachyon.worker.nio.NIODataServer} and
+ * {@link tachyon.worker.rdma.RDMADataServer}; Netty is the default.
+ * To support all, a {@link tachyon.worker.DataServer} abstract class is used to
+ * define how to start/stop, and get port details; to start, object init is used.
+ * It also contains a static function to create new Data Servers.
  * 
- * The current read protocol is defined in {@link tachyon.worker.nio.DataServerMessage}. This has
+ * NettyDataServer and NIODataServer work with TCP transport and RDMADataServer works with RDMA.
+ * They use different clients respectively, {@link tachyon.client.tcp.TCPRemoteBlockReader} for
+ * Nio and Netty, and {@link tachyon.client.rdma.RDMARemoteBlockReader} for Rdma.
+ * 
+ * The current read protocol is defined in {@link tachyon.worker.DataServerMessage}. This has
  * two different types: read
- * {@link tachyon.worker.nio.DataServerMessage#createBlockRequestMessage(long, long, long)} and
+ * {@link tachyon.worker.DataServerMessage#createBlockRequestMessage(long, long, long)} and
  * write
- * {@link tachyon.worker.nio.DataServerMessage#createBlockResponseMessage(boolean, long, long,
- * long)}.
+ * {@link tachyon.worker.DataServerMessage#createBlockResponseMessage(boolean, long, long, long)}.
  * Side note, the netty implementation does not use this class, but has defined two classes for
  * the read and write case: {@link tachyon.worker.netty.BlockRequest},
  * {@link tachyon.worker.netty.BlockResponse}; theses classes are network compatible.

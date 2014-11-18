@@ -82,6 +82,7 @@ public class CommonConf extends Utils {
   public final boolean IN_TEST_MODE;
 
   public final int MASTER_RETRY_COUNT;
+  public final boolean JXIO_ENABLED;
 
   private CommonConf() {
     if (System.getProperty("tachyon.home") == null) {
@@ -129,6 +130,8 @@ public class CommonConf extends Utils {
 
     // use 29 as default since current exponential logic overflows int
     MASTER_RETRY_COUNT = getIntProperty("tachyon.master.retry", 29);
+    
+    JXIO_ENABLED = getBooleanProperty("jxio.enable", false);
   }
 
   public static void assertValidPort(final int port) {
