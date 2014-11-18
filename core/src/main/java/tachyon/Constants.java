@@ -64,4 +64,9 @@ public class Constants {
    * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
    */
   public static final int JOURNAL_VERSION = 2;
+
+  public static final Class<?> DEFAULT_DATA_SERVER_CLASS =
+      tachyon.worker.netty.NettyDataServer.class;
+  public static final Class<?> DEFAULT_REMOTE_BLOCK_READER_CLASS =
+      tachyon.client.tcp.TCPRemoteBlockReader.class;
 }

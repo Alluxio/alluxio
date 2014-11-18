@@ -40,7 +40,7 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
-import tachyon.worker.nio.DataServerMessage;
+import tachyon.worker.DataServerMessage;
 
 /**
  * Unit tests for tachyon.DataServer.
@@ -54,26 +54,25 @@ public class DataServerTest {
   public static Collection<Object[]> data() {
     // creates a new instance of DataServerTest for each network type
     List<Object[]> list = new ArrayList<Object[]>();
-    for (final NetworkType type : NetworkType.values()) {
-      list.add(new Object[] {type});
-    }
+    list.add(new Object[] { "tachyon.worker.netty.NettyDataServer" });
+    list.add(new Object[] { "tachyon.worker.nio.NIODataServer" });
     return list;
   }
 
-  private final NetworkType mType;
+  private final String mDataServerClass;
   private LocalTachyonCluster mLocalTachyonCluster = null;
 
   private TachyonFS mTFS = null;
 
-  public DataServerTest(NetworkType type) {
-    mType = type;
+  public DataServerTest(String className) {
+    mDataServerClass = className;
   }
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.worker.network.type");
+    System.clearProperty("tachyon.worker.data.server.class");
   }
 
   /**
@@ -105,7 +104,7 @@ public class DataServerTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-    System.setProperty("tachyon.worker.network.type", mType.toString());
+    System.setProperty("tachyon.worker.data.server.class", mDataServerClass);
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
@@ -210,29 +209,10 @@ public class DataServerTest {
    * Create a new socket to the data port and send a block request. The returned value is the
    * response from the server.
    */
-  private DataServerMessage request(final ClientBlockInfo block, final long offset,
+  protected DataServerMessage request(final ClientBlockInfo block, final long offset,
       final long length) throws IOException {
-    DataServerMessage sendMsg =
-        DataServerMessage.createBlockRequestMessage(block.blockId, offset, length);
-    SocketChannel socketChannel =
-        SocketChannel.open(new InetSocketAddress(block.getLocations().get(0).mHost, block
-            .getLocations().get(0).mSecondaryPort));
-    try {
-      while (!sendMsg.finishSending()) {
-        sendMsg.send(socketChannel);
-      }
-      DataServerMessage recvMsg =
-          DataServerMessage.createBlockResponseMessage(false, block.blockId, offset, length);
-      while (!recvMsg.isMessageReady()) {
-        int numRead = recvMsg.recv(socketChannel);
-        if (numRead == -1) {
-          break;
-        }
-      }
-      return recvMsg;
-    } finally {
-      socketChannel.close();
-    }
+    return createRequest("tachyon.worker.TCPDataServerRequest").request(block, offset, length);
+
   }
 
   @Test
@@ -242,5 +222,21 @@ public class DataServerTest {
     ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     DataServerMessage recvMsg = request(block, length * 2, 1);
     assertError(recvMsg, block.blockId);
+  }
+
+  public DataServerRequest createRequest(String ClassName) {
+    Object requestObj = null;
+    try {
+      Class<?> cls = Class.forName(ClassName);
+      requestObj = CommonUtils.createNewClassInstance(cls, null, null);
+    } catch (Exception e) {
+      Assert.assertNull(requestObj);
+    }
+    return (DataServerRequest) requestObj;
+  }
+
+  public interface DataServerRequest {
+    DataServerMessage request(final ClientBlockInfo block, final long offset, final long length)
+        throws IOException;
   }
 }

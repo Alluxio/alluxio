@@ -98,4 +98,17 @@ class Utils {
     return ret;
   }
 
+  public static Class<?> getClass(String property, Class<?> defaultValue) {
+    String ret = System.getProperty(property);
+    if (ret == null) {
+      return defaultValue;
+    }
+    try {
+      return Class.forName(ret);
+    } catch (ClassNotFoundException e) {
+      String msg = "requested class could not be loaded";
+      LOG.error("{} : {}", msg, ret);
+      return defaultValue;
+    }
+  }
 }

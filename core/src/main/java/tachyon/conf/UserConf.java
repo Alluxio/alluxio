@@ -45,6 +45,8 @@ public class UserConf extends Utils {
 
   public final int REMOTE_READ_BUFFER_SIZE_BYTE;
 
+  public final Class<?> REMOTE_BLOCK_READER_CLASS;
+
   public final WriteType DEFAULT_WRITE_TYPE;
 
   private UserConf() {
@@ -56,6 +58,9 @@ public class UserConf extends Utils {
     DEFAULT_BLOCK_SIZE_BYTE = getLongProperty("tachyon.user.default.block.size.byte", Constants.GB);
     REMOTE_READ_BUFFER_SIZE_BYTE =
         getIntProperty("tachyon.user.remote.read.buffer.size.byte", Constants.MB);
+    REMOTE_BLOCK_READER_CLASS =
+        getClass("tachyon.user.remote.block.reader.class",
+            Constants.DEFAULT_REMOTE_BLOCK_READER_CLASS);
     DEFAULT_WRITE_TYPE =
         getEnumProperty("tachyon.user.file.writetype.default", WriteType.CACHE_THROUGH);
   }
