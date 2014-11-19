@@ -34,9 +34,7 @@ The `run_openstack.sh` script allows you to launch a Tachyon cluster on OpenStac
 ## Prerequisite
 * **Install Vagrant**. You can download and install [Vagrant](https://www.vagrantup.com/downloads.html). Version 1.6.5 and higher is required. 
 
-* **Install Vagrant OpenStack plugin**. Install openstack vagrant plugin first. To date, 0.8.0 plugin is tested.
-
-    $vagrant plugin install vagrant-openstack-plugin
+* **Install Vagrant OpenStack plugin**. Install [openstack vagrant plugin](https://github.com/cloudbau/vagrant-openstack-plugin) first. To date, 0.8.0 plugin is tested. 
 
 * **Obtain OpenStack key pair**. This is your Compute node login keypair. 
 
@@ -87,7 +85,7 @@ A successful deployment will end up with messages showing Tachyon master and wor
 
 ## Access Cluster
 
-You can access your cluster nodes either by `ssh` or `vagrant ssh` command. `vagrant ssh TachyonMaster` connects you to the node that acts as the TachyonMaster. If you have multiple worker nodes, `vagrant ssh TachyonWorker1` connects to node TachyonWorker1.
+You can access your cluster nodes by `vagrant ssh` command. `vagrant ssh TachyonMaster` connects you to the node that acts as the TachyonMaster. If you have multiple worker nodes, `vagrant ssh TachyonWorker1` connects to node TachyonWorker1.
 
 ## Destroy Cluster
 

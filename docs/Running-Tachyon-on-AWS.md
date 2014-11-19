@@ -84,7 +84,7 @@ A successful deployment will end up with messages showing Tachyon master and wor
 
 ## Access Cluster
 
-You can access your cluster nodes either by `ssh` or `vagrant ssh` command. `vagrant ssh TachyonMaster` connects you to the node that acts as the TachyonMaster. If you have multiple worker nodes, `vagrant ssh TachyonWorker1` connects to node TachyonWorker1.
+You can access your cluster nodes by `vagrant ssh` command. `vagrant ssh TachyonMaster` connects you to the node that acts as the TachyonMaster. If you have multiple worker nodes, `vagrant ssh TachyonWorker1` connects to node TachyonWorker1.
 
 ## Destroy Cluster
 
