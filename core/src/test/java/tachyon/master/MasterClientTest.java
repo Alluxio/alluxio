@@ -59,6 +59,7 @@ public class MasterClientTest {
         Assert.assertTrue(masterClient.getFileStatus(-1, "/file") != null);
       } finally {
         masterClient.close();
+        Assert.assertFalse(masterClient.isConnected());
       }
 
     } finally {
