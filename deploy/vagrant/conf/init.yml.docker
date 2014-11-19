@@ -1,7 +1,7 @@
 # Ufs = {glusterfs|hadoop2|hadoop1}
 Ufs: 'hadoop2'
-# Provider = {vb|docker|aws}
-Provider: 'vb'
+# Provider = {vb|docker|aws|docker}
+Provider: 'docker'
 # Memory is the amount memory allocated to each VM
 Memory: 1024 #MB
 # Total is the number of VMs to start
@@ -11,5 +11,5 @@ Total: 2
 # For VirtualBox: the addresses can be arbitrary
 # For AWS: the addresses should be within the same availability zone
 Addresses:
-    - "192.168.1.11"
-    - "192.168.1.12"
+    - "n/a"
+    - "n/a"
