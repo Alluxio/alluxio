@@ -21,7 +21,7 @@ Please download and install Vagrant (at least version 1.6.5). Once Vagrant is in
 Tachyon cluster requires only `vagrant up` command. A two-VM cluster is then created. `vagrant
 destroy` command destroys the cluster.
 
-`conf/init.yml` is the configuration file that sets different cluster parameters. They are explained
+`tachyon/deploy/vagrant/init.yml` is the configuration file that sets different cluster parameters. They are explained
 below.
 
 <table class="table">
