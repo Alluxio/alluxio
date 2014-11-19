@@ -262,9 +262,9 @@ public class TachyonFSTest {
   }
 
   private void getTestHelper(TachyonFS tfs) throws IOException {
-    int fileId = mTfs.createFile(new TachyonURI("/root/testFile1"));
+    int fileId = tfs.createFile(new TachyonURI("/root/testFile1"));
     Assert.assertEquals(3, fileId);
-    Assert.assertNotNull(mTfs.getFile(fileId));
+    Assert.assertNotNull(tfs.getFile(fileId));
   }
 
   @Test
