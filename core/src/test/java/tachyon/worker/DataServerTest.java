@@ -15,13 +15,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
+import tachyon.util.CommonUtils;
 import tachyon.worker.nio.DataServerMessage;
 
 /**
@@ -120,6 +124,24 @@ public class DataServerTest {
     ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     DataServerMessage recvMsg = request(block, length * -2, 1);
     assertError(recvMsg, block.blockId);
+  }
+
+  @Test
+  public void readMultiFiles() throws IOException {
+    final int length = WORKER_CAPACITY_BYTES / 2 + 1;
+    int fileId1 = TestUtils.createByteFile(mTFS, "/readFile1", WriteType.MUST_CACHE, length);
+    ClientBlockInfo block1 = mTFS.getFileBlocks(fileId1).get(0);
+    DataServerMessage recvMsg1 = request(block1);
+    assertValid(recvMsg1, length, block1.getBlockId(), 0, length);
+
+    int fileId2 = TestUtils.createByteFile(mTFS, "/readFile2", WriteType.MUST_CACHE, length);
+    ClientBlockInfo block2 = mTFS.getFileBlocks(fileId2).get(0);
+    DataServerMessage recvMsg2 = request(block2);
+    assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
+
+    CommonUtils.sleepMs(null, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    ClientFileInfo fileInfo = mTFS.getFileStatus(-1, new TachyonURI("/readFile1"));
+    Assert.assertEquals(0, fileInfo.inMemoryPercentage);
   }
 
   @Test

@@ -86,6 +86,8 @@ an existing underlayer filesystem.
 
 Tachyon Presentations:
 
+* Strata and Hadoop World 2014 (October, 2014) [pdf](http://goo.gl/fP9qkF) [pptx](http://goo.gl/GOyUbI)
+
 * Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
 
 * Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
