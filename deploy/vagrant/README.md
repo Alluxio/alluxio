@@ -15,7 +15,7 @@ across all running environments accelerates development, testing, and adoption p
 ## What inside?
 
 This directory contains Vagrant recipe to create VirtualBox images and Amazon EC2 instances and
-configurations to initialize Hadoop (both 1.x and 2.x), CephFS, and GlusterFS.
+configurations to initialize Hadoop (both 1.x and 2.x) and GlusterFS.
 
 Please download and install Vagrant (at least version 1.6.5). Once Vagrant is installed, starting an
 Tachyon cluster requires only `vagrant up` command. A two-VM cluster is then created. `vagrant
@@ -32,7 +32,7 @@ below.
     <td>Ufs</td><td>Tachyon Underfilesystem</td><td>glusterfs|hadoop2|hadoop1</td>
 </tr>
 <tr>
-    <td>Provider</td><td>Vagrant Providers</td><td>vb|aws|openstack</td>
+    <td>Provider</td><td>Vagrant Providers</td><td>vb|aws|openstack|docker</td>
 </tr>
 <tr>
     <td>Memory</td><td>Memory (in MB) to allocate for Virtualbox image</td><td>at least 1024</td>
@@ -45,6 +45,7 @@ below.
 For VirtualBox, the addresses can be arbitrary.
 For AWS, the addresses should be within the same availability zone.
 For OpenStack, since the compute node instances use DHCP, these addresses are not used.
+For Docker provider, containers use DHCP, these addresses are not used.
 </td><td>IPv4 address string</td>
 </tr>
 </table>
@@ -76,6 +77,10 @@ Then update configurations in `conf/openstack-config.yml` and shell environment 
 
 Run `run_openstack.sh` to create OpenStack Compute Node instances.
 
+## Docker Provider
+
+Run command `./run_docker.sh` to start containers. After containers are up, login as `root` and password as `vagrant`.
+
 ## Examples of Running VirtualBox Clusters Using Glusterfs as Underfilesystem
 
 A sample `conf/init.yml.glusterfs` is provided. Copy or link it to `init.yml`. Make sure parameter
@@ -105,6 +110,16 @@ A sample `conf/init.yml.openstack` is provided. Copy or link it to `init.yml`. M
 Then start the clusters.
 
     ./run_openstack.sh
+
+
+## Examples of Running Docker containers Using HDFS 2.4 as Underfilesystem
+
+A sample `conf/init.yml.docker` is provided. Copy or link it to `init.yml`. Make sure parameter
+`Ufs` is `hadoop2` and `Provider` is `docker`. The `Addresses` are currently not used.
+
+Then start the clusters.
+
+    ./run_docker.sh
 
 
 ## Use Tachyon Cluster

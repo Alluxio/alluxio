@@ -54,7 +54,7 @@ If you use Spark to launch an EC2 cluster, `Tachyon` will be installed and confi
 ## Deploy Tachyon Cluster via Vagrant
 
 [Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster locally on
-[VirtualBox](https://www.virtualbox.org/), in the cloud at [AWS EC2 VPC](http://aws.amazon.com/vpc/),
+[VirtualBox](https://www.virtualbox.org/), [container](https://www.docker.com/), in the cloud at [AWS EC2 VPC](http://aws.amazon.com/vpc/),
 or in [OpenStack Compute](http://www.openstack.org/software/openstack-compute/).
 
 A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant`
@@ -69,6 +69,7 @@ vagrant
 │   ├── init.yml.hdfs1
 │   ├── init.yml.hdfs2
 │   ├── init.yml.os
+│   ├── init.yml.docker
 │   └── openstack-config.yml
 ├── init.yml -> conf/init.yml.hdfs2
 ├── README.md
@@ -84,13 +85,17 @@ parameters. Then run
     $ vagrant up
 
 To spawn a Tachyon cluster on AWS VPC, setup credentials and parameters in `conf/ec2-config.yml`,
-select under filesystem in `init.yml`, and run command
+select `Ufs` and `Provider` in `init.yml`, and run command
 
     $ ./run_aws.sh
 
 To spawn a Tachyon cluster on OpenStack Compute Node, setup credentials and parameters in
-`conf/openstack-config.yml`, select under filesystem in `init.yml`, and run command
+`conf/openstack-config.yml`, select `Ufs` and `Provider` in `init.yml`, and run command
 
     $ ./run_openstack.sh
+
+To spawn a Tachyon cluster locally on containers, select `Ufs` and `Provider` in `init.yml`, and run command
+
+    $ ./run_docker.sh
 
 Detailed instruction can be found in `tachyon/deploy/vagrant/README.md`.
