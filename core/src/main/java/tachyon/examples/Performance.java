@@ -40,7 +40,7 @@ public class Performance {
   private static TachyonURI sMasterAddress = null;
   private static String sFileName = null;
   private static int sBlockSizeBytes = -1;
-  private static long sBlocskPerFile = -1;
+  private static long sBlocksPerFile = -1;
   private static int sThreads = -1;
   private static int sFiles = -1;
   private static boolean sDebugMode = false;
@@ -114,7 +114,7 @@ public class Performance {
             dst = file.getChannel().map(MapMode.READ_WRITE, 0, sFileBytes);
           }
           dst.order(ByteOrder.nativeOrder());
-          for (int k = 0; k < sBlocskPerFile; k ++) {
+          for (int k = 0; k < sBlocksPerFile; k ++) {
             mBuf.putInt(0, k + mWorkerId);
             dst.put(mBuf.array());
           }
@@ -139,7 +139,7 @@ public class Performance {
             dst = file.getChannel().map(MapMode.READ_WRITE, 0, sFileBytes);
           }
           dst.order(ByteOrder.nativeOrder());
-          for (int k = 0; k < sBlocskPerFile; k ++) {
+          for (int k = 0; k < sBlocksPerFile; k ++) {
             dst.get(mBuf.array());
           }
           sum += mBuf.get(times % 16);
@@ -183,7 +183,7 @@ public class Performance {
         final long startTimeMs = System.currentTimeMillis();
         TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
         OutStream os = file.getOutStream(WriteType.MUST_CACHE);
-        for (int k = 0; k < sBlocskPerFile; k ++) {
+        for (int k = 0; k < sBlocksPerFile; k ++) {
           mBuf.putInt(0, k + mWorkerId);
           os.write(mBuf.array());
         }
@@ -221,7 +221,7 @@ public class Performance {
           buf = file.readByteBuffer(0);
           IntBuffer intBuf;
           intBuf = buf.mData.order(ByteOrder.nativeOrder()).asIntBuffer();
-          for (int i = 0; i < sBlocskPerFile; i ++) {
+          for (int i = 0; i < sBlocksPerFile; i ++) {
             for (int k = 0; k < sBlockSizeBytes / 4; k ++) {
               int tmp = intBuf.get();
               if ((k == 0 && tmp == (i + mWorkerId)) || (k != 0 && tmp == k)) {
@@ -241,7 +241,7 @@ public class Performance {
           final long startTimeMs = System.currentTimeMillis();
           TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
           InputStream is = file.getInStream(ReadType.CACHE);
-          long len = sBlocskPerFile * sBlockSizeBytes;
+          long len = sBlocksPerFile * sBlockSizeBytes;
 
           while (len > 0) {
             int r = is.read(mBuf.array());
@@ -256,7 +256,7 @@ public class Performance {
           final long startTimeMs = System.currentTimeMillis();
           TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
           buf = file.readByteBuffer(0);
-          for (int i = 0; i < sBlocskPerFile; i ++) {
+          for (int i = 0; i < sBlocksPerFile; i ++) {
             buf.mData.get(mBuf.array());
           }
           sum += mBuf.get(pId % 16);
@@ -326,7 +326,7 @@ public class Performance {
           final long startTimeMs = System.currentTimeMillis();
           String filePath = sFileName + (times + sBaseFileNumber);
           OutputStream os = mHdfsFs.create(new Path(filePath));
-          for (int k = 0; k < sBlocskPerFile; k ++) {
+          for (int k = 0; k < sBlocksPerFile; k ++) {
             mBuf.putInt(0, k + mWorkerId);
             os.write(mBuf.array());
           }
@@ -338,7 +338,7 @@ public class Performance {
           final long startTimeMs = System.currentTimeMillis();
           String filePath = sFileName + (times + sBaseFileNumber);
           InputStream is = mHdfsFs.open(new Path(filePath));
-          long len = sBlocskPerFile * sBlockSizeBytes;
+          long len = sBlocksPerFile * sBlockSizeBytes;
 
           while (len > 0) {
             int r = is.read(mBuf.array());
@@ -485,7 +485,7 @@ public class Performance {
     if (args.length != 9) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION
           + "-jar-with-dependencies.jar tachyon.examples.Performance "
-          + "<MasterIp> <FileName> <WriteBlockSizeInBytes> <BlocksPerFile> "
+          + "<MasterIp> <FileNamePrefix> <WriteBlockSizeInBytes> <BlocksPerFile> "
           + "<DebugMode:true/false> <Threads> <FilesPerThread> <TestCaseNumber> "
           + "<BaseFileNumber>\n" + "1: Files Write Test\n" + "2: Files Read Test\n"
           + "3: RamFile Write Test \n" + "4: RamFile Read Test \n" + "5: ByteBuffer Write Test \n"
@@ -496,21 +496,21 @@ public class Performance {
     sMasterAddress = new TachyonURI(args[0]);
     sFileName = args[1];
     sBlockSizeBytes = Integer.parseInt(args[2]);
-    sBlocskPerFile = Long.parseLong(args[3]);
+    sBlocksPerFile = Long.parseLong(args[3]);
     sDebugMode = ("true".equals(args[4]));
     sThreads = Integer.parseInt(args[5]);
     sFiles = Integer.parseInt(args[6]) * sThreads;
     final int testCase = Integer.parseInt(args[7]);
     sBaseFileNumber = Integer.parseInt(args[8]);
 
-    sFileBytes = sBlocskPerFile * sBlockSizeBytes;
+    sFileBytes = sBlocksPerFile * sBlockSizeBytes;
     sFilesBytes = 1L * sFileBytes * sFiles;
 
     sResultPrefix =
         String.format("Threads %d FilesPerThread %d TotalFiles %d "
             + "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d "
             + "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ", sThreads, sFiles / sThreads,
-            sFiles, sBlockSizeBytes / 1024, sBlocskPerFile, CommonUtils.getMB(sFileBytes),
+            sFiles, sBlockSizeBytes / 1024, sBlocksPerFile, CommonUtils.getMB(sFileBytes),
             UserConf.get().FILE_BUFFER_BYTES / 1024, sBaseFileNumber);
 
     for (int k = 0; k < 10000000; k ++) {
