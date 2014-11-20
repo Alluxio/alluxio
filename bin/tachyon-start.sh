@@ -18,7 +18,7 @@ MOPT is one of:
   SudoMount\t\tMount the configured RamFS using sudo
   NoMount\t\tDo not mount the configured RamFS
 
--f  format Journal, UnderFS Data and Worker Foldera on master
+-f  format Journal, UnderFS Data and Workers Folder on master
 
 -h  display this help."
 
