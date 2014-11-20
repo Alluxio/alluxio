@@ -55,17 +55,8 @@ to interact with Tachyon, e.g. copy data in and out of the file system.
 
 # User Documentation
 
-[Running Tachyon Locally](Running-Tachyon-Locally.html): Get Tachyon up and running on a single node
-for a quick spin in ~ 5 minutes.
-
 [Configure Under Filesystem](Setup-UFS.html): Learn how to configure under file system or to create
 a new one.
-
-[Running Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html): Get Tachyon up and running on
-your own cluster.
-
-[Fault Tolerant Tachyon Cluster](Fault-Tolerant-Tachyon-Cluster.html): Make your cluster fault
-tolerant.
 
 [Running Spark on Tachyon](Running-Spark-on-Tachyon.html): Get Spark running on Tachyon
 
