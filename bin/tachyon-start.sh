@@ -2,7 +2,7 @@
 
 #start up tachyon
 
-Usage="Usage: tachyon-start.sh [-h] WHAT [MOPT]
+Usage="Usage: tachyon-start.sh [-h] WHAT [MOPT] [-f]
 Where WHAT is one of:
   all MOPT\t\tStart master and all slaves.
   local\t\t\tStart a master and slave locally
@@ -17,6 +17,8 @@ MOPT is one of:
   Mount\t\t\tMount the configured RamFS
   SudoMount\t\tMount the configured RamFS using sudo
   NoMount\t\tDo not mount the configured RamFS
+
+-f  format Journal, UnderFS Data and Worker Foldera on master
 
 -h  display this help."
 
@@ -85,6 +87,10 @@ start_master() {
 
   if [[ -z $TACHYON_MASTER_JAVA_OPTS ]] ; then
     TACHYON_MASTER_JAVA_OPTS=$TACHYON_JAVA_OPTS
+  fi
+
+  if [ "${1}" == "-f" ] ; then
+    $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$MASTER_ADDRESS -Dtachyon.logger.type="MASTER_LOGGER" $TACHYON_MASTER_JAVA_OPTS tachyon.Format master
   fi
 
   echo "Starting master @ $MASTER_ADDRESS"
@@ -164,7 +170,7 @@ case "${WHAT}" in
   all)
     check_mount_mode $2
     stop $bin
-    start_master
+    start_master $3
     sleep 2
     $bin/tachyon-slaves.sh $bin/tachyon-start.sh worker $2
     ;;
@@ -177,12 +183,12 @@ case "${WHAT}" in
       echo "Mount failed, not starting"
       exit 1
     fi
-    start_master
+    start_master $2
     sleep 2
     start_worker NoMount
     ;;
   master)
-    start_master
+    start_master $2
     ;;
   worker)
     check_mount_mode $2
