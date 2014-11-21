@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -42,7 +42,7 @@ public class RawTables extends ImageWriter {
 
   /**
    * Add a raw table. It will check if the raw table is already added.
-   * 
+   *
    * @param tableId The id of the raw table
    * @param columns The number of columns in the raw table
    * @param metadata The additional metadata of the raw table
@@ -63,7 +63,7 @@ public class RawTables extends ImageWriter {
 
   /**
    * Remove a raw table.
-   * 
+   *
    * @param tableId The id of the raw table
    * @return true if success, false otherwise
    */
@@ -74,7 +74,7 @@ public class RawTables extends ImageWriter {
 
   /**
    * Test if the raw table exist or not.
-   * 
+   *
    * @param inodeId the raw table id.
    * @return true if the table exists, false otherwise.
    */
@@ -84,8 +84,8 @@ public class RawTables extends ImageWriter {
 
   /**
    * Get the number of the columns of a raw table.
-   * 
-   * @param inodeId the inode id of the raw table.
+   *
+   * @param tableId the inode id of the raw table.
    * @return the number of the columns, -1 if the table does not exist.
    */
   public synchronized int getColumns(int tableId) {
@@ -96,7 +96,7 @@ public class RawTables extends ImageWriter {
 
   /**
    * Get the metadata of the specified raw table. It will return a duplication.
-   * 
+   *
    * @param tableId The id of the raw table
    * @return null if it has no metadata, or a duplication of the metadata
    */
@@ -116,7 +116,7 @@ public class RawTables extends ImageWriter {
 
   /**
    * Get the raw table info.
-   * 
+   *
    * @param tableId the raw table id.
    * @return <columns, metadata> if the table exist, null otherwise.
    */
@@ -126,7 +126,7 @@ public class RawTables extends ImageWriter {
 
   /**
    * Load the image into the RawTables structure.
-   * 
+   *
    * @param ele the json element to load
    * @throws IOException
    */
@@ -148,7 +148,7 @@ public class RawTables extends ImageWriter {
 
   /**
    * Update the metadata of the specified raw table. It will check if the table exists.
-   * 
+   *
    * @param tableId The id of the raw table
    * @param metadata The new metadata of the raw table
    * @throws TachyonException
