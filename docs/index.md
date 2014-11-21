@@ -55,32 +55,41 @@ to interact with Tachyon, e.g. copy data in and out of the file system.
 
 # User Documentation
 
-[Configure Under Filesystem](Setup-UFS.html): Learn how to configure under file system or to create
-a new one.
+**Deployment Guide:**
 
-[Running Spark on Tachyon](Running-Spark-on-Tachyon.html): Get Spark running on Tachyon
+* [Single Node](Running-Tachyon-Locally.html)
+* [Cluster](Running-Tachyon-on-a-Cluster.html)
+* [Master Fault Tolerant Cluster](Fault-Tolerant-Tachyon-Cluster.html)
+* [Amazon AWS](Running-Tachyon-on-AWS.html)
+* [OpenStack Compute](Running-Tachyon-on-OpenStack.html)
+* [Linux Container](Running-Tachyon-on-Container.html)
+* [VirtualBox](Running-Tachyon-on-VirtualBox.html)
 
-[Running Shark on Tachyon](Running-Shark-on-Tachyon.html): Get Shark running on Tachyon
+**Configuration:**
 
-[Running Hadoop MapReduce on Tachyon](Running-Hadoop-MapReduce-on-Tachyon.html): Get Hadoop
+* [Configure Under Filesystem](Setup-UFS.html): Learn how to configure under file system or to
+create a new one.
+* [Configuration Settings](Configuration-Settings.html): How to configure Tachyon.
+
+**Frameworks on Tachyon:**
+
+* [Running Spark on Tachyon](Running-Spark-on-Tachyon.html): Get Spark running on Tachyon
+* [Running Shark on Tachyon](Running-Shark-on-Tachyon.html): Get Shark running on Tachyon
+* [Running Hadoop MapReduce on Tachyon](Running-Hadoop-MapReduce-on-Tachyon.html): Get Hadoop
 MapReduce running on Tachyon
 
-[Configuration Settings](Configuration-Settings.html): How to configure Tachyon.
+**Others:**
 
-[Command-Line Interface](Command-Line-Interface.html): Interact with Tachyon through the command
+* [Command-Line Interface](Command-Line-Interface.html): Interact with Tachyon through the command
 line.
+* [Syncing the Underlying Filesystem](Syncing-the-Underlying-Filesystem.html): Make Tachyon
+understand an existing underlayer filesystem.
+* [Tachyon Java API (Javadoc)](api/java/index.html)
 
-[Syncing the Underlying Filesystem](Syncing-the-Underlying-Filesystem.html): Make Tachyon understand
-an existing underlayer filesystem.
-
-[Tachyon Java API (Javadoc)](api/java/index.html)
-
-Tachyon Presentations:
+**Tachyon Presentations:**
 
 * Strata and Hadoop World 2014 (October, 2014) [pdf](http://goo.gl/fP9qkF) [pptx](http://goo.gl/GOyUbI)
-
 * Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
-
 * Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
 
 # Developer Documentation
