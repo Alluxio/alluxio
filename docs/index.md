@@ -67,8 +67,8 @@ to interact with Tachyon, e.g. copy data in and out of the file system.
 
 **Configuration:**
 
-* [Configure Under Filesystem](Setup-UFS.html): Learn how to configure under file system or to
-create a new one.
+* [Configure Underlayer Storage System](Setup-UFS.html): Learn how to configure underlayer storage
+system or to create a new one.
 * [Configuration Settings](Configuration-Settings.html): How to configure Tachyon.
 
 **Frameworks on Tachyon:**
@@ -82,8 +82,8 @@ MapReduce running on Tachyon
 
 * [Command-Line Interface](Command-Line-Interface.html): Interact with Tachyon through the command
 line.
-* [Syncing the Underlying Filesystem](Syncing-the-Underlying-Filesystem.html): Make Tachyon
-understand an existing underlayer filesystem.
+* [Syncing the Underlayer Storage System](Syncing-the-Underlying-Filesystem.html): Make Tachyon
+understand an existing underlayer storage system.
 * [Tachyon Java API (Javadoc)](api/java/index.html)
 
 **Tachyon Presentations:**
@@ -100,7 +100,10 @@ understand an existing underlayer filesystem.
 
 # External resources
 
-[Tachyon Mini Courses at Strata 2014](http://ampcamp.berkeley.edu/big-data-mini-course/)
+Tachyon Mini Courses:
+
+* [AMPCamp 5](http://ampcamp.berkeley.edu/5/exercises/)
+* [Strata 2014](http://ampcamp.berkeley.edu/big-data-mini-course/)
 
 [Hot Rod Hadoop With Tachyon on Fedora 21](http://timothysc.github.io/blog/2014/02/17/bdas-tachyon/)
 
