@@ -1,15 +1,15 @@
 ---
 layout: global
-title: Under File Systems
+title: Configure Underlayer Storage System
 ---
 
-Tachyon can run with different under file systems. This guide describes how to accomplish the
-following:
+Tachyon can run with different underlayer storage systems. This guide describes how to accomplish
+the following:
 
 -   Configure Tachyon with different supported under file systems.
 -   Add new under file systems.
 
-# Setup supported under file systems
+# Setup supported underlayer storage systems
 
 ## HDFS
 
@@ -37,7 +37,6 @@ depedency. One way to fix this is to repackage Tachyon, adding jets3t as a depen
 the following should work with hadoop version 2.3.0, although depending on your version of Hadoop,
 you may need an older version of jets3t:
 
-```xml
     <dependency>
       <groupId>net.java.dev.jets3t</groupId>
       <artifactId>jets3t</artifactId>
@@ -50,7 +49,6 @@ you may need an older version of jets3t:
         </exclusion>
       </exclusions>
     </dependency>
-```
 
 If you are using a Tachyon client that is running separately from the Tachyon master/workers (in a
 seperate JVM), then you need to make sure that your AWS credentials are provided to the Tachyon
@@ -108,7 +106,7 @@ Sync the configuration to all nodes.
 
 You should find that a tachyon folder has been created.
 
-# Add other under file system
+# Add other underlayer storage system
 
 Besides the above under file system, Tachyon can run on top of other under file system. In order
 to do so, a user should implement this
