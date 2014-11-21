@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -23,9 +23,9 @@ public class StorageDirId {
 
   /**
    * Generate StorageDirId from given information
-   * 
+   *
    * @param level storage level of the StorageTier which contains the StorageDir
-   * @param storageLevelaliasValue StorageLevelAlias value of the StorageTier
+   * @param storageLevelAliasValue StorageLevelAlias value of the StorageTier
    * @param dirIndex index of the StorageDir
    * @return StorageDirId generated
    */
@@ -35,7 +35,7 @@ public class StorageDirId {
 
   /**
    * Get index of the StorageDir in the StorageTier which contains it
-   * 
+   *
    * @param storageDirId Id of the StorageDir
    * @return index of the StorageDir
    */
@@ -45,7 +45,7 @@ public class StorageDirId {
 
   /**
    * Get storage level of StorageTier which contains the StorageDir
-   * 
+   *
    * @param storageDirId Id of the StorageDir
    * @return storage level of the StorageTier which contains the StorageDir
    */
@@ -55,7 +55,7 @@ public class StorageDirId {
 
   /**
    * Get StorageLevelAlias value from StorageDirId
-   * 
+   *
    * @param storageDirId Id of the StorageDir
    * @return value of StorageLevelAlias
    */
@@ -65,7 +65,7 @@ public class StorageDirId {
 
   /**
    * Check whether the value of StorageDirId is UNKNOWN
-   * 
+   *
    * @param storageDirId Id of the StorageDir
    * @return true if StorageDirId is UNKNOWN, false otherwise.
    */
@@ -75,7 +75,7 @@ public class StorageDirId {
 
   /**
    * Get unknown value of StorageDirId, which indicates the StorageDir is unknown
-   * 
+   *
    * @return UNKNOWN value of StorageDirId
    */
   public static long unknownId() {

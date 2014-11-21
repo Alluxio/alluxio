@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -41,7 +41,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Create a new InodeFile from a JsonParser and an image Json element.
-   * 
+   *
    * @param parser the JsonParser to get the next element
    * @param ele the current InodeFolder's Json image element.
    * @return the constructed InodeFolder.
@@ -90,7 +90,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Create a new InodeFolder.
-   * 
+   *
    * @param name The name of the folder
    * @param id The id of the folder
    * @param parentId The id of the parent of the folder
@@ -102,7 +102,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Adds the given inode to the set of children.
-   * 
+   *
    * @param child The inode to add
    */
   public synchronized void addChild(Inode child) {
@@ -111,7 +111,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Adds the given inodes to the set of children.
-   * 
+   *
    * @param children The inodes to add
    */
   public synchronized void addChildren(Inode[] children) {
@@ -122,7 +122,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Generates client file info for the folder.
-   * 
+   *
    * @param path The path of the folder in the filesystem
    * @return the generated ClientFileInfo
    */
@@ -150,7 +150,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Returns the child with the given id.
-   * 
+   *
    * @param fid The id of the child
    * @return the inode with the given id, or null if there is no child with that id
    */
@@ -165,7 +165,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Returns the child with the given name.
-   * 
+   *
    * @param name The name of the child
    * @return the inode with the given name, or null if there is no child with that name
    */
@@ -180,7 +180,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Returns the folder's children.
-   * 
+   *
    * @return an unmodifiable set of the children inodes.
    */
   public synchronized Set<Inode> getChildren() {
@@ -189,7 +189,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Returns the ids of the children.
-   * 
+   *
    * @return the ids of the children
    */
   public synchronized List<Integer> getChildrenIds() {
@@ -202,7 +202,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Returns the number of children the folder has.
-   * 
+   *
    * @return the number of children in the folder.
    */
   public synchronized int getNumberOfChildren() {
@@ -211,7 +211,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Removes the given inode from the folder.
-   * 
+   *
    * @param child The Inode to remove
    * @return true if the inode was removed, false otherwise.
    */
@@ -221,7 +221,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Removes the given child from the folder.
-   * 
+   *
    * @param name The name of the Inode to remove.
    * @return true if the inode was removed, false otherwise.
    */
@@ -244,8 +244,8 @@ public class InodeFolder extends Inode {
 
   /**
    * Write an image of the folder.
-   * 
-   * @param os The output stream to write the folder to
+   *
+   * @param dos The output stream to write the folder to
    */
   @Override
   public void writeImage(ObjectWriter objWriter, DataOutputStream dos) throws IOException {

@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -48,7 +48,7 @@ public final class CommonUtils {
 
   /**
    * Change local file's permission.
-   * 
+   *
    * @param filePath that will change permission
    * @param perms the permission, e.g. "775"
    * @throws IOException
@@ -101,7 +101,7 @@ public final class CommonUtils {
 
   /**
    * Change local file's permission to be 777.
-   * 
+   *
    * @param filePath that will change permission
    * @throws IOException
    */
@@ -111,7 +111,7 @@ public final class CommonUtils {
 
   /**
    * Checks and normalizes the given path
-   * 
+   *
    * @param path The path to clean up
    * @return a normalized version of the path, with single separators between path components and
    *         dot components resolved
@@ -138,7 +138,7 @@ public final class CommonUtils {
 
   /**
    * Add the path component to the base path
-   * 
+   *
    * @param args The components to concatenate
    * @return the concatenated path
    */
@@ -234,7 +234,7 @@ public final class CommonUtils {
 
   /**
    * Get the name of the file at a path.
-   * 
+   *
    * @param path The path
    * @return the name of the file
    * @throws InvalidPathException
@@ -245,7 +245,7 @@ public final class CommonUtils {
 
   /**
    * Get the parent of the file at a path.
-   * 
+   *
    * @param path The path
    * @return the parent path of the file; this is "/" if the given path is the root.
    * @throws InvalidPathException
@@ -263,7 +263,7 @@ public final class CommonUtils {
 
   /**
    * Get the path components of the given path.
-   * 
+   *
    * @param path The path to split
    * @return the path split into components
    * @throws InvalidPathException
@@ -286,7 +286,7 @@ public final class CommonUtils {
    * tachyon://localhost:19998/abc/d.txt -> /abc/d.txt
    * <p>
    * tachyon-ft://localhost:19998/abc/d.txt -> /abc/d.txt
-   * 
+   *
    * @param path the original path
    * @return the path without the schema
    */
@@ -328,7 +328,7 @@ public final class CommonUtils {
 
   /**
    * Check if the given path is the root.
-   * 
+   *
    * @param path The path to check
    * @return true if the path is the root
    * @throws InvalidPathException
@@ -359,9 +359,9 @@ public final class CommonUtils {
 
   /**
    * Parse InetSocketAddress from a String
-   * 
+   *
    * @param address
-   * @return
+   * @return InetSocketAddress of the String
    * @throws IOException
    */
   public static InetSocketAddress parseInetSocketAddress(String address) throws IOException {
@@ -377,7 +377,7 @@ public final class CommonUtils {
 
   /**
    * Parse a String size to Bytes.
-   * 
+   *
    * @param spaceSize the size of a space, e.g. 10GB, 5TB, 1024
    * @return the space size in bytes
    */
@@ -437,7 +437,7 @@ public final class CommonUtils {
   /**
    * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
    * of the folder containing the 'file'.
-   * 
+   *
    * @param file absolute file path
    */
   public static void setLocalFileStickyBit(String file) {
@@ -470,7 +470,7 @@ public final class CommonUtils {
 
   /**
    * Create an empty file
-   * 
+   *
    * @throws IOException
    */
   public static void touch(String path) throws IOException {
@@ -481,7 +481,7 @@ public final class CommonUtils {
 
   /**
    * Check if the given path is properly formed
-   * 
+   *
    * @param path The path to check
    * @throws InvalidPathException If the path is not properly formed
    */
