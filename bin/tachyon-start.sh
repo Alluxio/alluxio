@@ -90,7 +90,7 @@ start_master() {
   fi
 
   if [ "${1}" == "-f" ] ; then
-    $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$MASTER_ADDRESS -Dtachyon.logger.type="MASTER_LOGGER" $TACHYON_MASTER_JAVA_OPTS tachyon.Format master
+    $bin/tachyon format
   fi
 
   echo "Starting master @ $MASTER_ADDRESS"
