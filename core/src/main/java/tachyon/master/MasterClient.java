@@ -110,19 +110,18 @@ public final class MasterClient implements Closeable {
    * @throws BlockInfoException
    */
   public synchronized boolean addCheckpoint(long workerId, int fileId, long length,
-      String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException,
-      BlockInfoException, IOException {
+      String checkpointPath) throws IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
         return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
       } catch (FileDoesNotExistException e) {
-        throw e;
+        throw new IOException(e);
       } catch (SuspectedFileSizeException e) {
-        throw e;
+        throw new IOException(e);
       } catch (BlockInfoException e) {
-        throw e;
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

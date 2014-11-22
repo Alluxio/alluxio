@@ -240,12 +240,6 @@ public class WorkerStorage {
                 + " ms.");
             CommonUtils.sleepMs(LOG, shouldSleepMs);
           }
-        } catch (FileDoesNotExistException e) {
-          LOG.warn(e.getMessage(), e);
-        } catch (SuspectedFileSizeException e) {
-          LOG.error(e.getMessage(), e);
-        } catch (BlockInfoException e) {
-          LOG.error(e.getMessage(), e);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
         }
