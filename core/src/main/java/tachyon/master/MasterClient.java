@@ -67,7 +67,7 @@ import tachyon.util.NetworkUtils;
 
 /**
  * The master server client side.
- * 
+ * <p/>
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
 // TODO When TException happens, the caller can't really do anything about it.
@@ -90,6 +90,14 @@ public final class MasterClient implements Closeable {
     this(masterAddress, CommonConf.get().USE_ZOOKEEPER);
   }
 
+  /**
+   * A master client bound to the given hostname and port.
+   * If zookeeper mode is enabled, the {@link LeaderInquireClient}is used to get
+   * the address of the current master.
+   *
+   * @param masterAddress the host and port the master is bound to
+   * @param useZookeeper  whether or not to use zookeeper
+   */
   public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper) {
     mUseZookeeper = useZookeeper;
     if (!mUseZookeeper) {
@@ -101,9 +109,9 @@ public final class MasterClient implements Closeable {
 
   /**
    * @param workerId if -1, means the checkpoint is added directly by the client from underlayer fs.
-   * @param fileId
-   * @param length
-   * @param checkpointPath
+   * @param fileId the id of the file to be checkpointed
+   * @param length the size of the file to be checkpointed
+   * @param checkpointPath the path where the checkpoint will be saved
    * @return true if checkpoint is added for the <code>fileId</code> and false otherwise
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
@@ -152,7 +160,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Connects to the Tachyon Master; an exception is thrown if this fails.
+   * Connects to the Tachyon Master if it is not already connected;
+   * an exception is thrown if this fails.
    */
   public synchronized void connect() throws IOException {
     if (mConnected) {
@@ -228,6 +237,15 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
+  /**
+   * Gets information on file paths, block sizes and ids, ufsPaths, cache and pinned status
+   * and other properties defined in {@link tachyon.thrift.ClientFileInfo}
+   *
+   * @param fileId the id of the file
+   * @param path   the path of the file
+   * @return clientInfo detailing paths, block sizes and other file information.
+   * @throws IOException if the fileId is not specified or the path does not start with /
+   */
   public synchronized ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
     if (path == null) {
       path = "";
@@ -445,6 +463,18 @@ public final class MasterClient implements Closeable {
     return -1;
   }
 
+  /**
+   * Attempts to delete the file or directory denoted by this path.
+   * If the path is a directory it must be non-empty or have recursive set to be true.
+   * <p/>
+   * If the directory or folder does not exist the operation completes without an exception.
+   *
+   * @param fileId    the id of the file or folder to delete.
+   * @param path      the path of the file or folder to delete.
+   * @param recursive whether to descend deletion into a directory.
+   * @return true if the file or folder is deleted even if it does not exist. false otherwise
+   * @throws IOException if the underlying Thrift operation failed.
+   */
   public synchronized boolean user_delete(int fileId, String path, boolean recursive)
       throws IOException {
     while (!mIsShutdown) {
@@ -775,15 +805,11 @@ public final class MasterClient implements Closeable {
 
   /**
    * Register the worker to the master.
-   * 
-   * @param workerNetAddress
-   *          Worker's NetAddress
-   * @param totalBytes
-   *          Worker's capacity
-   * @param usedBytes
-   *          Worker's used storage
-   * @param currentBlockList
-   *          Blocks in worker's space.
+   *
+   * @param workerNetAddress Worker's NetAddress
+   * @param totalBytes       Worker's capacity
+   * @param usedBytes        Worker's used storage
+   * @param currentBlockList Blocks in worker's space.
    * @return the worker id assigned by the master.
    * @throws BlockInfoException
    * @throws TException
