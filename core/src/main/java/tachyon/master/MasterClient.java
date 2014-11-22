@@ -70,6 +70,9 @@ import tachyon.util.NetworkUtils;
  * 
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
+// TODO When TException happens, the caller can't really do anything about it.
+// when the other exceptions are thrown as a IOException, the caller can't do anything about it
+// so all exceptions are handled poorly. This logic needs to be redone and be consistent.
 public final class MasterClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_CONNECT_TRY = 5;
@@ -114,6 +117,12 @@ public final class MasterClient implements Closeable {
 
       try {
         return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
+      } catch (FileDoesNotExistException e) {
+        throw e;
+      } catch (SuspectedFileSizeException e) {
+        throw e;
+      } catch (BlockInfoException e) {
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -382,6 +391,8 @@ public final class MasterClient implements Closeable {
         throw new IOException(e);
       } catch (BlockInfoException e) {
         throw new IOException(e);
+      } catch (SuspectedFileSizeException e) {
+        throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -498,6 +509,8 @@ public final class MasterClient implements Closeable {
         return ret;
       } catch (TableDoesNotExistException e) {
         throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -516,6 +529,8 @@ public final class MasterClient implements Closeable {
       try {
         return mClient.user_getFileBlocks(fileId, path);
       } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -708,11 +723,9 @@ public final class MasterClient implements Closeable {
         throw e;
       } catch (BlockInfoException e) {
         throw e;
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
-      } catch (TException e) {
-        throw new IOException(e);
       }
     }
   }
@@ -751,6 +764,8 @@ public final class MasterClient implements Closeable {
 
       try {
         return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -785,6 +800,8 @@ public final class MasterClient implements Closeable {
         LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress
             + " , got WorkerId " + ret);
         return ret;
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
