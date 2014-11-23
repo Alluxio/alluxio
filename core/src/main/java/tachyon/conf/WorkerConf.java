@@ -64,6 +64,11 @@ public class WorkerConf extends Utils {
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
 
   public final NetworkType NETWORK_TYPE;
+  
+  public final String KEYTAB_KEY;
+  public final String KEYTAB;
+  public final String PRINCIPAL_KEY;
+  public final String PRINCIPAL;
 
   public final ChannelType NETTY_CHANNEL_TYPE;
   public final FileTransferType NETTY_FILE_TRANSFER_TYPE;
@@ -107,6 +112,11 @@ public class WorkerConf extends Utils {
     WORKER_CHECKPOINT_THREADS = getIntProperty("tachyon.worker.checkpoint.threads", 1);
     WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
         getIntProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", Constants.SECOND_MS);
+    
+    KEYTAB_KEY = "tachyon.worker.keytab.file";
+    KEYTAB = getProperty(KEYTAB_KEY, null);
+    PRINCIPAL_KEY = "tachyon.worker.principal";
+    PRINCIPAL = getProperty(PRINCIPAL_KEY, null);
 
     NETWORK_TYPE = getEnumProperty("tachyon.worker.network.type", NetworkType.NETTY);
     NETTY_BOSS_THREADS = getIntProperty("tachyon.worker.network.netty.boss.threads", 1);

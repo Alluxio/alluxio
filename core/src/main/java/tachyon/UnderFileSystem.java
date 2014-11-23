@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import org.apache.hadoop.conf.Configuration;
+
 import tachyon.conf.CommonConf;
 
 /**
@@ -211,4 +213,18 @@ public abstract class UnderFileSystem {
    * @throws IOException
    */
   public abstract void setPermission(String path, String posixPerm) throws IOException;
+  
+  /**
+   * Login using keytab file and principal for Kerberos
+   * 
+   * @param keytabFileKey keytab file key
+   * @param keytabFile the keytab file
+   * @param principalKey principal key
+   * @param principal the principal
+   * @param hostname hostname
+   * @throws IOException
+   */
+  public void login(String keytabFileKey, String keytabFile, String principalKey, 
+      String principal, String hostname) throws IOException {
+  }
 }

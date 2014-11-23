@@ -31,9 +31,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.UnderFileSystem;
 import tachyon.Users;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
+import tachyon.conf.MasterConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
@@ -306,11 +308,23 @@ public class TachyonWorker implements Runnable {
       mWorkerStorage.checkStatus();
     }
   }
+  
+  private void login() throws IOException {
+    WorkerConf wConf = WorkerConf.get();
+    if (wConf.KEYTAB == null || wConf.PRINCIPAL == null) {
+      return;
+    }
+    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS);
+    ufs.login(wConf.KEYTAB_KEY, wConf.KEYTAB, wConf.PRINCIPAL_KEY, wConf.PRINCIPAL,
+        NetworkUtils.getFqdnHost(mWorkerAddress));
+  }
 
   /**
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
-  public void start() {
+  public void start() throws IOException {
+    login();
+    
     mHeartbeatThread.start();
 
     LOG.info("The worker server started @ " + mWorkerAddress);
