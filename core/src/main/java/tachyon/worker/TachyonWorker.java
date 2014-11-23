@@ -35,7 +35,6 @@ import tachyon.UnderFileSystem;
 import tachyon.Users;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
