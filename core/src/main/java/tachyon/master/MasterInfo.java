@@ -33,22 +33,24 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import com.google.common.base.Throwables;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
+
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
@@ -255,8 +257,10 @@ public class MasterInfo extends ImageWriter {
   private final Object mRootLock = new Object();
 
   // A map from file ID's to Inodes. All operations on it are currently synchronized on mRootLock.
-  private final Map<Integer, Inode> mFileIdToInodes = new HashMap<Integer, Inode>();
-  private final Map<Integer, Dependency> mFileIdToDependency = new HashMap<Integer, Dependency>();
+  private final ConcurrentHashMap<Integer, Inode> mFileIdToInodes =
+      new ConcurrentHashMap<Integer, Inode>();
+  private final Map<Integer, Dependency> mFileIdToDependency =
+      new ConcurrentHashMap<Integer, Dependency>();
   private final RawTables mRawTables = new RawTables();
 
   // TODO add initialization part for master failover or restart. All operations on these members
@@ -269,7 +273,8 @@ public class MasterInfo extends ImageWriter {
   private final Set<Integer> mMustRecomputedDpendencies = new HashSet<Integer>();
   private final Map<Long, MasterWorkerInfo> mWorkers = new HashMap<Long, MasterWorkerInfo>();
 
-  private final Map<NetAddress, Long> mWorkerAddressToId = new HashMap<NetAddress, Long>();
+  private final Map<NetAddress, Long> mWorkerAddressToId =
+      new ConcurrentHashMap<NetAddress, Long>();
 
   private final BlockingQueue<MasterWorkerInfo> mLostWorkers =
       new ArrayBlockingQueue<MasterWorkerInfo>(32);
@@ -366,7 +371,7 @@ public class MasterInfo extends ImageWriter {
           }
         }
       }
-      addFile(fileId, tFile.getDependencyId());
+      addFile(fileId);
       tFile.setComplete();
 
       if (needLog) {
@@ -394,7 +399,7 @@ public class MasterInfo extends ImageWriter {
         throw new FileDoesNotExistException("File " + fileId + " is not a file.");
       }
 
-      addFile(fileId, ((InodeFile) inode).getDependencyId());
+      addFile(fileId);
 
       ((InodeFile) inode).setComplete();
       inode.setLastModificationTimeMs(opTimeMs);
@@ -866,7 +871,7 @@ public class MasterInfo extends ImageWriter {
    * 
    * @param fileId The file to examine
    */
-  private void addFile(int fileId, int dependencyId) {
+  private void addFile(int fileId) {
     synchronized (mFileIdToDependency) {
       if (mLostFiles.contains(fileId)) {
         mLostFiles.remove(fileId);
@@ -1508,22 +1513,15 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the path specified by a given inode.
-   * 
+   *
    * @param inode The inode
    * @return the path of the inode
    */
   private TachyonURI getPath(Inode inode) {
     synchronized (mRootLock) {
-      if (inode.getId() == 1) {
-        return new TachyonURI(TachyonURI.SEPARATOR);
-      }
-      if (inode.getParentId() == 1) {
-        return new TachyonURI(TachyonURI.SEPARATOR + inode.getName());
-      }
-      return getPath(mFileIdToInodes.get(inode.getParentId())).join(inode.getName());
+      return getPathUsingRecursion(inode);
     }
   }
-
   /**
    * Get the path of a file with the given id
    * 
@@ -1539,6 +1537,24 @@ public class MasterInfo extends ImageWriter {
       }
       return getPath(inode);
     }
+  }
+
+  /**
+   * Get the path specified by a given inode. Should only be called
+   * within a synchronized call e.g. {@link MasterInfo#getPath(tachyon.master.Inode)}.
+   * This is because calling sync repeatedly within a recursive method results in
+   * poor performance. So this method must be called in a synchronized way.
+   * @param inode The inode
+   * @return the path of the inode
+   */
+  private TachyonURI getPathUsingRecursion(Inode inode) {
+    if (inode.getId() == 1) {
+      return new TachyonURI(TachyonURI.SEPARATOR);
+    }
+    if (inode.getParentId() == 1) {
+      return new TachyonURI(TachyonURI.SEPARATOR + inode.getName());
+    }
+    return getPathUsingRecursion(mFileIdToInodes.get(inode.getParentId())).join(inode.getName());
   }
 
   /**
