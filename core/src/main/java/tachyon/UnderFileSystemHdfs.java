@@ -30,6 +30,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.security.SecurityUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -362,5 +363,14 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       LOG.error("Fail to set permission for " + path + " with perm " + posixPerm, e);
       throw e;
     }
+  }
+  
+  @Override
+  public void login(String keytabFileKey, String keytabFile, String principalKey, 
+      String principal, String hostname) throws IOException {
+    Configuration conf = new Configuration();
+    conf.set(keytabFileKey, keytabFile);
+    conf.set(principalKey, principal);
+    SecurityUtil.login(conf, keytabFileKey, principalKey, hostname);
   }
 }

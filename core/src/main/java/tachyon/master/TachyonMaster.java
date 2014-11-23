@@ -186,6 +186,7 @@ public class TachyonMaster {
   }
 
   private void setup() throws IOException, TTransportException {
+    login();
     if (mZookeeperMode) {
       mEditLogProcessor.stop();
     }
@@ -206,6 +207,16 @@ public class TachyonMaster {
             .workerThreads(mWorkerThreads));
 
     mIsStarted = true;
+  }
+  
+  private void login() throws IOException {
+    MasterConf mConf = MasterConf.get();
+    if (mConf.KEYTAB == null || mConf.PRINCIPAL == null) {
+      return;
+    }
+    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS);
+    ufs.login(mConf.KEYTAB_KEY, mConf.KEYTAB, mConf.PRINCIPAL_KEY, mConf.PRINCIPAL,
+        NetworkUtils.getFqdnHost(mMasterAddress));
   }
 
   public void start() {
