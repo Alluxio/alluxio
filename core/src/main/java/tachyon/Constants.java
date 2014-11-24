@@ -54,8 +54,6 @@ public class Constants {
   // Please check and update Configuration-Settings.md file when you change or add Tachyon
   // configuration properties.
 
-  public static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs:,s3:,s3n:,glusterfs:";
-
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String WEB_RESOURCES = "tachyon.web.resources";
   public static final String UNDERFS_ADDRESS = "tachyon.underfs.address";
