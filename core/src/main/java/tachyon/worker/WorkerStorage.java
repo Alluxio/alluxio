@@ -36,6 +36,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -60,6 +61,7 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.util.CommonUtils;
+import tachyon.util.ThreadFactoryUtils;
 
 /**
  * The structure to store a worker's information in worker node.
@@ -287,7 +289,10 @@ public class WorkerStorage {
 
   private final ExecutorService mCheckpointExecutor = Executors.newFixedThreadPool(
       WorkerConf.get().WORKER_CHECKPOINT_THREADS,
-      new ThreadFactoryBuilder().setNameFormat("checkpoint-%d").build());
+      ThreadFactoryUtils.build("checkpoint-%d"));
+
+  private final ExecutorService mExecutorService;
+  private Future<?> mHeartbeat;
 
   /**
    * Main logic behind the worker process.
@@ -298,13 +303,15 @@ public class WorkerStorage {
    * @param masterAddress The TachyonMaster's address
    * @param dataFolder This TachyonWorker's local folder's path
    * @param memoryCapacityBytes The maximum memory space this TachyonWorker can use, in bytes
+   * @param executorService
    */
   public WorkerStorage(InetSocketAddress masterAddress, String dataFolder,
-      long memoryCapacityBytes) {
+      long memoryCapacityBytes, ExecutorService executorService) {
+    mExecutorService = executorService;
     mCommonConf = CommonConf.get();
 
     mMasterAddress = masterAddress;
-    mMasterClient = new MasterClient(mMasterAddress);
+    mMasterClient = new MasterClient(mMasterAddress, mExecutorService);
     mLocalDataFolder = new File(dataFolder);
 
     mSpaceCounter = new SpaceCounter(memoryCapacityBytes);
@@ -788,7 +795,7 @@ public class WorkerStorage {
    * Set a new MasterClient and connect to it.
    */
   public void resetMasterClient() {
-    MasterClient tMasterClient = new MasterClient(mMasterAddress);
+    MasterClient tMasterClient = new MasterClient(mMasterAddress, mExecutorService);
     mMasterClient = tMasterClient;
   }
 

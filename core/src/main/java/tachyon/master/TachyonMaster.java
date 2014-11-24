@@ -17,6 +17,8 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
@@ -38,6 +40,7 @@ import tachyon.conf.MasterConf;
 import tachyon.thrift.MasterService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
 
 /**
@@ -74,6 +77,8 @@ public class TachyonMaster {
   private int mAcceptQueueSizePerThread;
   private int mWorkerThreads;
   private boolean mZookeeperMode = false;
+  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2,
+      ThreadFactoryUtils.daemon("heartbeat-master-%d"));
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
@@ -109,7 +114,7 @@ public class TachyonMaster {
       Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX),
           "Tachyon was not formatted! The journal folder is " + journalFolder);
       mJournal = new Journal(journalFolder, "image.data", "log.data");
-      mMasterInfo = new MasterInfo(mMasterAddress, mJournal);
+      mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService);
 
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
@@ -267,6 +272,7 @@ public class TachyonMaster {
       mMasterInfo.stop();
       mMasterServiceServer.stop();
       mServerTNonblockingServerSocket.close();
+      mExecutorService.shutdown();
       mIsStarted = false;
     }
     if (mZookeeperMode) {

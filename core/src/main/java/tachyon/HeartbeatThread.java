@@ -22,14 +22,12 @@ import org.slf4j.LoggerFactory;
  * Thread class to execute a heartbeat periodically. This Thread is daemonic, so it will not prevent
  * the JVM from exiting.
  */
-public class HeartbeatThread extends Thread {
+public final class HeartbeatThread implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final String mThreadName;
   private final HeartbeatExecutor mExecutor;
   private final long mFixedExecutionIntervalMs;
-
-  private volatile boolean mIsShutdown = false;
 
   /**
    * @param threadName
@@ -39,16 +37,16 @@ public class HeartbeatThread extends Thread {
   public HeartbeatThread(String threadName, HeartbeatExecutor hbExecutor,
       long fixedExecutionIntervalMs) {
     mThreadName = threadName;
-    setName(threadName);
     mExecutor = hbExecutor;
     mFixedExecutionIntervalMs = fixedExecutionIntervalMs;
-    setDaemon(true);
   }
 
   @Override
   public void run() {
+    // set the thread name
+    Thread.currentThread().setName(mThreadName);
     try {
-      while (!mIsShutdown) {
+      while (!Thread.interrupted()) {
         long lastMs = System.currentTimeMillis();
         mExecutor.heartbeat();
         long executionTimeMs = System.currentTimeMillis() - lastMs;
@@ -60,16 +58,10 @@ public class HeartbeatThread extends Thread {
         }
       }
     } catch (InterruptedException e) {
-      if (!mIsShutdown) {
-        LOG.error("Heartbeat Thread was interrupted ungracefully, shutting down...", e);
-      }
+      // exit, reset interrupt
+      Thread.currentThread().interrupt();
     } catch (Exception e) {
       LOG.error("Uncaught exception in heartbeat executor, Heartbeat Thread shutting down", e);
     }
-  }
-
-  public void shutdown() {
-    mIsShutdown = true;
-    this.interrupt();
   }
 }

@@ -19,6 +19,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -30,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
 import tachyon.conf.UserConf;
 import tachyon.master.MasterClient;
@@ -59,17 +62,20 @@ public class WorkerClient implements Closeable {
   private boolean mConnected = false;
   private boolean mIsLocal = false;
   private String mDataFolder = null;
-
-  private HeartbeatThread mHeartbeatThread = null;
+  private final ExecutorService mExecutorService;
+  private Future<?> mHeartbeat;
 
   /**
    * Create a WorkerClient, with a given MasterClient.
    * 
    * @param masterClient
+   * @param executorService
    * @throws IOException
    */
-  public WorkerClient(MasterClient masterClient) throws IOException {
+  public WorkerClient(MasterClient masterClient, ExecutorService executorService)
+      throws IOException {
     mMasterClient = masterClient;
+    this.mExecutorService = executorService;
   }
 
   /**
@@ -168,7 +174,9 @@ public class WorkerClient implements Closeable {
       try {
         mProtocol.getTransport().close();
       } finally {
-        mHeartbeatThread.shutdown();
+        if (mHeartbeat != null) {
+          mHeartbeat.cancel(true);
+        }
       }
       mConnected = false;
     }
@@ -220,9 +228,12 @@ public class WorkerClient implements Closeable {
               NetworkUtils.getFqdnHost(mWorkerAddress), mWorkerAddress.getPort())));
       mClient = new WorkerService.Client(mProtocol);
 
-      mHeartbeatThread =
-          new HeartbeatThread("WorkerClientToWorkerHeartbeat", new WorkerClientHeartbeatExecutor(
-              this, mMasterClient.getUserId()), UserConf.get().HEARTBEAT_INTERVAL_MS);
+      HeartbeatExecutor heartBeater =
+          new WorkerClientHeartbeatExecutor(this, mMasterClient.getUserId());
+      String threadName = "worker-heartbeat-" + mWorkerAddress;
+      mHeartbeat =
+          mExecutorService.submit(new HeartbeatThread(threadName, heartBeater,
+              UserConf.get().HEARTBEAT_INTERVAL_MS));
 
       try {
         mProtocol.getTransport().open();
@@ -230,7 +241,6 @@ public class WorkerClient implements Closeable {
         LOG.error(e.getMessage(), e);
         return false;
       }
-      mHeartbeatThread.start();
       mConnected = true;
     }
 
