@@ -5,9 +5,7 @@ import java.util.concurrent.ThreadFactory;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public final class ThreadFactoryUtils {
-  private ThreadFactoryUtils() {
-
-  }
+  private ThreadFactoryUtils() {}
 
   /**
    * Creates a {@link java.util.concurrent.ThreadFactory} that spawns off daemon threads.
