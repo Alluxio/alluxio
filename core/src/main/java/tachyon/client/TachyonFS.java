@@ -150,9 +150,7 @@ public class TachyonFS extends AbstractTachyonFS {
     mAvailableSpaceBytes = 0L;
 
     mExecutorService =
-        Executors
-            .newFixedThreadPool(2,
-                ThreadFactoryUtils.daemon("client-heartbeat-%d"));
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.daemon("client-heartbeat-%d"));
 
     mMasterClient =
         mCloser.register(new MasterClient(mMasterAddress, mZookeeperMode, mExecutorService));

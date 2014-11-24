@@ -186,8 +186,7 @@ public final class MasterClient implements Closeable {
       try {
         mProtocol.getTransport().open();
 
-        HeartbeatExecutor heartBeater =
-            new MasterClientHeartbeatExecutor(this);
+        HeartbeatExecutor heartBeater = new MasterClientHeartbeatExecutor(this);
 
         String threadName = "master-heartbeat-" + mMasterAddress;
         mHeartbeat =
