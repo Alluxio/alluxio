@@ -19,10 +19,11 @@ public class CommonConf extends Utils {
 
   private static CommonConf sCommonConf = null;
 
-  public static final ImmutableList<String> DEFAULT_HADOOP_UFS_PREFIX = ImmutableList.of(
-      "hdfs:", "s3:", "s3n:", "glusterfs:");
+  public static final ImmutableList<String> DEFAULT_HADOOP_UFS_PREFIX = ImmutableList.of("hdfs:",
+      "s3:", "s3n:", "glusterfs:");
 
   private static final String DEFAULT_HOME = "/mnt/tachyon_default_home";
+
   /**
    * This is for unit test only. DO NOT use it for other purpose.
    */
