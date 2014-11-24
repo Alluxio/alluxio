@@ -17,6 +17,8 @@ package tachyon.worker;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -47,6 +49,7 @@ public class WorkerStorageTest {
   private InetSocketAddress mMasterAddress = null;
   private NetAddress mWorkerAddress = null;
   private String mWorkerDataFolder = null;
+  private ExecutorService mExecutorService;
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -54,12 +57,14 @@ public class WorkerStorageTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
+    mExecutorService.shutdown();
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
+    mExecutorService = Executors.newFixedThreadPool(2);
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
@@ -73,9 +78,13 @@ public class WorkerStorageTest {
     int fid = TestUtils.createByteFile(mTfs, "/xyz", WriteType.MUST_CACHE, filesize);
     long bid = mTfs.getBlockId(fid, 0);
     mLocalTachyonCluster.stopWorker();
-    mTfs.delete(fid, true);
+    // If you call mTfs.delete(fid, true), this will throw a java.util.concurrent.RejectedExecutionException
+    // this is because stopWorker will close all clients
+    // when a client is closed, you are no longer able to do any operations on it
+    // so we need to get a fresh client to call delete
+    mLocalTachyonCluster.getClient().delete(fid, true);
 
-    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
+    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES, mExecutorService);
     try {
       ws.initialize(mWorkerAddress);
       String orpahnblock = ws.getUfsOrphansFolder() + TachyonURI.SEPARATOR + bid;
@@ -147,7 +156,7 @@ public class WorkerStorageTest {
     // try a non-numerical file name
     File unknownFile = new File(mWorkerDataFolder + TachyonURI.SEPARATOR + "xyz");
     unknownFile.createNewFile();
-    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
+    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES, mExecutorService);
     try {
       ws.initialize(mWorkerAddress);
     } finally {

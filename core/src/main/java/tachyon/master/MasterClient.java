@@ -23,6 +23,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -36,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
 import tachyon.LeaderInquireClient;
 import tachyon.TachyonURI;
@@ -84,19 +87,22 @@ public final class MasterClient implements Closeable {
   private volatile boolean mConnected;
   private volatile boolean mIsShutdown;
   private volatile long mUserId = -1;
-  private HeartbeatThread mHeartbeatThread = null;
+  private final ExecutorService mExecutorService;
+  private Future<?> mHeartbeat;
 
-  public MasterClient(InetSocketAddress masterAddress) {
-    this(masterAddress, CommonConf.get().USE_ZOOKEEPER);
+  public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService) {
+    this(masterAddress, CommonConf.get().USE_ZOOKEEPER, executorService);
   }
 
-  public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper) {
+  public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper,
+      ExecutorService executorService) {
     mUseZookeeper = useZookeeper;
     if (!mUseZookeeper) {
       mMasterAddress = masterAddress;
     }
     mConnected = false;
     mIsShutdown = false;
+    mExecutorService = executorService;
   }
 
   /**
@@ -145,8 +151,8 @@ public final class MasterClient implements Closeable {
         mProtocol.getTransport().close();
       }
     } finally {
-      if (mHeartbeatThread != null) {
-        mHeartbeatThread.shutdown();
+      if (mHeartbeat != null) {
+        mHeartbeat.cancel(true);
       }
     }
   }
@@ -180,16 +186,19 @@ public final class MasterClient implements Closeable {
       try {
         mProtocol.getTransport().open();
 
-        mHeartbeatThread =
-            new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(this),
-                UserConf.get().HEARTBEAT_INTERVAL_MS / 2);
-        mHeartbeatThread.start();
+        HeartbeatExecutor heartBeater =
+            new MasterClientHeartbeatExecutor(this);
+
+        String threadName = "master-heartbeat-" + mMasterAddress;
+        mHeartbeat =
+            mExecutorService.submit(new HeartbeatThread(threadName, heartBeater,
+                UserConf.get().HEARTBEAT_INTERVAL_MS / 2));
       } catch (TTransportException e) {
         lastException = e;
-        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress
+        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress 
             + " : " + e.getMessage());
-        if (mHeartbeatThread != null) {
-          mHeartbeatThread.shutdown();
+        if (mHeartbeat != null) {
+          mHeartbeat.cancel(true);
         }
         continue;
       }

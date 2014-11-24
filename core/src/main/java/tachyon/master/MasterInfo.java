@@ -36,12 +36,9 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.google.common.base.Throwables;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,6 +80,7 @@ import tachyon.util.CommonUtils;
  * A global view of filesystem in master.
  */
 public class MasterInfo extends ImageWriter {
+
   /**
    * Master info periodical status check.
    */
@@ -168,6 +166,7 @@ public class MasterInfo extends ImageWriter {
   public class RecomputationScheduler implements Runnable {
     @Override
     public void run() {
+      Thread.currentThread().setName("recompute-scheduler");
       while (!Thread.currentThread().isInterrupted()) {
         boolean hasLostFiles = false;
         boolean launched = false;
@@ -281,12 +280,13 @@ public class MasterInfo extends ImageWriter {
 
   private final Journal mJournal;
 
-  private HeartbeatThread mHeartbeatThread;
+  private final ExecutorService mExecutorService;
+  private Future<?> mHeartbeat;
+  private Future<?> mRecompute;
 
-  private final ExecutorService mRecomputeExecutor = Executors.newFixedThreadPool(1,
-      new ThreadFactoryBuilder().setNameFormat("recompute-scheduler-%d").build());
-
-  public MasterInfo(InetSocketAddress address, Journal journal) throws IOException {
+  public MasterInfo(InetSocketAddress address, Journal journal, ExecutorService mExecutorService)
+      throws IOException {
+    this.mExecutorService = mExecutorService;
     mMasterConf = MasterConf.get();
 
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1, System.currentTimeMillis());
@@ -1786,12 +1786,11 @@ public class MasterInfo extends ImageWriter {
     mJournal.createImage(this);
     mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
 
-    mHeartbeatThread =
-        new HeartbeatThread("Master Heartbeat", new MasterInfoHeartbeatExecutor(),
-            mMasterConf.HEARTBEAT_INTERVAL_MS);
-    mHeartbeatThread.start();
+    mHeartbeat =
+        mExecutorService.submit(new HeartbeatThread("Master Heartbeat",
+            new MasterInfoHeartbeatExecutor(), mMasterConf.HEARTBEAT_INTERVAL_MS));
 
-    mRecomputeExecutor.submit(new RecomputationScheduler());
+    mRecompute = mExecutorService.submit(new RecomputationScheduler());
   }
 
   /**
@@ -2148,16 +2147,11 @@ public class MasterInfo extends ImageWriter {
    * Stops the heartbeat thread.
    */
   public void stop() {
-    try {
-      mHeartbeatThread.shutdown();
-    } finally {
-      mRecomputeExecutor.shutdownNow();
-      try {
-        mRecomputeExecutor.awaitTermination(5, TimeUnit.SECONDS);
-      } catch (InterruptedException e) {
-        // if we take this long, its a bug that must be fixed
-        throw Throwables.propagate(e);
-      }
+    if (mHeartbeat != null) {
+      mHeartbeat.cancel(true);
+    }
+    if (mRecompute != null) {
+      mRecompute.cancel(true);
     }
   }
 
