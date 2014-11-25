@@ -26,6 +26,7 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
+import tachyon.Users;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.worker.eviction.EvictStrategies;
@@ -285,8 +286,8 @@ public class StorageTier {
               removedBlockIds.add(blockId);
             } else {
               StorageDir dstDir =
-                  mNextStorageTier.requestSpace(userId, blockInfo.getBlockSize(), pinList,
-                      removedBlockIds);
+                  mNextStorageTier.requestSpace(Users.EVICT_USER_ID, blockInfo.getBlockSize(),
+                      pinList, removedBlockIds);
               srcDir.moveBlock(blockId, dstDir);
             }
             LOG.debug("Evicted block Id:" + blockId);
@@ -300,8 +301,9 @@ public class StorageTier {
         }
       }
     }
-    throw new IOException("No StorageDir is allocated! requestSize:" + requestSizeBytes
-        + " usedSpace:" + getUsedBytes() + " capacity:" + getCapacityBytes());
+    LOG.warn("No StorageDir is allocated! requestSize:" + requestSizeBytes + " usedSpace:"
+        + getUsedBytes() + " capacity:" + getCapacityBytes());
+    return null;
   }
 
   @Override

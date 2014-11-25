@@ -499,6 +499,9 @@ public class WorkerStorage {
     for (StorageTier curTier : mStorageTiers) {
       for (StorageDir curDir : curTier.getStorageDirs()) {
         curDir.checkStatus(removedUsers);
+        for (long userId : removedUsers) {
+          curDir.returnSpace(userId);
+        }
       }
     }
 
