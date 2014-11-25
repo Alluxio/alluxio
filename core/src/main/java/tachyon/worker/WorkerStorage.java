@@ -499,9 +499,6 @@ public class WorkerStorage {
     for (StorageTier curTier : mStorageTiers) {
       for (StorageDir curDir : curTier.getStorageDirs()) {
         curDir.checkStatus(removedUsers);
-        for (long userId : removedUsers) {
-          curDir.returnSpace(userId);
-        }
       }
     }
 
@@ -750,9 +747,11 @@ public class WorkerStorage {
     storageDir = getStorageDirByBlockId(blockId);
     if (storageDir != null) {
       if (storageDir.lockBlock(blockId, userId)) {
-        LOG.warn(String.format("Attempt to lock block in storageDirId(%d), but actually in"
-            + " storageDirId(%d), blockId(%d)", storageDirId, storageDir.getStorageDirId(),
-            blockId));
+        if (!StorageDirId.isUnknown(storageDirId)) {
+          LOG.warn(String.format("Attempt to lock block in storageDirId(%d), but actually in"
+              + " storageDirId(%d), blockId(%d)", storageDirId, storageDir.getStorageDirId(),
+              blockId));
+        }
         return storageDir.getStorageDirId();
       }
     }
@@ -1004,9 +1003,11 @@ public class WorkerStorage {
     storageDir = getStorageDirByBlockId(blockId);
     if (storageDir != null) {
       if (storageDir.unlockBlock(blockId, userId)) {
-        LOG.warn(String.format("Attempt to unlock block in storageDirId(%d), but actually in"
-            + " storageDirId(%d), blockId(%d)", storageDirId, storageDir.getStorageDirId(),
-            blockId));
+        if (StorageDirId.isUnknown(storageDirId)) {
+          LOG.warn(String.format("Attempt to unlock block in storageDirId(%d), but actually in"
+              + " storageDirId(%d), blockId(%d)", storageDirId, storageDir.getStorageDirId(),
+              blockId));
+        }
         return storageDir.getStorageDirId();
       }
     }

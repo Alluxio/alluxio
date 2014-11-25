@@ -153,7 +153,7 @@ public class BlockOutStream extends OutStream {
           LOG.info("Canceled output of block " + mBlockId + ", deleted local file "
               + mLocalFilePath);
         }
-      } else {
+      } else if (!StorageDirId.isUnknown(mStorageDirId)) {
         mTachyonFS.cacheBlock(mStorageDirId, mBlockId);
       }
     }

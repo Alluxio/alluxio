@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.StorageDirId;
 import tachyon.conf.CommonConf;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
