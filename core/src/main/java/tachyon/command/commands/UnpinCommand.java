@@ -2,6 +2,7 @@ package tachyon.command.commands;
 
 import java.io.IOException;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
@@ -18,6 +19,15 @@ public class UnpinCommand extends AbstractCommands {
   public static final String NAME = "unpin";
   public static final String DESCRIPTION =
             "Unpins the given file or folder.";
+
+   /**
+   * Constructor with Closer
+   *
+   * @param c
+   */
+  public UnpinCommand(Closer c) {
+    super(c);
+  }
 
   @Override
   public int execute(CommandLine cmdl) throws IOException, ParseException {

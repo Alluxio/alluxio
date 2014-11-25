@@ -30,6 +30,15 @@ public class CopyFromLocalCommand extends AbstractCommands {
       "Copies a file or directory specified by argv from the local filesystem to the filesystem.";
 
   /**
+   * Constructor with Closer
+   *
+   * @param c
+   */
+  public CopyFromLocalCommand(Closer c) {
+    super(c);
+  }
+
+  /**
    * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
    * fail if the path given already exists in the filesystem.
    *

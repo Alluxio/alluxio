@@ -2,6 +2,7 @@ package tachyon.command.commands;
 
 import java.io.IOException;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
@@ -19,6 +20,15 @@ import tachyon.command.AbstractCommands;
 public class CatCommand extends AbstractCommands {
   public static final String NAME = "cat";
   public static final String DESCRIPTION = "Prints the file's contents to the console.";
+
+  /**
+   * Constructor with Closer
+   *
+   * @param c
+   */
+  public CatCommand(Closer c) {
+    super(c);
+  }
 
   /**
    * Prints the file's contents to the console.

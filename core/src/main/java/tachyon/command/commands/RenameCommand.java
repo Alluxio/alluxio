@@ -2,6 +2,7 @@ package tachyon.command.commands;
 
 import java.io.IOException;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
@@ -17,6 +18,15 @@ public class RenameCommand extends AbstractCommands {
   public static final String NAME = "rename";
   public static final String DESCRIPTION =
           "Renames a file or directory specified by argv.";
+
+  /**
+   * Constructor with Closer
+   *
+   * @param c
+   */
+  public RenameCommand(Closer c) {
+    super(c);
+  }
 
   @Override
   public int execute(CommandLine cmdl) throws IOException, ParseException {

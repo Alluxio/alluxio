@@ -26,6 +26,15 @@ public class CopyToLocalCommand extends AbstractCommands {
             " Copies a file specified by argv from the filesystem to the local filesystem.";
 
   /**
+   * Constructor with Closer
+   *
+   * @param c
+   */
+  public CopyToLocalCommand(Closer c) {
+    super(c);
+  }
+
+  /**
    * Copies a file specified by argv from the filesystem to the local filesystem.
    *
    * @param cmdl Arguments given by the user's input from the terminal

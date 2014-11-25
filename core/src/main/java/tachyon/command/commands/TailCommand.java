@@ -2,6 +2,7 @@ package tachyon.command.commands;
 
 import java.io.IOException;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
@@ -21,6 +22,15 @@ public class TailCommand extends AbstractCommands {
   public static final String NAME = "tail";
   public static final String DESCRIPTION =
             "Prints the file's last 1KB of contents to the console.";
+
+  /**
+   * Constructor with Closer
+   *
+   * @param c
+   */
+  public TailCommand(Closer c) {
+    super(c);
+  }
 
   @Override
   public int execute(CommandLine cmdl) throws IOException, ParseException {

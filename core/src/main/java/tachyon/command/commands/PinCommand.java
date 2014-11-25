@@ -2,6 +2,7 @@ package tachyon.command.commands;
 
 import java.io.IOException;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
@@ -18,6 +19,15 @@ public class PinCommand extends AbstractCommands {
   public static final String NAME = "pin";
   public static final String DESCRIPTION =  "Pins the given file or folder (recursively pinning "
           + "all children if a folder). Pinned files are never evicted from memory.";
+
+  /**
+   * Constructor with Closer
+   *
+   * @param c
+   */
+  public PinCommand(Closer c) {
+    super(c);
+  }
 
   @Override
   public int execute(CommandLine cmdl) throws IOException, ParseException {

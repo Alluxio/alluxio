@@ -3,6 +3,7 @@ package tachyon.command.commands;
 import java.io.IOException;
 import java.util.List;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
@@ -18,6 +19,15 @@ import tachyon.thrift.ClientBlockInfo;
 public class FileinfoCommand extends AbstractCommands {
   public static final String NAME = "fileinfo";
   public static final String DESCRIPTION = "Displays the file's all blocks info.";
+
+  /**
+   * Constructor with Closer
+   *
+   * @param c
+   */
+  public FileinfoCommand(Closer c) {
+    super(c);
+  }
 
   @Override
   public int execute(CommandLine cmdl) throws IOException, ParseException {

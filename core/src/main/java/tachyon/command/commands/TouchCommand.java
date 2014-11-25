@@ -3,6 +3,7 @@ package tachyon.command.commands;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 
 import tachyon.TachyonURI;
@@ -19,6 +20,15 @@ public class TouchCommand extends AbstractCommands {
   public static final String NAME = "touch";
   public static final String DESCRIPTION =
             "Creates a 0 byte file specified by argv.";
+
+  /**
+   * Constructor with Closer
+   *
+   * @param c
+   */
+  public TouchCommand(Closer c) {
+    super(c);
+  }
 
   @Override
   public int execute(CommandLine cmdl) throws IOException {

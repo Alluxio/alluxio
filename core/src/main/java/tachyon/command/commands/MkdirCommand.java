@@ -2,6 +2,7 @@ package tachyon.command.commands;
 
 import java.io.IOException;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
@@ -18,6 +19,15 @@ public class MkdirCommand extends AbstractCommands {
   public static final String NAME = "mkdir";
   public static final String DESCRIPTION =
             "Creates a new directory specified by the path in argv.";
+
+  /**
+   * Constructor with Closer
+   *
+   * @param c
+   */
+  public MkdirCommand(Closer c) {
+    super(c);
+  }
 
   @Override
   public int execute(CommandLine cmdl) throws IOException, ParseException {

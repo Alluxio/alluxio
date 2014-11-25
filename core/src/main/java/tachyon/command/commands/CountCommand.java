@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
@@ -21,6 +22,15 @@ public class CountCommand extends AbstractCommands {
   public static final String NAME = "count";
   public static final String DESCRIPTION =
           "Displays the number of folders and files matching the specified prefix in argv.";
+
+  /**
+   * Constructor with Closer
+   *
+   * @param c
+   */
+  public CountCommand(Closer c) {
+    super(c);
+  }
 
   /**
    * Displays the number of folders and files matching the specified prefix in argv.

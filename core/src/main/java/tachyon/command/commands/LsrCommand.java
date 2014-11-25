@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
@@ -22,6 +23,15 @@ public class LsrCommand extends AbstractCommands {
   public static final String NAME = "lsr";
   public static final String DESCRIPTION =
       "Displays information for all directories and files under the path specified recursively.";
+
+  /**
+   * Constructor with Closer
+   *
+   * @param c
+   */
+  public LsrCommand(Closer c) {
+    super(c);
+  }
 
   @Override
   public int execute(CommandLine cmdl) throws IOException, ParseException {

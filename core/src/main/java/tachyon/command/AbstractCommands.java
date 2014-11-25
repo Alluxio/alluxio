@@ -15,17 +15,18 @@ import tachyon.client.TachyonFS;
  */
 public abstract class AbstractCommands {
   /**
-   *
+   * Closer
    */
-  private Closer mCloser;
+  protected final Closer mCloser;
 
   /**
-   *
+   * Constructor with Closer
+   * @param c
    */
-  public AbstractCommands() {
+  public AbstractCommands(Closer c) {
     super();
+    mCloser = c;
   }
-
 
   /**
    * Executes the command polymorphic behavior
@@ -44,11 +45,8 @@ public abstract class AbstractCommands {
     return mCloser.register(TachyonFS.get(new TachyonURI(qualifiedPath)));
   }
 
-  public Closer getmCloser() {
+  protected Closer getCloser() {
     return mCloser;
   }
 
-  public void setmCloser(Closer mCloser) {
-    this.mCloser = mCloser;
-  }
 }
