@@ -29,7 +29,7 @@ public class StorageDirId {
    * @return negative if storage level of left StorageDirId is higher than the right one, zero if
    *         equals, positive if lower.
    */
-  public static long compareStorageLevel(long storageDirIdLeft, long storageDirIdRight) {
+  public static int compareStorageLevel(long storageDirIdLeft, long storageDirIdRight) {
     return getStorageLevelAliasValue(storageDirIdLeft)
         - getStorageLevelAliasValue(storageDirIdRight);
   }

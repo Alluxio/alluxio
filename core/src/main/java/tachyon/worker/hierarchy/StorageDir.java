@@ -171,6 +171,7 @@ public final class StorageDir {
       for (long blockId : blockIds) {
         mUserPerLockedBlock.remove(blockId, userId);
       }
+      returnSpace(userId);
     }
   }
 
@@ -594,7 +595,7 @@ public final class StorageDir {
    * 
    * @param userId Id of the user to return space
    */
-  public void returnSpace(long userId) {
+  private void returnSpace(long userId) {
     Long returnedSize = mUserAvailableBytes.remove(userId);
     if (returnedSize != null) {
       LOG.info(String.format("Return space(%d) from removed user(%d):", returnedSize, userId));
