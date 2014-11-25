@@ -87,7 +87,8 @@ public class TFsShell implements Closeable {
               .append(commandLine.getOptions()[0].getOpt().substring(0, 1).toUpperCase())
               .append(commandLine.getOptions()[0].getOpt().substring(1)).append(COMMAND_NAME);
       //02.Get command object and set closer
-      command = (AbstractCommands) Class.forName(commandClass.toString()).getConstructors()[0].newInstance(mCloser);
+      command = (AbstractCommands) Class.forName(commandClass.toString())
+              .getConstructors()[0].newInstance(mCloser);
       //03. Execute
       result = command.execute(commandLine);
     } catch (IndexOutOfBoundsException e ) {
