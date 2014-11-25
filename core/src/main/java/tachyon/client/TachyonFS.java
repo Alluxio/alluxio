@@ -175,12 +175,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   synchronized void accessLocalBlock(ClientBlockInfo blockInfo) throws IOException {
-    Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
-    long blockId = blockInfo.getBlockId();
-    NetAddress workerNetAddress = mWorkerClient.getNetAddress();
-    Long storageDirId = storageDirIds.get(workerNetAddress);
+    Long storageDirId = getLocalStorageDirId(blockInfo);
     if (storageDirId != null) {
-      accessLocalBlock(storageDirId, blockId);
+      accessLocalBlock(storageDirId, blockInfo.getBlockId());
     }
   }
 
@@ -287,9 +284,7 @@ public class TachyonFS extends AbstractTachyonFS {
       UnderFileSystem dirFS = mIdToDirFS.get(storageDirId);
       boolean ret = false;
       if (dirFS.exists(userLocalTempFolder)) {
-        if (dirFS.isFile(userLocalTempFolder)) {
-          ret = dirFS.mkdirs(userLocalTempFolder, true);
-        } else {
+        if (!dirFS.isFile(userLocalTempFolder)) {
           ret = true;
         }
       } else {
@@ -699,11 +694,14 @@ public class TachyonFS extends AbstractTachyonFS {
   private synchronized long getFromAvaliableSpace(long requestSpaceBytes) throws IOException {
     long storageDirId = StorageDirId.unknownId();
     for (Entry<Long, Long> entry : mIdToAvailableSpaceBytes.entrySet()) {
-      if (entry.getValue() >= requestSpaceBytes) {
+      if (entry.getValue() >= requestSpaceBytes
+          && StorageDirId.compareStorageLevel(entry.getKey(), storageDirId) < 0) {
         storageDirId = entry.getKey();
-        mIdToAvailableSpaceBytes.put(storageDirId, entry.getValue() - requestSpaceBytes);
-        break;
       }
+    }
+    if (!StorageDirId.isUnknown(storageDirId)) {
+      long availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
+      mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
     }
     return storageDirId;
   }
@@ -737,9 +735,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   synchronized String getLocalBlockFilePath(ClientBlockInfo blockInfo) throws IOException {
     if (blockInfo != null) {
-      Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
-      NetAddress workerNetAddress = mWorkerClient.getNetAddress();
-      Long storageDirId = storageDirIds.get(workerNetAddress);
+      Long storageDirId = getLocalStorageDirId(blockInfo);
       if (storageDirId != null) {
         return getLocalBlockFilePath(storageDirId, blockInfo.getBlockId());
       }
@@ -760,6 +756,22 @@ public class TachyonFS extends AbstractTachyonFS {
     if (dirPath != null) {
       String dataFolder = getLocalDataFolder();
       return CommonUtils.concat(dirPath, dataFolder, blockId);
+    }
+    return null;
+  }
+
+  /**
+   * Get Id of the StorageDir containing the block file on local worker
+   * 
+   * @param blockInfo information of the block
+   * @return the Id of the StorageDir containing the block file on local worker
+   * @throws IOException
+   */
+  synchronized Long getLocalStorageDirId(ClientBlockInfo blockInfo) {
+    if (blockInfo != null) {
+      Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
+      NetAddress workerNetAddress = mWorkerClient.getNetAddress();
+      return storageDirIds.get(workerNetAddress);
     }
     return null;
   }
@@ -928,9 +940,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   synchronized long lockBlock(ClientBlockInfo blockInfo, int blockLockId) throws IOException {
     if (blockInfo != null) {
-      Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
-      NetAddress workerNetAddress = mWorkerClient.getNetAddress();
-      Long storageDirId = storageDirIds.get(workerNetAddress);
+      Long storageDirId = getLocalStorageDirId(blockInfo);
       if (storageDirId != null) {
         return lockBlock(storageDirId, blockInfo.getBlockId(), blockLockId);
       }
@@ -1011,31 +1021,14 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Release space to some StorageDir.
-   * 
-   * @param storageDirId the id of the StorageDir which the space will be release to
-   * @param releaseSpaceBytes the size of the space to be released in bytes
-   */
-  public synchronized void releaseSpace(long storageDirId, long releaseSpaceBytes) {
-    if (mIdToAvailableSpaceBytes.containsKey(storageDirId)) {
-      long availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
-      mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes + releaseSpaceBytes);
-    } else {
-      LOG.warn("Unknown StorageDir! ID:" + storageDirId);
-    }
-  }
-
-  /**
    * Promote block file back to the top StorageTier, after the block file is accessed.
    * 
    * @param blockInfo information of the block which will be promoted
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public boolean promoteBlock(ClientBlockInfo blockInfo) throws IOException {
-    Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
-    NetAddress workerNetAddress = mWorkerClient.getNetAddress();
-    Long storageDirId = storageDirIds.get(workerNetAddress);
+  public synchronized boolean promoteBlock(ClientBlockInfo blockInfo) throws IOException {
+    Long storageDirId = getLocalStorageDirId(blockInfo);
 
     if (storageDirId != null) {
       return promoteBlock(storageDirId, blockInfo.getBlockId());
@@ -1051,11 +1044,26 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public boolean promoteBlock(long storageDirId, long blockId) throws IOException {
+  public synchronized boolean promoteBlock(long storageDirId, long blockId) throws IOException {
     if (mWorkerClient.isLocal()) {
       return mWorkerClient.promoteBlock(mMasterClient.getUserId(), storageDirId, blockId);
     }
     return false;
+  }
+
+  /**
+   * Release space to some StorageDir.
+   * 
+   * @param storageDirId the id of the StorageDir which the space will be release to
+   * @param releaseSpaceBytes the size of the space to be released in bytes
+   */
+  public synchronized void releaseSpace(long storageDirId, long releaseSpaceBytes) {
+    if (mIdToAvailableSpaceBytes.containsKey(storageDirId)) {
+      long availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
+      mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes + releaseSpaceBytes);
+    } else {
+      LOG.warn("Unknown StorageDir! ID:" + storageDirId);
+    }
   }
 
   /**
@@ -1111,22 +1119,19 @@ public class TachyonFS extends AbstractTachyonFS {
     if (storageDirId != StorageDirId.unknownId()) {
       return storageDirId;
     } else {
-      long availableSpaceBytes = 0;
-      if (mIdToAvailableSpaceBytes.containsKey(storageDirId)) {
-        availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
-      }
       for (int attempt = 0; attempt < FAILED_SPACE_REQUEST_LIMITS; attempt ++) {
         long toRequestSpaceBytes = Math.max(requestSpaceBytes, mUserQuotaUnitBytes);
         storageDirId = 
             mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes);
         if (!StorageDirId.isUnknown(storageDirId)) {
-          availableSpaceBytes += toRequestSpaceBytes;
-          if (availableSpaceBytes >= requestSpaceBytes) {
-            mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
-            return storageDirId;
+          Long availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
+          if (availableSpaceBytes != null) {
+            availableSpaceBytes += toRequestSpaceBytes;
           } else {
-            mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes);
+            availableSpaceBytes = toRequestSpaceBytes;
           }
+          mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
+          return storageDirId;
         }
       }
       return StorageDirId.unknownId();
@@ -1161,12 +1166,8 @@ public class TachyonFS extends AbstractTachyonFS {
                 toRequestSpaceBytes);
         if (reqResult) {
           availableSpaceBytes += toRequestSpaceBytes;
-          if (availableSpaceBytes >= requestSpaceBytes) {
-            mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
-            return true;
-          } else {
-            mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes);
-          }
+          mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
+          return true;
         }
       }
       return false;
@@ -1204,9 +1205,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   synchronized long unlockBlock(ClientBlockInfo blockInfo, int blockLockId) throws IOException {
     if (blockInfo != null) {
-      Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
-      NetAddress workerNetAddress = mWorkerClient.getNetAddress();
-      Long storageDirId = storageDirIds.get(workerNetAddress);
+      Long storageDirId = getLocalStorageDirId(blockInfo);
       if (storageDirId != null) {
         return unlockBlock(storageDirId, blockInfo.getBlockId(), blockLockId);
       }

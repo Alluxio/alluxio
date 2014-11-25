@@ -363,7 +363,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Lock the block, therefore, the worker will lock evict the block from the memory untill it is
+   * Lock the block, therefore, the worker will not evict the block from the memory until it is
    * unlocked.
    * 
    * @param userId The id of the user who wants to lock the block
