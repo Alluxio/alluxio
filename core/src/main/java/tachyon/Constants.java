@@ -122,7 +122,7 @@ public class Constants {
       "tachyon.worker.network.netty.watermark.low";
   public static final String WORKER_NETTY_BACKLOG = "tachyon.worker.network.netty.backlog";
   public static final String WORKER_NETTY_SEND_BUFFER = "tachyon.worker.network.netty.buffer.send";
-  public static final String WORKER_NETTY_RECIEVE_BUFFER =
+  public static final String WORKER_NETTY_RECEIVE_BUFFER =
       "tachyon.worker.network.netty.buffer.receive";
   public static final String WORKER_EVICT_STRATEGY_TYPE = "tachyon.worker.evict.strategy";
   public static final String WORKER_ALLOCATE_STRATEGY_TYPE = "tachyon.worker.allocate.strategy";
