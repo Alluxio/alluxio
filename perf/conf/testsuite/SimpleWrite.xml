@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <property>
+    <name>files.per.thread</name>
+    <value>2</value>
+    <description>the number of files to write for each write thread</description>
+  </property>
+  <property>
+    <name>block.size.bytes</name>
+    <value>134217728</value>
+    <description>the block size of a file</description>
+  </property>
+  <property>
+    <name>file.length.bytes</name>
+    <value>134217728</value>
+    <description>the file size of write test, in bytes</description>
+  </property>
+  <property>
+    <name>buffer.size.bytes</name>
+    <value>4194304</value>
+    <description>the size of the buffer write once</description>
+  </property>
+  <property>
+    <name>write.type</name>
+    <value>TRY_CACHE</value>
+    <description>the WriteType of the write operation, now only used for Tachyon</description>
+  </property>
+</configuration>
+
