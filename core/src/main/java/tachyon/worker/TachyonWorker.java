@@ -32,6 +32,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
+import tachyon.UnderFileSystemHdfs;
 import tachyon.Users;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
@@ -310,12 +311,15 @@ public class TachyonWorker implements Runnable {
   
   private void login() throws IOException {
     WorkerConf wConf = WorkerConf.get();
-    if (wConf.KEYTAB == null || wConf.PRINCIPAL == null) {
-      return;
-    }
     UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS);
-    ufs.login(wConf.KEYTAB_KEY, wConf.KEYTAB, wConf.PRINCIPAL_KEY, wConf.PRINCIPAL,
-        NetworkUtils.getFqdnHost(mWorkerAddress));
+    if (ufs instanceof UnderFileSystemHdfs) {
+      if (wConf.KEYTAB == null || wConf.PRINCIPAL == null) {
+        return;
+      }
+      ((UnderFileSystemHdfs) ufs).login(wConf.KEYTAB_KEY, wConf.KEYTAB, 
+          wConf.PRINCIPAL_KEY, wConf.PRINCIPAL,
+          NetworkUtils.getFqdnHost(mWorkerAddress));
+    }
   }
 
   /**

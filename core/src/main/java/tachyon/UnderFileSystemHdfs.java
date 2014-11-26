@@ -365,7 +365,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
   }
   
-  @Override
   public void login(String keytabFileKey, String keytabFile, String principalKey, 
       String principal, String hostname) throws IOException {
     Configuration conf = new Configuration();
