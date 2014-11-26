@@ -21,8 +21,8 @@ Please download and install Vagrant (at least version 1.6.5). Once Vagrant is in
 Tachyon cluster requires only `vagrant up` command. A two-VM cluster is then created. `vagrant
 destroy` command destroys the cluster.
 
-`tachyon/deploy/vagrant/init.yml` is the configuration file that sets different cluster parameters. They are explained
-below.
+`tachyon/deploy/vagrant/init.yml` is the configuration file that sets different cluster parameters.
+They are explained below.
 
 <table class="table">
 <tr>
@@ -79,7 +79,8 @@ Run `run_openstack.sh` to create OpenStack Compute Node instances.
 
 ## Docker Provider
 
-Run command `./run_docker.sh` to start containers. After containers are up, login as `root` and password as `vagrant`.
+Run command `./run_docker.sh` to start containers. After containers are up, login as `root` and
+password as `vagrant`.
 
 ## Examples of Running VirtualBox Clusters Using Glusterfs as Underfilesystem
 
