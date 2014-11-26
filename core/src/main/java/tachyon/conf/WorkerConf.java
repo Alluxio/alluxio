@@ -21,6 +21,7 @@ import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
+import tachyon.worker.DataServer;
 import tachyon.worker.eviction.EvictStrategyType;
 import tachyon.worker.hierarchy.AllocateStrategyType;
 import tachyon.worker.netty.ChannelType;
@@ -50,7 +51,7 @@ public class WorkerConf extends Utils {
   public final int PORT;
   public final int DATA_PORT;
   public final String DATA_FOLDER;
-  public final Class<?> DATA_SERVER_CLASS;
+  public final Class<? extends DataServer> DATA_SERVER_CLASS;
   public final long MEMORY_SIZE;
   public final long HEARTBEAT_TIMEOUT_MS;
   public final int TO_MASTER_HEARTBEAT_INTERVAL_MS;

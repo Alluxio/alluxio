@@ -9,7 +9,6 @@ import com.google.common.base.Throwables;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.accelio.jxio.EventName;
 import org.accelio.jxio.EventQueueHandler;
 import org.accelio.jxio.EventReason;
@@ -28,7 +27,7 @@ import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
 import tachyon.worker.DataServerMessage;
 
-public class RDMADataServer extends DataServer implements Runnable {
+public class RDMADataServer implements Runnable, DataServer {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int SERVER_INITIAL_BUF_COUNT = 500;

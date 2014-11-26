@@ -503,13 +503,13 @@ public final class CommonUtils {
    * @param ctorArgs the arguments to pass the constructor
    * @return new class object or null if not successful
    */
-  public static Object createNewClassInstance(Class<?> cls, Class<?>[] ctorClassArgs,
+  public static <T> T createNewClassInstance(Class<T> cls, Class<?>[] ctorClassArgs,
       Object[] ctorArgs) throws InstantiationException, IllegalAccessException,
       NoSuchMethodException, SecurityException, InvocationTargetException {
     if (ctorClassArgs == null) {
       return cls.newInstance();
     }
-    Constructor<?> ctor = cls.getConstructor(ctorClassArgs);
+    Constructor<T> ctor = cls.getConstructor(ctorClassArgs);
     return ctor.newInstance(ctorArgs);
   }
 }

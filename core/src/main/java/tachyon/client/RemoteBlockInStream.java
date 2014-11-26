@@ -278,8 +278,8 @@ public class RemoteBlockInStream extends BlockInStream {
 
   private static ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, long blockId,
       long offset, long length) throws IOException {
-    return RemoteBlockReader.createRemoteBlockReader().readRemoteBlock(address.getHostName(),
-        address.getPort(), blockId, offset, length);
+    return RemoteBlockReader.Factory.createRemoteBlockReader().readRemoteBlock(
+        address.getHostName(), address.getPort(), blockId, offset, length);
   }
 
   @Override

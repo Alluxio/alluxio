@@ -4,9 +4,7 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -16,6 +14,7 @@
 package tachyon.conf;
 
 import tachyon.Constants;
+import tachyon.client.RemoteBlockReader;
 import tachyon.client.WriteType;
 
 public class UserConf extends Utils {
@@ -45,7 +44,7 @@ public class UserConf extends Utils {
 
   public final int REMOTE_READ_BUFFER_SIZE_BYTE;
 
-  public final Class<?> REMOTE_BLOCK_READER_CLASS;
+  public final Class<? extends RemoteBlockReader> REMOTE_BLOCK_READER_CLASS;
 
   public final WriteType DEFAULT_WRITE_TYPE;
 

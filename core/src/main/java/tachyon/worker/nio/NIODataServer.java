@@ -42,7 +42,7 @@ import tachyon.worker.DataServerMessage;
  * The Server to serve data file read request from remote machines. The current implementation is
  * based on non-blocking NIO.
  */
-public class NIODataServer extends DataServer implements Runnable {
+public class NIODataServer implements Runnable, DataServer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // The host:port combination to listen on

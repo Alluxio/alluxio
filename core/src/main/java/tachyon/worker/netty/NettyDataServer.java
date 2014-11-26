@@ -40,7 +40,7 @@ import tachyon.worker.DataServer;
 /**
  * Runs a netty server that will response to block requests.
  */
-public final class NettyDataServer extends DataServer {
+public final class NettyDataServer implements DataServer {
   private final ServerBootstrap mBootstrap;
 
   private final ChannelFuture mChannelFuture;
