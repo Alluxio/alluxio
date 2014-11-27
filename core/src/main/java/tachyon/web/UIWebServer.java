@@ -61,6 +61,7 @@ public class UIWebServer {
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
     threadPool.setMaxThreads(MasterConf.get().WEB_THREAD_COUNT);
+    threadPool.setMinThreads(MasterConf.get().WEB_THREAD_COUNT);
     mServer.setThreadPool(threadPool);
 
     WebAppContext webappcontext = new WebAppContext();
@@ -86,6 +87,14 @@ public class UIWebServer {
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {webappcontext, new DefaultHandler()});
     mServer.setHandler(handlers);
+  }
+
+  public InetSocketAddress getAddress() {
+    return new InetSocketAddress(mAddress.getAddress(), getPort());
+  }
+
+  public int getPort() {
+    return mServer.getConnectors()[0].getLocalPort();
   }
 
   public void setHandler(AbstractHandler handler) {

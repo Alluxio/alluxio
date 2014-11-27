@@ -58,6 +58,7 @@ public class MasterConf extends Utils {
   public final int SERVER_THREADS;
   public final int WORKER_TIMEOUT_MS;
   public final int WEB_THREAD_COUNT;
+  public final boolean WEB_ENABLED;
 
   public final ArrayList<String> WHITELIST = new ArrayList<String>();
 
@@ -76,7 +77,8 @@ public class MasterConf extends Utils {
         (CommonConf.get().USE_ZOOKEEPER ? Constants.HEADER_FT : Constants.HEADER) + HOSTNAME + ":"
             + PORT;
     WEB_PORT = getIntProperty("tachyon.master.web.port", Constants.DEFAULT_MASTER_WEB_PORT);
-    WEB_THREAD_COUNT = getIntProperty("tachyon.master.web.threads", 9);
+    WEB_THREAD_COUNT = getIntProperty("tachyon.master.web.threads", 5);
+    WEB_ENABLED = getBooleanProperty("tachyon.master.web.enabled", true);
     TEMPORARY_FOLDER = getProperty("tachyon.master.temporary.folder", "/tmp");
 
     HEARTBEAT_INTERVAL_MS =

@@ -143,9 +143,14 @@ number.
   <td>The comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Tachyon will try to cache the cacheable file when it is read for the first time.</td>
 </tr>
 <tr>
+  <td>tachyon.master.web.enabled</td>
+  <td>true</td>
+  <td>Run a web server on the master.</td>
+</tr>
+<tr>
   <td>tachyon.master.web.threads</td>
-  <td>9</td>
-  <td>How many threads to use for the web server.</td>
+  <td>5</td>
+  <td>How many threads to use for the web server. Lower than 5 threads is unsupported (jetty hangs).</td>
 </tr>
 </table>
 
