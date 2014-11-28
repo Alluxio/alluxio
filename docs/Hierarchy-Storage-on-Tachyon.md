@@ -11,10 +11,15 @@ allocates space on hierarchical storage, Currently the newly coming data is alwa
 level storage layer for high speed, and the space is allocated among storage directories in one
 storage layer by a configured strategy. If the upper level storage runs out of space, its block
 files will be evicted to successor storage layer by a configured strategy to get enough space. If
-the storage layer is the bottom tier, the block files will be deleted. When reading data from
-Tachyon, client first gets information of the block information from master. Then the client locks
-the block in the corresponding worker and get path of the block file. After data is read, the worker
-updates the access time of the block and unlock the block.
+the storage layer is the bottom tier, the block files will be deleted. the location change and
+deletion information will update to master during heartbeat with master. After block file is
+written, the client requests worker to cache the block, and worker will update the information of
+the block to master after the block is cached. When reading data from Tachyon, client first gets
+information of the block from master. If the block exists on local worker, the client requests
+worker to lock the block and get path of the block file. After data is read, the client requests
+worker to update the access time of the block and unlock the block. If the block does not exist on
+local worker, client tries getting block data from remote workers which are listed in the
+information of the block.
 
 ## Configuring hierarchical storage
 
@@ -37,9 +42,11 @@ one storage directory per hardware device for SSD and HDD.
 
     $ tachyon.worker.hierarchystore.level{x}.dirs.quota
 The quotas for all storage directories in a storage layer, which are also be delimited by comma. x
-represents the storage layer. There are default quotas for storage directories in certain storage
-layer (512MB for level0, 64GB for level1 and 1TB for level2 and next levels). If the quota
-configuration for some storage layer is not set, default value will be used.
+represents the storage layer. worker will use the coresponding quota in the configuration for
+storage directories, if the quota for some storage directories are not set, the last quota will be
+used, and There are also default quotas for storage directories in certain storage layer (512MB for
+level0, 64GB for level1 and 1TB for level2 and next levels). If the quota configuration for some
+storage layer is not set, default value will be used for all directories in the layer.
 
     $ tachyon.worker.allocate.strategy
 Space allocation strategy defines how workers allocate space in storage directories in certain
