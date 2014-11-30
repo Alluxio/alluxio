@@ -251,6 +251,18 @@ public class TachyonWorker implements Runnable {
     return mWorkerServiceHandler;
   }
 
+  private void login() throws IOException {
+    WorkerConf wConf = WorkerConf.get();
+    if (wConf.KEYTAB == null || wConf.PRINCIPAL == null) {
+      return;
+    }
+    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS);
+    if (ufs instanceof UnderFileSystemHdfs) {
+      ((UnderFileSystemHdfs) ufs).login(wConf.KEYTAB_KEY, wConf.KEYTAB, wConf.PRINCIPAL_KEY,
+          wConf.PRINCIPAL, NetworkUtils.getFqdnHost(mWorkerAddress));
+    }
+  }
+
   @Override
   public void run() {
     long lastHeartbeatMs = System.currentTimeMillis();
@@ -308,26 +320,13 @@ public class TachyonWorker implements Runnable {
       mWorkerStorage.checkStatus();
     }
   }
-  
-  private void login() throws IOException {
-    WorkerConf wConf = WorkerConf.get();
-    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS);
-    if (ufs instanceof UnderFileSystemHdfs) {
-      if (wConf.KEYTAB == null || wConf.PRINCIPAL == null) {
-        return;
-      }
-      ((UnderFileSystemHdfs) ufs).login(wConf.KEYTAB_KEY, wConf.KEYTAB, 
-          wConf.PRINCIPAL_KEY, wConf.PRINCIPAL,
-          NetworkUtils.getFqdnHost(mWorkerAddress));
-    }
-  }
 
   /**
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() throws IOException {
     login();
-    
+
     mHeartbeatThread.start();
 
     LOG.info("The worker server started @ " + mWorkerAddress);

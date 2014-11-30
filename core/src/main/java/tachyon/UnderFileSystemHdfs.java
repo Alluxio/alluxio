@@ -285,6 +285,14 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
   }
 
+  public void login(String keytabFileKey, String keytabFile, String principalKey, String principal,
+      String hostname) throws IOException {
+    Configuration conf = new Configuration();
+    conf.set(keytabFileKey, keytabFile);
+    conf.set(principalKey, principal);
+    SecurityUtil.login(conf, keytabFileKey, principalKey, hostname);
+  }
+
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     IOException te = null;
@@ -363,13 +371,5 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       LOG.error("Fail to set permission for " + path + " with perm " + posixPerm, e);
       throw e;
     }
-  }
-  
-  public void login(String keytabFileKey, String keytabFile, String principalKey, 
-      String principal, String hostname) throws IOException {
-    Configuration conf = new Configuration();
-    conf.set(keytabFileKey, keytabFile);
-    conf.set(principalKey, principal);
-    SecurityUtil.login(conf, keytabFileKey, principalKey, hostname);
   }
 }
