@@ -58,6 +58,11 @@ public class MasterConf extends Utils {
   public final int SERVER_THREADS;
   public final int WORKER_TIMEOUT_MS;
   public final int WEB_THREAD_COUNT;
+  
+  public final String KEYTAB_KEY;
+  public final String KEYTAB;
+  public final String PRINCIPAL_KEY;
+  public final String PRINCIPAL;
 
   public final ArrayList<String> WHITELIST = new ArrayList<String>();
 
@@ -88,6 +93,11 @@ public class MasterConf extends Utils {
             .availableProcessors());
     WORKER_TIMEOUT_MS =
         getIntProperty("tachyon.master.worker.timeout.ms", 10 * Constants.SECOND_MS);
+    
+    KEYTAB_KEY = "tachyon.master.keytab.file";
+    KEYTAB = getProperty(KEYTAB_KEY, null);
+    PRINCIPAL_KEY = "tachyon.master.principal";
+    PRINCIPAL = getProperty(PRINCIPAL_KEY, null);
 
     WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist", TachyonURI.SEPARATOR)
         .split(",")));

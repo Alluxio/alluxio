@@ -34,6 +34,7 @@ import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
+import tachyon.UnderFileSystemHdfs;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
@@ -186,6 +187,7 @@ public class TachyonMaster {
   }
 
   private void setup() throws IOException, TTransportException {
+    login();
     if (mZookeeperMode) {
       mEditLogProcessor.stop();
     }
@@ -206,6 +208,19 @@ public class TachyonMaster {
             .workerThreads(mWorkerThreads));
 
     mIsStarted = true;
+  }
+  
+  private void login() throws IOException {
+    MasterConf mConf = MasterConf.get();
+    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS);
+    if (ufs instanceof UnderFileSystemHdfs) {
+      if (mConf.KEYTAB == null || mConf.PRINCIPAL == null) {
+        return;
+      }
+      ((UnderFileSystemHdfs) ufs).login(mConf.KEYTAB_KEY, mConf.KEYTAB, 
+          mConf.PRINCIPAL_KEY, mConf.PRINCIPAL, 
+          NetworkUtils.getFqdnHost(mMasterAddress));
+    }
   }
 
   public void start() {
