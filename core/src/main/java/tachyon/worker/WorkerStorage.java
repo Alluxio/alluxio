@@ -36,7 +36,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.Future;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -44,7 +43,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -292,7 +290,6 @@ public class WorkerStorage {
       ThreadFactoryUtils.build("checkpoint-%d"));
 
   private final ExecutorService mExecutorService;
-  private Future<?> mHeartbeat;
 
   /**
    * Main logic behind the worker process.
