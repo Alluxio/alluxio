@@ -253,10 +253,6 @@ public class TachyonWorker implements Runnable {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         cmd = null;
         //remove time out logic keep going ping master
-//        if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf.get().HEARTBEAT_TIMEOUT_MS) {
-//          throw new RuntimeException("Timebeat timeout "
-//              + (System.currentTimeMillis() - lastHeartbeatMs) + "ms");
-//        }
       }
 
       if (cmd != null) {
