@@ -4,9 +4,12 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.google.common.base.Throwables;
 
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.NameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.accelio.jxio.EventName;
@@ -22,37 +25,38 @@ import org.accelio.jxio.exceptions.JxioGeneralException;
 import org.accelio.jxio.exceptions.JxioSessionClosedException;
 
 import tachyon.Constants;
+import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
 import tachyon.worker.DataServerMessage;
 
-public class RDMADataServer implements Runnable, DataServer {
+public final class RDMADataServer implements Runnable, DataServer {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int SERVER_INITIAL_BUF_COUNT = 500;
   private static final int SERVER_INC_BUF_COUNT = 50;
-  private static final String TRANSPORT = getTransport();
+  private static final String TRANSPORT = CommonConf.get().JXIO_TRANSPORT;
   // The blocks locker manager.
   private final BlocksLocker mBlocksLocker;
   private final Thread mListenerThread;
-  private final EventQueueHandler mEqh;
+  private final EventQueueHandler mEventQueueHandler;
   private final ServerPortal mListener;
   private ArrayList<MsgPool> mMsgPools = new ArrayList<MsgPool>();
 
   public RDMADataServer(final InetSocketAddress address, final BlocksLocker locker) {
     URI uri = constructRdmaServerUri(address.getHostName(), address.getPort());
-    LOG.info("Starting RDMADataServer @ " + uri);
+    LOG.info("Starting RDMADataServer @ {}", uri);
     mBlocksLocker = locker;
     MsgPool pool =
         new MsgPool(SERVER_INITIAL_BUF_COUNT, 0,
             org.accelio.jxio.jxioConnection.Constants.MSGPOOL_BUF_SIZE);
     mMsgPools.add(pool);
-    mEqh =
+    mEventQueueHandler =
         new EventQueueHandler(new EqhCallbacks(SERVER_INC_BUF_COUNT, 0,
             org.accelio.jxio.jxioConnection.Constants.MSGPOOL_BUF_SIZE));
-    mEqh.bindMsgPool(pool);
-    mListener = new ServerPortal(mEqh, uri, new PortalServerCallbacks(), null);
+    mEventQueueHandler.bindMsgPool(pool);
+    mListener = new ServerPortal(mEventQueueHandler, uri, new PortalServerCallbacks(), null);
     mListenerThread = new Thread(this);
     mListenerThread.start();
   }
@@ -60,35 +64,42 @@ public class RDMADataServer implements Runnable, DataServer {
   /**
    * Callbacks for the listener server portal
    */
-  public class PortalServerCallbacks implements ServerPortal.Callbacks {
+  private final class PortalServerCallbacks implements ServerPortal.Callbacks {
 
     public void onSessionEvent(EventName session_event, EventReason reason) {
-      LOG.debug("got event " + session_event.toString() + "because of " + reason.toString());
+      LOG.debug("got event {} because of {}", session_event.toString(), reason.toString());
       if (session_event == EventName.PORTAL_CLOSED) {
-        mEqh.breakEventLoop();
+        mEventQueueHandler.breakEventLoop();
       }
     }
 
     public void onSessionNew(SessionKey sesKey, String srcIP, Worker workerHint) {
-      LOG.info("onSessionNew " + sesKey.getUri());
-      SessionServerCallbacks callbacks = new SessionServerCallbacks(sesKey.getUri());
+      LOG.info("onSessionNew {}", sesKey.getUri());
+      URI uri;
+      try {
+        uri = new URI(sesKey.getUri());
+      } catch (URISyntaxException  e) {
+        mListener.reject(sesKey, EventReason.ADDR_ERROR, "Client uri could not be resolved");
+        return;
+      }
+      SessionServerCallbacks callbacks = new SessionServerCallbacks(uri);
       ServerSession session = new ServerSession(sesKey, callbacks);
       callbacks.setSession(session);
       mListener.accept(session);
     }
   }
 
-  public class SessionServerCallbacks implements ServerSession.Callbacks {
+  private final class SessionServerCallbacks implements ServerSession.Callbacks {
     private final DataServerMessage mResponseMessage;
     private ServerSession mSession;
 
-    public SessionServerCallbacks(String uri) {
-      String[] params = uri.split("blockId=")[1].split("\\?")[0].split("&");
-      long blockId = Long.parseLong(params[0]);
-      long offset = Long.parseLong(params[1].split("=")[1]);
-      long length = Long.parseLong(params[2].split("=")[1]);
-      LOG.debug("got request for block id " + blockId + " with offset " + offset + " and length "
-          + length);
+    public SessionServerCallbacks(URI uri) {
+      List<NameValuePair> params = URLEncodedUtils.parse(uri, "UTF-8");
+      long blockId = Long.parseLong(params.get(0).getValue());
+      long offset = Long.parseLong(params.get(1).getValue());
+      long length = Long.parseLong(params.get(2).getValue());
+      LOG.debug("got request for block id {} with offset {} and length {}",
+          blockId, offset, length);
       int lockId = mBlocksLocker.lock(blockId);
       mResponseMessage =
           DataServerMessage.createBlockResponseMessage(true, blockId, offset, length);
@@ -107,10 +118,10 @@ public class RDMADataServer implements Runnable, DataServer {
         try {
           mSession.sendResponse(m);
         } catch (JxioGeneralException e) {
-          LOG.error("Exception accured while sending messgae " + e.toString());
+          LOG.error("Exception accured while sending messgae {}", e.toString());
           mSession.discardRequest(m);
         } catch (JxioSessionClosedException e) {
-          LOG.error("session was closed unexpectedly " + e.toString());
+          LOG.error("session was closed unexpectedly {}", e.toString());
           mSession.discardRequest(m);
         }
       }
@@ -121,7 +132,7 @@ public class RDMADataServer implements Runnable, DataServer {
     }
 
     public void onSessionEvent(EventName session_event, EventReason reason) {
-      LOG.debug("got event " + session_event.toString() + ", the reason is " + reason.toString());
+      LOG.debug("got event {}, the reason is {}", session_event.toString(), reason.toString());
       if (session_event == EventName.SESSION_CLOSED) {
         mResponseMessage.close();
         mBlocksLocker.unlock(Math.abs(mResponseMessage.getBlockId()), mResponseMessage.getLockId());
@@ -129,19 +140,22 @@ public class RDMADataServer implements Runnable, DataServer {
     }
 
     public boolean onMsgError(Msg msg, EventReason reason) {
-      LOG.error(this.toString() + " onMsgErrorCallback. reason is " + reason);
+      LOG.error("{} onMsgErrorCallback. reason is {}", this.toString(), reason);
       return true;
     }
   }
 
   @Override
   public void run() {
-    int ret = mEqh.runEventLoop(-1, -1);
+    int ret =
+        mEventQueueHandler.runEventLoop(EventQueueHandler.INFINITE_EVENTS,
+            EventQueueHandler.INFINITE_DURATION);
     if (ret == -1) {
-      LOG.error(this.toString() + " exception occurred in eventLoop:" + mEqh.getCaughtException());
+      LOG.error("{} exception occurred in eventLoop: {}", this.toString(),
+          mEventQueueHandler.getCaughtException());
     }
-    mEqh.stop();
-    mEqh.close();
+    mEventQueueHandler.stop();
+    mEventQueueHandler.close();
     for (MsgPool mp : mMsgPools) {
       mp.deleteMsgPool();
     }
@@ -151,7 +165,7 @@ public class RDMADataServer implements Runnable, DataServer {
   @Override
   public void close() {
     LOG.info("closing server");
-    mEqh.breakEventLoop();
+    mEventQueueHandler.breakEventLoop();
   }
 
   @Override
@@ -159,8 +173,7 @@ public class RDMADataServer implements Runnable, DataServer {
     return mListener.getIsClosing();
   }
 
-  class EqhCallbacks implements EventQueueHandler.Callbacks {
-    private final RDMADataServer mOuter = RDMADataServer.this;
+  private final class EqhCallbacks implements EventQueueHandler.Callbacks {
     private final int mNumMsgs;
     private final int mInMsgSize;
     private final int mOutMsgSize;
@@ -173,8 +186,7 @@ public class RDMADataServer implements Runnable, DataServer {
 
     public MsgPool getAdditionalMsgPool(int in, int out) {
       MsgPool mp = new MsgPool(mNumMsgs, mInMsgSize, mOutMsgSize);
-      LOG.warn(this.toString() + " " + mOuter.toString() + ": new MsgPool: " + mp);
-      mOuter.mMsgPools.add(mp);
+      mMsgPools.add(mp);
       return mp;
     }
   }
@@ -188,17 +200,9 @@ public class RDMADataServer implements Runnable, DataServer {
     try {
       return new URI(TRANSPORT + "://" + host + ":" + port);
     } catch (URISyntaxException e) {
-      LOG.error("could not resolve rdma data server uri, transport type is " + TRANSPORT,
+      LOG.error("could not resolve rdma data server uri, transport type is {}, {}", TRANSPORT,
           e.getCause());
       throw Throwables.propagate(e);
     }
-  }
-
-  private static String getTransport() {
-    String transport = System.getProperty("tachyon.jxio.transport");
-    if (transport == null) {
-      transport = "rdma";
-    }
-    return transport;
   }
 }

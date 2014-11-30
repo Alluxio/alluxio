@@ -385,7 +385,7 @@
 			<configuration>
 			  <systemProperties>
 			    <property>
-				  <name>jxio.enable</name>
+				  <name>tachyon.jxio.enable</name>
 				  <value>true</value>
 			    </property>
 			  </systemProperties>

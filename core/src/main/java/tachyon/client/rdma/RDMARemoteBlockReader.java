@@ -12,17 +12,18 @@ import org.accelio.jxio.jxioConnection.JxioConnection;
 
 import tachyon.Constants;
 import tachyon.client.RemoteBlockReader;
+import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.worker.DataServerMessage;
 
-public class RDMARemoteBlockReader implements RemoteBlockReader {
+public final class RDMARemoteBlockReader implements RemoteBlockReader {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   public static final int CLIENT_BUF_COUNT = 10;
   public static final int CLIENT_MSGPOOL_SIZE =
       org.accelio.jxio.jxioConnection.Constants.MSGPOOL_BUF_SIZE * CLIENT_BUF_COUNT;
-  private static final String TRANSPORT = getTransport();
-  private final String mUriFormat = TRANSPORT + "://%s:%d/blockId=%d&offset=%d&length=%d";
+  private static final String TRANSPORT = CommonConf.get().JXIO_TRANSPORT;
+  private final String mUriFormat = TRANSPORT + "://%s:%d/?blockId=%d&offset=%d&length=%d";
 
   @Override
   public ByteBuffer readRemoteBlock(String host, int port, long blockId, long offset, long length)
@@ -33,19 +34,19 @@ public class RDMARemoteBlockReader implements RemoteBlockReader {
       try {
         jc.setRcvSize(CLIENT_MSGPOOL_SIZE); // 10 buffers in msg pool
         InputStream input = jc.getInputStream();
-        LOG.info("Connected to remote machine " + uri);
+        LOG.info("Connected to remote machine {}", uri);
 
         DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
         recvMsg.recv(input);
-        LOG.info("Data " + blockId + " from remote machine " + host + ":" + port + " received");
+        LOG.info("Data {} from remote machine {}:{} received", blockId, host, port);
 
         if (!recvMsg.isMessageReady()) {
-          LOG.info("Data " + blockId + " from remote machine is not ready.");
+          LOG.info("Data {} from remote machine is not ready.", blockId);
           return null;
         }
 
         if (recvMsg.getBlockId() < 0) {
-          LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
+          LOG.info("Data {} is not in remote machine.", recvMsg.getBlockId());
           return null;
         }
 
@@ -57,13 +58,5 @@ public class RDMARemoteBlockReader implements RemoteBlockReader {
     } catch (URISyntaxException e) {
       throw new IOException("rdma uri could not be resolved");
     }
-  }
-
-  public static String getTransport() {
-    String transport = System.getProperty("tachyon.jxio.transport");
-    if (transport == null) {
-      transport = "rdma";
-    }
-    return transport;
   }
 }

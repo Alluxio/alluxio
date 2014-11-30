@@ -11,7 +11,7 @@ import tachyon.Constants;
 import tachyon.client.RemoteBlockReader;
 import tachyon.worker.DataServerMessage;
 
-public class TCPRemoteBlockReader implements RemoteBlockReader {
+public final class TCPRemoteBlockReader implements RemoteBlockReader {
 
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
