@@ -147,6 +147,16 @@ number.
   <td>9</td>
   <td>How many threads to use for the web server.</td>
 </tr>
+<tr>
+  <td>tachyon.master.keytab.file</td>
+  <td></td>
+  <td>Kerberos keytab file for Tachyon master.</td>
+</tr>
+<tr>
+  <td>tachyon.master.principal</td>
+  <td></td>
+  <td>Kerberos principal for Tachyon master.</td>
+</tr>
 </table>
 
 # Worker Configuration
@@ -225,6 +235,16 @@ number.
   <td>tachyon.worker.network.netty.buffer.receive</td>
   <td>platform specific</td>
   <td>Sets SO_RCVBUF for the socket; more details can be found in the socket man page.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.keytab.file</td>
+  <td></td>
+  <td>Kerberos keytab file for Tachyon worker.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.principal</td>
+  <td></td>
+  <td>Kerberos principal for Tachyon worker.</td>
 </tr>
 </table>
 

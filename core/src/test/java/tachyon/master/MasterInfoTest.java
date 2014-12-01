@@ -1,3 +1,17 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package tachyon.master;
 
 import java.io.ByteArrayOutputStream;
@@ -217,6 +231,8 @@ public class MasterInfoTest {
 
   private static final TachyonURI ROOT_PATH2 = new TachyonURI("/root2");
 
+  private ExecutorService mExecutorService = null;
+
   @Test
   public void addCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,
       FileAlreadyExistException, InvalidPathException, BlockInfoException, FileNotFoundException,
@@ -236,6 +252,7 @@ public class MasterInfoTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
+    mExecutorService.shutdown();
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
@@ -244,6 +261,7 @@ public class MasterInfoTest {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
     mLocalTachyonCluster = new LocalTachyonCluster(1000);
     mLocalTachyonCluster.start();
+    mExecutorService = Executors.newFixedThreadPool(2);
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
   }
 
@@ -286,7 +304,7 @@ public class MasterInfoTest {
           new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
       concurrentCreator.call();
       Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-      MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+      MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
       info.init();
       for (TachyonURI path : mMasterInfo.ls(new TachyonURI("/"), true)) {
         Assert.assertEquals(mMasterInfo.getFileId(path), info.getFileId(path));
@@ -658,7 +676,7 @@ public class MasterInfoTest {
   public void writeImageTest() throws IOException {
     // initialize the MasterInfo
     Journal journal = new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
 
     // create the output streams
     ByteArrayOutputStream os = new ByteArrayOutputStream();
