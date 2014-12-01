@@ -251,6 +251,8 @@ public final class MasterClient implements Closeable {
         return mClient.getFileStatus(fileId, path);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
