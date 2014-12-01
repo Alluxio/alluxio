@@ -25,8 +25,7 @@ import tachyon.Constants;
 import tachyon.UnderFileSystemCluster;
 import tachyon.UnderFileSystemsUtils;
 import tachyon.client.TachyonFS;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
@@ -91,13 +90,20 @@ public final class LocalTachyonMaster {
     System.setProperty("tachyon.master.journal.folder", mJournalFolder);
     System.setProperty("tachyon.underfs.address", mUnderFSFolder);
 
-    CommonConf.clear();
-    MasterConf.clear();
     WorkerConf.clear();
     UserConf.clear();
 
     System.setProperty("tachyon.web.resources", System.getProperty("user.dir") + "/src/main/webapp");
-    mTachyonMaster = new TachyonMaster(new InetSocketAddress(mHostname, 0), 0, 1, 1, 1);
+
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set(Constants.MASTER_HOSTNAME, mHostname);
+    tachyonConf.set(Constants.MASTER_PORT, "0");
+    tachyonConf.set(Constants.MASTER_WEB_PORT, "0");
+    tachyonConf.set(Constants.MASTER_SELECTOR_THREADS, "1");
+    tachyonConf.set(Constants.MASTER_QUEUE_SIZE_PER_SELECTOR, "1");
+    tachyonConf.set(Constants.MASTER_SERVER_THREADS, "1");
+
+    mTachyonMaster = new TachyonMaster(tachyonConf);
 
     System.setProperty("tachyon.master.port", Integer.toString(getMetaPort()));
     System.setProperty("tachyon.master.web.port", Integer.toString(getMetaPort() + 1));
@@ -192,7 +198,7 @@ public final class LocalTachyonMaster {
   }
 
   public TachyonFS getClient() throws IOException {
-    return mClientPool.getClient();
+    return mClientPool.getClient(false);
   }
 
   public String getEditLogPath() {

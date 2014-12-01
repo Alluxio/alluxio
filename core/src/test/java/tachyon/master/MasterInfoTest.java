@@ -39,6 +39,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
@@ -304,7 +305,8 @@ public class MasterInfoTest {
           new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
       concurrentCreator.call();
       Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-      MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+      MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+          new TachyonConf());
       info.init();
       for (TachyonURI path : mMasterInfo.ls(new TachyonURI("/"), true)) {
         Assert.assertEquals(mMasterInfo.getFileId(path), info.getFileId(path));
@@ -675,8 +677,10 @@ public class MasterInfoTest {
   @Test
   public void writeImageTest() throws IOException {
     // initialize the MasterInfo
-    Journal journal = new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    Journal journal =
+        new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        new TachyonConf());
 
     // create the output streams
     ByteArrayOutputStream os = new ByteArrayOutputStream();

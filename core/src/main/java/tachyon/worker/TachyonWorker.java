@@ -36,6 +36,7 @@ import tachyon.UnderFileSystemHdfs;
 import tachyon.Users;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
@@ -70,7 +71,7 @@ public class TachyonWorker implements Runnable {
       InetSocketAddress workerAddress, int dataPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads, String localFolder, long spaceLimitBytes) {
     return new TachyonWorker(masterAddress, workerAddress, dataPort, selectorThreads,
-        acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
+        acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes, new TachyonConf());
   }
 
   /**
@@ -94,7 +95,7 @@ public class TachyonWorker implements Runnable {
     address = workerAddress.split(":");
     InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
     return new TachyonWorker(master, worker, dataPort, selectorThreads, acceptQueueSizePerThreads,
-        workerThreads, localFolder, spaceLimitBytes);
+        workerThreads, localFolder, spaceLimitBytes, new TachyonConf());
   }
 
   private static String getMasterLocation(String[] args) {
@@ -159,6 +160,7 @@ public class TachyonWorker implements Runnable {
   private final int mDataPort;
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(1,
       ThreadFactoryUtils.daemon("heartbeat-worker-%d"));
+  private final TachyonConf mTachyonConf;
 
   /**
    * @param masterAddress The TachyonMaster's address.
@@ -169,13 +171,16 @@ public class TachyonWorker implements Runnable {
    * @param workerThreads The number of threads of the worker's thrift server
    * @param dataFolder This TachyonWorker's local folder's path
    * @param memoryCapacityBytes The maximum memory space this TachyonWorker can use, in bytes
+   * @param tachyonConf The {@link TachyonConf} instance for configuration properties
    */
   private TachyonWorker(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
-      String dataFolder, long memoryCapacityBytes) {
-    CommonConf.assertValidPort(masterAddress);
-    CommonConf.assertValidPort(workerAddress);
-    CommonConf.assertValidPort(dataPort);
+      String dataFolder, long memoryCapacityBytes, TachyonConf tachyonConf) {
+    TachyonConf.assertValidPort(masterAddress, tachyonConf);
+    TachyonConf.assertValidPort(workerAddress, tachyonConf);
+    TachyonConf.assertValidPort(dataPort, tachyonConf);
+
+    mTachyonConf = tachyonConf;
 
     mMasterAddress = masterAddress;
 
@@ -220,9 +225,9 @@ public class TachyonWorker implements Runnable {
       final BlocksLocker blockLocker) {
     switch (WorkerConf.get().NETWORK_TYPE) {
       case NIO:
-        return new NIODataServer(dataAddress, blockLocker);
+        return new NIODataServer(dataAddress, blockLocker, mTachyonConf);
       case NETTY:
-        return new NettyDataServer(dataAddress, blockLocker);
+        return new NettyDataServer(dataAddress, blockLocker, mTachyonConf);
       default:
         throw new AssertionError("Unknown network type: " + WorkerConf.get().NETWORK_TYPE);
     }

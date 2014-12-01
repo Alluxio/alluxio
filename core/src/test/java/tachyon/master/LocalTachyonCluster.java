@@ -21,8 +21,7 @@ import java.net.InetSocketAddress;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.NetAddress;
@@ -101,7 +100,7 @@ public final class LocalTachyonCluster {
   }
 
   public String getTempFolderInUnderFs() {
-    return CommonConf.get().UNDERFS_ADDRESS;
+    return (new TachyonConf()).get(Constants.UNDERFS_ADDRESS, "/underfs");
   }
 
   public TachyonWorker getWorker() {
@@ -172,16 +171,15 @@ public final class LocalTachyonCluster {
     System.setProperty("tachyon.worker.network.netty.worker.threads", Integer.toString(2));
     System.setProperty("tachyon.master.web.threads", Integer.toString(9));
 
-    CommonConf.clear();
-    MasterConf.clear();
     WorkerConf.clear();
     UserConf.clear();
 
     mMaster = LocalTachyonMaster.create(mTachyonHome);
     mMaster.start();
 
-    mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
-    mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
+    TachyonConf tachyonConf = new TachyonConf();
+    mkdir(tachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
+    mkdir(tachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
 
     CommonUtils.sleepMs(null, 10);
 

@@ -29,11 +29,13 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import tachyon.conf.TachyonConf;
 
 public class DependencyTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private String mMasterValue = "localhost";
   private String mPortValue = "8080";
+  private TachyonConf mTachyonConf;
 
   @After
   public final void after() throws Exception {
@@ -47,6 +49,7 @@ public class DependencyTest {
     mLocalTachyonCluster.start();
     DependencyVariables.VARIABLES.put("master", mMasterValue);
     DependencyVariables.VARIABLES.put("port", mPortValue);
+    mTachyonConf = new TachyonConf();
   }
 
   @Test
@@ -59,7 +62,7 @@ public class DependencyTest {
     Collection<Integer> parentDependencies = new ArrayList<Integer>();
     Dependency dep =
         new Dependency(0, parents, children, cmd, data, "Dependency Test", "Tachyon Tests", "0.4",
-            DependencyType.Narrow, parentDependencies, 0L);
+            DependencyType.Narrow, parentDependencies, 0L, mTachyonConf);
     Assert.assertEquals(parsedCmd, dep.parseCommandPrefix());
   }
 
@@ -78,7 +81,7 @@ public class DependencyTest {
     Collection<Integer> parentDependencies = new ArrayList<Integer>();
     Dependency dep =
         new Dependency(0, parents, children, cmd, data, "Dependency Test", "Tachyon Tests", "0.4",
-            DependencyType.Narrow, parentDependencies, 0L);
+            DependencyType.Narrow, parentDependencies, 0L, mTachyonConf);
 
     // write the image
     dep.writeImage(writer, dos);
@@ -90,7 +93,8 @@ public class DependencyTest {
     TypeReference<List<ByteBuffer>> byteListRef = new TypeReference<List<ByteBuffer>>() {};
 
     // test the decoded ImageElement
-    // can't use equals(decoded) because ImageElement doesn't have an equals method and can have variable fields
+    // can't use equals(decoded) because ImageElement doesn't have an equals method and can have
+    // variable fields
     Assert.assertEquals(0, decoded.getInt("depID").intValue());
     Assert.assertEquals(parents, decoded.get("parentFiles", intListRef));
     Assert.assertEquals(children, decoded.get("childrenFiles", intListRef));
@@ -102,6 +106,7 @@ public class DependencyTest {
     Assert.assertEquals("0.4", decoded.getString("frameworkVersion"));
     Assert.assertEquals(DependencyType.Narrow, decoded.get("depType", depTypeRef));
     Assert.assertEquals(0L, decoded.getLong("creationTimeMs").longValue());
-    Assert.assertEquals(dep.getUncheckpointedChildrenFiles(), decoded.get("unCheckpointedChildrenFiles", intListRef));
+    Assert.assertEquals(dep.getUncheckpointedChildrenFiles(),
+        decoded.get("unCheckpointedChildrenFiles", intListRef));
   }
 }
