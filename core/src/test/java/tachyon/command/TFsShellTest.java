@@ -521,7 +521,7 @@ public class TFsShellTest {
   public void freeTest() throws IOException {
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.free(new String[]{"free", "/testFile"});
-    CommonUtils.sleepMs(null, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS);;
-    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testFile")).isInMemory()) ;
+    CommonUtils.sleepMs(null, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS *2);;
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory()); ;
   }
 }
