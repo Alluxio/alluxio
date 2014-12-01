@@ -1,7 +1,24 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.master;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
@@ -17,12 +34,14 @@ import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
+import tachyon.UnderFileSystemHdfs;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.thrift.MasterService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
 
 /**
@@ -59,6 +78,8 @@ public class TachyonMaster {
   private int mAcceptQueueSizePerThread;
   private int mWorkerThreads;
   private boolean mZookeeperMode = false;
+  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2,
+      ThreadFactoryUtils.daemon("heartbeat-master-%d"));
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
@@ -94,7 +115,7 @@ public class TachyonMaster {
       Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX),
           "Tachyon was not formatted! The journal folder is " + journalFolder);
       mJournal = new Journal(journalFolder, "image.data", "log.data");
-      mMasterInfo = new MasterInfo(mMasterAddress, mJournal);
+      mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService);
 
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
@@ -165,7 +186,20 @@ public class TachyonMaster {
     return mZookeeperMode;
   }
 
+  private void login() throws IOException {
+    MasterConf mConf = MasterConf.get();
+    if (mConf.KEYTAB == null || mConf.PRINCIPAL == null) {
+      return;
+    }
+    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS);
+    if (ufs instanceof UnderFileSystemHdfs) {
+      ((UnderFileSystemHdfs) ufs).login(mConf.KEYTAB_KEY, mConf.KEYTAB, mConf.PRINCIPAL_KEY,
+          mConf.PRINCIPAL, NetworkUtils.getFqdnHost(mMasterAddress));
+    }
+  }
+
   private void setup() throws IOException, TTransportException {
+    login();
     if (mZookeeperMode) {
       mEditLogProcessor.stop();
     }
@@ -252,6 +286,7 @@ public class TachyonMaster {
       mMasterInfo.stop();
       mMasterServiceServer.stop();
       mServerTNonblockingServerSocket.close();
+      mExecutorService.shutdown();
       mIsStarted = false;
     }
     if (mZookeeperMode) {

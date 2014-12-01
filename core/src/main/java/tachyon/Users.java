@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon;
 
 import java.io.File;
@@ -41,7 +56,7 @@ public class Users {
 
   /**
    * Adds user's own bytes and updates the user's heartbeat.
-   * 
+   *
    * @param userId id of the user.
    * @param newBytes delta bytes the user owns.
    */
@@ -57,7 +72,7 @@ public class Users {
 
   /**
    * Check the status of the users pool.
-   * 
+   *
    * @return the list of timeout users.
    */
   public List<Long> checkStatus() {
@@ -75,7 +90,7 @@ public class Users {
 
   /**
    * Returns the user's temporary data folder in the worker's machine.
-   * 
+   *
    * @param userId The queried user.
    * @return String contains user's temporary data folder in the worker's machine..
    */
@@ -85,7 +100,7 @@ public class Users {
 
   /**
    * Returns the user's temporary data folder in the under filesystem.
-   * 
+   *
    * @param userId The queried user.
    * @return String contains the user's temporary data folder in the under filesystem.
    */
@@ -95,7 +110,7 @@ public class Users {
 
   /**
    * Get how much space quote does a user own.
-   * 
+   *
    * @param userId The queried user.
    * @return Bytes the user owns.
    */
@@ -108,7 +123,7 @@ public class Users {
 
   /**
    * Remove <code> userId </code> from user pool.
-   * 
+   *
    * @param userId The user to be removed.
    * @return The space quote the removed user occupied in bytes.
    */
@@ -150,7 +165,7 @@ public class Users {
 
   /**
    * Updates user's heartbeat.
-   * 
+   *
    * @param userId the id of the user
    */
   public void userHeartbeat(long userId) {

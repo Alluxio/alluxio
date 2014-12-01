@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.client;
 
 import java.io.File;
@@ -9,11 +24,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -28,6 +47,7 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerClient;
 
 /**
@@ -91,26 +111,30 @@ public class TachyonFS extends AbstractTachyonFS {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mUserQuotaUnitBytes = UserConf.get().QUOTA_UNIT_BYTES;
   private final int mUserFailedSpaceRequestLimits = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
+  private final ExecutorService mExecutorService;
 
   // The RPC client talks to the system master.
-  private MasterClient mMasterClient = null;
+  private final MasterClient mMasterClient;
   // The Master address.
-  private InetSocketAddress mMasterAddress = null;
+  private final InetSocketAddress mMasterAddress;
   // The RPC client talks to the local worker if there is one.
-  private WorkerClient mWorkerClient = null;
+  private final WorkerClient mWorkerClient;
+  private final Closer mCloser = Closer.create();
   // Whether use ZooKeeper or not
-  private boolean mZookeeperMode;
+  private final boolean mZookeeperMode;
   // Cached ClientFileInfo
-  private Map<String, ClientFileInfo> mPathToClientFileInfo = new HashMap<String, ClientFileInfo>();
-  private Map<Integer, ClientFileInfo> mIdToClientFileInfo = new HashMap<Integer, ClientFileInfo>();
+  private final Map<String, ClientFileInfo> mPathToClientFileInfo =
+      new HashMap<String, ClientFileInfo>();
+  private final Map<Integer, ClientFileInfo> mIdToClientFileInfo =
+      new HashMap<Integer, ClientFileInfo>();
 
-  private UnderFileSystem mUnderFileSystem = null;
+  private UnderFileSystem mUnderFileSystem;
 
   // All Blocks has been locked.
-  private Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
+  private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
 
   // Each user facing block has a unique block lock id.
-  private AtomicInteger mBlockLockId = new AtomicInteger(0);
+  private final AtomicInteger mBlockLockId = new AtomicInteger(0);
 
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
@@ -125,8 +149,12 @@ public class TachyonFS extends AbstractTachyonFS {
     mZookeeperMode = zookeeperMode;
     mAvailableSpaceBytes = 0L;
 
-    mMasterClient = new MasterClient(mMasterAddress, mZookeeperMode);
-    mWorkerClient = new WorkerClient(mMasterClient);
+    mExecutorService =
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.daemon("client-heartbeat-%d"));
+
+    mMasterClient =
+        mCloser.register(new MasterClient(mMasterAddress, mZookeeperMode, mExecutorService));
+    mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService));
   }
 
   /**
@@ -181,11 +209,11 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized void close() throws IOException {
     if (mWorkerClient.isConnected()) {
       mWorkerClient.returnSpace(mMasterClient.getUserId(), mAvailableSpaceBytes);
-      mWorkerClient.close();
     }
-
-    if (mMasterClient != null) {
-      mMasterClient.close();
+    try {
+      mCloser.close();
+    } finally {
+      mExecutorService.shutdown();
     }
   }
 
