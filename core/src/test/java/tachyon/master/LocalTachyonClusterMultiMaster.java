@@ -30,8 +30,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
@@ -92,7 +91,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public synchronized TachyonFS getClient() throws IOException {
-    return mClientPool.getClient();
+    return mClientPool.getClient(true);
   }
 
   public String getUri() {
@@ -157,13 +156,12 @@ public class LocalTachyonClusterMultiMaster {
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
 
-    CommonConf.clear();
-    MasterConf.clear();
     WorkerConf.clear();
     UserConf.clear();
 
-    mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
-    mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
+    TachyonConf tachyonConf = new TachyonConf();
+    mkdir(tachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
+    mkdir(tachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
 
     for (int k = 0; k < mNumOfMasters; k ++) {
       final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome);

@@ -25,11 +25,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientFileInfo;
@@ -163,9 +164,10 @@ public class TachyonFSTest {
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest1() throws IOException {
     String maxColumnsProp = System.getProperty("tachyon.max.columns");
+    int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS,
+        Integer.parseInt(maxColumnsProp));
 
-    Assert.assertEquals(Integer.parseInt(maxColumnsProp), CommonConf.get().MAX_COLUMNS);
-    mTfs.createRawTable(new TachyonURI("/table"), CommonConf.get().MAX_COLUMNS);
+    mTfs.createRawTable(new TachyonURI("/table"), maxColumns);
   }
 
   @Test(expected = IOException.class)

@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
 
@@ -53,6 +53,9 @@ public class NIODataServer implements Runnable, DataServer {
   // The selector we will be monitoring.
   private Selector mSelector;
 
+  // Instance of TachyonConf
+  private TachyonConf mTachyonConf;
+
   private Map<SocketChannel, DataServerMessage> mSendingData = Collections
       .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
   private Map<SocketChannel, DataServerMessage> mReceivingData = Collections
@@ -71,11 +74,12 @@ public class NIODataServer implements Runnable, DataServer {
    * @param address The address of the data server.
    * @param locker The lock system for lock blocks.
    */
-  public NIODataServer(InetSocketAddress address, BlocksLocker locker) {
+  public NIODataServer(InetSocketAddress address, BlocksLocker locker, TachyonConf tachyonConf) {
     LOG.info("Starting DataServer @ " + address);
-    CommonConf.assertValidPort(address);
+    TachyonConf.assertValidPort(address, tachyonConf);
     mAddress = address;
     mBlockLocker = locker;
+    mTachyonConf = tachyonConf;
     try {
       mSelector = initSelector();
       mListenerThread = new Thread(this);
