@@ -767,7 +767,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      List<Long> removedPartitionList) throws BlockInfoException, IOException {
+      List<Long> removedPartitionList) throws IOException {
     while (!mIsShutdown) {
       connect();
 

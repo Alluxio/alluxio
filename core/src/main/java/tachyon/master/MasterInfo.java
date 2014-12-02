@@ -1205,7 +1205,6 @@ public class MasterInfo extends ImageWriter {
    * 
    * @param fid The id of the file
    * @return the file info
-   * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
   public ClientFileInfo getClientFileInfo(int fid) throws InvalidPathException {
@@ -1225,7 +1224,6 @@ public class MasterInfo extends ImageWriter {
    * 
    * @param path The path of the file
    * @return the file info
-   * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
   public ClientFileInfo getClientFileInfo(TachyonURI path) throws InvalidPathException {
