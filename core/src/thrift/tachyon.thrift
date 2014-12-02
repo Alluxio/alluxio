@@ -277,9 +277,9 @@ service WorkerService {
 
   string getUserUfsTempFolder(1: i64 userId)
 
-  i64 lockBlock(1: i64 userId 2: i64 storageDirId 3: i64 blockId) // Lock the file in memory while the user is reading it.
+  i64 lockBlock(1: i64 userId 2: i64 blockId) // Lock the file in memory while the user is reading it.
 
-  bool promoteBlock(1: i64 userId, 2: i64 storageDirId, 3: i64 blockId)
+  bool promoteBlock(1: i64 userId, 2: i64 blockId)
 
   void returnSpace(1: i64 userId, 2: i64 storageDirId 3: i64 returnedBytes)
 
@@ -287,7 +287,7 @@ service WorkerService {
 
   bool requestSpaceInPlace(1: i64 userId, 2: i64 storageDirId, 3: i64 requestBytes)
 
-  i64 unlockBlock(1: i64 userId 2: i64 storageDirId 3: i64 blockId) // unlock the file
+  i64 unlockBlock(1: i64 userId 2: i64 blockId) // unlock the file
 
   void userHeartbeat(1: i64 userId)   // Local user send heartbeat to local worker to keep its temp folder.
 }

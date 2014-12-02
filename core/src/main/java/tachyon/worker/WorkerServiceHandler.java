@@ -95,13 +95,13 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public long lockBlock(long userId, long storageDirId, long blockId) throws TException {
-    return mWorkerStorage.lockBlock(userId, storageDirId, blockId);
+  public long lockBlock(long userId, long blockId) throws TException {
+    return mWorkerStorage.lockBlock(userId, blockId);
   }
 
   @Override
-  public boolean promoteBlock(long userId, long storageDirId, long blockId) throws TException {
-    return mWorkerStorage.promoteBlock(userId, storageDirId, blockId);
+  public boolean promoteBlock(long userId, long blockId) throws TException {
+    return mWorkerStorage.promoteBlock(userId, blockId);
   }
 
   @Override
@@ -126,8 +126,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public long unlockBlock(long userId, long storageDirId, long blockId) throws TException {
-    return mWorkerStorage.unlockBlock(userId, storageDirId, blockId);
+  public long unlockBlock(long userId, long blockId) throws TException {
+    return mWorkerStorage.unlockBlock(userId, blockId);
   }
 
   @Override

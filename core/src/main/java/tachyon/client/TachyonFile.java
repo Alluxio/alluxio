@@ -332,7 +332,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public boolean promoteBlock(int blockIndex) throws IOException {
     ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-    return mTachyonFS.promoteBlock(blockInfo);
+    return mTachyonFS.promoteBlock(blockInfo.getBlockId());
   }
 
   /**
@@ -391,7 +391,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     long blockId = info.blockId;
 
     int blockLockId = mTachyonFS.getBlockLockId();
-    long storageDirIdLocked = mTachyonFS.lockBlock(info, blockLockId);
+    long storageDirIdLocked = mTachyonFS.lockBlock(blockId, blockLockId);
     if (StorageDirId.isUnknown(storageDirIdLocked)) {
       return null;
     }
@@ -425,7 +425,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
         FileChannel localFileChannel = closer.register(localFile.getChannel());
         final ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
         mTachyonFS.accessLocalBlock(storageDirIdLocked, blockId);
-        return new TachyonByteBuffer(mTachyonFS, buf, storageDirIdLocked, blockId, blockLockId);
+        return new TachyonByteBuffer(mTachyonFS, buf, blockId, blockLockId);
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");
       } catch (IOException e) {
@@ -435,7 +435,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       }
     }
 
-    mTachyonFS.unlockBlock(storageDirIdLocked, blockId, blockLockId);
+    mTachyonFS.unlockBlock(blockId, blockLockId);
     return null;
   }
 
@@ -449,8 +449,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     // We call into the remote block in stream class to read a remote byte buffer
     ByteBuffer buf = RemoteBlockInStream.readRemoteByteBuffer(mTachyonFS,
         blockInfo, 0, blockInfo.length);
-    return (buf == null) ? null : new TachyonByteBuffer(mTachyonFS, buf, StorageDirId.unknownId(),
-        blockInfo.blockId, -1);
+    return (buf == null) ? null : new TachyonByteBuffer(mTachyonFS, buf, blockInfo.blockId, -1);
   }
 
   
