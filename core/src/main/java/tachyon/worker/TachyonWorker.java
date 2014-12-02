@@ -280,8 +280,6 @@ public class TachyonWorker implements Runnable {
         cmd = mWorkerStorage.heartbeat();
 
         lastHeartbeatMs = System.currentTimeMillis();
-      } catch (BlockInfoException e) {
-        LOG.error(e.getMessage(), e);
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
         mWorkerStorage.resetMasterClient();
