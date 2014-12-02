@@ -52,12 +52,11 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     // pipeline will make sure this is true
     final BlockRequest req = (BlockRequest) msg;
 
-    final long storageDirId = req.getStorageDirId();
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
     final int lockId = mLocker.getLockId();
-    final long storageDirIdLocked = mLocker.lock(storageDirId, blockId, lockId);
+    final long storageDirIdLocked = mLocker.lock(blockId, lockId);
 
     BlockHandler handler = null;
     try {
@@ -69,8 +68,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
       ChannelFuture future =
-          ctx.writeAndFlush(new BlockResponse(storageDirIdLocked, blockId, offset, readLength,
-              handler));
+          ctx.writeAndFlush(new BlockResponse(blockId, offset, readLength, handler));
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(handler));
       storageDir.accessBlock(blockId);
@@ -86,7 +84,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
         handler.close();
       }
     } finally {
-      mLocker.unlock(storageDirIdLocked, blockId, lockId);
+      mLocker.unlock(blockId, lockId);
     }
   }
 

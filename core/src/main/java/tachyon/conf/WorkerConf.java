@@ -87,7 +87,6 @@ public class WorkerConf extends Utils {
   public final StorageLevelAlias[] STORAGE_LEVEL_ALIAS;
   public final String[] STORAGE_TIER_DIRS;
   public final String[] STORAGE_TIER_DIR_QUOTA;
-  public final String[] STORAGE_TIER_DIR_QUOTA_DEFAULTS = "512MB,64GB,1TB".split(",");
 
   private WorkerConf() {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", NetworkUtils.getLocalHostName());
@@ -147,16 +146,17 @@ public class WorkerConf extends Utils {
       STORAGE_LEVEL_ALIAS[i] =
           getEnumProperty("tachyon.worker.hierarchystore.level" + i + ".alias",
               StorageLevelAlias.MEM);
-      STORAGE_TIER_DIRS[i] =
-          getProperty("tachyon.worker.hierarchystore.level" + i + ".dirs.path", "/mnt/ramdisk");
-      if (i < STORAGE_TIER_DIR_QUOTA_DEFAULTS.length) {
+      if (STORAGE_LEVEL_ALIAS[i].equals(StorageLevelAlias.MEM)) {
         STORAGE_TIER_DIR_QUOTA[i] =
             getProperty("tachyon.worker.hierarchystore.level" + i + ".dirs.quota",
-                STORAGE_TIER_DIR_QUOTA_DEFAULTS[i]);
+                MEMORY_SIZE + "");
+        STORAGE_TIER_DIRS[i] =
+            getProperty("tachyon.worker.hierarchystore.level" + i + ".dirs.path", "/mnt/ramdisk");
       } else {
         STORAGE_TIER_DIR_QUOTA[i] =
-            getProperty("tachyon.worker.hierarchystore.level" + i + ".dirs.quota",
-                STORAGE_TIER_DIR_QUOTA_DEFAULTS[STORAGE_TIER_DIR_QUOTA_DEFAULTS.length - 1]);
+            getProperty("tachyon.worker.hierarchystore.level" + i + ".dirs.quota");
+        STORAGE_TIER_DIRS[i] =
+            getProperty("tachyon.worker.hierarchystore.level" + i + ".dirs.path");
       }
     }
   }

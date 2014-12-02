@@ -48,7 +48,6 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.WorkerDirInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerClient;
@@ -114,7 +113,7 @@ public class TachyonFS extends AbstractTachyonFS {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mUserQuotaUnitBytes = UserConf.get().QUOTA_UNIT_BYTES;
   private final ExecutorService mExecutorService;
-  private static final int FAILED_SPACE_REQUEST_LIMITS = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
+  private final int mUserFailedSpaceRequestLimits = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
 
   // The RPC client talks to the system master.
   private final MasterClient mMasterClient;
@@ -161,19 +160,6 @@ public class TachyonFS extends AbstractTachyonFS {
     mMasterClient =
         mCloser.register(new MasterClient(mMasterAddress, mZookeeperMode, mExecutorService));
     mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService));
-  }
-
-  /**
-   * Update the latest block access time on the worker.
-   * 
-   * @param blockInfo the information of the block
-   * @throws IOException
-   */
-  synchronized void accessLocalBlock(ClientBlockInfo blockInfo) throws IOException {
-    Long storageDirId = getLocalStorageDirId(blockInfo);
-    if (storageDirId != null) {
-      accessLocalBlock(storageDirId, blockInfo.getBlockId());
-    }
   }
 
   /**
@@ -756,22 +742,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get Id of the StorageDir containing the block file on local worker
-   * 
-   * @param blockInfo information of the block
-   * @return the Id of the StorageDir containing the block file on local worker
-   * @throws IOException
-   */
-  synchronized Long getLocalStorageDirId(ClientBlockInfo blockInfo) {
-    if (blockInfo != null) {
-      Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
-      NetAddress workerNetAddress = mWorkerClient.getNetAddress();
-      return storageDirIds.get(workerNetAddress);
-    }
-    return null;
-  }
-
-  /**
    * Get the RawTable by id
    * 
    * @param id the id of the raw table
@@ -795,6 +765,22 @@ public class TachyonFS extends AbstractTachyonFS {
     ClientRawTableInfo clientRawTableInfo =
         mMasterClient.user_getClientRawTableInfo(-1, path.getPath());
     return new RawTable(this, clientRawTableInfo);
+  }
+
+  /**
+   * Get Id of the StorageDir containing the block file on local worker
+   * 
+   * @param blockInfo information of the block
+   * @return the Id of the StorageDir containing the block file on local worker
+   * @throws IOException
+   */
+  synchronized Long getLocalStorageDirId(ClientBlockInfo blockInfo) {
+    if (blockInfo != null) {
+      Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
+      NetAddress workerNetAddress = mWorkerClient.getNetAddress();
+      return storageDirIds.get(workerNetAddress);
+    }
+    return null;
   }
 
   /**
@@ -831,16 +817,6 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   long getUserId() throws IOException {
     return mMasterClient.getUserId();
-  }
-
-  /**
-   * Get information of StorageDirs on worker.
-   * 
-   * @return information of all the StorageDirs on work
-   * @throws IOException
-   */
-  public synchronized List<WorkerDirInfo> getWorkerDirInfos() throws IOException {
-    return mWorkerClient.getWorkerDirInfos();
   }
 
   /**
@@ -889,34 +865,15 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Lock a block in the current TachyonFS.
-   * 
-   * @param blockInfo The information of the block to lock.
-   * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
-   *        non-negative.
-   * @return the Id of the StorageDir in which the block is locked.
-   */
-  synchronized long lockBlock(ClientBlockInfo blockInfo, int blockLockId) throws IOException {
-    if (blockInfo != null) {
-      Long storageDirId = getLocalStorageDirId(blockInfo);
-      if (storageDirId != null) {
-        return lockBlock(storageDirId, blockInfo.getBlockId(), blockLockId);
-      }
-    }
-    return StorageDirId.unknownId();
-  }
-
-  /**
    * Lock a block in certain StorageDir in the current TachyonFS.
    * 
-   * @param storageDirId the id of the StorageDir which contains the block.
    * @param blockId The id of the block to lock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
    *        non-negative.
    * @return the Id of the StorageDir in which the block is locked
    * @throws IOException
    */
-  synchronized long lockBlock(long storageDirId, long blockId, int blockLockId)
+  synchronized long lockBlock(long blockId, int blockLockId)
       throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
       return StorageDirId.unknownId();
@@ -931,7 +888,7 @@ public class TachyonFS extends AbstractTachyonFS {
       return StorageDirId.unknownId();
     }
     long storageDirIdLocked =
-        mWorkerClient.lockBlock(mMasterClient.getUserId(), storageDirId, blockId);
+        mWorkerClient.lockBlock(mMasterClient.getUserId(), blockId);
 
     if (!StorageDirId.isUnknown(storageDirIdLocked)) {
       Set<Integer> lockIds = new HashSet<Integer>(4);
@@ -981,30 +938,13 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Promote block file back to the top StorageTier, after the block file is accessed.
    * 
-   * @param blockInfo information of the block which will be promoted
-   * @return true if success, false otherwise
-   * @throws IOException
-   */
-  public synchronized boolean promoteBlock(ClientBlockInfo blockInfo) throws IOException {
-    Long storageDirId = getLocalStorageDirId(blockInfo);
-
-    if (storageDirId != null) {
-      return promoteBlock(storageDirId, blockInfo.getBlockId());
-    }
-    return false;
-  }
-
-  /**
-   * Promote block file back to the top StorageTier, after the block file is accessed.
-   * 
-   * @param storageDirId the id of the StorageDir which contains the block
    * @param blockId the id of the block
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public synchronized boolean promoteBlock(long storageDirId, long blockId) throws IOException {
+  public synchronized boolean promoteBlock(long blockId) throws IOException {
     if (mWorkerClient.isLocal()) {
-      return mWorkerClient.promoteBlock(mMasterClient.getUserId(), storageDirId, blockId);
+      return mWorkerClient.promoteBlock(mMasterClient.getUserId(), blockId);
     }
     return false;
   }
@@ -1077,7 +1017,7 @@ public class TachyonFS extends AbstractTachyonFS {
     if (storageDirId != StorageDirId.unknownId()) {
       return storageDirId;
     } else {
-      for (int attempt = 0; attempt < FAILED_SPACE_REQUEST_LIMITS; attempt ++) {
+      for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
         long toRequestSpaceBytes = Math.max(requestSpaceBytes, mUserQuotaUnitBytes);
         storageDirId = 
             mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes);
@@ -1116,7 +1056,7 @@ public class TachyonFS extends AbstractTachyonFS {
       if (mIdToAvailableSpaceBytes.containsKey(storageDirId)) {
         availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
       }
-      for (int attempt = 0; attempt < FAILED_SPACE_REQUEST_LIMITS; attempt ++) {
+      for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
         long toRequestSpaceBytes =
             Math.max(requestSpaceBytes - availableSpaceBytes, mUserQuotaUnitBytes);
         boolean reqResult = 
@@ -1156,31 +1096,12 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Unlock a block in the current TachyonFS.
    * 
-   * @param blockInfo The information of the block to unlock.
-   * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
-   *        non-negative.
-   * @return the Id of the StorageDir in which the block is unlocked.
-   */
-  synchronized long unlockBlock(ClientBlockInfo blockInfo, int blockLockId) throws IOException {
-    if (blockInfo != null) {
-      Long storageDirId = getLocalStorageDirId(blockInfo);
-      if (storageDirId != null) {
-        return unlockBlock(storageDirId, blockInfo.getBlockId(), blockLockId);
-      }
-    }
-    return StorageDirId.unknownId();
-  }
-
-  /**
-   * Unlock a block in the current TachyonFS.
-   * 
-   * @param storageDirId the id of the StorageDir which contains the block
    * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
    *        non-negative.
    * @return the Id of the StorageDir in which the block is unlocked.
    */
-  synchronized long unlockBlock(long storageDirId, long blockId, int blockLockId)
+  synchronized long unlockBlock(long blockId, int blockLockId)
       throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
       return StorageDirId.unknownId();
@@ -1203,7 +1124,7 @@ public class TachyonFS extends AbstractTachyonFS {
       return StorageDirId.unknownId();
     }
 
-    return mWorkerClient.unlockBlock(mMasterClient.getUserId(), storageDirId, blockId);
+    return mWorkerClient.unlockBlock(mMasterClient.getUserId(), blockId);
   }
 
   /** Alias for setPinned(fid, false). */

@@ -215,10 +215,9 @@ public class NIODataServer implements Runnable, DataServer {
 
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getBlockId());
-      final long storageDirId = tMessage.getStorageDirId();
       final long blockId = tMessage.getBlockId();
       final int lockId = mBlockLocker.getLockId();
-      final long storageDirIdLocked = mBlockLocker.lock(storageDirId, blockId, lockId);
+      final long storageDirIdLocked = mBlockLocker.lock(blockId, lockId);
 
       StorageDir storageDir = mWorkerStorage.getStorageDirById(storageDirIdLocked);
       ByteBuffer data = null;
@@ -234,10 +233,10 @@ public class NIODataServer implements Runnable, DataServer {
         data = null;
       }
       DataServerMessage tResponseMessage =
-          DataServerMessage.createBlockResponseMessage(true, storageDirIdLocked,
-              blockId, tMessage.getOffset(), dataLen, data);
+          DataServerMessage.createBlockResponseMessage(true, blockId, tMessage.getOffset(),
+              dataLen, data);
       tResponseMessage.setLockId(lockId);
-      mBlockLocker.unlock(storageDirIdLocked, blockId, lockId);
+      mBlockLocker.unlock(blockId, lockId);
       mSendingData.put(socketChannel, tResponseMessage);
     }
   }
@@ -306,8 +305,7 @@ public class NIODataServer implements Runnable, DataServer {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
-      mBlockLocker.unlock(sendMessage.getStorageDirId(), Math.abs(sendMessage.getBlockId()),
-          sendMessage.getLockId());
+      mBlockLocker.unlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
     }
   }
 }
