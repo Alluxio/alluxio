@@ -45,14 +45,13 @@ public class BlocksLocker {
   /**
    * Lock a block with lock id.
    * 
-   * @param storageDirId The id of the StorageDir which contains the block
    * @param blockId The id of the block.
    * @param blockLockId The lock id of the block
    * @return The id of the StorageDir in which this block is locked.
    */
-  public synchronized long lock(long storageDirId, long blockId, int blockLockId) {
+  public synchronized long lock(long blockId, int blockLockId) {
     if (!mLockedBlockIds.containsKey(blockId)) {
-      long storageDirIdLocked = mWorkerStorage.lockBlock(mUserId, storageDirId, blockId);
+      long storageDirIdLocked = mWorkerStorage.lockBlock(mUserId, blockId);
       if (!StorageDirId.isUnknown(storageDirIdLocked)) {
         mLockedBlockIds.put(blockId, new HashSet<Integer>());
         mLockedBlockIds.get(blockId).add(blockLockId);
@@ -88,19 +87,18 @@ public class BlocksLocker {
   /**
    * Unlock a block with a lock id.
    * 
-   * @param storageDirId The id of the StorageDir which contains the block
    * @param blockId The id of the block.
    * @param lockId The lock id of the lock.
    * @return The id of the StorageDir in which the block is unlocked.
    */
-  public synchronized long unlock(long storageDirId, long blockId, int lockId) {
+  public synchronized long unlock(long blockId, int lockId) {
     Set<Integer> lockers = mLockedBlockIds.get(blockId);
     if (lockers != null) {
       lockers.remove(lockId);
       if (lockers.isEmpty()) {
         mLockedBlockIds.remove(blockId);
         mLockedBlockIdToStorageDirId.remove(blockId);
-        return mWorkerStorage.unlockBlock(mUserId, storageDirId, blockId);
+        return mWorkerStorage.unlockBlock(mUserId, blockId);
       } else {
         return mLockedBlockIdToStorageDirId.get(blockId);
       }

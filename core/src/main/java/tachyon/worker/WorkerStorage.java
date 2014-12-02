@@ -204,8 +204,7 @@ public class WorkerStorage {
           try {
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
               long blockId = fileInfo.blockIds.get(k);
-              storageDirIds[k] = lockBlock(Users.CHECKPOINT_USER_ID, StorageDirId.unknownId(),
-                  blockId);
+              storageDirIds[k] = lockBlock(Users.CHECKPOINT_USER_ID, blockId);
               if (StorageDirId.isUnknown(storageDirIds[k])) {
                 throw new IOException("Block doesn't exist!");
               }
@@ -233,7 +232,7 @@ public class WorkerStorage {
             closer.close();
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
               long blockId = fileInfo.blockIds.get(k);
-              unlockBlock(Users.CHECKPOINT_USER_ID, storageDirIds[k], blockId);
+              unlockBlock(Users.CHECKPOINT_USER_ID, blockId);
             }
           }
           if (!mCheckpointUfs.rename(midPath, dstPath)) {
@@ -698,11 +697,17 @@ public class WorkerStorage {
     mStorageTiers = new StorageTier[WorkerConf.get().MAX_HIERARCHY_STORAGE_LEVEL];
     StorageTier nextStorageTier = null;
     for (int level = mStorageTiers.length - 1; level >= 0; level --) {
+      if (WorkerConf.get().STORAGE_TIER_DIRS[level] == null) {
+        throw new IOException("No directory path is set for layer " + level);
+      }
       String[] dirPaths = WorkerConf.get().STORAGE_TIER_DIRS[level].split(",");
       for (int i = 0; i < dirPaths.length; i ++) {
         dirPaths[i] = dirPaths[i].trim();
       }
       StorageLevelAlias alias = WorkerConf.get().STORAGE_LEVEL_ALIAS[level];
+      if (WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level] == null) {
+        throw new IOException("No directory quota is set for layer " + level);
+      }
       String[] dirCapacityStrings = WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level].split(",");
       long[] dirCapacities = new long[dirPaths.length];
       for (int i = 0, j = 0; i < dirPaths.length; i ++) {
@@ -732,31 +737,17 @@ public class WorkerStorage {
    * block, the given block is locked and unlocked once read.
    * 
    * @param userId The id of the user who locks the block
-   * @param storageDirId The id of the StorageDir
    * @param blockId The id of the block
    * @return the Id of the StorageDir in which the block is locked
    */
-  public long lockBlock(long userId, long storageDirId, long blockId) {
-    StorageDir storageDir = getStorageDirById(storageDirId);
+  public long lockBlock(long userId, long blockId) {
+    StorageDir storageDir = getStorageDirByBlockId(blockId);
     if (storageDir != null) {
       if (storageDir.lockBlock(blockId, userId)) {
         return storageDir.getStorageDirId();
       }
     }
-
-    storageDir = getStorageDirByBlockId(blockId);
-    if (storageDir != null) {
-      if (storageDir.lockBlock(blockId, userId)) {
-        if (!StorageDirId.isUnknown(storageDirId)) {
-          LOG.warn(String.format("Attempt to lock block in storageDirId(%d), but actually in"
-              + " storageDirId(%d), blockId(%d)", storageDirId, storageDir.getStorageDirId(),
-              blockId));
-        }
-        return storageDir.getStorageDirId();
-      }
-    }
-    LOG.warn(String.format("Failed to lock block! storageDirId(%d), blockId(%d)",
-        storageDirId, blockId));
+    LOG.warn(String.format("Failed to lock block! blockId(%d)", blockId));
     return StorageDirId.unknownId();
   }
 
@@ -764,17 +755,16 @@ public class WorkerStorage {
    * Promote block back to top StorageTier
    * 
    * @param userId the id of the user
-   * @param storageDirId the id of the StorageDir which contains the block
    * @param blockId the id of the block
    * @return true if success, false otherwise
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */
-  public boolean promoteBlock(long userId, long storageDirId, long blockId)
+  public boolean promoteBlock(long userId, long blockId)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
 
-    long storageDirIdLocked = lockBlock(userId, storageDirId, blockId);
+    long storageDirIdLocked = lockBlock(userId, blockId);
     if (StorageDirId.isUnknown(storageDirIdLocked)) {
       return false;
     } else if (StorageDirId.getStorageLevelAliasValue(storageDirIdLocked) != mStorageTiers[0]
@@ -784,7 +774,7 @@ public class WorkerStorage {
       StorageDir dstStorageDir = requestSpace(userId, blockSize);
       if (dstStorageDir == null) {
         LOG.error("Failed to promote block! blockId:" + blockId);
-        unlockBlock(userId, storageDirIdLocked, blockId);
+        unlockBlock(userId, blockId);
         return false;
       }
       boolean result;
@@ -796,11 +786,11 @@ public class WorkerStorage {
         LOG.error("Failed to promote block! blockId:" + blockId);
         return false;
       } finally {
-        unlockBlock(userId, storageDirIdLocked, blockId);
+        unlockBlock(userId, blockId);
       }
       return result;
     } else {
-      unlockBlock(userId, storageDirIdLocked, blockId);
+      unlockBlock(userId, blockId);
       return true;
     }
   }
@@ -988,31 +978,17 @@ public class WorkerStorage {
    * the given block is locked and unlocked once read.
    * 
    * @param userId The id of the user who unlocks the block
-   * @param storageDirId The id of the StorageDir
    * @param blockId The id of the block
    * @return the Id of the StorageDir in which the block is unlocked
    */
-  public long unlockBlock(long userId, long storageDirId, long blockId) {
-    StorageDir storageDir = getStorageDirById(storageDirId);
+  public long unlockBlock(long userId, long blockId) {
+    StorageDir storageDir = getStorageDirByBlockId(blockId);
     if (storageDir != null) {
-      if (storageDir.unlockBlock(blockId, userId)) {
+      if (storageDir.unlockBlock(userId, blockId)) {
         return storageDir.getStorageDirId();
       }
     }
-
-    storageDir = getStorageDirByBlockId(blockId);
-    if (storageDir != null) {
-      if (storageDir.unlockBlock(blockId, userId)) {
-        if (StorageDirId.isUnknown(storageDirId)) {
-          LOG.warn(String.format("Attempt to unlock block in storageDirId(%d), but actually in"
-              + " storageDirId(%d), blockId(%d)", storageDirId, storageDir.getStorageDirId(),
-              blockId));
-        }
-        return storageDir.getStorageDirId();
-      }
-    }
-    LOG.warn(String.format("Failed to lock block! storageDirId(%d), blockId(%d)",
-        storageDirId, blockId));
+    LOG.warn(String.format("Failed to lock block! blockId(%d)", blockId));
     return StorageDirId.unknownId();
   }
 

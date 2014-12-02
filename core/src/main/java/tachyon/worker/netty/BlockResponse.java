@@ -47,7 +47,6 @@ public final class BlockResponse {
     private ByteBuf createHeader(final ChannelHandlerContext ctx, final BlockResponse msg) {
       ByteBuf header = ctx.alloc().buffer(MESSAGE_LENGTH);
       header.writeShort(DataServerMessage.DATA_SERVER_RESPONSE_MESSAGE);
-      header.writeLong(msg.getStorageDirId());
       header.writeLong(msg.getBlockId());
       header.writeLong(msg.getOffset());
       header.writeLong(msg.getLength());
@@ -88,10 +87,9 @@ public final class BlockResponse {
    * block.
    */
   public static BlockResponse createErrorResponse(final long storageDirId, final long blockId) {
-    return new BlockResponse(-storageDirId, -blockId, 0, 0, null);
+    return new BlockResponse(-blockId, 0, 0, null);
   }
 
-  private final long mStorageDirId;
   private final long mBlockId;
   private final long mOffset;
 
@@ -99,9 +97,8 @@ public final class BlockResponse {
 
   private final BlockHandler mHandler;
 
-  public BlockResponse(long storageDirId, long blockId, long offset, long length,
+  public BlockResponse(long blockId, long offset, long length,
       BlockHandler handler) {
-    mStorageDirId = storageDirId;
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
@@ -122,9 +119,5 @@ public final class BlockResponse {
 
   public long getOffset() {
     return mOffset;
-  }
-
-  public long getStorageDirId() {
-    return mStorageDirId;
   }
 }

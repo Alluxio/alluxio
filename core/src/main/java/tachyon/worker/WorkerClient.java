@@ -298,6 +298,12 @@ public class WorkerClient implements Closeable {
     return mWorkerNetAddress;
   }
 
+  /**
+   * Get path of the StorageDir specified by the Id
+   * @param storageDirId the Id of the StorageDir
+   * @return root path of the StorageDir
+   * @throws IOException
+   */
   public synchronized String getWorkerDirPath(long storageDirId) throws IOException {
     if (!mDirFSInitialized) {
       initializeDirFS(getWorkerDirInfos());
@@ -306,6 +312,12 @@ public class WorkerClient implements Closeable {
     return mIdToDirPath.get(storageDirId);
   }
 
+  /**
+   * Get FileSystem of the StorageDir specified by the Id
+   * @param storageDirId the Id of the StorageDir
+   * @return FileSystem of the StorageDir
+   * @throws IOException
+   */
   public synchronized UnderFileSystem getWorkerDirFS(long storageDirId) throws IOException {
     if (!mDirFSInitialized) {
       initializeDirFS(getWorkerDirInfos());
@@ -419,17 +431,16 @@ public class WorkerClient implements Closeable {
    * unlocked.
    * 
    * @param userId The id of the user who wants to lock the block
-   * @param storageDirId The id of the StorageDir which contains the block
    * @param blockId The id of the block
    * @return the Id of the StorageDir in which the block is locked
    * @throws IOException
    */
-  public synchronized long lockBlock(long userId, long storageDirId, long blockId)
+  public synchronized long lockBlock(long userId, long blockId)
       throws IOException {
     mustConnect();
 
     try {
-      return mClient.lockBlock(userId, storageDirId, blockId);
+      return mClient.lockBlock(userId, blockId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -455,16 +466,15 @@ public class WorkerClient implements Closeable {
    * Promote block back to the top StorageTier
    * 
    * @param userId The id of the user who wants to promote block
-   * @param storageDirId The id of the StorageDir which contains the block
    * @param blockId The id of the block that will be promoted
    * @throws IOException
    */
-  public synchronized boolean promoteBlock(long userId, long storageDirId, long blockId)
+  public synchronized boolean promoteBlock(long userId, long blockId)
       throws IOException {
     mustConnect();
 
     try {
-      return mClient.promoteBlock(userId, storageDirId, blockId);
+      return mClient.promoteBlock(userId, blockId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -535,17 +545,16 @@ public class WorkerClient implements Closeable {
    * Unlock the block
    * 
    * @param userId The id of the user who wants to unlock the block
-   * @param storageDirId The id of the StorageDir which contains the block
    * @param blockId The id of the block
    * @return the Id of the StorageDir in which the block is unlocked
    * @throws IOException
    */
-  public synchronized long unlockBlock(long userId, long storageDirId, long blockId)
+  public synchronized long unlockBlock(long userId, long blockId)
       throws IOException {
     mustConnect();
 
     try {
-      return mClient.unlockBlock(userId, storageDirId, blockId);
+      return mClient.unlockBlock(userId, blockId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

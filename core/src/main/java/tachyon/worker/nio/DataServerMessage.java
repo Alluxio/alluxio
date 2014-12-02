@@ -36,7 +36,7 @@ public class DataServerMessage {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static final int HEADER_LENGTH = 34;
+  private static final int HEADER_LENGTH = 26;
 
   /**
    * Create a default block request message, just allocate the message header, and no attribute is
@@ -57,8 +57,8 @@ public class DataServerMessage {
    * @param blockId The id of the block
    * @return The created block request message
    */
-  public static DataServerMessage createBlockRequestMessage(long storageDirId, long blockId) {
-    return createBlockRequestMessage(storageDirId, blockId, 0, -1);
+  public static DataServerMessage createBlockRequestMessage(long blockId) {
+    return createBlockRequestMessage(blockId, 0, -1);
   }
 
   /**
@@ -72,12 +72,11 @@ public class DataServerMessage {
    *        to the block's end.
    * @return The created block request message
    */
-  public static DataServerMessage createBlockRequestMessage(long storageDirId, long blockId,
+  public static DataServerMessage createBlockRequestMessage(long blockId,
       long offset, long len) {
     DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
 
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
-    ret.mStorageDirId = storageDirId;
     ret.mBlockId = blockId;
     ret.mOffset = offset;
     ret.mLength = len;
@@ -96,9 +95,9 @@ public class DataServerMessage {
    * @param blockId The id of the block
    * @return The created block response message
    */
-  public static DataServerMessage createBlockResponseMessage(boolean toSend, long storageDirId,
-      long blockId, ByteBuffer data) {
-    return createBlockResponseMessage(toSend, storageDirId, blockId, 0, -1, data);
+  public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
+      ByteBuffer data) {
+    return createBlockResponseMessage(toSend, blockId, 0, -1, data);
   }
 
   /**
@@ -114,14 +113,13 @@ public class DataServerMessage {
    *        to the block's end.
    * @return The created block response message
    */
-  public static DataServerMessage createBlockResponseMessage(boolean toSend, long storageDirId,
-      long blockId, long offset, long len, ByteBuffer data) {
+  public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
+      long offset, long len, ByteBuffer data) {
     DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
 
     if (toSend) {
       if (data != null) {
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
-        ret.mStorageDirId = storageDirId;
         ret.mBlockId = blockId;
         ret.mOffset = offset;
         ret.mLength = len;
@@ -131,7 +129,6 @@ public class DataServerMessage {
         ret.generateHeader();
       } else {
         // TODO This is a trick for now. The data may have been removed before remote retrieving.
-        ret.mStorageDirId = -storageDirId;
         ret.mBlockId = -blockId;
         ret.mLength = 0;
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
@@ -153,8 +150,6 @@ public class DataServerMessage {
   private boolean mIsMessageReady;
 
   private ByteBuffer mHeader;
-
-  private long mStorageDirId;
 
   private long mBlockId;
 
@@ -217,7 +212,6 @@ public class DataServerMessage {
   private void generateHeader() {
     mHeader.clear();
     mHeader.putShort(mMessageType);
-    mHeader.putLong(mStorageDirId);
     mHeader.putLong(mBlockId);
     mHeader.putLong(mOffset);
     mHeader.putLong(mLength);
@@ -279,16 +273,6 @@ public class DataServerMessage {
   }
 
   /**
-   * Get the id of the StorageDir. Make sure the message is ready before calling this method.
-   * 
-   * @return The id of the block
-   */
-  public long getStorageDirId() {
-    checkReady();
-    return mStorageDirId;
-  }
-
-  /**
    * @return true if the message is ready, false otherwise
    */
   public boolean isMessageReady() {
@@ -323,7 +307,6 @@ public class DataServerMessage {
         mHeader.flip();
         short msgType = mHeader.getShort();
         assert (mMessageType == msgType);
-        mStorageDirId = mHeader.getLong();
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();
@@ -336,8 +319,8 @@ public class DataServerMessage {
             mData = ByteBuffer.allocate((int) mLength);
           }
         }
-        LOG.info(String.format("data" + mData + ", storageDirId(%d), blockId(%d), offset(%d),"
-            + " dataLength(%d)", mStorageDirId, mBlockId, mOffset, mLength));
+        LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)",
+            mBlockId, mOffset, mLength));
         if (mMessageType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
           mIsMessageReady = true;
         }

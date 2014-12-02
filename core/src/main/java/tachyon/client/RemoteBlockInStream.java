@@ -213,19 +213,14 @@ public class RemoteBlockInStream extends BlockInStream {
 
     try {
       List<NetAddress> blockLocations = blockInfo.getLocations();
-      Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
       LOG.info("Block locations:" + blockLocations);
 
       for (NetAddress blockLocation : blockLocations) {
         String host = blockLocation.mHost;
         int port = blockLocation.mSecondaryPort;
-        long storageDirId = StorageDirId.unknownId();
-        if (storageDirIds.containsKey(blockLocation)) {
-          storageDirId = storageDirIds.get(blockLocation);
-        }
 
         // The data is not in remote machine's memory if port == -1.
-        if (StorageDirId.isUnknown(storageDirId) || port == -1) {
+        if (port == -1) {
           continue;
         }
         if (host.equals(InetAddress.getLocalHost().getHostName())
@@ -238,7 +233,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
         try {
           buf =
-              retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port), storageDirId,
+              retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port),
                   blockInfo.blockId, offset, len);
           if (buf != null) {
             break;
@@ -257,15 +252,15 @@ public class RemoteBlockInStream extends BlockInStream {
     return buf;
   }
 
-  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
-      long storageDirId, long blockId, long offset, long length) throws IOException {
+  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, long blockId,
+      long offset, long length) throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     try {
       socketChannel.connect(address);
 
       LOG.info("Connected to remote machine " + address + " sent");
       DataServerMessage sendMsg =
-          DataServerMessage.createBlockRequestMessage(storageDirId, blockId, offset, length);
+          DataServerMessage.createBlockRequestMessage(blockId, offset, length);
       while (!sendMsg.finishSending()) {
         sendMsg.send(socketChannel);
       }
@@ -273,7 +268,7 @@ public class RemoteBlockInStream extends BlockInStream {
       LOG.info("Data " + blockId + " to remote machine " + address + " sent");
 
       DataServerMessage recvMsg =
-          DataServerMessage.createBlockResponseMessage(false, storageDirId, blockId, null);
+          DataServerMessage.createBlockResponseMessage(false, blockId, null);
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {
