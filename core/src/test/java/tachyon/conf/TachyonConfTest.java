@@ -106,7 +106,7 @@ public class TachyonConfTest {
 
     String value = sDefaultTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, null);
     Assert.assertTrue(value != null);
-    Assert.assertTrue((tachyonHome + "/journal").equals(value));
+    Assert.assertTrue((tachyonHome + "/journal/").equals(value));
 
     value = sDefaultTachyonConf.get(Constants.MASTER_HOSTNAME, null);
     Assert.assertTrue(value != null);
