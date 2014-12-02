@@ -143,10 +143,6 @@ public class TachyonFS extends AbstractTachyonFS {
 
   // Mapping from Id to Available space of each StorageDir.
   private final Map<Long, Long> mIdToAvailableSpaceBytes = new HashMap<Long, Long>();
-  // Mapping from Id to root path of each StorageDir.
-  private final Map<Long, String> mIdToWorkerDirPath = new HashMap<Long, String>();
-  // Mapping from Id to under file system of each StorageDir
-  private final Map<Long, UnderFileSystem> mIdToDirFS = new HashMap<Long, UnderFileSystem>();
   // Mapping from Id to user temporary path of each StorageDir.
   private final Map<Long, String> mIdToUserLocalTempFolder = new HashMap<Long, String>();
 
@@ -165,7 +161,6 @@ public class TachyonFS extends AbstractTachyonFS {
     mMasterClient =
         mCloser.register(new MasterClient(mMasterAddress, mZookeeperMode, mExecutorService));
     mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService));
-    initializeDirFS(getWorkerDirInfos());
   }
 
   /**
@@ -278,10 +273,10 @@ public class TachyonFS extends AbstractTachyonFS {
       return mIdToUserLocalTempFolder.get(storageDirId);
     }
 
-    if (mIdToWorkerDirPath.containsKey(storageDirId)) {
-      String dirPath = mIdToWorkerDirPath.get(storageDirId);
+    String dirPath = mWorkerClient.getWorkerDirPath(storageDirId);
+    if (dirPath != null) {
       String userLocalTempFolder = CommonUtils.concat(dirPath, userTempFolder);
-      UnderFileSystem dirFS = mIdToDirFS.get(storageDirId);
+      UnderFileSystem dirFS = mWorkerClient.getWorkerDirFS(storageDirId);
       boolean ret = false;
       if (dirFS.exists(userLocalTempFolder)) {
         if (!dirFS.isFile(userLocalTempFolder)) {
@@ -752,7 +747,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   synchronized String getLocalBlockFilePath(long storageDirId, long blockId) throws IOException {
-    String dirPath = mIdToWorkerDirPath.get(storageDirId);
+    String dirPath = mWorkerClient.getWorkerDirPath(storageDirId);
     if (dirPath != null) {
       String dataFolder = getLocalDataFolder();
       return CommonUtils.concat(dirPath, dataFolder, blockId);
@@ -849,16 +844,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get path of specified StorageDir
-   * 
-   * @param storageDirId the id of the StorageDir
-   * @return path of the StorageDir
-   */
-  public String getWorkerDirPath(long storageDirId) {
-    return mIdToWorkerDirPath.get(storageDirId);
-  }
-
-  /**
    * @return all the works' info
    * @throws IOException
    */
@@ -872,33 +857,6 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized boolean hasLocalWorker() throws IOException {
     return mWorkerClient.isLocal();
-  }
-
-  /**
-   * Used to initialize file system of StorageDirs
-   * 
-   * @param workerDirInfos information of StorageDirs on the worker
-   * @throws IOException
-   */
-  private void initializeDirFS(List<WorkerDirInfo> workerDirInfos) throws IOException {
-    if (workerDirInfos == null) {
-      return;
-    }
-    for (WorkerDirInfo dirInfo : workerDirInfos) {
-      long storageDirId = dirInfo.getStorageDirId();
-      mIdToWorkerDirPath.put(storageDirId, dirInfo.getDirPath());
-
-      UnderFileSystem fs;
-      try {
-        fs =
-            UnderFileSystem.get(dirInfo.getDirPath(),
-                CommonUtils.byteArrayToObject(dirInfo.getConf()));
-      } catch (ClassNotFoundException e) {
-        throw new IOException(e.getMessage());
-      }
-      mIdToDirFS.put(storageDirId, fs);
-    }
-    return;
   }
 
   /**
