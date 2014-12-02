@@ -1,3 +1,17 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package tachyon.worker;
 
 import java.io.IOException;
@@ -15,13 +29,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
+import tachyon.util.CommonUtils;
 import tachyon.worker.nio.DataServerMessage;
 
 /**
@@ -120,6 +138,24 @@ public class DataServerTest {
     ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     DataServerMessage recvMsg = request(block, length * -2, 1);
     assertError(recvMsg, block.blockId);
+  }
+
+  @Test
+  public void readMultiFiles() throws IOException {
+    final int length = WORKER_CAPACITY_BYTES / 2 + 1;
+    int fileId1 = TestUtils.createByteFile(mTFS, "/readFile1", WriteType.MUST_CACHE, length);
+    ClientBlockInfo block1 = mTFS.getFileBlocks(fileId1).get(0);
+    DataServerMessage recvMsg1 = request(block1);
+    assertValid(recvMsg1, length, block1.getBlockId(), 0, length);
+
+    int fileId2 = TestUtils.createByteFile(mTFS, "/readFile2", WriteType.MUST_CACHE, length);
+    ClientBlockInfo block2 = mTFS.getFileBlocks(fileId2).get(0);
+    DataServerMessage recvMsg2 = request(block2);
+    assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
+
+    CommonUtils.sleepMs(null, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    ClientFileInfo fileInfo = mTFS.getFileStatus(-1, new TachyonURI("/readFile1"));
+    Assert.assertEquals(0, fileInfo.inMemoryPercentage);
   }
 
   @Test

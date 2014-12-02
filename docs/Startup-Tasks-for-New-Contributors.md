@@ -25,7 +25,7 @@ few things that everyone should do before developing on Tachyon.
 following list, and then submit a pull request. You are also welcome to address
 issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
 Here are a list of
-[tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner)
+[tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner%20AND%20status%20%3D%20OPEN)
 for beginners. For a tutorial, see the GitHub guides on
 [forking a repo](https://help.github.com/articles/fork-a-repo) and
 [sending a pull request](https://help.github.com/articles/using-pull-requests).
@@ -128,7 +128,7 @@ You may also have to add the classpath variable M2_REPO by running:
 
 ### Presentations:
 
--   Strata and Hadoop World 2014 (October, 2014) [pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pdf) [PPTX](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pptx)
+-   Strata and Hadoop World 2014 (October, 2014) [pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pdf) [pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pptx)
 -   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
 -   Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
 

@@ -1,9 +1,27 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package tachyon.master;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -207,5 +225,36 @@ public class InodeFileTest {
     InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
     // cant get a block that is missing
     inode1.getClientBlockInfo(-1);
+  }
+
+  @Test
+  public void writeImageTest() throws IOException {
+    // create the InodeFile and the output streams
+    long creationTime = System.currentTimeMillis();
+    InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, creationTime);
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(os);
+    ObjectMapper mapper = JsonObject.createObjectMapper();
+    ObjectWriter writer = mapper.writer();
+
+    // write the image
+    inode1.writeImage(writer, dos);
+
+    // decode the element
+    ImageElement decoded = null;
+    decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
+
+    // test the decoded image element
+    Assert.assertEquals(creationTime, decoded.getLong("creationTimeMs").longValue());
+    Assert.assertEquals(1, decoded.getInt("id").intValue());
+    Assert.assertEquals(0, decoded.getInt("parentId").intValue());
+    Assert.assertEquals(1000, decoded.getInt("blockSizeByte").intValue());
+    Assert.assertEquals(0,  decoded.getLong("length").longValue());
+    Assert.assertEquals(false, decoded.getBoolean("complete"));
+    Assert.assertEquals(false, decoded.getBoolean("pin"));
+    Assert.assertEquals(false, decoded.getBoolean("cache"));
+    Assert.assertEquals("", decoded.getString("ufsPath"));
+    Assert.assertEquals(-1, decoded.getInt("depId").intValue());
+    Assert.assertEquals(creationTime, decoded.getLong("lastModificationTimeMs").longValue());
   }
 }
