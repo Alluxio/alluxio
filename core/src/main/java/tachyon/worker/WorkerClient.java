@@ -21,7 +21,9 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -35,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
+import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
@@ -46,6 +49,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerDirInfo;
 import tachyon.thrift.WorkerService;
+import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 
 /**
@@ -64,9 +68,14 @@ public class WorkerClient implements Closeable {
   private NetAddress mWorkerNetAddress;
   private boolean mConnected = false;
   private boolean mIsLocal = false;
+  private boolean mDirFSInitialized = false;
   private String mDataFolder = null;
   private final ExecutorService mExecutorService;
   private Future<?> mHeartbeat;
+  // Mapping from Id to root path of each StorageDir.
+  private final Map<Long, String> mIdToDirPath = new HashMap<Long, String>();
+  // Mapping from Id to under file system of each StorageDir
+  private final Map<Long, UnderFileSystem> mIdToDirFS = new HashMap<Long, UnderFileSystem>();
 
   /**
    * Create a WorkerClient, with a given MasterClient.
@@ -289,6 +298,22 @@ public class WorkerClient implements Closeable {
     return mWorkerNetAddress;
   }
 
+  public synchronized String getWorkerDirPath(long storageDirId) throws IOException {
+    if (!mDirFSInitialized) {
+      initializeDirFS(getWorkerDirInfos());
+      mDirFSInitialized = true;
+    }
+    return mIdToDirPath.get(storageDirId);
+  }
+
+  public synchronized UnderFileSystem getWorkerDirFS(long storageDirId) throws IOException {
+    if (!mDirFSInitialized) {
+      initializeDirFS(getWorkerDirInfos());
+      mDirFSInitialized = true;
+    }
+    return mIdToDirFS.get(storageDirId);
+  }
+
   /**
    * Get the local user temporary folder of the specified user.
    * 
@@ -338,6 +363,33 @@ public class WorkerClient implements Closeable {
       mConnected = false;
       throw new IOException(e);
     }
+  }
+
+  /**
+   * Used to initialize file system of StorageDirs
+   * 
+   * @param workerDirInfos information of StorageDirs on the worker
+   * @throws IOException
+   */
+  private void initializeDirFS(List<WorkerDirInfo> workerDirInfos) throws IOException {
+    if (workerDirInfos == null) {
+      return;
+    }
+    for (WorkerDirInfo dirInfo : workerDirInfos) {
+      long storageDirId = dirInfo.getStorageDirId();
+      mIdToDirPath.put(storageDirId, dirInfo.getDirPath());
+
+      UnderFileSystem fs;
+      try {
+        fs =
+            UnderFileSystem.get(dirInfo.getDirPath(),
+                CommonUtils.byteArrayToObject(dirInfo.getConf()));
+      } catch (ClassNotFoundException e) {
+        throw new IOException(e.getMessage());
+      }
+      mIdToDirFS.put(storageDirId, fs);
+    }
+    return;
   }
 
   /**
