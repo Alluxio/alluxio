@@ -22,16 +22,17 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.StorageDirId;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.nio.DataServerMessage;
 
@@ -214,9 +215,9 @@ public class RemoteBlockInStream extends BlockInStream {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
 
-      for (int k = 0; k < blockLocations.size(); k ++) {
-        String host = blockLocations.get(k).mHost;
-        int port = blockLocations.get(k).mSecondaryPort;
+      for (NetAddress blockLocation : blockLocations) {
+        String host = blockLocation.mHost;
+        int port = blockLocation.mSecondaryPort;
 
         // The data is not in remote machine's memory if port == -1.
         if (port == -1) {
@@ -225,9 +226,7 @@ public class RemoteBlockInStream extends BlockInStream {
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())
             || host.equals(NetworkUtils.getLocalHostName())) {
-          String localFileName =
-              CommonUtils.concat(mTachyonFS.getLocalDataFolder(), blockInfo.blockId);
-          LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
+          LOG.warn("Master thinks the local machine has data, But not!");
         }
         LOG.info(host + ":" + port + " current host is " + NetworkUtils.getLocalHostName() + " "
             + NetworkUtils.getLocalIpAddress());
@@ -268,7 +267,8 @@ public class RemoteBlockInStream extends BlockInStream {
 
       LOG.info("Data " + blockId + " to remote machine " + address + " sent");
 
-      DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
+      DataServerMessage recvMsg =
+          DataServerMessage.createBlockResponseMessage(false, blockId, null);
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {

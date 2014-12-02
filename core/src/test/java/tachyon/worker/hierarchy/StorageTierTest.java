@@ -17,7 +17,9 @@ package tachyon.worker.hierarchy;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import junit.framework.Assert;
 
@@ -28,10 +30,10 @@ import org.junit.Test;
 import tachyon.StorageLevelAlias;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
-import tachyon.client.BlockHandler;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
+import tachyon.worker.BlockHandler;
 
 public class StorageTierTest {
 
@@ -48,6 +50,7 @@ public class StorageTierTest {
     System.clearProperty("tachyon.worker.hierarchystore.level1.alias");
     System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.path");
     System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.quota");
+    WorkerConf.clear();
   }
 
   @Before
@@ -73,7 +76,7 @@ public class StorageTierTest {
       for (int i = 0; i < dirPaths.length; i ++) {
         dirPaths[i] = dirPaths[i].trim();
       }
-      StorageLevelAlias Alias = WorkerConf.get().STORAGE_LEVEL_ALIAS[level];
+      StorageLevelAlias storageLevelAlias = WorkerConf.get().STORAGE_LEVEL_ALIAS[level];
       String[] strDirCapacities = WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level].split(",");
       long[] dirCapacities = new long[dirPaths.length];
       for (int i = 0, j = 0; i < dirPaths.length; i ++) {
@@ -84,7 +87,8 @@ public class StorageTierTest {
         }
       }
       StorageTier curTier =
-          new StorageTier(level, Alias, dirPaths, dirCapacities, "/data", "/user", nextTier, null);
+          new StorageTier(level, storageLevelAlias, dirPaths, dirCapacities, "/data", "/user",
+              nextTier, null);
       mStorageTiers[level] = curTier;
       curTier.initialize();
       for (StorageDir dir : curTier.getStorageDirs()) {
@@ -109,7 +113,9 @@ public class StorageTierTest {
   @Test
   public void getStorageDirTest() throws IOException {
     long blockId = 1;
-    StorageDir dir = mStorageTiers[0].requestSpace(mUserId, 100, new HashSet<Integer>());
+    List<Long> removedBlockIds = new ArrayList<Long>();
+    StorageDir dir = mStorageTiers[0].requestSpace(mUserId, 100, new HashSet<Integer>(),
+        removedBlockIds);
     createBlockFile(dir, blockId, 100);
     StorageDir dir1 = mStorageTiers[0].getStorageDirByBlockId(1);
     Assert.assertEquals(dir, dir1);
@@ -136,22 +142,27 @@ public class StorageTierTest {
   @Test
   public void requestSpaceTest() throws IOException {
     long blockId = 1;
+    List<Long> removedBlockIds = new ArrayList<Long>();
     Assert.assertEquals(1000, mStorageTiers[0].getCapacityBytes());
     Assert.assertEquals(8000, mStorageTiers[1].getCapacityBytes());
-    StorageDir dir = mStorageTiers[0].requestSpace(mUserId, 500, new HashSet<Integer>());
+    StorageDir dir = mStorageTiers[0].requestSpace(mUserId, 500, new HashSet<Integer>(),
+        removedBlockIds);
     Assert.assertEquals(mStorageTiers[0].getStorageDirs()[0], dir);
     Assert.assertEquals(500, dir.getAvailableBytes());
     Assert.assertEquals(500, dir.getUsedBytes());
-    StorageDir dir1 = mStorageTiers[0].requestSpace(mUserId, 501, new HashSet<Integer>());
+    StorageDir dir1 = mStorageTiers[0].requestSpace(mUserId, 501, new HashSet<Integer>(),
+        removedBlockIds);
     Assert.assertEquals(null, dir1);
     createBlockFile(dir, blockId, 500);
-    boolean request = mStorageTiers[0].requestSpace(dir, mUserId, 501, new HashSet<Integer>());
+    boolean request = mStorageTiers[0].requestSpace(dir, mUserId, 501, new HashSet<Integer>(),
+        removedBlockIds);
     Assert.assertEquals(true, request);
     Assert.assertEquals(499, dir.getAvailableBytes());
     Assert.assertEquals(501, dir.getUsedBytes());
     Assert.assertTrue(mStorageTiers[1].containsBlock(blockId));
     Assert.assertEquals(500, mStorageTiers[1].getUsedBytes());
-    request = mStorageTiers[0].requestSpace(dir, mUserId, 500, new HashSet<Integer>());
+    request = mStorageTiers[0].requestSpace(dir, mUserId, 500, new HashSet<Integer>(),
+        removedBlockIds);
     Assert.assertEquals(false, request);
   }
 }

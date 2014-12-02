@@ -24,9 +24,9 @@ import org.junit.Test;
 
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
-import tachyon.client.BlockHandler;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
+import tachyon.worker.BlockHandler;
 
 public class StorageDirTest {
   private StorageDir mSrcDir;
@@ -107,7 +107,7 @@ public class StorageDirTest {
     createBlockFile(mSrcDir, blockId, 500);
     mSrcDir.lockBlock(blockId, mUserId);
     Assert.assertTrue(mSrcDir.isBlockLocked(blockId));
-    mSrcDir.unlockBlock(blockId, mUserId);
+    mSrcDir.unlockBlock(mUserId, blockId);
     Assert.assertFalse(mSrcDir.isBlockLocked(blockId));
   }
 

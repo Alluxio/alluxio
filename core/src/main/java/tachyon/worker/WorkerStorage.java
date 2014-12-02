@@ -15,15 +15,10 @@
 
 package tachyon.worker;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel.MapMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,7 +32,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +39,12 @@ import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
+import tachyon.StorageDirId;
+import tachyon.StorageLevelAlias;
 import tachyon.UnderFileSystem;
 import tachyon.Users;
 import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
-import tachyon.master.BlockInfo;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientFileInfo;
@@ -58,8 +53,11 @@ import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.thrift.WorkerDirInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.worker.hierarchy.StorageDir;
+import tachyon.worker.hierarchy.StorageTier;
 
 /**
  * The structure to store a worker's information in worker node.
@@ -186,8 +184,8 @@ public class WorkerStorage {
           // master
           String midPath = CommonUtils.concat(mUfsWorkerDataFolder, fileId);
           String dstPath = CommonUtils.concat(CommonConf.get().UNDERFS_DATA_FOLDER, fileId);
-          LOG.info("Thread " + mId + " is checkpointing file " + fileId + " from "
-              + mLocalDataFolder.toString() + " to " + midPath + " to " + dstPath);
+          LOG.info("Thread " + mId + " is checkpointing file " + fileId + " to " + midPath + " to "
+              + dstPath);
 
           if (mCheckpointUfs == null) {
             mCheckpointUfs = UnderFileSystem.get(midPath);
@@ -199,31 +197,42 @@ public class WorkerStorage {
             LOG.error("File " + fileInfo + " is not complete!");
             continue;
           }
-          for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-            lockBlock(fileInfo.blockIds.get(k), Users.CHECKPOINT_USER_ID);
-          }
+
+          long[] storageDirIds = new long[fileInfo.blockIds.size()];
           Closer closer = Closer.create();
           long fileSizeByte = 0;
           try {
+            for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
+              long blockId = fileInfo.blockIds.get(k);
+              storageDirIds[k] = lockBlock(Users.CHECKPOINT_USER_ID, blockId);
+              if (StorageDirId.isUnknown(storageDirIds[k])) {
+                throw new IOException("Block doesn't exist!");
+              }
+            }
             OutputStream os = 
                 closer.register(mCheckpointUfs.create(midPath, (int) fileInfo.getBlockSizeByte()));
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-              File tempFile =
-                  new File(CommonUtils.concat(mLocalDataFolder.toString(),
-                      fileInfo.blockIds.get(k)));
-              fileSizeByte += tempFile.length();
-              InputStream is = closer.register(new FileInputStream(tempFile));
+              StorageDir storageDir = getStorageDirById(storageDirIds[k]);
+              BlockHandler handler = 
+                  closer.register(storageDir.getBlockHandler(fileInfo.blockIds.get(k)));
+              ByteBuffer byteBuffer = handler.read(0, -1);
               byte[] buf = new byte[16 * Constants.KB];
-              int got = is.read(buf);
-              while (got != -1) {
-                os.write(buf, 0, got);
-                got = is.read(buf);
+              int writeLen;
+              while (byteBuffer.remaining() > 0) {
+                if (byteBuffer.remaining() >= buf.length) {
+                  writeLen = buf.length;
+                } else {
+                  writeLen = byteBuffer.remaining();
+                }
+                byteBuffer.get(buf, 0, writeLen);
+                os.write(buf, 0, writeLen);
               }
             }
           } finally {
             closer.close();
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-              unlockBlock(fileInfo.blockIds.get(k), Users.CHECKPOINT_USER_ID);
+              long blockId = fileInfo.blockIds.get(k);
+              unlockBlock(Users.CHECKPOINT_USER_ID, blockId);
             }
           }
           if (!mCheckpointUfs.rename(midPath, dstPath)) {
@@ -253,23 +262,11 @@ public class WorkerStorage {
   private volatile MasterClient mMasterClient;
   private final InetSocketAddress mMasterAddress;
   private NetAddress mWorkerAddress;
-  private final SpaceCounter mSpaceCounter;
 
   private long mWorkerId;
-  private final Set<Long> mMemoryData = new HashSet<Long>();
-  private final Map<Long, Long> mBlockSizes = new HashMap<Long, Long>();
 
-  private final Map<Long, Long> mBlockIdToLatestAccessTimeMs = new HashMap<Long, Long>();
-  private final Map<Long, Set<Long>> mLockedBlockIdToUserId = new HashMap<Long, Set<Long>>();
-
-  private final Map<Long, Set<Long>> mLockedBlocksPerUser = new HashMap<Long, Set<Long>>();
-  private final BlockingQueue<Long> mRemovedBlockList = new ArrayBlockingQueue<Long>(
-      Constants.WORKER_BLOCKS_QUEUE_SIZE);
-
-  private final BlockingQueue<Long> mAddedBlockList = new ArrayBlockingQueue<Long>(
-      Constants.WORKER_BLOCKS_QUEUE_SIZE);
-  private final File mLocalDataFolder;
-  private final File mLocalUserFolder;
+  private final String mDataFolder;
+  private final String mUserFolder;
   private String mUfsWorkerFolder;
   private String mUfsWorkerDataFolder;
   private String mUfsOrphansFolder;
@@ -290,6 +287,10 @@ public class WorkerStorage {
       ThreadFactoryUtils.build("checkpoint-%d"));
 
   private final ExecutorService mExecutorService;
+  private long mCapacityBytes;
+  private StorageTier[] mStorageTiers;
+  private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
+      Constants.WORKER_BLOCKS_QUEUE_SIZE);
 
   /**
    * Main logic behind the worker process.
@@ -298,42 +299,42 @@ public class WorkerStorage {
    * {@link #initialize} must be called.
    * 
    * @param masterAddress The TachyonMaster's address
-   * @param dataFolder This TachyonWorker's local folder's path
-   * @param memoryCapacityBytes The maximum memory space this TachyonWorker can use, in bytes
    * @param executorService
    */
-  public WorkerStorage(InetSocketAddress masterAddress, String dataFolder,
-      long memoryCapacityBytes, ExecutorService executorService) {
+  public WorkerStorage(InetSocketAddress masterAddress, ExecutorService executorService) {
     mExecutorService = executorService;
     mCommonConf = CommonConf.get();
 
     mMasterAddress = masterAddress;
     mMasterClient = new MasterClient(mMasterAddress, mExecutorService);
-    mLocalDataFolder = new File(dataFolder);
 
-    mSpaceCounter = new SpaceCounter(memoryCapacityBytes);
-    mLocalUserFolder = new File(mLocalDataFolder, WorkerConf.USER_TEMP_RELATIVE_FOLDER);
+    mDataFolder = WorkerConf.get().DATA_FOLDER;
+    mUserFolder = CommonUtils.concat(mDataFolder, WorkerConf.USER_TEMP_RELATIVE_FOLDER);
   }
 
   public void initialize(final NetAddress address) {
     mWorkerAddress = address;
+
+    try {
+      initializeStorageTier();
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
 
     register();
 
     mUfsWorkerFolder = CommonUtils.concat(mCommonConf.UNDERFS_WORKERS_FOLDER, mWorkerId);
     mUfsWorkerDataFolder = mUfsWorkerFolder + "/data";
     mUfs = UnderFileSystem.get(mCommonConf.UNDERFS_ADDRESS);
-    mUsers = new Users(mLocalUserFolder.toString(), mUfsWorkerFolder);
+    mUsers = new Users(mUserFolder, mUfsWorkerFolder);
 
     for (int k = 0; k < WorkerConf.get().WORKER_CHECKPOINT_THREADS; k ++) {
       mCheckpointExecutor.submit(new CheckpointThread(k));
     }
 
     try {
-      initializeWorkerStorage();
+      addFoundBlocks();
     } catch (IOException e) {
-      throw Throwables.propagate(e);
-    } catch (FileDoesNotExistException e) {
       throw Throwables.propagate(e);
     } catch (SuspectedFileSizeException e) {
       throw Throwables.propagate(e);
@@ -342,25 +343,19 @@ public class WorkerStorage {
     }
 
     LOG.info("Current Worker Info: ID " + mWorkerId + ", mWorkerAddress: " + mWorkerAddress
-        + ", MemoryCapacityBytes: " + mSpaceCounter.getCapacityBytes());
+        + ", CapacityBytes: " + mCapacityBytes);
   }
 
   /**
    * Update the latest block access time on the worker.
    * 
+   * @param storageDirId The id of the StorageDir which block is in
    * @param blockId The id of the block
    */
-  void accessBlock(long blockId) {
-    synchronized (mBlockIdToLatestAccessTimeMs) {
-      mBlockIdToLatestAccessTimeMs.put(blockId, System.currentTimeMillis());
-    }
-  }
-
-  private void addBlockId(long blockId, long fileSizeBytes) {
-    synchronized (mBlockIdToLatestAccessTimeMs) {
-      mBlockIdToLatestAccessTimeMs.put(blockId, System.currentTimeMillis());
-      mBlockSizes.put(blockId, fileSizeBytes);
-      mMemoryData.add(blockId);
+  void accessBlock(long storageDirId, long blockId) {
+    StorageDir foundDir = getStorageDirById(storageDirId);
+    if (foundDir != null) {
+      foundDir.accessBlock(blockId);
     }
   }
 
@@ -401,10 +396,32 @@ public class WorkerStorage {
     mMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
   }
 
-  private void addFoundBlock(long blockId, long length) throws FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException, IOException {
-    addBlockId(blockId, length);
-    mMasterClient.worker_cacheBlock(mWorkerId, mSpaceCounter.getUsedBytes(), blockId, length);
+  /**
+   * Report blocks on the worker when initializing worker storage
+   * 
+   * @throws IOException
+   * @throws BlockInfoException
+   * @throws SuspectedFileSizeException
+   */
+  private void addFoundBlocks() throws IOException, SuspectedFileSizeException, BlockInfoException {
+    mUfsOrphansFolder = mUfsWorkerFolder + "/orphans";
+    if (!mUfs.exists(mUfsOrphansFolder)) {
+      mUfs.mkdirs(mUfsOrphansFolder, true);
+    }
+    for (StorageTier curStorageTier : mStorageTiers) {
+      for (StorageDir curStorageDir : curStorageTier.getStorageDirs()) {
+        for (Entry<Long, Long> blockSize : curStorageDir.getBlockSizes()) {
+          try {
+            mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytes(),
+                curStorageDir.getStorageDirId(), blockSize.getKey(), blockSize.getValue());
+          } catch (FileDoesNotExistException e) {
+            LOG.error("BlockId: " + blockSize.getKey() + " Not Exist in Metadata");
+            swapoutOrphanBlocks(curStorageDir, blockSize.getKey());
+            freeBlock(blockSize.getKey());
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -445,34 +462,29 @@ public class WorkerStorage {
    * work on local files.
    * 
    * @param userId The user id of the client who send the notification
+   * @param storageDirId The id of the StorageDir that block is cached into
    * @param blockId The id of the block
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    * @throws IOException
    */
-  public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException, IOException {
-    File srcFile = new File(CommonUtils.concat(getUserLocalTempFolder(userId), blockId));
-    File dstFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
-    long fileSizeBytes = srcFile.length();
-    if (!srcFile.exists()) {
-      throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
-    }
-    synchronized (mBlockIdToLatestAccessTimeMs) {
-      if (!srcFile.renameTo(dstFile)) {
-        throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath()
-            + " to " + dstFile.getPath());
+  public void cacheBlock(long userId, long storageDirId, long blockId)
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
+      IOException {
+    StorageDir storageDir = getStorageDirById(storageDirId);
+    if (storageDir != null) {
+      try {
+        storageDir.cacheBlock(userId, blockId);
+      } catch (IOException e) {
+        throw new FileDoesNotExistException("Failed to cache block! block id:" + blockId);
       }
-      if (mBlockSizes.containsKey(blockId)) {
-        mSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
-      }
-      addBlockId(blockId, fileSizeBytes);
-      mUsers.addOwnBytes(userId, -fileSizeBytes);
-      mMasterClient.worker_cacheBlock(mWorkerId, mSpaceCounter.getUsedBytes(), blockId,
-          fileSizeBytes);
+      long blockSize = storageDir.getBlockSize(blockId);
+      mUsers.addOwnBytes(userId, blockSize);
+      mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytes(), storageDirId, blockId, blockSize);
+    } else {
+      throw new FileDoesNotExistException("StorageDir doesn't exist! ID:" + storageDirId);
     }
-    LOG.info(userId + " " + dstFile);
   }
 
   /**
@@ -483,44 +495,32 @@ public class WorkerStorage {
   public void checkStatus() {
     List<Long> removedUsers = mUsers.checkStatus();
 
-    for (long userId : removedUsers) {
-      mSpaceCounter.returnUsedBytes(mUsers.removeUser(userId));
-      synchronized (mLockedBlockIdToUserId) {
-        Set<Long> blockds = mLockedBlocksPerUser.get(userId);
-        mLockedBlocksPerUser.remove(userId);
-        if (blockds != null) {
-          for (long blockId : blockds) {
-            unlockBlock(blockId, userId);
-          }
-        }
+    for (StorageTier curTier : mStorageTiers) {
+      for (StorageDir curDir : curTier.getStorageDirs()) {
+        curDir.checkStatus(removedUsers);
       }
+    }
+
+    for (long userId : removedUsers) {
+      mUsers.removeUser(userId);
     }
   }
 
   /**
-   * Remove a block from the memory.
+   * Remove a block from WorkerStorage.
    * 
    * @param blockId The block to be removed.
-   * @return Removed file size in bytes.
+   * @throws IOException
    */
-  private long freeBlock(long blockId) {
-    long freedFileBytes = 0;
-    synchronized (mBlockIdToLatestAccessTimeMs) {
-      if (mBlockSizes.containsKey(blockId)) {
-        mSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
-        File srcFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
-        srcFile.delete();
-        mBlockIdToLatestAccessTimeMs.remove(blockId);
-        freedFileBytes = mBlockSizes.remove(blockId);
-        mRemovedBlockList.add(blockId);
-        mMemoryData.remove(blockId);
-        LOG.info("Removed Data " + blockId);
-      } else {
-        LOG.warn("File " + blockId + " does not exist in memory.");
+  private void freeBlock(long blockId) throws IOException {
+    for (StorageTier storageTier : mStorageTiers) {
+      for (StorageDir storageDir : storageTier.getStorageDirs()) {
+        if (storageDir.containsBlock(blockId)) {
+          storageDir.deleteBlock(blockId);
+        }
       }
     }
-
-    return freedFileBytes;
+    mRemovedBlockIdList.add(blockId);
   }
 
   /**
@@ -529,11 +529,15 @@ public class WorkerStorage {
    * This is triggered when the worker heartbeats to the master, which sends a
    * {@link tachyon.thrift.Command} with type {@link tachyon.thrift.CommandType#Free}
    * 
-   * @param blocks The list of blocks to be removed.
+   * @param blockIds The id list of blocks to be removed.
    */
-  public void freeBlocks(List<Long> blocks) {
-    for (long blockId : blocks) {
-      freeBlock(blockId);
+  public void freeBlocks(List<Long> blockIds) {
+    for (long blockId : blockIds) {
+      try {
+        freeBlock(blockId);
+      } catch (IOException e) {
+        LOG.error("Failed to delete block file! blockId:" + blockId);
+      }
     }
   }
 
@@ -541,7 +545,42 @@ public class WorkerStorage {
    * @return The root local data folder of the worker
    */
   public String getDataFolder() {
-    return mLocalDataFolder.toString();
+    return mDataFolder;
+  }
+
+  /**
+   * Get StorageDir which contains specified block
+   * 
+   * @param blockId the id of the block
+   * @return StorageDir which contains the block
+   */
+  public StorageDir getStorageDirByBlockId(long blockId) {
+    StorageDir storageDir = null;
+    for (StorageTier storageTier : mStorageTiers) {
+      storageDir = storageTier.getStorageDirByBlockId(blockId);
+      if (storageDir != null) {
+        return storageDir;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get StorageDir specified by id
+   * 
+   * @param storageDirId the id of the StorageDir
+   * @return StorageDir specified by the id
+   */
+  public StorageDir getStorageDirById(long storageDirId) {
+    int storageLevel = StorageDirId.getStorageLevel(storageDirId);
+    int dirIndex = StorageDirId.getStorageDirIndex(storageDirId);
+    if (storageLevel >= 0 && storageLevel < mStorageTiers.length) {
+      StorageDir[] storageDirs = mStorageTiers[storageLevel].getStorageDirs();
+      if (dirIndex >= 0 && dirIndex < storageDirs.length) {
+        return storageDirs[dirIndex];
+      }
+    }
+    return null;
   }
 
   /**
@@ -552,12 +591,25 @@ public class WorkerStorage {
   }
 
   /**
+   * Get used bytes of current WorkerStorage
+   * 
+   * @return used bytes of current WorkerStorage
+   */
+  private long getUsedBytes() {
+    long usedBytes = 0;
+    for (StorageTier curTier : mStorageTiers) {
+      usedBytes += curTier.getUsedBytes();
+    }
+    return usedBytes;
+  }
+
+  /**
    * Get the local user temporary folder of the specified user.
    * 
    * This method is a wrapper around {@link tachyon.Users#getUserTempFolder(long)}, and as such
    * should be referentially transparent with {@link tachyon.Users#getUserTempFolder(long)}. In the
    * context of {@code this}, this call will output the result of path concat of
-   * {@link #mLocalUserFolder} with the provided {@literal userId}.
+   * {@link #mUserFolder} with the provided {@literal userId}.
    * 
    * This method differs from {@link #getUserUfsTempFolder(long)} in the context of where write
    * operations end up. This temp folder generated lives inside the tachyon file system, and as
@@ -596,76 +648,82 @@ public class WorkerStorage {
   }
 
   /**
+   * The list of StorageDirs' information on current WorkerStorage
+   * 
+   * @return list of StorageDirs' information
+   */
+  public List<WorkerDirInfo> getWorkerDirInfos() {
+    List<WorkerDirInfo> dirInfos = new ArrayList<WorkerDirInfo>();
+    for (StorageTier storageTier : mStorageTiers) {
+      for (StorageDir storageDir : storageTier.getStorageDirs()) {
+        try {
+          dirInfos.add(new WorkerDirInfo(storageDir.getStorageDirId(), storageDir.getDirPath()
+              .toString(), CommonUtils.objectToByteBuffer(storageDir.getUfsConf())));
+        } catch (IOException e) {
+          LOG.error("Failed to generate WorkerDirInfo! Id:" + storageDir.getStorageDirId());
+        }
+      }
+    }
+    return dirInfos;
+  }
+
+  /**
    * Heartbeat with the TachyonMaster. Send the removed block list to the Master.
    * 
    * @return The Command received from the Master
    * @throws IOException
    */
   public Command heartbeat() throws IOException {
-    ArrayList<Long> sendRemovedPartitionList = new ArrayList<Long>();
-    while (mRemovedBlockList.size() > 0) {
-      sendRemovedPartitionList.add(mRemovedBlockList.poll());
+    List<Long> removedBlockIds = new ArrayList<Long>();
+    Map<Long, List<Long>> addedBlockIds = new HashMap<Long, List<Long>>();
+
+    mRemovedBlockIdList.drainTo(removedBlockIds);
+
+    for (StorageTier storageTier : mStorageTiers) {
+      for (StorageDir storageDir : storageTier.getStorageDirs()) {
+        addedBlockIds.put(storageDir.getStorageDirId(), storageDir.getAddedBlockIdList());
+      }
     }
-    return mMasterClient.worker_heartbeat(mWorkerId, mSpaceCounter.getUsedBytes(),
-        sendRemovedPartitionList);
+    return mMasterClient
+        .worker_heartbeat(mWorkerId, getUsedBytes(), removedBlockIds, addedBlockIds);
   }
 
-  private void initializeWorkerStorage() throws IOException, FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException {
-    LOG.info("Initializing the worker storage.");
-    if (!mLocalDataFolder.exists()) {
-      LOG.info("Local folder " + mLocalDataFolder + " does not exist. Creating a new one.");
-      mLocalDataFolder.mkdirs();
-      mLocalUserFolder.mkdirs();
-
-      CommonUtils.changeLocalFilePermission(mLocalDataFolder.getPath(), "775");
-      CommonUtils.changeLocalFilePermission(mLocalUserFolder.getPath(), "775");
-      return;
-    }
-
-    if (!mLocalDataFolder.isDirectory()) {
-      String tmp = "Data folder " + mLocalDataFolder + " is not a folder!";
-      LOG.error(tmp);
-      throw new IllegalArgumentException(tmp);
-    }
-
-    if (mLocalUserFolder.exists()) {
-      try {
-        FileUtils.deleteDirectory(mLocalUserFolder);
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
+  /**
+   * Initialize StorageTiers on current WorkerStorage
+   * 
+   * @throws IOException
+   */
+  public void initializeStorageTier() throws IOException {
+    mStorageTiers = new StorageTier[WorkerConf.get().MAX_HIERARCHY_STORAGE_LEVEL];
+    StorageTier nextStorageTier = null;
+    for (int level = mStorageTiers.length - 1; level >= 0; level --) {
+      if (WorkerConf.get().STORAGE_TIER_DIRS[level] == null) {
+        throw new IOException("No directory path is set for layer " + level);
       }
-    }
-    mLocalUserFolder.mkdir();
-    CommonUtils.changeLocalFilePermission(mLocalUserFolder.getPath(), "775");
-
-    mUfsOrphansFolder = mUfsWorkerFolder + "/orphans";
-    if (!mUfs.exists(mUfsOrphansFolder)) {
-      mUfs.mkdirs(mUfsOrphansFolder, true);
-    }
-
-    int cnt = 0;
-    for (File tFile : mLocalDataFolder.listFiles()) {
-      if (tFile.isFile()) {
-        cnt ++;
-        LOG.info("File " + cnt + ": " + tFile.getPath() + " with size " + tFile.length() + " Bs.");
-
-        long blockId = CommonUtils.getBlockIdFromFileName(tFile.getName());
-        boolean success = mSpaceCounter.requestSpaceBytes(tFile.length());
-        try {
-          addFoundBlock(blockId, tFile.length());
-        } catch (FileDoesNotExistException e) {
-          LOG.error("BlockId: " + blockId + " becomes orphan for: \"" + e.message + "\"");
-          LOG.info("Swapout File " + cnt + ": blockId: " + blockId + " to " + mUfsOrphansFolder);
-          swapoutOrphanBlocks(blockId, tFile);
-          freeBlock(blockId);
-          continue;
-        }
-        mAddedBlockList.add(blockId);
-        if (!success) {
-          throw new RuntimeException("Pre-existing files exceed the local memory capacity.");
+      String[] dirPaths = WorkerConf.get().STORAGE_TIER_DIRS[level].split(",");
+      for (int i = 0; i < dirPaths.length; i ++) {
+        dirPaths[i] = dirPaths[i].trim();
+      }
+      StorageLevelAlias alias = WorkerConf.get().STORAGE_LEVEL_ALIAS[level];
+      if (WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level] == null) {
+        throw new IOException("No directory quota is set for layer " + level);
+      }
+      String[] dirCapacityStrings = WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level].split(",");
+      long[] dirCapacities = new long[dirPaths.length];
+      for (int i = 0, j = 0; i < dirPaths.length; i ++) {
+        // The storage directory quota for each storage directory
+        dirCapacities[i] = CommonUtils.parseSpaceSize(dirCapacityStrings[j].trim());
+        if (j < dirCapacityStrings.length - 1) {
+          j ++;
         }
       }
+      StorageTier curStorageTier =
+          new StorageTier(level, alias, dirPaths, dirCapacities, mDataFolder, mUserFolder,
+              nextStorageTier, null); // TODO add conf for UFS
+      curStorageTier.initialize();
+      mCapacityBytes += curStorageTier.getCapacityBytes();
+      mStorageTiers[level] = curStorageTier;
+      nextStorageTier = curStorageTier;
     }
   }
 
@@ -678,63 +736,63 @@ public class WorkerStorage {
    * attempt to cache the block on the local users's node, while the user is reading from the local
    * block, the given block is locked and unlocked once read.
    * 
-   * @param blockId The id of the block
    * @param userId The id of the user who locks the block
+   * @param blockId The id of the block
+   * @return the Id of the StorageDir in which the block is locked
    */
-  public void lockBlock(long blockId, long userId) {
-    synchronized (mLockedBlockIdToUserId) {
-      if (!mLockedBlockIdToUserId.containsKey(blockId)) {
-        mLockedBlockIdToUserId.put(blockId, new HashSet<Long>());
+  public long lockBlock(long userId, long blockId) {
+    StorageDir storageDir = getStorageDirByBlockId(blockId);
+    if (storageDir != null) {
+      if (storageDir.lockBlock(blockId, userId)) {
+        return storageDir.getStorageDirId();
       }
-      mLockedBlockIdToUserId.get(blockId).add(userId);
-
-      if (!mLockedBlocksPerUser.containsKey(userId)) {
-        mLockedBlocksPerUser.put(userId, new HashSet<Long>());
-      }
-      mLockedBlocksPerUser.get(userId).add(blockId);
     }
+    LOG.warn(String.format("Failed to lock block! blockId(%d)", blockId));
+    return StorageDirId.unknownId();
   }
 
   /**
-   * Use local LRU to evict data, and get <code> requestBytes </code> available space.
+   * Promote block back to top StorageTier
    * 
-   * @param requestBytes The data requested.
-   * @return <code> true </code> if the space is granted, <code> false </code> if not.
+   * @param userId the id of the user
+   * @param blockId the id of the block
+   * @return true if success, false otherwise
+   * @throws FileDoesNotExistException
+   * @throws SuspectedFileSizeException
+   * @throws BlockInfoException
    */
-  private boolean memoryEvictionLRU(long requestBytes) {
-    Set<Integer> pinList;
+  public boolean promoteBlock(long userId, long blockId)
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
 
-    try {
-      pinList = mMasterClient.worker_getPinIdList();
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-      pinList = new HashSet<Integer>();
-    }
-
-    synchronized (mBlockIdToLatestAccessTimeMs) {
-      synchronized (mLockedBlockIdToUserId) {
-        while (mSpaceCounter.getAvailableBytes() < requestBytes) {
-          long blockId = -1;
-          long latestTimeMs = Long.MAX_VALUE;
-          for (Entry<Long, Long> entry : mBlockIdToLatestAccessTimeMs.entrySet()) {
-            if (entry.getValue() < latestTimeMs
-                && !pinList.contains(BlockInfo.computeInodeId(entry.getKey()))) {
-              if (!mLockedBlockIdToUserId.containsKey(entry.getKey())) {
-                blockId = entry.getKey();
-                latestTimeMs = entry.getValue();
-              }
-            }
-          }
-          if (blockId != -1) {
-            freeBlock(blockId);
-          } else {
-            return false;
-          }
-        }
+    long storageDirIdLocked = lockBlock(userId, blockId);
+    if (StorageDirId.isUnknown(storageDirIdLocked)) {
+      return false;
+    } else if (StorageDirId.getStorageLevelAliasValue(storageDirIdLocked) != mStorageTiers[0]
+        .getStorageLevelAlias().getValue()) {
+      StorageDir srcStorageDir = getStorageDirById(storageDirIdLocked);
+      long blockSize = srcStorageDir.getBlockSize(blockId);
+      StorageDir dstStorageDir = requestSpace(userId, blockSize);
+      if (dstStorageDir == null) {
+        LOG.error("Failed to promote block! blockId:" + blockId);
+        unlockBlock(userId, blockId);
+        return false;
       }
+      boolean result;
+      try {
+        result = srcStorageDir.moveBlock(blockId, dstStorageDir);
+        mMasterClient.worker_cacheBlock(mWorkerId, mCapacityBytes, dstStorageDir.getStorageDirId(),
+            blockId, blockSize);
+      } catch (IOException e) {
+        LOG.error("Failed to promote block! blockId:" + blockId);
+        return false;
+      } finally {
+        unlockBlock(userId, blockId);
+      }
+      return result;
+    } else {
+      unlockBlock(userId, blockId);
+      return true;
     }
-
-    return true;
   }
 
   /**
@@ -742,11 +800,19 @@ public class WorkerStorage {
    */
   public void register() {
     long id = 0;
+    Map<Long, List<Long>> blockIdLists = new HashMap<Long, List<Long>>();
+
+    for (StorageTier curStorageTier : mStorageTiers) {
+      for (StorageDir curStorageDir : curStorageTier.getStorageDirs()) {
+        Set<Long> blockSet = curStorageDir.getBlockIds();
+        blockIdLists.put(curStorageDir.getStorageDirId(), new ArrayList<Long>(blockSet));
+      }
+    }
     while (id == 0) {
       try {
         id =
-            mMasterClient.worker_register(mWorkerAddress, mSpaceCounter.getCapacityBytes(),
-                mSpaceCounter.getUsedBytes(), new ArrayList<Long>(mMemoryData));
+            mMasterClient.worker_register(mWorkerAddress, mCapacityBytes, getUsedBytes(),
+                blockIdLists);
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
@@ -765,26 +831,75 @@ public class WorkerStorage {
    * 
    * @param userId The id of the user who send the request
    * @param requestBytes The requested space size, in bytes
-   * @return true if succeed, false otherwise
+   * @return StorageDir assigned if succeed, null otherwise
    */
-  public boolean requestSpace(long userId, long requestBytes) {
-    LOG.info("requestSpace(" + userId + ", " + requestBytes + "): Current available: "
-        + mSpaceCounter.getAvailableBytes() + " requested: " + requestBytes);
-    if (mSpaceCounter.getCapacityBytes() < requestBytes) {
-      LOG.info("user_requestSpace(): requested memory size is larger than the total memory on"
-          + " the machine.");
-      return false;
+  public StorageDir requestSpace(long userId, long requestBytes) {
+    Set<Integer> pinList;
+
+    try {
+      pinList = mMasterClient.worker_getPinIdList();
+    } catch (IOException e) {
+      LOG.error(e.getMessage());
+      pinList = new HashSet<Integer>();
     }
 
-    while (!mSpaceCounter.requestSpaceBytes(requestBytes)) {
-      if (!memoryEvictionLRU(requestBytes)) {
-        return false;
+    StorageDir storageDir;
+    List<Long> removedBlockIds = new ArrayList<Long>();
+    try {
+      storageDir = mStorageTiers[0].requestSpace(userId, requestBytes, pinList, removedBlockIds);
+    } catch (IOException e) {
+      LOG.error(e.getMessage());
+      storageDir = null;
+    } finally {
+      if (removedBlockIds.size() > 0) {
+        mRemovedBlockIdList.addAll(removedBlockIds);
       }
     }
 
-    mUsers.addOwnBytes(userId, requestBytes);
+    if (storageDir != null) {
+      mUsers.addOwnBytes(userId, requestBytes);
+    }
+    return storageDir;
+  }
 
-    return true;
+  /**
+   * Request space from the specified StorageDir
+   * 
+   * @param userId The id of the user who send the request
+   * @param storageDirId The id of the StorageDir specified
+   * @param requestBytes The requested space size, in bytes
+   * @return true if succeed, false otherwise
+   */
+  public boolean requestSpace(long userId, long storageDirId, long requestBytes) {
+    Set<Integer> pinList;
+
+    try {
+      pinList = mMasterClient.worker_getPinIdList();
+    } catch (IOException e) {
+      LOG.error(e.getMessage());
+      pinList = new HashSet<Integer>();
+    }
+
+    StorageDir storageDir = getStorageDirById(storageDirId);
+    boolean result;
+    List<Long> removedBlockIds = new ArrayList<Long>();
+    try {
+      result = 
+          mStorageTiers[0].requestSpace(storageDir, userId, requestBytes, pinList,
+              removedBlockIds);
+    } catch (IOException e) {
+      LOG.error(e.getMessage());
+      result = false;
+    } finally {
+      if (removedBlockIds.size() > 0) {
+        mRemovedBlockIdList.addAll(removedBlockIds);
+      }
+    }
+
+    if (result) {
+      mUsers.addOwnBytes(userId, requestBytes);
+    }
+    return result;
   }
 
   /**
@@ -799,19 +914,24 @@ public class WorkerStorage {
    * Return the space which has been requested
    * 
    * @param userId The id of the user who wants to return the space
+   * @param storageDirId The id of the StorageDir space will be returned to
    * @param returnedBytes The returned space size, in bytes
    */
-  public void returnSpace(long userId, long returnedBytes) {
-    long preAvailableBytes = mSpaceCounter.getAvailableBytes();
+  public void returnSpace(long userId, long storageDirId, long returnedBytes) {
+    StorageDir storageDir = getStorageDirById(storageDirId);
+    if (storageDir == null) {
+      LOG.warn("StorageDir doesn't exist! ID:" + storageDirId);
+      return;
+    }
     if (returnedBytes > mUsers.ownBytes(userId)) {
       LOG.error("User " + userId + " does not own " + returnedBytes + " bytes.");
     } else {
-      mSpaceCounter.returnUsedBytes(returnedBytes);
+      storageDir.returnSpace(userId, returnedBytes);
       mUsers.addOwnBytes(userId, -returnedBytes);
     }
 
-    LOG.info("returnSpace(" + userId + ", " + returnedBytes + ") : " + preAvailableBytes
-        + " returned: " + returnedBytes + ". New Available: " + mSpaceCounter.getAvailableBytes());
+    LOG.info("returnSpace(" + userId + ", " + returnedBytes + ") : " + " New Available: "
+        + storageDir.getAvailableBytes());
   }
 
   /**
@@ -834,10 +954,8 @@ public class WorkerStorage {
    * Swap out those blocks missing INode information onto underFS which can be retrieved by user
    * later. Its cleanup only happens while formating the mTachyonFS.
    */
-  private void swapoutOrphanBlocks(long blockId, File file) throws IOException {
-    RandomAccessFile localFile = new RandomAccessFile(file, "r");
-    ByteBuffer buf = localFile.getChannel().map(MapMode.READ_ONLY, 0, file.length());
-
+  private void swapoutOrphanBlocks(StorageDir storageDir, long blockId) throws IOException {
+    ByteBuffer buf = storageDir.getBlockData(blockId, 0, -1);
     String ufsOrphanBlock = CommonUtils.concat(mUfsOrphansFolder, blockId);
     OutputStream os = mUfs.create(ufsOrphanBlock);
     final int bulkSize = Constants.KB * 64;
@@ -848,8 +966,6 @@ public class WorkerStorage {
       os.write(bulk, 0, len);
     }
     os.close();
-
-    localFile.close();
   }
 
   /**
@@ -861,22 +977,19 @@ public class WorkerStorage {
    * to cache the block on the local users's node, while the user is reading from the local block,
    * the given block is locked and unlocked once read.
    * 
-   * @param blockId The id of the block
    * @param userId The id of the user who unlocks the block
+   * @param blockId The id of the block
+   * @return the Id of the StorageDir in which the block is unlocked
    */
-  public void unlockBlock(long blockId, long userId) {
-    synchronized (mLockedBlockIdToUserId) {
-      if (mLockedBlockIdToUserId.containsKey(blockId)) {
-        mLockedBlockIdToUserId.get(blockId).remove(userId);
-        if (mLockedBlockIdToUserId.get(blockId).size() == 0) {
-          mLockedBlockIdToUserId.remove(blockId);
-        }
-      }
-
-      if (mLockedBlocksPerUser.containsKey(userId)) {
-        mLockedBlocksPerUser.get(userId).remove(blockId);
+  public long unlockBlock(long userId, long blockId) {
+    StorageDir storageDir = getStorageDirByBlockId(blockId);
+    if (storageDir != null) {
+      if (storageDir.unlockBlock(userId, blockId)) {
+        return storageDir.getStorageDirId();
       }
     }
+    LOG.warn(String.format("Failed to lock block! blockId(%d)", blockId));
+    return StorageDirId.unknownId();
   }
 
   /**
