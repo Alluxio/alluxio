@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.conf;
 
 import com.google.common.base.Optional;
@@ -49,6 +64,11 @@ public class WorkerConf extends Utils {
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
 
   public final NetworkType NETWORK_TYPE;
+  
+  public final String KEYTAB_KEY;
+  public final String KEYTAB;
+  public final String PRINCIPAL_KEY;
+  public final String PRINCIPAL;
 
   public final ChannelType NETTY_CHANNEL_TYPE;
   public final FileTransferType NETTY_FILE_TRANSFER_TYPE;
@@ -92,6 +112,11 @@ public class WorkerConf extends Utils {
     WORKER_CHECKPOINT_THREADS = getIntProperty("tachyon.worker.checkpoint.threads", 1);
     WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
         getIntProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", Constants.SECOND_MS);
+    
+    KEYTAB_KEY = "tachyon.worker.keytab.file";
+    KEYTAB = getProperty(KEYTAB_KEY, null);
+    PRINCIPAL_KEY = "tachyon.worker.principal";
+    PRINCIPAL = getProperty(PRINCIPAL_KEY, null);
 
     NETWORK_TYPE = getEnumProperty("tachyon.worker.network.type", NetworkType.NETTY);
     NETTY_BOSS_THREADS = getIntProperty("tachyon.worker.network.netty.boss.threads", 1);

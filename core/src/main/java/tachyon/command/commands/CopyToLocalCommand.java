@@ -23,7 +23,7 @@ import tachyon.command.AbstractCommands;
 public class CopyToLocalCommand extends AbstractCommands {
   public static final String NAME = "copyToLocal";
   public static final String DESCRIPTION =
-            " Copies a file specified by argv from the filesystem to the local filesystem.";
+      " Copies a file specified by argv from the filesystem to the local filesystem.";
 
   /**
    * Constructor with Closer

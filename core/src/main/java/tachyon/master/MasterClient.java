@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.master;
 
 import java.io.Closeable;
@@ -8,6 +23,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -21,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
 import tachyon.LeaderInquireClient;
 import tachyon.TachyonURI;
@@ -55,6 +73,9 @@ import tachyon.util.NetworkUtils;
  * 
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
+// TODO When TException happens, the caller can't really do anything about it.
+// when the other exceptions are thrown as a IOException, the caller can't do anything about it
+// so all exceptions are handled poorly. This logic needs to be redone and be consistent.
 public final class MasterClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_CONNECT_TRY = 5;
@@ -66,19 +87,22 @@ public final class MasterClient implements Closeable {
   private volatile boolean mConnected;
   private volatile boolean mIsShutdown;
   private volatile long mUserId = -1;
-  private HeartbeatThread mHeartbeatThread = null;
+  private final ExecutorService mExecutorService;
+  private Future<?> mHeartbeat;
 
-  public MasterClient(InetSocketAddress masterAddress) {
-    this(masterAddress, CommonConf.get().USE_ZOOKEEPER);
+  public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService) {
+    this(masterAddress, CommonConf.get().USE_ZOOKEEPER, executorService);
   }
 
-  public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper) {
+  public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper,
+      ExecutorService executorService) {
     mUseZookeeper = useZookeeper;
     if (!mUseZookeeper) {
       mMasterAddress = masterAddress;
     }
     mConnected = false;
     mIsShutdown = false;
+    mExecutorService = executorService;
   }
 
   /**
@@ -92,13 +116,18 @@ public final class MasterClient implements Closeable {
    * @throws BlockInfoException
    */
   public synchronized boolean addCheckpoint(long workerId, int fileId, long length,
-      String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException,
-      BlockInfoException, IOException {
+      String checkpointPath) throws IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
         return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (SuspectedFileSizeException e) {
+        throw new IOException(e);
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -122,8 +151,8 @@ public final class MasterClient implements Closeable {
         mProtocol.getTransport().close();
       }
     } finally {
-      if (mHeartbeatThread != null) {
-        mHeartbeatThread.shutdown();
+      if (mHeartbeat != null) {
+        mHeartbeat.cancel(true);
       }
     }
   }
@@ -157,16 +186,18 @@ public final class MasterClient implements Closeable {
       try {
         mProtocol.getTransport().open();
 
-        mHeartbeatThread =
-            new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(this),
-                UserConf.get().HEARTBEAT_INTERVAL_MS / 2);
-        mHeartbeatThread.start();
+        HeartbeatExecutor heartBeater = new MasterClientHeartbeatExecutor(this);
+
+        String threadName = "master-heartbeat-" + mMasterAddress;
+        mHeartbeat =
+            mExecutorService.submit(new HeartbeatThread(threadName, heartBeater,
+                UserConf.get().HEARTBEAT_INTERVAL_MS / 2));
       } catch (TTransportException e) {
         lastException = e;
-        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress
+        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress 
             + " : " + e.getMessage());
-        if (mHeartbeatThread != null) {
-          mHeartbeatThread.shutdown();
+        if (mHeartbeat != null) {
+          mHeartbeat.cancel(true);
         }
         continue;
       }
@@ -219,6 +250,8 @@ public final class MasterClient implements Closeable {
       try {
         return mClient.getFileStatus(fileId, path);
       } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -367,6 +400,8 @@ public final class MasterClient implements Closeable {
         throw new IOException(e);
       } catch (BlockInfoException e) {
         throw new IOException(e);
+      } catch (SuspectedFileSizeException e) {
+        throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -483,6 +518,8 @@ public final class MasterClient implements Closeable {
         return ret;
       } catch (TableDoesNotExistException e) {
         throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -501,6 +538,8 @@ public final class MasterClient implements Closeable {
       try {
         return mClient.user_getFileBlocks(fileId, path);
       } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -678,6 +717,22 @@ public final class MasterClient implements Closeable {
     }
   }
 
+  public synchronized boolean user_freepath(int fileId, String path, boolean recursive)
+      throws IOException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_freepath(fileId, path, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return false;
+  }
+
   public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId,
       long length) throws IOException, FileDoesNotExistException, SuspectedFileSizeException,
       BlockInfoException {
@@ -693,11 +748,9 @@ public final class MasterClient implements Closeable {
         throw e;
       } catch (BlockInfoException e) {
         throw e;
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
-      } catch (TException e) {
-        throw new IOException(e);
       }
     }
   }
@@ -730,12 +783,14 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      List<Long> removedPartitionList) throws BlockInfoException, IOException {
+      List<Long> removedPartitionList) throws IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
         return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -770,6 +825,8 @@ public final class MasterClient implements Closeable {
         LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress
             + " , got WorkerId " + ret);
         return ret;
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

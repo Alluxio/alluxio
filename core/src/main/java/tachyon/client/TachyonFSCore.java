@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.client;
 
 import java.io.Closeable;
@@ -81,4 +96,16 @@ interface TachyonFSCore extends Closeable {
    * @throws IOException
    */
   boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
+
+ /**
+  * Memory free of a file or folder
+  * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+  *        Otherwise, the method uses the path parameter.
+  * @param path The path of the file / folder. It could be empty iff id is not -1.
+  * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
+  *        or not
+  * @return true if in-memory free successfully, false otherwise.
+  * @throws IOException
+  */
+  boolean freepath(int fileId, TachyonURI path, boolean recursive) throws IOException;
 }

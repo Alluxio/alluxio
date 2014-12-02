@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.worker;
 
 import java.io.File;
@@ -28,7 +43,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -45,6 +59,7 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.util.CommonUtils;
+import tachyon.util.ThreadFactoryUtils;
 
 /**
  * The structure to store a worker's information in worker node.
@@ -225,12 +240,6 @@ public class WorkerStorage {
                 + " ms.");
             CommonUtils.sleepMs(LOG, shouldSleepMs);
           }
-        } catch (FileDoesNotExistException e) {
-          LOG.warn(e.getMessage(), e);
-        } catch (SuspectedFileSizeException e) {
-          LOG.error(e.getMessage(), e);
-        } catch (BlockInfoException e) {
-          LOG.error(e.getMessage(), e);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
         }
@@ -278,7 +287,9 @@ public class WorkerStorage {
 
   private final ExecutorService mCheckpointExecutor = Executors.newFixedThreadPool(
       WorkerConf.get().WORKER_CHECKPOINT_THREADS,
-      new ThreadFactoryBuilder().setNameFormat("checkpoint-%d").build());
+      ThreadFactoryUtils.build("checkpoint-%d"));
+
+  private final ExecutorService mExecutorService;
 
   /**
    * Main logic behind the worker process.
@@ -289,13 +300,15 @@ public class WorkerStorage {
    * @param masterAddress The TachyonMaster's address
    * @param dataFolder This TachyonWorker's local folder's path
    * @param memoryCapacityBytes The maximum memory space this TachyonWorker can use, in bytes
+   * @param executorService
    */
   public WorkerStorage(InetSocketAddress masterAddress, String dataFolder,
-      long memoryCapacityBytes) {
+      long memoryCapacityBytes, ExecutorService executorService) {
+    mExecutorService = executorService;
     mCommonConf = CommonConf.get();
 
     mMasterAddress = masterAddress;
-    mMasterClient = new MasterClient(mMasterAddress);
+    mMasterClient = new MasterClient(mMasterAddress, mExecutorService);
     mLocalDataFolder = new File(dataFolder);
 
     mSpaceCounter = new SpaceCounter(memoryCapacityBytes);
@@ -586,10 +599,9 @@ public class WorkerStorage {
    * Heartbeat with the TachyonMaster. Send the removed block list to the Master.
    * 
    * @return The Command received from the Master
-   * @throws BlockInfoException
    * @throws IOException
    */
-  public Command heartbeat() throws BlockInfoException, IOException {
+  public Command heartbeat() throws IOException {
     ArrayList<Long> sendRemovedPartitionList = new ArrayList<Long>();
     while (mRemovedBlockList.size() > 0) {
       sendRemovedPartitionList.add(mRemovedBlockList.poll());
@@ -779,7 +791,7 @@ public class WorkerStorage {
    * Set a new MasterClient and connect to it.
    */
   public void resetMasterClient() {
-    MasterClient tMasterClient = new MasterClient(mMasterAddress);
+    MasterClient tMasterClient = new MasterClient(mMasterAddress, mExecutorService);
     mMasterClient = tMasterClient;
   }
 
