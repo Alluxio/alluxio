@@ -175,21 +175,21 @@
                 </goals>
               </execution>
             </executions>
-			<configuration>
+            <configuration>
               <excludes>
-				<exclude>**/RDMA*.java</exclude>
+                <exclude>**/RDMA*.java</exclude>
               </excludes>
             </configuration>
           </plugin>
-		  <plugin>
-		  	<groupId>org.apache.maven.plugins</groupId>
-		  	<artifactId>maven-javadoc-plugin</artifactId>
-			<configuration>
-			  <sourceFileExcludes>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <sourceFileExcludes>
                 <sourceFileExclude>**/RDMA*.java</sourceFileExclude>
-			  </sourceFileExcludes>
-			</configuration>
-		  </plugin>
+              </sourceFileExcludes>
+            </configuration>
+          </plugin>
         </plugins>
       </build>
       <dependencies>
@@ -249,7 +249,7 @@
           </exclusions>
         </dependency>
       </dependencies>
-	  <build>
+      <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -260,7 +260,7 @@
                 <phase>test-compile</phase>
                 <configuration>
                   <testExcludes>
-					<exclude>**/RDMA*.java</exclude>
+                    <exclude>**/RDMA*.java</exclude>
                   </testExcludes>
                 </configuration>
                 <goals>
@@ -268,21 +268,21 @@
                 </goals>
               </execution>
             </executions>
-			<configuration>
+            <configuration>
               <excludes>
-             	<exclude>**/RDMA*.java</exclude>
+                <exclude>**/RDMA*.java</exclude>
               </excludes>
             </configuration>
           </plugin>
-		  <plugin>
-		  	<groupId>org.apache.maven.plugins</groupId>
-		  	<artifactId>maven-javadoc-plugin</artifactId>
-			<configuration>
-			  <sourceFileExcludes>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <sourceFileExcludes>
                 <sourceFileExclude>**/RDMA*.java</sourceFileExclude>
-			  </sourceFileExcludes>
-			</configuration>
-		  </plugin>
+              </sourceFileExcludes>
+            </configuration>
+          </plugin>
         </plugins>
       </build>
     </profile>
@@ -324,7 +324,7 @@
                 <configuration>
                   <testExcludes>
                     <exclude>**/LocalMiniDFSCluster.java</exclude>
-					<exclude>**/RDMA*.java</exclude>
+                    <exclude>**/RDMA*.java</exclude>
                   </testExcludes>
                 </configuration>
                 <goals>
@@ -332,31 +332,31 @@
                 </goals>
               </execution>
             </executions>
-			<configuration>
+            <configuration>
               <excludes>
-             	<exclude>**/RDMA*.java</exclude>
+                <exclude>**/RDMA*.java</exclude>
               </excludes>
             </configuration>
           </plugin>
-		  <plugin>
-		  	<groupId>org.apache.maven.plugins</groupId>
-		  	<artifactId>maven-javadoc-plugin</artifactId>
-			<configuration>
-			  <sourceFileExcludes>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <sourceFileExcludes>
                 <sourceFileExclude>**/RDMA*.java</sourceFileExclude>
-			  </sourceFileExcludes>
-			</configuration>
-		  </plugin>
+              </sourceFileExcludes>
+            </configuration>
+          </plugin>
         </plugins>
       </build>
     </profile>
 
-	<profile>
+    <profile>
       <id>jxio</id>
       <activation>
         <activeByDefault>false</activeByDefault>
-	  </activation>
-	  <properties>
+      </activation>
+      <properties>
         <ufs/>
       </properties>
       <build>
@@ -379,22 +379,22 @@
               </execution>
             </executions>
           </plugin>
-		  <plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-surefire-plugin</artifactId>
-			<configuration>
-			  <systemProperties>
-			    <property>
-				  <name>tachyon.jxio.enable</name>
-				  <value>true</value>
-			    </property>
-			  </systemProperties>
-			</configuration>
-		  </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <systemProperties>
+                <property>
+                  <name>tachyon.jxio.enable</name>
+                  <value>true</value>
+                </property>
+              </systemProperties>
+            </configuration>
+          </plugin>
         </plugins>
       </build>
       <dependencies>
-	    <dependency>
+        <dependency>
           <groupId>org.accelio</groupId>
           <artifactId>jxio</artifactId>
           <version>1.2</version>
