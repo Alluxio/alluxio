@@ -119,7 +119,19 @@ public final class StorageDir {
    * @param need to be reported During heart beat with master
    */
   private void addBlockId(long blockId, long sizeBytes, boolean report) {
-    mLastBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
+    addBlockId(blockId, sizeBytes, System.currentTimeMillis(), report);
+  }
+
+  /**
+   * Add information of a block in current StorageDir
+   * 
+   * @param blockId Id of the block
+   * @param sizeBytes size of the block in bytes
+   * @param accessTime access time of the block
+   * @param need to be reported During heart beat with master
+   */
+  private void addBlockId(long blockId, long sizeBytes, long accessTime, boolean report) {
+    mLastBlockAccessTimeMs.put(blockId, accessTime);
     if (mBlockSizes.containsKey(blockId)) {
       mSpaceCounter.returnUsedBytes(mBlockSizes.remove(blockId));
     }
@@ -210,7 +222,8 @@ public final class StorageDir {
       closer.close();
     }
     if (copySuccess) {
-      dstDir.addBlockId(blockId, size, true);
+      long accessTime = mLastBlockAccessTimeMs.get(blockId);
+      dstDir.addBlockId(blockId, size, accessTime, true);
     }
     return copySuccess;
   }
