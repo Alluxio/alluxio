@@ -198,7 +198,7 @@ public final class LocalTachyonMaster {
   }
 
   public TachyonFS getClient() throws IOException {
-    return mClientPool.getClient(false);
+    return mClientPool.getClient();
   }
 
   public String getEditLogPath() {

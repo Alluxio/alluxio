@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -43,7 +44,7 @@ import tachyon.HeartbeatThread;
 import tachyon.LeaderInquireClient;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.UserConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
@@ -89,14 +90,16 @@ public final class MasterClient implements Closeable {
   private volatile long mUserId = -1;
   private final ExecutorService mExecutorService;
   private Future<?> mHeartbeat;
+  private TachyonConf mTachyonConf;
 
-  public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService) {
-    this(masterAddress, CommonConf.get().USE_ZOOKEEPER, executorService);
-  }
-
-  public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper,
-      ExecutorService executorService) {
-    mUseZookeeper = useZookeeper;
+  public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
+                      TachyonConf tachyonConf) {
+    if (tachyonConf != null) {
+      mTachyonConf = tachyonConf;
+    } else {
+      mTachyonConf = new TachyonConf();
+    }
+    mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
     if (!mUseZookeeper) {
       mMasterAddress = masterAddress;
     }
@@ -267,8 +270,8 @@ public final class MasterClient implements Closeable {
     }
 
     LeaderInquireClient leaderInquireClient =
-        LeaderInquireClient.getClient(CommonConf.get().ZOOKEEPER_ADDRESS,
-            CommonConf.get().ZOOKEEPER_LEADER_PATH);
+        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS, null),
+            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, null));
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return CommonUtils.parseInetSocketAddress(temp);

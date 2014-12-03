@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NoWorkerException;
@@ -38,6 +39,7 @@ public class MasterClientTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
+  private TachyonConf mTachyonConf = null;
 
   @After
   public final void after() throws Exception {
@@ -49,6 +51,7 @@ public class MasterClientTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
+    mTachyonConf = new TachyonConf();
     mLocalTachyonCluster = new LocalTachyonCluster(1000);
     mLocalTachyonCluster.start();
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
@@ -57,7 +60,8 @@ public class MasterClientTest {
   @Test
   public void openCloseTest() throws FileAlreadyExistException, InvalidPathException, TException,
       IOException {
-    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService);
+    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService,
+        mTachyonConf);
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
@@ -75,7 +79,8 @@ public class MasterClientTest {
     // this test was created to show that a infi loop happens
     // the timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
-    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService);
+    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService,
+        mTachyonConf);
     masterClient.user_getClientBlockInfo(Long.MAX_VALUE);
     masterClient.close();
   }
@@ -85,7 +90,8 @@ public class MasterClientTest {
     // this test was created to show that a infi loop happens
     // the timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
-    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService);
+    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService,
+        mTachyonConf);
     masterClient.user_getWorker(false, "host.doesnotexist.fail");
     masterClient.close();
   }
