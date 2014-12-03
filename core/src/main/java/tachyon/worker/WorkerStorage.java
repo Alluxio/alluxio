@@ -48,6 +48,7 @@ import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.Users;
 import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.master.BlockInfo;
 import tachyon.master.MasterClient;
@@ -291,6 +292,8 @@ public class WorkerStorage {
 
   private final ExecutorService mExecutorService;
 
+  private TachyonConf mTachyonConf = new TachyonConf();
+
   /**
    * Main logic behind the worker process.
    * 
@@ -301,18 +304,24 @@ public class WorkerStorage {
    * @param dataFolder This TachyonWorker's local folder's path
    * @param memoryCapacityBytes The maximum memory space this TachyonWorker can use, in bytes
    * @param executorService
+   * @param tachyonConf The instance of TachyonConf to be used. If null the instantiate new one.
    */
   public WorkerStorage(InetSocketAddress masterAddress, String dataFolder,
-      long memoryCapacityBytes, ExecutorService executorService) {
+      long memoryCapacityBytes, ExecutorService executorService, TachyonConf tachyonConf) {
     mExecutorService = executorService;
     mCommonConf = CommonConf.get();
 
     mMasterAddress = masterAddress;
-    mMasterClient = new MasterClient(mMasterAddress, mExecutorService);
+    mMasterClient = new MasterClient(mMasterAddress, mExecutorService, mTachyonConf);
     mLocalDataFolder = new File(dataFolder);
 
     mSpaceCounter = new SpaceCounter(memoryCapacityBytes);
     mLocalUserFolder = new File(mLocalDataFolder, WorkerConf.USER_TEMP_RELATIVE_FOLDER);
+    if (tachyonConf != null) {
+      mTachyonConf = tachyonConf;
+    } else {
+      mTachyonConf = new TachyonConf();
+    }
   }
 
   public void initialize(final NetAddress address) {
@@ -792,7 +801,7 @@ public class WorkerStorage {
    * Set a new MasterClient and connect to it.
    */
   public void resetMasterClient() {
-    MasterClient tMasterClient = new MasterClient(mMasterAddress, mExecutorService);
+    MasterClient tMasterClient = new MasterClient(mMasterAddress, mExecutorService, mTachyonConf);
     mMasterClient = tMasterClient;
   }
 

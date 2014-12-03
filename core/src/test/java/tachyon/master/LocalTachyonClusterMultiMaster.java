@@ -91,7 +91,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public synchronized TachyonFS getClient() throws IOException {
-    return mClientPool.getClient(true);
+    return mClientPool.getClient();
   }
 
   public String getUri() {

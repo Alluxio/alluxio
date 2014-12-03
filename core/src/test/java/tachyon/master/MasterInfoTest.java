@@ -234,6 +234,8 @@ public class MasterInfoTest {
 
   private ExecutorService mExecutorService = null;
 
+  private TachyonConf mTachyonConf;
+
   @Test
   public void addCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,
       FileAlreadyExistException, InvalidPathException, BlockInfoException, FileNotFoundException,
@@ -264,6 +266,7 @@ public class MasterInfoTest {
     mLocalTachyonCluster.start();
     mExecutorService = Executors.newFixedThreadPool(2);
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
+    mTachyonConf = new TachyonConf();
   }
 
   @Test
@@ -306,7 +309,7 @@ public class MasterInfoTest {
       concurrentCreator.call();
       Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
       MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
-          new TachyonConf());
+          mTachyonConf);
       info.init();
       for (TachyonURI path : mMasterInfo.ls(new TachyonURI("/"), true)) {
         Assert.assertEquals(mMasterInfo.getFileId(path), info.getFileId(path));
@@ -680,7 +683,7 @@ public class MasterInfoTest {
     Journal journal =
         new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
-        new TachyonConf());
+        mTachyonConf);
 
     // create the output streams
     ByteArrayOutputStream os = new ByteArrayOutputStream();

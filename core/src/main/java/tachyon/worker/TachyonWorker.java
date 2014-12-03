@@ -185,7 +185,8 @@ public class TachyonWorker implements Runnable {
     mMasterAddress = masterAddress;
 
     mWorkerStorage =
-        new WorkerStorage(mMasterAddress, dataFolder, memoryCapacityBytes, mExecutorService);
+        new WorkerStorage(mMasterAddress, dataFolder, memoryCapacityBytes, mExecutorService,
+            mTachyonConf);
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
