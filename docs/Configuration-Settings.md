@@ -35,12 +35,12 @@ The common configuration contains constants which specify paths and the log appe
 </tr>
 <tr>
   <td>tachyon.data.folder</td>
-  <td>$tachyon.underfs.address + "/tachyon/data"</td>
+  <td>$tachyon.underfs.address + "/tmp/tachyon/data"</td>
   <td>Tachyon's data folder in the underlayer file system.</td>
 </tr>
 <tr>
   <td>tachyon.workers.folder</td>
-  <td>$tachyon.underfs.address + "/tachyon/workers"</td>
+  <td>$tachyon.underfs.address + "/tmp/tachyon/workers"</td>
   <td>Tachyon's workers folders in the underlayer file system.</td>
 </tr>
 <tr>
