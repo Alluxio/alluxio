@@ -4,9 +4,7 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -23,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.base.Throwables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -36,10 +35,9 @@ import org.apache.hadoop.security.SecurityUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
-
 import tachyon.conf.CommonConf;
 import tachyon.hadoop.Utils;
+
 
 /**
  * HDFS UnderFilesystem implementation.
@@ -247,14 +245,14 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     // as Tachyon can load/store data out of entire HDFS cluster
     if (mFs instanceof DistributedFileSystem) {
       switch (type) {
-      case SPACE_TOTAL:
-        return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
-      case SPACE_USED:
-        return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
-      case SPACE_FREE:
-        return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
-      default:
-        throw new IOException("Unknown getSpace parameter: " + type);
+        case SPACE_TOTAL:
+          return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
+        case SPACE_USED:
+          return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
+        case SPACE_FREE:
+          return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
+        default:
+          throw new IOException("Unknown getSpace parameter: " + type);
       }
     }
     return -1;
