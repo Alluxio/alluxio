@@ -37,8 +37,6 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientFileInfo;
@@ -307,7 +305,10 @@ public class MasterInfoTest {
       ConcurrentCreator concurrentCreator =
           new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
       concurrentCreator.call();
-      Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
+
+      String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+          Constants.DEFAULT_JOURNAL_FOLDER);
+      Journal journal = new Journal(masterJournal, "image.data", "log.data");
       MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
           mTachyonConf);
       info.init();
@@ -673,8 +674,8 @@ public class MasterInfoTest {
   @Test(expected = TableColumnException.class)
   public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistException,
       TableColumnException, TachyonException {
-    mMasterInfo.createRawTable(new TachyonURI("/testTable"), CommonConf.get().MAX_COLUMNS + 1,
-        (ByteBuffer) null);
+    int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS, 1000);
+    mMasterInfo.createRawTable(new TachyonURI("/testTable"), maxColumns + 1, (ByteBuffer) null);
   }
 
   @Test

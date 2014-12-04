@@ -53,12 +53,12 @@ public class Format {
     if (args[0].toUpperCase().equals("MASTER")) {
 
       String masterJournal = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-          TachyonConf.DEFAULT_JOURNAL_FOLDER);
+          Constants.DEFAULT_JOURNAL_FOLDER);
       if (!formatFolder("JOURNAL_FOLDER", masterJournal)) {
         System.exit(-1);
       }
 
-      String tachyonHome = tachyonConf.get(Constants.TACHYON_HOME, TachyonConf.DEFAULT_HOME);
+      String tachyonHome = tachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
       String ufsAddress = tachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underfs");
       String ufsDataFolder = tachyonConf.get(Constants.UNDERFS_DATA_FOLDER,
           ufsAddress + "/tachyon/data");

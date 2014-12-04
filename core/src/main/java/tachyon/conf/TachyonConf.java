@@ -38,10 +38,6 @@ public class TachyonConf {
   public static final String DEFAULT_PROPERTIES = "tachyon-default.properties";
   public static final String SITE_PROPERTIES = "tachyon-site.properties";
 
-  public static final String DEFAULT_HOME = "/mnt/tachyon_default_home";
-  public static final String DEFAULT_DATA_FOLDER = "/tachyon/data";
-  public static final String DEFAULT_JOURNAL_FOLDER = DEFAULT_HOME + "/journal/";
-
   // Regex to find ${key} for variable substitution
   public static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
   public static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);

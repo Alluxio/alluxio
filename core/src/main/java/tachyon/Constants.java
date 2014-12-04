@@ -69,6 +69,10 @@ public class Constants {
   // Please check and update Configuration-Settings.md file when you change or add Tachyon
   // configuration properties.
 
+  public static final String DEFAULT_HOME = "/mnt/tachyon_default_home";
+  public static final String DEFAULT_DATA_FOLDER = "/tachyon/data";
+  public static final String DEFAULT_JOURNAL_FOLDER = DEFAULT_HOME + "/journal/";
+
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String WEB_RESOURCES = "tachyon.web.resources";
   public static final String UNDERFS_ADDRESS = "tachyon.underfs.address";
@@ -106,6 +110,8 @@ public class Constants {
   public static final String MASTER_SERVER_THREADS = "tachyon.master.server.threads";
   public static final String MASTER_WORKER_TIMEOUT_MS = "tachyon.master.worker.timeout.ms";
   public static final String MASTER_WHITELIST = "tachyon.master.whitelist";
+  public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
+  public static final String MASTER_PRINCIPAL_KEY = "tachyon.master.principal";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_PORT = "tachyon.worker.port";

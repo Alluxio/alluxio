@@ -36,8 +36,6 @@ import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemHdfs;
 import tachyon.Version;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.MasterService;
 import tachyon.util.CommonUtils;
@@ -201,14 +199,15 @@ public class TachyonMaster {
   }
 
   private void login() throws IOException {
-    MasterConf mConf = MasterConf.get();
-    if (mConf.KEYTAB == null || mConf.PRINCIPAL == null) {
+    String masterKeytab = mTachyonConf.get(Constants.MASTER_KEYTAB_KEY, null);
+    String masterPrincipal = mTachyonConf.get(Constants.MASTER_PRINCIPAL_KEY, null);
+    if (masterKeytab == null || masterPrincipal == null) {
       return;
     }
-    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS);
+    UnderFileSystem ufs = UnderFileSystem.get(mTachyonConf.get(Constants.UNDERFS_ADDRESS, null));
     if (ufs instanceof UnderFileSystemHdfs) {
-      ((UnderFileSystemHdfs) ufs).login(mConf.KEYTAB_KEY, mConf.KEYTAB, mConf.PRINCIPAL_KEY,
-          mConf.PRINCIPAL, NetworkUtils.getFqdnHost(mMasterAddress));
+      ((UnderFileSystemHdfs) ufs).login(masterKeytab, masterKeytab, masterPrincipal,
+          masterPrincipal, NetworkUtils.getFqdnHost(mMasterAddress));
     }
   }
 
