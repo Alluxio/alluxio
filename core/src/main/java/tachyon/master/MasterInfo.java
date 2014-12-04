@@ -156,7 +156,7 @@ public class MasterInfo extends ImageWriter {
       if (hadFailedWorker) {
         LOG.warn("Restarting failed workers.");
         try {
-          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, TachyonConf.DEFAULT_HOME);
+          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
           java.lang.Runtime.getRuntime().exec(
               tachyonHome + "/bin/tachyon-start.sh restart_workers");
         } catch (IOException e) {
@@ -217,7 +217,7 @@ public class MasterInfo extends ImageWriter {
         }
 
         for (String cmd : cmds) {
-          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, TachyonConf.DEFAULT_HOME);
+          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
           String filePath = tachyonHome + "/logs/rerun-" + mRerunCounter.incrementAndGet();
           //TODO use bounded threads (ExecutorService)
           Thread thread = new Thread(new RecomputeCommand(cmd, filePath));
@@ -295,7 +295,7 @@ public class MasterInfo extends ImageWriter {
     mExecutorService = executorService;
     mTachyonConf = tachyonConf;
     mUFSDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER,
-        TachyonConf.DEFAULT_DATA_FOLDER);
+        Constants.DEFAULT_DATA_FOLDER);
 
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1, System.currentTimeMillis());
     mFileIdToInodes.put(mRoot.getId(), mRoot);

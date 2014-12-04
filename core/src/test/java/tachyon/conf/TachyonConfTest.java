@@ -199,6 +199,9 @@ public class TachyonConfTest {
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 0);
     Assert.assertTrue(intValue == 0);
+
+    long longValue = sDefaultTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE, 0L);
+    Assert.assertTrue(longValue == (128 * Constants.MB));
   }
 
   @Test
