@@ -172,4 +172,8 @@
                value="Static member name ''{0}'' must match pattern ''{1}''."/>
     </module>
   </module>
+  <module name="SuppressionFilter">
+    <property name="file" value="${basedir}/src/main/resources/tachyon_checkstyle_suppressions.xml"/>
+  </module>
+    
 </module>

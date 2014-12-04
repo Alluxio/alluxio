@@ -401,9 +401,7 @@
           <!-- TODO: This is needed to excuse Tachyon Configuration members' name from being -->
           <!-- checked because the members are define using all upper case. -->
           <!-- Once the new configuration is implemented we wil remove this exception -->
-          <suppressionsLocation>
-            ${project.basedir}/src/main/resources/tachyon_checkstyle_suppressions.xml
-          </suppressionsLocation>
+          <propertyExpansion>basedir=${basedir}</propertyExpansion>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
