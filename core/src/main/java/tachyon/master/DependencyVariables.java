@@ -17,8 +17,6 @@ package tachyon.master;
 
 import java.util.Hashtable;
 
-import tachyon.conf.MasterConf;
-
 /**
  * The variables used to generate the command of the Dependency.
  */

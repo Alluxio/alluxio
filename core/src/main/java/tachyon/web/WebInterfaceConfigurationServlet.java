@@ -23,8 +23,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterInfo;
 
