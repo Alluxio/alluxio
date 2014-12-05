@@ -56,8 +56,7 @@ public class TachyonMaster {
       System.exit(-1);
     }
 
-    TachyonConf tachyonConf = new TachyonConf();
-    TachyonMaster master = new TachyonMaster(tachyonConf);
+    TachyonMaster master = new TachyonMaster(new TachyonConf());
     master.start();
   }
 

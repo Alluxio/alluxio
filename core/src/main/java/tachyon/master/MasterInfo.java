@@ -1055,7 +1055,7 @@ public class MasterInfo extends ImageWriter {
       TachyonException {
     LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
 
-    int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS, 1000);
+    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
     if (columns <= 0 || columns >= maxColumns) {
       throw new TableColumnException("Column " + columns + " should between 0 to "
           + maxColumns);

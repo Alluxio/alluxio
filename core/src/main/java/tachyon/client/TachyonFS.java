@@ -89,7 +89,7 @@ public class TachyonFS extends AbstractTachyonFS {
         throw new IOException("Invalid Tachyon URI: " + tachyonURI + ". Use " + Constants.HEADER
             + "host:port/ ," + Constants.HEADER_FT + "host:port/");
       }
-      return new TachyonFS(tachyonURI);
+      return new TachyonFS(tachyonURI, new TachyonConf());
     }
   }
 
@@ -105,7 +105,8 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zookeeperMode)
       throws IOException {
-    return new TachyonFS(new InetSocketAddress(masterHost, masterPort), zookeeperMode);
+    return new TachyonFS(new InetSocketAddress(masterHost, masterPort), zookeeperMode,
+        new TachyonConf());
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -139,18 +140,19 @@ public class TachyonFS extends AbstractTachyonFS {
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
 
-  private TachyonConf mTachyonConf;
+  private final TachyonConf mTachyonConf;
 
-  private TachyonFS(TachyonURI tachyonURI) throws IOException {
+  private TachyonFS(TachyonURI tachyonURI, TachyonConf tachyonConf) throws IOException {
     this(new InetSocketAddress(tachyonURI.getHost(), tachyonURI.getPort()), tachyonURI.getScheme()
-        .equals(Constants.SCHEME_FT));
+        .equals(Constants.SCHEME_FT), tachyonConf);
   }
 
-  private TachyonFS(InetSocketAddress masterAddress, boolean zookeeperMode) throws IOException {
+  private TachyonFS(InetSocketAddress masterAddress, boolean zookeeperMode, TachyonConf tachyonConf)
+      throws IOException {
     mMasterAddress = masterAddress;
     mZookeeperMode = zookeeperMode;
     mAvailableSpaceBytes = 0L;
-    mTachyonConf = new TachyonConf();
+    mTachyonConf = tachyonConf;
     mTachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(mZookeeperMode));
 
     mExecutorService =
@@ -357,7 +359,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized int createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws IOException {
     validateUri(path);
-    int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS, 1000);
+    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
     if (columns < 1 || columns > maxColumns) {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
           + maxColumns);
