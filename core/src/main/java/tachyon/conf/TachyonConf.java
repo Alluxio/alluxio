@@ -1,5 +1,6 @@
 package tachyon.conf;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -104,7 +105,7 @@ public class TachyonConf {
    * so we will load it in reverse order.
   */
   protected void loadDefault(boolean includeSystemProperties) {
-    // load default
+    // Load default
     Properties defaultProps = new Properties();
 
     // Override runtime default

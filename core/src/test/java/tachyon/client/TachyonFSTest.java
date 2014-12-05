@@ -46,6 +46,7 @@ public class TachyonFSTest {
   private static final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+  private TachyonConf mTachyonConf;
 
   @After
   public final void after() throws Exception {
@@ -61,6 +62,7 @@ public class TachyonFSTest {
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
+    mTachyonConf = new TachyonConf();
   }
 
   @Test
@@ -164,7 +166,7 @@ public class TachyonFSTest {
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest1() throws IOException {
     String maxColumnsProp = System.getProperty("tachyon.max.columns");
-    int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS,
+    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS,
         Integer.parseInt(maxColumnsProp));
 
     mTfs.createRawTable(new TachyonURI("/table"), maxColumns);

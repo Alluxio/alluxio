@@ -90,15 +90,11 @@ public final class MasterClient implements Closeable {
   private volatile long mUserId = -1;
   private final ExecutorService mExecutorService;
   private Future<?> mHeartbeat;
-  private TachyonConf mTachyonConf;
+  private final TachyonConf mTachyonConf;
 
   public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
                       TachyonConf tachyonConf) {
-    if (tachyonConf != null) {
-      mTachyonConf = tachyonConf;
-    } else {
-      mTachyonConf = new TachyonConf();
-    }
+    mTachyonConf = tachyonConf;
     mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
     if (!mUseZookeeper) {
       mMasterAddress = masterAddress;

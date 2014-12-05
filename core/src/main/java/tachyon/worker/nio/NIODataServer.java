@@ -54,7 +54,7 @@ public class NIODataServer implements Runnable, DataServer {
   private Selector mSelector;
 
   // Instance of TachyonConf
-  private TachyonConf mTachyonConf;
+  private final TachyonConf mTachyonConf;
 
   private Map<SocketChannel, DataServerMessage> mSendingData = Collections
       .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
@@ -76,10 +76,10 @@ public class NIODataServer implements Runnable, DataServer {
    */
   public NIODataServer(InetSocketAddress address, BlocksLocker locker, TachyonConf tachyonConf) {
     LOG.info("Starting DataServer @ " + address);
-    TachyonConf.assertValidPort(address, tachyonConf);
+    mTachyonConf = tachyonConf;
+    TachyonConf.assertValidPort(address, mTachyonConf);
     mAddress = address;
     mBlockLocker = locker;
-    mTachyonConf = tachyonConf;
     try {
       mSelector = initSelector();
       mListenerThread = new Thread(this);
