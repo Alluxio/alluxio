@@ -405,7 +405,7 @@ public class TFsShell implements Closeable {
     TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
-    tachyonClient.pinFile(fileId);
+    
     try {
       tachyonClient.pinFile(fileId);
       System.out.println("File '" + path + "' was successfully pinned.");
