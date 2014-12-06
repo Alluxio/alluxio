@@ -49,7 +49,7 @@ public class DependencyTest {
     mLocalTachyonCluster.start();
     DependencyVariables.VARIABLES.put("master", mMasterValue);
     DependencyVariables.VARIABLES.put("port", mPortValue);
-    mTachyonConf = new TachyonConf();
+    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
   @Test

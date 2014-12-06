@@ -149,7 +149,7 @@ public class JournalTest {
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
-    mTachyonConf = new TachyonConf();
+    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
   /**

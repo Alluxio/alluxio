@@ -62,7 +62,7 @@ public class TachyonFSTest {
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
-    mTachyonConf = new TachyonConf();
+    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
   @Test
@@ -91,7 +91,7 @@ public class TachyonFSTest {
 
   @Test
   public void createFileWithUfsFileTest() throws IOException {
-    String tempFolder = mLocalTachyonCluster.getTempFolderInUnderFs();
+    String tempFolder = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underfs");
     UnderFileSystem underFs = UnderFileSystem.get(tempFolder);
     OutputStream os = underFs.create(tempFolder + "/temp", 100);
     os.close();
@@ -461,7 +461,7 @@ public class TachyonFSTest {
   @Test
   public void toStringTest() throws IOException {
     TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://127.0.0.1:19998"));
-    Assert.assertEquals(tfs.toString(), "tachyon:///127.0.0.1:19998");
+    Assert.assertEquals("tachyon:///127.0.0.1:19998", tfs.toString());
   }
 
   @Test

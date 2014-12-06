@@ -36,6 +36,7 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -51,7 +52,7 @@ public class TFsShell implements Closeable {
    * @param argv [] Array of arguments given by the user's input from the terminal
    */
   public static void main(String[] argv) throws IOException {
-    TFsShell shell = new TFsShell();
+    TFsShell shell = new TFsShell(new TachyonConf());
     int ret;
     try {
       ret = shell.run(argv);
@@ -61,7 +62,13 @@ public class TFsShell implements Closeable {
     System.exit(ret);
   }
 
-  private final Closer mCloser = Closer.create();
+  private final Closer mCloser;
+  private final TachyonConf mTachyonConf;
+
+  public TFsShell(TachyonConf tachyonConf) {
+    mTachyonConf = tachyonConf;
+    mCloser = Closer.create();
+  }
 
   @Override
   public void close() throws IOException {
@@ -669,7 +676,7 @@ public class TFsShell implements Closeable {
    * Creates a new TachyonFS and registers it with {@link #mCloser}
    */
   private TachyonFS createFS(final TachyonURI path) throws IOException {
-    String qualifiedPath = Utils.validatePath(path.toString());
+    String qualifiedPath = Utils.validatePath(path.toString(), mTachyonConf);
     return mCloser.register(TachyonFS.get(new TachyonURI(qualifiedPath)));
   }
 }
