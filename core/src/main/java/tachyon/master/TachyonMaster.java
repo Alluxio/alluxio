@@ -86,21 +86,21 @@ public class TachyonMaster {
   private final TachyonConf mTachyonConf;
 
   public TachyonMaster(TachyonConf tachyonConf) {
-
-    String hostName = tachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
-    int port = tachyonConf.getInt(Constants.MASTER_PORT, 0);
-    InetSocketAddress address = new InetSocketAddress(hostName, port);
-    int webPort = tachyonConf.getInt(Constants.MASTER_WEB_PORT, 0);
-    int selectorThreads = tachyonConf.getInt(Constants.MASTER_SELECTOR_THREADS, 3);
-    int acceptQueueSizePerThreads = tachyonConf.getInt(Constants.MASTER_QUEUE_SIZE_PER_SELECTOR,
-        3000);
-    int workerThreads = tachyonConf.getInt(Constants.MASTER_SERVER_THREADS, 2 * Runtime.getRuntime()
-        .availableProcessors());
-
-    TachyonConf.assertValidPort(address, tachyonConf);
-    TachyonConf.assertValidPort(webPort, tachyonConf);
-
     mTachyonConf = tachyonConf;
+
+    String hostName = mTachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
+    int port = mTachyonConf.getInt(Constants.MASTER_PORT, 0);
+    InetSocketAddress address = new InetSocketAddress(hostName, port);
+    int webPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT, 0);
+    int selectorThreads = mTachyonConf.getInt(Constants.MASTER_SELECTOR_THREADS, 3);
+    int acceptQueueSizePerThreads = mTachyonConf.getInt(Constants.MASTER_QUEUE_SIZE_PER_SELECTOR,
+        3000);
+    int workerThreads = mTachyonConf.getInt(Constants.MASTER_SERVER_THREADS,
+        2 * Runtime.getRuntime().availableProcessors());
+
+    TachyonConf.assertValidPort(address, mTachyonConf);
+    TachyonConf.assertValidPort(webPort, mTachyonConf);
+
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
 
     mIsStarted = false;
@@ -153,6 +153,15 @@ public class TachyonMaster {
    */
   MasterInfo getMasterInfo() {
     return mMasterInfo;
+  }
+
+  /**
+   * Gets the underlying {@link tachyon.conf.TachyonConf} instance for the Worker.
+   *
+   * @return TachyonConf of the Master
+   */
+  public TachyonConf getTachyonConf() {
+    return mTachyonConf;
   }
 
   /**

@@ -159,23 +159,24 @@ public class LocalTachyonClusterMultiMaster {
     WorkerConf.clear();
     UserConf.clear();
 
-    TachyonConf tachyonConf = new TachyonConf();
-    mkdir(tachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
-    mkdir(tachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
+    TachyonConf masterConf = new TachyonConf();
+    mkdir(masterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
+    mkdir(masterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
 
     for (int k = 0; k < mNumOfMasters; k ++) {
-      final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome);
+      final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome, masterConf);
       master.start();
       mMasters.add(master);
     }
 
     CommonUtils.sleepMs(null, 10);
 
+    TachyonConf workerConf = new TachyonConf();
     mWorker =
         TachyonWorker.createWorker(
             CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
             new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
-            mWorkerCapacityBytes);
+            mWorkerCapacityBytes, workerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
@@ -211,9 +212,6 @@ public class LocalTachyonClusterMultiMaster {
     System.clearProperty("tachyon.zookeeper.address");
     System.clearProperty("tachyon.zookeeper.election.path");
     System.clearProperty("tachyon.zookeeper.leader.path");
-    System.clearProperty("tachyon.master.hostname");
-    System.clearProperty("tachyon.master.port");
-    System.clearProperty("tachyon.master.web.port");
     System.clearProperty("tachyon.worker.port");
     System.clearProperty("tachyon.worker.data.port");
     System.clearProperty("tachyon.worker.data.folder");

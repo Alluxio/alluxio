@@ -51,7 +51,6 @@ public class WorkerStorageTest {
   private NetAddress mWorkerAddress = null;
   private String mWorkerDataFolder = null;
   private ExecutorService mExecutorService;
-  private TachyonConf mTachyonConf = null;
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -74,7 +73,6 @@ public class WorkerStorageTest {
     mMasterAddress = mLocalTachyonCluster.getMasterAddress();
     mWorkerAddress = mLocalTachyonCluster.getWorkerAddress();
     mWorkerDataFolder = mLocalTachyonCluster.getWorkerDataFolder();
-    mTachyonConf = new TachyonConf();
   }
 
   private void swapoutOrphanBlocksFileTestUtil(int filesize) throws Exception {
@@ -88,7 +86,7 @@ public class WorkerStorageTest {
     mLocalTachyonCluster.getClient().delete(fid, true);
 
     WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES,
-        mExecutorService, mTachyonConf);
+        mExecutorService, mLocalTachyonCluster.getWorker().getTachyonConf());
     try {
       ws.initialize(mWorkerAddress);
       String orpahnblock = ws.getUfsOrphansFolder() + TachyonURI.SEPARATOR + bid;
@@ -162,7 +160,7 @@ public class WorkerStorageTest {
     unknownFile.createNewFile();
 
     WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES,
-        mExecutorService, mTachyonConf);
+        mExecutorService, mLocalTachyonCluster.getWorker().getTachyonConf());
     try {
       ws.initialize(mWorkerAddress);
     } finally {

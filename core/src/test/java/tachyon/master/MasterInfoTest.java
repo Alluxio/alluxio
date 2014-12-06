@@ -264,7 +264,7 @@ public class MasterInfoTest {
     mLocalTachyonCluster.start();
     mExecutorService = Executors.newFixedThreadPool(2);
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
-    mTachyonConf = new TachyonConf();
+    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
   @Test

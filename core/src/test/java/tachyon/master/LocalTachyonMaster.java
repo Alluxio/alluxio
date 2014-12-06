@@ -61,7 +61,7 @@ public final class LocalTachyonMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
-  private LocalTachyonMaster(final String tachyonHome) throws IOException {
+  private LocalTachyonMaster(final String tachyonHome, TachyonConf tachyonConf) throws IOException {
     mTachyonHome = tachyonHome;
 
     mDataDir = path(mTachyonHome, "data");
@@ -86,27 +86,33 @@ public final class LocalTachyonMaster {
     UnderFileSystemsUtils.mkdirIfNotExists(mJournalFolder);
     CommonUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis());
 
-    System.setProperty("tachyon.master.hostname", mHostname);
-    System.setProperty("tachyon.master.journal.folder", mJournalFolder);
     System.setProperty("tachyon.underfs.address", mUnderFSFolder);
 
     WorkerConf.clear();
     UserConf.clear();
 
-    System.setProperty("tachyon.web.resources", System.getProperty("user.dir") + "/src/main/webapp");
+    System.setProperty("tachyon.web.resources", System.getProperty("user.dir")
+        + "/src/main/webapp");
 
-    TachyonConf tachyonConf = new TachyonConf();
     tachyonConf.set(Constants.MASTER_HOSTNAME, mHostname);
+    tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
+    tachyonConf.set(Constants.UNDERFS_ADDRESS, mUnderFSFolder);
+
     tachyonConf.set(Constants.MASTER_PORT, "0");
     tachyonConf.set(Constants.MASTER_WEB_PORT, "0");
+
+    // Lower the number of threads that the cluster will spin off.
+    // default thread overhead is too much.
     tachyonConf.set(Constants.MASTER_SELECTOR_THREADS, "1");
     tachyonConf.set(Constants.MASTER_QUEUE_SIZE_PER_SELECTOR, "1");
     tachyonConf.set(Constants.MASTER_SERVER_THREADS, "1");
+    tachyonConf.set(Constants.MASTER_WEB_THREAD_COUNT, "9");
 
     mTachyonMaster = new TachyonMaster(tachyonConf);
 
-    System.setProperty("tachyon.master.port", Integer.toString(getMetaPort()));
-    System.setProperty("tachyon.master.web.port", Integer.toString(getMetaPort() + 1));
+    // Reset the ports
+    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getMetaPort()));
+    tachyonConf.set(Constants.MASTER_WEB_PORT, Integer.toString(getMetaPort() + 1));
 
     Runnable runMaster = new Runnable() {
       @Override
@@ -127,14 +133,15 @@ public final class LocalTachyonMaster {
    * 
    * @throws IOException unable to do file operation or listen on port
    */
-  public static LocalTachyonMaster create() throws IOException {
+  public static LocalTachyonMaster create(TachyonConf tachyonConf) throws IOException {
     final String tachyonHome = uniquePath();
     UnderFileSystemsUtils.deleteDir(tachyonHome);
     UnderFileSystemsUtils.mkdirIfNotExists(tachyonHome);
 
-    System.setProperty("tachyon.home", tachyonHome);
+    // Update Tachyon home in the passed TachyonConf instance.
+    tachyonConf.set(Constants.TACHYON_HOME, tachyonHome);
 
-    return new LocalTachyonMaster(tachyonHome);
+    return new LocalTachyonMaster(tachyonHome, tachyonConf);
   }
 
   /**
@@ -152,8 +159,9 @@ public final class LocalTachyonMaster {
    * 
    * @throws IOException unable to do file operation or listen on port
    */
-  public static LocalTachyonMaster create(final String tachyonHome) throws IOException {
-    return new LocalTachyonMaster(Preconditions.checkNotNull(tachyonHome));
+  public static LocalTachyonMaster create(final String tachyonHome, TachyonConf tachyonConf)
+      throws IOException {
+    return new LocalTachyonMaster(Preconditions.checkNotNull(tachyonHome), tachyonConf);
   }
 
   public void start() {
@@ -171,9 +179,6 @@ public final class LocalTachyonMaster {
 
     mTachyonMaster.stop();
 
-    System.clearProperty("tachyon.home");
-    System.clearProperty("tachyon.master.hostname");
-    System.clearProperty("tachyon.master.port");
     System.clearProperty("tachyon.web.resources");
   }
 
@@ -185,7 +190,6 @@ public final class LocalTachyonMaster {
     if (null != mUnderFSCluster) {
       mUnderFSCluster.cleanup();
     }
-    System.clearProperty("tachyon.master.journal.folder");
     System.clearProperty("tachyon.underfs.address");
   }
 
@@ -223,5 +227,9 @@ public final class LocalTachyonMaster {
 
   public boolean isStarted() {
     return mTachyonMaster.isStarted();
+  }
+
+  public TachyonConf getTachyonConf() {
+    return mTachyonMaster.getTachyonConf();
   }
 }

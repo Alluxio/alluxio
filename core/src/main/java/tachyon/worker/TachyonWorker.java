@@ -65,13 +65,15 @@ public class TachyonWorker implements Runnable {
    * @param workerThreads The number of threads of the worker's thrift server
    * @param localFolder This TachyonWorker's local folder's path
    * @param spaceLimitBytes The maximum memory space this TachyonWorker can use, in bytes
+   * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to used by Worker.
    * @return The new TachyonWorker
    */
   public static synchronized TachyonWorker createWorker(InetSocketAddress masterAddress,
       InetSocketAddress workerAddress, int dataPort, int selectorThreads,
-      int acceptQueueSizePerThreads, int workerThreads, String localFolder, long spaceLimitBytes) {
+      int acceptQueueSizePerThreads, int workerThreads, String localFolder, long spaceLimitBytes,
+      TachyonConf tachyonConf) {
     return new TachyonWorker(masterAddress, workerAddress, dataPort, selectorThreads,
-        acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes, new TachyonConf());
+        acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes, tachyonConf);
   }
 
   /**
@@ -85,17 +87,18 @@ public class TachyonWorker implements Runnable {
    * @param workerThreads The number of threads of the worker's thrift server
    * @param localFolder This TachyonWorker's local folder's path
    * @param spaceLimitBytes The maximum memory space this TachyonWorker can use, in bytes
+   * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to used by Worker.
    * @return The new TachyonWorker
    */
   public static synchronized TachyonWorker createWorker(String masterAddress, String workerAddress,
       int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
-      String localFolder, long spaceLimitBytes) {
+      String localFolder, long spaceLimitBytes, TachyonConf tachyonConf) {
     String[] address = masterAddress.split(":");
     InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
     address = workerAddress.split(":");
     InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
     return new TachyonWorker(master, worker, dataPort, selectorThreads, acceptQueueSizePerThreads,
-        workerThreads, localFolder, spaceLimitBytes, new TachyonConf());
+        workerThreads, localFolder, spaceLimitBytes, tachyonConf);
   }
 
   private static String getMasterLocation(String[] args) {
@@ -132,7 +135,7 @@ public class TachyonWorker implements Runnable {
     TachyonWorker worker =
         TachyonWorker.createWorker(getMasterLocation(args), resolvedWorkerHost + ":" + wConf.PORT,
             wConf.DATA_PORT, wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
-            wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
+            wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE, new TachyonConf());
     try {
       worker.start();
     } catch (Exception e) {
@@ -246,6 +249,13 @@ public class TachyonWorker implements Runnable {
    */
   public int getMetaPort() {
     return mPort;
+  }
+
+  /**
+   * Gets the underlying {@link tachyon.conf.TachyonConf} instance for the Worker.
+   */
+  public TachyonConf getTachyonConf() {
+    return mTachyonConf;
   }
 
   /**

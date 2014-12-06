@@ -51,9 +51,9 @@ public class MasterClientTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mTachyonConf = new TachyonConf();
     mLocalTachyonCluster = new LocalTachyonCluster(1000);
     mLocalTachyonCluster.start();
+    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
   }
 

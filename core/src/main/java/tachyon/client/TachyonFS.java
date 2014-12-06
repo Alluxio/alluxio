@@ -89,7 +89,9 @@ public class TachyonFS extends AbstractTachyonFS {
         throw new IOException("Invalid Tachyon URI: " + tachyonURI + ". Use " + Constants.HEADER
             + "host:port/ ," + Constants.HEADER_FT + "host:port/");
       }
-      return new TachyonFS(tachyonURI, new TachyonConf());
+
+      boolean useZookeeper = scheme.equals(Constants.SCHEME_FT);
+      return get(tachyonURI.getHost(), tachyonURI.getPort(), useZookeeper);
     }
   }
 
@@ -105,8 +107,11 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zookeeperMode)
       throws IOException {
-    return new TachyonFS(new InetSocketAddress(masterHost, masterPort), zookeeperMode,
-        new TachyonConf());
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(zookeeperMode));
+    tachyonConf.set(Constants.MASTER_HOSTNAME, masterHost);
+    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(masterPort));
+    return new TachyonFS(new InetSocketAddress(masterHost, masterPort), tachyonConf);
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -143,17 +148,15 @@ public class TachyonFS extends AbstractTachyonFS {
   private final TachyonConf mTachyonConf;
 
   private TachyonFS(TachyonURI tachyonURI, TachyonConf tachyonConf) throws IOException {
-    this(new InetSocketAddress(tachyonURI.getHost(), tachyonURI.getPort()), tachyonURI.getScheme()
-        .equals(Constants.SCHEME_FT), tachyonConf);
+    this(new InetSocketAddress(tachyonURI.getHost(), tachyonURI.getPort()), tachyonConf);
   }
 
-  private TachyonFS(InetSocketAddress masterAddress, boolean zookeeperMode, TachyonConf tachyonConf)
+  private TachyonFS(InetSocketAddress masterAddress, TachyonConf tachyonConf)
       throws IOException {
-    mMasterAddress = masterAddress;
-    mZookeeperMode = zookeeperMode;
-    mAvailableSpaceBytes = 0L;
     mTachyonConf = tachyonConf;
-    mTachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(mZookeeperMode));
+    mMasterAddress = masterAddress;
+    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
+    mAvailableSpaceBytes = 0L;
 
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.daemon("client-heartbeat-%d"));
