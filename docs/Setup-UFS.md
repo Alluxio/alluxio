@@ -20,7 +20,7 @@ and recompiling it. You can also set the hadoop version when compiling with mave
 
     $ mvn -Dhadoop.version=2.2.0 clean package
 
-Edit `tachyon-env.sh` file. Setup `TACHYON_UNDERFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_IP`. You may
+Edit `tachyon-env.sh` file. Setup `TACHYON_UNDERFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_PORT`. You may
 also need to setup `JAVA_HOME` in the same file.
 
 ## Amazon S3
