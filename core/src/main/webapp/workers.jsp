@@ -1,4 +1,3 @@
-<%@ page import="java.util.*" %>
 <%@ page import="tachyon.web.*" %>
 
 <html>
