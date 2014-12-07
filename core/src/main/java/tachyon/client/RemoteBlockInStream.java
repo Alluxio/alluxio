@@ -49,7 +49,12 @@ public class RemoteBlockInStream extends BlockInStream {
    */
   private InputStream mCheckpointInputStream = null;
 
-  /** The position in the checkpointed file that the open input stream is on. */
+  /**
+   * The position in the checkpointed file that the open input stream is on, relative to the block.
+   * That is, if the checkpoint input stream is set to read the 0th byte of the current block,
+   * mCheckpointPos will be 0, even if we are n blocks into the input stream, so the actual file
+   * position may be something else.
+   */
   private long mCheckpointPos = -1;
 
   /**
@@ -344,6 +349,11 @@ public class RemoteBlockInStream extends BlockInStream {
       }
       UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath, mUFSConf);
       mCheckpointInputStream = underfsClient.open(checkpointPath);
+      // We skip to the offset of the block in the file, so we're at the beginning of the block.
+      if (mCheckpointInputStream.skip(mBlockInfo.offset) != mBlockInfo.offset) {
+        throw new IOException("Failed to skip to the block offset " + mBlockInfo.offset
+            + " in the checkpoint file");
+      }
       mCheckpointPos = 0;
     }
     // We need to skip to mBlockPos
