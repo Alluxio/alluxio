@@ -93,7 +93,7 @@ public final class MasterClient implements Closeable {
   private final TachyonConf mTachyonConf;
 
   public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
-                      TachyonConf tachyonConf) {
+      TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
     mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
     if (!mUseZookeeper) {

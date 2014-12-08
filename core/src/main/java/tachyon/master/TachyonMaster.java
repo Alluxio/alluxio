@@ -135,7 +135,8 @@ public class TachyonMaster {
         String zkLeaderPath = mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
         mLeaderSelectorClient =
             new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
-        mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
+        mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo,
+            mTachyonConf);
         // TODO move this to executor service when the shared thread patch goes in
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();
