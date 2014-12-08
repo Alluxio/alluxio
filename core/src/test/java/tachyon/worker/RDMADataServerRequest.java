@@ -20,7 +20,7 @@ public class RDMADataServerRequest implements DataServerRequest{
       final long length) throws IOException {
     try {
       URI uri =
-          new URI(String.format("rdma://%s:%d/blockId=%d&offset=%d&length=%d", block.getLocations()
+          new URI(String.format("rdma://%s:%d/?blockId=%d&offset=%d&length=%d", block.getLocations()
               .get(0).mHost, block.getLocations().get(0).mSecondaryPort, block.blockId, offset,
               length));
       JxioConnection jc = new JxioConnection(uri);
