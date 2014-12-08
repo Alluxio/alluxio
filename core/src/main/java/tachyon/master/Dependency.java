@@ -49,7 +49,7 @@ public class Dependency extends ImageWriter {
    * @return the loaded dependency
    * @throws IOException
    */
-  static Dependency loadImage(ImageElement ele) throws IOException {
+  static Dependency loadImage(ImageElement ele, TachyonConf tachyonConf) throws IOException {
     Dependency dep =
         new Dependency(ele.getInt("depID"), ele.get("parentFiles",
             new TypeReference<List<Integer>>() {}), ele.get("childrenFiles",
@@ -57,7 +57,7 @@ public class Dependency extends ImageWriter {
             ele.getByteBufferList("data"), ele.getString("comment"), ele.getString("framework"),
             ele.getString("frameworkVersion"), ele.get("dependencyType", DependencyType.class),
             ele.get("parentDeps", new TypeReference<List<Integer>>() {}),
-            ele.getLong("creationTimeMs"), new TachyonConf());
+            ele.getLong("creationTimeMs"), tachyonConf);
     dep.resetUncheckpointedChildrenFiles(ele.get("unCheckpointedChildrenFiles",
         new TypeReference<List<Integer>>() {}));
 
@@ -100,6 +100,7 @@ public class Dependency extends ImageWriter {
    * @param type The type of the dependency, DependencyType.Wide or DependencyType.Narrow
    * @param parentDependencies The id of the parents' dependencies
    * @param creationTimeMs The create time of the dependency, in milliseconds
+   * @param tachyonConf The TachyonConf instance.
    */
   public Dependency(int id, List<Integer> parents, List<Integer> children, String commandPrefix,
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,

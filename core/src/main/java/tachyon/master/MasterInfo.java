@@ -289,7 +289,6 @@ public class MasterInfo extends ImageWriter {
   private final TachyonConf mTachyonConf;
   private final String mUFSDataFolder;
 
-
   public MasterInfo(InetSocketAddress address, Journal journal, ExecutorService executorService,
       TachyonConf tachyonConf) throws IOException {
     mExecutorService = executorService;
@@ -1884,7 +1883,7 @@ public class MasterInfo extends ImageWriter {
           break;
         }
         case Dependency: {
-          Dependency dep = Dependency.loadImage(ele);
+          Dependency dep = Dependency.loadImage(ele, mTachyonConf);
 
           mFileIdToDependency.put(dep.mId, dep);
           if (!dep.hasCheckpointed()) {
