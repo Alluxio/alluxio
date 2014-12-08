@@ -9,7 +9,7 @@
     <fileSet>
       <directory>${basedir}/../bin</directory>
       <outputDirectory>/bin</outputDirectory>
-      <fileMode>0755</fileMode>
+      <directoryMode>0755</directoryMode>
     </fileSet>
     <fileSet>
       <directory>${basedir}/../conf</directory>
