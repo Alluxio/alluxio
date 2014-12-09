@@ -81,6 +81,21 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>Print the information of the blocks of a specified file.</td>
   </tr>
   <tr>
+    <td>location</td>
+    <td>location "path"</td>
+    <td>Displays a list of hosts that have the file data.</td>
+  </tr>
+  <tr>
+    <td>report</td>
+    <td>report "path"</td>
+    <td>Report to master that a file is lost.</td>
+  </tr>
+  <tr>
+    <td>request</td>
+    <td>request "path" "dependency ID"</td>
+    <td>Request the file for a given dependency ID.</td>
+  </tr>
+  <tr>
     <td>pin</td>
     <td>pin "path"</td>
     <td>Pins the given file, such that Tachyon will never evict it from memory. If called on a folder, it recursively pins all contained files and any new files created within this folder.</td>
@@ -89,5 +104,10 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>unpin</td>
     <td>unpin "path"</td>
     <td>Unpins the given file to allow Tachyon to start evicting it again. If called on a folder, it recursively unpins all contained files and any new files created within this folder.</td>
+  </tr>
+  <tr>
+    <td>free</td>
+    <td>free "path"</td>
+    <td>Frees a file or all files under a folder from memory. File/Folder will still be available in underfs</td>
   </tr>
 </table>
