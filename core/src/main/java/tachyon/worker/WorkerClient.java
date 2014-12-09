@@ -68,7 +68,6 @@ public class WorkerClient implements Closeable {
   private NetAddress mWorkerNetAddress;
   private boolean mConnected = false;
   private boolean mIsLocal = false;
-  private boolean mDirFSInitialized = false;
   private String mDataFolder = null;
   private final ExecutorService mExecutorService;
   private Future<?> mHeartbeat;
@@ -88,6 +87,13 @@ public class WorkerClient implements Closeable {
       throws IOException {
     mMasterClient = masterClient;
     this.mExecutorService = executorService;
+    List<WorkerDirInfo> dirInfos = null;
+    try {
+      dirInfos = getWorkerDirInfos();
+    } catch (IOException e) {
+      LOG.error("Failed to get information of directories on worker!");
+    }
+    initializeDirFS(dirInfos);
   }
 
   /**
@@ -299,18 +305,10 @@ public class WorkerClient implements Closeable {
   }
 
   public synchronized String getWorkerDirPath(long storageDirId) throws IOException {
-    if (!mDirFSInitialized) {
-      initializeDirFS(getWorkerDirInfos());
-      mDirFSInitialized = true;
-    }
     return mIdToDirPath.get(storageDirId);
   }
 
   public synchronized UnderFileSystem getWorkerDirFS(long storageDirId) throws IOException {
-    if (!mDirFSInitialized) {
-      initializeDirFS(getWorkerDirInfos());
-      mDirFSInitialized = true;
-    }
     return mIdToDirFS.get(storageDirId);
   }
 
