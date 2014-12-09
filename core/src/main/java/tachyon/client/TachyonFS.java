@@ -38,7 +38,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.UserConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.ClientBlockInfo;
@@ -89,7 +89,9 @@ public class TachyonFS extends AbstractTachyonFS {
         throw new IOException("Invalid Tachyon URI: " + tachyonURI + ". Use " + Constants.HEADER
             + "host:port/ ," + Constants.HEADER_FT + "host:port/");
       }
-      return new TachyonFS(tachyonURI);
+
+      boolean useZookeeper = scheme.equals(Constants.SCHEME_FT);
+      return get(tachyonURI.getHost(), tachyonURI.getPort(), useZookeeper);
     }
   }
 
@@ -105,7 +107,11 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zookeeperMode)
       throws IOException {
-    return new TachyonFS(new InetSocketAddress(masterHost, masterPort), zookeeperMode);
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(zookeeperMode));
+    tachyonConf.set(Constants.MASTER_HOSTNAME, masterHost);
+    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(masterPort));
+    return new TachyonFS(new InetSocketAddress(masterHost, masterPort), tachyonConf);
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -139,21 +145,24 @@ public class TachyonFS extends AbstractTachyonFS {
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
 
-  private TachyonFS(TachyonURI tachyonURI) throws IOException {
-    this(new InetSocketAddress(tachyonURI.getHost(), tachyonURI.getPort()), tachyonURI.getScheme()
-        .equals(Constants.SCHEME_FT));
+  private final TachyonConf mTachyonConf;
+
+  private TachyonFS(TachyonURI tachyonURI, TachyonConf tachyonConf) throws IOException {
+    this(new InetSocketAddress(tachyonURI.getHost(), tachyonURI.getPort()), tachyonConf);
   }
 
-  private TachyonFS(InetSocketAddress masterAddress, boolean zookeeperMode) throws IOException {
+  private TachyonFS(InetSocketAddress masterAddress, TachyonConf tachyonConf)
+      throws IOException {
+    mTachyonConf = tachyonConf;
     mMasterAddress = masterAddress;
-    mZookeeperMode = zookeeperMode;
+    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
     mAvailableSpaceBytes = 0L;
 
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.daemon("client-heartbeat-%d"));
 
     mMasterClient =
-        mCloser.register(new MasterClient(mMasterAddress, mZookeeperMode, mExecutorService));
+        mCloser.register(new MasterClient(mMasterAddress, mExecutorService, mTachyonConf));
     mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService));
   }
 
@@ -353,9 +362,10 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized int createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws IOException {
     validateUri(path);
-    if (columns < 1 || columns > CommonConf.get().MAX_COLUMNS) {
+    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
+    if (columns < 1 || columns > maxColumns) {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
-          + CommonConf.get().MAX_COLUMNS);
+          + maxColumns);
     }
 
     return mMasterClient.user_createRawTable(path.getPath(), columns, metadata);
@@ -682,7 +692,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   @Override
   public synchronized TachyonURI getUri() {
-    String scheme = CommonConf.get().USE_ZOOKEEPER ? Constants.SCHEME_FT : Constants.SCHEME;
+    String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
     String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
     return new TachyonURI(scheme, authority, TachyonURI.SEPARATOR);
   }

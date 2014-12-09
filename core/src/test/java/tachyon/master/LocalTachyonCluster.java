@@ -21,8 +21,7 @@ import java.net.InetSocketAddress;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.NetAddress;
@@ -76,6 +75,10 @@ public final class LocalTachyonCluster {
     return mMaster.getImagePath();
   }
 
+  public TachyonConf getMasterTachyonConf() {
+    return mMaster.getTachyonConf();
+  }
+
   public InetSocketAddress getMasterAddress() {
     return new InetSocketAddress(mLocalhostName, getMasterPort());
   }
@@ -98,10 +101,6 @@ public final class LocalTachyonCluster {
 
   public String getTachyonHome() {
     return mTachyonHome;
-  }
-
-  public String getTempFolderInUnderFs() {
-    return CommonConf.get().UNDERFS_ADDRESS;
   }
 
   public TachyonWorker getWorker() {
@@ -155,43 +154,35 @@ public final class LocalTachyonCluster {
 
     System.setProperty("tachyon.test.mode", "true");
     System.setProperty("tachyon.home", mTachyonHome);
-    System.setProperty("tachyon.master.port", 0 + "");
-    System.setProperty("tachyon.master.web.port", 0 + "");
     System.setProperty("tachyon.worker.port", 0 + "");
     System.setProperty("tachyon.worker.data.port", 0 + "");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
     System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
-    // Lower the number of threads that the cluster will spin off.
-    // default thread overhead is too much.
-    System.setProperty("tachyon.master.selector.threads", Integer.toString(1));
-    System.setProperty("tachyon.master.server.threads", Integer.toString(2));
     System.setProperty("tachyon.worker.selector.threads", Integer.toString(1));
     System.setProperty("tachyon.worker.server.threads", Integer.toString(2));
     System.setProperty("tachyon.worker.network.netty.worker.threads", Integer.toString(2));
-    System.setProperty("tachyon.master.web.threads", Integer.toString(9));
 
-    CommonConf.clear();
-    MasterConf.clear();
     WorkerConf.clear();
     UserConf.clear();
 
-    mMaster = LocalTachyonMaster.create(mTachyonHome);
+    TachyonConf masterConf = new TachyonConf();
+    mMaster = LocalTachyonMaster.create(mTachyonHome, masterConf);
     mMaster.start();
 
-    mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
-    mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
+    mkdir(masterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
+    mkdir(masterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
 
     CommonUtils.sleepMs(null, 10);
 
-    System.setProperty("tachyon.master.port", getMasterPort() + "");
-    System.setProperty("tachyon.master.web.port", (getMasterPort() + 1) + "");
-
+    TachyonConf workerConf = new TachyonConf();
+    workerConf.set(Constants.MASTER_PORT, getMasterPort() + "");
+    workerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
     mWorker =
         TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
             new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
-            mWorkerCapacityBytes);
+            mWorkerCapacityBytes, workerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
@@ -229,21 +220,15 @@ public final class LocalTachyonCluster {
     mWorker.stop();
 
     System.clearProperty("tachyon.home");
-    System.clearProperty("tachyon.master.hostname");
-    System.clearProperty("tachyon.master.port");
-    System.clearProperty("tachyon.master.web.port");
     System.clearProperty("tachyon.worker.port");
     System.clearProperty("tachyon.worker.data.port");
     System.clearProperty("tachyon.worker.data.folder");
     System.clearProperty("tachyon.worker.memory.size");
     System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
-    System.clearProperty("tachyon.master.selector.threads");
-    System.clearProperty("tachyon.master.server.threads");
     System.clearProperty("tachyon.worker.selector.threads");
     System.clearProperty("tachyon.worker.server.threads");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
-    System.clearProperty("tachyon.master.web.threads");
   }
 
   /**

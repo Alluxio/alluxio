@@ -25,11 +25,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientFileInfo;
@@ -45,6 +46,7 @@ public class TachyonFSTest {
   private static final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+  private TachyonConf mTachyonConf;
 
   @After
   public final void after() throws Exception {
@@ -60,6 +62,7 @@ public class TachyonFSTest {
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
+    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
   @Test
@@ -88,7 +91,7 @@ public class TachyonFSTest {
 
   @Test
   public void createFileWithUfsFileTest() throws IOException {
-    String tempFolder = mLocalTachyonCluster.getTempFolderInUnderFs();
+    String tempFolder = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underfs");
     UnderFileSystem underFs = UnderFileSystem.get(tempFolder);
     OutputStream os = underFs.create(tempFolder + "/temp", 100);
     os.close();
@@ -163,9 +166,10 @@ public class TachyonFSTest {
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest1() throws IOException {
     String maxColumnsProp = System.getProperty("tachyon.max.columns");
+    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS,
+        Integer.parseInt(maxColumnsProp));
 
-    Assert.assertEquals(Integer.parseInt(maxColumnsProp), CommonConf.get().MAX_COLUMNS);
-    mTfs.createRawTable(new TachyonURI("/table"), CommonConf.get().MAX_COLUMNS);
+    mTfs.createRawTable(new TachyonURI("/table"), maxColumns);
   }
 
   @Test(expected = IOException.class)
@@ -457,7 +461,7 @@ public class TachyonFSTest {
   @Test
   public void toStringTest() throws IOException {
     TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://127.0.0.1:19998"));
-    Assert.assertEquals(tfs.toString(), "tachyon:///127.0.0.1:19998");
+    Assert.assertEquals("tachyon:///127.0.0.1:19998", tfs.toString());
   }
 
   @Test

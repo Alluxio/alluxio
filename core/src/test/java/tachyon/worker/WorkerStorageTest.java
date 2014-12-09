@@ -34,6 +34,7 @@ import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.NetAddress;
 
@@ -84,7 +85,8 @@ public class WorkerStorageTest {
     // so we need to get a fresh client to call delete
     mLocalTachyonCluster.getClient().delete(fid, true);
 
-    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES, mExecutorService);
+    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES,
+        mExecutorService, mLocalTachyonCluster.getWorker().getTachyonConf());
     try {
       ws.initialize(mWorkerAddress);
       String orpahnblock = ws.getUfsOrphansFolder() + TachyonURI.SEPARATOR + bid;
@@ -156,7 +158,9 @@ public class WorkerStorageTest {
     // try a non-numerical file name
     File unknownFile = new File(mWorkerDataFolder + TachyonURI.SEPARATOR + "xyz");
     unknownFile.createNewFile();
-    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES, mExecutorService);
+
+    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES,
+        mExecutorService, mLocalTachyonCluster.getWorker().getTachyonConf());
     try {
       ws.initialize(mWorkerAddress);
     } finally {

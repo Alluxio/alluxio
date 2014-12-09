@@ -17,8 +17,7 @@ package tachyon;
 
 import java.io.IOException;
 
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
 
@@ -49,21 +48,28 @@ public class Format {
       System.exit(-1);
     }
 
+    TachyonConf tachyonConf = new TachyonConf();
+
     if (args[0].toUpperCase().equals("MASTER")) {
-      MasterConf masterConf = MasterConf.get();
 
-      if (!formatFolder("JOURNAL_FOLDER", masterConf.JOURNAL_FOLDER)) {
+      String masterJournal = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+          Constants.DEFAULT_JOURNAL_FOLDER);
+      if (!formatFolder("JOURNAL_FOLDER", masterJournal)) {
         System.exit(-1);
       }
 
-      CommonConf commonConf = CommonConf.get();
-      if (!formatFolder("UNDERFS_DATA_FOLDER", commonConf.UNDERFS_DATA_FOLDER)
-          || !formatFolder("UNDERFS_WORKERS_FOLDER", commonConf.UNDERFS_WORKERS_FOLDER)) {
+      String tachyonHome = tachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+      String ufsAddress = tachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underfs");
+      String ufsDataFolder = tachyonConf.get(Constants.UNDERFS_DATA_FOLDER,
+          ufsAddress + "/tachyon/data");
+      String ufsWorkerFolder = tachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER,
+          ufsAddress + "/tachyon/workers");
+      if (!formatFolder("UNDERFS_DATA_FOLDER", ufsDataFolder)
+          || !formatFolder("UNDERFS_WORKERS_FOLDER", ufsWorkerFolder)) {
         System.exit(-1);
       }
 
-      CommonUtils.touch(masterConf.JOURNAL_FOLDER + masterConf.FORMAT_FILE_PREFIX
-          + System.currentTimeMillis());
+      CommonUtils.touch(masterJournal + Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis());
     } else if (args[0].toUpperCase().equals("WORKER")) {
       WorkerConf workerConf = WorkerConf.get();
       String localFolder = workerConf.DATA_FOLDER;
