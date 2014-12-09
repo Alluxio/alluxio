@@ -33,8 +33,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.MasterInfo;
 
 /**
@@ -46,6 +45,7 @@ public class UIWebServer {
   private Server mServer;
   private String mServerName;
   private InetSocketAddress mAddress;
+  private final TachyonConf mTachyonConf;
 
   /**
    * Constructor that pairs urls with servlets and sets the webapp folder.
@@ -58,15 +58,16 @@ public class UIWebServer {
     mAddress = address;
     mServerName = serverName;
     mServer = new Server(mAddress);
+    mTachyonConf = new TachyonConf();
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    threadPool.setMaxThreads(MasterConf.get().WEB_THREAD_COUNT);
+    threadPool.setMaxThreads(mTachyonConf.getInt(Constants.MASTER_WEB_THREAD_COUNT, 9));
     mServer.setThreadPool(threadPool);
 
     WebAppContext webappcontext = new WebAppContext();
 
     webappcontext.setContextPath(TachyonURI.SEPARATOR);
-    File warPath = new File(CommonConf.get().WEB_RESOURCES);
+    File warPath = new File(mTachyonConf.get(Constants.WEB_RESOURCES, "/core/src/main/webapp"));
     webappcontext.setWar(warPath.getAbsolutePath());
     webappcontext
         .addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)), "/home");

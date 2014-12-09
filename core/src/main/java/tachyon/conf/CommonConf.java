@@ -125,14 +125,4 @@ public class CommonConf extends Utils {
 
     IN_TEST_MODE = getBooleanProperty("tachyon.test.mode", false);
   }
-
-  public static void assertValidPort(final int port) {
-    if (!get().IN_TEST_MODE) {
-      Preconditions.checkArgument(port > 0, "Port is only allowed to be zero in test mode.");
-    }
-  }
-
-  public static void assertValidPort(final InetSocketAddress address) {
-    assertValidPort(address.getPort());
-  }
 }

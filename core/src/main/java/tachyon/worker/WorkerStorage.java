@@ -47,7 +47,7 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.Users;
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.master.BlockInfo;
 import tachyon.master.MasterClient;
@@ -185,7 +185,8 @@ public class WorkerStorage {
           // TODO checkpoint process. In future, move from midPath to dstPath should be done by
           // master
           String midPath = CommonUtils.concat(mUfsWorkerDataFolder, fileId);
-          String dstPath = CommonUtils.concat(CommonConf.get().UNDERFS_DATA_FOLDER, fileId);
+          String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data");
+          String dstPath = CommonUtils.concat(ufsDataFolder, fileId);
           LOG.info("Thread " + mId + " is checkpointing file " + fileId + " from "
               + mLocalDataFolder.toString() + " to " + midPath + " to " + dstPath);
 
@@ -249,7 +250,6 @@ public class WorkerStorage {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final CommonConf mCommonConf;
   private volatile MasterClient mMasterClient;
   private final InetSocketAddress mMasterAddress;
   private NetAddress mWorkerAddress;
@@ -291,6 +291,8 @@ public class WorkerStorage {
 
   private final ExecutorService mExecutorService;
 
+  private final TachyonConf mTachyonConf;
+
   /**
    * Main logic behind the worker process.
    * 
@@ -301,14 +303,14 @@ public class WorkerStorage {
    * @param dataFolder This TachyonWorker's local folder's path
    * @param memoryCapacityBytes The maximum memory space this TachyonWorker can use, in bytes
    * @param executorService
+   * @param tachyonConf The instance of TachyonConf to be used. If null the instantiate new one.
    */
   public WorkerStorage(InetSocketAddress masterAddress, String dataFolder,
-      long memoryCapacityBytes, ExecutorService executorService) {
+      long memoryCapacityBytes, ExecutorService executorService, TachyonConf tachyonConf) {
     mExecutorService = executorService;
-    mCommonConf = CommonConf.get();
-
+    mTachyonConf = tachyonConf;
     mMasterAddress = masterAddress;
-    mMasterClient = new MasterClient(mMasterAddress, mExecutorService);
+    mMasterClient = new MasterClient(mMasterAddress, mExecutorService, mTachyonConf);
     mLocalDataFolder = new File(dataFolder);
 
     mSpaceCounter = new SpaceCounter(memoryCapacityBytes);
@@ -320,9 +322,13 @@ public class WorkerStorage {
 
     register();
 
-    mUfsWorkerFolder = CommonUtils.concat(mCommonConf.UNDERFS_WORKERS_FOLDER, mWorkerId);
+    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underfs");
+    String ufsWorkerFolder = mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER,
+        ufsAddress + "/tachyon/workers");
+    mUfsWorkerFolder = CommonUtils.concat(ufsWorkerFolder, mWorkerId);
     mUfsWorkerDataFolder = mUfsWorkerFolder + "/data";
-    mUfs = UnderFileSystem.get(mCommonConf.UNDERFS_ADDRESS);
+    mUfs = UnderFileSystem.get(ufsAddress);
     mUsers = new Users(mLocalUserFolder.toString(), mUfsWorkerFolder);
 
     for (int k = 0; k < WorkerConf.get().WORKER_CHECKPOINT_THREADS; k ++) {
@@ -384,7 +390,8 @@ public class WorkerStorage {
       SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, IOException {
     // TODO This part need to be changed.
     String srcPath = CommonUtils.concat(getUserUfsTempFolder(userId), fileId);
-    String dstPath = CommonUtils.concat(mCommonConf.UNDERFS_DATA_FOLDER, fileId);
+    String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data");
+    String dstPath = CommonUtils.concat(ufsDataFolder, fileId);
     try {
       if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
@@ -792,7 +799,7 @@ public class WorkerStorage {
    * Set a new MasterClient and connect to it.
    */
   public void resetMasterClient() {
-    MasterClient tMasterClient = new MasterClient(mMasterAddress, mExecutorService);
+    MasterClient tMasterClient = new MasterClient(mMasterAddress, mExecutorService, mTachyonConf);
     mMasterClient = tMasterClient;
   }
 

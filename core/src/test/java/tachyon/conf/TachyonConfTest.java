@@ -37,7 +37,7 @@ public class TachyonConfTest {
     sTestProperties.put("recursive", "${multiplesubs}");
 
     // initialize
-    sDefaultTachyonConf = new TachyonConf();
+    sDefaultTachyonConf = new TachyonConf(false);
   }
 
   @Before
@@ -60,7 +60,7 @@ public class TachyonConfTest {
 
     String value = sDefaultTachyonConf.get(Constants.WEB_RESOURCES, null);
     Assert.assertTrue(value != null);
-    Assert.assertTrue("/core/src/main/webapp".equals(value));
+    Assert.assertTrue((tachyonHome + "/core/src/main/webapp").equals(value));
 
     value = sDefaultTachyonConf.get(Constants.UNDERFS_HDFS_IMPL, null);
     Assert.assertTrue(value != null);
@@ -93,6 +93,9 @@ public class TachyonConfTest {
 
     int intValue = sDefaultTachyonConf.getInt(Constants.MAX_COLUMNS, 0);
     Assert.assertTrue(intValue == 1000);
+
+    long longBytesValue = sDefaultTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE, 0L);
+    Assert.assertTrue(longBytesValue == Constants.MB * 5);
   }
 
   @Test
@@ -103,7 +106,7 @@ public class TachyonConfTest {
 
     String value = sDefaultTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, null);
     Assert.assertTrue(value != null);
-    Assert.assertTrue((tachyonHome + "/journal").equals(value));
+    Assert.assertTrue((tachyonHome + "/journal/").equals(value));
 
     value = sDefaultTachyonConf.get(Constants.MASTER_HOSTNAME, null);
     Assert.assertTrue(value != null);
@@ -116,6 +119,9 @@ public class TachyonConfTest {
     value = sDefaultTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX, null);
     Assert.assertTrue(value != null);
     Assert.assertTrue(Constants.FORMAT_FILE_PREFIX.equals(value));
+
+    value = sDefaultTachyonConf.get(Constants.MASTER_ADDRESS, null);
+    Assert.assertTrue(value != null);
 
     int intValue = sDefaultTachyonConf.getInt(Constants.MASTER_PORT, 0);
     Assert.assertTrue(intValue == 19998);
@@ -177,7 +183,7 @@ public class TachyonConfTest {
     Assert.assertTrue(intValue == 3000);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_SERVER_THREADS, -1);
-    Assert.assertTrue(intValue == 0);
+    Assert.assertTrue(intValue == Runtime.getRuntime().availableProcessors());
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS, 0);
     Assert.assertTrue(intValue == 10 * Constants.SECOND_MS);
@@ -188,11 +194,14 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC, 0);
     Assert.assertTrue(intValue == 1000);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS, 1);
     Assert.assertTrue(intValue == 1);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 0);
     Assert.assertTrue(intValue == 0);
+
+    long longValue = sDefaultTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE, 0L);
+    Assert.assertTrue(longValue == (128 * Constants.MB));
   }
 
   @Test

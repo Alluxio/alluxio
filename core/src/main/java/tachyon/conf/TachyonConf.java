@@ -1,7 +1,9 @@
 package tachyon.conf;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +47,16 @@ public class TachyonConf {
 
   private final Properties mProperties = new Properties();
 
+  public static void assertValidPort(final int port, TachyonConf tachyonConf) {
+    if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE, false)) {
+      Preconditions.checkArgument(port > 0, "Port is only allowed to be zero in test mode.");
+    }
+  }
+
+  public static void assertValidPort(final InetSocketAddress address, TachyonConf tachyonConf) {
+    assertValidPort(address.getPort(), tachyonConf);
+  }
+
   /**
    * Copy constructor to merge the properties of the incoming <code>TachyonConf</code>.
    *
@@ -71,24 +84,38 @@ public class TachyonConf {
    *
    */
   public TachyonConf() {
-    loadDefault();
+    this(true);
+  }
+
+  /**
+   * Test constructor for TachyonConfTest class.
+   *
+   * Most clients will call this constructor to allow default loading of properties to happen.
+   *
+   */
+  TachyonConf(boolean includeSystemProperties) {
+    loadDefault(includeSystemProperties);
   }
 
   /**
    * Here is the order of importance of resource where we load the properties:
-   *   -) System properties
+   *   -) System properties if desired
    *   -) Site specific properties via tachyon-site.properties file
    *   -) Default properties via tachyon-default.properties file
    * so we will load it in reverse order.
   */
-  protected void loadDefault() {
-    // load default
+  protected void loadDefault(boolean includeSystemProperties) {
+    // Load default
     Properties defaultProps = new Properties();
 
     // Override runtime default
     defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
     defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
         ChannelType.defaultType().toString());
+    defaultProps.setProperty(Constants.WORKER_SERVER_THREADS,
+        String.valueOf(Runtime.getRuntime().availableProcessors()));
+    defaultProps.setProperty(Constants.MASTER_SERVER_THREADS,
+        String.valueOf(2 * Runtime.getRuntime().availableProcessors()));
 
     InputStream defaultInputStream =
         TachyonConf.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTIES);
@@ -100,7 +127,15 @@ public class TachyonConf {
       }
     }
 
-    // load site
+    // Update tachyon.master_address
+    String masterHostname = defaultProps.getProperty(Constants.MASTER_HOSTNAME);
+    String masterPort = defaultProps.getProperty(Constants.MASTER_PORT);
+    boolean useZk = Boolean.parseBoolean(defaultProps.getProperty(Constants.USE_ZOOKEEPER));
+    String masterAddress = (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":"
+        + masterPort;
+    defaultProps.setProperty(Constants.MASTER_ADDRESS, masterAddress);
+
+    // Load site specific properties file
     Properties siteProps = new Properties();
     InputStream siteInputStream =
         TachyonConf.class.getClassLoader().getResourceAsStream(SITE_PROPERTIES);
@@ -112,8 +147,11 @@ public class TachyonConf {
       }
     }
 
-    // load system properties
-    Properties systemProps = System.getProperties();
+    // Load system properties
+    Properties systemProps = new Properties();
+    if (includeSystemProperties) {
+      systemProps.putAll(System.getProperties());
+    }
 
     // Now lets combine
     mProperties.putAll(defaultProps);
@@ -148,7 +186,9 @@ public class TachyonConf {
 
   public String get(String key, final String defaultValue) {
     String raw = mProperties.getProperty(key, defaultValue);
-    return lookup(raw);
+    String updated = lookup(raw);
+    LOG.debug("Get Tachyon property {} as {} with default {}", key, updated, defaultValue);
+    return updated;
   }
 
   public int getInt(String key, final int defaultValue) {
@@ -210,7 +250,7 @@ public class TachyonConf {
   public boolean getBoolean(String key, boolean defaultValue) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
-      return Boolean.getBoolean(lookup(rawValue));
+      return Boolean.parseBoolean(lookup(rawValue));
     } else {
       return defaultValue;
     }

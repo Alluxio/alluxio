@@ -33,7 +33,7 @@ import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
-import tachyon.conf.MasterConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -47,6 +47,7 @@ public class JournalTest {
   private TachyonFS mTfs = null;
   private TachyonURI mRootUri = new TachyonURI(TachyonURI.SEPARATOR);
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
+  private TachyonConf mTachyonConf =  null;
 
   /**
    * Test add block
@@ -73,8 +74,11 @@ public class JournalTest {
 
   private void AddBlockTestUtil(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+        Constants.DEFAULT_JOURNAL_FOLDER);
+    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mTachyonConf);
     info.init();
     Assert.assertEquals(2, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -108,8 +112,11 @@ public class JournalTest {
 
   private void AddCheckpointTestUtil(ClientFileInfo fileInfo, ClientFileInfo ckFileInfo)
       throws IOException, InvalidPathException, FileDoesNotExistException {
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+        Constants.DEFAULT_JOURNAL_FOLDER);
+    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mTachyonConf);
     info.init();
     Assert.assertEquals(3, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -142,6 +149,7 @@ public class JournalTest {
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
+    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
   /**
@@ -150,7 +158,7 @@ public class JournalTest {
    * @throws Exception
    */
   @Test
-  public void CompltedEditLogDeletionTest() throws Exception {
+  public void CompletedEditLogDeletionTest() throws Exception {
     Journal journal = mLocalTachyonCluster.getMasterInfo().getJournal();
     journal.setMaxLogSize(Constants.KB);
     for (int i = 0; i < 124; i ++) {
@@ -193,8 +201,11 @@ public class JournalTest {
   }
 
   private void DeleteTestUtil() throws IOException, InvalidPathException, FileDoesNotExistException {
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+        Constants.DEFAULT_JOURNAL_FOLDER);
+    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mTachyonConf);
     info.init();
     Assert.assertEquals(31, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -209,8 +220,11 @@ public class JournalTest {
   @Test
   public void EmptyImageTest() throws Exception {
     mLocalTachyonCluster.stopTFS();
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+        Constants.DEFAULT_JOURNAL_FOLDER);
+    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mTachyonConf);
     info.init();
     Assert.assertEquals(1, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -238,8 +252,11 @@ public class JournalTest {
   }
 
   private void FileFolderUtil() throws IOException, InvalidPathException, FileDoesNotExistException {
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+        Constants.DEFAULT_JOURNAL_FOLDER);
+    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mTachyonConf);
     info.init();
     Assert.assertEquals(111, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -270,8 +287,11 @@ public class JournalTest {
 
   private void FileTestUtil(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+        Constants.DEFAULT_JOURNAL_FOLDER);
+    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mTachyonConf);
     info.init();
     Assert.assertEquals(2, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -303,8 +323,11 @@ public class JournalTest {
 
   private void PinTestUtil(ClientFileInfo folder, ClientFileInfo file0, ClientFileInfo file1)
       throws IOException, InvalidPathException, FileDoesNotExistException {
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+        Constants.DEFAULT_JOURNAL_FOLDER);
+    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mTachyonConf);
     info.init();
     Assert.assertEquals(
         folder, info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder"))));
@@ -339,8 +362,11 @@ public class JournalTest {
 
   private void FolderTest(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+        Constants.DEFAULT_JOURNAL_FOLDER);
+    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mTachyonConf);
     info.init();
     Assert.assertEquals(2, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -368,8 +394,11 @@ public class JournalTest {
 
   private void ManyFileTestUtil() throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+        Constants.DEFAULT_JOURNAL_FOLDER);
+    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mTachyonConf);
     info.init();
     Assert.assertEquals(11, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -400,8 +429,11 @@ public class JournalTest {
 
   private void MultiEditLogTestUtil() throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+        Constants.DEFAULT_JOURNAL_FOLDER);
+    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mTachyonConf);
     info.init();
     Assert.assertEquals(125, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -484,8 +516,11 @@ public class JournalTest {
   }
 
   private void RenameTestUtil() throws IOException, InvalidPathException, FileDoesNotExistException {
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+        Constants.DEFAULT_JOURNAL_FOLDER);
+    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mTachyonConf);
     info.init();
     Assert.assertEquals(111, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -505,7 +540,8 @@ public class JournalTest {
   @Test
   public void TableTest() throws Exception {
     mTfs.createRawTable(new TachyonURI("/xyz"), 10);
-    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
+    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().
+        getClientFileInfo(new TachyonURI("/xyz"));
     mLocalTachyonCluster.stopTFS();
     TableTest(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
@@ -515,8 +551,11 @@ public class JournalTest {
 
   private void TableTest(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+        Constants.DEFAULT_JOURNAL_FOLDER);
+    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mTachyonConf);
     info.init();
     Assert.assertEquals(12, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
