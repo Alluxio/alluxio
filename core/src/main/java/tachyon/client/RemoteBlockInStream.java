@@ -44,9 +44,8 @@ public class RemoteBlockInStream extends BlockInStream {
   /** The block info of the block we are reading */
   private ClientBlockInfo mBlockInfo;
   /**
-   * An input stream for the checkpointed copy of the block. If we are ever
-   * unable to read part of the block from the workers, we use this checkpoint
-   * stream
+   * An input stream for the checkpointed copy of the block. If we are ever unable to read part of
+   * the block from the workers, we use this checkpoint stream
    */
   private InputStream mCheckpointInputStream = null;
   private long mReadByte;
@@ -57,14 +56,13 @@ public class RemoteBlockInStream extends BlockInStream {
   private long mBufferStartPosition = 0;
 
   /**
-   * true if we are re-caching the file. The re-caching gets canceled if we do
-   * anything other than a straight read through the file. That means, any
-   * skipping or seeking around will cancel the re-cache.
+   * true if we are re-caching the file. The re-caching gets canceled if we do anything other than a
+   * straight read through the file. That means, any skipping or seeking around will cancel the
+   * re-cache.
    */
   private boolean mRecache = true;
   /**
-   * If we are re-caching the file, we write it to a block out stream as we
-   * read it.
+   * If we are re-caching the file, we write it to a block out stream as we read it.
    */
   private BlockOutStream mBlockOutStream = null;
 
@@ -74,12 +72,9 @@ public class RemoteBlockInStream extends BlockInStream {
   private Object mUFSConf = null;
 
   /**
-   * @param file
-   *          the file the block belongs to
-   * @param readType
-   *          the InStream's read type
-   * @param blockIndex
-   *          the index of the block in the file
+   * @param file the file the block belongs to
+   * @param readType the InStream's read type
+   * @param blockIndex the index of the block in the file
    * @throws IOException
    */
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
@@ -87,14 +82,10 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   /**
-   * @param file
-   *          the file the block belongs to
-   * @param readType
-   *          the InStream's read type
-   * @param blockIndex
-   *          the index of the block in the file
-   * @param ufsConf
-   *          the under file system configuration
+   * @param file the file the block belongs to
+   * @param readType the InStream's read type
+   * @param blockIndex the index of the block in the file
+   * @param ufsConf the under file system configuration
    * @throws IOException
    */
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf)
@@ -149,7 +140,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
   @Override
   public int read() throws IOException {
-    mReadByte ++;
+    mReadByte++;
     if (mReadByte > mBlockInfo.length) {
       doneRecache();
       return -1;
@@ -241,7 +232,7 @@ public class RemoteBlockInStream extends BlockInStream {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
 
-      for (int k = 0; k < blockLocations.size(); k ++) {
+      for (int k = 0; k < blockLocations.size(); k++) {
         String host = blockLocations.get(k).mHost;
         int port = blockLocations.get(k).mSecondaryPort;
 
@@ -267,9 +258,8 @@ public class RemoteBlockInStream extends BlockInStream {
             break;
           }
         } catch (IOException e) {
-          LOG.error("Fail to retrieve byte buffer for block " + blockInfo.blockId
-              + " from remote " + host + ":" + port + " with offset " + offset + " and length "
-              + len, e);
+          LOG.error("Fail to retrieve byte buffer for block " + blockInfo.blockId + " from remote "
+              + host + ":" + port + " with offset " + offset + " and length " + len, e);
           buf = null;
         }
       }
@@ -362,8 +352,8 @@ public class RemoteBlockInStream extends BlockInStream {
           }
         }
       } catch (IOException e) {
-        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File "
-            + mFile.mFileId, e);
+        LOG.error(
+            "Failed to read from checkpoint " + checkpointPath + " for File " + mFile.mFileId, e);
         mCheckpointInputStream = null;
       }
     }
