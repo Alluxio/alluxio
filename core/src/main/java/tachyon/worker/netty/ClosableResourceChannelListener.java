@@ -24,10 +24,10 @@ import io.netty.channel.ChannelFutureListener;
  * A listener that will close the given resource when the operation completes. This class accepts
  * null resources.
  */
-final class ClosableResourceChannelListener implements ChannelFutureListener {
+public final class ClosableResourceChannelListener implements ChannelFutureListener {
   private final Closeable mResource;
 
-  ClosableResourceChannelListener(Closeable resource) {
+  public ClosableResourceChannelListener(Closeable resource) {
     mResource = resource;
   }
 

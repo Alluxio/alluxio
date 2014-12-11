@@ -25,22 +25,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 
 import tachyon.Constants;
 import tachyon.client.TachyonByteBuffer;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
+import tachyon.worker.netty.protocol.RequestHeader;
+import tachyon.worker.netty.protocol.RequestType;
+import tachyon.worker.netty.protocol.ResponseType;
 
 /**
  * The message type used to send data request and response for remote data.
  */
-public class DataServerMessage {
-  public static final short DATA_SERVER_REQUEST_MESSAGE = 1;
-  public static final short DATA_SERVER_RESPONSE_MESSAGE = 2;
+@Deprecated
+final class DataServerMessage {
+  public static final int DATA_SERVER_REQUEST_MESSAGE = RequestType.GetBlock.ordinal();
+  public static final int DATA_SERVER_RESPONSE_MESSAGE = ResponseType.GetBlockResponse.ordinal();
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  
-  private static final int HEADER_LENGTH = 26;
+
+  private static final int REQUEST_HEADER_LENGTH = Longs.BYTES + Ints.BYTES + 3 * Longs.BYTES;
+  private static final int RESPONSE_HEADER_LENGTH = Ints.BYTES + 3 * Longs.BYTES;
 
   /**
    * Create a default block request message, just allocate the message header, and no attribute is
@@ -49,8 +56,8 @@ public class DataServerMessage {
    * @return the created block request message
    */
   public static DataServerMessage createBlockRequestMessage() {
-    DataServerMessage ret = new DataServerMessage(false, DATA_SERVER_REQUEST_MESSAGE);
-    ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+    DataServerMessage ret = new DataServerMessage(false, DATA_SERVER_REQUEST_MESSAGE, true);
+    ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
     return ret;
   }
 
@@ -77,13 +84,13 @@ public class DataServerMessage {
    * @return The created block request message
    */
   public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len) {
-    DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
+    DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE, true);
 
-    ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+    ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
     ret.mBlockId = blockId;
     ret.mOffset = offset;
     ret.mLength = len;
-    ret.generateHeader();
+    ret.generateRequestHeader();
     ret.mData = ByteBuffer.allocate(0);
     ret.mIsMessageReady = true;
 
@@ -117,7 +124,7 @@ public class DataServerMessage {
    */
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
       long offset, long len) {
-    DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
+    DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE, false);
 
     if (toSend) {
       ret.mBlockId = blockId;
@@ -153,7 +160,7 @@ public class DataServerMessage {
           len = fileLength - offset;
         }
 
-        ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+        ret.mHeader = ByteBuffer.allocate(RESPONSE_HEADER_LENGTH);
         ret.mOffset = offset;
         ret.mLength = len;
         FileChannel channel = file.getChannel();
@@ -162,20 +169,20 @@ public class DataServerMessage {
         channel.close();
         file.close();
         ret.mIsMessageReady = true;
-        ret.generateHeader();
+        ret.generateResponseHeader();
         LOG.info("Response remote request by reading from " + filePath + " preparation done.");
       } catch (Exception e) {
         // TODO This is a trick for now. The data may have been removed before remote retrieving.
         ret.mBlockId = -ret.mBlockId;
         ret.mLength = 0;
-        ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+        ret.mHeader = ByteBuffer.allocate(RESPONSE_HEADER_LENGTH);
         ret.mData = ByteBuffer.allocate(0);
         ret.mIsMessageReady = true;
-        ret.generateHeader();
+        ret.generateResponseHeader();
         LOG.error("The file is not here : " + e.getMessage(), e);
       }
     } else {
-      ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+      ret.mHeader = ByteBuffer.allocate(RESPONSE_HEADER_LENGTH);
       ret.mData = null;
     }
 
@@ -183,7 +190,7 @@ public class DataServerMessage {
   }
 
   private final boolean mToSendData;
-  private final short mMessageType;
+  private final int mMessageType;
   private boolean mIsMessageReady;
 
   private ByteBuffer mHeader;
@@ -199,15 +206,18 @@ public class DataServerMessage {
 
   private ByteBuffer mData = null;
 
+  private final boolean mIsRequest;
+
   /**
    * New a DataServerMessage. Notice that it's not ready.
-   * 
-   * @param isToSendData true if this is a send message, otherwise this is a recv message
+   *  @param isToSendData true if this is a send message, otherwise this is a recv message
    * @param msgType The message type
+   * @param isRequest
    */
-  private DataServerMessage(boolean isToSendData, short msgType) {
+  private DataServerMessage(boolean isToSendData, int msgType, boolean isRequest) {
     mToSendData = isToSendData;
     mMessageType = msgType;
+    mIsRequest = isRequest;
     mIsMessageReady = false;
   }
 
@@ -245,9 +255,19 @@ public class DataServerMessage {
     return mHeader.remaining() == 0 && mData.remaining() == 0;
   }
 
-  private void generateHeader() {
+  private void generateRequestHeader() {
     mHeader.clear();
-    mHeader.putShort(mMessageType);
+    mHeader.putLong(RequestHeader.CURRENT_VERSION);
+    mHeader.putInt(mMessageType);
+    mHeader.putLong(mBlockId);
+    mHeader.putLong(mOffset);
+    mHeader.putLong(mLength);
+    mHeader.flip();
+  }
+
+  private void generateResponseHeader() {
+    mHeader.clear();
+    mHeader.putInt(mMessageType);
     mHeader.putLong(mBlockId);
     mHeader.putLong(mOffset);
     mHeader.putLong(mLength);
@@ -341,14 +361,19 @@ public class DataServerMessage {
       numRead = socketChannel.read(mHeader);
       if (mHeader.remaining() == 0) {
         mHeader.flip();
-        short msgType = mHeader.getShort();
+        if (mIsRequest) {
+          // version
+          mHeader.getLong();
+        }
+        int msgType = mHeader.getInt();
         assert (mMessageType == msgType);
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();
         // TODO make this better to truncate the file.
         assert mLength < Integer.MAX_VALUE;
-        if (mMessageType == DATA_SERVER_RESPONSE_MESSAGE) {
+//        if (mMessageType == DATA_SERVER_RESPONSE_MESSAGE) {
+        if (!mIsRequest) {
           if (mLength == -1) {
             mData = ByteBuffer.allocate(0);
           } else {
@@ -357,9 +382,11 @@ public class DataServerMessage {
         }
         LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)",
             mBlockId, mOffset, mLength));
-        if (mMessageType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
+//        if (mMessageType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
+        if (mIsRequest || mLength <= 0) {
           mIsMessageReady = true;
         }
+
       }
     } else {
       numRead = socketChannel.read(mData);
