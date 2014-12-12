@@ -28,12 +28,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
-import tachyon.StorageDirId;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.ClientLocationInfo;
 import tachyon.thrift.NetAddress;
 
 /**
@@ -176,8 +176,12 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public String getLocalFilename(int blockIndex) throws IOException {
     ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-
-    return mTachyonFS.getLocalBlockFilePath(blockInfo);
+    ClientLocationInfo blockLocation = mTachyonFS.getLocalBlockLocation(blockInfo.getBlockId());
+    if (blockLocation == null) {
+      return null;
+    } else {
+      return blockLocation.getPath();
+    }
   }
 
   /**
@@ -391,13 +395,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
     long blockId = info.blockId;
 
     int blockLockId = mTachyonFS.getBlockLockId();
-    long storageDirIdLocked = mTachyonFS.lockBlock(blockId, blockLockId);
-    if (StorageDirId.isUnknown(storageDirIdLocked)) {
+    ClientLocationInfo locationInfo = mTachyonFS.lockBlock(blockId, blockLockId);
+    if (locationInfo == null) {
       return null;
     }
 
     Closer closer = Closer.create();
-    String localFileName = mTachyonFS.getLocalBlockFilePath(storageDirIdLocked, blockId);
+    String localFileName = locationInfo.getPath();
     if (localFileName != null) {
       try {
         RandomAccessFile localFile;
@@ -424,7 +428,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
         FileChannel localFileChannel = closer.register(localFile.getChannel());
         final ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
-        mTachyonFS.accessLocalBlock(storageDirIdLocked, blockId);
+        mTachyonFS.accessLocalBlock(locationInfo.getStorageDirId(), blockId);
         return new TachyonByteBuffer(mTachyonFS, buf, blockId, blockLockId);
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");

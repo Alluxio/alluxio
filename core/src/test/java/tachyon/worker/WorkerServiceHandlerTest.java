@@ -32,9 +32,11 @@ import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.ClientLocationInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.OutOfSpaceException;
 import tachyon.util.CommonUtils;
 
 /**
@@ -100,52 +102,85 @@ public class WorkerServiceHandlerTest {
 
   @Test
   public void overCapacityRequestSpaceTest() throws TException, IOException {
-    long storageDirId = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L);
+    ClientLocationInfo locationInfo =
+        mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L);
     Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
-        storageDirId);
-    storageDirId = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
-    Assert.assertEquals(StorageDirId.unknownId(), storageDirId);
+        locationInfo.getStorageDirId());
+    Exception exception = null;
+    try {
+      mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    } catch (OutOfSpaceException e) {
+      exception = e;
+    }
+    Assert.assertEquals(new OutOfSpaceException(
+        "Failed to allocate space! requestBytes:" + WORKER_CAPACITY_BYTES), exception);
   }
 
   @Test
   public void overReturnSpaceTest() throws TException, IOException {
-    long storageDirId = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L);
-    Assert.assertEquals(storageDirId,
-        StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0));
-    mWorkerServiceHandler.returnSpace(1L, storageDirId, WORKER_CAPACITY_BYTES);
-    storageDirId = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
-    Assert.assertEquals(StorageDirId.unknownId(), storageDirId);
+    ClientLocationInfo locationInfo = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L);
+    Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
+        locationInfo.getStorageDirId());
+    mWorkerServiceHandler.returnSpace(1L, locationInfo.getStorageDirId(), WORKER_CAPACITY_BYTES);
+    Exception exception = null;
+    try {
+      mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    } catch (OutOfSpaceException e) {
+      exception = e;
+    }
+    Assert.assertEquals(new OutOfSpaceException(
+        "Failed to allocate space! requestBytes:" + WORKER_CAPACITY_BYTES), exception);
   }
 
   @Test
   public void returnSpaceTest() throws TException {
-    long storageDirId0 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    ClientLocationInfo locationInfo0 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
     Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
-        storageDirId0);
-    long storageDirId1 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
-    Assert.assertEquals(StorageDirId.unknownId(), storageDirId1);
-    mWorkerServiceHandler.returnSpace(1L, storageDirId0, WORKER_CAPACITY_BYTES);
-    long storageDirId2 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+        locationInfo0.getStorageDirId());
+    Exception exception = null;
+    try {
+      mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    } catch (OutOfSpaceException e) {
+      exception = e;
+    }
+    Assert.assertEquals(new OutOfSpaceException(
+        "Failed to allocate space! requestBytes:" + WORKER_CAPACITY_BYTES), exception);
+    mWorkerServiceHandler.returnSpace(1L, locationInfo0.getStorageDirId(), WORKER_CAPACITY_BYTES);
+    ClientLocationInfo locationInfo2 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
     Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
-        storageDirId2);
-    mWorkerServiceHandler.returnSpace(2L, storageDirId2, WORKER_CAPACITY_BYTES);
-    long storageDirId3 = mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES / 10);
-    Assert.assertEquals(StorageDirId.unknownId(), storageDirId3);
+        locationInfo2.getStorageDirId());
+    mWorkerServiceHandler.returnSpace(2L, locationInfo2.getStorageDirId(), WORKER_CAPACITY_BYTES);
+    try {
+      mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES / 10);
+    } catch (OutOfSpaceException e) {
+      exception = e;
+    }
+    Assert.assertEquals(new OutOfSpaceException(
+        "Failed to allocate space! requestBytes:" + WORKER_CAPACITY_BYTES / 10), exception);
   }
 
   @Test
   public void totalOverCapacityRequestSpaceTest() throws TException {
-    long storageDirId = mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2);
+    ClientLocationInfo locationInfo = mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2);
     Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
-        storageDirId);
-    storageDirId = mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES + 1);
-    Assert.assertEquals(StorageDirId.unknownId(), storageDirId);
-    storageDirId = mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2);
+        locationInfo.getStorageDirId());
+    locationInfo = mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2);
     Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
-        storageDirId);
-    storageDirId = mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2);
-    Assert.assertEquals(StorageDirId.unknownId(), storageDirId);
-    storageDirId = mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2);
-    Assert.assertEquals(StorageDirId.unknownId(), storageDirId);
+        locationInfo.getStorageDirId());
+    Exception exception = null;
+    try {
+      mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 2);
+    } catch (OutOfSpaceException e) {
+      exception = e;
+    }
+    Assert.assertEquals(new OutOfSpaceException(
+        "Failed to allocate space! requestBytes:" + WORKER_CAPACITY_BYTES / 2), exception);
+    try {
+      mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES / 2);
+    } catch (OutOfSpaceException e) {
+      exception = e;
+    }
+    Assert.assertEquals(new OutOfSpaceException(
+        "Failed to allocate space! requestBytes:" + WORKER_CAPACITY_BYTES / 2), exception);
   }
 }

@@ -53,7 +53,6 @@ import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
-import tachyon.thrift.WorkerDirInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.hierarchy.StorageDir;
@@ -620,10 +619,15 @@ public class WorkerStorage {
    * @param userId The id of the user
    * @return The local user temporary folder of the specified user
    */
-  public String getUserLocalTempFolder(long userId) {
-    String ret = mUsers.getUserTempFolder(userId);
-    LOG.info("Return UserTempFolder for " + userId + " : " + ret);
-    return ret;
+  public String getUserLocalTempFolder(long userId, long storageDirId) {
+    StorageDir storageDir = getStorageDirById(storageDirId);
+    if (storageDir != null) {
+      String userLocalTempFolder = storageDir.getUserTempPath(userId);
+      LOG.info("Return UserTempFolder for " + userId + " : " + userLocalTempFolder);
+      return userLocalTempFolder;
+    } else {
+      return "";
+    }
   }
 
   /**
@@ -645,26 +649,6 @@ public class WorkerStorage {
     String ret = mUsers.getUserUfsTempFolder(userId);
     LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;
-  }
-
-  /**
-   * The list of StorageDirs' information on current WorkerStorage
-   * 
-   * @return list of StorageDirs' information
-   */
-  public List<WorkerDirInfo> getWorkerDirInfos() {
-    List<WorkerDirInfo> dirInfos = new ArrayList<WorkerDirInfo>();
-    for (StorageTier storageTier : mStorageTiers) {
-      for (StorageDir storageDir : storageTier.getStorageDirs()) {
-        try {
-          dirInfos.add(new WorkerDirInfo(storageDir.getStorageDirId(), storageDir.getDirPath()
-              .toString(), CommonUtils.objectToByteBuffer(storageDir.getUfsConf())));
-        } catch (IOException e) {
-          LOG.error("Failed to generate WorkerDirInfo! Id:" + storageDir.getStorageDirId());
-        }
-      }
-    }
-    return dirInfos;
   }
 
   /**
@@ -764,7 +748,7 @@ public class WorkerStorage {
   public boolean promoteBlock(long userId, long blockId)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
 
-    long storageDirIdLocked = lockBlock(userId, blockId);
+    long storageDirIdLocked = lockBlock(blockId, userId);
     if (StorageDirId.isUnknown(storageDirIdLocked)) {
       return false;
     } else if (StorageDirId.getStorageLevelAliasValue(storageDirIdLocked) != mStorageTiers[0]
@@ -988,7 +972,7 @@ public class WorkerStorage {
         return storageDir.getStorageDirId();
       }
     }
-    LOG.warn(String.format("Failed to lock block! blockId(%d)", blockId));
+    LOG.warn(String.format("Failed to unlock block! blockId(%d)", blockId));
     return StorageDirId.unknownId();
   }
 
