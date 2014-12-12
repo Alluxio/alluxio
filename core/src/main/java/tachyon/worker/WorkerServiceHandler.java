@@ -16,7 +16,6 @@
 package tachyon.worker;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.thrift.TException;
 
@@ -24,9 +23,10 @@ import tachyon.StorageDirId;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
-import tachyon.thrift.WorkerDirInfo;
+import tachyon.thrift.ClientLocationInfo;
 import tachyon.thrift.WorkerService;
 import tachyon.worker.hierarchy.StorageDir;
 
@@ -75,13 +75,20 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public String getDataFolder() throws TException {
-    return mWorkerStorage.getDataFolder();
+  public ClientLocationInfo getLocalBlockLocation(long blockId)
+      throws FileDoesNotExistException, TException {
+    StorageDir storageDir = mWorkerStorage.getStorageDirByBlockId(blockId);
+    if (storageDir == null) {
+      throw new FileDoesNotExistException("Block not found! blockId:" + blockId);
+    } else {
+      return new ClientLocationInfo(storageDir.getStorageDirId(),
+          storageDir.getBlockFilePath(blockId));
+    }
   }
 
   @Override
-  public String getUserTempFolder(long userId) throws TException {
-    return mWorkerStorage.getUserLocalTempFolder(userId);
+  public String getUserLocalTempFolder(long userId, long storageDirId) throws TException {
+    return mWorkerStorage.getUserLocalTempFolder(userId, storageDirId);
   }
 
   @Override
@@ -90,13 +97,16 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public List<WorkerDirInfo> getWorkerDirInfos() throws TException {
-    return mWorkerStorage.getWorkerDirInfos();
-  }
-
-  @Override
-  public long lockBlock(long blockId, long userId) throws TException {
-    return mWorkerStorage.lockBlock(blockId, userId);
+  public ClientLocationInfo lockBlock(long blockId, long userId)
+      throws FileDoesNotExistException, TException {
+    long storageDirId = mWorkerStorage.lockBlock(blockId, userId);
+    StorageDir storageDir = mWorkerStorage.getStorageDirById(storageDirId);
+    if (storageDir == null) {
+      throw new FileDoesNotExistException("Block file not found! blockId" + blockId);
+    } else {
+      return new ClientLocationInfo(storageDir.getStorageDirId(),
+          storageDir.getBlockFilePath(blockId));
+    }
   }
 
   @Override
@@ -105,12 +115,14 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public long requestSpace(long userId, long requestBytes) throws TException {
+  public ClientLocationInfo requestSpace(long userId, long requestBytes)
+      throws OutOfSpaceException, TException {
     StorageDir storageDir = mWorkerStorage.requestSpace(userId, requestBytes);
     if (storageDir == null) {
-      return StorageDirId.unknownId();
+      throw new OutOfSpaceException("Failed to allocate space! requestBytes:" + requestBytes);
     } else {
-      return storageDir.getStorageDirId();
+      return new ClientLocationInfo(storageDir.getStorageDirId(),
+          storageDir.getUserTempPath(userId));
     }
   }
 
@@ -126,8 +138,13 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public long unlockBlock(long blockId, long userId) throws TException {
-    return mWorkerStorage.unlockBlock(blockId, userId);
+  public boolean unlockBlock(long blockId, long userId) throws TException {
+    long storageDirId = mWorkerStorage.unlockBlock(blockId, userId);
+    if (StorageDirId.isUnknown(storageDirId)) {
+      return false;
+    } else {
+      return true;
+    }
   }
 
   @Override

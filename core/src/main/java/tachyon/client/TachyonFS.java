@@ -15,6 +15,7 @@
 
 package tachyon.client;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -45,9 +46,9 @@ import tachyon.master.MasterClient;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.ClientLocationInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
-import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerClient;
@@ -135,15 +136,14 @@ public class TachyonFS extends AbstractTachyonFS {
   // All Blocks has been locked.
   private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
   // Mapping from block id to id of the StorageDir in which the block is locked
-  private final Map<Long, Long> mLockedBlockIdToStorageDirId = new HashMap<Long, Long>();
+  private final Map<Long, ClientLocationInfo> mLockedBlockIdToLocationInfo = 
+      new HashMap<Long, ClientLocationInfo>();
 
   // Each user facing block has a unique block lock id.
   private final AtomicInteger mBlockLockId = new AtomicInteger(0);
 
   // Mapping from Id to Available space of each StorageDir.
   private final Map<Long, Long> mIdToAvailableSpaceBytes = new HashMap<Long, Long>();
-  // Mapping from Id to user temporary path of each StorageDir.
-  private final Map<Long, String> mIdToUserLocalTempFolder = new HashMap<Long, String>();
 
   private TachyonFS(TachyonURI tachyonURI) throws IOException {
     this(new InetSocketAddress(tachyonURI.getHost(), tachyonURI.getPort()), tachyonURI.getScheme()
@@ -241,50 +241,45 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Create a user local temporary folder and return it
+   * Create a user local temporary folder in some StorageDir
    * 
-   * @param storageDirId the id of the StorageDir which the temporary folder will be created in.
-   * @return the local temporary folder for the user or null if unable to allocate one.
+   * @param the id of the StorageDir
+   * @return the user local temporary folder
    * @throws IOException
    */
-  public synchronized String createAndGetUserLocalTempFolder(long storageDirId) throws IOException {
-    String userTempFolder = mWorkerClient.getUserTempFolder();
+  public synchronized String createAndGetUserLocalTempFolder(long storageDirId)
+      throws IOException {
+    String userTempFolder = mWorkerClient.getUserLocalTempFolder(storageDirId);
+    return createAndGetUserLocalTempFolder(userTempFolder);
+  }
 
-    if (StringUtils.isBlank(userTempFolder)) {
+  /**
+   * Create a user local temporary folder specified by the input path
+   * 
+   * @param the path of the temporary folder
+   * @return the path of the temporary folder
+   * @throws IOException
+   */
+  public synchronized String createAndGetUserLocalTempFolder(String userTempFolder)
+      throws IOException {
+    if (StringUtils.isBlank(userTempFolder) || userTempFolder == null) {
       LOG.error("Unable to get local temporary folder \"{}\" for user.", userTempFolder);
       return null;
     }
 
-    if (mIdToUserLocalTempFolder.containsKey(storageDirId)) {
-      return mIdToUserLocalTempFolder.get(storageDirId);
-    }
-
-    String dirPath = mWorkerClient.getWorkerDirPath(storageDirId);
-    if (dirPath != null) {
-      String userLocalTempFolder = CommonUtils.concat(dirPath, userTempFolder);
-      UnderFileSystem dirFS = mWorkerClient.getWorkerDirFS(storageDirId);
-      boolean ret = false;
-      if (dirFS.exists(userLocalTempFolder)) {
-        if (!dirFS.isFile(userLocalTempFolder)) {
-          ret = true;
-        }
+    File tempFolder = new File(userTempFolder);
+    if (!tempFolder.exists()) {
+      if (tempFolder.mkdir()) {
+        CommonUtils.changeLocalFileToFullPermission(tempFolder.getAbsolutePath());
+        LOG.info("Folder " + tempFolder + " was created!");
       } else {
-        ret = dirFS.mkdirs(userLocalTempFolder, true);
-      }
-      if (ret) {
-        // Only supports local folder
-        CommonUtils.changeLocalFileToFullPermission(userLocalTempFolder);
-        LOG.info("Folder " + userLocalTempFolder + " was created!");
-        mIdToUserLocalTempFolder.put(storageDirId, userLocalTempFolder);
-        return userLocalTempFolder;
-      } else {
-        LOG.error("Failed to create folder " + userLocalTempFolder);
+        LOG.error("Failed to create folder " + tempFolder);
+        return null;
       }
     }
 
-    return null;
+    return tempFolder.getAbsolutePath();
   }
-
   /**
    * Create a user UnderFileSystem temporary folder and return it
    * 
@@ -708,40 +703,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get path of the block file
-   * 
-   * @param blockInfo information of the block
-   * @return the path of the block file
-   * @throws IOException
-   */
-  synchronized String getLocalBlockFilePath(ClientBlockInfo blockInfo) throws IOException {
-    if (blockInfo != null) {
-      Long storageDirId = getLocalStorageDirId(blockInfo);
-      if (storageDirId != null) {
-        return getLocalBlockFilePath(storageDirId, blockInfo.getBlockId());
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Get path of the block file in certain StorageDir
-   * 
-   * @param storageDirId the id of the StorageDir which contains the block
-   * @param blockId the id of the block
-   * @return the path of the block file
-   * @throws IOException
-   */
-  synchronized String getLocalBlockFilePath(long storageDirId, long blockId) throws IOException {
-    String dirPath = mWorkerClient.getWorkerDirPath(storageDirId);
-    if (dirPath != null) {
-      String dataFolder = getLocalDataFolder();
-      return CommonUtils.concat(dirPath, dataFolder, blockId);
-    }
-    return null;
-  }
-
-  /**
    * Get the RawTable by id
    * 
    * @param id the id of the raw table
@@ -768,27 +729,14 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get Id of the StorageDir containing the block file on local worker
+   * Get location information of the block file on local worker
    * 
-   * @param blockInfo information of the block
-   * @return the Id of the StorageDir containing the block file on local worker
+   * @param blockId id of the block
+   * @return the location information of the block file on local worker
    * @throws IOException
    */
-  synchronized Long getLocalStorageDirId(ClientBlockInfo blockInfo) {
-    if (blockInfo != null) {
-      Map<NetAddress, Long> storageDirIds = blockInfo.getStorageDirIds();
-      NetAddress workerNetAddress = mWorkerClient.getNetAddress();
-      return storageDirIds.get(workerNetAddress);
-    }
-    return null;
-  }
-
-  /**
-   * @return the local root data folder
-   * @throws IOException
-   */
-  synchronized String getLocalDataFolder() throws IOException {
-    return mWorkerClient.getDataFolder();
+  synchronized ClientLocationInfo getLocalBlockLocation(long blockId) throws IOException {
+    return mWorkerClient.getLocalBlockLocation(blockId);
   }
 
   /**
@@ -808,7 +756,7 @@ public class TachyonFS extends AbstractTachyonFS {
     String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
     return new TachyonURI(scheme, authority, TachyonURI.SEPARATOR);
   }
-  
+
   /**
    * Returns the userId of the master client. This is only used for testing.
    * 
@@ -873,30 +821,31 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the Id of the StorageDir in which the block is locked
    * @throws IOException
    */
-  synchronized long lockBlock(long blockId, int blockLockId)
+  synchronized ClientLocationInfo lockBlock(long blockId, int blockLockId)
       throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
-      return StorageDirId.unknownId();
+      return null;
     }
 
     if (mLockedBlockIds.containsKey(blockId)) {
       mLockedBlockIds.get(blockId).add(blockLockId);
-      return mLockedBlockIdToStorageDirId.get(blockId);
+      return mLockedBlockIdToLocationInfo.get(blockId);
     }
 
     if (!mWorkerClient.isLocal()) {
-      return StorageDirId.unknownId();
+      return null;
     }
-    long storageDirIdLocked =
+    ClientLocationInfo locationInfo =
         mWorkerClient.lockBlock(blockId, mMasterClient.getUserId());
 
-    if (!StorageDirId.isUnknown(storageDirIdLocked)) {
+    if (locationInfo != null) {
       Set<Integer> lockIds = new HashSet<Integer>(4);
       lockIds.add(blockLockId);
       mLockedBlockIds.put(blockId, lockIds);
-      mLockedBlockIdToStorageDirId.put(blockId, storageDirIdLocked);
+      mLockedBlockIdToLocationInfo.put(blockId, locationInfo);
+      return locationInfo;
     }
-    return storageDirIdLocked;
+    return null;
   }
 
   /**
@@ -1009,30 +958,33 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the id of the StorageDir that space is allocated in
    * @throws IOException
    */
-  public synchronized long requestSpace(long requestSpaceBytes) throws IOException {
+  public synchronized ClientLocationInfo requestSpace(long requestSpaceBytes) throws IOException {
     if (!hasLocalWorker()) {
-      return StorageDirId.unknownId();
+      return null;
     }
     long storageDirId = getFromAvaliableSpace(requestSpaceBytes);
     if (storageDirId != StorageDirId.unknownId()) {
-      return storageDirId;
+      String path = mWorkerClient.getUserLocalTempFolder(storageDirId);
+      return new ClientLocationInfo(storageDirId, path);
     } else {
       for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
         long toRequestSpaceBytes = Math.max(requestSpaceBytes, mUserQuotaUnitBytes);
-        storageDirId = 
-            mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes);
-        if (!StorageDirId.isUnknown(storageDirId)) {
-          Long availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
-          if (availableSpaceBytes != null) {
-            availableSpaceBytes += toRequestSpaceBytes;
-          } else {
-            availableSpaceBytes = toRequestSpaceBytes;
-          }
-          mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
-          return storageDirId;
+        ClientLocationInfo locationInfo =
+              mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes);
+        if (locationInfo == null) {
+          continue;
         }
+        storageDirId = locationInfo.getStorageDirId();
+        Long availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
+        if (availableSpaceBytes != null) {
+          availableSpaceBytes += toRequestSpaceBytes;
+        } else {
+          availableSpaceBytes = toRequestSpaceBytes;
+        }
+        mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
+        return locationInfo;
       }
-      return StorageDirId.unknownId();
+      return null;
     }
   }
 
@@ -1099,31 +1051,28 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
    *        non-negative.
-   * @return the Id of the StorageDir in which the block is unlocked.
    */
-  synchronized long unlockBlock(long blockId, int blockLockId)
+  synchronized boolean unlockBlock(long blockId, int blockLockId)
       throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
-      return StorageDirId.unknownId();
+      return false;
     }
 
     if (!mLockedBlockIds.containsKey(blockId)) {
-      return StorageDirId.unknownId();
+      return false;
     }
     Set<Integer> lockIds = mLockedBlockIds.get(blockId);
     lockIds.remove(blockLockId);
-
     if (!lockIds.isEmpty()) {
-      return mLockedBlockIdToStorageDirId.get(blockId);
-    } else {
-      mLockedBlockIdToStorageDirId.remove(blockId);
-      mLockedBlockIds.remove(blockId);
+      return true;
     }
 
     if (!mWorkerClient.isLocal()) {
-      return StorageDirId.unknownId();
+      return false;
     }
 
+    mLockedBlockIdToLocationInfo.remove(blockId);
+    mLockedBlockIds.remove(blockId);
     return mWorkerClient.unlockBlock(blockId, mMasterClient.getUserId());
   }
 

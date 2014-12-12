@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.StorageDirId;
+import tachyon.thrift.ClientLocationInfo;
 import tachyon.util.CommonUtils;
 
 /**
@@ -44,7 +44,7 @@ public class BlockOutStream extends OutStream {
 
   private long mInFileBytes = 0;
   private long mWrittenBytes = 0;
-  private long mStorageDirId = StorageDirId.unknownId();
+  private ClientLocationInfo mLocationInfo = null;
 
   private String mLocalFilePath = null;
   private RandomAccessFile mLocalFile = null;
@@ -89,11 +89,11 @@ public class BlockOutStream extends OutStream {
   private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
       throws IOException {
     boolean reqResult = false;
-    if (mStorageDirId == StorageDirId.unknownId()) {
-      mStorageDirId = mTachyonFS.requestSpace(length);
-      reqResult = (mStorageDirId != StorageDirId.unknownId());
+    if (mLocationInfo == null) {
+      mLocationInfo = mTachyonFS.requestSpace(length);
+      reqResult = (mLocationInfo != null);
     } else {
-      reqResult = mTachyonFS.requestSpace(mStorageDirId, length);
+      reqResult = mTachyonFS.requestSpace(mLocationInfo.getStorageDirId(), length);
     }
     if (!reqResult) {
       mCanWrite = false;
@@ -105,7 +105,7 @@ public class BlockOutStream extends OutStream {
       throw new IOException(msg);
     }
     if (mLocalFilePath == null) {
-      String localTempFolder = createUserTempFolder();
+      String localTempFolder = createUserLocalTempFolder();
       mLocalFilePath = CommonUtils.concat(localTempFolder, mBlockId);
       mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
       mLocalFileChannel = mLocalFile.getChannel();
@@ -147,14 +147,15 @@ public class BlockOutStream extends OutStream {
       }
 
       if (mCancel) {
-        if (!StorageDirId.isUnknown(mStorageDirId)) { // if file is written
-          mTachyonFS.releaseSpace(mStorageDirId, mWrittenBytes - mBuffer.position());
+        if (mLocationInfo != null) { // if file was written
+          mTachyonFS.releaseSpace(mLocationInfo.getStorageDirId(),
+              mWrittenBytes - mBuffer.position());
           new File(mLocalFilePath).delete();
           LOG.info("Canceled output of block " + mBlockId + ", deleted local file "
               + mLocalFilePath);
         }
-      } else if (!StorageDirId.isUnknown(mStorageDirId)) {
-        mTachyonFS.cacheBlock(mStorageDirId, mBlockId);
+      } else if (mLocationInfo != null) {
+        mTachyonFS.cacheBlock(mLocationInfo.getStorageDirId(), mBlockId);
       }
     }
     mClosed = true;
@@ -166,15 +167,17 @@ public class BlockOutStream extends OutStream {
    * @return the path of the folder
    * @throws IOException
    */
-  private String createUserTempFolder() throws IOException {
-    String tempFolder = null;
-    tempFolder = mTachyonFS.createAndGetUserLocalTempFolder(mStorageDirId);
-    if (tempFolder == null) {
-      mCanWrite = false;
-      String msg = "Failed to create temp user folder for tachyon client.";
-      throw new IOException(msg);
+  private String createUserLocalTempFolder() throws IOException {
+    String localTempFolder = null;
+    if (mLocationInfo != null) {
+      localTempFolder = mTachyonFS.createAndGetUserLocalTempFolder(mLocationInfo.getPath());
     }
-    return tempFolder;
+
+    if (localTempFolder == null) {
+      mCanWrite = false;
+      throw new IOException("Failed to create temp user folder for tachyon client.");
+    }
+    return localTempFolder;
   }
 
   @Override

@@ -74,17 +74,16 @@ struct Command {
   2: list<i64> mData
 }
 
-struct WorkerDirInfo {
+struct ClientLocationInfo {
   1: i64 storageDirId
-  2: string dirPath //TODO add classname to make it pluggable
-  3: binary conf
+  2: string path //TODO add classname to make it pluggable
 }
 
 exception BlockInfoException {
   1: string message
 }
 
-exception OutOfMemoryForPinFileException {
+exception OutOfSpaceException {
   1: string message
 }
 
@@ -269,25 +268,26 @@ service WorkerService {
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: BlockInfoException eB)
 
-  string getDataFolder()
+  ClientLocationInfo getLocalBlockLocation(1: i64 blockId)
+    throws (1: FileDoesNotExistException eP)
 
-  list<WorkerDirInfo> getWorkerDirInfos()
-
-  string getUserTempFolder(1: i64 userId)
+  string getUserLocalTempFolder(1: i64 userId 2: i64 storageDirId)
 
   string getUserUfsTempFolder(1: i64 userId)
 
-  i64 lockBlock(1: i64 blockId 2: i64 userId) // Lock the file in memory while the user is reading it.
+  ClientLocationInfo lockBlock(1: i64 blockId 2: i64 userId) // Lock the file in memory while the user is reading it.
+    throws (1: FileDoesNotExistException eP)
 
   bool promoteBlock(1: i64 userId, 2: i64 blockId)
 
   void returnSpace(1: i64 userId, 2: i64 storageDirId 3: i64 returnedBytes)
 
-  i64 requestSpace(1: i64 userId, 2: i64 requestBytes)
+  ClientLocationInfo requestSpace(1: i64 userId, 2: i64 requestBytes)
+    throws (1: OutOfSpaceException eP)
 
   bool requestSpaceInPlace(1: i64 userId, 2: i64 storageDirId, 3: i64 requestBytes)
 
-  i64 unlockBlock(1: i64 blockId, 2: i64 userId) // unlock the file
+  bool unlockBlock(1: i64 blockId 2: i64 userId) // unlock the file
 
   void userHeartbeat(1: i64 userId)   // Local user send heartbeat to local worker to keep its temp folder.
 }
