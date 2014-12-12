@@ -22,7 +22,6 @@ import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -34,13 +33,13 @@ import tachyon.worker.TachyonWorker;
  */
 public final class LocalTachyonCluster {
   public static void main(String[] args) throws Exception {
-    LocalTachyonCluster cluster = new LocalTachyonCluster(100);
+    LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
     cluster.stop();
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
 
-    cluster = new LocalTachyonCluster(100);
+    cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
     cluster.stop();
@@ -50,6 +49,9 @@ public final class LocalTachyonCluster {
   private TachyonWorker mWorker = null;
 
   private long mWorkerCapacityBytes;
+  private int mUserBlockSize;
+  private int mQuotaUnitBytes;
+
   private String mTachyonHome;
 
   private String mWorkerDataFolder;
@@ -59,8 +61,10 @@ public final class LocalTachyonCluster {
 
   private LocalTachyonMaster mMaster;
 
-  public LocalTachyonCluster(long workerCapacityBytes) {
+  public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
+    mQuotaUnitBytes = quotaUnitBytes;
+    mUserBlockSize = userBlockSize;
   }
 
   public TachyonFS getClient() throws IOException {
@@ -105,6 +109,10 @@ public final class LocalTachyonCluster {
 
   public TachyonWorker getWorker() {
     return mWorker;
+  }
+
+  public TachyonConf getWorkerTachyonConf() {
+    return mWorker.getTachyonConf();
   }
 
   public NetAddress getWorkerAddress() {
@@ -153,21 +161,24 @@ public final class LocalTachyonCluster {
     mLocalhostName = NetworkUtils.getLocalHostName();
 
     System.setProperty("tachyon.test.mode", "true");
-    System.setProperty("tachyon.home", mTachyonHome);
+
     System.setProperty("tachyon.worker.port", 0 + "");
     System.setProperty("tachyon.worker.data.port", 0 + "");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
-    System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
     System.setProperty("tachyon.worker.selector.threads", Integer.toString(1));
     System.setProperty("tachyon.worker.server.threads", Integer.toString(2));
     System.setProperty("tachyon.worker.network.netty.worker.threads", Integer.toString(2));
 
     WorkerConf.clear();
-    UserConf.clear();
 
     TachyonConf masterConf = new TachyonConf();
+    masterConf.set(Constants.TACHYON_HOME, mTachyonHome);
+    masterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
+    masterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
+    masterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "64");
+
     mMaster = LocalTachyonMaster.create(mTachyonHome, masterConf);
     mMaster.start();
 
@@ -176,7 +187,7 @@ public final class LocalTachyonCluster {
 
     CommonUtils.sleepMs(null, 10);
 
-    TachyonConf workerConf = new TachyonConf();
+    TachyonConf workerConf = new TachyonConf(masterConf);
     workerConf.set(Constants.MASTER_PORT, getMasterPort() + "");
     workerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
     mWorker =

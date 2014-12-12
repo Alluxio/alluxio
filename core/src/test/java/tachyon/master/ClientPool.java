@@ -24,6 +24,7 @@ import com.google.common.base.Supplier;
 
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
+import tachyon.conf.TachyonConf;
 
 /**
  * Keeps a collection of all clients ({@link tachyon.client.TachyonFS}) returned. The main reason
@@ -42,8 +43,11 @@ public final class ClientPool implements Closeable {
    * Returns a {@link tachyon.client.TachyonFS} client. This client does not need to be closed
    * directly, but can be closed by calling {@link #close()} on this object.
    */
-  public TachyonFS getClient() throws IOException {
+  public TachyonFS getClient(TachyonConf tachyonConf) throws IOException {
     final TachyonFS fs = TachyonFS.get(new TachyonURI(mUriSuppliers.get()));
+    if (tachyonConf != null) {
+      fs.mergeConf(tachyonConf);
+    }
     mClients.add(fs);
     return fs;
   }

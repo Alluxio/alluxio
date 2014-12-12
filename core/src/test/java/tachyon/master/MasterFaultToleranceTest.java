@@ -44,17 +44,14 @@ public class MasterFaultToleranceTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonClusterMultiMaster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
     System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    System.setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
-    mLocalTachyonClusterMultiMaster = new LocalTachyonClusterMultiMaster(10000, MASTERS);
+    mLocalTachyonClusterMultiMaster =
+        new LocalTachyonClusterMultiMaster(10000, MASTERS, BLOCK_SIZE);
     mLocalTachyonClusterMultiMaster.start();
     mTfs = mLocalTachyonClusterMultiMaster.getClient();
   }

@@ -40,7 +40,7 @@ import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.CommonConf;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -67,6 +67,7 @@ abstract class AbstractTFS extends FileSystem {
   private Path mWorkingDir = new Path(TachyonURI.SEPARATOR);
   private TachyonFS mTFS = null;
   private String mTachyonHeader = null;
+  private final TachyonConf mTachyonConf = new TachyonConf();
 
   @Override
   public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
@@ -81,7 +82,9 @@ abstract class AbstractTFS extends FileSystem {
       LOG.warn("This maybe an error.");
     }
 
-    return new FSDataOutputStream(file.getOutStream(UserConf.get().DEFAULT_WRITE_TYPE), null);
+    WriteType type = mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE,
+        WriteType.CACHE_THROUGH);
+    return new FSDataOutputStream(file.getOutStream(type), null);
   }
 
   @Override
@@ -100,7 +103,10 @@ abstract class AbstractTFS extends FileSystem {
       int fileId = mTFS.createFile(path, blockSize);
       TachyonFile file = mTFS.getFile(fileId);
       file.setUFSConf(getConf());
-      return new FSDataOutputStream(file.getOutStream(UserConf.get().DEFAULT_WRITE_TYPE), null);
+
+      WriteType type = mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE,
+          WriteType.CACHE_THROUGH);
+      return new FSDataOutputStream(file.getOutStream(type), null);
     }
 
     if (cPath.toString().contains(FIRST_COM_PATH) && !cPath.toString().contains("SUCCESS")) {
@@ -152,7 +158,8 @@ abstract class AbstractTFS extends FileSystem {
     } else {
       TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       int fileId;
-      WriteType type = UserConf.get().DEFAULT_WRITE_TYPE;
+      WriteType type = mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE,
+          WriteType.CACHE_THROUGH);
       if (mTFS.exist(path)) {
         fileId = mTFS.getFileId(path);
         type = WriteType.MUST_CACHE;
@@ -391,7 +398,7 @@ abstract class AbstractTFS extends FileSystem {
     int fileId = mTFS.getFileId(path);
 
     return new FSDataInputStream(new HdfsFileInputStream(mTFS, fileId,
-        Utils.getHDFSPath(path, mUnderFSAddress), getConf(), bufferSize));
+        Utils.getHDFSPath(path, mUnderFSAddress), getConf(), bufferSize, mTachyonConf));
   }
 
   @Override

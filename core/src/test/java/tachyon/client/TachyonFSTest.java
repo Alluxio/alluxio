@@ -46,23 +46,21 @@ public class TachyonFSTest {
   private static final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
-  private TachyonConf mTachyonConf;
+  private TachyonConf mMasterTachyonConf;
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.max.columns");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-    System.setProperty("tachyon.max.columns", "257");
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
-    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mMasterTachyonConf.set(Constants.MAX_COLUMNS, "257");
   }
 
   @Test
@@ -91,7 +89,7 @@ public class TachyonFSTest {
 
   @Test
   public void createFileWithUfsFileTest() throws IOException {
-    String tempFolder = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underfs");
+    String tempFolder = mMasterTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underfs");
     UnderFileSystem underFs = UnderFileSystem.get(tempFolder);
     OutputStream os = underFs.create(tempFolder + "/temp", 100);
     os.close();
@@ -165,10 +163,7 @@ public class TachyonFSTest {
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest1() throws IOException {
-    String maxColumnsProp = System.getProperty("tachyon.max.columns");
-    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS,
-        Integer.parseInt(maxColumnsProp));
-
+    int maxColumns = mMasterTachyonConf.getInt(Constants.MAX_COLUMNS, 257);
     mTfs.createRawTable(new TachyonURI("/table"), maxColumns);
   }
 

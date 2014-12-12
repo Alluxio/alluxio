@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -39,7 +39,6 @@ import tachyon.worker.nio.DataServerMessage;
  * BlockInStream for remote block.
  */
 public class RemoteBlockInStream extends BlockInStream {
-  private static final int BUFFER_SIZE = UserConf.get().REMOTE_READ_BUFFER_SIZE_BYTE;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private ClientBlockInfo mBlockInfo;
@@ -57,10 +56,12 @@ public class RemoteBlockInStream extends BlockInStream {
    * @param file the file the block belongs to
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the file
+   * @param tachyonConf the TachyonConf instance for this file output stream.
    * @throws IOException
    */
-  RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
-    this(file, readType, blockIndex, null);
+  RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonConf tachyonConf)
+      throws IOException {
+    this(file, readType, blockIndex, null, tachyonConf);
   }
 
   /**
@@ -70,9 +71,9 @@ public class RemoteBlockInStream extends BlockInStream {
    * @param ufsConf the under file system configuration
    * @throws IOException
    */
-  RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf)
-      throws IOException {
-    super(file, readType, blockIndex);
+  RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf,
+      TachyonConf tachyonConf) throws IOException {
+    super(file, readType, blockIndex, tachyonConf);
 
     mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
     mReadByte = 0;
@@ -84,7 +85,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
     mRecache = readType.isCache();
     if (mRecache) {
-      mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
+      mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex, tachyonConf);
     }
 
     updateCurrentBuffer();
@@ -383,7 +384,7 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   private void updateCurrentBuffer() throws IOException {
-    long length = BUFFER_SIZE;
+    long length = mTachyonConf.getInt(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, Constants.MB);
     if (mBufferStartPosition + length > mBlockInfo.length) {
       length = mBlockInfo.length - mBufferStartPosition;
     }

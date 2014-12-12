@@ -23,7 +23,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import tachyon.Constants;
 import tachyon.TestUtils;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -36,6 +38,7 @@ public class RemoteBlockInStreamTest {
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+  private TachyonConf mMasterTachyonConf;
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -43,17 +46,17 @@ public class RemoteBlockInStreamTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    System.setProperty("tachyon.user.remote.read.buffer.size.byte", "100");
-    mLocalTachyonCluster = new LocalTachyonCluster(10000);
+    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
+    mLocalTachyonCluster.getWorkerTachyonConf().set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE,
+        "100");
+
     mTfs = mLocalTachyonCluster.getClient();
+    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
   /**
@@ -246,7 +249,7 @@ public class RemoteBlockInStreamTest {
       int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
       TachyonFile file = mTfs.getFile(fileId);
-      RemoteBlockInStream is = new RemoteBlockInStream(file, ReadType.NO_CACHE, 0);
+      RemoteBlockInStream is = new RemoteBlockInStream(file, ReadType.NO_CACHE, 0, mMasterTachyonConf);
       Assert.assertTrue(is instanceof RemoteBlockInStream);
       byte[] ret = new byte[k];
       int value = is.read();
@@ -274,7 +277,7 @@ public class RemoteBlockInStreamTest {
       int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
       TachyonFile file = mTfs.getFile(fileId);
-      InStream is = new RemoteBlockInStream(file, ReadType.NO_CACHE, 0);
+      InStream is = new RemoteBlockInStream(file, ReadType.NO_CACHE, 0, mMasterTachyonConf);
       Assert.assertTrue(is instanceof RemoteBlockInStream);
       byte[] ret = new byte[k];
       int start = 0;
@@ -298,7 +301,7 @@ public class RemoteBlockInStreamTest {
       int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
       TachyonFile file = mTfs.getFile(fileId);
-      InStream is = new RemoteBlockInStream(file, ReadType.NO_CACHE, 0);
+      InStream is = new RemoteBlockInStream(file, ReadType.NO_CACHE, 0, mMasterTachyonConf);
       Assert.assertTrue(is instanceof RemoteBlockInStream);
       byte[] ret = new byte[k / 2];
       int start = 0;
