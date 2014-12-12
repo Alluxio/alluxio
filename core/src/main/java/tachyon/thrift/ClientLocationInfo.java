@@ -32,28 +32,25 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, WorkerDirInfo._Fields>, java.io.Serializable, Cloneable, Comparable<WorkerDirInfo> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("WorkerDirInfo");
+public class ClientLocationInfo implements org.apache.thrift.TBase<ClientLocationInfo, ClientLocationInfo._Fields>, java.io.Serializable, Cloneable, Comparable<ClientLocationInfo> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ClientLocationInfo");
 
   private static final org.apache.thrift.protocol.TField STORAGE_DIR_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("storageDirId", org.apache.thrift.protocol.TType.I64, (short)1);
-  private static final org.apache.thrift.protocol.TField DIR_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("dirPath", org.apache.thrift.protocol.TType.STRING, (short)2);
-  private static final org.apache.thrift.protocol.TField CONF_FIELD_DESC = new org.apache.thrift.protocol.TField("conf", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
-    schemes.put(StandardScheme.class, new WorkerDirInfoStandardSchemeFactory());
-    schemes.put(TupleScheme.class, new WorkerDirInfoTupleSchemeFactory());
+    schemes.put(StandardScheme.class, new ClientLocationInfoStandardSchemeFactory());
+    schemes.put(TupleScheme.class, new ClientLocationInfoTupleSchemeFactory());
   }
 
   public long storageDirId; // required
-  public String dirPath; // required
-  public ByteBuffer conf; // required
+  public String path; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     STORAGE_DIR_ID((short)1, "storageDirId"),
-    DIR_PATH((short)2, "dirPath"),
-    CONF((short)3, "conf");
+    PATH((short)2, "path");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -70,10 +67,8 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
       switch(fieldId) {
         case 1: // STORAGE_DIR_ID
           return STORAGE_DIR_ID;
-        case 2: // DIR_PATH
-          return DIR_PATH;
-        case 3: // CONF
-          return CONF;
+        case 2: // PATH
+          return PATH;
         default:
           return null;
       }
@@ -121,61 +116,52 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.STORAGE_DIR_ID, new org.apache.thrift.meta_data.FieldMetaData("storageDirId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.DIR_PATH, new org.apache.thrift.meta_data.FieldMetaData("dirPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.CONF, new org.apache.thrift.meta_data.FieldMetaData("conf", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING        , true)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(WorkerDirInfo.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ClientLocationInfo.class, metaDataMap);
   }
 
-  public WorkerDirInfo() {
+  public ClientLocationInfo() {
   }
 
-  public WorkerDirInfo(
+  public ClientLocationInfo(
     long storageDirId,
-    String dirPath,
-    ByteBuffer conf)
+    String path)
   {
     this();
     this.storageDirId = storageDirId;
     setStorageDirIdIsSet(true);
-    this.dirPath = dirPath;
-    this.conf = conf;
+    this.path = path;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public WorkerDirInfo(WorkerDirInfo other) {
+  public ClientLocationInfo(ClientLocationInfo other) {
     __isset_bitfield = other.__isset_bitfield;
     this.storageDirId = other.storageDirId;
-    if (other.isSetDirPath()) {
-      this.dirPath = other.dirPath;
-    }
-    if (other.isSetConf()) {
-      this.conf = org.apache.thrift.TBaseHelper.copyBinary(other.conf);
-;
+    if (other.isSetPath()) {
+      this.path = other.path;
     }
   }
 
-  public WorkerDirInfo deepCopy() {
-    return new WorkerDirInfo(this);
+  public ClientLocationInfo deepCopy() {
+    return new ClientLocationInfo(this);
   }
 
   @Override
   public void clear() {
     setStorageDirIdIsSet(false);
     this.storageDirId = 0;
-    this.dirPath = null;
-    this.conf = null;
+    this.path = null;
   }
 
   public long getStorageDirId() {
     return this.storageDirId;
   }
 
-  public WorkerDirInfo setStorageDirId(long storageDirId) {
+  public ClientLocationInfo setStorageDirId(long storageDirId) {
     this.storageDirId = storageDirId;
     setStorageDirIdIsSet(true);
     return this;
@@ -194,61 +180,27 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID, value);
   }
 
-  public String getDirPath() {
-    return this.dirPath;
+  public String getPath() {
+    return this.path;
   }
 
-  public WorkerDirInfo setDirPath(String dirPath) {
-    this.dirPath = dirPath;
+  public ClientLocationInfo setPath(String path) {
+    this.path = path;
     return this;
   }
 
-  public void unsetDirPath() {
-    this.dirPath = null;
+  public void unsetPath() {
+    this.path = null;
   }
 
-  /** Returns true if field dirPath is set (has been assigned a value) and false otherwise */
-  public boolean isSetDirPath() {
-    return this.dirPath != null;
+  /** Returns true if field path is set (has been assigned a value) and false otherwise */
+  public boolean isSetPath() {
+    return this.path != null;
   }
 
-  public void setDirPathIsSet(boolean value) {
+  public void setPathIsSet(boolean value) {
     if (!value) {
-      this.dirPath = null;
-    }
-  }
-
-  public byte[] getConf() {
-    setConf(org.apache.thrift.TBaseHelper.rightSize(conf));
-    return conf == null ? null : conf.array();
-  }
-
-  public ByteBuffer bufferForConf() {
-    return conf;
-  }
-
-  public WorkerDirInfo setConf(byte[] conf) {
-    setConf(conf == null ? (ByteBuffer)null : ByteBuffer.wrap(conf));
-    return this;
-  }
-
-  public WorkerDirInfo setConf(ByteBuffer conf) {
-    this.conf = conf;
-    return this;
-  }
-
-  public void unsetConf() {
-    this.conf = null;
-  }
-
-  /** Returns true if field conf is set (has been assigned a value) and false otherwise */
-  public boolean isSetConf() {
-    return this.conf != null;
-  }
-
-  public void setConfIsSet(boolean value) {
-    if (!value) {
-      this.conf = null;
+      this.path = null;
     }
   }
 
@@ -262,19 +214,11 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
       }
       break;
 
-    case DIR_PATH:
+    case PATH:
       if (value == null) {
-        unsetDirPath();
+        unsetPath();
       } else {
-        setDirPath((String)value);
-      }
-      break;
-
-    case CONF:
-      if (value == null) {
-        unsetConf();
-      } else {
-        setConf((ByteBuffer)value);
+        setPath((String)value);
       }
       break;
 
@@ -286,11 +230,8 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
     case STORAGE_DIR_ID:
       return Long.valueOf(getStorageDirId());
 
-    case DIR_PATH:
-      return getDirPath();
-
-    case CONF:
-      return getConf();
+    case PATH:
+      return getPath();
 
     }
     throw new IllegalStateException();
@@ -305,10 +246,8 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
     switch (field) {
     case STORAGE_DIR_ID:
       return isSetStorageDirId();
-    case DIR_PATH:
-      return isSetDirPath();
-    case CONF:
-      return isSetConf();
+    case PATH:
+      return isSetPath();
     }
     throw new IllegalStateException();
   }
@@ -317,12 +256,12 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
   public boolean equals(Object that) {
     if (that == null)
       return false;
-    if (that instanceof WorkerDirInfo)
-      return this.equals((WorkerDirInfo)that);
+    if (that instanceof ClientLocationInfo)
+      return this.equals((ClientLocationInfo)that);
     return false;
   }
 
-  public boolean equals(WorkerDirInfo that) {
+  public boolean equals(ClientLocationInfo that) {
     if (that == null)
       return false;
 
@@ -335,21 +274,12 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
         return false;
     }
 
-    boolean this_present_dirPath = true && this.isSetDirPath();
-    boolean that_present_dirPath = true && that.isSetDirPath();
-    if (this_present_dirPath || that_present_dirPath) {
-      if (!(this_present_dirPath && that_present_dirPath))
+    boolean this_present_path = true && this.isSetPath();
+    boolean that_present_path = true && that.isSetPath();
+    if (this_present_path || that_present_path) {
+      if (!(this_present_path && that_present_path))
         return false;
-      if (!this.dirPath.equals(that.dirPath))
-        return false;
-    }
-
-    boolean this_present_conf = true && this.isSetConf();
-    boolean that_present_conf = true && that.isSetConf();
-    if (this_present_conf || that_present_conf) {
-      if (!(this_present_conf && that_present_conf))
-        return false;
-      if (!this.conf.equals(that.conf))
+      if (!this.path.equals(that.path))
         return false;
     }
 
@@ -362,7 +292,7 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
   }
 
   @Override
-  public int compareTo(WorkerDirInfo other) {
+  public int compareTo(ClientLocationInfo other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
@@ -379,22 +309,12 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetDirPath()).compareTo(other.isSetDirPath());
+    lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetDirPath()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.dirPath, other.dirPath);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetConf()).compareTo(other.isSetConf());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetConf()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.conf, other.conf);
+    if (isSetPath()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -416,26 +336,18 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("WorkerDirInfo(");
+    StringBuilder sb = new StringBuilder("ClientLocationInfo(");
     boolean first = true;
 
     sb.append("storageDirId:");
     sb.append(this.storageDirId);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("dirPath:");
-    if (this.dirPath == null) {
+    sb.append("path:");
+    if (this.path == null) {
       sb.append("null");
     } else {
-      sb.append(this.dirPath);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("conf:");
-    if (this.conf == null) {
-      sb.append("null");
-    } else {
-      org.apache.thrift.TBaseHelper.toString(this.conf, sb);
+      sb.append(this.path);
     }
     first = false;
     sb.append(")");
@@ -465,15 +377,15 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
     }
   }
 
-  private static class WorkerDirInfoStandardSchemeFactory implements SchemeFactory {
-    public WorkerDirInfoStandardScheme getScheme() {
-      return new WorkerDirInfoStandardScheme();
+  private static class ClientLocationInfoStandardSchemeFactory implements SchemeFactory {
+    public ClientLocationInfoStandardScheme getScheme() {
+      return new ClientLocationInfoStandardScheme();
     }
   }
 
-  private static class WorkerDirInfoStandardScheme extends StandardScheme<WorkerDirInfo> {
+  private static class ClientLocationInfoStandardScheme extends StandardScheme<ClientLocationInfo> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, WorkerDirInfo struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, ClientLocationInfo struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
@@ -491,18 +403,10 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // DIR_PATH
+          case 2: // PATH
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.dirPath = iprot.readString();
-              struct.setDirPathIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 3: // CONF
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.conf = iprot.readBinary();
-              struct.setConfIsSet(true);
+              struct.path = iprot.readString();
+              struct.setPathIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -518,21 +422,16 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, WorkerDirInfo struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, ClientLocationInfo struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
       oprot.writeFieldBegin(STORAGE_DIR_ID_FIELD_DESC);
       oprot.writeI64(struct.storageDirId);
       oprot.writeFieldEnd();
-      if (struct.dirPath != null) {
-        oprot.writeFieldBegin(DIR_PATH_FIELD_DESC);
-        oprot.writeString(struct.dirPath);
-        oprot.writeFieldEnd();
-      }
-      if (struct.conf != null) {
-        oprot.writeFieldBegin(CONF_FIELD_DESC);
-        oprot.writeBinary(struct.conf);
+      if (struct.path != null) {
+        oprot.writeFieldBegin(PATH_FIELD_DESC);
+        oprot.writeString(struct.path);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -541,54 +440,44 @@ public class WorkerDirInfo implements org.apache.thrift.TBase<WorkerDirInfo, Wor
 
   }
 
-  private static class WorkerDirInfoTupleSchemeFactory implements SchemeFactory {
-    public WorkerDirInfoTupleScheme getScheme() {
-      return new WorkerDirInfoTupleScheme();
+  private static class ClientLocationInfoTupleSchemeFactory implements SchemeFactory {
+    public ClientLocationInfoTupleScheme getScheme() {
+      return new ClientLocationInfoTupleScheme();
     }
   }
 
-  private static class WorkerDirInfoTupleScheme extends TupleScheme<WorkerDirInfo> {
+  private static class ClientLocationInfoTupleScheme extends TupleScheme<ClientLocationInfo> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, WorkerDirInfo struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, ClientLocationInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
       if (struct.isSetStorageDirId()) {
         optionals.set(0);
       }
-      if (struct.isSetDirPath()) {
+      if (struct.isSetPath()) {
         optionals.set(1);
       }
-      if (struct.isSetConf()) {
-        optionals.set(2);
-      }
-      oprot.writeBitSet(optionals, 3);
+      oprot.writeBitSet(optionals, 2);
       if (struct.isSetStorageDirId()) {
         oprot.writeI64(struct.storageDirId);
       }
-      if (struct.isSetDirPath()) {
-        oprot.writeString(struct.dirPath);
-      }
-      if (struct.isSetConf()) {
-        oprot.writeBinary(struct.conf);
+      if (struct.isSetPath()) {
+        oprot.writeString(struct.path);
       }
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, WorkerDirInfo struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, ClientLocationInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
         struct.storageDirId = iprot.readI64();
         struct.setStorageDirIdIsSet(true);
       }
       if (incoming.get(1)) {
-        struct.dirPath = iprot.readString();
-        struct.setDirPathIsSet(true);
-      }
-      if (incoming.get(2)) {
-        struct.conf = iprot.readBinary();
-        struct.setConfIsSet(true);
+        struct.path = iprot.readString();
+        struct.setPathIsSet(true);
       }
     }
   }
