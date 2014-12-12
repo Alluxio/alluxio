@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
@@ -45,13 +46,10 @@ public class RawColumnTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @Test
-  public void basicTest() throws InvalidPathException, FileAlreadyExistException,
-      TableColumnException, TableDoesNotExistException, FileDoesNotExistException, IOException,
-      TException {
+  public void basicTest() throws IOException, TException {
     int fileId = mTfs.createRawTable(new TachyonURI("/table"), CommonConf.get().MAX_COLUMNS / 10);
     RawTable table = mTfs.getRawTable(fileId);
 
@@ -69,8 +67,7 @@ public class RawColumnTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(10000);
+    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
   }

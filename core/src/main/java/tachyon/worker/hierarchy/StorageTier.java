@@ -26,7 +26,7 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.worker.eviction.EvictStrategies;
 import tachyon.worker.eviction.EvictStrategy;
@@ -53,8 +53,8 @@ public class StorageTier {
   private final EvictStrategy mBlockEvictor;
   /** Capacity of current StorageTier in bytes */
   private final long mCapacityBytes;
-  /** Max retry times when requesting space from current StorageTier */
-  private static final int FAILED_SPACE_REQUEST_LIMITS = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
+  /** The TachyonConf configuration properties */
+  private final TachyonConf mTachyonConf;
 
   /**
    * Create a new StorageTier
@@ -71,7 +71,8 @@ public class StorageTier {
    */
   public StorageTier(int storageLevel, StorageLevelAlias storageLevelAlias, String[] dirPaths,
       long[] dirCapacityBytes, String dataFolder, String userTempFolder, StorageTier nextTier,
-      Object conf) throws IOException {
+      Object conf, TachyonConf tachyonConf) throws IOException {
+    mTachyonConf = tachyonConf;
     mStorageLevel = storageLevel;
     int storageDirNum = dirPaths.length;
     mStorageLevelAlias = storageLevelAlias;
@@ -263,7 +264,11 @@ public class StorageTier {
     if (dirSelected != null) {
       return dirSelected;
     } else if (mSpaceAllocator.fitInPossible(dirCandidates, requestSizeBytes)) {
-      for (int attempt = 0; attempt < FAILED_SPACE_REQUEST_LIMITS; attempt ++) {
+
+      // Max retry times when requesting space from current StorageTier
+      int failedSpaceRequestsLimit =
+          mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 3);
+      for (int attempt = 0; attempt < failedSpaceRequestsLimit; attempt ++) {
         Pair<StorageDir, List<BlockInfo>> evictInfo =
             mBlockEvictor.getDirCandidate(dirCandidates, pinList, requestSizeBytes);
         if (evictInfo == null) {

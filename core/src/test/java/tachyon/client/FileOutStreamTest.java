@@ -22,11 +22,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
@@ -40,28 +41,27 @@ public class FileOutStreamTest {
   private static final int DELTA = 32;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+  private TachyonConf mMasterTachyonConf;
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    System.setProperty("tachyon.user.default.block.size.byte", "128");
-    mLocalTachyonCluster = new LocalTachyonCluster(10000);
+    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, 128);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
+    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
   /**
    * Checks that we wrote the file correctly by reading it every possible way
    * 
    * @param filePath
-   * @param byteArrayLimit
+   * @param op
+   * @param fileLen
    * @throws IOException
    */
   private void checkWrite(TachyonURI filePath, WriteType op, int fileLen,
@@ -185,7 +185,8 @@ public class FileOutStreamTest {
     OutStream os = file.getOutStream(WriteType.THROUGH);
     Assert.assertTrue(os instanceof FileOutStream);
     os.write((byte) 0);
-    Thread.sleep(UserConf.get().HEARTBEAT_INTERVAL_MS * 2);
+    Thread.sleep(mMasterTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
+        Constants.SECOND_MS) * 2);
     Assert.assertEquals(origId, mTfs.getUserId());
     os.write((byte) 1);
     os.close();

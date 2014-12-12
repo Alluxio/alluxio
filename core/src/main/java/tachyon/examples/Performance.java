@@ -42,7 +42,7 @@ import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 public class Performance {
@@ -521,12 +521,15 @@ public class Performance {
     sFileBytes = sBlocksPerFile * sBlockSizeBytes;
     sFilesBytes = 1L * sFileBytes * sFiles;
 
+    TachyonConf tachyonConf = new TachyonConf();
+
+    long fileBufferBytes = tachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, 0);
     sResultPrefix =
         String.format("Threads %d FilesPerThread %d TotalFiles %d "
             + "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d "
             + "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ", sThreads, sFiles / sThreads,
             sFiles, sBlockSizeBytes / 1024, sBlocksPerFile, CommonUtils.getMB(sFileBytes),
-            UserConf.get().FILE_BUFFER_BYTES / 1024, sBaseFileNumber);
+            fileBufferBytes / 1024, sBaseFileNumber);
 
     for (int k = 0; k < 10000000; k ++) {
       // Warmup

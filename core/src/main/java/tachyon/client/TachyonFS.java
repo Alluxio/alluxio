@@ -39,7 +39,6 @@ import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
-import tachyon.conf.UserConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -61,7 +60,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param tachyonPath a Tachyon path contains master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
-   * @return the corresponding TachyonFS hanlder
+   * @return the corresponding TachyonFS handler
    * @throws IOException
    * @see #get(tachyon.TachyonURI)
    */
@@ -102,7 +101,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param masterPort port master listens on
    * @param zookeeperMode use zookeeper
    * 
-   * @return the corresponding TachyonFS hanlder
+   * @return the corresponding TachyonFS handler
    * @throws IOException
    */
   public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zookeeperMode)
@@ -115,8 +114,8 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final long mUserQuotaUnitBytes = UserConf.get().QUOTA_UNIT_BYTES;
-  private final int mUserFailedSpaceRequestLimits = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
+  private final int mUserFailedSpaceRequestLimits =
+      mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 0);
   private final ExecutorService mExecutorService;
 
   // The RPC client talks to the system master.
@@ -145,15 +144,14 @@ public class TachyonFS extends AbstractTachyonFS {
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
 
-  private final TachyonConf mTachyonConf;
-
   private TachyonFS(TachyonURI tachyonURI, TachyonConf tachyonConf) throws IOException {
     this(new InetSocketAddress(tachyonURI.getHost(), tachyonURI.getPort()), tachyonConf);
   }
 
   private TachyonFS(InetSocketAddress masterAddress, TachyonConf tachyonConf)
       throws IOException {
-    mTachyonConf = tachyonConf;
+    super(tachyonConf);
+
     mMasterAddress = masterAddress;
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
     mAvailableSpaceBytes = 0L;
@@ -163,7 +161,8 @@ public class TachyonFS extends AbstractTachyonFS {
 
     mMasterClient =
         mCloser.register(new MasterClient(mMasterAddress, mExecutorService, mTachyonConf));
-    mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService));
+    mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService,
+        mTachyonConf));
   }
 
   /**
@@ -494,7 +493,7 @@ public class TachyonFS extends AbstractTachyonFS {
       }
       mIdToClientFileInfo.put(fid, clientFileInfo);
     }
-    return new TachyonFile(this, fid);
+    return new TachyonFile(this, fid, mTachyonConf);
   }
 
   /**
@@ -542,7 +541,7 @@ public class TachyonFS extends AbstractTachyonFS {
     if (clientFileInfo == null) {
       return null;
     }
-    return new TachyonFile(this, clientFileInfo.getId());
+    return new TachyonFile(this, clientFileInfo.getId(), mTachyonConf);
   }
 
   /**
@@ -855,8 +854,10 @@ public class TachyonFS extends AbstractTachyonFS {
     }
     int failedTimes = 0;
     while (mAvailableSpaceBytes < requestSpaceBytes) {
+      long userQuotaUnitBytes = mTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES,
+          8 * Constants.MB);
       long toRequestSpaceBytes =
-          Math.max(requestSpaceBytes - mAvailableSpaceBytes, mUserQuotaUnitBytes);
+          Math.max(requestSpaceBytes - mAvailableSpaceBytes, userQuotaUnitBytes);
       if (mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes)) {
         mAvailableSpaceBytes += toRequestSpaceBytes;
       } else {

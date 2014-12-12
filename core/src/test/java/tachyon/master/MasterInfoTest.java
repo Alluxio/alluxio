@@ -232,7 +232,7 @@ public class MasterInfoTest {
 
   private ExecutorService mExecutorService = null;
 
-  private TachyonConf mTachyonConf;
+  private TachyonConf mMasterTachyonConf;
 
   @Test
   public void addCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,
@@ -254,17 +254,15 @@ public class MasterInfoTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     mExecutorService.shutdown();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(1000);
+    mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mExecutorService = Executors.newFixedThreadPool(2);
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
-    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
   @Test
@@ -306,11 +304,11 @@ public class MasterInfoTest {
           new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
       concurrentCreator.call();
 
-      String masterJournal = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+      String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
           Constants.DEFAULT_JOURNAL_FOLDER);
       Journal journal = new Journal(masterJournal, "image.data", "log.data");
       MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
-          mTachyonConf);
+          mMasterTachyonConf);
       info.init();
       for (TachyonURI path : mMasterInfo.ls(new TachyonURI("/"), true)) {
         Assert.assertEquals(mMasterInfo.getFileId(path), info.getFileId(path));
@@ -684,7 +682,7 @@ public class MasterInfoTest {
     Journal journal =
         new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
-        mTachyonConf);
+        mMasterTachyonConf);
 
     // create the output streams
     ByteArrayOutputStream os = new ByteArrayOutputStream();

@@ -35,7 +35,7 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
@@ -51,19 +51,22 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   final TachyonFS mTachyonFS;
   final int mFileId;
-  private final UserConf mUserConf = UserConf.get();
 
   private Object mUFSConf = null;
+
+  private final TachyonConf mTachyonConf;
 
   /**
    * A Tachyon File handler, based file id
    * 
    * @param tfs the Tachyon file system client handler
    * @param fid the file id
+   * @param tachyonConf the TachyonConf for this file.
    */
-  TachyonFile(TachyonFS tfs, int fid) {
+  TachyonFile(TachyonFS tfs, int fid, TachyonConf tachyonConf) {
     mTachyonFS = tfs;
     mFileId = fid;
+    mTachyonConf = tachyonConf;
   }
 
   @Override
@@ -163,12 +166,12 @@ public class TachyonFile implements Comparable<TachyonFile> {
     List<Long> blocks = mTachyonFS.getFileStatus(mFileId, false).getBlockIds();
 
     if (blocks.size() == 0) {
-      return new EmptyBlockInStream(this, readType);
+      return new EmptyBlockInStream(this, readType, mTachyonConf);
     } else if (blocks.size() == 1) {
-      return BlockInStream.get(this, readType, 0, mUFSConf);
+      return BlockInStream.get(this, readType, 0, mUFSConf, mTachyonConf);
     }
 
-    return new FileInStream(this, readType, mUFSConf);
+    return new FileInStream(this, readType, mUFSConf, mTachyonConf);
   }
 
   /**
@@ -240,7 +243,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("WriteType can not be null.");
     }
 
-    return new FileOutStream(this, writeType, mUFSConf);
+    return new FileOutStream(this, writeType, mUFSConf, mTachyonConf);
   }
 
   /**
@@ -521,9 +524,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
       long offset = blockIndex * length;
       inputStream.skip(offset);
 
-      byte[] buffer = new byte[mUserConf.FILE_BUFFER_BYTES * 4];
+      int bufferBytes = mTachyonConf.getInt(Constants.USER_FILE_BUFFER_BYTES, Constants.MB) * 4;
+      byte[] buffer = new byte[bufferBytes];
 
-      BlockOutStream bos = new BlockOutStream(this, WriteType.TRY_CACHE, blockIndex);
+      BlockOutStream bos = new BlockOutStream(this, WriteType.TRY_CACHE, blockIndex, mTachyonConf);
       try {
         int limit;
         while (length > 0 && ((limit = inputStream.read(buffer)) >= 0)) {

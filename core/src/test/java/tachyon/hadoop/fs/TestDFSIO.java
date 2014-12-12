@@ -206,9 +206,7 @@ public class TestDFSIO implements Tool {
     bench.getConf().setBoolean("dfs.support.append", true);
 
     // Start local Tachyon cluster
-    System.setProperty("tachyon.user.quota.unit.bytes", "100000");
-    System.setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
-    mLocalTachyonCluster = new LocalTachyonCluster(500000);
+    mLocalTachyonCluster = new LocalTachyonCluster(500000, 100000, BLOCK_SIZE);
     mLocalTachyonCluster.start();
 
     mLocalTachyonClusterUri = URI.create(mLocalTachyonCluster.getMasterUri());
@@ -233,8 +231,6 @@ public class TestDFSIO implements Tool {
 
     // Stop local Tachyon cluster
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   public static void testWrite() throws Exception {
