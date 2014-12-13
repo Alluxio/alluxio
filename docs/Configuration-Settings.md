@@ -110,7 +110,7 @@ The common configuration contains constants which specify paths and the log appe
 </tr>
 <tr>
   <td>tachyon.master.retry</td>
-  <td>45</td>
+  <td>29</td>
   <td>How many times to try to reconnect with master.</td>
 </tr>
 </table>
