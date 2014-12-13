@@ -1,3 +1,7 @@
+## Alternative
+
+If you are using vagrant, please refer to deploy/vagrant for substitution of this module
+
 ## What is docker
 
 Please refer to [official docker homepage](https://www.docker.com) for help. Simply put, you can think of it as a lightweight virtual machine although this is not an exact description.
