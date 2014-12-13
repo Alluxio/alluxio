@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +73,17 @@ public class TachyonConf {
    * @param props override {@link Properties}
    */
   public TachyonConf(Map<String, String> props) {
+    if (props != null) {
+      mProperties.putAll(props);
+    }
+  }
+
+  /**
+   * Overrides default properties.
+   *
+   * @param props override {@link Properties}
+   */
+  public TachyonConf(Properties props) {
     if (props != null) {
       mProperties.putAll(props);
     }
@@ -160,10 +172,10 @@ public class TachyonConf {
   }
 
   /**
-   * @return the internal <code>Properties</code> of this TachyonConf instance.
+   * @return the deep copy of the internal <code>Properties</code> of this TachyonConf instance.
    */
-  private Properties getInternalProperties() {
-    return mProperties;
+  public Properties getInternalProperties() {
+    return SerializationUtils.clone(mProperties);
   }
 
   /**
