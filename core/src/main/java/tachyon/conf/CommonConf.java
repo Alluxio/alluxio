@@ -127,7 +127,8 @@ public class CommonConf extends Utils {
 
     IN_TEST_MODE = getBooleanProperty("tachyon.test.mode", false);
 
-    MASTER_RETRY_COUNT = getIntProperty("tachyon.master.retry", 45);
+    // use 29 as default since current exponential logic overflows int
+    MASTER_RETRY_COUNT = getIntProperty("tachyon.master.retry", 29);
   }
 
   public static void assertValidPort(final int port) {
