@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URI;
 import java.util.Date;
+import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
 
@@ -36,6 +37,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
+import org.apache.hadoop.io.DefaultStringifier;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
@@ -58,6 +60,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.hadoop.TFS;
 import tachyon.master.LocalTachyonCluster;
 
@@ -204,6 +207,8 @@ public class TestDFSIO implements Tool {
     // Init TestDFSIO
     bench = new TestDFSIO();
     bench.getConf().setBoolean("dfs.support.append", true);
+    bench.getConf().set("io.serializations","org.apache.hadoop.io.serializer.JavaSerialization,"
+        + "org.apache.hadoop.io.serializer.WritableSerialization");
 
     // Start local Tachyon cluster
     mLocalTachyonCluster = new LocalTachyonCluster(500000, 100000, BLOCK_SIZE);
@@ -213,6 +218,11 @@ public class TestDFSIO implements Tool {
     bench.getConf().set("fs.defaultFS", mLocalTachyonClusterUri.toString());
     bench.getConf().set("fs.default.name", mLocalTachyonClusterUri.toString());
     bench.getConf().set("fs." + Constants.SCHEME + ".impl", TFS.class.getName());
+
+    TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    Properties confProperties = tachyonConf.getInternalProperties();
+    DefaultStringifier.store(bench.getConf(), confProperties, Constants.TACHYON_CONF_SITE);
+
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     bench.createControlFile(fs, DEFAULT_NR_BYTES, DEFAULT_NR_FILES);
 

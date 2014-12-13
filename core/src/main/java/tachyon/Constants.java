@@ -69,6 +69,8 @@ public class Constants {
   // Please check and update Configuration-Settings.md file when you change or add Tachyon
   // configuration properties.
 
+  public static final String TACHYON_CONF_SITE = "tachyon.conf.site";
+
   public static final String DEFAULT_HOME = "/mnt/tachyon_default_home";
   public static final String DEFAULT_DATA_FOLDER = "/tachyon/data";
   public static final String DEFAULT_JOURNAL_FOLDER = DEFAULT_HOME + "/journal/";
