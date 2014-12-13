@@ -81,6 +81,8 @@ public class CommonConf extends Utils {
 
   public final boolean IN_TEST_MODE;
 
+  public final int MASTER_RETRY_COUNT;
+
   private CommonConf() {
     if (System.getProperty("tachyon.home") == null) {
       LOG.warn("tachyon.home is not set. Using {} as the default value.", DEFAULT_HOME);
@@ -124,6 +126,8 @@ public class CommonConf extends Utils {
         getListProperty("tachyon.underfs.hadoop.prefixes", DEFAULT_HADOOP_UFS_PREFIX);
 
     IN_TEST_MODE = getBooleanProperty("tachyon.test.mode", false);
+
+    MASTER_RETRY_COUNT = getIntProperty("tachyon.master.retry", 45);
   }
 
   public static void assertValidPort(final int port) {
