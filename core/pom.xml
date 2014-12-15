@@ -372,6 +372,9 @@
               <addClasspath>true</addClasspath>
             </manifest>
           </archive>
+          <excludes>
+            <exclude>**/log4j.properties</exclude>
+          </excludes>
         </configuration>
         <executions>
           <execution>
