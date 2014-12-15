@@ -51,7 +51,7 @@ public class BlocksLocker {
    */
   public synchronized long lock(long blockId, int blockLockId) {
     if (!mLockedBlockIds.containsKey(blockId)) {
-      long storageDirIdLocked = mWorkerStorage.lockBlock(mUserId, blockId);
+      long storageDirIdLocked = mWorkerStorage.lockBlock(blockId, mUserId);
       if (!StorageDirId.isUnknown(storageDirIdLocked)) {
         mLockedBlockIds.put(blockId, new HashSet<Integer>());
         mLockedBlockIds.get(blockId).add(blockLockId);
@@ -98,7 +98,7 @@ public class BlocksLocker {
       if (lockers.isEmpty()) {
         mLockedBlockIds.remove(blockId);
         mLockedBlockIdToStorageDirId.remove(blockId);
-        return mWorkerStorage.unlockBlock(mUserId, blockId);
+        return mWorkerStorage.unlockBlock(blockId, mUserId);
       } else {
         return mLockedBlockIdToStorageDirId.get(blockId);
       }

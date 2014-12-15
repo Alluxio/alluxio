@@ -107,7 +107,7 @@ public class StorageDirTest {
     createBlockFile(mSrcDir, blockId, 500);
     mSrcDir.lockBlock(blockId, mUserId);
     Assert.assertTrue(mSrcDir.isBlockLocked(blockId));
-    mSrcDir.unlockBlock(mUserId, blockId);
+    mSrcDir.unlockBlock(blockId, mUserId);
     Assert.assertFalse(mSrcDir.isBlockLocked(blockId));
   }
 

@@ -428,17 +428,17 @@ public class WorkerClient implements Closeable {
    * Lock the block, therefore, the worker will not evict the block from the memory until it is
    * unlocked.
    * 
-   * @param userId The id of the user who wants to lock the block
    * @param blockId The id of the block
+   * @param userId The id of the user who wants to lock the block
    * @return the Id of the StorageDir in which the block is locked
    * @throws IOException
    */
-  public synchronized long lockBlock(long userId, long blockId)
+  public synchronized long lockBlock(long blockId, long userId)
       throws IOException {
     mustConnect();
 
     try {
-      return mClient.lockBlock(userId, blockId);
+      return mClient.lockBlock(blockId, userId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -542,17 +542,17 @@ public class WorkerClient implements Closeable {
   /**
    * Unlock the block
    * 
-   * @param userId The id of the user who wants to unlock the block
    * @param blockId The id of the block
+   * @param userId The id of the user who wants to unlock the block
    * @return the Id of the StorageDir in which the block is unlocked
    * @throws IOException
    */
-  public synchronized long unlockBlock(long userId, long blockId)
+  public synchronized long unlockBlock(long blockId, long userId)
       throws IOException {
     mustConnect();
 
     try {
-      return mClient.unlockBlock(userId, blockId);
+      return mClient.unlockBlock(blockId, userId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

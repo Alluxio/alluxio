@@ -204,7 +204,7 @@ public class WorkerStorage {
           try {
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
               long blockId = fileInfo.blockIds.get(k);
-              storageDirIds[k] = lockBlock(Users.CHECKPOINT_USER_ID, blockId);
+              storageDirIds[k] = lockBlock(blockId, Users.CHECKPOINT_USER_ID);
               if (StorageDirId.isUnknown(storageDirIds[k])) {
                 throw new IOException("Block doesn't exist!");
               }
@@ -232,7 +232,7 @@ public class WorkerStorage {
             closer.close();
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
               long blockId = fileInfo.blockIds.get(k);
-              unlockBlock(Users.CHECKPOINT_USER_ID, blockId);
+              unlockBlock(blockId, Users.CHECKPOINT_USER_ID);
             }
           }
           if (!mCheckpointUfs.rename(midPath, dstPath)) {
@@ -736,11 +736,11 @@ public class WorkerStorage {
    * attempt to cache the block on the local users's node, while the user is reading from the local
    * block, the given block is locked and unlocked once read.
    * 
-   * @param userId The id of the user who locks the block
    * @param blockId The id of the block
+   * @param userId The id of the user who locks the block
    * @return the Id of the StorageDir in which the block is locked
    */
-  public long lockBlock(long userId, long blockId) {
+  public long lockBlock(long blockId, long userId) {
     StorageDir storageDir = getStorageDirByBlockId(blockId);
     if (storageDir != null) {
       if (storageDir.lockBlock(blockId, userId)) {
@@ -774,7 +774,7 @@ public class WorkerStorage {
       StorageDir dstStorageDir = requestSpace(userId, blockSize);
       if (dstStorageDir == null) {
         LOG.error("Failed to promote block! blockId:" + blockId);
-        unlockBlock(userId, blockId);
+        unlockBlock(blockId, userId);
         return false;
       }
       boolean result;
@@ -786,11 +786,11 @@ public class WorkerStorage {
         LOG.error("Failed to promote block! blockId:" + blockId);
         return false;
       } finally {
-        unlockBlock(userId, blockId);
+        unlockBlock(blockId, userId);
       }
       return result;
     } else {
-      unlockBlock(userId, blockId);
+      unlockBlock(blockId, userId);
       return true;
     }
   }
@@ -977,14 +977,14 @@ public class WorkerStorage {
    * to cache the block on the local users's node, while the user is reading from the local block,
    * the given block is locked and unlocked once read.
    * 
-   * @param userId The id of the user who unlocks the block
    * @param blockId The id of the block
+   * @param userId The id of the user who unlocks the block
    * @return the Id of the StorageDir in which the block is unlocked
    */
-  public long unlockBlock(long userId, long blockId) {
+  public long unlockBlock(long blockId, long userId) {
     StorageDir storageDir = getStorageDirByBlockId(blockId);
     if (storageDir != null) {
-      if (storageDir.unlockBlock(userId, blockId)) {
+      if (storageDir.unlockBlock(blockId, userId)) {
         return storageDir.getStorageDirId();
       }
     }
