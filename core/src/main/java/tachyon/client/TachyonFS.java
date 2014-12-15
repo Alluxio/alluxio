@@ -888,7 +888,7 @@ public class TachyonFS extends AbstractTachyonFS {
       return StorageDirId.unknownId();
     }
     long storageDirIdLocked =
-        mWorkerClient.lockBlock(mMasterClient.getUserId(), blockId);
+        mWorkerClient.lockBlock(blockId, mMasterClient.getUserId());
 
     if (!StorageDirId.isUnknown(storageDirIdLocked)) {
       Set<Integer> lockIds = new HashSet<Integer>(4);
@@ -1124,7 +1124,7 @@ public class TachyonFS extends AbstractTachyonFS {
       return StorageDirId.unknownId();
     }
 
-    return mWorkerClient.unlockBlock(mMasterClient.getUserId(), blockId);
+    return mWorkerClient.unlockBlock(blockId, mMasterClient.getUserId());
   }
 
   /** Alias for setPinned(fid, false). */

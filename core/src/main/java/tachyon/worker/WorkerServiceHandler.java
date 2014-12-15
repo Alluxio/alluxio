@@ -95,8 +95,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public long lockBlock(long userId, long blockId) throws TException {
-    return mWorkerStorage.lockBlock(userId, blockId);
+  public long lockBlock(long blockId, long userId) throws TException {
+    return mWorkerStorage.lockBlock(blockId, userId);
   }
 
   @Override
@@ -126,8 +126,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public long unlockBlock(long userId, long blockId) throws TException {
-    return mWorkerStorage.unlockBlock(userId, blockId);
+  public long unlockBlock(long blockId, long userId) throws TException {
+    return mWorkerStorage.unlockBlock(blockId, userId);
   }
 
   @Override

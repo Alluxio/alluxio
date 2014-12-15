@@ -639,11 +639,11 @@ public final class StorageDir {
   /**
    * Unlock block by some user
    * 
-   * @param userId Id of the user
    * @param blockId Id of the block
+   * @param userId Id of the user
    * @return true if success, false otherwise
    */
-  public boolean unlockBlock(long userId, long blockId) {
+  public boolean unlockBlock(long blockId, long userId) {
     if (!containsBlock(blockId)) {
       return false;
     }
