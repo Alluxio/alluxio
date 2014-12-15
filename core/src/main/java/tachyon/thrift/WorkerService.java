@@ -52,7 +52,7 @@ public class WorkerService {
 
     public String getUserUfsTempFolder(long userId) throws org.apache.thrift.TException;
 
-    public long lockBlock(long userId, long blockId) throws org.apache.thrift.TException;
+    public long lockBlock(long blockId, long userId) throws org.apache.thrift.TException;
 
     public boolean promoteBlock(long userId, long blockId) throws org.apache.thrift.TException;
 
@@ -62,7 +62,7 @@ public class WorkerService {
 
     public boolean requestSpaceInPlace(long userId, long storageDirId, long requestBytes) throws org.apache.thrift.TException;
 
-    public long unlockBlock(long userId, long blockId) throws org.apache.thrift.TException;
+    public long unlockBlock(long blockId, long userId) throws org.apache.thrift.TException;
 
     public void userHeartbeat(long userId) throws org.apache.thrift.TException;
 
@@ -86,7 +86,7 @@ public class WorkerService {
 
     public void getUserUfsTempFolder(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void lockBlock(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void lockBlock(long blockId, long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void promoteBlock(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -96,7 +96,7 @@ public class WorkerService {
 
     public void requestSpaceInPlace(long userId, long storageDirId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void unlockBlock(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void unlockBlock(long blockId, long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void userHeartbeat(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -323,17 +323,17 @@ public class WorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUserUfsTempFolder failed: unknown result");
     }
 
-    public long lockBlock(long userId, long blockId) throws org.apache.thrift.TException
+    public long lockBlock(long blockId, long userId) throws org.apache.thrift.TException
     {
-      send_lockBlock(userId, blockId);
+      send_lockBlock(blockId, userId);
       return recv_lockBlock();
     }
 
-    public void send_lockBlock(long userId, long blockId) throws org.apache.thrift.TException
+    public void send_lockBlock(long blockId, long userId) throws org.apache.thrift.TException
     {
       lockBlock_args args = new lockBlock_args();
-      args.setUserId(userId);
       args.setBlockId(blockId);
+      args.setUserId(userId);
       sendBase("lockBlock", args);
     }
 
@@ -442,17 +442,17 @@ public class WorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "requestSpaceInPlace failed: unknown result");
     }
 
-    public long unlockBlock(long userId, long blockId) throws org.apache.thrift.TException
+    public long unlockBlock(long blockId, long userId) throws org.apache.thrift.TException
     {
-      send_unlockBlock(userId, blockId);
+      send_unlockBlock(blockId, userId);
       return recv_unlockBlock();
     }
 
-    public void send_unlockBlock(long userId, long blockId) throws org.apache.thrift.TException
+    public void send_unlockBlock(long blockId, long userId) throws org.apache.thrift.TException
     {
       unlockBlock_args args = new unlockBlock_args();
-      args.setUserId(userId);
       args.setBlockId(blockId);
+      args.setUserId(userId);
       sendBase("unlockBlock", args);
     }
 
@@ -766,27 +766,27 @@ public class WorkerService {
       }
     }
 
-    public void lockBlock(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void lockBlock(long blockId, long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      lockBlock_call method_call = new lockBlock_call(userId, blockId, resultHandler, this, ___protocolFactory, ___transport);
+      lockBlock_call method_call = new lockBlock_call(blockId, userId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class lockBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private long userId;
       private long blockId;
-      public lockBlock_call(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private long userId;
+      public lockBlock_call(long blockId, long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.userId = userId;
         this.blockId = blockId;
+        this.userId = userId;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("lockBlock", org.apache.thrift.protocol.TMessageType.CALL, 0));
         lockBlock_args args = new lockBlock_args();
-        args.setUserId(userId);
         args.setBlockId(blockId);
+        args.setUserId(userId);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -947,27 +947,27 @@ public class WorkerService {
       }
     }
 
-    public void unlockBlock(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void unlockBlock(long blockId, long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      unlockBlock_call method_call = new unlockBlock_call(userId, blockId, resultHandler, this, ___protocolFactory, ___transport);
+      unlockBlock_call method_call = new unlockBlock_call(blockId, userId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class unlockBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private long userId;
       private long blockId;
-      public unlockBlock_call(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private long userId;
+      public unlockBlock_call(long blockId, long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.userId = userId;
         this.blockId = blockId;
+        this.userId = userId;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("unlockBlock", org.apache.thrift.protocol.TMessageType.CALL, 0));
         unlockBlock_args args = new unlockBlock_args();
-        args.setUserId(userId);
         args.setBlockId(blockId);
+        args.setUserId(userId);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1243,7 +1243,7 @@ public class WorkerService {
 
       public lockBlock_result getResult(I iface, lockBlock_args args) throws org.apache.thrift.TException {
         lockBlock_result result = new lockBlock_result();
-        result.success = iface.lockBlock(args.userId, args.blockId);
+        result.success = iface.lockBlock(args.blockId, args.userId);
         result.setSuccessIsSet(true);
         return result;
       }
@@ -1347,7 +1347,7 @@ public class WorkerService {
 
       public unlockBlock_result getResult(I iface, unlockBlock_args args) throws org.apache.thrift.TException {
         unlockBlock_result result = new unlockBlock_result();
-        result.success = iface.unlockBlock(args.userId, args.blockId);
+        result.success = iface.unlockBlock(args.blockId, args.userId);
         result.setSuccessIsSet(true);
         return result;
       }
@@ -1901,7 +1901,7 @@ public class WorkerService {
       }
 
       public void start(I iface, lockBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
-        iface.lockBlock(args.userId, args.blockId,resultHandler);
+        iface.lockBlock(args.blockId, args.userId,resultHandler);
       }
     }
 
@@ -2159,7 +2159,7 @@ public class WorkerService {
       }
 
       public void start(I iface, unlockBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
-        iface.unlockBlock(args.userId, args.blockId,resultHandler);
+        iface.unlockBlock(args.blockId, args.userId,resultHandler);
       }
     }
 
@@ -8592,8 +8592,8 @@ public class WorkerService {
   public static class lockBlock_args implements org.apache.thrift.TBase<lockBlock_args, lockBlock_args._Fields>, java.io.Serializable, Cloneable, Comparable<lockBlock_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("lockBlock_args");
 
-    private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -8601,13 +8601,13 @@ public class WorkerService {
       schemes.put(TupleScheme.class, new lockBlock_argsTupleSchemeFactory());
     }
 
-    public long userId; // required
     public long blockId; // required
+    public long userId; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      USER_ID((short)1, "userId"),
-      BLOCK_ID((short)2, "blockId");
+      BLOCK_ID((short)1, "blockId"),
+      USER_ID((short)2, "userId");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -8622,10 +8622,10 @@ public class WorkerService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // USER_ID
-            return USER_ID;
-          case 2: // BLOCK_ID
+          case 1: // BLOCK_ID
             return BLOCK_ID;
+          case 2: // USER_ID
+            return USER_ID;
           default:
             return null;
         }
@@ -8666,15 +8666,15 @@ public class WorkerService {
     }
 
     // isset id assignments
-    private static final int __USERID_ISSET_ID = 0;
-    private static final int __BLOCKID_ISSET_ID = 1;
+    private static final int __BLOCKID_ISSET_ID = 0;
+    private static final int __USERID_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(lockBlock_args.class, metaDataMap);
@@ -8684,14 +8684,14 @@ public class WorkerService {
     }
 
     public lockBlock_args(
-      long userId,
-      long blockId)
+      long blockId,
+      long userId)
     {
       this();
-      this.userId = userId;
-      setUserIdIsSet(true);
       this.blockId = blockId;
       setBlockIdIsSet(true);
+      this.userId = userId;
+      setUserIdIsSet(true);
     }
 
     /**
@@ -8699,8 +8699,8 @@ public class WorkerService {
      */
     public lockBlock_args(lockBlock_args other) {
       __isset_bitfield = other.__isset_bitfield;
-      this.userId = other.userId;
       this.blockId = other.blockId;
+      this.userId = other.userId;
     }
 
     public lockBlock_args deepCopy() {
@@ -8709,33 +8709,10 @@ public class WorkerService {
 
     @Override
     public void clear() {
-      setUserIdIsSet(false);
-      this.userId = 0;
       setBlockIdIsSet(false);
       this.blockId = 0;
-    }
-
-    public long getUserId() {
-      return this.userId;
-    }
-
-    public lockBlock_args setUserId(long userId) {
-      this.userId = userId;
-      setUserIdIsSet(true);
-      return this;
-    }
-
-    public void unsetUserId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __USERID_ISSET_ID);
-    }
-
-    /** Returns true if field userId is set (has been assigned a value) and false otherwise */
-    public boolean isSetUserId() {
-      return EncodingUtils.testBit(__isset_bitfield, __USERID_ISSET_ID);
-    }
-
-    public void setUserIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USERID_ISSET_ID, value);
+      setUserIdIsSet(false);
+      this.userId = 0;
     }
 
     public long getBlockId() {
@@ -8761,16 +8738,31 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
+    public long getUserId() {
+      return this.userId;
+    }
+
+    public lockBlock_args setUserId(long userId) {
+      this.userId = userId;
+      setUserIdIsSet(true);
+      return this;
+    }
+
+    public void unsetUserId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __USERID_ISSET_ID);
+    }
+
+    /** Returns true if field userId is set (has been assigned a value) and false otherwise */
+    public boolean isSetUserId() {
+      return EncodingUtils.testBit(__isset_bitfield, __USERID_ISSET_ID);
+    }
+
+    public void setUserIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USERID_ISSET_ID, value);
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case USER_ID:
-        if (value == null) {
-          unsetUserId();
-        } else {
-          setUserId((Long)value);
-        }
-        break;
-
       case BLOCK_ID:
         if (value == null) {
           unsetBlockId();
@@ -8779,16 +8771,24 @@ public class WorkerService {
         }
         break;
 
+      case USER_ID:
+        if (value == null) {
+          unsetUserId();
+        } else {
+          setUserId((Long)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case USER_ID:
-        return Long.valueOf(getUserId());
-
       case BLOCK_ID:
         return Long.valueOf(getBlockId());
+
+      case USER_ID:
+        return Long.valueOf(getUserId());
 
       }
       throw new IllegalStateException();
@@ -8801,10 +8801,10 @@ public class WorkerService {
       }
 
       switch (field) {
-      case USER_ID:
-        return isSetUserId();
       case BLOCK_ID:
         return isSetBlockId();
+      case USER_ID:
+        return isSetUserId();
       }
       throw new IllegalStateException();
     }
@@ -8822,21 +8822,21 @@ public class WorkerService {
       if (that == null)
         return false;
 
-      boolean this_present_userId = true;
-      boolean that_present_userId = true;
-      if (this_present_userId || that_present_userId) {
-        if (!(this_present_userId && that_present_userId))
-          return false;
-        if (this.userId != that.userId)
-          return false;
-      }
-
       boolean this_present_blockId = true;
       boolean that_present_blockId = true;
       if (this_present_blockId || that_present_blockId) {
         if (!(this_present_blockId && that_present_blockId))
           return false;
         if (this.blockId != that.blockId)
+          return false;
+      }
+
+      boolean this_present_userId = true;
+      boolean that_present_userId = true;
+      if (this_present_userId || that_present_userId) {
+        if (!(this_present_userId && that_present_userId))
+          return false;
+        if (this.userId != that.userId)
           return false;
       }
 
@@ -8856,22 +8856,22 @@ public class WorkerService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetUserId()).compareTo(other.isSetUserId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetUserId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.userId, other.userId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       lastComparison = Boolean.valueOf(isSetBlockId()).compareTo(other.isSetBlockId());
       if (lastComparison != 0) {
         return lastComparison;
       }
       if (isSetBlockId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockId, other.blockId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetUserId()).compareTo(other.isSetUserId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetUserId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.userId, other.userId);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -8896,12 +8896,12 @@ public class WorkerService {
       StringBuilder sb = new StringBuilder("lockBlock_args(");
       boolean first = true;
 
-      sb.append("userId:");
-      sb.append(this.userId);
-      first = false;
-      if (!first) sb.append(", ");
       sb.append("blockId:");
       sb.append(this.blockId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("userId:");
+      sb.append(this.userId);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -8948,18 +8948,18 @@ public class WorkerService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // USER_ID
+            case 1: // BLOCK_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.userId = iprot.readI64();
-                struct.setUserIdIsSet(true);
+                struct.blockId = iprot.readI64();
+                struct.setBlockIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // BLOCK_ID
+            case 2: // USER_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.blockId = iprot.readI64();
-                struct.setBlockIdIsSet(true);
+                struct.userId = iprot.readI64();
+                struct.setUserIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -8979,11 +8979,11 @@ public class WorkerService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(USER_ID_FIELD_DESC);
-        oprot.writeI64(struct.userId);
-        oprot.writeFieldEnd();
         oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
         oprot.writeI64(struct.blockId);
+        oprot.writeFieldEnd();
+        oprot.writeFieldBegin(USER_ID_FIELD_DESC);
+        oprot.writeI64(struct.userId);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -9003,18 +9003,18 @@ public class WorkerService {
       public void write(org.apache.thrift.protocol.TProtocol prot, lockBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetUserId()) {
+        if (struct.isSetBlockId()) {
           optionals.set(0);
         }
-        if (struct.isSetBlockId()) {
+        if (struct.isSetUserId()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
-        if (struct.isSetUserId()) {
-          oprot.writeI64(struct.userId);
-        }
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
+        }
+        if (struct.isSetUserId()) {
+          oprot.writeI64(struct.userId);
         }
       }
 
@@ -9023,12 +9023,12 @@ public class WorkerService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.userId = iprot.readI64();
-          struct.setUserIdIsSet(true);
-        }
-        if (incoming.get(1)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.userId = iprot.readI64();
+          struct.setUserIdIsSet(true);
         }
       }
     }
@@ -12672,8 +12672,8 @@ public class WorkerService {
   public static class unlockBlock_args implements org.apache.thrift.TBase<unlockBlock_args, unlockBlock_args._Fields>, java.io.Serializable, Cloneable, Comparable<unlockBlock_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("unlockBlock_args");
 
-    private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -12681,13 +12681,13 @@ public class WorkerService {
       schemes.put(TupleScheme.class, new unlockBlock_argsTupleSchemeFactory());
     }
 
-    public long userId; // required
     public long blockId; // required
+    public long userId; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      USER_ID((short)1, "userId"),
-      BLOCK_ID((short)2, "blockId");
+      BLOCK_ID((short)1, "blockId"),
+      USER_ID((short)2, "userId");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -12702,10 +12702,10 @@ public class WorkerService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // USER_ID
-            return USER_ID;
-          case 2: // BLOCK_ID
+          case 1: // BLOCK_ID
             return BLOCK_ID;
+          case 2: // USER_ID
+            return USER_ID;
           default:
             return null;
         }
@@ -12746,15 +12746,15 @@ public class WorkerService {
     }
 
     // isset id assignments
-    private static final int __USERID_ISSET_ID = 0;
-    private static final int __BLOCKID_ISSET_ID = 1;
+    private static final int __BLOCKID_ISSET_ID = 0;
+    private static final int __USERID_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(unlockBlock_args.class, metaDataMap);
@@ -12764,14 +12764,14 @@ public class WorkerService {
     }
 
     public unlockBlock_args(
-      long userId,
-      long blockId)
+      long blockId,
+      long userId)
     {
       this();
-      this.userId = userId;
-      setUserIdIsSet(true);
       this.blockId = blockId;
       setBlockIdIsSet(true);
+      this.userId = userId;
+      setUserIdIsSet(true);
     }
 
     /**
@@ -12779,8 +12779,8 @@ public class WorkerService {
      */
     public unlockBlock_args(unlockBlock_args other) {
       __isset_bitfield = other.__isset_bitfield;
-      this.userId = other.userId;
       this.blockId = other.blockId;
+      this.userId = other.userId;
     }
 
     public unlockBlock_args deepCopy() {
@@ -12789,33 +12789,10 @@ public class WorkerService {
 
     @Override
     public void clear() {
-      setUserIdIsSet(false);
-      this.userId = 0;
       setBlockIdIsSet(false);
       this.blockId = 0;
-    }
-
-    public long getUserId() {
-      return this.userId;
-    }
-
-    public unlockBlock_args setUserId(long userId) {
-      this.userId = userId;
-      setUserIdIsSet(true);
-      return this;
-    }
-
-    public void unsetUserId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __USERID_ISSET_ID);
-    }
-
-    /** Returns true if field userId is set (has been assigned a value) and false otherwise */
-    public boolean isSetUserId() {
-      return EncodingUtils.testBit(__isset_bitfield, __USERID_ISSET_ID);
-    }
-
-    public void setUserIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USERID_ISSET_ID, value);
+      setUserIdIsSet(false);
+      this.userId = 0;
     }
 
     public long getBlockId() {
@@ -12841,16 +12818,31 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
+    public long getUserId() {
+      return this.userId;
+    }
+
+    public unlockBlock_args setUserId(long userId) {
+      this.userId = userId;
+      setUserIdIsSet(true);
+      return this;
+    }
+
+    public void unsetUserId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __USERID_ISSET_ID);
+    }
+
+    /** Returns true if field userId is set (has been assigned a value) and false otherwise */
+    public boolean isSetUserId() {
+      return EncodingUtils.testBit(__isset_bitfield, __USERID_ISSET_ID);
+    }
+
+    public void setUserIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USERID_ISSET_ID, value);
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case USER_ID:
-        if (value == null) {
-          unsetUserId();
-        } else {
-          setUserId((Long)value);
-        }
-        break;
-
       case BLOCK_ID:
         if (value == null) {
           unsetBlockId();
@@ -12859,16 +12851,24 @@ public class WorkerService {
         }
         break;
 
+      case USER_ID:
+        if (value == null) {
+          unsetUserId();
+        } else {
+          setUserId((Long)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case USER_ID:
-        return Long.valueOf(getUserId());
-
       case BLOCK_ID:
         return Long.valueOf(getBlockId());
+
+      case USER_ID:
+        return Long.valueOf(getUserId());
 
       }
       throw new IllegalStateException();
@@ -12881,10 +12881,10 @@ public class WorkerService {
       }
 
       switch (field) {
-      case USER_ID:
-        return isSetUserId();
       case BLOCK_ID:
         return isSetBlockId();
+      case USER_ID:
+        return isSetUserId();
       }
       throw new IllegalStateException();
     }
@@ -12902,21 +12902,21 @@ public class WorkerService {
       if (that == null)
         return false;
 
-      boolean this_present_userId = true;
-      boolean that_present_userId = true;
-      if (this_present_userId || that_present_userId) {
-        if (!(this_present_userId && that_present_userId))
-          return false;
-        if (this.userId != that.userId)
-          return false;
-      }
-
       boolean this_present_blockId = true;
       boolean that_present_blockId = true;
       if (this_present_blockId || that_present_blockId) {
         if (!(this_present_blockId && that_present_blockId))
           return false;
         if (this.blockId != that.blockId)
+          return false;
+      }
+
+      boolean this_present_userId = true;
+      boolean that_present_userId = true;
+      if (this_present_userId || that_present_userId) {
+        if (!(this_present_userId && that_present_userId))
+          return false;
+        if (this.userId != that.userId)
           return false;
       }
 
@@ -12936,22 +12936,22 @@ public class WorkerService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetUserId()).compareTo(other.isSetUserId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetUserId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.userId, other.userId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       lastComparison = Boolean.valueOf(isSetBlockId()).compareTo(other.isSetBlockId());
       if (lastComparison != 0) {
         return lastComparison;
       }
       if (isSetBlockId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockId, other.blockId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetUserId()).compareTo(other.isSetUserId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetUserId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.userId, other.userId);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -12976,12 +12976,12 @@ public class WorkerService {
       StringBuilder sb = new StringBuilder("unlockBlock_args(");
       boolean first = true;
 
-      sb.append("userId:");
-      sb.append(this.userId);
-      first = false;
-      if (!first) sb.append(", ");
       sb.append("blockId:");
       sb.append(this.blockId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("userId:");
+      sb.append(this.userId);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -13028,18 +13028,18 @@ public class WorkerService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // USER_ID
+            case 1: // BLOCK_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.userId = iprot.readI64();
-                struct.setUserIdIsSet(true);
+                struct.blockId = iprot.readI64();
+                struct.setBlockIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // BLOCK_ID
+            case 2: // USER_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.blockId = iprot.readI64();
-                struct.setBlockIdIsSet(true);
+                struct.userId = iprot.readI64();
+                struct.setUserIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -13059,11 +13059,11 @@ public class WorkerService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(USER_ID_FIELD_DESC);
-        oprot.writeI64(struct.userId);
-        oprot.writeFieldEnd();
         oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
         oprot.writeI64(struct.blockId);
+        oprot.writeFieldEnd();
+        oprot.writeFieldBegin(USER_ID_FIELD_DESC);
+        oprot.writeI64(struct.userId);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -13083,18 +13083,18 @@ public class WorkerService {
       public void write(org.apache.thrift.protocol.TProtocol prot, unlockBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetUserId()) {
+        if (struct.isSetBlockId()) {
           optionals.set(0);
         }
-        if (struct.isSetBlockId()) {
+        if (struct.isSetUserId()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
-        if (struct.isSetUserId()) {
-          oprot.writeI64(struct.userId);
-        }
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
+        }
+        if (struct.isSetUserId()) {
+          oprot.writeI64(struct.userId);
         }
       }
 
@@ -13103,12 +13103,12 @@ public class WorkerService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.userId = iprot.readI64();
-          struct.setUserIdIsSet(true);
-        }
-        if (incoming.get(1)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.userId = iprot.readI64();
+          struct.setUserIdIsSet(true);
         }
       }
     }
