@@ -16,10 +16,8 @@ package tachyon.client;
 
 import java.io.IOException;
 
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,8 +36,8 @@ public class FileInStreamTest {
   private static final int MEAN = (MIN_LEN + MAX_LEN) / 2;
   private static final int DELTA = 33;
 
-  private static LocalTachyonCluster mLocalTachyonCluster = null;
-  private static TachyonFS mTfs = null;
+  private static LocalTachyonCluster CLUSTER = null;
+  private static TachyonFS TFS = null;
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -48,14 +46,14 @@ public class FileInStreamTest {
   public static final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
     System.setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
-    mLocalTachyonCluster = new LocalTachyonCluster(10000);
-    mLocalTachyonCluster.start();
-    mTfs = mLocalTachyonCluster.getClient();
+    CLUSTER = new LocalTachyonCluster(10000);
+    CLUSTER.start();
+    TFS = CLUSTER.getClient();
   }
 
   @AfterClass
   public static final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+    CLUSTER.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.clearProperty("tachyon.user.default.block.size.byte");
   }
@@ -68,9 +66,9 @@ public class FileInStreamTest {
     final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, path + "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = mTfs.getFile(fileId);
+        TachyonFile file = TFS.getFile(fileId);
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof FileInStream);
@@ -113,9 +111,9 @@ public class FileInStreamTest {
     final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, path + "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = mTfs.getFile(fileId);
+        TachyonFile file = TFS.getFile(fileId);
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof FileInStream);
@@ -142,9 +140,9 @@ public class FileInStreamTest {
     final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, path + "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = mTfs.getFile(fileId);
+        TachyonFile file = TFS.getFile(fileId);
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof FileInStream);
@@ -171,9 +169,9 @@ public class FileInStreamTest {
     final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, path + "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = mTfs.getFile(fileId);
+        TachyonFile file = TFS.getFile(fileId);
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof FileInStream);
@@ -203,9 +201,9 @@ public class FileInStreamTest {
     final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, path + "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = mTfs.getFile(fileId);
+        TachyonFile file = TFS.getFile(fileId);
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
 
@@ -236,9 +234,9 @@ public class FileInStreamTest {
 
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, path + "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = mTfs.getFile(fileId);
+        TachyonFile file = TFS.getFile(fileId);
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
 
@@ -258,9 +256,9 @@ public class FileInStreamTest {
     final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, path + "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = mTfs.getFile(fileId);
+        TachyonFile file = TFS.getFile(fileId);
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
 
@@ -284,9 +282,9 @@ public class FileInStreamTest {
     final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, path + "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = mTfs.getFile(fileId);
+        TachyonFile file = TFS.getFile(fileId);
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof FileInStream);
