@@ -60,6 +60,13 @@ public class TachyonConf {
     assertValidPort(address.getPort(), tachyonConf);
   }
 
+  /**
+   * Store the source {@link TachyonConf} object to the target
+   * Hadoop {@link org.apache.hadoop.conf.Configuration} object.
+   *
+   * @param source the {@link TachyonConf} to be stored
+   * @param target the {@link org.apache.hadoop.conf.Configuration} target
+   */
   public static void storeToHadoopConfiguration(TachyonConf source, Configuration target) {
     // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
     target.set("io.serializations", "org.apache.hadoop.io.serializer.JavaSerialization,"
@@ -73,6 +80,11 @@ public class TachyonConf {
     }
   }
 
+  /**
+   * Load {@link TachyonConf} from Hadoop {@link org.apache.hadoop.conf.Configuration} source
+   * @param source the {@link org.apache.hadoop.conf.Configuration} to load from.
+   * @return instance of {@link TachyonConf} to be loaded
+   */
   public static TachyonConf loadFromHadoopConfiguration(Configuration source) {
     // Load TachyonConf if any and merge to the one in TachyonFS
     // Push TachyonConf to the Job conf
