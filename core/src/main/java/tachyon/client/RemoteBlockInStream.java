@@ -123,7 +123,7 @@ public class RemoteBlockInStream extends BlockInStream {
   public void close() throws IOException {
     if (!mClosed) {
       if (mRecache) {
-        mBlockOutStream.cancel();
+        mBlockOutStream.close();
       }
       if (mCheckpointInputStream != null) {
         mCheckpointInputStream.close();
