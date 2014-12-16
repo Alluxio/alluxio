@@ -184,7 +184,7 @@ public class Performance {
 
     public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
-      mTC = TachyonFS.get(sMasterAddress);
+      mTC = TachyonFS.get(sMasterAddress, new TachyonConf());
     }
 
     public void writeParition() throws IOException {
@@ -223,7 +223,7 @@ public class Performance {
 
     public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
-      mTC = TachyonFS.get(sMasterAddress);
+      mTC = TachyonFS.get(sMasterAddress, new TachyonConf());
     }
 
     public void readPartition() throws IOException {
@@ -538,13 +538,13 @@ public class Performance {
     if (testCase == 1) {
       sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;
       LOG.info(sResultPrefix);
-      sMtc = TachyonFS.get(sMasterAddress);
+      sMtc = TachyonFS.get(sMasterAddress, new TachyonConf());
       createFiles();
       TachyonTest(true);
     } else if (testCase == 2 || testCase == 9) {
       sResultPrefix = "TachyonFilesReadTest " + sResultPrefix;
       LOG.info(sResultPrefix);
-      sMtc = TachyonFS.get(sMasterAddress);
+      sMtc = TachyonFS.get(sMasterAddress, new TachyonConf());
       sTachyonStreamingRead = (9 == testCase);
       TachyonTest(false);
     } else if (testCase == 3) {

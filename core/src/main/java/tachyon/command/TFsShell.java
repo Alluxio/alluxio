@@ -678,9 +678,7 @@ public class TFsShell implements Closeable {
    */
   private TachyonFS createFS(final TachyonURI path) throws IOException {
     String qualifiedPath = Utils.validatePath(path.toString(), mTachyonConf);
-    TachyonFS tachyonFS = TachyonFS.get(new TachyonURI(qualifiedPath));
-    // Merge from TFsShell's conf.
-    tachyonFS.mergeConf(mTachyonConf);
+    TachyonFS tachyonFS = TachyonFS.get(new TachyonURI(qualifiedPath), mTachyonConf);
     return mCloser.register(tachyonFS);
   }
 }

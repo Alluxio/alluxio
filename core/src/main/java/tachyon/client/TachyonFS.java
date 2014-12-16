@@ -62,11 +62,11 @@ public class TachyonFS extends AbstractTachyonFS {
    *        tachyon://localhost:19998/ab/c.txt
    * @return the corresponding TachyonFS handler
    * @throws IOException
-   * @see #get(tachyon.TachyonURI)
+   * @see #get(tachyon.TachyonURI, tachyon.conf.TachyonConf)
    */
   @Deprecated
   public static synchronized TachyonFS get(String tachyonPath) throws IOException {
-    return get(new TachyonURI(tachyonPath));
+    return get(new TachyonURI(tachyonPath), new TachyonConf());
   }
 
   /**
@@ -74,10 +74,12 @@ public class TachyonFS extends AbstractTachyonFS {
    * 
    * @param tachyonURI a Tachyon URI contains master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
+   * @param tachyonConf The TachyonConf instance.
    * @return the corresponding TachyonFS handler
    * @throws IOException
    */
-  public static synchronized TachyonFS get(final TachyonURI tachyonURI) throws IOException {
+  public static synchronized TachyonFS get(final TachyonURI tachyonURI, TachyonConf tachyonConf)
+      throws IOException {
     if (tachyonURI == null) {
       throw new IOException("Tachyon Uri cannot be null. Use " + Constants.HEADER + "host:port/ ,"
           + Constants.HEADER_FT + "host:port/");
@@ -90,7 +92,7 @@ public class TachyonFS extends AbstractTachyonFS {
       }
 
       boolean useZookeeper = scheme.equals(Constants.SCHEME_FT);
-      return get(tachyonURI.getHost(), tachyonURI.getPort(), useZookeeper);
+      return get(tachyonURI.getHost(), tachyonURI.getPort(), useZookeeper, tachyonConf);
     }
   }
 
@@ -100,16 +102,18 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param masterHost master host details
    * @param masterPort port master listens on
    * @param zookeeperMode use zookeeper
+   * @param tachyonConf The TachyonConf instance.
    * 
    * @return the corresponding TachyonFS handler
    * @throws IOException
    */
-  public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zookeeperMode)
-      throws IOException {
-    TachyonConf tachyonConf = new TachyonConf();
-    tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(zookeeperMode));
-    tachyonConf.set(Constants.MASTER_HOSTNAME, masterHost);
-    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(masterPort));
+  public static synchronized TachyonFS get(String masterHost, int masterPort,
+      boolean zookeeperMode, TachyonConf tachyonConf) throws IOException {
+    if (tachyonConf != null) {
+      tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(zookeeperMode));
+      tachyonConf.set(Constants.MASTER_HOSTNAME, masterHost);
+      tachyonConf.set(Constants.MASTER_PORT, Integer.toString(masterPort));
+    }
     return new TachyonFS(new InetSocketAddress(masterHost, masterPort), tachyonConf);
   }
 

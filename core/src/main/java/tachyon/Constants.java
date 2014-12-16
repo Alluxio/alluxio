@@ -69,6 +69,8 @@ public class Constants {
   // Please check and update Configuration-Settings.md file when you change or add Tachyon
   // configuration properties.
 
+  // This constant is being used only in Hadoop MR job submissions where client need to pass site
+  // specific configuration properties. It will be used as key in the MR Configuration.
   public static final String TACHYON_CONF_SITE = "tachyon.conf.site";
 
   public static final String DEFAULT_HOME = "/mnt/tachyon_default_home";

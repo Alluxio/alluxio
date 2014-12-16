@@ -30,6 +30,7 @@ import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**

@@ -207,8 +207,6 @@ public class TestDFSIO implements Tool {
     // Init TestDFSIO
     bench = new TestDFSIO();
     bench.getConf().setBoolean("dfs.support.append", true);
-    bench.getConf().set("io.serializations","org.apache.hadoop.io.serializer.JavaSerialization,"
-        + "org.apache.hadoop.io.serializer.WritableSerialization");
 
     // Start local Tachyon cluster
     mLocalTachyonCluster = new LocalTachyonCluster(500000, 100000, BLOCK_SIZE);
@@ -219,9 +217,9 @@ public class TestDFSIO implements Tool {
     bench.getConf().set("fs.default.name", mLocalTachyonClusterUri.toString());
     bench.getConf().set("fs." + Constants.SCHEME + ".impl", TFS.class.getName());
 
+    // Store TachyonConf in Hadoop Configuration
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    Properties confProperties = tachyonConf.getInternalProperties();
-    DefaultStringifier.store(bench.getConf(), confProperties, Constants.TACHYON_CONF_SITE);
+    TachyonConf.storeToHadoopConfiguration(tachyonConf,bench.getConf());
 
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     bench.createControlFile(fs, DEFAULT_NR_BYTES, DEFAULT_NR_FILES);

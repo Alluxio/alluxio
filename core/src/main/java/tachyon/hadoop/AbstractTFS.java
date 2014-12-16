@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
@@ -30,7 +29,6 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
-import org.apache.hadoop.io.DefaultStringifier;
 import org.apache.hadoop.util.Progressable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -346,19 +344,14 @@ abstract class AbstractTFS extends FileSystem {
     Utils.addS3Credentials(conf);
     setConf(conf);
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
-    mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode());
 
     // Load TachyonConf if any and merge to the one in TachyonFS
-    // Push TachyonConf to the Job conf
-    if (conf.get(Constants.TACHYON_CONF_SITE) != null) {
-      LOG.info("Found TachyonConf site from Job configuration for " + uri.toString());
-      Properties tachyonConfProperties = DefaultStringifier.load(conf, Constants.TACHYON_CONF_SITE,
-          Properties.class);
-      if (tachyonConfProperties != null) {
-        TachyonConf tachyonConf = new TachyonConf(tachyonConfProperties);
-        mTFS.mergeConf(tachyonConf);
-      }
+    TachyonConf siteConf = TachyonConf.loadFromHadoopConfiguration(conf);
+    if (siteConf != null) {
+      mTachyonConf.merge(siteConf);
     }
+
+    mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode(), mTachyonConf);
 
     mUri = URI.create(mTachyonHeader);
     mUnderFSAddress = mTFS.getUfsAddress();

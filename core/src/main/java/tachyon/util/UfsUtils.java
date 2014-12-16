@@ -30,6 +30,7 @@ import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.Version;
 import tachyon.client.TachyonFS;
+import tachyon.conf.TachyonConf;
 
 /**
  * Utilities related to under filesystem
@@ -64,11 +65,12 @@ public class UfsUtils {
    *        "tachyon://host:port/dest".
    * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/src".
    * @param excludePaths paths to exclude from ufsRootPath, which will not be loaded in mTachyonFS.
+   * @param tachyonConf the instance of {@link tachyon.conf.TachyonConf} to be used.
    * @throws IOException
    */
   public static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath,
-      String excludePaths) throws IOException {
-    TachyonFS tfs = TachyonFS.get(tfsAddrRootPath);
+      String excludePaths,  TachyonConf tachyonConf) throws IOException {
+    TachyonFS tfs = TachyonFS.get(tfsAddrRootPath, tachyonConf);
 
     PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");
 
@@ -183,7 +185,7 @@ public class UfsUtils {
     String exList = (args.length == 3) ? args[2] : "";
 
     try {
-      loadUfs(new TachyonURI(args[0]), new TachyonURI(args[1]), exList);
+      loadUfs(new TachyonURI(args[0]), new TachyonURI(args[1]), exList, new TachyonConf());
     } catch (Exception e) {
       e.printStackTrace();
       printUsage();

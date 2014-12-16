@@ -1,6 +1,5 @@
 package tachyon.conf;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -13,7 +12,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Preconditions;
+
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.DefaultStringifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +58,42 @@ public class TachyonConf {
 
   public static void assertValidPort(final InetSocketAddress address, TachyonConf tachyonConf) {
     assertValidPort(address.getPort(), tachyonConf);
+  }
+
+  public static void storeToHadoopConfiguration(TachyonConf source, Configuration target) {
+    // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
+    target.set("io.serializations", "org.apache.hadoop.io.serializer.JavaSerialization,"
+        + "org.apache.hadoop.io.serializer.WritableSerialization");
+    Properties confProperties = source.getInternalProperties();
+    try {
+      DefaultStringifier.store(target, confProperties, Constants.TACHYON_CONF_SITE);
+    } catch (IOException ex) {
+      LOG.error("Unable to store TachyonConf in Haddop configuration", ex);
+      throw new RuntimeException(ex);
+    }
+  }
+
+  public static TachyonConf loadFromHadoopConfiguration(Configuration source) {
+    // Load TachyonConf if any and merge to the one in TachyonFS
+    // Push TachyonConf to the Job conf
+    if (source.get(Constants.TACHYON_CONF_SITE) != null) {
+      LOG.info("Found TachyonConf site from Job configuration for Tachyon");
+      Properties tachyonConfProperties = null;
+      try {
+        tachyonConfProperties = DefaultStringifier.load(source, Constants.TACHYON_CONF_SITE,
+            Properties.class);
+      } catch (IOException ex) {
+        LOG.error("Unable to load TachyonConf from Haddop configuration", ex);
+        throw new RuntimeException(ex);
+      }
+      if (tachyonConfProperties != null) {
+        return new TachyonConf(tachyonConfProperties);
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -107,6 +145,27 @@ public class TachyonConf {
    */
   TachyonConf(boolean includeSystemProperties) {
     loadDefault(includeSystemProperties);
+  }
+
+  @Override
+  public int hashCode() {
+    int hash = 0;
+    for (Object s : mProperties.keySet()) {
+      hash ^= s.hashCode();
+    }
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    } else if (obj instanceof TachyonConf) {
+      Properties props = ((TachyonConf) obj).getInternalProperties();
+      return mProperties.equals(props);
+    } else {
+      return false;
+    }
   }
 
   /**
