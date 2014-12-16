@@ -82,8 +82,7 @@ abstract class AbstractTFS extends FileSystem {
       LOG.warn("This maybe an error.");
     }
 
-    WriteType type = mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE,
-        WriteType.CACHE_THROUGH);
+    WriteType type = getWriteType();
     return new FSDataOutputStream(file.getOutStream(type), null);
   }
 
@@ -104,8 +103,7 @@ abstract class AbstractTFS extends FileSystem {
       TachyonFile file = mTFS.getFile(fileId);
       file.setUFSConf(getConf());
 
-      WriteType type = mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE,
-          WriteType.CACHE_THROUGH);
+      WriteType type = getWriteType();
       return new FSDataOutputStream(file.getOutStream(type), null);
     }
 
@@ -158,8 +156,7 @@ abstract class AbstractTFS extends FileSystem {
     } else {
       TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       int fileId;
-      WriteType type = mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE,
-          WriteType.CACHE_THROUGH);
+      WriteType type =  getWriteType();
       if (mTFS.exist(path)) {
         fileId = mTFS.getFileId(path);
         type = WriteType.MUST_CACHE;
@@ -440,5 +437,9 @@ abstract class AbstractTFS extends FileSystem {
   @Deprecated
   private boolean useHdfs() {
     return mUnderFSAddress != null && URI.create(mUnderFSAddress).getScheme() != null;
+  }
+
+  private WriteType getWriteType() {
+    return mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.CACHE_THROUGH);
   }
 }
