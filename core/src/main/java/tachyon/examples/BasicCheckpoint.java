@@ -34,6 +34,7 @@ import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.conf.TachyonConf;
 import tachyon.master.DependencyType;
 import tachyon.util.CommonUtils;
 
@@ -55,7 +56,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    TachyonFS tachyonClient = TachyonFS.get(mLocation);
+    TachyonFS tachyonClient = TachyonFS.get(mLocation, new TachyonConf());
     createDependency(tachyonClient);
     writeFile(tachyonClient);
     return readFile(tachyonClient);

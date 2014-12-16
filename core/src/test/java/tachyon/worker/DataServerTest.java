@@ -70,15 +70,6 @@ public class DataServerTest {
     mType = type;
   }
 
-  @Before
-  public final void before() throws IOException {
-    System.setProperty("tachyon.worker.network.type", mType.toString());
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
-        Constants.GB);
-    mLocalTachyonCluster.start();
-    mTFS = mLocalTachyonCluster.getClient();
-  }
-
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
@@ -109,6 +100,15 @@ public class DataServerTest {
   private void assertValid(final DataServerMessage msg, final int expectedSize, final long blockId,
       final long offset, final long length) {
     assertValid(msg, TestUtils.getIncreasingByteBuffer(expectedSize), blockId, offset, length);
+  }
+
+  @Before
+  public final void before() throws IOException {
+    System.setProperty("tachyon.worker.network.type", mType.toString());
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
+    mLocalTachyonCluster.start();
+    mTFS = mLocalTachyonCluster.getClient();
   }
 
   @Test

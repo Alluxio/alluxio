@@ -44,10 +44,7 @@ public final class ClientPool implements Closeable {
    * directly, but can be closed by calling {@link #close()} on this object.
    */
   public TachyonFS getClient(TachyonConf tachyonConf) throws IOException {
-    final TachyonFS fs = TachyonFS.get(new TachyonURI(mUriSuppliers.get()));
-    if (tachyonConf != null) {
-      fs.mergeConf(tachyonConf);
-    }
+    final TachyonFS fs = TachyonFS.get(new TachyonURI(mUriSuppliers.get()), tachyonConf);
     mClients.add(fs);
     return fs;
   }

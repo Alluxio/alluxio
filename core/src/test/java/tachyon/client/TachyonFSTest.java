@@ -250,28 +250,28 @@ public class TachyonFSTest {
   public void getTestAbnormal1() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS.get(new TachyonURI("/" + host + ":" + port));
+    TachyonFS.get(new TachyonURI("/" + host + ":" + port), mMasterTachyonConf);
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal2() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS.get(new TachyonURI("/" + host + port));
+    TachyonFS.get(new TachyonURI("/" + host + port), mMasterTachyonConf);
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal3() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS.get(new TachyonURI("/" + host + ":" + (port - 1)));
+    TachyonFS.get(new TachyonURI("/" + host + ":" + (port - 1)), mMasterTachyonConf);
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal4() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS.get(new TachyonURI("/" + host + ":" + port + "/ab/c.txt"));
+    TachyonFS.get(new TachyonURI("/" + host + ":" + port + "/ab/c.txt"), mMasterTachyonConf);
   }
 
   private void getTestHelper(TachyonFS tfs) throws IOException {
@@ -284,7 +284,8 @@ public class TachyonFSTest {
   public void getTestNormal1() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port));
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port),
+        mMasterTachyonConf);
     getTestHelper(tfs);
   }
 
@@ -292,7 +293,8 @@ public class TachyonFSTest {
   public void getTestNormal2() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port + "/"));
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port + "/"),
+        mMasterTachyonConf);
     getTestHelper(tfs);
   }
 
@@ -300,7 +302,8 @@ public class TachyonFSTest {
   public void getTestNormal3() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port + "/ab/c.txt"));
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port + "/ab/c.txt"),
+        mMasterTachyonConf);
     getTestHelper(tfs);
   }
 
@@ -455,7 +458,7 @@ public class TachyonFSTest {
 
   @Test
   public void toStringTest() throws IOException {
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://127.0.0.1:19998"));
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://127.0.0.1:19998"), mMasterTachyonConf);
     Assert.assertEquals("tachyon:///127.0.0.1:19998", tfs.toString());
   }
 

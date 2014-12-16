@@ -136,12 +136,4 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   public synchronized boolean rename(TachyonURI srcPath, TachyonURI dstPath) throws IOException {
     return rename(-1, srcPath, dstPath);
   }
-
-  /**
-   * Merge the {@link tachyon.conf.TachyonConf} instance
-   * @param tachyonConf
-   */
-  public synchronized void mergeConf(TachyonConf tachyonConf) {
-    mTachyonConf.merge(tachyonConf);
-  }
 }
