@@ -57,7 +57,7 @@ public class TachyonFSTest {
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
     System.setProperty("tachyon.max.columns", "257");
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, 1);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
   }

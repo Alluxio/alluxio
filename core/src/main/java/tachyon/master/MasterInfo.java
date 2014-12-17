@@ -1,18 +1,3 @@
-/*
- * Licensed to the University of California, Berkeley under one or more contributor license
- * agreements. See the NOTICE file distributed with this work for additional information regarding
- * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance with the License. You may obtain a
- * copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
- */
-
 package tachyon.master;
 
 import java.io.DataOutputStream;
@@ -36,15 +21,19 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -284,9 +273,17 @@ public class MasterInfo extends ImageWriter {
   private Future<?> mHeartbeat;
   private Future<?> mRecompute;
 
-  public MasterInfo(InetSocketAddress address, Journal journal, ExecutorService mExecutorService)
+  private final ExecutorService mRecomputeExecutor = Executors.newFixedThreadPool(1,
+      new ThreadFactoryBuilder().setNameFormat("recompute-scheduler-%d").build());
+
+  /**
+   * Used for host selection when there are multiple works on the same host.
+   */
+  private final Random mRandom = new Random();
+
+  public MasterInfo(InetSocketAddress address, Journal journal, ExecutorService executorService) 
       throws IOException {
-    this.mExecutorService = mExecutorService;
+    mExecutorService = executorService;
     mMasterConf = MasterConf.get();
 
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1, System.currentTimeMillis());
@@ -1685,36 +1682,71 @@ public class MasterInfo extends ImageWriter {
    * @return the address of the selected worker, or null if no address could be found
    */
   public NetAddress getWorker(boolean random, String host) throws UnknownHostException {
+    final Optional<NetAddress> address;
     synchronized (mWorkers) {
       if (mWorkerAddressToId.isEmpty()) {
-        return null;
-      }
-      if (random) {
-        int index = new Random(mWorkerAddressToId.size()).nextInt(mWorkerAddressToId.size());
-        for (NetAddress address : mWorkerAddressToId.keySet()) {
-          if (index == 0) {
-            LOG.debug("getRandomWorker: {}", address);
-            return address;
-          }
-          index --;
-        }
-        for (NetAddress address : mWorkerAddressToId.keySet()) {
-          LOG.debug("getRandomWorker: {}", address);
-          return address;
-        }
+        address = Optional.absent();
+      } else if (random) {
+        address = Optional.of(randomWorker());
       } else {
-        for (NetAddress address : mWorkerAddressToId.keySet()) {
-          InetAddress inetAddress = InetAddress.getByName(address.getMHost());
-          if (inetAddress.getHostName().equals(host) || inetAddress.getHostAddress().equals(host)
-              || inetAddress.getCanonicalHostName().equals(host)) {
-            LOG.debug("getLocalWorker: {}" + address);
-            return address;
-          }
-        }
+        address = randomWorker(host);
       }
     }
-    LOG.info("getLocalWorker: no local worker on " + host);
-    return null;
+    if (address.isPresent()) {
+      LOG.debug("getWorker: {}", address.get());
+      return address.get();
+    } else {
+      LOG.info("getWorker: no worker to return; random({}), host({})", random, host);
+      return null;
+    }
+  }
+
+  /**
+   * Returns a random worker from the known set.  This method does not do locking, so all locks
+   * must be done by the caller.  Also, no checks for empty (no worker) are done, this test
+   * is expected from the caller as well.
+   */
+  private NetAddress randomWorker() {
+    int index = mRandom.nextInt(mWorkerAddressToId.size());
+    NetAddress address = FluentIterable.from(mWorkerAddressToId.keySet()).get(index);
+    LOG.debug("getRandomWorker: {}", address);
+    return address;
+  }
+
+  /**
+   * Returns a random worker from the known set only if it matches the hostname. This method
+   * supports multiple workers on the same host. This method does not do locking, so all locks
+   * must be done by the caller.  Also, no checks for empty (no worker) are done, this test
+   * is expected from the caller as well.
+   */
+  private Optional<NetAddress> randomWorker(final String host) throws UnknownHostException {
+    List<NetAddress> workers = findWorkers(host);
+    final int size = workers.size();
+    if (size > 1) {
+      // we have multiple workers on the same node
+      // get a random worker on the node
+      return Optional.of(workers.get(mRandom.nextInt(workers.size())));
+    } else if (size == 1) {
+      // we have one worker, return it
+      return Optional.of(workers.get(0));
+    }
+    return Optional.absent();
+  }
+
+  /**
+   * This method expects that mWorkerAddressToId is locked properly.  This method will not do
+   * the locking itself, so the caller must do so.
+   */
+  private List<NetAddress> findWorkers(final String host) throws UnknownHostException {
+    final ImmutableList.Builder<NetAddress> workers = ImmutableList.builder();
+    for (NetAddress address : mWorkerAddressToId.keySet()) {
+      InetAddress inetAddress = InetAddress.getByName(address.getMHost());
+      if (inetAddress.getHostName().equals(host) || inetAddress.getHostAddress().equals(host)
+          || inetAddress.getCanonicalHostName().equals(host)) {
+        workers.add(address);
+      }
+    }
+    return workers.build();
   }
 
   /**

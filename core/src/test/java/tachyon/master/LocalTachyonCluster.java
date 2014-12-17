@@ -17,6 +17,18 @@ package tachyon.master;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -34,6 +46,8 @@ import tachyon.worker.TachyonWorker;
  * Local Tachyon cluster for unit tests.
  */
 public final class LocalTachyonCluster {
+  private static final int DEFAULT_WORKER_COUNT = 1;
+
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100);
     cluster.start();
@@ -48,20 +62,33 @@ public final class LocalTachyonCluster {
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
   }
 
-  private TachyonWorker mWorker = null;
+  private final List<TachyonWorker> mWorkers;
 
-  private long mWorkerCapacityBytes;
+  private final long mWorkerCapacityBytes;
+  private final int mNumWorkers;
+  private final ExecutorService mWorkerExecutor;
+  private final Random mRandom = new Random();
   private String mTachyonHome;
 
   private String mWorkerDataFolder;
 
-  private Thread mWorkerThread = null;
   private String mLocalhostName = null;
 
   private LocalTachyonMaster mMaster;
 
   public LocalTachyonCluster(long workerCapacityBytes) {
+    this(workerCapacityBytes, DEFAULT_WORKER_COUNT);
+  }
+
+  public LocalTachyonCluster(long workerCapacityBytes, int numWorkers) {
+    Preconditions.checkArgument(numWorkers > 0, "Only positive worker sizes are allowed");
+
     mWorkerCapacityBytes = workerCapacityBytes;
+    mNumWorkers = numWorkers;
+    mWorkers = Lists.newArrayListWithCapacity(mNumWorkers);
+    mWorkerExecutor =
+        Executors.newFixedThreadPool(mNumWorkers,
+            new ThreadFactoryBuilder().setNameFormat("tachyon-worker-%d").build());
   }
 
   public TachyonFS getClient() throws IOException {
@@ -104,24 +131,44 @@ public final class LocalTachyonCluster {
     return CommonConf.get().UNDERFS_ADDRESS;
   }
 
-  public TachyonWorker getWorker() {
-    return mWorker;
+  public ImmutableList<TachyonWorker> getWorkers() {
+    return ImmutableList.copyOf(mWorkers);
   }
 
+  private TachyonWorker getRandomWorker() {
+    int index = mRandom.nextInt(mWorkers.size());
+    return mWorkers.get(index);
+  }
+
+  /**
+   * With multiple users, this method doesn't make as much sense.  Tests that use this should
+   * relook at their flow to see if it can be replaced.
+   *
+   * The logic of this method is to return a new random worker on each call.  Callers should
+   * not expect that this method returns the same result each time.  This way it works closer
+   * to how the master works.
+   */
+  @Deprecated
+  public TachyonWorker getWorker() {
+    return getRandomWorker();
+  }
+
+  /**
+   * With multiple users, this method doesn't make as much sense.  Tests that use this should
+   * relook at their flow to see if it can be replaced.
+   *
+   * The logic of this method is to return a new random worker on each call.  Callers should
+   * not expect that this method returns the same result each time.  This way it works closer
+   * to how the master works.
+   */
+  @Deprecated
   public NetAddress getWorkerAddress() {
-    return new NetAddress(mLocalhostName, getWorkerPort(), getWorkerDataPort());
+    TachyonWorker worker = getRandomWorker();
+    return new NetAddress(mLocalhostName, worker.getMetaPort(), worker.getDataPort());
   }
 
   public String getWorkerDataFolder() {
     return mWorkerDataFolder;
-  }
-
-  public int getWorkerPort() {
-    return mWorker.getMetaPort();
-  }
-
-  public int getWorkerDataPort() {
-    return mWorker.getDataPort();
   }
 
   private void deleteDir(String path) throws IOException {
@@ -188,25 +235,24 @@ public final class LocalTachyonCluster {
     System.setProperty("tachyon.master.port", getMasterPort() + "");
     System.setProperty("tachyon.master.web.port", (getMasterPort() + 1) + "");
 
-    mWorker =
-        TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
-            mWorkerCapacityBytes);
-    Runnable runWorker = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          mWorker.start();
-        } catch (Exception e) {
-          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+    for (int i = 0; i < mNumWorkers; i++) {
+      final TachyonWorker worker =
+          TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
+              new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
+              mWorkerCapacityBytes);
+      Runnable runWorker = new Runnable() {
+        @Override
+        public void run() {
+          try {
+            worker.start();
+          } catch (Exception e) {
+            throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+          }
         }
-      }
-    };
-    mWorkerThread = new Thread(runWorker);
-    mWorkerThread.start();
-
-    System.setProperty("tachyon.worker.port", getWorkerPort() + "");
-    System.setProperty("tachyon.worker.data.port", getWorkerDataPort() + "");
+      };
+      mWorkers.add(worker);
+      mWorkerExecutor.submit(runWorker);
+    }
   }
 
   /**
@@ -226,7 +272,8 @@ public final class LocalTachyonCluster {
    */
   public void stopTFS() throws Exception {
     mMaster.stop();
-    mWorker.stop();
+    shutdownWorkers();
+    mWorkerExecutor.shutdown();
 
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.master.hostname");
@@ -246,6 +293,22 @@ public final class LocalTachyonCluster {
     System.clearProperty("tachyon.master.web.threads");
   }
 
+  private void shutdownWorkers() throws IOException, InterruptedException {
+    Throwable last = null;
+    for (TachyonWorker worker: mWorkers) {
+      try {
+        worker.stop();
+      } catch (Throwable t) {
+        last = t;
+      }
+    }
+    if (last != null) {
+      throw Throwables.propagate(last);
+    }
+    mWorkerExecutor.shutdownNow();
+    mWorkerExecutor.awaitTermination(5, TimeUnit.SECONDS);
+  }
+
   /**
    * Cleanup the underfs cluster test folder only
    * 
@@ -257,6 +320,6 @@ public final class LocalTachyonCluster {
 
   public void stopWorker() throws Exception {
     mMaster.clearClients();
-    mWorker.stop();
+    shutdownWorkers();
   }
 }
