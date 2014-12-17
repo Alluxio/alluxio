@@ -84,7 +84,7 @@ public class RemoteBlockInStream extends BlockInStream {
   /**
   * The wait timeout for recache to be done after close() is called
   */
-  private final long mRecacheTimeoutMs = 5000;
+  private static final long RECACHE_TIME_OUT_MS = 5000;
 
   /**
    * @param file the file the block belongs to
@@ -138,7 +138,7 @@ public class RemoteBlockInStream extends BlockInStream {
   private void cancelBlockOutStreamIfNeeded() throws IOException {
     synchronized (mFlagDoneRecache) {
       try {
-        mFlagDoneRecache.wait(mRecacheTimeoutMs);
+        mFlagDoneRecache.wait(RECACHE_TIME_OUT_MS);
       } catch (InterruptedException e) {
         // Restore the interrupted status
         Thread.currentThread().interrupt();
