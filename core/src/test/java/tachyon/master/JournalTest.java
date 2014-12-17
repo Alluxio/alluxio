@@ -150,7 +150,7 @@ public class JournalTest {
    * @throws Exception
    */
   @Test
-  public void CompltedEditLogDeletionTest() throws Exception {
+  public void CompletedEditLogDeletionTest() throws Exception {
     Journal journal = mLocalTachyonCluster.getMasterInfo().getJournal();
     journal.setMaxLogSize(Constants.KB);
     for (int i = 0; i < 124; i ++) {
