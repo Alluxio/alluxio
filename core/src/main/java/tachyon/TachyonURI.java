@@ -343,7 +343,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return the new TachyonURI
    */
   public TachyonURI join(String suffix) {
-    return new TachyonURI(toString() + TachyonURI.SEPARATOR + suffix);
+    return new TachyonURI(getScheme(), getAuthority(), getPath() + TachyonURI.SEPARATOR + suffix);
   }
 
   /**
