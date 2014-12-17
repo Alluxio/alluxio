@@ -84,7 +84,7 @@ public class RemoteBlockInStream extends BlockInStream {
   /**
   * The wait timeout for recache to be done after close() is called
   */
-  private static final long RECACHE_TIME_OUT_MS = 5000;
+  private static final long RECACHE_TIME_OUT_MS = 3000;
 
   /**
    * @param file the file the block belongs to
