@@ -87,7 +87,7 @@ public class MasterService {
      */
     public NetAddress user_getWorker(boolean random, String host) throws NoWorkerException, org.apache.thrift.TException;
 
-    public ClientFileInfo getFileStatus(int fileId, String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException, org.apache.thrift.TException;
 
     /**
      * Get block's ClientBlockInfo.
@@ -735,7 +735,7 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getWorker failed: unknown result");
     }
 
-    public ClientFileInfo getFileStatus(int fileId, String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException, org.apache.thrift.TException
     {
       send_getFileStatus(fileId, path);
       return recv_getFileStatus();
@@ -749,15 +749,12 @@ public class MasterService {
       sendBase("getFileStatus", args);
     }
 
-    public ClientFileInfo recv_getFileStatus() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public ClientFileInfo recv_getFileStatus() throws InvalidPathException, org.apache.thrift.TException
     {
       getFileStatus_result result = new getFileStatus_result();
       receiveBase(result, "getFileStatus");
       if (result.isSetSuccess()) {
         return result.success;
-      }
-      if (result.eF != null) {
-        throw result.eF;
       }
       if (result.eI != null) {
         throw result.eI;
@@ -1811,7 +1808,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public ClientFileInfo getResult() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
+      public ClientFileInfo getResult() throws InvalidPathException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -2784,8 +2781,6 @@ public class MasterService {
         getFileStatus_result result = new getFileStatus_result();
         try {
           result.success = iface.getFileStatus(args.fileId, args.path);
-        } catch (FileDoesNotExistException eF) {
-          result.eF = eF;
         } catch (InvalidPathException eI) {
           result.eI = eI;
         }
@@ -4270,12 +4265,7 @@ public class MasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getFileStatus_result result = new getFileStatus_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.eF = (FileDoesNotExistException) e;
-                        result.setEFIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof InvalidPathException) {
+            if (e instanceof InvalidPathException) {
                         result.eI = (InvalidPathException) e;
                         result.setEIIsSet(true);
                         msg = result;
@@ -23001,8 +22991,7 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileStatus_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
-    private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -23011,14 +23000,12 @@ public class MasterService {
     }
 
     public ClientFileInfo success; // required
-    public FileDoesNotExistException eF; // required
     public InvalidPathException eI; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E_F((short)1, "eF"),
-      E_I((short)2, "eI");
+      E_I((short)1, "eI");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -23035,9 +23022,7 @@ public class MasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // E_F
-            return E_F;
-          case 2: // E_I
+          case 1: // E_I
             return E_I;
           default:
             return null;
@@ -23084,8 +23069,6 @@ public class MasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientFileInfo.class)));
-      tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -23097,12 +23080,10 @@ public class MasterService {
 
     public getFileStatus_result(
       ClientFileInfo success,
-      FileDoesNotExistException eF,
       InvalidPathException eI)
     {
       this();
       this.success = success;
-      this.eF = eF;
       this.eI = eI;
     }
 
@@ -23112,9 +23093,6 @@ public class MasterService {
     public getFileStatus_result(getFileStatus_result other) {
       if (other.isSetSuccess()) {
         this.success = new ClientFileInfo(other.success);
-      }
-      if (other.isSetEF()) {
-        this.eF = new FileDoesNotExistException(other.eF);
       }
       if (other.isSetEI()) {
         this.eI = new InvalidPathException(other.eI);
@@ -23128,7 +23106,6 @@ public class MasterService {
     @Override
     public void clear() {
       this.success = null;
-      this.eF = null;
       this.eI = null;
     }
 
@@ -23153,30 +23130,6 @@ public class MasterService {
     public void setSuccessIsSet(boolean value) {
       if (!value) {
         this.success = null;
-      }
-    }
-
-    public FileDoesNotExistException getEF() {
-      return this.eF;
-    }
-
-    public getFileStatus_result setEF(FileDoesNotExistException eF) {
-      this.eF = eF;
-      return this;
-    }
-
-    public void unsetEF() {
-      this.eF = null;
-    }
-
-    /** Returns true if field eF is set (has been assigned a value) and false otherwise */
-    public boolean isSetEF() {
-      return this.eF != null;
-    }
-
-    public void setEFIsSet(boolean value) {
-      if (!value) {
-        this.eF = null;
       }
     }
 
@@ -23214,14 +23167,6 @@ public class MasterService {
         }
         break;
 
-      case E_F:
-        if (value == null) {
-          unsetEF();
-        } else {
-          setEF((FileDoesNotExistException)value);
-        }
-        break;
-
       case E_I:
         if (value == null) {
           unsetEI();
@@ -23237,9 +23182,6 @@ public class MasterService {
       switch (field) {
       case SUCCESS:
         return getSuccess();
-
-      case E_F:
-        return getEF();
 
       case E_I:
         return getEI();
@@ -23257,8 +23199,6 @@ public class MasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case E_F:
-        return isSetEF();
       case E_I:
         return isSetEI();
       }
@@ -23284,15 +23224,6 @@ public class MasterService {
         if (!(this_present_success && that_present_success))
           return false;
         if (!this.success.equals(that.success))
-          return false;
-      }
-
-      boolean this_present_eF = true && this.isSetEF();
-      boolean that_present_eF = true && that.isSetEF();
-      if (this_present_eF || that_present_eF) {
-        if (!(this_present_eF && that_present_eF))
-          return false;
-        if (!this.eF.equals(that.eF))
           return false;
       }
 
@@ -23327,16 +23258,6 @@ public class MasterService {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEF()).compareTo(other.isSetEF());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEF()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eF, other.eF);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -23376,14 +23297,6 @@ public class MasterService {
         sb.append("null");
       } else {
         sb.append(this.success);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eF:");
-      if (this.eF == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eF);
       }
       first = false;
       if (!first) sb.append(", ");
@@ -23449,16 +23362,7 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // E_F
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eF = new FileDoesNotExistException();
-                struct.eF.read(iprot);
-                struct.setEFIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // E_I
+            case 1: // E_I
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.eI = new InvalidPathException();
                 struct.eI.read(iprot);
@@ -23487,11 +23391,6 @@ public class MasterService {
           struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
-        if (struct.eF != null) {
-          oprot.writeFieldBegin(E_F_FIELD_DESC);
-          struct.eF.write(oprot);
-          oprot.writeFieldEnd();
-        }
         if (struct.eI != null) {
           oprot.writeFieldBegin(E_I_FIELD_DESC);
           struct.eI.write(oprot);
@@ -23518,18 +23417,12 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetEF()) {
+        if (struct.isSetEI()) {
           optionals.set(1);
         }
-        if (struct.isSetEI()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           struct.success.write(oprot);
-        }
-        if (struct.isSetEF()) {
-          struct.eF.write(oprot);
         }
         if (struct.isSetEI()) {
           struct.eI.write(oprot);
@@ -23539,18 +23432,13 @@ public class MasterService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getFileStatus_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = new ClientFileInfo();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.eF = new FileDoesNotExistException();
-          struct.eF.read(iprot);
-          struct.setEFIsSet(true);
-        }
-        if (incoming.get(2)) {
           struct.eI = new InvalidPathException();
           struct.eI.read(iprot);
           struct.setEIIsSet(true);
