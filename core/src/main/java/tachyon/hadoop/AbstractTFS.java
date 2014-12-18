@@ -85,6 +85,17 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   @Override
+  public void close() throws IOException {
+    try {
+      super.close();
+    } finally {
+      if (mTFS != null) {
+        mTFS.close();
+      }
+    }
+  }
+
+  @Override
   public FSDataOutputStream create(Path cPath, FsPermission permission, boolean overwrite,
       int bufferSize, short replication, long blockSize, Progressable progress) throws IOException {
     LOG.info("create(" + cPath + ", " + permission + ", " + overwrite + ", " + bufferSize + ", "
