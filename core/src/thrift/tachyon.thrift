@@ -188,7 +188,7 @@ service MasterService {
     throws (1: NoWorkerException e)
 
   ClientFileInfo getFileStatus(1: i32 fileId, 2: string path)
-    throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
+    throws (1: InvalidPathException eI)
 
   /**
    * Get block's ClientBlockInfo.

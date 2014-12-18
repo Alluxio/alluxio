@@ -1205,9 +1205,8 @@ public class MasterInfo extends ImageWriter {
    * 
    * @param fid The id of the file
    * @return the file info
-   * @throws InvalidPathException
    */
-  public ClientFileInfo getClientFileInfo(int fid) throws InvalidPathException {
+  public ClientFileInfo getClientFileInfo(int fid) {
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fid);
       if (inode == null) {
