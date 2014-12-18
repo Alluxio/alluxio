@@ -1,3 +1,17 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package tachyon.master;
 
 import java.io.File;
@@ -19,7 +33,7 @@ import tachyon.worker.TachyonWorker;
 /**
  * Local Tachyon cluster for unit tests.
  */
-public class LocalTachyonCluster {
+public final class LocalTachyonCluster {
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100);
     cluster.start();
@@ -149,9 +163,14 @@ public class LocalTachyonCluster {
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
     System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
-    // Don't spin off too many threads for data port. Each test will create a new data server so the
+    // Lower the number of threads that the cluster will spin off.
     // default thread overhead is too much.
+    System.setProperty("tachyon.master.selector.threads", Integer.toString(1));
+    System.setProperty("tachyon.master.server.threads", Integer.toString(2));
+    System.setProperty("tachyon.worker.selector.threads", Integer.toString(1));
+    System.setProperty("tachyon.worker.server.threads", Integer.toString(2));
     System.setProperty("tachyon.worker.network.netty.worker.threads", Integer.toString(2));
+    System.setProperty("tachyon.master.web.threads", Integer.toString(9));
 
     CommonConf.clear();
     MasterConf.clear();
@@ -219,7 +238,12 @@ public class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.memory.size");
     System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
+    System.clearProperty("tachyon.master.selector.threads");
+    System.clearProperty("tachyon.master.server.threads");
+    System.clearProperty("tachyon.worker.selector.threads");
+    System.clearProperty("tachyon.worker.server.threads");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
+    System.clearProperty("tachyon.master.web.threads");
   }
 
   /**

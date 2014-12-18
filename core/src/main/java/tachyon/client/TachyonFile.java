@@ -1,3 +1,16 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.client;
 
 import java.io.File;
@@ -14,6 +27,8 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -189,7 +204,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     List<String> ret = null;
     if (locations != null) {
       ret = new ArrayList<String>(locations.size());
-      for (int k = 0; k < locations.size(); k ++) {
+      for (int k = 0; k < locations.size(); k++) {
         ret.add(locations.get(k).mHost);
       }
     }
@@ -381,9 +396,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
       return null;
     }
     String localFileName = getLocalFilename(blockIndex);
+    Closer closer = Closer.create();
     if (localFileName != null) {
       try {
-        RandomAccessFile localFile = new RandomAccessFile(localFileName, "r");
+        RandomAccessFile localFile = closer.register(new RandomAccessFile(localFileName, "r"));
 
         long fileLength = localFile.length();
         String error = null;
@@ -396,7 +412,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
                   len, fileLength);
         }
         if (error != null) {
-          localFile.close();
           throw new IOException(error);
         }
 
@@ -404,16 +419,16 @@ public class TachyonFile implements Comparable<TachyonFile> {
           len = fileLength - offset;
         }
 
-        FileChannel localFileChannel = localFile.getChannel();
+        FileChannel localFileChannel = closer.register(localFile.getChannel());
         final ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
-        localFileChannel.close();
-        localFile.close();
         mTachyonFS.accessLocalBlock(blockId);
         return new TachyonByteBuffer(mTachyonFS, buf, blockId, blockLockId);
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");
       } catch (IOException e) {
         LOG.warn("Failed to read local file " + localFileName + " because:", e);
+      } finally {
+        closer.close();
       }
     }
 
@@ -435,7 +450,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("readByteBufferFromRemote() " + blockLocations);
 
-      for (int k = 0; k < blockLocations.size(); k ++) {
+      for (int k = 0; k < blockLocations.size(); k++) {
         String host = blockLocations.get(k).mHost;
         int port = blockLocations.get(k).mSecondaryPort;
 
@@ -478,7 +493,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     boolean succeed = true;
-    for (int k = 0; k < numberOfBlocks; k ++) {
+    for (int k = 0; k < numberOfBlocks; k++) {
       succeed &= recache(k);
     }
 

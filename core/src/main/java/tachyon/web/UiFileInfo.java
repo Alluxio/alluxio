@@ -1,14 +1,44 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.web;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Ordering;
 
 import tachyon.TachyonURI;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 
-public class UiFileInfo implements Comparable<UiFileInfo> {
+public final class UiFileInfo {
+  /**
+   * Provides ordering of {@link tachyon.web.UiFileInfo} based off a string comparison of the
+   * absolute paths.
+   */
+  public static final Ordering<UiFileInfo> PATH_STRING_COMPARE = Ordering.natural().onResultOf(
+      new Function<UiFileInfo, Comparable<String>>() {
+        @Override
+        public Comparable<String> apply(UiFileInfo input) {
+          return input.mAbsolutePath;
+        }
+      });
+
   private final int mId;
   private final int mDependencyId;
   private final String mName;
@@ -39,11 +69,6 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
     mIsDirectory = fileInfo.isFolder;
     mIsPinned = fileInfo.isPinned;
     mFileLocations = new ArrayList<String>();
-  }
-
-  @Override
-  public int compareTo(UiFileInfo o) {
-    return mAbsolutePath.compareTo(o.getAbsolutePath());
   }
 
   public String getAbsolutePath() {

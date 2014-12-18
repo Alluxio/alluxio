@@ -1,3 +1,17 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package tachyon.worker.hierarchy;
 
 import java.io.File;
@@ -16,7 +30,6 @@ import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.BlockHandler;
 import tachyon.master.BlockInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.worker.eviction.EvictLRU;
 import tachyon.worker.eviction.EvictPartialLRU;
@@ -28,7 +41,7 @@ public class EvictStrategyTest {
   private final long mCapacity = 1000;
 
   @Before
-  public final void before() throws IOException, InvalidPathException, InterruptedException {
+  public final void before() throws IOException {
     String tachyonHome =
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
     String workerDirFolder = tachyonHome + "/ramdisk";
@@ -44,7 +57,7 @@ public class EvictStrategyTest {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
 
     BlockHandler bhSrc =
-        BlockHandler.get(CommonUtils.concat(dir.getUserTempFilePath(mUserId, blockId)));
+        BlockHandler.get(dir.getUserTempFilePath(mUserId, blockId));
     try {
       bhSrc.append(0, ByteBuffer.wrap(buf));
     } finally {
@@ -55,17 +68,12 @@ public class EvictStrategyTest {
   }
 
   @Test
-  public void EvictLRUTest() throws IOException, InterruptedException {
+  public void EvictLRUTest() throws IOException {
     createBlockFile(mStorageDirs[0], BlockInfo.computeBlockId(1, 0), 300);
-    Thread.sleep(10);
     createBlockFile(mStorageDirs[1], BlockInfo.computeBlockId(2, 0), 300);
-    Thread.sleep(10);
     createBlockFile(mStorageDirs[2], BlockInfo.computeBlockId(3, 0), 350);
-    Thread.sleep(10);
     createBlockFile(mStorageDirs[0], BlockInfo.computeBlockId(4, 0), 550);
-    Thread.sleep(10);
     createBlockFile(mStorageDirs[1], BlockInfo.computeBlockId(5, 0), 600);
-    Thread.sleep(10);
     createBlockFile(mStorageDirs[2], BlockInfo.computeBlockId(6, 0), 500);
 
     Set<Integer> pinList = new HashSet<Integer>();
@@ -95,17 +103,12 @@ public class EvictStrategyTest {
   }
 
   @Test
-  public void EvictPartialLRUTest() throws IOException, InterruptedException {
+  public void EvictPartialLRUTest() throws IOException {
     createBlockFile(mStorageDirs[0], BlockInfo.computeBlockId(1, 0), 450);
-    Thread.sleep(10);
     createBlockFile(mStorageDirs[1], BlockInfo.computeBlockId(2, 0), 600);
-    Thread.sleep(10);
     createBlockFile(mStorageDirs[2], BlockInfo.computeBlockId(3, 0), 500);
-    Thread.sleep(10);
     createBlockFile(mStorageDirs[0], BlockInfo.computeBlockId(4, 0), 400);
-    Thread.sleep(10);
     createBlockFile(mStorageDirs[1], BlockInfo.computeBlockId(5, 0), 300);
-    Thread.sleep(10);
     createBlockFile(mStorageDirs[2], BlockInfo.computeBlockId(6, 0), 450);
 
     Set<Integer> pinList = new HashSet<Integer>();

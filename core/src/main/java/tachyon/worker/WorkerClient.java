@@ -1,9 +1,26 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.worker;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -15,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
 import tachyon.conf.UserConf;
 import tachyon.master.MasterClient;
@@ -44,17 +62,20 @@ public class WorkerClient implements Closeable {
   private boolean mConnected = false;
   private boolean mIsLocal = false;
   private String mDataFolder = null;
-
-  private HeartbeatThread mHeartbeatThread = null;
+  private final ExecutorService mExecutorService;
+  private Future<?> mHeartbeat;
 
   /**
    * Create a WorkerClient, with a given MasterClient.
    * 
    * @param masterClient
+   * @param executorService
    * @throws IOException
    */
-  public WorkerClient(MasterClient masterClient) throws IOException {
+  public WorkerClient(MasterClient masterClient, ExecutorService executorService)
+      throws IOException {
     mMasterClient = masterClient;
+    this.mExecutorService = executorService;
   }
 
   /**
@@ -150,8 +171,13 @@ public class WorkerClient implements Closeable {
   @Override
   public synchronized void close() {
     if (mConnected) {
-      mProtocol.getTransport().close();
-      mHeartbeatThread.shutdown();
+      try {
+        mProtocol.getTransport().close();
+      } finally {
+        if (mHeartbeat != null) {
+          mHeartbeat.cancel(true);
+        }
+      }
       mConnected = false;
     }
   }
@@ -202,9 +228,12 @@ public class WorkerClient implements Closeable {
               NetworkUtils.getFqdnHost(mWorkerAddress), mWorkerAddress.getPort())));
       mClient = new WorkerService.Client(mProtocol);
 
-      mHeartbeatThread =
-          new HeartbeatThread("WorkerClientToWorkerHeartbeat", new WorkerClientHeartbeatExecutor(
-              this, mMasterClient.getUserId()), UserConf.get().HEARTBEAT_INTERVAL_MS);
+      HeartbeatExecutor heartBeater =
+          new WorkerClientHeartbeatExecutor(this, mMasterClient.getUserId());
+      String threadName = "worker-heartbeat-" + mWorkerAddress;
+      mHeartbeat =
+          mExecutorService.submit(new HeartbeatThread(threadName, heartBeater,
+              UserConf.get().HEARTBEAT_INTERVAL_MS));
 
       try {
         mProtocol.getTransport().open();
@@ -212,7 +241,6 @@ public class WorkerClient implements Closeable {
         LOG.error(e.getMessage(), e);
         return false;
       }
-      mHeartbeatThread.start();
       mConnected = true;
     }
 
@@ -232,8 +260,9 @@ public class WorkerClient implements Closeable {
    */
   public synchronized String getDataFolder() throws IOException {
     if (mDataFolder == null) {
+      mustConnect();
+
       try {
-        mustConnect();
         mDataFolder = mClient.getDataFolder();
       } catch (TException e) {
         mDataFolder = null;
@@ -257,6 +286,7 @@ public class WorkerClient implements Closeable {
     try {
       return mClient.getUserTempFolder(mMasterClient.getUserId());
     } catch (TException e) {
+      mConnected = false;
       throw new IOException(e);
     }
   }
@@ -401,6 +431,7 @@ public class WorkerClient implements Closeable {
     try {
       mClient.userHeartbeat(userId);
     } catch (TException e) {
+      mConnected = false;
       throw new IOException(e);
     }
   }

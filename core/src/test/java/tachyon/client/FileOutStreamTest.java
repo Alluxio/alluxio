@@ -1,3 +1,17 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package tachyon.client;
 
 import java.io.IOException;
@@ -12,6 +26,7 @@ import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
+import tachyon.conf.UserConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
@@ -43,6 +58,41 @@ public class FileOutStreamTest {
   }
 
   /**
+   * Checks that we wrote the file correctly by reading it every possible way
+   * 
+   * @param filePath
+   * @param byteArrayLimit
+   * @throws IOException
+   */
+  private void checkWrite(TachyonURI filePath, WriteType op, int fileLen,
+      int increasingByteArrayLen) throws IOException {
+    for (ReadType rOp : ReadType.values()) {
+      TachyonFile file = mTfs.getFile(filePath);
+      InStream is = file.getInStream(rOp);
+      Assert.assertEquals(fileLen, file.length());
+      byte[] res = new byte[(int) file.length()];
+      Assert.assertEquals((int) file.length(), is.read(res));
+      Assert.assertTrue(TestUtils.equalIncreasingByteArray(increasingByteArrayLen, res));
+    }
+
+    if (op.isThrough()) {
+      TachyonFile file = mTfs.getFile(filePath);
+      String checkpointPath = file.getUfsPath();
+      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
+
+      InputStream is = ufs.open(checkpointPath);
+      byte[] res = new byte[(int) file.length()];
+      if (UnderFileSystemCluster.isUFSHDFS() && 0 == res.length) {
+        // HDFS returns -1 for zero-sized byte array to indicate no more bytes available here.
+        Assert.assertEquals(-1, is.read(res));
+      } else {
+        Assert.assertEquals((int) file.length(), is.read(res));
+      }
+      Assert.assertTrue(TestUtils.equalIncreasingByteArray(increasingByteArrayLen, res));
+    }
+  }
+
+  /**
    * Test <code>void write(int b)</code>.
    */
   @Test
@@ -64,31 +114,7 @@ public class FileOutStreamTest {
       os.write((byte) k);
     }
     os.close();
-
-    for (ReadType rOp : ReadType.values()) {
-      file = mTfs.getFile(filePath);
-      InStream is = file.getInStream(rOp);
-      Assert.assertEquals(len, file.length());
-      byte[] res = new byte[(int) file.length()];
-      Assert.assertEquals((int) file.length(), is.read(res));
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len, res));
-    }
-
-    if (op.isThrough()) {
-      file = mTfs.getFile(filePath);
-      String checkpointPath = file.getUfsPath();
-      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
-
-      InputStream is = ufs.open(checkpointPath);
-      byte[] res = new byte[(int) file.length()];
-      if (UnderFileSystemCluster.isUFSHDFS() && 0 == res.length) {
-        // HDFS returns -1 for zero-sized byte array to indicate no more bytes available here.
-        Assert.assertEquals(-1, is.read(res));
-      } else {
-        Assert.assertEquals((int) file.length(), is.read(res));
-      }
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len, res));
-    }
+    checkWrite(filePath, op, len, len);
   }
 
   /**
@@ -111,31 +137,7 @@ public class FileOutStreamTest {
     Assert.assertTrue(os instanceof FileOutStream);
     os.write(TestUtils.getIncreasingByteArray(len));
     os.close();
-
-    for (ReadType rOp : ReadType.values()) {
-      file = mTfs.getFile(filePath);
-      InStream is = file.getInStream(rOp);
-      Assert.assertEquals(len, file.length());
-      byte[] res = new byte[(int) file.length()];
-      Assert.assertEquals((int) file.length(), is.read(res));
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len, res));
-    }
-
-    if (op.isThrough()) {
-      file = mTfs.getFile(filePath);
-      String checkpointPath = file.getUfsPath();
-      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
-
-      InputStream is = ufs.open(checkpointPath);
-      byte[] res = new byte[(int) file.length()];
-      if (UnderFileSystemCluster.isUFSHDFS() && 0 == res.length) {
-        // HDFS returns -1 for zero-sized byte array to indicate no more bytes available here.
-        Assert.assertEquals(-1, is.read(res));
-      } else {
-        Assert.assertEquals((int) file.length(), is.read(res));
-      }
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len, res));
-    }
+    checkWrite(filePath, op, len, len);
   }
 
   /**
@@ -159,30 +161,34 @@ public class FileOutStreamTest {
     os.write(TestUtils.getIncreasingByteArray(0, len / 2), 0, len / 2);
     os.write(TestUtils.getIncreasingByteArray(len / 2, len / 2), 0, len / 2);
     os.close();
+    checkWrite(filePath, op, len, len / 2 * 2);
+  }
 
-    for (ReadType rOp : ReadType.values()) {
-      file = mTfs.getFile(filePath);
-      InStream is = file.getInStream(rOp);
-      Assert.assertEquals(len, file.length());
-      byte[] res = new byte[(int) file.length()];
-      Assert.assertEquals((int) file.length(), is.read(res));
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len / 2 * 2, res));
-    }
-
-    if (op.isThrough()) {
-      file = mTfs.getFile(filePath);
-      String checkpointPath = file.getUfsPath();
-      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
-
-      InputStream is = ufs.open(checkpointPath);
-      byte[] res = new byte[(int) file.length()];
-      if (UnderFileSystemCluster.isUFSHDFS() && 0 == res.length) {
-        // HDFS returns -1 for zero-sized byte array to indicate no more bytes available here.
-        Assert.assertEquals(-1, is.read(res));
-      } else {
-        Assert.assertEquals((int) file.length(), is.read(res));
-      }
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len / 2 * 2, res));
-    }
+  /**
+   * Test writing to a file for longer than HEARTBEAT_INTERVAL_MS to make sure the userId doesn't
+   * change. Tracks [TACHYON-171].
+   * 
+   * @throws IOException
+   * @throws InvalidPathException
+   * @throws FileAlreadyExistException
+   * @throws InterruptedException
+   */
+  @Test
+  public void longWriteChangesUserId() throws IOException, InvalidPathException,
+      FileAlreadyExistException, InterruptedException {
+    TachyonURI filePath = new TachyonURI("/root/testFile");
+    WriteType op = WriteType.THROUGH;
+    int len = 2;
+    int fileId = mTfs.createFile(filePath);
+    long origId = mTfs.getUserId();
+    TachyonFile file = mTfs.getFile(fileId);
+    OutStream os = file.getOutStream(WriteType.THROUGH);
+    Assert.assertTrue(os instanceof FileOutStream);
+    os.write((byte) 0);
+    Thread.sleep(UserConf.get().HEARTBEAT_INTERVAL_MS * 2);
+    Assert.assertEquals(origId, mTfs.getUserId());
+    os.write((byte) 1);
+    os.close();
+    checkWrite(filePath, op, len, len);
   }
 }

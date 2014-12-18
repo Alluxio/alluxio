@@ -1,3 +1,16 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.client;
 
 import java.io.InputStream;
@@ -24,18 +37,38 @@ import tachyon.worker.nio.DataServerMessage;
  * BlockInStream for remote block.
  */
 public class RemoteBlockInStream extends BlockInStream {
+  /** The number of bytes to read remotely every time we need to do a remote read */
   private static final int BUFFER_SIZE = UserConf.get().REMOTE_READ_BUFFER_SIZE_BYTE;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** The block info of the block we are reading */
   private ClientBlockInfo mBlockInfo;
+  /**
+   * An input stream for the checkpointed copy of the block. If we are ever unable to read part of
+   * the block from the workers, we use this checkpoint stream
+   */
   private InputStream mCheckpointInputStream = null;
   private long mReadByte;
+  /**
+   * A byte buffer for the current chunk of the block we are reading from
+   */
   private ByteBuffer mCurrentBuffer = null;
   private long mBufferStartPosition = 0;
 
+  /**
+   * true if we are re-caching the file. The re-caching gets canceled if we do anything other than a
+   * straight read through the file. That means, any skipping or seeking around will cancel the
+   * re-cache.
+   */
   private boolean mRecache = true;
+  /**
+   * If we are re-caching the file, we write it to a block out stream as we read it.
+   */
   private BlockOutStream mBlockOutStream = null;
 
+  /**
+   * The under filesystem configuration that we use to set up the checkpoint input stream
+   */
   private Object mUFSConf = null;
 
   /**
@@ -107,7 +140,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
   @Override
   public int read() throws IOException {
-    mReadByte ++;
+    mReadByte++;
     if (mReadByte > mBlockInfo.length) {
       doneRecache();
       return -1;
@@ -199,7 +232,7 @@ public class RemoteBlockInStream extends BlockInStream {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
 
-      for (int k = 0; k < blockLocations.size(); k ++) {
+      for (int k = 0; k < blockLocations.size(); k++) {
         String host = blockLocations.get(k).mHost;
         int port = blockLocations.get(k).mSecondaryPort;
 

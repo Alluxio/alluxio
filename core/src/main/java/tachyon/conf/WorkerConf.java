@@ -1,11 +1,29 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.conf;
 
 import com.google.common.base.Optional;
 
 import tachyon.Constants;
+import tachyon.StorageLevelAlias;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.NetworkType;
+import tachyon.worker.eviction.EvictStrategyType;
+import tachyon.worker.hierarchy.AllocateStrategyType;
 import tachyon.worker.netty.ChannelType;
 import tachyon.worker.netty.FileTransferType;
 
@@ -40,12 +58,17 @@ public class WorkerConf extends Utils {
   public final int QUEUE_SIZE_PER_SELECTOR;
   public final int SERVER_THREADS;
   public final int USER_TIMEOUT_MS;
-  public final String USER_TEMP_RELATIVE_FOLDER = "users";
+  public static final String USER_TEMP_RELATIVE_FOLDER = "users";
 
   public final int WORKER_CHECKPOINT_THREADS;
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
 
   public final NetworkType NETWORK_TYPE;
+  
+  public final String KEYTAB_KEY;
+  public final String KEYTAB;
+  public final String PRINCIPAL_KEY;
+  public final String PRINCIPAL;
 
   public final ChannelType NETTY_CHANNEL_TYPE;
   public final FileTransferType NETTY_FILE_TRANSFER_TYPE;
@@ -56,6 +79,14 @@ public class WorkerConf extends Utils {
   public final Optional<Integer> NETTY_BACKLOG;
   public final Optional<Integer> NETTY_SEND_BUFFER;
   public final Optional<Integer> NETTY_RECIEVE_BUFFER;
+
+  public final EvictStrategyType EVICT_STRATEGY_TYPE;
+  public final AllocateStrategyType ALLOCATE_STRATEGY_TYPE;
+  public final int MAX_HIERARCHY_STORAGE_LEVEL;
+  public final StorageLevelAlias[] STORAGE_LEVEL_ALIAS;
+  public final String[] STORAGE_TIER_DIRS;
+  public final String[] STORAGE_TIER_DIR_QUOTA;
+  public final String[] STORAGE_TIER_DIR_QUOTA_DEFAULTS = "512MB,64GB,1TB".split(",");
 
   private WorkerConf() {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", NetworkUtils.getLocalHostName());
@@ -81,6 +112,11 @@ public class WorkerConf extends Utils {
     WORKER_CHECKPOINT_THREADS = getIntProperty("tachyon.worker.checkpoint.threads", 1);
     WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
         getIntProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", Constants.SECOND_MS);
+    
+    KEYTAB_KEY = "tachyon.worker.keytab.file";
+    KEYTAB = getProperty(KEYTAB_KEY, null);
+    PRINCIPAL_KEY = "tachyon.worker.principal";
+    PRINCIPAL = getProperty(PRINCIPAL_KEY, null);
 
     NETWORK_TYPE = getEnumProperty("tachyon.worker.network.type", NetworkType.NETTY);
     NETTY_BOSS_THREADS = getIntProperty("tachyon.worker.network.netty.boss.threads", 1);
@@ -97,7 +133,30 @@ public class WorkerConf extends Utils {
     NETTY_SEND_BUFFER =
         Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.buffer.send", null));
     NETTY_RECIEVE_BUFFER =
-        Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.buffer.recieve",
+        Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.buffer.receive",
             null));
+    EVICT_STRATEGY_TYPE = getEnumProperty("tachyon.worker.evict.strategy", EvictStrategyType.LRU);
+    ALLOCATE_STRATEGY_TYPE =
+        getEnumProperty("tachyon.worker.allocate.strategy", AllocateStrategyType.MAX_FREE);
+    MAX_HIERARCHY_STORAGE_LEVEL = getIntProperty("tachyon.worker.hierarchystore.level.max", 1);
+    STORAGE_LEVEL_ALIAS = new StorageLevelAlias[MAX_HIERARCHY_STORAGE_LEVEL];
+    STORAGE_TIER_DIRS = new String[MAX_HIERARCHY_STORAGE_LEVEL];
+    STORAGE_TIER_DIR_QUOTA = new String[MAX_HIERARCHY_STORAGE_LEVEL];
+    for (int i = 0; i < MAX_HIERARCHY_STORAGE_LEVEL; i ++) {
+      STORAGE_LEVEL_ALIAS[i] =
+          getEnumProperty("tachyon.worker.hierarchystore.level" + i + ".alias",
+              StorageLevelAlias.MEM);
+      STORAGE_TIER_DIRS[i] =
+          getProperty("tachyon.worker.hierarchystore.level" + i + ".dirs.path", "/mnt/ramdisk");
+      if (i < STORAGE_TIER_DIR_QUOTA_DEFAULTS.length) {
+        STORAGE_TIER_DIR_QUOTA[i] =
+            getProperty("tachyon.worker.hierarchystore.level" + i + ".dirs.quota",
+                STORAGE_TIER_DIR_QUOTA_DEFAULTS[i]);
+      } else {
+        STORAGE_TIER_DIR_QUOTA[i] =
+            getProperty("tachyon.worker.hierarchystore.level" + i + ".dirs.quota",
+                STORAGE_TIER_DIR_QUOTA_DEFAULTS[STORAGE_TIER_DIR_QUOTA_DEFAULTS.length - 1]);
+      }
+    }
   }
 }

@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.command;
 
 import java.io.Closeable;
@@ -390,7 +405,7 @@ public class TFsShell implements Closeable {
     TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
-    tachyonClient.pinFile(fileId);
+    
     try {
       tachyonClient.pinFile(fileId);
       System.out.println("File '" + path + "' was successfully pinned.");
@@ -424,6 +439,7 @@ public class TFsShell implements Closeable {
     System.out.println("       [request <tachyonaddress> <dependencyId>]");
     System.out.println("       [pin <path>]");
     System.out.println("       [unpin <path>]");
+    System.out.println("       [free <file path|folder path>]");
   }
 
   /**
@@ -548,6 +564,8 @@ public class TFsShell implements Closeable {
         exitCode = pin(argv);
       } else if (cmd.equals("unpin")) {
         exitCode = unpin(argv);
+      } else if (cmd.equals("free")) {
+        exitCode = free(argv);
       } else {
         printUsage();
         return -1;
@@ -646,6 +664,28 @@ public class TFsShell implements Closeable {
     } catch (Exception e) {
       e.printStackTrace();
       System.out.println("File '" + path + "' could not be unpinned.");
+      return -1;
+    }
+  }
+
+  /**
+   * Free the file or Folder from tachyon in-memory specified by argv
+   *
+   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command if successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int free(String[] argv) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs free <file path | folder path>");
+      return -1;
+    }
+    TachyonURI path = new TachyonURI(argv[1]);
+    TachyonFS tachyonClient = createFS(path);
+    if (tachyonClient.freepath(path, true)) {
+      System.out.println(path + " was successfully freed from memory.");
+      return 0;
+    } else {
       return -1;
     }
   }

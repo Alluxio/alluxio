@@ -35,12 +35,12 @@ The common configuration contains constants which specify paths and the log appe
 </tr>
 <tr>
   <td>tachyon.data.folder</td>
-  <td>$tachyon.underfs.address + "/tachyon/data"</td>
+  <td>$tachyon.underfs.address + "/tmp/tachyon/data"</td>
   <td>Tachyon's data folder in the underlayer file system.</td>
 </tr>
 <tr>
   <td>tachyon.workers.folder</td>
-  <td>$tachyon.underfs.address + "/tachyon/workers"</td>
+  <td>$tachyon.underfs.address + "/tmp/tachyon/workers"</td>
   <td>Tachyon's workers folders in the underlayer file system.</td>
 </tr>
 <tr>
@@ -108,6 +108,11 @@ The common configuration contains constants which specify paths and the log appe
   <td>hdfs:// s3:// s3n:// glusterfs:///</td>
   <td>Optionally specify which prefixes should run through the Apache Hadoop's implementation of UnderFileSystem.  The delimiter is any whitespace and/or ','</td>
 </tr>
+<tr>
+  <td>tachyon.master.retry</td>
+  <td>29</td>
+  <td>How many times to try to reconnect with master.</td>
+</tr>
 </table>
 
 # Master Configuration
@@ -141,6 +146,21 @@ number.
   <td>tachyon.master.whitelist</td>
   <td>/</td>
   <td>The comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Tachyon will try to cache the cacheable file when it is read for the first time.</td>
+</tr>
+<tr>
+  <td>tachyon.master.web.threads</td>
+  <td>9</td>
+  <td>How many threads to use for the web server.</td>
+</tr>
+<tr>
+  <td>tachyon.master.keytab.file</td>
+  <td></td>
+  <td>Kerberos keytab file for Tachyon master.</td>
+</tr>
+<tr>
+  <td>tachyon.master.principal</td>
+  <td></td>
+  <td>Kerberos principal for Tachyon master.</td>
 </tr>
 </table>
 
@@ -217,9 +237,19 @@ number.
   <td>Sets SO_SNDBUF for the socket; more details can be found in the socket man page.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.network.netty.buffer.recieve</td>
+  <td>tachyon.worker.network.netty.buffer.receive</td>
   <td>platform specific</td>
   <td>Sets SO_RCVBUF for the socket; more details can be found in the socket man page.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.keytab.file</td>
+  <td></td>
+  <td>Kerberos keytab file for Tachyon worker.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.principal</td>
+  <td></td>
+  <td>Kerberos principal for Tachyon worker.</td>
 </tr>
 </table>
 

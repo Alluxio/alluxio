@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.worker;
 
 import java.io.IOException;
@@ -15,7 +30,7 @@ import tachyon.thrift.WorkerService;
  * <code>WorkerServiceHandler</code> handles all the RPC calls to the worker.
  */
 public class WorkerServiceHandler implements WorkerService.Iface {
-  private WorkerStorage mWorkerStorage;
+  private final WorkerStorage mWorkerStorage;
 
   public WorkerServiceHandler(WorkerStorage workerStorage) {
     mWorkerStorage = workerStorage;
@@ -62,20 +77,12 @@ public class WorkerServiceHandler implements WorkerService.Iface {
 
   @Override
   public String getUserTempFolder(long userId) throws TException {
-    try {
-      return mWorkerStorage.getUserLocalTempFolder(userId);
-    } catch (IOException e) {
-      throw new TException(e);
-    }
+    return mWorkerStorage.getUserLocalTempFolder(userId);
   }
 
   @Override
   public String getUserUfsTempFolder(long userId) throws TException {
-    try {
-      return mWorkerStorage.getUserUfsTempFolder(userId);
-    } catch (IOException e) {
-      throw new TException(e);
-    }
+    return mWorkerStorage.getUserUfsTempFolder(userId);
   }
 
   @Override

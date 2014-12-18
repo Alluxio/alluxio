@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon;
 
 import java.net.URI;
@@ -5,7 +20,7 @@ import java.net.URISyntaxException;
 
 /**
  * It uses a hierarchical URI internally. URI requires that String is escaped, TachyonURI does not.
- * 
+ *
  * Does not support fragment or query in the URI.
  */
 public final class TachyonURI implements Comparable<TachyonURI> {
@@ -64,7 +79,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Construct a Tachyon URI from components.
-   * 
+   *
    * @param scheme the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc.
    * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
@@ -78,7 +93,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Resolve a child TachyonURI against a parent TachyonURI.
-   * 
+   *
    * @param parent the parent
    * @param child the child
    */
@@ -105,7 +120,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Create the internal URI. Called by all constructors.
-   * 
+   *
    * @param scheme the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc.
    * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
@@ -130,7 +145,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Gets the authority of this TachyonURI
-   * 
+   *
    * @return the authority, null if it does not have one.
    */
   public String getAuthority() {
@@ -139,7 +154,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Return the number of elements of the path component of the TachyonURI.
-   * 
+   *
    * <pre>
    * /                                  -> 0
    * /a                                 -> 1
@@ -153,7 +168,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * C:\a                               -> 1
    * C:                                 -> 0
    * </pre>
-   * 
+   *
    * @return the depth
    */
   public int getDepth() {
@@ -172,7 +187,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Gets the host of this TachyonURI.
-   * 
+   *
    * @return the host, null if it does not have one.
    */
   public String getHost() {
@@ -181,7 +196,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Get the final component of the TachyonURI.
-   * 
+   *
    * @return the final component of the TachyonURI
    */
   public String getName() {
@@ -192,7 +207,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Get the parent of this TachyonURI or null if at root.
-   * 
+   *
    * @return the parent of this TachyonURI or null if at root.
    */
   public TachyonURI getParent() {
@@ -215,7 +230,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Gets the part component of this TachyonURI.
-   * 
+   *
    * @return the path.
    */
   public String getPath() {
@@ -224,7 +239,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Gets the port of this TachyonURI.
-   * 
+   *
    * @return the port, -1 if it does not have one.
    */
   public int getPort() {
@@ -233,7 +248,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Get the scheme of the Tachyon URI.
-   * 
+   *
    * @return the scheme, null if there is no scheme.
    */
   public String getScheme() {
@@ -242,7 +257,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Tells if this TachyonURI has authority or not.
-   * 
+   *
    * @return true if it has, false otherwise.
    */
   public boolean hasAuthority() {
@@ -256,7 +271,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Tells if this TachyonURI has scheme or not.
-   * 
+   *
    * @return true if it has, false otherwise.
    */
   public boolean hasScheme() {
@@ -265,7 +280,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Check if the path is a windows path.
-   * 
+   *
    * @param path the path to check
    * @param slashed if the path starts with a slash.
    * @return true if it is a windows path, false otherwise.
@@ -282,11 +297,11 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Tells whether or not this URI is absolute.
-   * 
+   *
    * <p>
    * A URI is absolute if, and only if, it has a scheme component.
    * </p>
-   * 
+   *
    * @return <tt>true</tt> if, and only if, this URI is absolute
    */
   public boolean isAbsolute() {
@@ -295,11 +310,11 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Tells whether or not the path component of this TachyonURI is absolute.
-   * 
+   *
    * <p>
    * A path is absolute if, and only if, it starts with root.
    * </p>
-   * 
+   *
    * @return <tt>true</tt> if, and only if, this TachyonURI's path component is absolute
    */
   public boolean isPathAbsolute() {
@@ -309,11 +324,11 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Tells whether or not this URI is root.
-   * 
+   *
    * <p>
    * A URI is root if its path equals to "/"
    * </p>
-   * 
+   *
    * @return <tt>true</tt> if, and only if, this URI is root
    */
   public boolean isRoot() {
@@ -323,17 +338,17 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Append additional path elements to the end of a TachyonURI.
-   * 
+   *
    * @param suffix the suffix to add
    * @return the new TachyonURI
    */
   public TachyonURI join(String suffix) {
-    return new TachyonURI(toString() + TachyonURI.SEPARATOR + suffix);
+    return new TachyonURI(getScheme(), getAuthority(), getPath() + TachyonURI.SEPARATOR + suffix);
   }
 
   /**
    * Append additional path elements to the end of a TachyonURI.
-   * 
+   *
    * @param suffix the suffix to add
    * @return the new TachyonURI
    */
@@ -344,9 +359,9 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Normalize the path component of the TachyonURI, by replacing all "//" and "\\" with "/", and
    * trimming trailing slash from non-root path (ignoring windows drive).
-   * 
+   *
    * @param path
-   * @return
+   * @return the normalized path.
    */
   private String normalizePath(String path) {
     while (path.indexOf("\\") != -1) {

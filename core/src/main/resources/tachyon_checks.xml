@@ -24,7 +24,7 @@
 <module name = "Checker">
   <property name="charset" value="UTF-8"/>
 
-  <property name="severity" value="warning"/>
+  <property name="severity" value="error"/>
 
   <!-- Checks for whitespace                               -->
   <!-- See http://checkstyle.sf.net/config_whitespace.html -->
@@ -143,6 +143,14 @@
       <message key="ws.notPreceded"
                value="GenericWhitespace ''{0}'' is not preceded with whitespace."/>
     </module>
+    <module name="Indentation">
+      <property name="basicOffset" value="2"/>
+      <property name="braceAdjustment" value="0"/>
+      <property name="caseIndent" value="2"/>
+      <property name="throwsIndent" value="4"/>
+      <property name="lineWrappingIndentation" value="4"/>
+      <property name="arrayInitIndent" value="2"/>
+    </module>
     <module name="OverloadMethodsDeclarationOrder"/>
     <module name="CustomImportOrder">
       <property name="thirdPartyPackageRegExp" value="^com\..*|^org\..*|^io\..*"/>
@@ -163,11 +171,5 @@
       <message key="name.invalidPattern"
                value="Static member name ''{0}'' must match pattern ''{1}''."/>
     </module>
-  </module>
-  <!-- TODO: This is needed to excuse Tachyon Configuration members' name from being checked -->
-  <!-- because the members are define using all upper case. -->
-  <!-- Once the new configuration is implemented we wil remove this exception -->
-  <module name="SuppressionFilter">
-    <property name="file" value="core/src/main/resources/tachyon_checkstyle_suppressions.xml"/>
   </module>
 </module>

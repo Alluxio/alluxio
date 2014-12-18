@@ -1,7 +1,23 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.worker.hierarchy;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
@@ -344,12 +360,30 @@ public final class StorageDir {
   }
 
   /**
+   * Get size of locked blocks in bytes in current StorageDir
+   * 
+   * @return size of locked blocks in bytes in current StorageDir
+   */
+  public long getLockedSizeBytes() {
+    long lockedBytes = 0;
+    for (long blockId : mUserPerLockedBlock.keySet()) {
+      Long blockSize = mBlockSizes.get(blockId);
+      if (blockSize != null) {
+        lockedBytes += blockSize;
+      }
+    }
+    return lockedBytes;
+  }
+
+  /**
    * Get Ids of removed blocks
    * 
-   * @return queue of removed block Ids
+   * @return list of removed block Ids
    */
-  public BlockingQueue<Long> getRemovedBlockIdList() {
-    return mRemovedBlockIdList;
+  public List<Long> getRemovedBlockIdList() {
+    List<Long> removedBlockIds = new ArrayList<Long>();
+    mRemovedBlockIdList.drainTo(removedBlockIds);
+    return removedBlockIds;
   }
 
   /**

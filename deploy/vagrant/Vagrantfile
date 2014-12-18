@@ -1,0 +1,82 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require 'yaml'
+require "./core/EnvSetup"
+
+# load configuration from init.yml
+@cmd = YAML.load_file('init.yml')
+puts @cmd.inspect
+
+Ufs = @cmd['Ufs']
+Total = @cmd['Total']
+Provider = @cmd['Provider']
+Memory = @cmd['Memory']
+Addr = @cmd['Addresses']
+Init = "ufs/#{Ufs}/init.sh"
+Post = "ufs/#{Ufs}/post.sh"
+
+validate_provider(Provider)
+
+require "./core/config_#{Provider}"
+
+# config cluster and create /etc/hosts 
+NameArr = Array.new
+config_hosts(NameArr)
+
+# Vagrantfile API/syntax version. 
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.require_version ">= 1.6.5"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  (1..Total).each do |i|    
+    # multi vm config
+    name = NameArr[i]
+    config.vm.define "#{name}" do |n|
+      # common config
+      n.vm.provision "shell", path: "core/init.sh"
+      n.vm.provision "shell", path: Init
+
+      # Provider specific init
+      if Provider == "vb"
+        config_vb(n, i, Total, name)
+      end
+
+      if Provider == "docker"
+        config_docker(n, i, Total, name)
+      end
+
+      if Provider == "aws"
+        if (defined?(@ec2)).nil?
+          @ec2 = YAML.load_file('conf/ec2-config.yml')
+          puts @ec2.inspect
+          KEYPAIR=@ec2['Keypair']
+          KEY_PATH=@ec2['Key_Path']
+          AMI=@ec2['AMI']
+          REGION=@ec2['Region']
+          SECURITY_GROUP=@ec2['Security_Group']
+          INSTANCE_TYPE = @ec2['Instance_Type']
+          AVAILABILITY_ZONE  = @ec2['Availability_Zone']
+          TAG = @ec2['Tag']
+        end
+        config_aws(n, i, Total, name)
+      end
+
+      if Provider == "openstack"
+        if (defined?(@os)).nil?
+          @os = YAML.load_file('conf/openstack-config.yml')
+          puts @os.inspect
+          FLAVOR = @os['Flavor']
+          IMAGE =  @os['Image']
+          KEY_PATH = @os['Key_Path']
+          KEYPAIR_NAME = @os['Keypair_Name']
+          TENENT = @os['Tenent']
+          KEYSTONE = @os['Keystone_URL']
+          SECURITY_GROUP = @os['Security_Group']
+          SSH_USERNAME = @os['SSH_Username']
+          TAG = @os['Tag']
+        end
+        config_os(n, i, Total, name)
+      end
+    end
+  end
+end

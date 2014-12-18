@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.hadoop;
 
 import java.io.FileNotFoundException;
@@ -46,7 +61,7 @@ abstract class AbstractTFS extends FileSystem {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public static String sUnderFSAddress;
+  private String mUnderFSAddress;
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(TachyonURI.SEPARATOR);
@@ -67,6 +82,17 @@ abstract class AbstractTFS extends FileSystem {
     }
 
     return new FSDataOutputStream(file.getOutStream(UserConf.get().DEFAULT_WRITE_TYPE), null);
+  }
+
+  @Override
+  public void close() throws IOException {
+    try {
+      super.close();
+    } finally {
+      if (mTFS != null) {
+        mTFS.close();
+      }
+    }
   }
 
   @Override
@@ -201,10 +227,10 @@ abstract class AbstractTFS extends FileSystem {
 
   private void fromHdfsToTachyon(TachyonURI path) throws IOException {
     if (!mTFS.exist(path)) {
-      Path hdfsPath = Utils.getHDFSPath(path);
+      Path hdfsPath = Utils.getHDFSPath(path, mUnderFSAddress);
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       if (fs.exists(hdfsPath)) {
-        TachyonURI ufsUri = new TachyonURI(sUnderFSAddress);
+        TachyonURI ufsUri = new TachyonURI(mUnderFSAddress);
         TachyonURI ufsAddrPath = new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(),
             path.getPath());
         // Set the path as the TFS root path.
@@ -259,7 +285,7 @@ abstract class AbstractTFS extends FileSystem {
   @Override
   public FileStatus getFileStatus(Path path) throws IOException {
     TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
-    Path hdfsPath = Utils.getHDFSPath(tPath);
+    Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
 
     LOG.info("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + " TPath: " + mTachyonHeader
         + tPath);
@@ -324,8 +350,8 @@ abstract class AbstractTFS extends FileSystem {
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
     mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode());
     mUri = URI.create(mTachyonHeader);
-    sUnderFSAddress = mTFS.getUfsAddress();
-    LOG.info(mTachyonHeader + " " + mUri + " " + sUnderFSAddress);
+    mUnderFSAddress = mTFS.getUfsAddress();
+    LOG.info(mTachyonHeader + " " + mUri + " " + mUnderFSAddress);
   }
 
   /**
@@ -339,7 +365,7 @@ abstract class AbstractTFS extends FileSystem {
   @Override
   public FileStatus[] listStatus(Path path) throws IOException {
     TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
-    Path hdfsPath = Utils.getHDFSPath(tPath);
+    Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
     LOG.info("listStatus(" + path + "): HDFS Path: " + hdfsPath);
 
     fromHdfsToTachyon(tPath);
@@ -375,8 +401,8 @@ abstract class AbstractTFS extends FileSystem {
     fromHdfsToTachyon(path);
     int fileId = mTFS.getFileId(path);
 
-    return new FSDataInputStream(new HdfsFileInputStream(mTFS, fileId, Utils.getHDFSPath(path),
-        getConf(), bufferSize));
+    return new FSDataInputStream(new HdfsFileInputStream(mTFS, fileId,
+        Utils.getHDFSPath(path, mUnderFSAddress), getConf(), bufferSize));
   }
 
   @Override
@@ -409,6 +435,6 @@ abstract class AbstractTFS extends FileSystem {
    */
   @Deprecated
   private boolean useHdfs() {
-    return sUnderFSAddress != null && URI.create(sUnderFSAddress).getScheme() != null;
+    return mUnderFSAddress != null && URI.create(mUnderFSAddress).getScheme() != null;
   }
 }

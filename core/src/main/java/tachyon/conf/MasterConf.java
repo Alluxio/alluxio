@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.conf;
 
 import java.util.ArrayList;
@@ -42,6 +57,12 @@ public class MasterConf extends Utils {
 
   public final int SERVER_THREADS;
   public final int WORKER_TIMEOUT_MS;
+  public final int WEB_THREAD_COUNT;
+  
+  public final String KEYTAB_KEY;
+  public final String KEYTAB;
+  public final String PRINCIPAL_KEY;
+  public final String PRINCIPAL;
 
   public final ArrayList<String> WHITELIST = new ArrayList<String>();
 
@@ -60,6 +81,7 @@ public class MasterConf extends Utils {
         (CommonConf.get().USE_ZOOKEEPER ? Constants.HEADER_FT : Constants.HEADER) + HOSTNAME + ":"
             + PORT;
     WEB_PORT = getIntProperty("tachyon.master.web.port", Constants.DEFAULT_MASTER_WEB_PORT);
+    WEB_THREAD_COUNT = getIntProperty("tachyon.master.web.threads", 9);
     TEMPORARY_FOLDER = getProperty("tachyon.master.temporary.folder", "/tmp");
 
     HEARTBEAT_INTERVAL_MS =
@@ -71,6 +93,11 @@ public class MasterConf extends Utils {
             .availableProcessors());
     WORKER_TIMEOUT_MS =
         getIntProperty("tachyon.master.worker.timeout.ms", 10 * Constants.SECOND_MS);
+    
+    KEYTAB_KEY = "tachyon.master.keytab.file";
+    KEYTAB = getProperty(KEYTAB_KEY, null);
+    PRINCIPAL_KEY = "tachyon.master.principal";
+    PRINCIPAL = getProperty(PRINCIPAL_KEY, null);
 
     WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist", TachyonURI.SEPARATOR)
         .split(",")));

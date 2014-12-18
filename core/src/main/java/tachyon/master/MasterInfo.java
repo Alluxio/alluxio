@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.master;
 
 import java.io.DataOutputStream;
@@ -20,6 +35,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
@@ -63,6 +80,7 @@ import tachyon.util.CommonUtils;
  * A global view of filesystem in master.
  */
 public class MasterInfo extends ImageWriter {
+
   /**
    * Master info periodical status check.
    */
@@ -148,7 +166,8 @@ public class MasterInfo extends ImageWriter {
   public class RecomputationScheduler implements Runnable {
     @Override
     public void run() {
-      while (true) {
+      Thread.currentThread().setName("recompute-scheduler");
+      while (!Thread.currentThread().isInterrupted()) {
         boolean hasLostFiles = false;
         boolean launched = false;
         List<String> cmds = new ArrayList<String>();
@@ -197,7 +216,10 @@ public class MasterInfo extends ImageWriter {
         for (String cmd : cmds) {
           String filePath =
               CommonConf.get().TACHYON_HOME + "/logs/rerun-" + mRerunCounter.incrementAndGet();
-          new Thread(new RecomputeCommand(cmd, filePath)).start();
+          //TODO use bounded threads (ExecutorService)
+          Thread thread = new Thread(new RecomputeCommand(cmd, filePath));
+          thread.setName("recompute-command-" + cmd);
+          thread.start();
         }
 
         if (!launched) {
@@ -258,11 +280,13 @@ public class MasterInfo extends ImageWriter {
 
   private final Journal mJournal;
 
-  private HeartbeatThread mHeartbeatThread;
+  private final ExecutorService mExecutorService;
+  private Future<?> mHeartbeat;
+  private Future<?> mRecompute;
 
-  private Thread mRecomputeThread;
-
-  public MasterInfo(InetSocketAddress address, Journal journal) throws IOException {
+  public MasterInfo(InetSocketAddress address, Journal journal, ExecutorService mExecutorService)
+      throws IOException {
+    this.mExecutorService = mExecutorService;
     mMasterConf = MasterConf.get();
 
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1, System.currentTimeMillis());
@@ -1181,7 +1205,6 @@ public class MasterInfo extends ImageWriter {
    * 
    * @param fid The id of the file
    * @return the file info
-   * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
   public ClientFileInfo getClientFileInfo(int fid) throws InvalidPathException {
@@ -1201,7 +1224,6 @@ public class MasterInfo extends ImageWriter {
    * 
    * @param path The path of the file
    * @return the file info
-   * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
   public ClientFileInfo getClientFileInfo(TachyonURI path) throws InvalidPathException {
@@ -1762,13 +1784,11 @@ public class MasterInfo extends ImageWriter {
     mJournal.createImage(this);
     mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
 
-    mHeartbeatThread =
-        new HeartbeatThread("Master Heartbeat", new MasterInfoHeartbeatExecutor(),
-            mMasterConf.HEARTBEAT_INTERVAL_MS);
-    mHeartbeatThread.start();
+    mHeartbeat =
+        mExecutorService.submit(new HeartbeatThread("Master Heartbeat",
+            new MasterInfoHeartbeatExecutor(), mMasterConf.HEARTBEAT_INTERVAL_MS));
 
-    mRecomputeThread = new Thread(new RecomputationScheduler());
-    mRecomputeThread.start();
+    mRecompute = mExecutorService.submit(new RecomputationScheduler());
   }
 
   /**
@@ -2121,11 +2141,95 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
+ /**
+  * Free the file/folder based on the files' ID
+  *
+  * @param fileId the file/folder to be freed.
+  * @param recursive whether free the folder recursively or not
+  * @return succeed or not
+  * @throws TachyonException
+  */
+  boolean freepath(int fileId, boolean recursive) throws TachyonException {
+    LOG.info("free(" + fileId + ")");
+    synchronized (mRootLock) {
+      Inode inode = mFileIdToInodes.get(fileId);
+      if (inode == null) {
+        LOG.error("File " + fileId + " does not exist");
+        return true;
+      }
+
+      if (inode.isDirectory() && !recursive && ((InodeFolder) inode).getNumberOfChildren() > 0) {
+        // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
+        // true
+        return false;
+      }
+
+      if (inode.getId() == mRoot.getId()) {
+        // The root cannot be freed.
+        return false;
+      }
+
+      List<Inode> freeInodes = new ArrayList<Inode>();
+      freeInodes.add(inode);
+      if (inode.isDirectory()) {
+        freeInodes.addAll(getInodeChildrenRecursive((InodeFolder) inode));
+      }
+
+      // We go through each inode.
+      for (int i = freeInodes.size() - 1; i >= 0; i --) {
+        Inode freeInode = freeInodes.get(i);
+
+        if (freeInode.isFile()) {
+          List<Pair<Long, Long>> blockIdWorkerIdList
+              = ((InodeFile) freeInode).getBlockIdWorkerIdPairs();
+          synchronized (mWorkers) {
+            for (Pair<Long, Long> blockIdWorkerId : blockIdWorkerIdList) {
+              MasterWorkerInfo workerInfo = mWorkers.get(blockIdWorkerId.getSecond());
+              if (workerInfo != null) {
+                workerInfo.updateToRemovedBlock(true, blockIdWorkerId.getFirst());
+              }
+            }
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+ /**
+  * Frees files based on the path
+  *
+  * @param path The file to be freed.
+  * @param recursive whether delete the file recursively or not.
+  * @return succeed or not
+  * @throws TachyonException
+  */
+  public boolean freepath(TachyonURI path, boolean recursive) throws TachyonException {
+    LOG.info("free(" + path + ")");
+    synchronized (mRootLock) {
+      Inode inode = null;
+      try {
+        inode = getInode(path);
+      } catch (InvalidPathException e) {
+        return false;
+      }
+      if (inode == null) {
+        return true;
+      }
+      return freepath(inode.getId(), recursive);
+    }
+  }
+
   /**
    * Stops the heartbeat thread.
    */
   public void stop() {
-    mHeartbeatThread.shutdown();
+    if (mHeartbeat != null) {
+      mHeartbeat.cancel(true);
+    }
+    if (mRecompute != null) {
+      mRecompute.cancel(true);
+    }
   }
 
   /**

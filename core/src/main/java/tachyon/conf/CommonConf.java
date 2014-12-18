@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.conf;
 
 import java.io.File;
@@ -22,6 +37,7 @@ public class CommonConf extends Utils {
   public static final ImmutableList<String> DEFAULT_HADOOP_UFS_PREFIX = ImmutableList.of("hdfs://",
       "s3://", "s3n://", "glusterfs:///");
 
+  private static final String DEFAULT_HOME = "/mnt/tachyon_default_home";
   /**
    * This is for unit test only. DO NOT use it for other purpose.
    */
@@ -65,15 +81,17 @@ public class CommonConf extends Utils {
 
   public final boolean IN_TEST_MODE;
 
+  public final int MASTER_RETRY_COUNT;
+
   private CommonConf() {
     if (System.getProperty("tachyon.home") == null) {
-      LOG.warn("tachyon.home is not set. Using /mnt/tachyon_default_home as the default value.");
-      File file = new File("/mnt/tachyon_default_home");
+      LOG.warn("tachyon.home is not set. Using {} as the default value.", DEFAULT_HOME);
+      File file = new File(DEFAULT_HOME);
       if (!file.exists()) {
         file.mkdirs();
       }
     }
-    TACHYON_HOME = getProperty("tachyon.home", "/mnt/tachyon_default_home");
+    TACHYON_HOME = getProperty("tachyon.home", DEFAULT_HOME);
     WEB_RESOURCES = getProperty("tachyon.web.resources", TACHYON_HOME + "/core/src/main/webapp");
     UNDERFS_ADDRESS = getProperty("tachyon.underfs.address", TACHYON_HOME + "/underfs");
     UNDERFS_DATA_FOLDER = getProperty("tachyon.data.folder", UNDERFS_ADDRESS + "/tachyon/data");
@@ -108,6 +126,9 @@ public class CommonConf extends Utils {
         getListProperty("tachyon.underfs.hadoop.prefixes", DEFAULT_HADOOP_UFS_PREFIX);
 
     IN_TEST_MODE = getBooleanProperty("tachyon.test.mode", false);
+
+    // use 29 as default since current exponential logic overflows int
+    MASTER_RETRY_COUNT = getIntProperty("tachyon.master.retry", 29);
   }
 
   public static void assertValidPort(final int port) {

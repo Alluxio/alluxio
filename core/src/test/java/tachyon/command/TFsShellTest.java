@@ -1,3 +1,17 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package tachyon.command;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -27,6 +41,7 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
@@ -500,5 +515,13 @@ public class TFsShellTest {
     assertThat(tFile, notNullValue());
     assertThat(getCommandOutput(argv), equalTo(mOutput.toString()));
     assertThat(tFile.isFile(), equalTo(true));
+  }
+
+  @Test
+  public void freeTest() throws IOException {
+    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    mFsShell.free(new String[]{"free", "/testFile"});
+    CommonUtils.sleepMs(null, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS *2);;
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory()); ;
   }
 }

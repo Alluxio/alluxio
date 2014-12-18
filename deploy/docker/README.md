@@ -1,3 +1,7 @@
+## Alternative
+
+If you are using vagrant, please refer to deploy/vagrant for substitution of this module
+
 ## What is docker
 
 Please refer to [official docker homepage](https://www.docker.com) for help. Simply put, you can think of it as a lightweight virtual machine although this is not an exact description.
@@ -149,7 +153,7 @@ you'll have output in your terminal like:
     ssh into master via:     ssh -i /tmp/id_rsa13436 -o UserKnownHostsFile=/dev/null -o     StrictHostKeyChecking=no root@172.17.0.10    
     you can also ssh into workers via the command above with the ip substituted    
     
-    after ssh into either master/worker, /root/tachyon_container is tachyon home
+    after ssh into either master/worker, /opt/tachyon_container is tachyon home
     
     to enable the host to resolve {'master', 'worker1', 'worker2'...} to corresponding ip, set 'nameserver     172.17.0.9' as first line in your host's /etc/resolv.conf    
     
