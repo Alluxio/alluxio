@@ -52,7 +52,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   private int mBufferLimit = 0;
   private int mBufferPosition = 0;
-  private byte[] mBuffer = new byte[UserConf.get().FILE_BUFFER_BYTES * 4];
+  private byte[] mBuffer = new byte[UserConf.get().FILE_BUFFER_BYTES];
 
   public HdfsFileInputStream(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
       int bufferSize) throws IOException {

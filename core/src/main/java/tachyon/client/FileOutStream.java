@@ -17,6 +17,7 @@ package tachyon.client;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,14 +38,12 @@ public class FileOutStream extends OutStream {
 
   private final long mBlockCapacityByte;
 
-  private BlockOutStream mCurrentBlockOutStream;
-  private long mCurrentBlockId;
-  private long mCurrentBlockLeftByte;
-  private List<BlockOutStream> mPreviousBlockOutStreams;
+  private WritableBlockChannel mCurrentBlockChannel;
+  private final List<WritableBlockChannel> mPreviousBlockChannels;
   private long mCachedBytes;
 
   private OutputStream mCheckpointOutputStream = null;
-  private String mUnderFsFile = null;
+  private final String mUnderFsFile;
 
   private boolean mClosed = false;
   private boolean mCancel = false;
@@ -61,10 +60,7 @@ public class FileOutStream extends OutStream {
     mBlockCapacityByte = file.getBlockSizeByte();
 
     // TODO Support and test append.
-    mCurrentBlockOutStream = null;
-    mCurrentBlockId = -1;
-    mCurrentBlockLeftByte = 0;
-    mPreviousBlockOutStreams = new ArrayList<BlockOutStream>();
+    mPreviousBlockChannels = new ArrayList<WritableBlockChannel>();
     mCachedBytes = 0;
 
     if (mWriteType.isThrough()) {
@@ -75,6 +71,8 @@ public class FileOutStream extends OutStream {
             + Integer.MAX_VALUE);
       }
       mCheckpointOutputStream = underfsClient.create(mUnderFsFile, (int) mBlockCapacityByte);
+    } else {
+      mUnderFsFile = null;
     }
   }
 
@@ -87,8 +85,8 @@ public class FileOutStream extends OutStream {
   @Override
   public void close() throws IOException {
     if (!mClosed) {
-      if (mCurrentBlockOutStream != null) {
-        mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
+      if (mCurrentBlockChannel != null) {
+        mPreviousBlockChannels.add(mCurrentBlockChannel);
       }
 
       Boolean canComplete = false;
@@ -108,12 +106,12 @@ public class FileOutStream extends OutStream {
       if (mWriteType.isCache()) {
         try {
           if (mCancel) {
-            for (BlockOutStream bos : mPreviousBlockOutStreams) {
-              bos.cancel();
+            for (WritableBlockChannel wbc : mPreviousBlockChannels) {
+              wbc.cancel();
             }
           } else {
-            for (BlockOutStream bos : mPreviousBlockOutStreams) {
-              bos.close();
+            for (WritableBlockChannel wbc : mPreviousBlockChannels) {
+              wbc.close();
             }
             canComplete = true;
           }
@@ -147,19 +145,13 @@ public class FileOutStream extends OutStream {
   }
 
   private void getNextBlock() throws IOException {
-    if (mCurrentBlockId != -1) {
-      if (mCurrentBlockLeftByte != 0) {
-        throw new IOException("The current block still has space left, no need to get new block");
-      }
-      mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
+    if (mCurrentBlockChannel != null) {
+      mPreviousBlockChannels.add(mCurrentBlockChannel);
     }
 
     if (mWriteType.isCache()) {
-      mCurrentBlockId = mFile.getBlockIdBasedOnOffset(mCachedBytes);
-      mCurrentBlockLeftByte = mBlockCapacityByte;
-
-      mCurrentBlockOutStream =
-          new BlockOutStream(mFile, mWriteType, (int) (mCachedBytes / mBlockCapacityByte));
+      long blockId = mFile.getBlockId((int) (mCachedBytes / mBlockCapacityByte));
+      mCurrentBlockChannel = Blocks.createWritableBlock(mTachyonFS, blockId, mBlockCapacityByte);
     }
   }
 
@@ -170,36 +162,23 @@ public class FileOutStream extends OutStream {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    if (b == null) {
-      throw new NullPointerException();
-    } else if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length)
-        || ((off + len) < 0)) {
-      throw new IndexOutOfBoundsException();
-    }
+    write(ByteBuffer.wrap(b, off, len));
+  }
 
+  private void write(final ByteBuffer buffer) throws IOException {
+    final int pos = buffer.position();
     if (mWriteType.isCache()) {
       try {
-        int tLen = len;
-        int tOff = off;
-        while (tLen > 0) {
-          if (mCurrentBlockLeftByte == 0) {
+        if (mCurrentBlockChannel == null) {
+          getNextBlock();
+        }
+        while (buffer.remaining() > 0) {
+          int n = mCurrentBlockChannel.write(buffer);
+          if (n < 0) {
+            // block full, get new block
             getNextBlock();
-          } else if (mCurrentBlockLeftByte < 0 || mCurrentBlockOutStream == null) {
-            throw new IOException("mCurrentBlockLeftByte " + mCurrentBlockLeftByte + " "
-                + mCurrentBlockOutStream);
-          }
-          if (mCurrentBlockLeftByte >= tLen) {
-            mCurrentBlockOutStream.write(b, tOff, tLen);
-            mCurrentBlockLeftByte -= tLen;
-            mCachedBytes += tLen;
-            tOff += tLen;
-            tLen = 0;
           } else {
-            mCurrentBlockOutStream.write(b, tOff, (int) mCurrentBlockLeftByte);
-            tOff += mCurrentBlockLeftByte;
-            tLen -= mCurrentBlockLeftByte;
-            mCachedBytes += mCurrentBlockLeftByte;
-            mCurrentBlockLeftByte = 0;
+            mCachedBytes += n;
           }
         }
       } catch (IOException e) {
@@ -213,33 +192,16 @@ public class FileOutStream extends OutStream {
     }
 
     if (mWriteType.isThrough()) {
-      mCheckpointOutputStream.write(b, off, len);
+      buffer.position(pos);
+      mCheckpointOutputStream.write(buffer.array(), pos, buffer.limit());
     }
   }
 
   @Override
   public void write(int b) throws IOException {
-    if (mWriteType.isCache()) {
-      try {
-        if (mCurrentBlockId == -1 || mCurrentBlockLeftByte == 0) {
-          getNextBlock();
-        }
-        // TODO Cache the exception here.
-        mCurrentBlockOutStream.write(b);
-        mCurrentBlockLeftByte --;
-        mCachedBytes ++;
-      } catch (IOException e) {
-        if (mWriteType.isMustCache()) {
-          LOG.error(e.getMessage(), e);
-          throw new IOException("Fail to cache: " + mWriteType, e);
-        } else {
-          LOG.warn("Fail to cache for: ", e);
-        }
-      }
-    }
-
-    if (mWriteType.isThrough()) {
-      mCheckpointOutputStream.write(b);
-    }
+    ByteBuffer buffer = ByteBuffer.allocate(1);
+    buffer.put((byte) (b & 0xFF));
+    buffer.flip();
+    write(buffer);
   }
 }

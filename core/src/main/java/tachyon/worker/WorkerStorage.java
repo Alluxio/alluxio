@@ -230,8 +230,13 @@ public class WorkerStorage {
             LOG.error("Failed to rename from " + midPath + " to " + dstPath);
           }
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
-          long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB
-              / WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
+          for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
+            unlockBlock(fileInfo.blockIds.get(k), Users.CHECKPOINT_USER_ID);
+          }
+
+          int cap = WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
+          long shouldTakeMs =
+              (long) (1000.0 * fileSizeByte / Constants.MB / cap);
           long currentTimeMs = System.currentTimeMillis();
           if (startCopyTimeMs + shouldTakeMs > currentTimeMs) {
             long shouldSleepMs = startCopyTimeMs + shouldTakeMs - currentTimeMs;
@@ -435,8 +440,8 @@ public class WorkerStorage {
    * Notify the worker the block is cached.
    * 
    * This call is called remotely from {@link tachyon.client.TachyonFS#cacheBlock(long)} which is
-   * only ever called from {@link tachyon.client.BlockOutStream#close()} (though its a public api so
-   * anyone could call it). There are a few interesting preconditions for this to work.
+   * only ever called from {@link tachyon.client.WritableBlockChannel#close()} (though its a public
+   * api so anyone could call it). There are a few interesting preconditions for this to work.
    * 
    * 1) Client process writes to files locally under a tachyon defined temp directory. 2) Worker
    * process is on the same node as the client 3) Client is talking to the local worker directly

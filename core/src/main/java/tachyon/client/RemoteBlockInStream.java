@@ -24,6 +24,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
@@ -64,7 +66,7 @@ public class RemoteBlockInStream extends BlockInStream {
   /**
    * If we are re-caching the file, we write it to a block out stream as we read it.
    */
-  private BlockOutStream mBlockOutStream = null;
+  private WritableBlockChannel mBlockOutStream = null;
 
   /**
    * The under filesystem configuration that we use to set up the checkpoint input stream
@@ -102,7 +104,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
     mRecache = readType.isCache();
     if (mRecache) {
-      mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
+      mBlockOutStream = Blocks.createWritableBlock(file, blockIndex);
     }
 
     updateCurrentBuffer();
@@ -138,34 +140,11 @@ public class RemoteBlockInStream extends BlockInStream {
     }
   }
 
-  @Override
-  public int read() throws IOException {
-    mReadByte++;
-    if (mReadByte > mBlockInfo.length) {
-      doneRecache();
-      return -1;
-    }
-
-    if (mCurrentBuffer != null) {
-      if (mCurrentBuffer.remaining() == 0) {
-        mBufferStartPosition = mReadByte - 1;
-        updateCurrentBuffer();
-      }
-      if (mCurrentBuffer != null) {
-        int ret = mCurrentBuffer.get() & 0xFF;
-        if (mRecache) {
-          mBlockOutStream.write(ret);
-        }
-        return ret;
-      }
-      setupStreamFromUnderFs(mBlockInfo.offset + mReadByte - 1, mUFSConf);
-    }
-
-    int ret = mCheckpointInputStream.read() & 0xFF;
-    if (mRecache) {
-      mBlockOutStream.write(ret);
-    }
-    return ret;
+  private ByteBuffer wrap(byte data) {
+    ByteBuffer buffer = ByteBuffer.allocate(1);
+    buffer.put(data);
+    buffer.flip();
+    return buffer;
   }
 
   @Override
@@ -203,7 +182,8 @@ public class RemoteBlockInStream extends BlockInStream {
         mCurrentBuffer.get(b, off, (int) ret);
         mReadByte += ret;
         if (mRecache) {
-          mBlockOutStream.write(b, off, (int) ret);
+          int written = mBlockOutStream.write(ByteBuffer.wrap(b, off, (int) ret));
+          Preconditions.checkState(written >= 0);
           if (mReadByte == mBlockInfo.length) {
             doneRecache();
           }
@@ -217,12 +197,43 @@ public class RemoteBlockInStream extends BlockInStream {
 
     mReadByte += ret;
     if (mRecache) {
-      mBlockOutStream.write(b, off, (int) ret);
+      int written = mBlockOutStream.write(ByteBuffer.wrap(b, off, (int) ret));
+      Preconditions.checkState(written >= 0);
       if (mReadByte == mBlockInfo.length) {
         doneRecache();
       }
     }
     return (int) ret;
+  }
+
+  @Override
+  public int read() throws IOException {
+    mReadByte ++;
+    if (mReadByte > mBlockInfo.length) {
+      doneRecache();
+      return -1;
+    }
+
+    if (mCurrentBuffer != null) {
+      if (mCurrentBuffer.remaining() == 0) {
+        mBufferStartPosition = mReadByte - 1;
+        updateCurrentBuffer();
+      }
+      if (mCurrentBuffer != null) {
+        int ret = mCurrentBuffer.get() & 0xFF;
+        if (mRecache) {
+          mBlockOutStream.write(wrap((byte) ret));
+        }
+        return ret;
+      }
+      setupStreamFromUnderFs(mBlockInfo.offset + mReadByte - 1, mUFSConf);
+    }
+
+    int ret = mCheckpointInputStream.read() & 0xFF;
+    if (mRecache) {
+      mBlockOutStream.write(wrap((byte) ret));
+    }
+    return ret;
   }
 
   private ByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo, long offset, long len) {
