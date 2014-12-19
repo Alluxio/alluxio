@@ -74,7 +74,7 @@ public class RemoteBlockInStream extends BlockInStream {
   /**
   * The object for synchronization to avoid race conditions between close() and doneRecache()
   */
-  private Object mFlagDoneRecache = null;
+  private final Object mFlagDoneRecache = new Object();
 
   /**
   * The variable to indicate whether recache has been done
@@ -117,7 +117,6 @@ public class RemoteBlockInStream extends BlockInStream {
 
     mRecache = readType.isCache();
     if (mRecache) {
-      mFlagDoneRecache = new Object();
       mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
     }
 
