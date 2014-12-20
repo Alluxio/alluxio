@@ -2,7 +2,7 @@
 set -e
 
 HADOOP_VERSION="2.4.1"
-nodes=`cat /tachyon/conf/slaves`
+nodes=`cat /tachyon/conf/workers`
 
 cd /vagrant/shared
 
@@ -19,10 +19,10 @@ then
     ln -s `pwd`/hadoop-${HADOOP_VERSION} /hadoop
 
     # setup hadoop
-    rm -f /hadoop/etc/hadoop/slaves
+    rm -f /hadoop/etc/hadoop/workers
     for i in ${nodes[@]}
     do 
-        echo $i >> /hadoop/etc/hadoop/slaves
+        echo $i >> /hadoop/etc/hadoop/workers
     done
 
     # choose the last node as namenode

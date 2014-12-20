@@ -19,7 +19,7 @@ kill_worker() {
 }
 
 kill_remote_workers() {
-  $bin/tachyon-slaves.sh $bin/tachyon killAll tachyon.worker.TachyonWorker
+  $bin/tachyon-workers.sh $bin/tachyon killAll tachyon.worker.TachyonWorker
 }
 
 WHAT=${1:-all}
