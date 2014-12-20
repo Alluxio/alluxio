@@ -2,12 +2,12 @@
 
 # Start all Tachyon workers.
 # Starts the master on this node.
-# Starts a worker on each node specified in conf/slaves
+# Starts a worker on each node specified in conf/workers
 
 Usage="Usage: tachyon-mount.sh [Mount|SudoMount] [MACHINE]
 \nIf omitted, MACHINE is default to be 'local'. MACHINE is one of:\n
   local\t\t\tMount local machine\n
-  workers\t\tMount all the workers on slaves"
+  workers\t\tMount all the workers on worker nodes"
 
 function init_env() {
   bin=`cd "$( dirname "$1" )"; pwd`
@@ -140,7 +140,7 @@ case "${1}" in
         mount_local $1
         ;;
       workers)
-        $bin/tachyon-slaves.sh $bin/tachyon-mount.sh $1
+        $bin/tachyon-workers.sh $bin/tachyon-mount.sh $1
         ;;
     esac
     ;;

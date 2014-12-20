@@ -21,7 +21,7 @@ function create_tachyon_directories() {
 function deploy_tachyon_files() {
   deploy_hadoop_files
   rm -f "$TACHYON_CONTAINER/conf/tachyon-env.sh"
-  confs=( "log4j.properties" "slaves" "tachyon-env.sh.template" )
+  confs=( "log4j.properties" "workers" "tachyon-env.sh.template" )
   for conf in ${confs[@]}; do
     local command="cp /root/tachyon_base_files/$conf $TACHYON_CONTAINER/conf"
     echo $command
