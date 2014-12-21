@@ -189,13 +189,14 @@ public class MasterWorkerInfo {
    * @param add true if to add, to remove otherwise.
    * @param blockId the ID of the block to be added or removed
    */
-  public synchronized void updateToRemovedBlock(boolean add, long blockId) {
+  public synchronized boolean updateToRemovedBlock(boolean add, long blockId) {
     if (add) {
       if (mBlocks.contains(blockId)) {
-        mToRemoveBlocks.add(blockId);
+        return mToRemoveBlocks.add(blockId);
       }
+      return false;
     } else {
-      mToRemoveBlocks.remove(blockId);
+      return mToRemoveBlocks.remove(blockId);
     }
   }
 
@@ -205,10 +206,14 @@ public class MasterWorkerInfo {
    * @param add true if to add, to remove otherwise.
    * @param blockIds IDs of blocks to be added or removed
    */
-  public synchronized void updateToRemovedBlocks(boolean add, Collection<Long> blockIds) {
+  public synchronized List<Long> updateToRemovedBlocks(boolean add, Collection<Long> blockIds) {
+    List<Long> updatedBlockIds = new ArrayList<Long>();
     for (long blockId : blockIds) {
-      updateToRemovedBlock(add, blockId);
+      if (updateToRemovedBlock(add, blockId)) {
+        updatedBlockIds.add(blockId);
+      }
     }
+    return updatedBlockIds;
   }
 
   /**
