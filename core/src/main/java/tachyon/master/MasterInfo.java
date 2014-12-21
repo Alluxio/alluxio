@@ -2342,7 +2342,9 @@ public class MasterInfo extends ImageWriter {
 
         tWorkerInfo.updateUsedBytes(usedBytes);
         tWorkerInfo.updateBlocks(false, removedBlockIds);
-        tWorkerInfo.updateToRemovedBlocks(false, removedBlockIds);
+        List<Long> updatedToRemovedBlockIds =
+            tWorkerInfo.updateToRemovedBlocks(false, removedBlockIds);
+        removedBlockIds.removeAll(updatedToRemovedBlockIds);
         tWorkerInfo.updateLastUpdatedTimeMs();
 
         for (long blockId : removedBlockIds) {
