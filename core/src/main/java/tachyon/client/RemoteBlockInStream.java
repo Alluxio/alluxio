@@ -72,6 +72,21 @@ public class RemoteBlockInStream extends BlockInStream {
   private Object mUFSConf = null;
 
   /**
+  * The object for synchronization to avoid race conditions between close() and doneRecache()
+  */
+  private final Object mFlagDoneRecache = new Object();
+
+  /**
+  * The variable to indicate whether recache has been done
+  */
+  private boolean mDoneRecache = false;
+
+  /**
+  * The wait timeout for recache to be done after close() is called
+  */
+  private static final long RECACHE_TIME_OUT_MS = 3000;
+
+  /**
    * @param file the file the block belongs to
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the file
@@ -119,11 +134,27 @@ public class RemoteBlockInStream extends BlockInStream {
     }
   }
 
+  private void cancelBlockOutStreamIfNeeded() throws IOException {
+    synchronized (mFlagDoneRecache) {
+      try {
+        mFlagDoneRecache.wait(RECACHE_TIME_OUT_MS);
+      } catch (InterruptedException e) {
+        // Restore the interrupted status
+        Thread.currentThread().interrupt();
+      }
+    }
+
+    // if recache still not done, cancel block out stream
+    if (!mDoneRecache) {
+      mBlockOutStream.cancel();
+    }
+  }
+
   @Override
   public void close() throws IOException {
     if (!mClosed) {
       if (mRecache) {
-        mBlockOutStream.cancel();
+        cancelBlockOutStreamIfNeeded();
       }
       if (mCheckpointInputStream != null) {
         mCheckpointInputStream.close();
@@ -135,6 +166,10 @@ public class RemoteBlockInStream extends BlockInStream {
   private void doneRecache() throws IOException {
     if (mRecache) {
       mBlockOutStream.close();
+      mDoneRecache = true;
+      synchronized (mFlagDoneRecache) {
+        mFlagDoneRecache.notifyAll();
+      }
     }
   }
 
