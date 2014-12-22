@@ -329,7 +329,7 @@ public class WorkerStorage {
     mUfsWorkerFolder = CommonUtils.concat(ufsWorkerFolder, mWorkerId);
     mUfsWorkerDataFolder = mUfsWorkerFolder + "/data";
     mUfs = UnderFileSystem.get(ufsAddress);
-    mUsers = new Users(mLocalUserFolder.toString(), mUfsWorkerFolder);
+    mUsers = new Users(mLocalUserFolder.toString(), mUfsWorkerFolder, mTachyonConf);
 
     for (int k = 0; k < WorkerConf.get().WORKER_CHECKPOINT_THREADS; k ++) {
       mCheckpointExecutor.submit(new CheckpointThread(k));
