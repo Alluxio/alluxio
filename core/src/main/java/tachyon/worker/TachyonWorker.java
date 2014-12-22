@@ -309,11 +309,11 @@ public class TachyonWorker implements Runnable {
     Command cmd = null;
     while (!mStop) {
       long diff = System.currentTimeMillis() - lastHeartbeatMs;
-      int hbIntervaltMs = mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
+      int hbIntervalMs = mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
           Constants.SECOND_MS);
-      if (diff < hbIntervaltMs) {
+      if (diff < hbIntervalMs) {
         LOG.debug("Heartbeat process takes {} ms.", diff);
-        CommonUtils.sleepMs(LOG, hbIntervaltMs - diff);
+        CommonUtils.sleepMs(LOG, hbIntervalMs - diff);
       } else {
         LOG.error("Heartbeat process takes " + diff + " ms.");
       }
