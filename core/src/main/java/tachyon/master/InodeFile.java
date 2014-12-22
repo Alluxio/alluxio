@@ -382,6 +382,15 @@ public class InodeFile extends Inode {
   }
 
   /**
+   * Remove block locations of the file.
+   */
+  public synchronized void removeLocations() {
+    for (BlockInfo blockInfo : mBlocks) {
+      blockInfo.removeLocations();
+    }
+  }
+
+  /**
    * Set whether the file is cacheable or not.
    * 
    * @param cache If true, the file is cacheable

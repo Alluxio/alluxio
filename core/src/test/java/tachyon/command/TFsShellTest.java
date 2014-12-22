@@ -44,6 +44,7 @@ import tachyon.client.WriteType;
 import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 
@@ -521,7 +522,6 @@ public class TFsShellTest {
   public void freeTest() throws IOException {
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.free(new String[]{"free", "/testFile"});
-    CommonUtils.sleepMs(null, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS *2);;
-    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory()); ;
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
   }
 }
