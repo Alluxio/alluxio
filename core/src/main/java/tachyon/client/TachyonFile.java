@@ -18,10 +18,8 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,8 +36,6 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
-import tachyon.worker.nio.DataServerMessage;
 
 /**
  * Tachyon File.
@@ -443,48 +439,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return TachyonByteBuffer containing the block.
    */
   TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) {
-    ByteBuffer buf = null;
-
-    LOG.info("Try to find and read from remote workers.");
-    try {
-      List<NetAddress> blockLocations = blockInfo.getLocations();
-      LOG.info("readByteBufferFromRemote() " + blockLocations);
-
-      for (int k = 0; k < blockLocations.size(); k++) {
-        String host = blockLocations.get(k).mHost;
-        int port = blockLocations.get(k).mSecondaryPort;
-
-        // The data is not in remote machine's memory if port == -1.
-        if (port == -1) {
-          continue;
-        }
-        final String hostname = NetworkUtils.getLocalHostName();
-        final String hostaddress = NetworkUtils.getLocalIpAddress();
-        if (host.equals(hostname) || host.equals(hostaddress)) {
-          String localFileName =
-              CommonUtils.concat(mTachyonFS.getLocalDataFolder(), blockInfo.blockId);
-          LOG.warn("Reading remotely even though request is local; file is " + localFileName);
-        }
-        LOG.info(host + ":" + port + " current host is " + hostname + " " + hostaddress);
-
-        try {
-          buf = retrieveRemoteByteBuffer(new InetSocketAddress(host, port), blockInfo.blockId);
-          if (buf != null) {
-            break;
-          }
-        } catch (IOException e) {
-          LOG.error("Fail to retrieve byte buffer for block " + blockInfo.blockId + " from remote "
-              + host + ":" + port, e);
-          buf = null;
-        }
-      }
-    } catch (IOException e) {
-      LOG.error("Failed to get read data from remote ", e);
-    }
-
-    return buf == null ? null : new TachyonByteBuffer(mTachyonFS, buf, blockInfo.blockId, -1);
+    // We call into the remote block in stream class to read a remote byte buffer
+    ByteBuffer buf = RemoteBlockInStream.readRemoteByteBuffer(mTachyonFS,
+        blockInfo, 0, blockInfo.length);
+    return (buf == null) ? null : new TachyonByteBuffer(mTachyonFS, buf, blockInfo.blockId, -1);
   }
 
+  
   // TODO remove this method. do streaming cache. This is not a right API.
   public boolean recache() throws IOException {
     int numberOfBlocks = getNumberOfBlocks();
@@ -565,45 +526,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public boolean rename(TachyonURI path) throws IOException {
     return mTachyonFS.rename(mFileId, path);
-  }
-
-  private ByteBuffer retrieveRemoteByteBuffer(InetSocketAddress address, long blockId)
-      throws IOException {
-    SocketChannel socketChannel = SocketChannel.open();
-    try {
-      socketChannel.connect(address);
-
-      LOG.info("Connected to remote machine " + address + " sent");
-      DataServerMessage sendMsg = DataServerMessage.createBlockRequestMessage(blockId);
-      while (!sendMsg.finishSending()) {
-        sendMsg.send(socketChannel);
-      }
-
-      LOG.info("Data " + blockId + " to remote machine " + address + " sent");
-
-      DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
-      while (!recvMsg.isMessageReady()) {
-        int numRead = recvMsg.recv(socketChannel);
-        if (numRead == -1) {
-          break;
-        }
-      }
-      LOG.info("Data " + blockId + " from remote machine " + address + " received");
-
-      if (!recvMsg.isMessageReady()) {
-        LOG.info("Data " + blockId + " from remote machine is not ready.");
-        return null;
-      }
-
-      if (recvMsg.getBlockId() < 0) {
-        LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
-        return null;
-      }
-
-      return recvMsg.getReadOnlyData();
-    } finally {
-      socketChannel.close();
-    }
   }
 
   /**
