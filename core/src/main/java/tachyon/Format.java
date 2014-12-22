@@ -18,7 +18,6 @@ package tachyon;
 import java.io.IOException;
 
 import tachyon.conf.TachyonConf;
-import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -71,8 +70,7 @@ public class Format {
 
       CommonUtils.touch(masterJournal + Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis());
     } else if (args[0].toUpperCase().equals("WORKER")) {
-      WorkerConf workerConf = WorkerConf.get();
-      String localFolder = workerConf.DATA_FOLDER;
+      String localFolder = tachyonConf.get(Constants.WORKER_DATA_FOLDER, "/mnt/ramdisk");
       UnderFileSystem ufs = UnderFileSystem.get(localFolder);
       System.out.println("Removing local data under folder: " + localFolder);
       if (ufs.exists(localFolder)) {

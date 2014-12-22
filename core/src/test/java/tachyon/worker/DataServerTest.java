@@ -34,7 +34,7 @@ import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -65,6 +65,8 @@ public class DataServerTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
 
   private TachyonFS mTFS = null;
+
+  private TachyonConf mWorkerTachyonConf;
 
   public DataServerTest(NetworkType type) {
     mType = type;
@@ -109,6 +111,7 @@ public class DataServerTest {
         Constants.GB);
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
+    mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
   }
 
   @Test
@@ -153,7 +156,7 @@ public class DataServerTest {
     DataServerMessage recvMsg2 = request(block2);
     assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
 
-    CommonUtils.sleepMs(null, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf));
     ClientFileInfo fileInfo = mTFS.getFileStatus(-1, new TachyonURI("/readFile1"));
     Assert.assertEquals(0, fileInfo.inMemoryPercentage);
   }

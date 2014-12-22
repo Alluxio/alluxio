@@ -17,7 +17,7 @@ package tachyon;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 
 /**
  * Represent one user in the worker daemon.
@@ -28,11 +28,15 @@ public class UserInfo {
   private long mOwnBytes;
   private long mLastHeartbeatMs;
 
-  public UserInfo(long userId) {
+  private final TachyonConf mTachyonConf;
+
+  public UserInfo(long userId, TachyonConf tachyonConf) {
     Preconditions.checkArgument(userId > 0, "Invalid user id " + userId);
+    Preconditions.checkArgument(tachyonConf != null, "Cannot pass null for TachyonConf");
     mUserId = userId;
     mOwnBytes = 0;
     mLastHeartbeatMs = System.currentTimeMillis();
+    mTachyonConf = tachyonConf;
   }
 
   public synchronized void addOwnBytes(long addOwnBytes) {
@@ -52,7 +56,9 @@ public class UserInfo {
   }
 
   public synchronized boolean timeout() {
-    return (System.currentTimeMillis() - mLastHeartbeatMs > WorkerConf.get().USER_TIMEOUT_MS);
+    int userTimeoutMs = mTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS,
+        10 * Constants.SECOND_MS);
+    return (System.currentTimeMillis() - mLastHeartbeatMs > userTimeoutMs);
   }
 
   @Override
