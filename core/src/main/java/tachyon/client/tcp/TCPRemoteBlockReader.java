@@ -36,7 +36,7 @@ public final class TCPRemoteBlockReader implements RemoteBlockReader {
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {
-          break;
+          LOG.warn("Read nothing");
         }
       }
       LOG.info("Data " + blockId + " from remote machine " + address + " received");
