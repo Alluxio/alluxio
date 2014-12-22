@@ -41,10 +41,8 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
-import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
-import tachyon.thrift.ClientFileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 

@@ -185,7 +185,7 @@ public class BlockInfo {
   }
 
   /**
-   * Remove all locations of the block
+   * Remove all in memory locations of the block
    */
   public synchronized void removeLocations() {
     mLocations.clear();

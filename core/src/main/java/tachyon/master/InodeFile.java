@@ -382,7 +382,7 @@ public class InodeFile extends Inode {
   }
 
   /**
-   * Remove block locations of the file.
+   * Remove in memory block locations of the file.
    */
   public synchronized void removeLocations() {
     for (BlockInfo blockInfo : mBlocks) {
