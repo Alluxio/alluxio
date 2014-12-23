@@ -109,5 +109,7 @@ public class HierarchyStoreTest {
     Assert.assertEquals(true, file1.isInMemory());
     Assert.assertEquals(false, file2.isInMemory());
     Assert.assertEquals(true, file3.isInMemory());
+    Assert.assertEquals(mMemCapacityBytes / 6 + mMemCapacityBytes,
+        mLocalTachyonCluster.getMasterInfo().getUsedBytes());
   }
 }
