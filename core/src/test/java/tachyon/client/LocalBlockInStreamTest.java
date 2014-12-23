@@ -18,10 +18,9 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -37,26 +36,29 @@ public class LocalBlockInStreamTest {
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
 
-  private static LocalTachyonCluster CLUSTER = null;
-  private static TachyonFS TFS = null;
-  private static final ImmutableSet<WriteType> WRITE_TYPES =
-      ImmutableSet.of(WriteType.MUST_CACHE, WriteType.CACHE_THROUGH);
+  private LocalTachyonCluster mLocalTachyonCluster = null;
+  private TachyonFS mTfs = null;
+  private Set<WriteType> mWriteCacheType;
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
-  @BeforeClass
-  public static final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    CLUSTER = new LocalTachyonCluster(10000);
-    CLUSTER.start();
-    TFS = CLUSTER.getClient();
+  @After
+  public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
+    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
-  @AfterClass
-  public static final void after() throws Exception {
-    CLUSTER.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
+  @Before
+  public final void before() throws IOException {
+    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
+    mLocalTachyonCluster = new LocalTachyonCluster(10000);
+    mLocalTachyonCluster.start();
+    mTfs = mLocalTachyonCluster.getClient();
+
+    mWriteCacheType = new HashSet<WriteType>();
+    mWriteCacheType.add(WriteType.MUST_CACHE);
+    mWriteCacheType.add(WriteType.CACHE_THROUGH);
   }
 
   /**
@@ -64,12 +66,11 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void readTest1() throws IOException {
-    final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WRITE_TYPES) {
-        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
+      for (WriteType op : mWriteCacheType) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = TFS.getFile(fileId);
+        TachyonFile file = mTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
         if (k == 0) {
           Assert.assertTrue(is instanceof EmptyBlockInStream);
@@ -118,12 +119,11 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void readTest2() throws IOException {
-    final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WRITE_TYPES) {
-        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
+      for (WriteType op : mWriteCacheType) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = TFS.getFile(fileId);
+        TachyonFile file = mTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
         if (k == 0) {
           Assert.assertTrue(is instanceof EmptyBlockInStream);
@@ -156,12 +156,11 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void readTest3() throws IOException {
-    final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WRITE_TYPES) {
-        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
+      for (WriteType op : mWriteCacheType) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = TFS.getFile(fileId);
+        TachyonFile file = mTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
         if (k == 0) {
           Assert.assertTrue(is instanceof EmptyBlockInStream);
@@ -197,12 +196,11 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void seekExceptionTest1() throws IOException {
-    final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WRITE_TYPES) {
-        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
+      for (WriteType op : mWriteCacheType) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = TFS.getFile(fileId);
+        TachyonFile file = mTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
         if (k == 0) {
           Assert.assertTrue(is instanceof EmptyBlockInStream);
@@ -233,13 +231,11 @@ public class LocalBlockInStreamTest {
     thrown.expect(IOException.class);
     thrown.expectMessage("Seek position is past buffer limit");
 
-    final String path = TestUtils.uniqFile();
-
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WRITE_TYPES) {
-        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
+      for (WriteType op : mWriteCacheType) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = TFS.getFile(fileId);
+        TachyonFile file = mTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
         if (k == 0) {
           Assert.assertTrue(is instanceof EmptyBlockInStream);
@@ -260,12 +256,11 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void seekTest() throws IOException {
-    final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WRITE_TYPES) {
-        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
+      for (WriteType op : mWriteCacheType) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = TFS.getFile(fileId);
+        TachyonFile file = mTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
         if (k == 0) {
           Assert.assertTrue(is instanceof EmptyBlockInStream);
@@ -289,12 +284,11 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void skipTest() throws IOException {
-    final String path = TestUtils.uniqFile();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WRITE_TYPES) {
-        int fileId = TestUtils.createByteFile(TFS, path + "/root/testFile_" + k + "_" + op, op, k);
+      for (WriteType op : mWriteCacheType) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = TFS.getFile(fileId);
+        TachyonFile file = mTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.CACHE);
         Assert.assertTrue(is instanceof LocalBlockInStream);
         Assert.assertEquals(k / 2, is.skip(k / 2));
