@@ -106,8 +106,8 @@ public class TestDFSIO implements Tool {
   // Constants for Tachyon
   private static final int BLOCK_SIZE = 30;
   private Configuration config;
-  private static LocalTachyonCluster CLUSTER = null;
-  private static URI CLUSTER_URI = null;
+  private static LocalTachyonCluster mLocalTachyonCluster = null;
+  private static URI mLocalTachyonClusterUri = null;
 
   static {
     Configuration.addDefaultResource("hdfs-default.xml");
@@ -208,14 +208,14 @@ public class TestDFSIO implements Tool {
     // Start local Tachyon cluster
     System.setProperty("tachyon.user.quota.unit.bytes", "100000");
     System.setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
-    CLUSTER = new LocalTachyonCluster(500000);
-    CLUSTER.start();
+    mLocalTachyonCluster = new LocalTachyonCluster(500000);
+    mLocalTachyonCluster.start();
 
-    CLUSTER_URI = URI.create(CLUSTER.getMasterUri());
-    bench.getConf().set("fs.defaultFS", CLUSTER_URI.toString());
-    bench.getConf().set("fs.default.name", CLUSTER_URI.toString());
+    mLocalTachyonClusterUri = URI.create(mLocalTachyonCluster.getMasterUri());
+    bench.getConf().set("fs.defaultFS", mLocalTachyonClusterUri.toString());
+    bench.getConf().set("fs.default.name", mLocalTachyonClusterUri.toString());
     bench.getConf().set("fs." + Constants.SCHEME + ".impl", TFS.class.getName());
-    FileSystem fs = FileSystem.get(CLUSTER_URI, bench.getConf());
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     bench.createControlFile(fs, DEFAULT_NR_BYTES, DEFAULT_NR_FILES);
 
     /** Check write here, as it is required for other tests */
@@ -224,21 +224,21 @@ public class TestDFSIO implements Tool {
 
   @AfterClass
   public static void afterClass() throws Exception {
-    if (CLUSTER == null)
+    if (mLocalTachyonCluster == null)
       return;
 
     // Clear TestDFSIO
-    FileSystem fs = FileSystem.get(CLUSTER_URI, bench.getConf());
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     bench.cleanup(fs);
 
     // Stop local Tachyon cluster
-    CLUSTER.stop();
+    mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   public static void testWrite() throws Exception {
-    FileSystem fs = FileSystem.get(CLUSTER_URI, bench.getConf());
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.writeTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
@@ -247,7 +247,7 @@ public class TestDFSIO implements Tool {
 
   @Test(timeout = 25000)
   public void testRead() throws Exception {
-    FileSystem fs = FileSystem.get(CLUSTER_URI, bench.getConf());
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.readTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
@@ -256,7 +256,7 @@ public class TestDFSIO implements Tool {
 
   @Test(timeout = 25000)
   public void testReadRandom() throws Exception {
-    FileSystem fs = FileSystem.get(CLUSTER_URI, bench.getConf());
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.getConf().setLong("test.io.skip.size", 0);
     bench.randomReadTest(fs);
@@ -266,7 +266,7 @@ public class TestDFSIO implements Tool {
 
   @Test(timeout = 25000)
   public void testReadBackward() throws Exception {
-    FileSystem fs = FileSystem.get(CLUSTER_URI, bench.getConf());
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.getConf().setLong("test.io.skip.size", -DEFAULT_BUFFER_SIZE);
     bench.randomReadTest(fs);
@@ -276,7 +276,7 @@ public class TestDFSIO implements Tool {
 
   @Test(timeout = 20000)
   public void testReadSkip() throws Exception {
-    FileSystem fs = FileSystem.get(CLUSTER_URI, bench.getConf());
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.getConf().setLong("test.io.skip.size", 1);
     bench.randomReadTest(fs);
@@ -286,7 +286,7 @@ public class TestDFSIO implements Tool {
 
   @Test(timeout = 25000)
   public void testReadLargeSkip() throws Exception {
-    FileSystem fs = FileSystem.get(CLUSTER_URI, bench.getConf());
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.getConf().setLong("test.io.skip.size", 5000);
     bench.randomReadTest(fs);
@@ -297,7 +297,7 @@ public class TestDFSIO implements Tool {
   // TODO: Should active this unit test after TACHYON-25 has been solved
   // @Test (timeout = 25000)
   public void testAppend() throws Exception {
-    FileSystem fs = FileSystem.get(CLUSTER_URI, bench.getConf());
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.appendTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
