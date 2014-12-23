@@ -118,8 +118,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final int mUserFailedSpaceRequestLimits =
-      mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 0);
+  private final int mUserFailedSpaceRequestLimits;
   private final ExecutorService mExecutorService;
 
   // The RPC client talks to the system master.
@@ -167,6 +166,9 @@ public class TachyonFS extends AbstractTachyonFS {
         mCloser.register(new MasterClient(mMasterAddress, mExecutorService, mTachyonConf));
     mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService,
         mTachyonConf));
+
+    mUserFailedSpaceRequestLimits =
+        mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 0);
   }
 
   /**
