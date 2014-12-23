@@ -155,6 +155,7 @@ public class Constants {
       "tachyon.worker.hierarchystore.level.max";
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
+  public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";

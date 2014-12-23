@@ -48,7 +48,6 @@ import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
-import tachyon.conf.WorkerConf;
 import tachyon.master.BlockInfo;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
@@ -231,8 +230,9 @@ public class WorkerStorage {
             LOG.error("Failed to rename from " + midPath + " to " + dstPath);
           }
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
-          long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB
-              / WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
+          int capMbSec = mTachyonConf.getInt(Constants.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC,
+              Constants.SECOND_MS);
+          long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB / capMbSec);
           long currentTimeMs = System.currentTimeMillis();
           if (startCopyTimeMs + shouldTakeMs > currentTimeMs) {
             long shouldSleepMs = startCopyTimeMs + shouldTakeMs - currentTimeMs;
@@ -285,9 +285,7 @@ public class WorkerStorage {
 
   private List<Integer> mPriorityDependencies = new ArrayList<Integer>();
 
-  private final ExecutorService mCheckpointExecutor = Executors.newFixedThreadPool(
-      WorkerConf.get().WORKER_CHECKPOINT_THREADS,
-      ThreadFactoryUtils.build("checkpoint-%d"));
+  private final ExecutorService mCheckpointExecutor;
 
   private final ExecutorService mExecutorService;
 
@@ -314,7 +312,12 @@ public class WorkerStorage {
     mLocalDataFolder = new File(dataFolder);
 
     mSpaceCounter = new SpaceCounter(memoryCapacityBytes);
-    mLocalUserFolder = new File(mLocalDataFolder, WorkerConf.USER_TEMP_RELATIVE_FOLDER);
+
+    mLocalUserFolder = new File(mLocalDataFolder, Constants.WORKER_USER_TEMP_RELATIVE_FOLDER);
+
+    int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
+    mCheckpointExecutor = Executors.newFixedThreadPool(checkpointThreads,
+        ThreadFactoryUtils.build("checkpoint-%d"));
   }
 
   public void initialize(final NetAddress address) {
@@ -331,7 +334,8 @@ public class WorkerStorage {
     mUfs = UnderFileSystem.get(ufsAddress);
     mUsers = new Users(mLocalUserFolder.toString(), mUfsWorkerFolder, mTachyonConf);
 
-    for (int k = 0; k < WorkerConf.get().WORKER_CHECKPOINT_THREADS; k ++) {
+    int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
+    for (int k = 0; k < checkpointThreads; k ++) {
       mCheckpointExecutor.submit(new CheckpointThread(k));
     }
 
