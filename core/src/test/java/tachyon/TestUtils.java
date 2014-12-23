@@ -148,4 +148,13 @@ public final class TestUtils {
 
     return res;
   }
+
+  /**
+   * Creates a unique path based off the caller.
+   */
+  public static final String uniqFile() {
+    StackTraceElement caller = new Throwable().getStackTrace()[1];
+    long time = System.nanoTime();
+    return "/" + caller.getClassName() + "/" + caller.getMethodName() + "/" + time;
+  }
 }
