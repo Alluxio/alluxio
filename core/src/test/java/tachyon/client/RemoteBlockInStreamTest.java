@@ -23,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
 
@@ -455,5 +456,84 @@ public class RemoteBlockInStreamTest {
         Assert.assertFalse(file.isInMemory());
       }
     }
+  }
+
+  /**
+   * Tests that reading a file the whole way through with the CACHE ReadType will recache it
+   */
+  @Test
+  public void completeFileReadTriggersRecache() throws IOException {
+    int len = 2;
+    int fileId = TestUtils.createByteFile(mTfs, "/root/testFile", WriteType.THROUGH, len);
+    TachyonFile file = mTfs.getFile(fileId);
+    InStream is = file.getInStream(ReadType.CACHE);
+    Assert.assertTrue(is instanceof RemoteBlockInStream);
+    for (int i = 0; i < len; ++i) {
+      Assert.assertEquals(i, is.read());
+    }
+    is.close();
+    Assert.assertTrue(file.isInMemory());
+    is = file.getInStream(ReadType.NO_CACHE);
+    Assert.assertTrue(is instanceof LocalBlockInStream);
+  }
+
+  /**
+   * Tests that not reading a file the whole way through then closing it will cause it to not
+   * recache
+   */
+  @Test
+  public void incompleteFileReadCancelsRecache() throws IOException {
+    int fileId = TestUtils.createByteFile(mTfs, "/root/testFile", WriteType.THROUGH, 2);
+    TachyonFile file = mTfs.getFile(fileId);
+    InStream is = new RemoteBlockInStream(file, ReadType.CACHE, 0);
+    Assert.assertEquals(0, is.read());
+    is.close();
+    Assert.assertFalse(file.isInMemory());
+    is = file.getInStream(ReadType.NO_CACHE);
+    Assert.assertTrue(is instanceof RemoteBlockInStream);
+  }
+
+  /**
+   * Tests that reading a file consisting of more than one block from the underfs works
+   */
+  @Test
+  public void readMultiBlockFile() throws IOException {
+    int blockSizeByte = 10;
+    int numBlocks = 10;
+    int fileId = mTfs.createFile(new TachyonURI("/root/testFile"), blockSizeByte);
+    TachyonFile file = mTfs.getFile(fileId);
+    OutStream os = file.getOutStream(WriteType.THROUGH);
+    for (int i = 0; i < numBlocks; i ++) {
+      for (int j = 0; j < blockSizeByte; j ++) {
+        os.write((byte) (i * blockSizeByte + j));
+      }
+    }
+    os.close();
+
+    for (int i = 0; i < numBlocks; i ++) {
+      InStream is = new RemoteBlockInStream(file, ReadType.CACHE, i);
+      for (int j = 0; j < blockSizeByte; j ++) {
+        Assert.assertEquals((byte) (i * blockSizeByte + j), is.read());
+      }
+      is.close();
+    }
+    Assert.assertTrue(file.isInMemory());
+  }
+
+  /**
+   * Tests that seeking around a file cached locally works.
+   */
+  @Test
+  public void seekAroundLocalBlock() throws IOException {
+    // The number of bytes per remote block read should be set to 100 in the before function
+    int fileId = TestUtils.createByteFile(mTfs, "/root/testFile", WriteType.MUST_CACHE, 200);
+    TachyonFile file = mTfs.getFile(fileId);
+    InStream is = new RemoteBlockInStream(file, ReadType.NO_CACHE, 0);
+    Assert.assertEquals(0, is.read());
+    is.seek(199);
+    Assert.assertEquals(199, is.read());
+    is.seek(99);
+    Assert.assertEquals(99, is.read());
+    is.close();
   }
 }
