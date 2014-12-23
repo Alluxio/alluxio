@@ -741,13 +741,8 @@ public class WorkerStorage {
    * @param userId the id of the user
    * @param blockId the id of the block
    * @return true if success, false otherwise
-   * @throws FileDoesNotExistException
-   * @throws SuspectedFileSizeException
-   * @throws BlockInfoException
    */
-  public boolean promoteBlock(long userId, long blockId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
-
+  public boolean promoteBlock(long userId, long blockId) {
     long storageDirIdLocked = lockBlock(blockId, userId);
     if (StorageDirId.isUnknown(storageDirIdLocked)) {
       return false;
@@ -758,21 +753,24 @@ public class WorkerStorage {
       StorageDir dstStorageDir = requestSpace(userId, blockSize);
       if (dstStorageDir == null) {
         LOG.error("Failed to promote block! blockId:" + blockId);
-        unlockBlock(blockId, userId);
+        srcStorageDir.unlockBlock(blockId, userId);
         return false;
       }
-      boolean result;
+      boolean result = false;
       try {
-        result = srcStorageDir.moveBlock(blockId, dstStorageDir);
-        mMasterClient.worker_cacheBlock(mWorkerId, mCapacityBytes, dstStorageDir.getStorageDirId(),
-            blockId, blockSize);
+        try {
+          result = srcStorageDir.copyBlock(blockId, dstStorageDir);
+        } finally {
+          srcStorageDir.unlockBlock(blockId, userId);
+        }
+        if (result) {
+          srcStorageDir.deleteBlock(blockId);
+        }
+        return result;
       } catch (IOException e) {
         LOG.error("Failed to promote block! blockId:" + blockId);
         return false;
-      } finally {
-        unlockBlock(blockId, userId);
       }
-      return result;
     } else {
       unlockBlock(blockId, userId);
       return true;

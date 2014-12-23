@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -56,6 +58,8 @@ public final class StorageDir {
   /** List of added block Ids to be reported */
   private final BlockingQueue<Long> mAddedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
+  /** List of to be removed block Ids */
+  private final Set<Long> mToRemoveBlockIdSet = Collections.synchronizedSet(new HashSet<Long>());
   /** Space counter of current StorageDir */
   private final SpaceCounter mSpaceCounter;
   /** Id of StorageDir */
@@ -244,6 +248,8 @@ public final class StorageDir {
         // Should check lock status here 
         if (!isBlockLocked(blockId)) {
           result = mFs.delete(blockfile, true);
+        } else {
+          mToRemoveBlockIdSet.add(blockId);
         }
       } finally {
         if (result) {
@@ -649,6 +655,15 @@ public final class StorageDir {
     }
     mUserPerLockedBlock.remove(blockId, userId);
     mLockedBlocksPerUser.remove(userId, blockId);
+    if (!mUserPerLockedBlock.containsKey(blockId) && mToRemoveBlockIdSet.contains(blockId)) {
+      try {
+        if (deleteBlock(blockId)) {
+          mToRemoveBlockIdSet.remove(blockId);
+        }
+      } catch (IOException e) {
+        LOG.error(e.getMessage());
+      }
+    }
     return true;
   }
 }
