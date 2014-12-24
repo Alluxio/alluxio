@@ -24,14 +24,14 @@ import org.junit.Test;
 
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
-import tachyon.client.BlockHandler;
+import tachyon.worker.BlockHandler;
 import tachyon.master.BlockInfo;
 import tachyon.util.CommonUtils;
 
 public class AllocateStrategyTest {
   private final StorageDir[] mStorageDirs = new StorageDir[3];
-  private final long mUserId = 1;
-  private final long[] mCapacities = new long[] {1000, 1100, 1200};
+  private static final long USER_ID = 1;
+  private static final long[] CAPACITIES = new long[] {1000, 1100, 1200};
 
   @Before
   public final void before() throws IOException {
@@ -41,9 +41,9 @@ public class AllocateStrategyTest {
     String[] dirPaths = "/dir1,/dir2,/dir3".split(",");
     for (int i = 0; i < 3; i++) {
       mStorageDirs[i] =
-          new StorageDir(i + 1, workerDirFolder + dirPaths[i], mCapacities[i], "/data", "/user",
+          new StorageDir(i + 1, workerDirFolder + dirPaths[i], CAPACITIES[i], "/data", "/user",
               null);
-      initializeStorageDir(mStorageDirs[i], mUserId);
+      initializeStorageDir(mStorageDirs[i], USER_ID);
     }
   }
 
@@ -51,34 +51,34 @@ public class AllocateStrategyTest {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
 
     BlockHandler bhSrc =
-        BlockHandler.get(dir.getUserTempFilePath(mUserId, blockId));
+        BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
     try {
       bhSrc.append(0, ByteBuffer.wrap(buf));
     } finally {
       bhSrc.close();
     }
-    dir.requestSpace(mUserId, blockSize);
-    dir.cacheBlock(mUserId, blockId);
+    dir.requestSpace(USER_ID, blockSize);
+    dir.cacheBlock(USER_ID, blockId);
   }
 
   @Test
   public void AllocateMaxFreeTest() throws IOException {
     AllocateStrategy allocator = 
         AllocateStrategies.getAllocateStrategy(AllocateStrategyType.MAX_FREE);
-    StorageDir storageDir = allocator.getStorageDir(mStorageDirs, mUserId, 300);
+    StorageDir storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 300);
     Assert.assertEquals(3, storageDir.getStorageDirId());
     createBlockFile(storageDir, BlockInfo.computeBlockId(1, 0), 300);
-    storageDir = allocator.getStorageDir(mStorageDirs, mUserId, 300);
+    storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 300);
     Assert.assertEquals(2, storageDir.getStorageDirId());
     createBlockFile(storageDir, BlockInfo.computeBlockId(2, 0), 300);
-    storageDir = allocator.getStorageDir(mStorageDirs, mUserId, 300);
+    storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 300);
     Assert.assertEquals(1, storageDir.getStorageDirId());
     createBlockFile(storageDir, BlockInfo.computeBlockId(3, 0), 300);
-    storageDir = allocator.getStorageDir(mStorageDirs, mUserId, 1000);
+    storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 1000);
     Assert.assertEquals(null, storageDir);
     boolean fitIn = allocator.fitInPossible(mStorageDirs, 1200);
     Assert.assertEquals(true, fitIn);
-    mStorageDirs[2].lockBlock(BlockInfo.computeBlockId(1, 0), mUserId);
+    mStorageDirs[2].lockBlock(BlockInfo.computeBlockId(1, 0), USER_ID);
     fitIn = allocator.fitInPossible(mStorageDirs, 1200);
     Assert.assertEquals(false, fitIn);
   }
@@ -87,20 +87,20 @@ public class AllocateStrategyTest {
   public void AllocateRoundRobinTest() throws IOException {
     AllocateStrategy allocator = 
         AllocateStrategies.getAllocateStrategy(AllocateStrategyType.ROUND_ROBIN);
-    StorageDir storageDir = allocator.getStorageDir(mStorageDirs, mUserId, 300);
+    StorageDir storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 300);
     Assert.assertEquals(1, storageDir.getStorageDirId());
     createBlockFile(storageDir, BlockInfo.computeBlockId(1, 0), 300);
-    storageDir = allocator.getStorageDir(mStorageDirs, mUserId, 300);
+    storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 300);
     Assert.assertEquals(2, storageDir.getStorageDirId());
     createBlockFile(storageDir, BlockInfo.computeBlockId(2, 0), 300);
-    storageDir = allocator.getStorageDir(mStorageDirs, mUserId, 300);
+    storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 300);
     Assert.assertEquals(3, storageDir.getStorageDirId());
     createBlockFile(storageDir, BlockInfo.computeBlockId(3, 0), 300);
-    storageDir = allocator.getStorageDir(mStorageDirs, mUserId, 1000);
+    storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 1000);
     Assert.assertEquals(null, storageDir);
     boolean fitIn = allocator.fitInPossible(mStorageDirs, 1200);
     Assert.assertEquals(true, fitIn);
-    mStorageDirs[2].lockBlock(BlockInfo.computeBlockId(3, 0), mUserId);
+    mStorageDirs[2].lockBlock(BlockInfo.computeBlockId(3, 0), USER_ID);
     fitIn = allocator.fitInPossible(mStorageDirs, 1200);
     Assert.assertEquals(false, fitIn);
   }
@@ -109,16 +109,16 @@ public class AllocateStrategyTest {
   public void AllocateRandomTest() throws IOException {
     AllocateStrategy allocator = 
         AllocateStrategies.getAllocateStrategy(AllocateStrategyType.RANDOM);
-    StorageDir storageDir = allocator.getStorageDir(mStorageDirs, mUserId, 300);
+    StorageDir storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 300);
     Assert.assertEquals(true, storageDir != null);
     createBlockFile(storageDir, BlockInfo.computeBlockId(1, 0), 300);
-    storageDir = allocator.getStorageDir(mStorageDirs, mUserId, 300);
+    storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 300);
     Assert.assertEquals(true, storageDir != null);
     createBlockFile(storageDir, BlockInfo.computeBlockId(2, 0), 300);
-    storageDir = allocator.getStorageDir(mStorageDirs, mUserId, 300);
+    storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 300);
     Assert.assertEquals(true, storageDir != null);
     createBlockFile(storageDir, BlockInfo.computeBlockId(3, 0), 300);
-    storageDir = allocator.getStorageDir(mStorageDirs, mUserId, 1300);
+    storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 1300);
     Assert.assertEquals(null, storageDir);
     boolean fitIn = allocator.fitInPossible(mStorageDirs, 1200);
     Assert.assertEquals(true, fitIn);
