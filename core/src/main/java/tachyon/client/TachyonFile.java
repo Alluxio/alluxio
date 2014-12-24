@@ -13,6 +13,7 @@
 
 package tachyon.client;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
@@ -33,8 +34,8 @@ import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.ClientLocationInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.util.CommonUtils;
 
 /**
  * Tachyon File.
@@ -176,12 +177,16 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public String getLocalFilename(int blockIndex) throws IOException {
     ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-    ClientLocationInfo blockLocation = mTachyonFS.getLocalBlockLocation(blockInfo.getBlockId());
-    if (blockLocation == null) {
-      return null;
-    } else {
-      return blockLocation.getPath();
+
+    String rootFolder = mTachyonFS.getLocalDataFolder();
+    if (rootFolder != null) {
+      String localFileName = CommonUtils.concat(rootFolder, blockInfo.getBlockId());
+      File file = new File(localFileName);
+      if (file.exists()) {
+        return localFileName;
+      }
     }
+    return null;
   }
 
   /**
@@ -328,18 +333,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * Promote block after access it
-   * 
-   * @param blockIndex the index of the block
-   * @return true if success, false otherwise
-   * @throws IOException
-   */
-  public boolean promoteBlock(int blockIndex) throws IOException {
-    ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-    return mTachyonFS.promoteBlock(blockInfo.getBlockId());
-  }
-
-  /**
    * Advanced API.
    * 
    * Return a TachyonByteBuffer of the block specified by the blockIndex
@@ -395,20 +388,16 @@ public class TachyonFile implements Comparable<TachyonFile> {
     long blockId = info.blockId;
 
     int blockLockId = mTachyonFS.getBlockLockId();
-    ClientLocationInfo locationInfo = mTachyonFS.lockBlock(blockId, blockLockId);
-    if (locationInfo == null) {
+    if (!mTachyonFS.lockBlock(blockId, blockLockId)) {
       return null;
     }
-
+    String localFileName = getLocalFilename(blockIndex);
     Closer closer = Closer.create();
-    String localFileName = locationInfo.getPath();
     if (localFileName != null) {
       try {
-        RandomAccessFile localFile;
-        long fileLength;
-        localFile = closer.register(new RandomAccessFile(localFileName, "r"));
-        fileLength = localFile.length();
+        RandomAccessFile localFile = closer.register(new RandomAccessFile(localFileName, "r"));
 
+        long fileLength = localFile.length();
         String error = null;
         if (offset > fileLength) {
           error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
@@ -428,7 +417,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
         FileChannel localFileChannel = closer.register(localFile.getChannel());
         final ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
-        mTachyonFS.accessLocalBlock(locationInfo.getStorageDirId(), blockId);
+        mTachyonFS.accessLocalBlock(blockId);
         return new TachyonByteBuffer(mTachyonFS, buf, blockId, blockLockId);
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");

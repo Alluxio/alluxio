@@ -13,12 +13,11 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.client;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ByteChannel;
 
 import tachyon.TachyonURI;
 
@@ -75,21 +74,6 @@ public abstract class BlockHandler implements Closeable {
    * @throws IOException
    */
   public abstract boolean delete() throws IOException;
-
-  /**
-   * Get channel used to access block file
-   * 
-   * @return the channel bounded with the block file
-   */
-  public abstract ByteChannel getChannel();
-
-  /**
-   * Get length of the block file
-   * 
-   * @return the length of the block file
-   * @throws IOException
-   */
-  public abstract long getLength() throws IOException;
 
   /**
    * Read data from block file

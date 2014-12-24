@@ -29,6 +29,7 @@ import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.nio.DataServerMessage;
 
@@ -237,18 +238,20 @@ public class RemoteBlockInStream extends BlockInStream {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
 
-      for (NetAddress blockLocation : blockLocations) {
-        String host = blockLocation.mHost;
-        int port = blockLocation.mSecondaryPort;
+      for (int k = 0; k < blockLocations.size(); k++) {
+        String host = blockLocations.get(k).mHost;
+        int port = blockLocations.get(k).mSecondaryPort;
 
-        // The data is not in remote machine's memory if port == -1.
+        // The data is not in remote machine's memory if port == -1
         if (port == -1) {
           continue;
         }
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())
             || host.equals(NetworkUtils.getLocalHostName())) {
-          LOG.warn("Master thinks the local machine has data, But not!");
+          String localFileName =
+              CommonUtils.concat(tachyonFS.getLocalDataFolder(), blockInfo.blockId);
+          LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         }
         LOG.info(host + ":" + port + " current host is " + NetworkUtils.getLocalHostName() + " "
             + NetworkUtils.getLocalIpAddress());
@@ -290,8 +293,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
       LOG.info("Data " + blockId + " to remote machine " + address + " sent");
 
-      DataServerMessage recvMsg =
-          DataServerMessage.createBlockResponseMessage(false, blockId, null);
+      DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {

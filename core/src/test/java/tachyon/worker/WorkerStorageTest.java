@@ -36,11 +36,9 @@ import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.NetAddress;
-import tachyon.util.CommonUtils;
-import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * Unit tests for tachyon.worker.WorkerStorage
+ * Unit tests for tachyon.WorkerStorage
  */
 public class WorkerStorageTest {
   private static final long WORKER_CAPACITY_BYTES = 100000;
@@ -86,13 +84,13 @@ public class WorkerStorageTest {
     // so we need to get a fresh client to call delete
     mLocalTachyonCluster.getClient().delete(fid, true);
 
-    WorkerStorage ws = new WorkerStorage(mMasterAddress, mExecutorService);
+    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES, mExecutorService);
     try {
       ws.initialize(mWorkerAddress);
       String orpahnblock = ws.getUfsOrphansFolder() + TachyonURI.SEPARATOR + bid;
       UnderFileSystem ufs = UnderFileSystem.get(orpahnblock);
-      StorageDir storageDir = ws.getStorageDirByBlockId(bid);
-      Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", storageDir != null);
+      Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", new File(
+          mWorkerDataFolder + TachyonURI.SEPARATOR + bid).exists());
       Assert.assertTrue("UFS hasn't the orphan block file ", ufs.exists(orpahnblock));
       Assert.assertTrue("Orpahblock file size is changed", ufs.getFileSize(orpahnblock) == filesize);
     } finally {
@@ -152,15 +150,13 @@ public class WorkerStorageTest {
    */
   @Test
   public void unknownBlockFilesTest() throws Exception {
-    String dirPath = System.getProperty("tachyon.worker.hierarchystore.level0.dirs.path");
-    String dataFolder = CommonUtils.concat(dirPath, mWorkerDataFolder);
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("Wrong file name: xyz");
     mLocalTachyonCluster.stopWorker();
     // try a non-numerical file name
-    File unknownFile = new File(dataFolder + TachyonURI.SEPARATOR + "xyz");
+    File unknownFile = new File(mWorkerDataFolder + TachyonURI.SEPARATOR + "xyz");
     unknownFile.createNewFile();
-    WorkerStorage ws = new WorkerStorage(mMasterAddress, mExecutorService);
+    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES, mExecutorService);
     try {
       ws.initialize(mWorkerAddress);
     } finally {

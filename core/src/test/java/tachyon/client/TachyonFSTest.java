@@ -16,7 +16,6 @@ package tachyon.client;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
@@ -457,10 +455,9 @@ public class TachyonFSTest {
   }
 
   @Test
-  public void toStringTest() throws IOException, InterruptedException {
-    InetSocketAddress masterAddress = mLocalTachyonCluster.getMasterInfo().getMasterAddress();
-    TachyonFS tfs = TachyonFS.get(new TachyonURI(mLocalTachyonCluster.getMasterUri()));
-    Assert.assertEquals(tfs.toString(), Constants.HEADER + masterAddress.toString());
+  public void toStringTest() throws IOException {
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://127.0.0.1:19998"));
+    Assert.assertEquals(tfs.toString(), "tachyon:///127.0.0.1:19998");
   }
 
   @Test

@@ -22,7 +22,6 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -81,7 +80,7 @@ public final class MasterClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_CONNECT_TRY = CommonConf.get().MASTER_RETRY_COUNT;
 
-  private final boolean mUseZookeeper;
+  private boolean mUseZookeeper;
   private MasterService.Client mClient = null;
   private InetSocketAddress mMasterAddress = null;
   private TProtocol mProtocol = null;
@@ -732,14 +731,14 @@ public final class MasterClient implements Closeable {
     return false;
   }
 
-  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes,
-      long storageDirId, long blockId, long length) throws IOException, FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException {
+  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId,
+      long length) throws IOException, FileDoesNotExistException, SuspectedFileSizeException,
+      BlockInfoException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        mClient.worker_cacheBlock(workerId, workerUsedBytes, storageDirId, blockId, length);
+        mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
         return;
       } catch (FileDoesNotExistException e) {
         throw e;
@@ -782,13 +781,12 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
-      throws IOException {
+      List<Long> removedPartitionList) throws IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        return mClient.worker_heartbeat(workerId, usedBytes, removedBlockIds, addedBlockIds);
+        return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
       } catch (BlockInfoException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -815,8 +813,7 @@ public final class MasterClient implements Closeable {
    * @throws TException
    */
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
-      long usedBytes, Map<Long, List<Long>> currentBlockList)
-      throws BlockInfoException, IOException {
+      long usedBytes, List<Long> currentBlockList) throws BlockInfoException, IOException {
     while (!mIsShutdown) {
       connect();
 
