@@ -13,12 +13,13 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.worker;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
@@ -81,6 +82,16 @@ public final class BlockHandlerLocal extends BlockHandler {
   public boolean delete() throws IOException {
     checkPermission();
     return new File(mFilePath).delete();
+  }
+
+  @Override
+  public ByteChannel getChannel() {
+    return mLocalFileChannel;
+  }
+
+  @Override
+  public long getLength() throws IOException {
+    return mLocalFile.length();
   }
 
   @Override
