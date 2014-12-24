@@ -62,8 +62,8 @@ public class FileOutStreamTest {
    * @param byteArrayLimit
    * @throws IOException
    */
-  private void checkWrite(TachyonURI filePath, WriteType op, int fileLen,
-      int increasingByteArrayLen) throws IOException {
+  private void checkWrite(TachyonURI filePath, WriteType op, int fileLen, int increasingByteArrayLen)
+      throws IOException {
     for (ReadType rOp : ReadType.values()) {
       TachyonFile file = sTfs.getFile(filePath);
       InStream is = file.getInStream(rOp);
@@ -103,8 +103,7 @@ public class FileOutStreamTest {
     }
   }
 
-  private void writeTest1Util(TachyonURI filePath, WriteType op, int len)
-      throws IOException {
+  private void writeTest1Util(TachyonURI filePath, WriteType op, int len) throws IOException {
     int fileId = sTfs.createFile(filePath);
     TachyonFile file = sTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
@@ -129,8 +128,7 @@ public class FileOutStreamTest {
     }
   }
 
-  private void writeTest2Util(TachyonURI filePath, WriteType op, int len)
-      throws IOException {
+  private void writeTest2Util(TachyonURI filePath, WriteType op, int len) throws IOException {
     int fileId = sTfs.createFile(filePath);
     TachyonFile file = sTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
@@ -153,8 +151,7 @@ public class FileOutStreamTest {
     }
   }
 
-  private void writeTest3Util(TachyonURI filePath, WriteType op, int len)
-      throws IOException {
+  private void writeTest3Util(TachyonURI filePath, WriteType op, int len) throws IOException {
     int fileId = sTfs.createFile(filePath);
     TachyonFile file = sTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
