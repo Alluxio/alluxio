@@ -40,7 +40,7 @@ public final class TestUtils {
       throws IOException {
     return createByteFile(tfs, new TachyonURI(fileName), op, len);
   }
-  
+
   /**
    * Create a simple file with <code>len</code> bytes.
    * 
@@ -147,5 +147,14 @@ public final class TestUtils {
     }
 
     return res;
+  }
+
+  /**
+   * Creates a unique path based off the caller.
+   */
+  public static final String uniqPath() {
+    StackTraceElement caller = new Throwable().getStackTrace()[1];
+    long time = System.nanoTime();
+    return "/" + caller.getClassName() + "/" + caller.getMethodName() + "/" + time;
   }
 }
