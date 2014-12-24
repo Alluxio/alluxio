@@ -15,7 +15,7 @@
 
 package tachyon.worker.netty;
 
-import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.List;
 
@@ -29,7 +29,6 @@ import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 
 import tachyon.conf.WorkerConf;
-import tachyon.worker.BlockHandler;
 import tachyon.worker.nio.DataServerMessage;
 
 /**
@@ -57,22 +56,17 @@ public final class BlockResponse {
     protected void encode(final ChannelHandlerContext ctx, final BlockResponse msg,
         final List<Object> out) throws Exception {
       out.add(createHeader(ctx, msg));
-      BlockHandler handler = msg.getHandler();
-      if (handler != null) {
+      if (msg.getChannel() != null) {
         switch (WorkerConf.get().NETTY_FILE_TRANSFER_TYPE) {
           case MAPPED:
-            ByteBuffer data = handler.read(msg.getOffset(), (int) msg.getLength());
+            MappedByteBuffer data =
+                msg.getChannel().map(FileChannel.MapMode.READ_ONLY, msg.getOffset(),
+                    msg.getLength());
             out.add(Unpooled.wrappedBuffer(data));
-            handler.close();
+            msg.getChannel().close();
             break;
           case TRANSFER:
-            if (handler.getChannel() instanceof FileChannel) {
-              out.add(new DefaultFileRegion((FileChannel) handler.getChannel(), msg.getOffset(),
-                  msg.getLength()));
-            } else {
-              handler.close();
-              throw new Exception("Only FileChannel is supported!");
-            }
+            out.add(new DefaultFileRegion(msg.getChannel(), msg.getOffset(), msg.getLength()));
             break;
           default:
             throw new AssertionError("Unknown file transfer type: "
@@ -86,7 +80,7 @@ public final class BlockResponse {
    * Creates a {@link tachyon.worker.netty.BlockResponse} that represents a error case for the given
    * block.
    */
-  public static BlockResponse createErrorResponse(final long storageDirId, final long blockId) {
+  public static BlockResponse createErrorResponse(final long blockId) {
     return new BlockResponse(-blockId, 0, 0, null);
   }
 
@@ -95,22 +89,21 @@ public final class BlockResponse {
 
   private final long mLength;
 
-  private final BlockHandler mHandler;
+  private final FileChannel mChannel;
 
-  public BlockResponse(long blockId, long offset, long length,
-      BlockHandler handler) {
+  public BlockResponse(long blockId, long offset, long length, FileChannel channel) {
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
-    mHandler = handler;
+    mChannel = channel;
   }
 
   public long getBlockId() {
     return mBlockId;
   }
 
-  public BlockHandler getHandler() {
-    return mHandler;
+  public FileChannel getChannel() {
+    return mChannel;
   }
 
   public long getLength() {

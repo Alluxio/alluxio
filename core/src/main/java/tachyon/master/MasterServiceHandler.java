@@ -22,7 +22,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.thrift.TException;
@@ -306,10 +305,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void worker_cacheBlock(long workerId, long workerUsedBytes, long storageDirId,
-      long blockId, long length) throws FileDoesNotExistException, SuspectedFileSizeException,
-      BlockInfoException, TException {
-    mMasterInfo.cacheBlock(workerId, workerUsedBytes, storageDirId, blockId, length);
+  public void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
+    mMasterInfo.cacheBlock(workerId, workerUsedBytes, blockId, length);
   }
 
   @Override
@@ -324,15 +322,14 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public Command worker_heartbeat(long workerId, long usedBytes,
-      List<Long> removedBlockIds, Map<Long, List<Long>> evictedBlockIds)
+  public Command worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
       throws BlockInfoException, TException {
-    return mMasterInfo.workerHeartbeat(workerId, usedBytes, removedBlockIds, evictedBlockIds);
+    return mMasterInfo.workerHeartbeat(workerId, usedBytes, removedBlockIds);
   }
 
   @Override
   public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes,
-      Map<Long, List<Long>> currentBlockIds) throws BlockInfoException, TException {
+      List<Long> currentBlockIds) throws BlockInfoException, TException {
     return mMasterInfo.registerWorker(workerNetAddress, totalBytes, usedBytes, currentBlockIds);
   }
 }

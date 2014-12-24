@@ -21,18 +21,15 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
 import tachyon.worker.BlocksLocker;
-import tachyon.worker.WorkerStorage;
 
 /**
  * Adds the block server's pipeline into the channel.
  */
 public final class PipelineHandler extends ChannelInitializer<SocketChannel> {
   private final BlocksLocker mLocker;
-  private final WorkerStorage mWorkerStorage;
 
-  public PipelineHandler(BlocksLocker locker, WorkerStorage workerStorage) {
+  public PipelineHandler(BlocksLocker locker) {
     mLocker = locker;
-    mWorkerStorage = workerStorage;
   }
 
   @Override
@@ -41,6 +38,6 @@ public final class PipelineHandler extends ChannelInitializer<SocketChannel> {
     pipeline.addLast("nioChunkedWriter", new ChunkedWriteHandler());
     pipeline.addLast("blockRequestDecoder", new BlockRequest.Decoder());
     pipeline.addLast("blockResponseEncoder", new BlockResponse.Encoder());
-    pipeline.addLast("dataServerHandler", new DataServerHandler(mLocker, mWorkerStorage));
+    pipeline.addLast("dataServerHandler", new DataServerHandler(mLocker));
   }
 }

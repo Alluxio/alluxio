@@ -24,26 +24,26 @@ import org.junit.Test;
 
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
+import tachyon.client.BlockHandler;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
-import tachyon.worker.BlockHandler;
 
 public class StorageDirTest {
   private StorageDir mSrcDir;
   private StorageDir mDstDir;
-  private static final long USER_ID = 1;
-  private static final long CAPACITY = 1000;
+  private final long mUserId = 1;
+  private final long mCapacity = 1000;
 
   @Before
   public final void before() throws IOException, InvalidPathException {
     String tachyonHome =
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
     String workerDirFolder = tachyonHome + "/ramdisk";
-    mSrcDir = new StorageDir(1, workerDirFolder + "/src", CAPACITY, "/data", "/user", null);
-    mDstDir = new StorageDir(2, workerDirFolder + "/dst", CAPACITY, "/data", "/user", null);
+    mSrcDir = new StorageDir(1, workerDirFolder + "/src", mCapacity, "/data", "/user", null);
+    mDstDir = new StorageDir(2, workerDirFolder + "/dst", mCapacity, "/data", "/user", null);
 
-    initializeStorageDir(mSrcDir, USER_ID);
-    initializeStorageDir(mDstDir, USER_ID);
+    initializeStorageDir(mSrcDir, mUserId);
+    initializeStorageDir(mDstDir, mUserId);
   }
 
   @Test
@@ -53,31 +53,31 @@ public class StorageDirTest {
 
     createBlockFile(mSrcDir, blockId, blockSize);
     Assert.assertTrue(mSrcDir.containsBlock(blockId));
-    Assert.assertEquals(CAPACITY - blockSize, mSrcDir.getAvailableBytes());
+    Assert.assertEquals(mCapacity - blockSize, mSrcDir.getAvailableBytes());
     Assert.assertEquals(blockSize, mSrcDir.getBlockSize(blockId));
-    boolean requestDst = mDstDir.requestSpace(USER_ID, blockSize);
+    boolean requestDst = mDstDir.requestSpace(mUserId, blockSize);
     Assert.assertTrue(requestDst);
     mSrcDir.copyBlock(blockId, mDstDir);
     Assert.assertTrue(mDstDir.containsBlock(blockId));
-    Assert.assertEquals(CAPACITY - blockSize, mDstDir.getAvailableBytes());
+    Assert.assertEquals(mCapacity - blockSize, mDstDir.getAvailableBytes());
     Assert.assertEquals(blockSize, mDstDir.getBlockSize(blockId));
     mSrcDir.deleteBlock(blockId);
     Assert.assertFalse(mSrcDir.containsBlock(blockId));
-    Assert.assertEquals(CAPACITY, mSrcDir.getAvailableBytes());
+    Assert.assertEquals(mCapacity, mSrcDir.getAvailableBytes());
   }
 
   private void createBlockFile(StorageDir dir, long blockId, int blockSize) throws IOException {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
 
     BlockHandler bhSrc =
-        BlockHandler.get(CommonUtils.concat(dir.getUserTempFilePath(USER_ID, blockId)));
+        BlockHandler.get(CommonUtils.concat(dir.getUserTempFilePath(mUserId, blockId)));
     try {
       bhSrc.append(0, ByteBuffer.wrap(buf));
     } finally {
       bhSrc.close();
     }
-    dir.requestSpace(USER_ID, blockSize);
-    dir.cacheBlock(USER_ID, blockId);
+    dir.requestSpace(mUserId, blockSize);
+    dir.cacheBlock(mUserId, blockId);
   }
 
   @Test
@@ -105,9 +105,9 @@ public class StorageDirTest {
     long blockId = 100;
 
     createBlockFile(mSrcDir, blockId, 500);
-    mSrcDir.lockBlock(blockId, USER_ID);
+    mSrcDir.lockBlock(blockId, mUserId);
     Assert.assertTrue(mSrcDir.isBlockLocked(blockId));
-    mSrcDir.unlockBlock(blockId, USER_ID);
+    mSrcDir.unlockBlock(blockId, mUserId);
     Assert.assertFalse(mSrcDir.isBlockLocked(blockId));
   }
 
@@ -117,7 +117,7 @@ public class StorageDirTest {
     int blockSize = 500;
 
     createBlockFile(mSrcDir, blockId, blockSize);
-    mDstDir.requestSpace(USER_ID, blockSize);
+    mDstDir.requestSpace(mUserId, blockSize);
     mSrcDir.moveBlock(blockId, mDstDir);
     Assert.assertFalse(mSrcDir.containsBlock(blockId));
     Assert.assertTrue(mDstDir.containsBlock(blockId));
@@ -126,13 +126,13 @@ public class StorageDirTest {
 
   @Test
   public void requestSpaceTest() {
-    boolean requestSrc = mSrcDir.requestSpace(USER_ID, CAPACITY / 2);
+    boolean requestSrc = mSrcDir.requestSpace(mUserId, mCapacity / 2);
     Assert.assertTrue(requestSrc);
-    requestSrc = mSrcDir.requestSpace(USER_ID, CAPACITY / 2 + 1);
+    requestSrc = mSrcDir.requestSpace(mUserId, mCapacity / 2 + 1);
     Assert.assertFalse(requestSrc);
-    Assert.assertEquals(CAPACITY / 2, mSrcDir.getUsedBytes());
-    Assert.assertEquals(CAPACITY / 2, mSrcDir.getAvailableBytes());
-    mSrcDir.returnSpace(USER_ID, CAPACITY / 2);
-    Assert.assertEquals(CAPACITY, mSrcDir.getAvailableBytes());
+    Assert.assertEquals(mCapacity / 2, mSrcDir.getUsedBytes());
+    Assert.assertEquals(mCapacity / 2, mSrcDir.getAvailableBytes());
+    mSrcDir.returnSpace(mUserId, mCapacity / 2);
+    Assert.assertEquals(mCapacity, mSrcDir.getAvailableBytes());
   }
 }

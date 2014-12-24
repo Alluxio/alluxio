@@ -36,7 +36,6 @@ import tachyon.conf.WorkerConf;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
-import tachyon.worker.WorkerStorage;
 
 /**
  * Runs a netty server that will response to block requests.
@@ -46,9 +45,8 @@ public final class NettyDataServer implements DataServer {
 
   private final ChannelFuture mChannelFuture;
 
-  public NettyDataServer(final SocketAddress address, final BlocksLocker locker,
-      WorkerStorage workerStorage) {
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(locker, workerStorage));
+  public NettyDataServer(final SocketAddress address, final BlocksLocker locker) {
+    mBootstrap = createBootstrap().childHandler(new PipelineHandler(locker));
 
     try {
       mChannelFuture = mBootstrap.bind(address).sync();
