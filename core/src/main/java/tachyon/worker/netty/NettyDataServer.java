@@ -45,7 +45,7 @@ public final class NettyDataServer implements DataServer {
 
   private final ChannelFuture mChannelFuture;
 
-  public NettyDataServer(final SocketAddress address, final BlocksLocker locker) {
+  public NettyDataServer(final InetSocketAddress address, final BlocksLocker locker) {
     mBootstrap = createBootstrap().childHandler(new PipelineHandler(locker));
 
     try {

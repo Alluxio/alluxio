@@ -36,6 +36,7 @@ import tachyon.Constants;
 import tachyon.conf.CommonConf;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
+import tachyon.worker.DataServerMessage;
 
 /**
  * The Server to serve data file read request from remote machines. The current implementation is
@@ -71,7 +72,7 @@ public class NIODataServer implements Runnable, DataServer {
    * @param address The address of the data server.
    * @param locker The lock system for lock blocks.
    */
-  public NIODataServer(InetSocketAddress address, BlocksLocker locker) {
+  public NIODataServer(final InetSocketAddress address, final BlocksLocker locker) {
     LOG.info("Starting DataServer @ " + address);
     CommonConf.assertValidPort(address);
     mAddress = address;

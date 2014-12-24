@@ -83,6 +83,11 @@ public class CommonConf extends Utils {
 
   public final int MASTER_RETRY_COUNT;
 
+  //true when code is compiled with -Pjxio flag
+  public final boolean JXIO_ENABLED;
+  //jxio can run over rdma and tcp, default is rdma 
+  public final String JXIO_TRANSPORT;
+
   private CommonConf() {
     if (System.getProperty("tachyon.home") == null) {
       LOG.warn("tachyon.home is not set. Using {} as the default value.", DEFAULT_HOME);
@@ -129,6 +134,10 @@ public class CommonConf extends Utils {
 
     // use 29 as default since current exponential logic overflows int
     MASTER_RETRY_COUNT = getIntProperty("tachyon.master.retry", 29);
+    
+    JXIO_ENABLED = getBooleanProperty("tachyon.jxio.enable", false);
+
+    JXIO_TRANSPORT = getProperty("tachyon.network.jxio.transport", "rdma");
   }
 
   public static void assertValidPort(final int port) {

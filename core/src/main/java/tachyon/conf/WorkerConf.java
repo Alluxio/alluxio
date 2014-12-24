@@ -21,7 +21,7 @@ import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.NetworkType;
+import tachyon.worker.DataServer;
 import tachyon.worker.eviction.EvictStrategyType;
 import tachyon.worker.hierarchy.AllocateStrategyType;
 import tachyon.worker.netty.ChannelType;
@@ -51,6 +51,7 @@ public class WorkerConf extends Utils {
   public final int PORT;
   public final int DATA_PORT;
   public final String DATA_FOLDER;
+  public final Class<? extends DataServer> DATA_SERVER_CLASS;
   public final long MEMORY_SIZE;
   public final long HEARTBEAT_TIMEOUT_MS;
   public final int TO_MASTER_HEARTBEAT_INTERVAL_MS;
@@ -63,8 +64,6 @@ public class WorkerConf extends Utils {
   public final int WORKER_CHECKPOINT_THREADS;
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
 
-  public final NetworkType NETWORK_TYPE;
-  
   public final String KEYTAB_KEY;
   public final String KEYTAB;
   public final String PRINCIPAL_KEY;
@@ -96,6 +95,8 @@ public class WorkerConf extends Utils {
     DATA_PORT =
         getIntProperty("tachyon.worker.data.port", Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
     DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramdisk");
+    DATA_SERVER_CLASS =
+        getClass("tachyon.worker.data.server.class", Constants.DEFAULT_DATA_SERVER_CLASS);
     MEMORY_SIZE =
         CommonUtils.parseSpaceSize(getProperty("tachyon.worker.memory.size", (128 * Constants.MB)
             + ""));
@@ -118,7 +119,6 @@ public class WorkerConf extends Utils {
     PRINCIPAL_KEY = "tachyon.worker.principal";
     PRINCIPAL = getProperty(PRINCIPAL_KEY, null);
 
-    NETWORK_TYPE = getEnumProperty("tachyon.worker.network.type", NetworkType.NETTY);
     NETTY_BOSS_THREADS = getIntProperty("tachyon.worker.network.netty.boss.threads", 1);
     NETTY_WORKER_THREADS = getIntProperty("tachyon.worker.network.netty.worker.threads", 0);
     NETTY_CHANNEL_TYPE =

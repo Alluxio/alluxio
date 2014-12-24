@@ -43,8 +43,6 @@ import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
-import tachyon.worker.netty.NettyDataServer;
-import tachyon.worker.nio.NIODataServer;
 
 /**
  * Entry point for a worker daemon.
@@ -190,7 +188,7 @@ public class TachyonWorker implements Runnable {
     // deployment more complicated.
     InetSocketAddress dataAddress = new InetSocketAddress(workerAddress.getHostName(), dataPort);
     BlocksLocker blockLocker = new BlocksLocker(mWorkerStorage, Users.DATASERVER_USER_ID);
-    mDataServer = createDataServer(dataAddress, blockLocker);
+    mDataServer = DataServer.Factory.createDataServer(dataAddress, blockLocker);
     mDataPort = mDataServer.getPort();
 
     mHeartbeatThread = new Thread(this);
@@ -213,18 +211,6 @@ public class TachyonWorker implements Runnable {
     mWorkerAddress =
         new NetAddress(workerAddress.getAddress().getCanonicalHostName(), mPort, mDataPort);
     mWorkerStorage.initialize(mWorkerAddress);
-  }
-
-  private DataServer createDataServer(final InetSocketAddress dataAddress,
-      final BlocksLocker blockLocker) {
-    switch (WorkerConf.get().NETWORK_TYPE) {
-      case NIO:
-        return new NIODataServer(dataAddress, blockLocker);
-      case NETTY:
-        return new NettyDataServer(dataAddress, blockLocker);
-      default:
-        throw new AssertionError("Unknown network type: " + WorkerConf.get().NETWORK_TYPE);
-    }
   }
 
   /**
