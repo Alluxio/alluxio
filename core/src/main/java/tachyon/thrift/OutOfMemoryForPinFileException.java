@@ -32,15 +32,15 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OutOfSpaceException extends TException implements org.apache.thrift.TBase<OutOfSpaceException, OutOfSpaceException._Fields>, java.io.Serializable, Cloneable, Comparable<OutOfSpaceException> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("OutOfSpaceException");
+public class OutOfMemoryForPinFileException extends TException implements org.apache.thrift.TBase<OutOfMemoryForPinFileException, OutOfMemoryForPinFileException._Fields>, java.io.Serializable, Cloneable, Comparable<OutOfMemoryForPinFileException> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("OutOfMemoryForPinFileException");
 
   private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRING, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
-    schemes.put(StandardScheme.class, new OutOfSpaceExceptionStandardSchemeFactory());
-    schemes.put(TupleScheme.class, new OutOfSpaceExceptionTupleSchemeFactory());
+    schemes.put(StandardScheme.class, new OutOfMemoryForPinFileExceptionStandardSchemeFactory());
+    schemes.put(TupleScheme.class, new OutOfMemoryForPinFileExceptionTupleSchemeFactory());
   }
 
   public String message; // required
@@ -110,13 +110,13 @@ public class OutOfSpaceException extends TException implements org.apache.thrift
     tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(OutOfSpaceException.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(OutOfMemoryForPinFileException.class, metaDataMap);
   }
 
-  public OutOfSpaceException() {
+  public OutOfMemoryForPinFileException() {
   }
 
-  public OutOfSpaceException(
+  public OutOfMemoryForPinFileException(
     String message)
   {
     this();
@@ -126,14 +126,14 @@ public class OutOfSpaceException extends TException implements org.apache.thrift
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public OutOfSpaceException(OutOfSpaceException other) {
+  public OutOfMemoryForPinFileException(OutOfMemoryForPinFileException other) {
     if (other.isSetMessage()) {
       this.message = other.message;
     }
   }
 
-  public OutOfSpaceException deepCopy() {
-    return new OutOfSpaceException(this);
+  public OutOfMemoryForPinFileException deepCopy() {
+    return new OutOfMemoryForPinFileException(this);
   }
 
   @Override
@@ -145,7 +145,7 @@ public class OutOfSpaceException extends TException implements org.apache.thrift
     return this.message;
   }
 
-  public OutOfSpaceException setMessage(String message) {
+  public OutOfMemoryForPinFileException setMessage(String message) {
     this.message = message;
     return this;
   }
@@ -204,12 +204,12 @@ public class OutOfSpaceException extends TException implements org.apache.thrift
   public boolean equals(Object that) {
     if (that == null)
       return false;
-    if (that instanceof OutOfSpaceException)
-      return this.equals((OutOfSpaceException)that);
+    if (that instanceof OutOfMemoryForPinFileException)
+      return this.equals((OutOfMemoryForPinFileException)that);
     return false;
   }
 
-  public boolean equals(OutOfSpaceException that) {
+  public boolean equals(OutOfMemoryForPinFileException that) {
     if (that == null)
       return false;
 
@@ -231,7 +231,7 @@ public class OutOfSpaceException extends TException implements org.apache.thrift
   }
 
   @Override
-  public int compareTo(OutOfSpaceException other) {
+  public int compareTo(OutOfMemoryForPinFileException other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
@@ -265,7 +265,7 @@ public class OutOfSpaceException extends TException implements org.apache.thrift
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("OutOfSpaceException(");
+    StringBuilder sb = new StringBuilder("OutOfMemoryForPinFileException(");
     boolean first = true;
 
     sb.append("message:");
@@ -300,15 +300,15 @@ public class OutOfSpaceException extends TException implements org.apache.thrift
     }
   }
 
-  private static class OutOfSpaceExceptionStandardSchemeFactory implements SchemeFactory {
-    public OutOfSpaceExceptionStandardScheme getScheme() {
-      return new OutOfSpaceExceptionStandardScheme();
+  private static class OutOfMemoryForPinFileExceptionStandardSchemeFactory implements SchemeFactory {
+    public OutOfMemoryForPinFileExceptionStandardScheme getScheme() {
+      return new OutOfMemoryForPinFileExceptionStandardScheme();
     }
   }
 
-  private static class OutOfSpaceExceptionStandardScheme extends StandardScheme<OutOfSpaceException> {
+  private static class OutOfMemoryForPinFileExceptionStandardScheme extends StandardScheme<OutOfMemoryForPinFileException> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, OutOfSpaceException struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, OutOfMemoryForPinFileException struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
@@ -337,7 +337,7 @@ public class OutOfSpaceException extends TException implements org.apache.thrift
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, OutOfSpaceException struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, OutOfMemoryForPinFileException struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
@@ -352,16 +352,16 @@ public class OutOfSpaceException extends TException implements org.apache.thrift
 
   }
 
-  private static class OutOfSpaceExceptionTupleSchemeFactory implements SchemeFactory {
-    public OutOfSpaceExceptionTupleScheme getScheme() {
-      return new OutOfSpaceExceptionTupleScheme();
+  private static class OutOfMemoryForPinFileExceptionTupleSchemeFactory implements SchemeFactory {
+    public OutOfMemoryForPinFileExceptionTupleScheme getScheme() {
+      return new OutOfMemoryForPinFileExceptionTupleScheme();
     }
   }
 
-  private static class OutOfSpaceExceptionTupleScheme extends TupleScheme<OutOfSpaceException> {
+  private static class OutOfMemoryForPinFileExceptionTupleScheme extends TupleScheme<OutOfMemoryForPinFileException> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, OutOfSpaceException struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, OutOfMemoryForPinFileException struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
       if (struct.isSetMessage()) {
@@ -374,7 +374,7 @@ public class OutOfSpaceException extends TException implements org.apache.thrift
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, OutOfSpaceException struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, OutOfMemoryForPinFileException struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {

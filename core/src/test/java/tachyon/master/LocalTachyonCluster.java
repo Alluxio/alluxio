@@ -50,7 +50,7 @@ public final class LocalTachyonCluster {
 
   private TachyonWorker mWorker = null;
 
-  private final long mWorkerMemCapacityBytes;
+  private long mWorkerCapacityBytes;
   private String mTachyonHome;
 
   private String mWorkerDataFolder;
@@ -60,8 +60,8 @@ public final class LocalTachyonCluster {
 
   private LocalTachyonMaster mMaster;
 
-  public LocalTachyonCluster(long workerMemCapacityBytes) {
-    mWorkerMemCapacityBytes = workerMemCapacityBytes;
+  public LocalTachyonCluster(long workerCapacityBytes) {
+    mWorkerCapacityBytes = workerCapacityBytes;
   }
 
   public TachyonFS getClient() throws IOException {
@@ -144,10 +144,9 @@ public final class LocalTachyonCluster {
   }
 
   public void start() throws IOException {
-    int maxLevel = 1;
     mTachyonHome =
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
-    mWorkerDataFolder = "/datastore";
+    mWorkerDataFolder = mTachyonHome + "/ramdisk";
 
     deleteDir(mTachyonHome);
     mkdir(mTachyonHome);
@@ -161,30 +160,7 @@ public final class LocalTachyonCluster {
     System.setProperty("tachyon.worker.port", 0 + "");
     System.setProperty("tachyon.worker.data.port", 0 + "");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
-    if (System.getProperty("tachyon.worker.hierarchystore.level.max") == null) {
-      System.setProperty("tachyon.worker.hierarchystore.level.max", 1 + "");
-    } else {
-      maxLevel = Integer.valueOf(System.getProperty("tachyon.worker.hierarchystore.level.max"));
-    }
-    System.setProperty("tachyon.worker.hierarchystore.level0.alias", "MEM");
-    System.setProperty("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
-    System.setProperty("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerMemCapacityBytes
-        + "");
-    for (int level = 1; level < maxLevel; level ++) {
-      String path =
-          System.getProperty("tachyon.worker.hierarchystore.level" + level + ".dirs.path");
-      if (path == null) {
-        throw new IOException("Paths for StorageDirs are not set! Level:" + level);
-      }
-      String[] dirPaths = path.split(",");
-      String newPath = "";
-      for (int i = 0; i < dirPaths.length; i ++) {
-        newPath += mTachyonHome + dirPaths[i] + ",";
-      }
-      System.setProperty("tachyon.worker.hierarchystore.level" + level + ".dirs.path",
-          newPath.substring(0, newPath.length() - 1));
-    }
-
+    System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
     System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
     // Lower the number of threads that the cluster will spin off.
@@ -214,7 +190,8 @@ public final class LocalTachyonCluster {
 
     mWorker =
         TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
+            mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
@@ -265,7 +242,6 @@ public final class LocalTachyonCluster {
     System.clearProperty("tachyon.master.server.threads");
     System.clearProperty("tachyon.worker.selector.threads");
     System.clearProperty("tachyon.worker.server.threads");
-    System.clearProperty("tachyon.worker.hierarchystore.level.max");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
     System.clearProperty("tachyon.master.web.threads");
   }

@@ -51,11 +51,11 @@ public class MasterService {
      * @param usedBytes
      * @param currentBlocks
      */
-    public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes, Map<Long,List<Long>> currentBlocks) throws BlockInfoException, org.apache.thrift.TException;
+    public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes, List<Long> currentBlocks) throws BlockInfoException, org.apache.thrift.TException;
 
-    public Command worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlockIds, Map<Long,List<Long>> evictedBlockIds) throws BlockInfoException, org.apache.thrift.TException;
+    public Command worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlocks) throws BlockInfoException, org.apache.thrift.TException;
 
-    public void worker_cacheBlock(long workerId, long workerUsedBytes, long storageDirId, long blockId, long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException;
+    public void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException;
 
     public Set<Integer> worker_getPinIdList() throws org.apache.thrift.TException;
 
@@ -152,11 +152,11 @@ public class MasterService {
 
     public void liststatus(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes, Map<Long,List<Long>> currentBlocks, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes, List<Long> currentBlocks, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlockIds, Map<Long,List<Long>> evictedBlockIds, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlocks, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void worker_cacheBlock(long workerId, long workerUsedBytes, long storageDirId, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void worker_getPinIdList(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -318,13 +318,13 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "liststatus failed: unknown result");
     }
 
-    public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes, Map<Long,List<Long>> currentBlocks) throws BlockInfoException, org.apache.thrift.TException
+    public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes, List<Long> currentBlocks) throws BlockInfoException, org.apache.thrift.TException
     {
       send_worker_register(workerNetAddress, totalBytes, usedBytes, currentBlocks);
       return recv_worker_register();
     }
 
-    public void send_worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes, Map<Long,List<Long>> currentBlocks) throws org.apache.thrift.TException
+    public void send_worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes, List<Long> currentBlocks) throws org.apache.thrift.TException
     {
       worker_register_args args = new worker_register_args();
       args.setWorkerNetAddress(workerNetAddress);
@@ -347,19 +347,18 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "worker_register failed: unknown result");
     }
 
-    public Command worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlockIds, Map<Long,List<Long>> evictedBlockIds) throws BlockInfoException, org.apache.thrift.TException
+    public Command worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlocks) throws BlockInfoException, org.apache.thrift.TException
     {
-      send_worker_heartbeat(workerId, usedBytes, removedBlockIds, evictedBlockIds);
+      send_worker_heartbeat(workerId, usedBytes, removedBlocks);
       return recv_worker_heartbeat();
     }
 
-    public void send_worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlockIds, Map<Long,List<Long>> evictedBlockIds) throws org.apache.thrift.TException
+    public void send_worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlocks) throws org.apache.thrift.TException
     {
       worker_heartbeat_args args = new worker_heartbeat_args();
       args.setWorkerId(workerId);
       args.setUsedBytes(usedBytes);
-      args.setRemovedBlockIds(removedBlockIds);
-      args.setEvictedBlockIds(evictedBlockIds);
+      args.setRemovedBlocks(removedBlocks);
       sendBase("worker_heartbeat", args);
     }
 
@@ -376,18 +375,17 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "worker_heartbeat failed: unknown result");
     }
 
-    public void worker_cacheBlock(long workerId, long workerUsedBytes, long storageDirId, long blockId, long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException
+    public void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException
     {
-      send_worker_cacheBlock(workerId, workerUsedBytes, storageDirId, blockId, length);
+      send_worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
       recv_worker_cacheBlock();
     }
 
-    public void send_worker_cacheBlock(long workerId, long workerUsedBytes, long storageDirId, long blockId, long length) throws org.apache.thrift.TException
+    public void send_worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, long length) throws org.apache.thrift.TException
     {
       worker_cacheBlock_args args = new worker_cacheBlock_args();
       args.setWorkerId(workerId);
       args.setWorkerUsedBytes(workerUsedBytes);
-      args.setStorageDirId(storageDirId);
       args.setBlockId(blockId);
       args.setLength(length);
       sendBase("worker_cacheBlock", args);
@@ -1251,7 +1249,7 @@ public class MasterService {
       }
     }
 
-    public void worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes, Map<Long,List<Long>> currentBlocks, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes, List<Long> currentBlocks, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       worker_register_call method_call = new worker_register_call(workerNetAddress, totalBytes, usedBytes, currentBlocks, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -1262,8 +1260,8 @@ public class MasterService {
       private NetAddress workerNetAddress;
       private long totalBytes;
       private long usedBytes;
-      private Map<Long,List<Long>> currentBlocks;
-      public worker_register_call(NetAddress workerNetAddress, long totalBytes, long usedBytes, Map<Long,List<Long>> currentBlocks, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private List<Long> currentBlocks;
+      public worker_register_call(NetAddress workerNetAddress, long totalBytes, long usedBytes, List<Long> currentBlocks, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.workerNetAddress = workerNetAddress;
         this.totalBytes = totalBytes;
@@ -1292,9 +1290,9 @@ public class MasterService {
       }
     }
 
-    public void worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlockIds, Map<Long,List<Long>> evictedBlockIds, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlocks, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      worker_heartbeat_call method_call = new worker_heartbeat_call(workerId, usedBytes, removedBlockIds, evictedBlockIds, resultHandler, this, ___protocolFactory, ___transport);
+      worker_heartbeat_call method_call = new worker_heartbeat_call(workerId, usedBytes, removedBlocks, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -1302,14 +1300,12 @@ public class MasterService {
     public static class worker_heartbeat_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long workerId;
       private long usedBytes;
-      private List<Long> removedBlockIds;
-      private Map<Long,List<Long>> evictedBlockIds;
-      public worker_heartbeat_call(long workerId, long usedBytes, List<Long> removedBlockIds, Map<Long,List<Long>> evictedBlockIds, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private List<Long> removedBlocks;
+      public worker_heartbeat_call(long workerId, long usedBytes, List<Long> removedBlocks, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.workerId = workerId;
         this.usedBytes = usedBytes;
-        this.removedBlockIds = removedBlockIds;
-        this.evictedBlockIds = evictedBlockIds;
+        this.removedBlocks = removedBlocks;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -1317,8 +1313,7 @@ public class MasterService {
         worker_heartbeat_args args = new worker_heartbeat_args();
         args.setWorkerId(workerId);
         args.setUsedBytes(usedBytes);
-        args.setRemovedBlockIds(removedBlockIds);
-        args.setEvictedBlockIds(evictedBlockIds);
+        args.setRemovedBlocks(removedBlocks);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1333,9 +1328,9 @@ public class MasterService {
       }
     }
 
-    public void worker_cacheBlock(long workerId, long workerUsedBytes, long storageDirId, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      worker_cacheBlock_call method_call = new worker_cacheBlock_call(workerId, workerUsedBytes, storageDirId, blockId, length, resultHandler, this, ___protocolFactory, ___transport);
+      worker_cacheBlock_call method_call = new worker_cacheBlock_call(workerId, workerUsedBytes, blockId, length, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -1343,14 +1338,12 @@ public class MasterService {
     public static class worker_cacheBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long workerId;
       private long workerUsedBytes;
-      private long storageDirId;
       private long blockId;
       private long length;
-      public worker_cacheBlock_call(long workerId, long workerUsedBytes, long storageDirId, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public worker_cacheBlock_call(long workerId, long workerUsedBytes, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.workerId = workerId;
         this.workerUsedBytes = workerUsedBytes;
-        this.storageDirId = storageDirId;
         this.blockId = blockId;
         this.length = length;
       }
@@ -1360,7 +1353,6 @@ public class MasterService {
         worker_cacheBlock_args args = new worker_cacheBlock_args();
         args.setWorkerId(workerId);
         args.setWorkerUsedBytes(workerUsedBytes);
-        args.setStorageDirId(storageDirId);
         args.setBlockId(blockId);
         args.setLength(length);
         args.write(prot);
@@ -2439,7 +2431,7 @@ public class MasterService {
       public worker_heartbeat_result getResult(I iface, worker_heartbeat_args args) throws org.apache.thrift.TException {
         worker_heartbeat_result result = new worker_heartbeat_result();
         try {
-          result.success = iface.worker_heartbeat(args.workerId, args.usedBytes, args.removedBlockIds, args.evictedBlockIds);
+          result.success = iface.worker_heartbeat(args.workerId, args.usedBytes, args.removedBlocks);
         } catch (BlockInfoException e) {
           result.e = e;
         }
@@ -2463,7 +2455,7 @@ public class MasterService {
       public worker_cacheBlock_result getResult(I iface, worker_cacheBlock_args args) throws org.apache.thrift.TException {
         worker_cacheBlock_result result = new worker_cacheBlock_result();
         try {
-          iface.worker_cacheBlock(args.workerId, args.workerUsedBytes, args.storageDirId, args.blockId, args.length);
+          iface.worker_cacheBlock(args.workerId, args.workerUsedBytes, args.blockId, args.length);
         } catch (FileDoesNotExistException eP) {
           result.eP = eP;
         } catch (SuspectedFileSizeException eS) {
@@ -3468,7 +3460,7 @@ public class MasterService {
       }
 
       public void start(I iface, worker_heartbeat_args args, org.apache.thrift.async.AsyncMethodCallback<Command> resultHandler) throws TException {
-        iface.worker_heartbeat(args.workerId, args.usedBytes, args.removedBlockIds, args.evictedBlockIds,resultHandler);
+        iface.worker_heartbeat(args.workerId, args.usedBytes, args.removedBlocks,resultHandler);
       }
     }
 
@@ -3534,7 +3526,7 @@ public class MasterService {
       }
 
       public void start(I iface, worker_cacheBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.worker_cacheBlock(args.workerId, args.workerUsedBytes, args.storageDirId, args.blockId, args.length,resultHandler);
+        iface.worker_cacheBlock(args.workerId, args.workerUsedBytes, args.blockId, args.length,resultHandler);
       }
     }
 
@@ -6947,14 +6939,14 @@ public class MasterService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list58 = iprot.readListBegin();
-                  struct.success = new ArrayList<ClientWorkerInfo>(_list58.size);
-                  for (int _i59 = 0; _i59 < _list58.size; ++_i59)
+                  org.apache.thrift.protocol.TList _list48 = iprot.readListBegin();
+                  struct.success = new ArrayList<ClientWorkerInfo>(_list48.size);
+                  for (int _i49 = 0; _i49 < _list48.size; ++_i49)
                   {
-                    ClientWorkerInfo _elem60;
-                    _elem60 = new ClientWorkerInfo();
-                    _elem60.read(iprot);
-                    struct.success.add(_elem60);
+                    ClientWorkerInfo _elem50;
+                    _elem50 = new ClientWorkerInfo();
+                    _elem50.read(iprot);
+                    struct.success.add(_elem50);
                   }
                   iprot.readListEnd();
                 }
@@ -6982,9 +6974,9 @@ public class MasterService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (ClientWorkerInfo _iter61 : struct.success)
+            for (ClientWorkerInfo _iter51 : struct.success)
             {
-              _iter61.write(oprot);
+              _iter51.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -7015,9 +7007,9 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (ClientWorkerInfo _iter62 : struct.success)
+            for (ClientWorkerInfo _iter52 : struct.success)
             {
-              _iter62.write(oprot);
+              _iter52.write(oprot);
             }
           }
         }
@@ -7029,14 +7021,14 @@ public class MasterService {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list63 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<ClientWorkerInfo>(_list63.size);
-            for (int _i64 = 0; _i64 < _list63.size; ++_i64)
+            org.apache.thrift.protocol.TList _list53 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<ClientWorkerInfo>(_list53.size);
+            for (int _i54 = 0; _i54 < _list53.size; ++_i54)
             {
-              ClientWorkerInfo _elem65;
-              _elem65 = new ClientWorkerInfo();
-              _elem65.read(iprot);
-              struct.success.add(_elem65);
+              ClientWorkerInfo _elem55;
+              _elem55 = new ClientWorkerInfo();
+              _elem55.read(iprot);
+              struct.success.add(_elem55);
             }
           }
           struct.setSuccessIsSet(true);
@@ -7863,14 +7855,14 @@ public class MasterService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list66 = iprot.readListBegin();
-                  struct.success = new ArrayList<ClientFileInfo>(_list66.size);
-                  for (int _i67 = 0; _i67 < _list66.size; ++_i67)
+                  org.apache.thrift.protocol.TList _list56 = iprot.readListBegin();
+                  struct.success = new ArrayList<ClientFileInfo>(_list56.size);
+                  for (int _i57 = 0; _i57 < _list56.size; ++_i57)
                   {
-                    ClientFileInfo _elem68;
-                    _elem68 = new ClientFileInfo();
-                    _elem68.read(iprot);
-                    struct.success.add(_elem68);
+                    ClientFileInfo _elem58;
+                    _elem58 = new ClientFileInfo();
+                    _elem58.read(iprot);
+                    struct.success.add(_elem58);
                   }
                   iprot.readListEnd();
                 }
@@ -7916,9 +7908,9 @@ public class MasterService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (ClientFileInfo _iter69 : struct.success)
+            for (ClientFileInfo _iter59 : struct.success)
             {
-              _iter69.write(oprot);
+              _iter59.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -7965,9 +7957,9 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (ClientFileInfo _iter70 : struct.success)
+            for (ClientFileInfo _iter60 : struct.success)
             {
-              _iter70.write(oprot);
+              _iter60.write(oprot);
             }
           }
         }
@@ -7985,14 +7977,14 @@ public class MasterService {
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list71 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<ClientFileInfo>(_list71.size);
-            for (int _i72 = 0; _i72 < _list71.size; ++_i72)
+            org.apache.thrift.protocol.TList _list61 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<ClientFileInfo>(_list61.size);
+            for (int _i62 = 0; _i62 < _list61.size; ++_i62)
             {
-              ClientFileInfo _elem73;
-              _elem73 = new ClientFileInfo();
-              _elem73.read(iprot);
-              struct.success.add(_elem73);
+              ClientFileInfo _elem63;
+              _elem63 = new ClientFileInfo();
+              _elem63.read(iprot);
+              struct.success.add(_elem63);
             }
           }
           struct.setSuccessIsSet(true);
@@ -8018,7 +8010,7 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TField WORKER_NET_ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("workerNetAddress", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField TOTAL_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("totalBytes", org.apache.thrift.protocol.TType.I64, (short)2);
     private static final org.apache.thrift.protocol.TField USED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytes", org.apache.thrift.protocol.TType.I64, (short)3);
-    private static final org.apache.thrift.protocol.TField CURRENT_BLOCKS_FIELD_DESC = new org.apache.thrift.protocol.TField("currentBlocks", org.apache.thrift.protocol.TType.MAP, (short)4);
+    private static final org.apache.thrift.protocol.TField CURRENT_BLOCKS_FIELD_DESC = new org.apache.thrift.protocol.TField("currentBlocks", org.apache.thrift.protocol.TType.LIST, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -8029,7 +8021,7 @@ public class MasterService {
     public NetAddress workerNetAddress; // required
     public long totalBytes; // required
     public long usedBytes; // required
-    public Map<Long,List<Long>> currentBlocks; // required
+    public List<Long> currentBlocks; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -8112,10 +8104,8 @@ public class MasterService {
       tmpMap.put(_Fields.USED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("usedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.CURRENT_BLOCKS, new org.apache.thrift.meta_data.FieldMetaData("currentBlocks", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
-              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64), 
-              new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-                  new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)))));
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(worker_register_args.class, metaDataMap);
     }
@@ -8127,7 +8117,7 @@ public class MasterService {
       NetAddress workerNetAddress,
       long totalBytes,
       long usedBytes,
-      Map<Long,List<Long>> currentBlocks)
+      List<Long> currentBlocks)
     {
       this();
       this.workerNetAddress = workerNetAddress;
@@ -8149,18 +8139,7 @@ public class MasterService {
       this.totalBytes = other.totalBytes;
       this.usedBytes = other.usedBytes;
       if (other.isSetCurrentBlocks()) {
-        Map<Long,List<Long>> __this__currentBlocks = new HashMap<Long,List<Long>>(other.currentBlocks.size());
-        for (Map.Entry<Long, List<Long>> other_element : other.currentBlocks.entrySet()) {
-
-          Long other_element_key = other_element.getKey();
-          List<Long> other_element_value = other_element.getValue();
-
-          Long __this__currentBlocks_copy_key = other_element_key;
-
-          List<Long> __this__currentBlocks_copy_value = new ArrayList<Long>(other_element_value);
-
-          __this__currentBlocks.put(__this__currentBlocks_copy_key, __this__currentBlocks_copy_value);
-        }
+        List<Long> __this__currentBlocks = new ArrayList<Long>(other.currentBlocks);
         this.currentBlocks = __this__currentBlocks;
       }
     }
@@ -8253,18 +8232,22 @@ public class MasterService {
       return (this.currentBlocks == null) ? 0 : this.currentBlocks.size();
     }
 
-    public void putToCurrentBlocks(long key, List<Long> val) {
-      if (this.currentBlocks == null) {
-        this.currentBlocks = new HashMap<Long,List<Long>>();
-      }
-      this.currentBlocks.put(key, val);
+    public java.util.Iterator<Long> getCurrentBlocksIterator() {
+      return (this.currentBlocks == null) ? null : this.currentBlocks.iterator();
     }
 
-    public Map<Long,List<Long>> getCurrentBlocks() {
+    public void addToCurrentBlocks(long elem) {
+      if (this.currentBlocks == null) {
+        this.currentBlocks = new ArrayList<Long>();
+      }
+      this.currentBlocks.add(elem);
+    }
+
+    public List<Long> getCurrentBlocks() {
       return this.currentBlocks;
     }
 
-    public worker_register_args setCurrentBlocks(Map<Long,List<Long>> currentBlocks) {
+    public worker_register_args setCurrentBlocks(List<Long> currentBlocks) {
       this.currentBlocks = currentBlocks;
       return this;
     }
@@ -8314,7 +8297,7 @@ public class MasterService {
         if (value == null) {
           unsetCurrentBlocks();
         } else {
-          setCurrentBlocks((Map<Long,List<Long>>)value);
+          setCurrentBlocks((List<Long>)value);
         }
         break;
 
@@ -8580,29 +8563,17 @@ public class MasterService {
               }
               break;
             case 4: // CURRENT_BLOCKS
-              if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TMap _map74 = iprot.readMapBegin();
-                  struct.currentBlocks = new HashMap<Long,List<Long>>(2*_map74.size);
-                  for (int _i75 = 0; _i75 < _map74.size; ++_i75)
+                  org.apache.thrift.protocol.TList _list64 = iprot.readListBegin();
+                  struct.currentBlocks = new ArrayList<Long>(_list64.size);
+                  for (int _i65 = 0; _i65 < _list64.size; ++_i65)
                   {
-                    long _key76;
-                    List<Long> _val77;
-                    _key76 = iprot.readI64();
-                    {
-                      org.apache.thrift.protocol.TList _list78 = iprot.readListBegin();
-                      _val77 = new ArrayList<Long>(_list78.size);
-                      for (int _i79 = 0; _i79 < _list78.size; ++_i79)
-                      {
-                        long _elem80;
-                        _elem80 = iprot.readI64();
-                        _val77.add(_elem80);
-                      }
-                      iprot.readListEnd();
-                    }
-                    struct.currentBlocks.put(_key76, _val77);
+                    long _elem66;
+                    _elem66 = iprot.readI64();
+                    struct.currentBlocks.add(_elem66);
                   }
-                  iprot.readMapEnd();
+                  iprot.readListEnd();
                 }
                 struct.setCurrentBlocksIsSet(true);
               } else { 
@@ -8638,20 +8609,12 @@ public class MasterService {
         if (struct.currentBlocks != null) {
           oprot.writeFieldBegin(CURRENT_BLOCKS_FIELD_DESC);
           {
-            oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I64, org.apache.thrift.protocol.TType.LIST, struct.currentBlocks.size()));
-            for (Map.Entry<Long, List<Long>> _iter81 : struct.currentBlocks.entrySet())
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.currentBlocks.size()));
+            for (long _iter67 : struct.currentBlocks)
             {
-              oprot.writeI64(_iter81.getKey());
-              {
-                oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, _iter81.getValue().size()));
-                for (long _iter82 : _iter81.getValue())
-                {
-                  oprot.writeI64(_iter82);
-                }
-                oprot.writeListEnd();
-              }
+              oprot.writeI64(_iter67);
             }
-            oprot.writeMapEnd();
+            oprot.writeListEnd();
           }
           oprot.writeFieldEnd();
         }
@@ -8698,16 +8661,9 @@ public class MasterService {
         if (struct.isSetCurrentBlocks()) {
           {
             oprot.writeI32(struct.currentBlocks.size());
-            for (Map.Entry<Long, List<Long>> _iter83 : struct.currentBlocks.entrySet())
+            for (long _iter68 : struct.currentBlocks)
             {
-              oprot.writeI64(_iter83.getKey());
-              {
-                oprot.writeI32(_iter83.getValue().size());
-                for (long _iter84 : _iter83.getValue())
-                {
-                  oprot.writeI64(_iter84);
-                }
-              }
+              oprot.writeI64(_iter68);
             }
           }
         }
@@ -8732,24 +8688,13 @@ public class MasterService {
         }
         if (incoming.get(3)) {
           {
-            org.apache.thrift.protocol.TMap _map85 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I64, org.apache.thrift.protocol.TType.LIST, iprot.readI32());
-            struct.currentBlocks = new HashMap<Long,List<Long>>(2*_map85.size);
-            for (int _i86 = 0; _i86 < _map85.size; ++_i86)
+            org.apache.thrift.protocol.TList _list69 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+            struct.currentBlocks = new ArrayList<Long>(_list69.size);
+            for (int _i70 = 0; _i70 < _list69.size; ++_i70)
             {
-              long _key87;
-              List<Long> _val88;
-              _key87 = iprot.readI64();
-              {
-                org.apache.thrift.protocol.TList _list89 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-                _val88 = new ArrayList<Long>(_list89.size);
-                for (int _i90 = 0; _i90 < _list89.size; ++_i90)
-                {
-                  long _elem91;
-                  _elem91 = iprot.readI64();
-                  _val88.add(_elem91);
-                }
-              }
-              struct.currentBlocks.put(_key87, _val88);
+              long _elem71;
+              _elem71 = iprot.readI64();
+              struct.currentBlocks.add(_elem71);
             }
           }
           struct.setCurrentBlocksIsSet(true);
@@ -9220,8 +9165,7 @@ public class MasterService {
 
     private static final org.apache.thrift.protocol.TField WORKER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("workerId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField USED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytes", org.apache.thrift.protocol.TType.I64, (short)2);
-    private static final org.apache.thrift.protocol.TField REMOVED_BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("removedBlockIds", org.apache.thrift.protocol.TType.LIST, (short)3);
-    private static final org.apache.thrift.protocol.TField EVICTED_BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("evictedBlockIds", org.apache.thrift.protocol.TType.MAP, (short)4);
+    private static final org.apache.thrift.protocol.TField REMOVED_BLOCKS_FIELD_DESC = new org.apache.thrift.protocol.TField("removedBlocks", org.apache.thrift.protocol.TType.LIST, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -9231,15 +9175,13 @@ public class MasterService {
 
     public long workerId; // required
     public long usedBytes; // required
-    public List<Long> removedBlockIds; // required
-    public Map<Long,List<Long>> evictedBlockIds; // required
+    public List<Long> removedBlocks; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       WORKER_ID((short)1, "workerId"),
       USED_BYTES((short)2, "usedBytes"),
-      REMOVED_BLOCK_IDS((short)3, "removedBlockIds"),
-      EVICTED_BLOCK_IDS((short)4, "evictedBlockIds");
+      REMOVED_BLOCKS((short)3, "removedBlocks");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -9258,10 +9200,8 @@ public class MasterService {
             return WORKER_ID;
           case 2: // USED_BYTES
             return USED_BYTES;
-          case 3: // REMOVED_BLOCK_IDS
-            return REMOVED_BLOCK_IDS;
-          case 4: // EVICTED_BLOCK_IDS
-            return EVICTED_BLOCK_IDS;
+          case 3: // REMOVED_BLOCKS
+            return REMOVED_BLOCKS;
           default:
             return null;
         }
@@ -9312,14 +9252,9 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.USED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("usedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.REMOVED_BLOCK_IDS, new org.apache.thrift.meta_data.FieldMetaData("removedBlockIds", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.REMOVED_BLOCKS, new org.apache.thrift.meta_data.FieldMetaData("removedBlocks", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
-      tmpMap.put(_Fields.EVICTED_BLOCK_IDS, new org.apache.thrift.meta_data.FieldMetaData("evictedBlockIds", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
-              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64), 
-              new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-                  new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(worker_heartbeat_args.class, metaDataMap);
     }
@@ -9330,16 +9265,14 @@ public class MasterService {
     public worker_heartbeat_args(
       long workerId,
       long usedBytes,
-      List<Long> removedBlockIds,
-      Map<Long,List<Long>> evictedBlockIds)
+      List<Long> removedBlocks)
     {
       this();
       this.workerId = workerId;
       setWorkerIdIsSet(true);
       this.usedBytes = usedBytes;
       setUsedBytesIsSet(true);
-      this.removedBlockIds = removedBlockIds;
-      this.evictedBlockIds = evictedBlockIds;
+      this.removedBlocks = removedBlocks;
     }
 
     /**
@@ -9349,24 +9282,9 @@ public class MasterService {
       __isset_bitfield = other.__isset_bitfield;
       this.workerId = other.workerId;
       this.usedBytes = other.usedBytes;
-      if (other.isSetRemovedBlockIds()) {
-        List<Long> __this__removedBlockIds = new ArrayList<Long>(other.removedBlockIds);
-        this.removedBlockIds = __this__removedBlockIds;
-      }
-      if (other.isSetEvictedBlockIds()) {
-        Map<Long,List<Long>> __this__evictedBlockIds = new HashMap<Long,List<Long>>(other.evictedBlockIds.size());
-        for (Map.Entry<Long, List<Long>> other_element : other.evictedBlockIds.entrySet()) {
-
-          Long other_element_key = other_element.getKey();
-          List<Long> other_element_value = other_element.getValue();
-
-          Long __this__evictedBlockIds_copy_key = other_element_key;
-
-          List<Long> __this__evictedBlockIds_copy_value = new ArrayList<Long>(other_element_value);
-
-          __this__evictedBlockIds.put(__this__evictedBlockIds_copy_key, __this__evictedBlockIds_copy_value);
-        }
-        this.evictedBlockIds = __this__evictedBlockIds;
+      if (other.isSetRemovedBlocks()) {
+        List<Long> __this__removedBlocks = new ArrayList<Long>(other.removedBlocks);
+        this.removedBlocks = __this__removedBlocks;
       }
     }
 
@@ -9380,8 +9298,7 @@ public class MasterService {
       this.workerId = 0;
       setUsedBytesIsSet(false);
       this.usedBytes = 0;
-      this.removedBlockIds = null;
-      this.evictedBlockIds = null;
+      this.removedBlocks = null;
     }
 
     public long getWorkerId() {
@@ -9430,77 +9347,42 @@ public class MasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USEDBYTES_ISSET_ID, value);
     }
 
-    public int getRemovedBlockIdsSize() {
-      return (this.removedBlockIds == null) ? 0 : this.removedBlockIds.size();
+    public int getRemovedBlocksSize() {
+      return (this.removedBlocks == null) ? 0 : this.removedBlocks.size();
     }
 
-    public java.util.Iterator<Long> getRemovedBlockIdsIterator() {
-      return (this.removedBlockIds == null) ? null : this.removedBlockIds.iterator();
+    public java.util.Iterator<Long> getRemovedBlocksIterator() {
+      return (this.removedBlocks == null) ? null : this.removedBlocks.iterator();
     }
 
-    public void addToRemovedBlockIds(long elem) {
-      if (this.removedBlockIds == null) {
-        this.removedBlockIds = new ArrayList<Long>();
+    public void addToRemovedBlocks(long elem) {
+      if (this.removedBlocks == null) {
+        this.removedBlocks = new ArrayList<Long>();
       }
-      this.removedBlockIds.add(elem);
+      this.removedBlocks.add(elem);
     }
 
-    public List<Long> getRemovedBlockIds() {
-      return this.removedBlockIds;
+    public List<Long> getRemovedBlocks() {
+      return this.removedBlocks;
     }
 
-    public worker_heartbeat_args setRemovedBlockIds(List<Long> removedBlockIds) {
-      this.removedBlockIds = removedBlockIds;
+    public worker_heartbeat_args setRemovedBlocks(List<Long> removedBlocks) {
+      this.removedBlocks = removedBlocks;
       return this;
     }
 
-    public void unsetRemovedBlockIds() {
-      this.removedBlockIds = null;
+    public void unsetRemovedBlocks() {
+      this.removedBlocks = null;
     }
 
-    /** Returns true if field removedBlockIds is set (has been assigned a value) and false otherwise */
-    public boolean isSetRemovedBlockIds() {
-      return this.removedBlockIds != null;
+    /** Returns true if field removedBlocks is set (has been assigned a value) and false otherwise */
+    public boolean isSetRemovedBlocks() {
+      return this.removedBlocks != null;
     }
 
-    public void setRemovedBlockIdsIsSet(boolean value) {
+    public void setRemovedBlocksIsSet(boolean value) {
       if (!value) {
-        this.removedBlockIds = null;
-      }
-    }
-
-    public int getEvictedBlockIdsSize() {
-      return (this.evictedBlockIds == null) ? 0 : this.evictedBlockIds.size();
-    }
-
-    public void putToEvictedBlockIds(long key, List<Long> val) {
-      if (this.evictedBlockIds == null) {
-        this.evictedBlockIds = new HashMap<Long,List<Long>>();
-      }
-      this.evictedBlockIds.put(key, val);
-    }
-
-    public Map<Long,List<Long>> getEvictedBlockIds() {
-      return this.evictedBlockIds;
-    }
-
-    public worker_heartbeat_args setEvictedBlockIds(Map<Long,List<Long>> evictedBlockIds) {
-      this.evictedBlockIds = evictedBlockIds;
-      return this;
-    }
-
-    public void unsetEvictedBlockIds() {
-      this.evictedBlockIds = null;
-    }
-
-    /** Returns true if field evictedBlockIds is set (has been assigned a value) and false otherwise */
-    public boolean isSetEvictedBlockIds() {
-      return this.evictedBlockIds != null;
-    }
-
-    public void setEvictedBlockIdsIsSet(boolean value) {
-      if (!value) {
-        this.evictedBlockIds = null;
+        this.removedBlocks = null;
       }
     }
 
@@ -9522,19 +9404,11 @@ public class MasterService {
         }
         break;
 
-      case REMOVED_BLOCK_IDS:
+      case REMOVED_BLOCKS:
         if (value == null) {
-          unsetRemovedBlockIds();
+          unsetRemovedBlocks();
         } else {
-          setRemovedBlockIds((List<Long>)value);
-        }
-        break;
-
-      case EVICTED_BLOCK_IDS:
-        if (value == null) {
-          unsetEvictedBlockIds();
-        } else {
-          setEvictedBlockIds((Map<Long,List<Long>>)value);
+          setRemovedBlocks((List<Long>)value);
         }
         break;
 
@@ -9549,11 +9423,8 @@ public class MasterService {
       case USED_BYTES:
         return Long.valueOf(getUsedBytes());
 
-      case REMOVED_BLOCK_IDS:
-        return getRemovedBlockIds();
-
-      case EVICTED_BLOCK_IDS:
-        return getEvictedBlockIds();
+      case REMOVED_BLOCKS:
+        return getRemovedBlocks();
 
       }
       throw new IllegalStateException();
@@ -9570,10 +9441,8 @@ public class MasterService {
         return isSetWorkerId();
       case USED_BYTES:
         return isSetUsedBytes();
-      case REMOVED_BLOCK_IDS:
-        return isSetRemovedBlockIds();
-      case EVICTED_BLOCK_IDS:
-        return isSetEvictedBlockIds();
+      case REMOVED_BLOCKS:
+        return isSetRemovedBlocks();
       }
       throw new IllegalStateException();
     }
@@ -9609,21 +9478,12 @@ public class MasterService {
           return false;
       }
 
-      boolean this_present_removedBlockIds = true && this.isSetRemovedBlockIds();
-      boolean that_present_removedBlockIds = true && that.isSetRemovedBlockIds();
-      if (this_present_removedBlockIds || that_present_removedBlockIds) {
-        if (!(this_present_removedBlockIds && that_present_removedBlockIds))
+      boolean this_present_removedBlocks = true && this.isSetRemovedBlocks();
+      boolean that_present_removedBlocks = true && that.isSetRemovedBlocks();
+      if (this_present_removedBlocks || that_present_removedBlocks) {
+        if (!(this_present_removedBlocks && that_present_removedBlocks))
           return false;
-        if (!this.removedBlockIds.equals(that.removedBlockIds))
-          return false;
-      }
-
-      boolean this_present_evictedBlockIds = true && this.isSetEvictedBlockIds();
-      boolean that_present_evictedBlockIds = true && that.isSetEvictedBlockIds();
-      if (this_present_evictedBlockIds || that_present_evictedBlockIds) {
-        if (!(this_present_evictedBlockIds && that_present_evictedBlockIds))
-          return false;
-        if (!this.evictedBlockIds.equals(that.evictedBlockIds))
+        if (!this.removedBlocks.equals(that.removedBlocks))
           return false;
       }
 
@@ -9663,22 +9523,12 @@ public class MasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetRemovedBlockIds()).compareTo(other.isSetRemovedBlockIds());
+      lastComparison = Boolean.valueOf(isSetRemovedBlocks()).compareTo(other.isSetRemovedBlocks());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetRemovedBlockIds()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.removedBlockIds, other.removedBlockIds);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEvictedBlockIds()).compareTo(other.isSetEvictedBlockIds());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEvictedBlockIds()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.evictedBlockIds, other.evictedBlockIds);
+      if (isSetRemovedBlocks()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.removedBlocks, other.removedBlocks);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -9711,19 +9561,11 @@ public class MasterService {
       sb.append(this.usedBytes);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("removedBlockIds:");
-      if (this.removedBlockIds == null) {
+      sb.append("removedBlocks:");
+      if (this.removedBlocks == null) {
         sb.append("null");
       } else {
-        sb.append(this.removedBlockIds);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("evictedBlockIds:");
-      if (this.evictedBlockIds == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.evictedBlockIds);
+        sb.append(this.removedBlocks);
       }
       first = false;
       sb.append(")");
@@ -9787,50 +9629,20 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 3: // REMOVED_BLOCK_IDS
+            case 3: // REMOVED_BLOCKS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list92 = iprot.readListBegin();
-                  struct.removedBlockIds = new ArrayList<Long>(_list92.size);
-                  for (int _i93 = 0; _i93 < _list92.size; ++_i93)
+                  org.apache.thrift.protocol.TList _list72 = iprot.readListBegin();
+                  struct.removedBlocks = new ArrayList<Long>(_list72.size);
+                  for (int _i73 = 0; _i73 < _list72.size; ++_i73)
                   {
-                    long _elem94;
-                    _elem94 = iprot.readI64();
-                    struct.removedBlockIds.add(_elem94);
+                    long _elem74;
+                    _elem74 = iprot.readI64();
+                    struct.removedBlocks.add(_elem74);
                   }
                   iprot.readListEnd();
                 }
-                struct.setRemovedBlockIdsIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 4: // EVICTED_BLOCK_IDS
-              if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
-                {
-                  org.apache.thrift.protocol.TMap _map95 = iprot.readMapBegin();
-                  struct.evictedBlockIds = new HashMap<Long,List<Long>>(2*_map95.size);
-                  for (int _i96 = 0; _i96 < _map95.size; ++_i96)
-                  {
-                    long _key97;
-                    List<Long> _val98;
-                    _key97 = iprot.readI64();
-                    {
-                      org.apache.thrift.protocol.TList _list99 = iprot.readListBegin();
-                      _val98 = new ArrayList<Long>(_list99.size);
-                      for (int _i100 = 0; _i100 < _list99.size; ++_i100)
-                      {
-                        long _elem101;
-                        _elem101 = iprot.readI64();
-                        _val98.add(_elem101);
-                      }
-                      iprot.readListEnd();
-                    }
-                    struct.evictedBlockIds.put(_key97, _val98);
-                  }
-                  iprot.readMapEnd();
-                }
-                struct.setEvictedBlockIdsIsSet(true);
+                struct.setRemovedBlocksIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -9856,35 +9668,15 @@ public class MasterService {
         oprot.writeFieldBegin(USED_BYTES_FIELD_DESC);
         oprot.writeI64(struct.usedBytes);
         oprot.writeFieldEnd();
-        if (struct.removedBlockIds != null) {
-          oprot.writeFieldBegin(REMOVED_BLOCK_IDS_FIELD_DESC);
+        if (struct.removedBlocks != null) {
+          oprot.writeFieldBegin(REMOVED_BLOCKS_FIELD_DESC);
           {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.removedBlockIds.size()));
-            for (long _iter102 : struct.removedBlockIds)
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.removedBlocks.size()));
+            for (long _iter75 : struct.removedBlocks)
             {
-              oprot.writeI64(_iter102);
+              oprot.writeI64(_iter75);
             }
             oprot.writeListEnd();
-          }
-          oprot.writeFieldEnd();
-        }
-        if (struct.evictedBlockIds != null) {
-          oprot.writeFieldBegin(EVICTED_BLOCK_IDS_FIELD_DESC);
-          {
-            oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I64, org.apache.thrift.protocol.TType.LIST, struct.evictedBlockIds.size()));
-            for (Map.Entry<Long, List<Long>> _iter103 : struct.evictedBlockIds.entrySet())
-            {
-              oprot.writeI64(_iter103.getKey());
-              {
-                oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, _iter103.getValue().size()));
-                for (long _iter104 : _iter103.getValue())
-                {
-                  oprot.writeI64(_iter104);
-                }
-                oprot.writeListEnd();
-              }
-            }
-            oprot.writeMapEnd();
           }
           oprot.writeFieldEnd();
         }
@@ -9912,41 +9704,22 @@ public class MasterService {
         if (struct.isSetUsedBytes()) {
           optionals.set(1);
         }
-        if (struct.isSetRemovedBlockIds()) {
+        if (struct.isSetRemovedBlocks()) {
           optionals.set(2);
         }
-        if (struct.isSetEvictedBlockIds()) {
-          optionals.set(3);
-        }
-        oprot.writeBitSet(optionals, 4);
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetWorkerId()) {
           oprot.writeI64(struct.workerId);
         }
         if (struct.isSetUsedBytes()) {
           oprot.writeI64(struct.usedBytes);
         }
-        if (struct.isSetRemovedBlockIds()) {
+        if (struct.isSetRemovedBlocks()) {
           {
-            oprot.writeI32(struct.removedBlockIds.size());
-            for (long _iter105 : struct.removedBlockIds)
+            oprot.writeI32(struct.removedBlocks.size());
+            for (long _iter76 : struct.removedBlocks)
             {
-              oprot.writeI64(_iter105);
-            }
-          }
-        }
-        if (struct.isSetEvictedBlockIds()) {
-          {
-            oprot.writeI32(struct.evictedBlockIds.size());
-            for (Map.Entry<Long, List<Long>> _iter106 : struct.evictedBlockIds.entrySet())
-            {
-              oprot.writeI64(_iter106.getKey());
-              {
-                oprot.writeI32(_iter106.getValue().size());
-                for (long _iter107 : _iter106.getValue())
-                {
-                  oprot.writeI64(_iter107);
-                }
-              }
+              oprot.writeI64(_iter76);
             }
           }
         }
@@ -9955,7 +9728,7 @@ public class MasterService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, worker_heartbeat_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(4);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.workerId = iprot.readI64();
           struct.setWorkerIdIsSet(true);
@@ -9966,40 +9739,16 @@ public class MasterService {
         }
         if (incoming.get(2)) {
           {
-            org.apache.thrift.protocol.TList _list108 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.removedBlockIds = new ArrayList<Long>(_list108.size);
-            for (int _i109 = 0; _i109 < _list108.size; ++_i109)
+            org.apache.thrift.protocol.TList _list77 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+            struct.removedBlocks = new ArrayList<Long>(_list77.size);
+            for (int _i78 = 0; _i78 < _list77.size; ++_i78)
             {
-              long _elem110;
-              _elem110 = iprot.readI64();
-              struct.removedBlockIds.add(_elem110);
+              long _elem79;
+              _elem79 = iprot.readI64();
+              struct.removedBlocks.add(_elem79);
             }
           }
-          struct.setRemovedBlockIdsIsSet(true);
-        }
-        if (incoming.get(3)) {
-          {
-            org.apache.thrift.protocol.TMap _map111 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I64, org.apache.thrift.protocol.TType.LIST, iprot.readI32());
-            struct.evictedBlockIds = new HashMap<Long,List<Long>>(2*_map111.size);
-            for (int _i112 = 0; _i112 < _map111.size; ++_i112)
-            {
-              long _key113;
-              List<Long> _val114;
-              _key113 = iprot.readI64();
-              {
-                org.apache.thrift.protocol.TList _list115 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-                _val114 = new ArrayList<Long>(_list115.size);
-                for (int _i116 = 0; _i116 < _list115.size; ++_i116)
-                {
-                  long _elem117;
-                  _elem117 = iprot.readI64();
-                  _val114.add(_elem117);
-                }
-              }
-              struct.evictedBlockIds.put(_key113, _val114);
-            }
-          }
-          struct.setEvictedBlockIdsIsSet(true);
+          struct.setRemovedBlocksIsSet(true);
         }
       }
     }
@@ -10472,9 +10221,8 @@ public class MasterService {
 
     private static final org.apache.thrift.protocol.TField WORKER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("workerId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField WORKER_USED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("workerUsedBytes", org.apache.thrift.protocol.TType.I64, (short)2);
-    private static final org.apache.thrift.protocol.TField STORAGE_DIR_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("storageDirId", org.apache.thrift.protocol.TType.I64, (short)3);
-    private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)4);
-    private static final org.apache.thrift.protocol.TField LENGTH_FIELD_DESC = new org.apache.thrift.protocol.TField("length", org.apache.thrift.protocol.TType.I64, (short)5);
+    private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)3);
+    private static final org.apache.thrift.protocol.TField LENGTH_FIELD_DESC = new org.apache.thrift.protocol.TField("length", org.apache.thrift.protocol.TType.I64, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -10484,7 +10232,6 @@ public class MasterService {
 
     public long workerId; // required
     public long workerUsedBytes; // required
-    public long storageDirId; // required
     public long blockId; // required
     public long length; // required
 
@@ -10492,9 +10239,8 @@ public class MasterService {
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       WORKER_ID((short)1, "workerId"),
       WORKER_USED_BYTES((short)2, "workerUsedBytes"),
-      STORAGE_DIR_ID((short)3, "storageDirId"),
-      BLOCK_ID((short)4, "blockId"),
-      LENGTH((short)5, "length");
+      BLOCK_ID((short)3, "blockId"),
+      LENGTH((short)4, "length");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -10513,11 +10259,9 @@ public class MasterService {
             return WORKER_ID;
           case 2: // WORKER_USED_BYTES
             return WORKER_USED_BYTES;
-          case 3: // STORAGE_DIR_ID
-            return STORAGE_DIR_ID;
-          case 4: // BLOCK_ID
+          case 3: // BLOCK_ID
             return BLOCK_ID;
-          case 5: // LENGTH
+          case 4: // LENGTH
             return LENGTH;
           default:
             return null;
@@ -10561,9 +10305,8 @@ public class MasterService {
     // isset id assignments
     private static final int __WORKERID_ISSET_ID = 0;
     private static final int __WORKERUSEDBYTES_ISSET_ID = 1;
-    private static final int __STORAGEDIRID_ISSET_ID = 2;
-    private static final int __BLOCKID_ISSET_ID = 3;
-    private static final int __LENGTH_ISSET_ID = 4;
+    private static final int __BLOCKID_ISSET_ID = 2;
+    private static final int __LENGTH_ISSET_ID = 3;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
@@ -10571,8 +10314,6 @@ public class MasterService {
       tmpMap.put(_Fields.WORKER_ID, new org.apache.thrift.meta_data.FieldMetaData("workerId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.WORKER_USED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("workerUsedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.STORAGE_DIR_ID, new org.apache.thrift.meta_data.FieldMetaData("storageDirId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
@@ -10588,7 +10329,6 @@ public class MasterService {
     public worker_cacheBlock_args(
       long workerId,
       long workerUsedBytes,
-      long storageDirId,
       long blockId,
       long length)
     {
@@ -10597,8 +10337,6 @@ public class MasterService {
       setWorkerIdIsSet(true);
       this.workerUsedBytes = workerUsedBytes;
       setWorkerUsedBytesIsSet(true);
-      this.storageDirId = storageDirId;
-      setStorageDirIdIsSet(true);
       this.blockId = blockId;
       setBlockIdIsSet(true);
       this.length = length;
@@ -10612,7 +10350,6 @@ public class MasterService {
       __isset_bitfield = other.__isset_bitfield;
       this.workerId = other.workerId;
       this.workerUsedBytes = other.workerUsedBytes;
-      this.storageDirId = other.storageDirId;
       this.blockId = other.blockId;
       this.length = other.length;
     }
@@ -10627,8 +10364,6 @@ public class MasterService {
       this.workerId = 0;
       setWorkerUsedBytesIsSet(false);
       this.workerUsedBytes = 0;
-      setStorageDirIdIsSet(false);
-      this.storageDirId = 0;
       setBlockIdIsSet(false);
       this.blockId = 0;
       setLengthIsSet(false);
@@ -10679,29 +10414,6 @@ public class MasterService {
 
     public void setWorkerUsedBytesIsSet(boolean value) {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __WORKERUSEDBYTES_ISSET_ID, value);
-    }
-
-    public long getStorageDirId() {
-      return this.storageDirId;
-    }
-
-    public worker_cacheBlock_args setStorageDirId(long storageDirId) {
-      this.storageDirId = storageDirId;
-      setStorageDirIdIsSet(true);
-      return this;
-    }
-
-    public void unsetStorageDirId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID);
-    }
-
-    /** Returns true if field storageDirId is set (has been assigned a value) and false otherwise */
-    public boolean isSetStorageDirId() {
-      return EncodingUtils.testBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID);
-    }
-
-    public void setStorageDirIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID, value);
     }
 
     public long getBlockId() {
@@ -10768,14 +10480,6 @@ public class MasterService {
         }
         break;
 
-      case STORAGE_DIR_ID:
-        if (value == null) {
-          unsetStorageDirId();
-        } else {
-          setStorageDirId((Long)value);
-        }
-        break;
-
       case BLOCK_ID:
         if (value == null) {
           unsetBlockId();
@@ -10803,9 +10507,6 @@ public class MasterService {
       case WORKER_USED_BYTES:
         return Long.valueOf(getWorkerUsedBytes());
 
-      case STORAGE_DIR_ID:
-        return Long.valueOf(getStorageDirId());
-
       case BLOCK_ID:
         return Long.valueOf(getBlockId());
 
@@ -10827,8 +10528,6 @@ public class MasterService {
         return isSetWorkerId();
       case WORKER_USED_BYTES:
         return isSetWorkerUsedBytes();
-      case STORAGE_DIR_ID:
-        return isSetStorageDirId();
       case BLOCK_ID:
         return isSetBlockId();
       case LENGTH:
@@ -10865,15 +10564,6 @@ public class MasterService {
         if (!(this_present_workerUsedBytes && that_present_workerUsedBytes))
           return false;
         if (this.workerUsedBytes != that.workerUsedBytes)
-          return false;
-      }
-
-      boolean this_present_storageDirId = true;
-      boolean that_present_storageDirId = true;
-      if (this_present_storageDirId || that_present_storageDirId) {
-        if (!(this_present_storageDirId && that_present_storageDirId))
-          return false;
-        if (this.storageDirId != that.storageDirId)
           return false;
       }
 
@@ -10931,16 +10621,6 @@ public class MasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetStorageDirId()).compareTo(other.isSetStorageDirId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetStorageDirId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.storageDirId, other.storageDirId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       lastComparison = Boolean.valueOf(isSetBlockId()).compareTo(other.isSetBlockId());
       if (lastComparison != 0) {
         return lastComparison;
@@ -10987,10 +10667,6 @@ public class MasterService {
       if (!first) sb.append(", ");
       sb.append("workerUsedBytes:");
       sb.append(this.workerUsedBytes);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("storageDirId:");
-      sb.append(this.storageDirId);
       first = false;
       if (!first) sb.append(", ");
       sb.append("blockId:");
@@ -11061,15 +10737,7 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 3: // STORAGE_DIR_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.storageDirId = iprot.readI64();
-                struct.setStorageDirIdIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 4: // BLOCK_ID
+            case 3: // BLOCK_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.blockId = iprot.readI64();
                 struct.setBlockIdIsSet(true);
@@ -11077,7 +10745,7 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 5: // LENGTH
+            case 4: // LENGTH
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.length = iprot.readI64();
                 struct.setLengthIsSet(true);
@@ -11105,9 +10773,6 @@ public class MasterService {
         oprot.writeFieldEnd();
         oprot.writeFieldBegin(WORKER_USED_BYTES_FIELD_DESC);
         oprot.writeI64(struct.workerUsedBytes);
-        oprot.writeFieldEnd();
-        oprot.writeFieldBegin(STORAGE_DIR_ID_FIELD_DESC);
-        oprot.writeI64(struct.storageDirId);
         oprot.writeFieldEnd();
         oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
         oprot.writeI64(struct.blockId);
@@ -11139,24 +10804,18 @@ public class MasterService {
         if (struct.isSetWorkerUsedBytes()) {
           optionals.set(1);
         }
-        if (struct.isSetStorageDirId()) {
+        if (struct.isSetBlockId()) {
           optionals.set(2);
         }
-        if (struct.isSetBlockId()) {
+        if (struct.isSetLength()) {
           optionals.set(3);
         }
-        if (struct.isSetLength()) {
-          optionals.set(4);
-        }
-        oprot.writeBitSet(optionals, 5);
+        oprot.writeBitSet(optionals, 4);
         if (struct.isSetWorkerId()) {
           oprot.writeI64(struct.workerId);
         }
         if (struct.isSetWorkerUsedBytes()) {
           oprot.writeI64(struct.workerUsedBytes);
-        }
-        if (struct.isSetStorageDirId()) {
-          oprot.writeI64(struct.storageDirId);
         }
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
@@ -11169,7 +10828,7 @@ public class MasterService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, worker_cacheBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(5);
+        BitSet incoming = iprot.readBitSet(4);
         if (incoming.get(0)) {
           struct.workerId = iprot.readI64();
           struct.setWorkerIdIsSet(true);
@@ -11179,14 +10838,10 @@ public class MasterService {
           struct.setWorkerUsedBytesIsSet(true);
         }
         if (incoming.get(2)) {
-          struct.storageDirId = iprot.readI64();
-          struct.setStorageDirIdIsSet(true);
-        }
-        if (incoming.get(3)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
         }
-        if (incoming.get(4)) {
+        if (incoming.get(3)) {
           struct.length = iprot.readI64();
           struct.setLengthIsSet(true);
         }
@@ -12307,13 +11962,13 @@ public class MasterService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set118 = iprot.readSetBegin();
-                  struct.success = new HashSet<Integer>(2*_set118.size);
-                  for (int _i119 = 0; _i119 < _set118.size; ++_i119)
+                  org.apache.thrift.protocol.TSet _set80 = iprot.readSetBegin();
+                  struct.success = new HashSet<Integer>(2*_set80.size);
+                  for (int _i81 = 0; _i81 < _set80.size; ++_i81)
                   {
-                    int _elem120;
-                    _elem120 = iprot.readI32();
-                    struct.success.add(_elem120);
+                    int _elem82;
+                    _elem82 = iprot.readI32();
+                    struct.success.add(_elem82);
                   }
                   iprot.readSetEnd();
                 }
@@ -12341,9 +11996,9 @@ public class MasterService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, struct.success.size()));
-            for (int _iter121 : struct.success)
+            for (int _iter83 : struct.success)
             {
-              oprot.writeI32(_iter121);
+              oprot.writeI32(_iter83);
             }
             oprot.writeSetEnd();
           }
@@ -12374,9 +12029,9 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (int _iter122 : struct.success)
+            for (int _iter84 : struct.success)
             {
-              oprot.writeI32(_iter122);
+              oprot.writeI32(_iter84);
             }
           }
         }
@@ -12388,13 +12043,13 @@ public class MasterService {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TSet _set123 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, iprot.readI32());
-            struct.success = new HashSet<Integer>(2*_set123.size);
-            for (int _i124 = 0; _i124 < _set123.size; ++_i124)
+            org.apache.thrift.protocol.TSet _set85 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, iprot.readI32());
+            struct.success = new HashSet<Integer>(2*_set85.size);
+            for (int _i86 = 0; _i86 < _set85.size; ++_i86)
             {
-              int _elem125;
-              _elem125 = iprot.readI32();
-              struct.success.add(_elem125);
+              int _elem87;
+              _elem87 = iprot.readI32();
+              struct.success.add(_elem87);
             }
           }
           struct.setSuccessIsSet(true);
@@ -12956,13 +12611,13 @@ public class MasterService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list126 = iprot.readListBegin();
-                  struct.success = new ArrayList<Integer>(_list126.size);
-                  for (int _i127 = 0; _i127 < _list126.size; ++_i127)
+                  org.apache.thrift.protocol.TList _list88 = iprot.readListBegin();
+                  struct.success = new ArrayList<Integer>(_list88.size);
+                  for (int _i89 = 0; _i89 < _list88.size; ++_i89)
                   {
-                    int _elem128;
-                    _elem128 = iprot.readI32();
-                    struct.success.add(_elem128);
+                    int _elem90;
+                    _elem90 = iprot.readI32();
+                    struct.success.add(_elem90);
                   }
                   iprot.readListEnd();
                 }
@@ -12990,9 +12645,9 @@ public class MasterService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, struct.success.size()));
-            for (int _iter129 : struct.success)
+            for (int _iter91 : struct.success)
             {
-              oprot.writeI32(_iter129);
+              oprot.writeI32(_iter91);
             }
             oprot.writeListEnd();
           }
@@ -13023,9 +12678,9 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (int _iter130 : struct.success)
+            for (int _iter92 : struct.success)
             {
-              oprot.writeI32(_iter130);
+              oprot.writeI32(_iter92);
             }
           }
         }
@@ -13037,13 +12692,13 @@ public class MasterService {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list131 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, iprot.readI32());
-            struct.success = new ArrayList<Integer>(_list131.size);
-            for (int _i132 = 0; _i132 < _list131.size; ++_i132)
+            org.apache.thrift.protocol.TList _list93 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, iprot.readI32());
+            struct.success = new ArrayList<Integer>(_list93.size);
+            for (int _i94 = 0; _i94 < _list93.size; ++_i94)
             {
-              int _elem133;
-              _elem133 = iprot.readI32();
-              struct.success.add(_elem133);
+              int _elem95;
+              _elem95 = iprot.readI32();
+              struct.success.add(_elem95);
             }
           }
           struct.setSuccessIsSet(true);
@@ -14005,13 +13660,13 @@ public class MasterService {
             case 1: // PARENTS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list134 = iprot.readListBegin();
-                  struct.parents = new ArrayList<String>(_list134.size);
-                  for (int _i135 = 0; _i135 < _list134.size; ++_i135)
+                  org.apache.thrift.protocol.TList _list96 = iprot.readListBegin();
+                  struct.parents = new ArrayList<String>(_list96.size);
+                  for (int _i97 = 0; _i97 < _list96.size; ++_i97)
                   {
-                    String _elem136;
-                    _elem136 = iprot.readString();
-                    struct.parents.add(_elem136);
+                    String _elem98;
+                    _elem98 = iprot.readString();
+                    struct.parents.add(_elem98);
                   }
                   iprot.readListEnd();
                 }
@@ -14023,13 +13678,13 @@ public class MasterService {
             case 2: // CHILDREN
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list137 = iprot.readListBegin();
-                  struct.children = new ArrayList<String>(_list137.size);
-                  for (int _i138 = 0; _i138 < _list137.size; ++_i138)
+                  org.apache.thrift.protocol.TList _list99 = iprot.readListBegin();
+                  struct.children = new ArrayList<String>(_list99.size);
+                  for (int _i100 = 0; _i100 < _list99.size; ++_i100)
                   {
-                    String _elem139;
-                    _elem139 = iprot.readString();
-                    struct.children.add(_elem139);
+                    String _elem101;
+                    _elem101 = iprot.readString();
+                    struct.children.add(_elem101);
                   }
                   iprot.readListEnd();
                 }
@@ -14049,13 +13704,13 @@ public class MasterService {
             case 4: // DATA
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list140 = iprot.readListBegin();
-                  struct.data = new ArrayList<ByteBuffer>(_list140.size);
-                  for (int _i141 = 0; _i141 < _list140.size; ++_i141)
+                  org.apache.thrift.protocol.TList _list102 = iprot.readListBegin();
+                  struct.data = new ArrayList<ByteBuffer>(_list102.size);
+                  for (int _i103 = 0; _i103 < _list102.size; ++_i103)
                   {
-                    ByteBuffer _elem142;
-                    _elem142 = iprot.readBinary();
-                    struct.data.add(_elem142);
+                    ByteBuffer _elem104;
+                    _elem104 = iprot.readBinary();
+                    struct.data.add(_elem104);
                   }
                   iprot.readListEnd();
                 }
@@ -14123,9 +13778,9 @@ public class MasterService {
           oprot.writeFieldBegin(PARENTS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.parents.size()));
-            for (String _iter143 : struct.parents)
+            for (String _iter105 : struct.parents)
             {
-              oprot.writeString(_iter143);
+              oprot.writeString(_iter105);
             }
             oprot.writeListEnd();
           }
@@ -14135,9 +13790,9 @@ public class MasterService {
           oprot.writeFieldBegin(CHILDREN_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.children.size()));
-            for (String _iter144 : struct.children)
+            for (String _iter106 : struct.children)
             {
-              oprot.writeString(_iter144);
+              oprot.writeString(_iter106);
             }
             oprot.writeListEnd();
           }
@@ -14152,9 +13807,9 @@ public class MasterService {
           oprot.writeFieldBegin(DATA_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.data.size()));
-            for (ByteBuffer _iter145 : struct.data)
+            for (ByteBuffer _iter107 : struct.data)
             {
-              oprot.writeBinary(_iter145);
+              oprot.writeBinary(_iter107);
             }
             oprot.writeListEnd();
           }
@@ -14230,18 +13885,18 @@ public class MasterService {
         if (struct.isSetParents()) {
           {
             oprot.writeI32(struct.parents.size());
-            for (String _iter146 : struct.parents)
+            for (String _iter108 : struct.parents)
             {
-              oprot.writeString(_iter146);
+              oprot.writeString(_iter108);
             }
           }
         }
         if (struct.isSetChildren()) {
           {
             oprot.writeI32(struct.children.size());
-            for (String _iter147 : struct.children)
+            for (String _iter109 : struct.children)
             {
-              oprot.writeString(_iter147);
+              oprot.writeString(_iter109);
             }
           }
         }
@@ -14251,9 +13906,9 @@ public class MasterService {
         if (struct.isSetData()) {
           {
             oprot.writeI32(struct.data.size());
-            for (ByteBuffer _iter148 : struct.data)
+            for (ByteBuffer _iter110 : struct.data)
             {
-              oprot.writeBinary(_iter148);
+              oprot.writeBinary(_iter110);
             }
           }
         }
@@ -14280,26 +13935,26 @@ public class MasterService {
         BitSet incoming = iprot.readBitSet(9);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list149 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.parents = new ArrayList<String>(_list149.size);
-            for (int _i150 = 0; _i150 < _list149.size; ++_i150)
+            org.apache.thrift.protocol.TList _list111 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.parents = new ArrayList<String>(_list111.size);
+            for (int _i112 = 0; _i112 < _list111.size; ++_i112)
             {
-              String _elem151;
-              _elem151 = iprot.readString();
-              struct.parents.add(_elem151);
+              String _elem113;
+              _elem113 = iprot.readString();
+              struct.parents.add(_elem113);
             }
           }
           struct.setParentsIsSet(true);
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TList _list152 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.children = new ArrayList<String>(_list152.size);
-            for (int _i153 = 0; _i153 < _list152.size; ++_i153)
+            org.apache.thrift.protocol.TList _list114 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.children = new ArrayList<String>(_list114.size);
+            for (int _i115 = 0; _i115 < _list114.size; ++_i115)
             {
-              String _elem154;
-              _elem154 = iprot.readString();
-              struct.children.add(_elem154);
+              String _elem116;
+              _elem116 = iprot.readString();
+              struct.children.add(_elem116);
             }
           }
           struct.setChildrenIsSet(true);
@@ -14310,13 +13965,13 @@ public class MasterService {
         }
         if (incoming.get(3)) {
           {
-            org.apache.thrift.protocol.TList _list155 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.data = new ArrayList<ByteBuffer>(_list155.size);
-            for (int _i156 = 0; _i156 < _list155.size; ++_i156)
+            org.apache.thrift.protocol.TList _list117 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.data = new ArrayList<ByteBuffer>(_list117.size);
+            for (int _i118 = 0; _i118 < _list117.size; ++_i118)
             {
-              ByteBuffer _elem157;
-              _elem157 = iprot.readBinary();
-              struct.data.add(_elem157);
+              ByteBuffer _elem119;
+              _elem119 = iprot.readBinary();
+              struct.data.add(_elem119);
             }
           }
           struct.setDataIsSet(true);
@@ -25623,14 +25278,14 @@ public class MasterService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list158 = iprot.readListBegin();
-                  struct.success = new ArrayList<ClientBlockInfo>(_list158.size);
-                  for (int _i159 = 0; _i159 < _list158.size; ++_i159)
+                  org.apache.thrift.protocol.TList _list120 = iprot.readListBegin();
+                  struct.success = new ArrayList<ClientBlockInfo>(_list120.size);
+                  for (int _i121 = 0; _i121 < _list120.size; ++_i121)
                   {
-                    ClientBlockInfo _elem160;
-                    _elem160 = new ClientBlockInfo();
-                    _elem160.read(iprot);
-                    struct.success.add(_elem160);
+                    ClientBlockInfo _elem122;
+                    _elem122 = new ClientBlockInfo();
+                    _elem122.read(iprot);
+                    struct.success.add(_elem122);
                   }
                   iprot.readListEnd();
                 }
@@ -25676,9 +25331,9 @@ public class MasterService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (ClientBlockInfo _iter161 : struct.success)
+            for (ClientBlockInfo _iter123 : struct.success)
             {
-              _iter161.write(oprot);
+              _iter123.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -25725,9 +25380,9 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (ClientBlockInfo _iter162 : struct.success)
+            for (ClientBlockInfo _iter124 : struct.success)
             {
-              _iter162.write(oprot);
+              _iter124.write(oprot);
             }
           }
         }
@@ -25745,14 +25400,14 @@ public class MasterService {
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list163 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<ClientBlockInfo>(_list163.size);
-            for (int _i164 = 0; _i164 < _list163.size; ++_i164)
+            org.apache.thrift.protocol.TList _list125 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<ClientBlockInfo>(_list125.size);
+            for (int _i126 = 0; _i126 < _list125.size; ++_i126)
             {
-              ClientBlockInfo _elem165;
-              _elem165 = new ClientBlockInfo();
-              _elem165.read(iprot);
-              struct.success.add(_elem165);
+              ClientBlockInfo _elem127;
+              _elem127 = new ClientBlockInfo();
+              _elem127.read(iprot);
+              struct.success.add(_elem127);
             }
           }
           struct.setSuccessIsSet(true);

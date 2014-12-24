@@ -25,8 +25,6 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.StorageDirId;
-import tachyon.StorageLevelAlias;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -63,16 +61,15 @@ public class InodeFileTest {
   public void inMemoryLocationsTest() throws IOException, BlockInfoException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
     List<NetAddress> testAddresses = new ArrayList<NetAddress>(3);
-    long storageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
     testAddresses.add(new NetAddress("testhost1", 1000, 1001));
     testAddresses.add(new NetAddress("testhost2", 2000, 2001));
     testAddresses.add(new NetAddress("testhost3", 3000, 3001));
     inodeFile.addBlock(new BlockInfo(inodeFile, 0, 5));
-    inodeFile.addLocation(0, 1, testAddresses.get(0), storageDirId);
+    inodeFile.addLocation(0, 1, testAddresses.get(0));
     Assert.assertEquals(1, inodeFile.getBlockLocations(0).size());
-    inodeFile.addLocation(0, 2, testAddresses.get(1), storageDirId);
+    inodeFile.addLocation(0, 2, testAddresses.get(1));
     Assert.assertEquals(2, inodeFile.getBlockLocations(0).size());
-    inodeFile.addLocation(0, 3, testAddresses.get(2), storageDirId);
+    inodeFile.addLocation(0, 3, testAddresses.get(2));
     Assert.assertEquals(3, inodeFile.getBlockLocations(0).size());
     Assert.assertEquals(testAddresses, inodeFile.getBlockLocations(0));
   }
@@ -80,27 +77,25 @@ public class InodeFileTest {
   @Test(expected = BlockInfoException.class)
   public void inMemoryLocationsTestWithBlockInfoException() throws IOException, BlockInfoException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
-    long storageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
   }
 
   @Test
   public void inMemoryTest() throws BlockInfoException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
     inodeFile.addBlock(new BlockInfo(inodeFile, 0, 5));
-    long storageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
     Assert.assertTrue(inodeFile.isFullyInMemory());
     inodeFile.removeLocation(0, 1);
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
     Assert.assertTrue(inodeFile.isFullyInMemory());
     inodeFile.removeLocation(0, 1);
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
-    inodeFile.addLocation(0, 2, new NetAddress("testhost1", 1001, 1002), storageDirId);
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
+    inodeFile.addLocation(0, 2, new NetAddress("testhost1", 1000, 1001));
     Assert.assertTrue(inodeFile.isFullyInMemory());
     inodeFile.removeLocation(0, 1);
     Assert.assertTrue(inodeFile.isFullyInMemory());

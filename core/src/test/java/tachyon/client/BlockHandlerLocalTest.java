@@ -12,7 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.worker;
+package tachyon.client;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,11 +24,7 @@ import org.junit.Test;
 
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFile;
-import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.thrift.ClientLocationInfo;
 import tachyon.util.CommonUtils;
 
 public class BlockHandlerLocalTest {
@@ -57,13 +53,12 @@ public class BlockHandlerLocalTest {
 
     int fileId = mTfs.createFile(new TachyonURI("/root/testFile"));
     long blockId = mTfs.getBlockId(fileId, 0);
-    ClientLocationInfo locationInfo = mTfs.requestSpace(100);
-    String tempFolder = mTfs.createAndGetUserLocalTempFolder(locationInfo.getPath());
-    String filename = CommonUtils.concat(tempFolder, blockId);
+    String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
+    String filename = CommonUtils.concat(localFolder, blockId);
     BlockHandler handler = BlockHandler.get(filename);
     try {
       handler.append(0, buf);
-      mTfs.cacheBlock(locationInfo.getStorageDirId(), blockId);
+      mTfs.cacheBlock(blockId);
       TachyonFile file = mTfs.getFile(fileId);
       long fileLen = file.length();
       Assert.assertEquals(100, fileLen);
@@ -77,14 +72,13 @@ public class BlockHandlerLocalTest {
   public void heapByteBufferwriteTest() throws IOException {
     int fileId = mTfs.createFile(new TachyonURI("/root/testFile"));
     long blockId = mTfs.getBlockId(fileId, 0);
-    ClientLocationInfo locationInfo = mTfs.requestSpace(100);
-    String tempFolder = mTfs.createAndGetUserLocalTempFolder(locationInfo.getPath());
-    String filename = CommonUtils.concat(tempFolder, blockId);
+    String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
+    String filename = CommonUtils.concat(localFolder, blockId);
     BlockHandler handler = BlockHandler.get(filename);
     byte[] buf = TestUtils.getIncreasingByteArray(100);
     try {
       handler.append(0, ByteBuffer.wrap(buf));
-      mTfs.cacheBlock(locationInfo.getStorageDirId(), blockId);
+      mTfs.cacheBlock(blockId);
       TachyonFile file = mTfs.getFile(fileId);
       long fileLen = file.length();
       Assert.assertEquals(100, fileLen);
