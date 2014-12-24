@@ -61,7 +61,7 @@ public class LocalTachyonClusterMultiMaster {
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
   private TachyonWorker mWorker = null;
-  private long mWorkerCapacityBytes;
+  private final long mWorkerCapacityBytes;
 
   private String mTachyonHome;
   private String mWorkerDataFolder;
@@ -134,9 +134,11 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public void start() throws IOException {
+    int maxLevel = 1;
     mTachyonHome =
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
-    mWorkerDataFolder = mTachyonHome + "/ramdisk";
+    mWorkerDataFolder = "/datastore";
+
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
 
@@ -154,7 +156,28 @@ public class LocalTachyonClusterMultiMaster {
     System.setProperty("tachyon.zookeeper.election.path", "/election");
     System.setProperty("tachyon.zookeeper.leader.path", "/leader");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
-    System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
+    if (System.getProperty("tachyon.worker.hierarchystore.level.max") == null) {
+      System.setProperty("tachyon.worker.hierarchystore.level.max", 1 + "");
+    }
+    System.setProperty("tachyon.worker.hierarchystore.level0.alias", "MEM");
+
+    System.setProperty("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
+    System
+        .setProperty("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
+    for (int level = 1; level < maxLevel; level ++) {
+      String path =
+          System.getProperty("tachyon.worker.hierarchystore.level" + level + ".dirs.path");
+      if (path == null) {
+        throw new IOException("Paths for StorageDirs are not set! Level:" + level);
+      }
+      String[] dirPaths = path.split(",");
+      String newPath = "";
+      for (int i = 0; i < dirPaths.length; i ++) {
+        newPath += mTachyonHome + dirPaths[i] + ",";
+      }
+      System.setProperty("tachyon.worker.hierarchystore.level" + level + ".dirs.path",
+          newPath.substring(0, newPath.length() - 1));
+    }
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
 
     CommonConf.clear();
@@ -176,8 +199,7 @@ public class LocalTachyonClusterMultiMaster {
     mWorker =
         TachyonWorker.createWorker(
             CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
-            mWorkerCapacityBytes);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
