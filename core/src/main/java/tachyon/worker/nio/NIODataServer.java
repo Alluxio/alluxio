@@ -17,6 +17,7 @@ package tachyon.worker.nio;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -36,6 +37,8 @@ import tachyon.Constants;
 import tachyon.conf.CommonConf;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
+import tachyon.worker.WorkerStorage;
+import tachyon.worker.hierarchy.StorageDir;
 
 /**
  * The Server to serve data file read request from remote machines. The current implementation is
@@ -45,7 +48,7 @@ public class NIODataServer implements Runnable, DataServer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // The host:port combination to listen on
-  private InetSocketAddress mAddress;
+  private final InetSocketAddress mAddress;
 
   // The channel on which we will accept connections
   private ServerSocketChannel mServerChannel;
@@ -53,9 +56,9 @@ public class NIODataServer implements Runnable, DataServer {
   // The selector we will be monitoring.
   private Selector mSelector;
 
-  private Map<SocketChannel, DataServerMessage> mSendingData = Collections
+  private final Map<SocketChannel, DataServerMessage> mSendingData = Collections
       .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
-  private Map<SocketChannel, DataServerMessage> mReceivingData = Collections
+  private final Map<SocketChannel, DataServerMessage> mReceivingData = Collections
       .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
   // The blocks locker manager.
@@ -64,18 +67,22 @@ public class NIODataServer implements Runnable, DataServer {
 
   private volatile boolean mShutdown = false;
   private volatile boolean mShutdowned = false;
+  private final WorkerStorage mWorkerStorage;
 
   /**
    * Create a data server with direct access to worker storage.
    * 
    * @param address The address of the data server.
    * @param locker The lock system for lock blocks.
+   * @param workerStorage The WorkerStorage of current worker
    */
-  public NIODataServer(InetSocketAddress address, BlocksLocker locker) {
+  public NIODataServer(InetSocketAddress address, BlocksLocker locker,
+      WorkerStorage workerStorage) {
     LOG.info("Starting DataServer @ " + address);
     CommonConf.assertValidPort(address);
     mAddress = address;
     mBlockLocker = locker;
+    mWorkerStorage = workerStorage;
     try {
       mSelector = initSelector();
       mListenerThread = new Thread(this);
@@ -208,11 +215,28 @@ public class NIODataServer implements Runnable, DataServer {
 
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getBlockId());
-      int lockId = mBlockLocker.lock(tMessage.getBlockId());
+      final long blockId = tMessage.getBlockId();
+      final int lockId = mBlockLocker.getLockId();
+      final long storageDirIdLocked = mBlockLocker.lock(blockId, lockId);
+
+      StorageDir storageDir = mWorkerStorage.getStorageDirById(storageDirIdLocked);
+      ByteBuffer data = null;
+      int dataLen = 0;
+      try {
+        data =
+            storageDir.getBlockData(tMessage.getBlockId(), tMessage.getOffset(),
+                (int) tMessage.getLength());
+        storageDir.accessBlock(tMessage.getBlockId());
+        dataLen = data.limit();
+      } catch (Exception e) {
+        LOG.error(e.getMessage());
+        data = null;
+      }
       DataServerMessage tResponseMessage =
-          DataServerMessage.createBlockResponseMessage(true, tMessage.getBlockId(),
-              tMessage.getOffset(), tMessage.getLength());
+          DataServerMessage.createBlockResponseMessage(true, blockId, tMessage.getOffset(),
+              dataLen, data);
       tResponseMessage.setLockId(lockId);
+      mBlockLocker.unlock(blockId, lockId);
       mSendingData.put(socketChannel, tResponseMessage);
     }
   }

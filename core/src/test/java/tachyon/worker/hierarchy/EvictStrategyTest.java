@@ -28,17 +28,17 @@ import org.junit.Test;
 import tachyon.Pair;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
-import tachyon.client.BlockHandler;
 import tachyon.master.BlockInfo;
 import tachyon.util.CommonUtils;
+import tachyon.worker.BlockHandler;
 import tachyon.worker.eviction.EvictLRU;
 import tachyon.worker.eviction.EvictPartialLRU;
 import tachyon.worker.eviction.EvictStrategy;
 
 public class EvictStrategyTest {
   private final StorageDir[] mStorageDirs = new StorageDir[3];
-  private final long mUserId = 1;
-  private final long mCapacity = 1000;
+  private static final long USER_ID = 1;
+  private static final long CAPACITY = 1000;
 
   @Before
   public final void before() throws IOException {
@@ -48,8 +48,8 @@ public class EvictStrategyTest {
     String[] dirPaths = "/dir1,/dir2,/dir3".split(",");
     for (int i = 0; i < 3; i++) {
       mStorageDirs[i] =
-          new StorageDir(i + 1, workerDirFolder + dirPaths[i], mCapacity, "/data", "/user", null);
-      initializeStorageDir(mStorageDirs[i], mUserId);
+          new StorageDir(i + 1, workerDirFolder + dirPaths[i], CAPACITY, "/data", "/user", null);
+      initializeStorageDir(mStorageDirs[i], USER_ID);
     }
   }
 
@@ -57,14 +57,14 @@ public class EvictStrategyTest {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
 
     BlockHandler bhSrc =
-        BlockHandler.get(dir.getUserTempFilePath(mUserId, blockId));
+        BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
     try {
       bhSrc.append(0, ByteBuffer.wrap(buf));
     } finally {
       bhSrc.close();
     }
-    dir.requestSpace(mUserId, blockSize);
-    dir.cacheBlock(mUserId, blockId);
+    dir.requestSpace(USER_ID, blockSize);
+    dir.cacheBlock(USER_ID, blockId);
   }
 
   @Test
