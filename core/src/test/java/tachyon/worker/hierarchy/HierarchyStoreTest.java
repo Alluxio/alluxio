@@ -21,10 +21,10 @@ import tachyon.util.CommonUtils;
  * Unit tests for tachyon.worker.StorageTier.
  */
 public class HierarchyStoreTest {
-  private final int mMemCapacityBytes = 1000;
-  private final int mDiskCapacityBytes = 10000;
-  private final int mUserQuotaUnitBytes = 100;
-  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS
+  private static final int MEM_CAPACITY_BYTES = 1000;
+  private static final int DISK_CAPACITY_BYTES = 10000;
+  private static final int USER_QUOTA_UNIT_BYTES = 100;
+  private static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS
       = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -39,12 +39,12 @@ public class HierarchyStoreTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", mUserQuotaUnitBytes + "");
-    mLocalTachyonCluster = new LocalTachyonCluster(mMemCapacityBytes);
+    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
+    mLocalTachyonCluster = new LocalTachyonCluster(MEM_CAPACITY_BYTES);
     System.setProperty("tachyon.worker.hierarchystore.level.max", 2 + "");
     System.setProperty("tachyon.worker.hierarchystore.level1.alias", "HDD");
     System.setProperty("tachyon.worker.hierarchystore.level1.dirs.path", "/disk1" + "," + "/disk2");
-    System.setProperty("tachyon.worker.hierarchystore.level1.dirs.quota", mDiskCapacityBytes + "");
+    System.setProperty("tachyon.worker.hierarchystore.level1.dirs.quota", DISK_CAPACITY_BYTES + "");
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
   }
@@ -52,11 +52,11 @@ public class HierarchyStoreTest {
   @Test
   public void blockEvict() throws IOException, InterruptedException {
     int fileId1 =
-        TestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, mMemCapacityBytes / 6);
+        TestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
     int fileId2 =
-        TestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, mMemCapacityBytes / 6);
+        TestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
     int fileId3 =
-        TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, mMemCapacityBytes / 6);
+        TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
 
     TachyonFile file1 = mTFS.getFile(fileId1);
     TachyonFile file2 = mTFS.getFile(fileId2);
@@ -67,9 +67,9 @@ public class HierarchyStoreTest {
     Assert.assertEquals(file3.isInMemory(), true);
 
     int fileId4 =
-        TestUtils.createByteFile(mTFS, "/root/test4", WriteType.TRY_CACHE, mMemCapacityBytes / 2);
+        TestUtils.createByteFile(mTFS, "/root/test4", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
     int fileId5 =
-        TestUtils.createByteFile(mTFS, "/root/test5", WriteType.TRY_CACHE, mMemCapacityBytes / 2);
+        TestUtils.createByteFile(mTFS, "/root/test5", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
 
     CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     TachyonFile file4 = mTFS.getFile(fileId4);
@@ -85,11 +85,11 @@ public class HierarchyStoreTest {
   @Test
   public void promoteBlock() throws IOException, InterruptedException {
     int fileId1 =
-        TestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, mMemCapacityBytes / 6);
+        TestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
     int fileId2 =
-        TestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, mMemCapacityBytes / 2);
+        TestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
     int fileId3 =
-        TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, mMemCapacityBytes / 2);
+        TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
 
     CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     TachyonFile file1 = mTFS.getFile(fileId1);
@@ -101,15 +101,15 @@ public class HierarchyStoreTest {
     Assert.assertEquals(true, file3.isInMemory());
 
     InStream is = file1.getInStream(ReadType.CACHE_PROMOTE);
-    byte[] buf = new byte[mMemCapacityBytes / 6];
+    byte[] buf = new byte[MEM_CAPACITY_BYTES / 6];
     int len = is.read(buf);
 
     CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    Assert.assertEquals(mMemCapacityBytes / 6, len);
+    Assert.assertEquals(MEM_CAPACITY_BYTES / 6, len);
     Assert.assertEquals(true, file1.isInMemory());
     Assert.assertEquals(false, file2.isInMemory());
     Assert.assertEquals(true, file3.isInMemory());
-    Assert.assertEquals(mMemCapacityBytes / 6 + mMemCapacityBytes,
+    Assert.assertEquals(MEM_CAPACITY_BYTES / 6 + MEM_CAPACITY_BYTES,
         mLocalTachyonCluster.getMasterInfo().getUsedBytes());
   }
 }

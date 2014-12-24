@@ -35,6 +35,7 @@ public class BlockHandlerLocalTest {
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
