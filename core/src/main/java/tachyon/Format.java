@@ -66,18 +66,13 @@ public class Format {
           + System.currentTimeMillis());
     } else if (args[0].toUpperCase().equals("WORKER")) {
       WorkerConf workerConf = WorkerConf.get();
-      for (int level = 0; level < workerConf.MAX_HIERARCHY_STORAGE_LEVEL; level ++) {
-        String[] dirPaths = workerConf.STORAGE_TIER_DIRS[level].split(",");
-        for (int i = 0; i < dirPaths.length; i ++) {
-          String dataPath = CommonUtils.concat(dirPaths[i].trim(), workerConf.DATA_FOLDER);
-          UnderFileSystem ufs = UnderFileSystem.get(dataPath);
-          System.out.println("Removing data under folder: " + dataPath);
-          if (ufs.exists(dataPath)) {
-            String[] files = ufs.list(dataPath);
-            for (String file : files) {
-              ufs.delete(CommonUtils.concat(dataPath, file), true);
-            }
-          }
+      String localFolder = workerConf.DATA_FOLDER;
+      UnderFileSystem ufs = UnderFileSystem.get(localFolder);
+      System.out.println("Removing local data under folder: " + localFolder);
+      if (ufs.exists(localFolder)) {
+        String[] files = ufs.list(localFolder);
+        for (String file : files) {
+          ufs.delete(CommonUtils.concat(localFolder, file), true);
         }
       }
     } else {

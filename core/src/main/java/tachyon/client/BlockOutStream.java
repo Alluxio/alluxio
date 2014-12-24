@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.thrift.ClientLocationInfo;
 import tachyon.util.CommonUtils;
 
 /**
@@ -44,7 +43,6 @@ public class BlockOutStream extends OutStream {
 
   private long mInFileBytes = 0;
   private long mWrittenBytes = 0;
-  private ClientLocationInfo mLocationInfo = null;
 
   private String mLocalFilePath = null;
   private RandomAccessFile mLocalFile = null;
@@ -83,19 +81,28 @@ public class BlockOutStream extends OutStream {
       throw new IOException(msg);
     }
 
+    File localFolder = mTachyonFS.createAndGetUserLocalTempFolder();
+    if (localFolder == null) {
+      mCanWrite = false;
+      String msg = "Failed to create temp user folder for tachyon client.";
+      throw new IOException(msg);
+    }
+
+    mLocalFilePath = CommonUtils.concat(localFolder.getPath(), mBlockId);
+    mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
+    mLocalFileChannel = mLocalFile.getChannel();
+    // change the permission of the temporary file in order that the worker can move it.
+    CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
+    // use the sticky bit, only the client and the worker can write to the block
+    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
+    LOG.info(mLocalFilePath + " was created!");
+
     mBuffer = ByteBuffer.allocate(mUserConf.FILE_BUFFER_BYTES + 4);
   }
 
   private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
       throws IOException {
-    boolean reqResult = false;
-    if (mLocationInfo == null) {
-      mLocationInfo = mTachyonFS.requestSpace(length);
-      reqResult = (mLocationInfo != null);
-    } else {
-      reqResult = mTachyonFS.requestSpace(mLocationInfo.getStorageDirId(), length);
-    }
-    if (!reqResult) {
+    if (!mTachyonFS.requestSpace(length)) {
       mCanWrite = false;
 
       String msg =
@@ -103,17 +110,6 @@ public class BlockOutStream extends OutStream {
               + mFile.mFileId + " " + mBlockId;
 
       throw new IOException(msg);
-    }
-    if (mLocalFilePath == null) {
-      String localTempFolder = createUserLocalTempFolder();
-      mLocalFilePath = CommonUtils.concat(localTempFolder, mBlockId);
-      mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
-      mLocalFileChannel = mLocalFile.getChannel();
-      // change the permission of the temporary file in order that the worker can move it.
-      CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
-      // use the sticky bit, only the client and the worker can write to the block
-      CommonUtils.setLocalFileStickyBit(mLocalFilePath);
-      LOG.info(mLocalFilePath + " was created!");
     }
 
     MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, mInFileBytes, length);
@@ -147,37 +143,14 @@ public class BlockOutStream extends OutStream {
       }
 
       if (mCancel) {
-        if (mLocationInfo != null) { // if file was written
-          mTachyonFS.releaseSpace(mLocationInfo.getStorageDirId(),
-              mWrittenBytes - mBuffer.position());
-          new File(mLocalFilePath).delete();
-          LOG.info("Canceled output of block " + mBlockId + ", deleted local file "
-              + mLocalFilePath);
-        }
-      } else if (mLocationInfo != null) {
-        mTachyonFS.cacheBlock(mLocationInfo.getStorageDirId(), mBlockId);
+        mTachyonFS.releaseSpace(mWrittenBytes - mBuffer.position());
+        new File(mLocalFilePath).delete();
+        LOG.info("Canceled output of block " + mBlockId + ", deleted local file " + mLocalFilePath);
+      } else {
+        mTachyonFS.cacheBlock(mBlockId);
       }
     }
     mClosed = true;
-  }
-
-  /**
-   * Create temporary folder for the user in some StorageDir
-   * 
-   * @return the path of the folder
-   * @throws IOException
-   */
-  private String createUserLocalTempFolder() throws IOException {
-    String localTempFolder = null;
-    if (mLocationInfo != null) {
-      localTempFolder = mTachyonFS.createAndGetUserLocalTempFolder(mLocationInfo.getPath());
-    }
-
-    if (localTempFolder == null) {
-      mCanWrite = false;
-      throw new IOException("Failed to create temp user folder for tachyon client.");
-    }
-    return localTempFolder;
   }
 
   @Override

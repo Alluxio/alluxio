@@ -76,7 +76,7 @@ public class InodeFile extends Inode {
   private boolean mCache = false;
   private String mUfsPath = "";
 
-  private final List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(3);
+  private List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(3);
 
   private int mDependencyId;
 
@@ -133,15 +133,14 @@ public class InodeFile extends Inode {
    * @param blockIndex The index of the block in the file
    * @param workerId The id of the worker
    * @param workerAddress The net address of the worker
-   * @param storageDirId The id of the StorageDir which block is located in
    * @throws BlockInfoException
    */
-  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress,
-      long storageDirId) throws BlockInfoException {
+  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress)
+      throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
-    mBlocks.get(blockIndex).addLocation(workerId, workerAddress, storageDirId);
+    mBlocks.get(blockIndex).addLocation(workerId, workerAddress);
   }
 
   @Override
@@ -375,8 +374,7 @@ public class InodeFile extends Inode {
    * @param workerId The id of the removed location worker
    * @throws BlockInfoException
    */
-  public synchronized void removeLocation(int blockIndex, long workerId)
-      throws BlockInfoException {
+  public synchronized void removeLocation(int blockIndex, long workerId) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
