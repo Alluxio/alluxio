@@ -114,7 +114,6 @@ public class BlockInfo {
     ret.offset = mOffset;
     ret.length = mLength;
     ret.locations = getLocations();
-    ret.storageDirIds = mStorageDirIds;
 
     return ret;
   }
