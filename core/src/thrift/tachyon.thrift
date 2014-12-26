@@ -15,7 +15,6 @@ struct ClientBlockInfo {
   2: i64 offset
   3: i64 length
   4: list<NetAddress> locations
-  5: map<NetAddress, i64> storageDirIds
 }
 
 struct ClientWorkerInfo {
@@ -143,7 +142,7 @@ service MasterService {
    * @return value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
    */
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes,
-      4: map<i64, list<i64>> currentBlocks)
+      4: map<i64, list<i64>> currentBlocks) // mapping from Id of StorageDir to the blocks it contains
     throws (1: BlockInfoException e)
 
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlockIds,

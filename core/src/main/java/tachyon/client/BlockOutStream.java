@@ -90,14 +90,7 @@ public class BlockOutStream extends OutStream {
 
   private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
       throws IOException {
-    boolean reqResult = false;
-    if (mLocationInfo == null) {
-      mLocationInfo = mTachyonFS.requestSpace(length);
-      reqResult = (mLocationInfo != null);
-    } else {
-      reqResult = mTachyonFS.requestSpace(mLocationInfo.getStorageDirId(), length);
-    }
-    if (!reqResult) {
+    if (!requestSpace(length)) {
       mCanWrite = false;
 
       String msg =
@@ -199,6 +192,15 @@ public class BlockOutStream extends OutStream {
    */
   public long getRemainingSpaceByte() {
     return mBlockCapacityByte - mWrittenBytes;
+  }
+
+  private boolean requestSpace(int length) throws IOException {
+    if (mLocationInfo == null) {
+      mLocationInfo = mTachyonFS.requestSpace(length);
+      return (mLocationInfo != null);
+    } else {
+      return mTachyonFS.requestSpace(mLocationInfo.getStorageDirId(), length);
+    }
   }
 
   @Override

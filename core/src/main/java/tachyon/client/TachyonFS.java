@@ -669,48 +669,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get space from available space of StorageDirs
-   * 
-   * @param requestSpaceBytes size to request in bytes
-   * @return the id of the StorageDir allocated
-   * @throws IOException
-   */
-  private synchronized long getFromAvaliableSpace(long requestSpaceBytes) throws IOException {
-    long storageDirId = StorageDirId.unknownId();
-    for (Entry<Long, Long> entry : mIdToAvailableSpaceBytes.entrySet()) {
-      if (entry.getValue() >= requestSpaceBytes
-          && StorageDirId.compareStorageLevel(entry.getKey(), storageDirId) < 0) {
-        storageDirId = entry.getKey();
-      }
-    }
-    if (!StorageDirId.isUnknown(storageDirId)) {
-      long availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
-      mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
-    }
-    return storageDirId;
-  }
-
-  /**
-   * Get space from available space of specific StorageDir for the user
-   * 
-   * @param storageDirId the id of the StorageDir
-   * @param requestSpaceBytes size of the space to request in bytes
-   * @return true if success, false otherwise
-   * @throws IOException
-   */
-  private synchronized boolean getFromAvaliableSpace(long storageDirId, long requestSpaceBytes)
-      throws IOException {
-    if (mIdToAvailableSpaceBytes.containsKey(storageDirId)) {
-      long availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
-      if (availableSpaceBytes >= requestSpaceBytes) {
-        mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Get the RawTable by id
    * 
    * @param id the id of the raw table
@@ -962,31 +920,38 @@ public class TachyonFS extends AbstractTachyonFS {
    * Try to request space from worker. Only works when a local worker exists.
    * 
    * @param requestSpaceBytes size to request in bytes
-   * @return the id of the StorageDir that space is allocated in
+   * @return the location information of the space that is allocated
    * @throws IOException
    */
   public synchronized ClientLocationInfo requestSpace(long requestSpaceBytes) throws IOException {
     if (!hasLocalWorker()) {
       return null;
     }
-    long storageDirId = getFromAvaliableSpace(requestSpaceBytes);
-    if (storageDirId != StorageDirId.unknownId()) {
+
+    long storageDirId = StorageDirId.unknownId();
+    for (Entry<Long, Long> entry : mIdToAvailableSpaceBytes.entrySet()) {
+      if (entry.getValue() >= requestSpaceBytes
+          && StorageDirId.compareStorageLevel(entry.getKey(), storageDirId) < 0) {
+        storageDirId = entry.getKey();
+      }
+    }
+    if (!StorageDirId.isUnknown(storageDirId)) {
+      long availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
+      mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
       String path = mWorkerClient.getUserLocalTempFolder(storageDirId);
       return new ClientLocationInfo(storageDirId, path);
     } else {
       for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
         long toRequestSpaceBytes = Math.max(requestSpaceBytes, mUserQuotaUnitBytes);
         ClientLocationInfo locationInfo =
-              mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes);
+            mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes);
         if (locationInfo == null) {
           continue;
         }
         storageDirId = locationInfo.getStorageDirId();
-        Long availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
-        if (availableSpaceBytes != null) {
-          availableSpaceBytes += toRequestSpaceBytes;
-        } else {
-          availableSpaceBytes = toRequestSpaceBytes;
+        long availableSpaceBytes = toRequestSpaceBytes;
+        if (mIdToAvailableSpaceBytes.containsKey(storageDirId)) {
+          availableSpaceBytes += mIdToAvailableSpaceBytes.get(storageDirId);
         }
         mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
         return locationInfo;
@@ -1008,27 +973,28 @@ public class TachyonFS extends AbstractTachyonFS {
     if (!hasLocalWorker()) {
       return false;
     }
-    if (getFromAvaliableSpace(storageDirId, requestSpaceBytes)) {
-      return true;
-    } else {
-      long availableSpaceBytes = 0;
-      if (mIdToAvailableSpaceBytes.containsKey(storageDirId)) {
-        availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
+
+    long availableSpaceBytes = 0;
+    if (mIdToAvailableSpaceBytes.containsKey(storageDirId)) {
+      availableSpaceBytes = mIdToAvailableSpaceBytes.get(storageDirId);
+      if (availableSpaceBytes >= requestSpaceBytes) {
+        mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
+        return true;
       }
-      for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
-        long toRequestSpaceBytes =
-            Math.max(requestSpaceBytes - availableSpaceBytes, mUserQuotaUnitBytes);
-        boolean reqResult = 
-            mWorkerClient.requestSpace(mMasterClient.getUserId(), storageDirId,
-                toRequestSpaceBytes);
-        if (reqResult) {
-          availableSpaceBytes += toRequestSpaceBytes;
-          mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
-          return true;
-        }
-      }
-      return false;
     }
+
+    for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
+      long toRequestSpaceBytes =
+          Math.max(requestSpaceBytes - availableSpaceBytes, mUserQuotaUnitBytes);
+      boolean reqResult = 
+          mWorkerClient.requestSpace(mMasterClient.getUserId(), storageDirId, toRequestSpaceBytes);
+      if (reqResult) {
+        availableSpaceBytes += toRequestSpaceBytes;
+        mIdToAvailableSpaceBytes.put(storageDirId, availableSpaceBytes - requestSpaceBytes);
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
