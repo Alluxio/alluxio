@@ -2328,12 +2328,12 @@ public class MasterInfo extends ImageWriter {
    * @param workerId The id of the worker to deal with
    * @param usedBytes The number of bytes used in the worker
    * @param removedBlockIds The list of removed block ids
-   * @param evictedBlockIds Mapping from id of the StorageDir and id list of blocks evicted in
+   * @param addedBlockIds Mapping from id of the StorageDir and id list of blocks evicted in
    * @return a command specifying an action to take
    * @throws BlockInfoException
    */
   public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds,
-      Map<Long, List<Long>> evictedBlockIds)
+      Map<Long, List<Long>> addedBlockIds)
       throws BlockInfoException {
     LOG.debug("WorkerId: {}", workerId);
     synchronized (mRootLock) {
@@ -2364,7 +2364,7 @@ public class MasterInfo extends ImageWriter {
           }
         }
 
-        for (Entry<Long, List<Long>> addedBlocks : evictedBlockIds.entrySet()) {
+        for (Entry<Long, List<Long>> addedBlocks : addedBlockIds.entrySet()) {
           long storageDirId = addedBlocks.getKey();
           for (long blockId : addedBlocks.getValue()) {
             int fileId = BlockInfo.computeInodeId(blockId);

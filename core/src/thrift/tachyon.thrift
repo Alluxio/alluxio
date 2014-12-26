@@ -75,7 +75,7 @@ struct Command {
 
 struct ClientLocationInfo {
   1: i64 storageDirId
-  2: string path //TODO add classname to make it pluggable
+  2: string path
 }
 
 exception BlockInfoException {
@@ -146,7 +146,7 @@ service MasterService {
     throws (1: BlockInfoException e)
 
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlockIds,
-      4: map<i64, list<i64>> evictedBlockIds)
+      4: map<i64, list<i64>> addedBlockIds) // mapping from Id of StorageDir to the blocks added
     throws (1: BlockInfoException e)
 
   void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 storageDirId, 4: i64 blockId, 5: i64 length)
@@ -254,7 +254,7 @@ service MasterService {
 }
 
 service WorkerService {
-  void accessBlock(1: i64 storageDirId, 2: i64 blockId)
+  void accessBlock(1: i64 blockId)
 
   void addCheckpoint(1: i64 userId, 2: i32 fileId)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
@@ -274,8 +274,8 @@ service WorkerService {
 
   string getUserUfsTempFolder(1: i64 userId)
 
-  ClientLocationInfo lockBlock(1: i64 blockId 2: i64 userId) // Lock the file in memory while the user is reading it.
-    throws (1: FileDoesNotExistException eP)
+  string lockBlock(1: i64 blockId 2: i64 userId) // Lock the file in memory while the user is reading it.
+    throws (1: FileDoesNotExistException eP) // the path of the file locked is returned
 
   bool promoteBlock(1: i64 userId, 2: i64 blockId)
 

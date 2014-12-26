@@ -41,8 +41,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void accessBlock(long storageDirId, long blockId) throws TException {
-    mWorkerStorage.accessBlock(storageDirId, blockId);
+  public void accessBlock(long blockId) throws TException {
+    mWorkerStorage.accessBlock(blockId);
   }
 
   @Override
@@ -97,15 +97,14 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public ClientLocationInfo lockBlock(long blockId, long userId)
+  public String lockBlock(long blockId, long userId)
       throws FileDoesNotExistException, TException {
     long storageDirId = mWorkerStorage.lockBlock(blockId, userId);
     StorageDir storageDir = mWorkerStorage.getStorageDirById(storageDirId);
     if (storageDir == null) {
       throw new FileDoesNotExistException("Block file not found! blockId" + blockId);
     } else {
-      return new ClientLocationInfo(storageDir.getStorageDirId(),
-          storageDir.getBlockFilePath(blockId));
+      return storageDir.getBlockFilePath(blockId);
     }
   }
 

@@ -61,7 +61,6 @@ public class WorkerClient implements Closeable {
   private WorkerService.Client mClient;
   private TProtocol mProtocol;
   private InetSocketAddress mWorkerAddress;
-  private NetAddress mWorkerNetAddress;
   private boolean mConnected = false;
   private boolean mIsLocal = false;
   private final ExecutorService mExecutorService;
@@ -83,15 +82,14 @@ public class WorkerClient implements Closeable {
   /**
    * Update the latest block access time on the worker.
    * 
-   * @param storageDirId The id of the StorageDir which contains block
    * @param blockId The id of the block
    * @throws IOException
    */
-  public synchronized void accessBlock(long storageDirId, long blockId) throws IOException {
+  public synchronized void accessBlock(long blockId) throws IOException {
     mustConnect();
 
     try {
-      mClient.accessBlock(storageDirId, blockId);
+      mClient.accessBlock(blockId);
     } catch (TException e) {
       LOG.error("TachyonClient accessLocalBlock(" + blockId + ") failed");
       mConnected = false;
@@ -129,7 +127,7 @@ public class WorkerClient implements Closeable {
    * Notify the worker to checkpoint the file asynchronously.
    * 
    * @param fid The id of the file
-   * @return true if succeed, false otherwise
+   * @return true if success, false otherwise
    * @throws IOException
    */
   public synchronized boolean asyncCheckpoint(int fid) throws IOException {
@@ -218,7 +216,6 @@ public class WorkerClient implements Closeable {
         }
       }
 
-      mWorkerNetAddress = workerNetAddress;
       String host = NetworkUtils.getFqdnHost(workerNetAddress);
       int port = workerNetAddress.mPort;
       mWorkerAddress = new InetSocketAddress(host, port);
@@ -270,15 +267,6 @@ public class WorkerClient implements Closeable {
       mConnected = false;
       throw new IOException(e);
     }
-  }
-
-  /**
-   * Get NetAddress of the worker
-   * 
-   * @return the NetAddress of the worker
-   */
-  public synchronized NetAddress getNetAddress() {
-    return mWorkerNetAddress;
   }
 
   /**
@@ -344,10 +332,10 @@ public class WorkerClient implements Closeable {
    * 
    * @param blockId The id of the block
    * @param userId The id of the user who wants to lock the block
-   * @return the location information of the StorageDir in which the block is locked
+   * @return the path of the block file locked
    * @throws IOException
    */
-  public synchronized ClientLocationInfo lockBlock(long blockId, long userId)
+  public synchronized String lockBlock(long blockId, long userId)
       throws IOException {
     mustConnect();
 
@@ -396,7 +384,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Request space from the worker
+   * Request space from worker
    * 
    * @param userId The id of the user who send the request
    * @param requestBytes The requested space size, in bytes
@@ -442,7 +430,7 @@ public class WorkerClient implements Closeable {
    * Return the space which has been requested
    * 
    * @param userId The id of the user who wants to return the space
-   * @param storageDirId The Id of the StorageDir that space will be returned
+   * @param storageDirId The Id of the StorageDir that space will be returned to
    * @param returnSpaceBytes The returned space size, in bytes
    * @throws IOException
    */

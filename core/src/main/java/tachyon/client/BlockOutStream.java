@@ -194,6 +194,12 @@ public class BlockOutStream extends OutStream {
     return mBlockCapacityByte - mWrittenBytes;
   }
 
+  /**
+   * Request space for the block file from worker
+   * @param length size bytes to request
+   * @return true if success, false otherwise
+   * @throws IOException
+   */
   private boolean requestSpace(int length) throws IOException {
     if (mLocationInfo == null) {
       mLocationInfo = mTachyonFS.requestSpace(length);
