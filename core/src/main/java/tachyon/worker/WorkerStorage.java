@@ -348,11 +348,10 @@ public class WorkerStorage {
   /**
    * Update the latest block access time on the worker.
    * 
-   * @param storageDirId The id of the StorageDir which block is in
    * @param blockId The id of the block
    */
-  void accessBlock(long storageDirId, long blockId) {
-    StorageDir foundDir = getStorageDirById(storageDirId);
+  void accessBlock(long blockId) {
+    StorageDir foundDir = getStorageDirByBlockId(blockId);
     if (foundDir != null) {
       foundDir.accessBlock(blockId);
     }
@@ -652,7 +651,8 @@ public class WorkerStorage {
   }
 
   /**
-   * Heartbeat with the TachyonMaster. Send the removed block list to the Master.
+   * Heartbeat with the TachyonMaster. Send the removed block list and added block list to the
+   * Master.
    * 
    * @return The Command received from the Master
    * @throws IOException

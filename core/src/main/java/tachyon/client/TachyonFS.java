@@ -135,9 +135,8 @@ public class TachyonFS extends AbstractTachyonFS {
 
   // All Blocks has been locked.
   private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
-  // Mapping from block id to id of the StorageDir in which the block is locked
-  private final Map<Long, ClientLocationInfo> mLockedBlockIdToLocationInfo = 
-      new HashMap<Long, ClientLocationInfo>();
+  // Mapping from block id to path of the block locked
+  private final Map<Long, String> mLockedBlockIdToPath = new HashMap<Long, String>();
 
   // Each user facing block has a unique block lock id.
   private final AtomicInteger mBlockLockId = new AtomicInteger(0);
@@ -169,15 +168,14 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Update the latest block access time in certain StorageDir on the worker.
+   * Update the latest block access time on the worker.
    * 
-   * @param storageDirId the id of the StorageDir which contains the block
    * @param blockId the local block's id
    * @throws IOException
    */
-  synchronized void accessLocalBlock(long storageDirId, long blockId) throws IOException {
+  synchronized void accessLocalBlock(long blockId) throws IOException {
     if (mWorkerClient.isLocal()) {
-      mWorkerClient.accessBlock(storageDirId, blockId);
+      mWorkerClient.accessBlock(blockId);
     }
   }
 
@@ -782,10 +780,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockId The id of the block to lock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
    *        non-negative.
-   * @return the Id of the StorageDir in which the block is locked
+   * @return the path of the block file locked
    * @throws IOException
    */
-  synchronized ClientLocationInfo lockBlock(long blockId, int blockLockId)
+  synchronized String lockBlock(long blockId, int blockLockId)
       throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
       return null;
@@ -793,21 +791,20 @@ public class TachyonFS extends AbstractTachyonFS {
 
     if (mLockedBlockIds.containsKey(blockId)) {
       mLockedBlockIds.get(blockId).add(blockLockId);
-      return mLockedBlockIdToLocationInfo.get(blockId);
+      return mLockedBlockIdToPath.get(blockId);
     }
 
     if (!mWorkerClient.isLocal()) {
       return null;
     }
-    ClientLocationInfo locationInfo =
-        mWorkerClient.lockBlock(blockId, mMasterClient.getUserId());
+    String blockPath = mWorkerClient.lockBlock(blockId, mMasterClient.getUserId());
 
-    if (locationInfo != null) {
+    if (blockPath != null) {
       Set<Integer> lockIds = new HashSet<Integer>(4);
       lockIds.add(blockLockId);
       mLockedBlockIds.put(blockId, lockIds);
-      mLockedBlockIdToLocationInfo.put(blockId, locationInfo);
-      return locationInfo;
+      mLockedBlockIdToPath.put(blockId, blockPath);
+      return blockPath;
     }
     return null;
   }
@@ -1032,7 +1029,7 @@ public class TachyonFS extends AbstractTachyonFS {
     }
 
     if (!mLockedBlockIds.containsKey(blockId)) {
-      return false;
+      return true;
     }
     Set<Integer> lockIds = mLockedBlockIds.get(blockId);
     lockIds.remove(blockLockId);
@@ -1044,7 +1041,7 @@ public class TachyonFS extends AbstractTachyonFS {
       return false;
     }
 
-    mLockedBlockIdToLocationInfo.remove(blockId);
+    mLockedBlockIdToPath.remove(blockId);
     mLockedBlockIds.remove(blockId);
     return mWorkerClient.unlockBlock(blockId, mMasterClient.getUserId());
   }
