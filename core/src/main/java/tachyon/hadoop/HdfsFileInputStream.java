@@ -163,7 +163,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    * number of bytes read. This does not change the current offset of a file, and is thread-safe.
    */
   @Override
-  public int read(long position, byte[] buffer, int offset, int length) throws IOException {
+  public synchronized int read(long position, byte[] buffer, int offset, int length)
+      throws IOException {
     int ret = -1;
     long oldPos = getPos();
     if ((position < 0) || (position >= mTachyonFile.length())) {
@@ -174,6 +175,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       try {
         seek(position);
         ret = mTachyonFileInputStream.read(buffer, offset, length);
+        mCurrentPosition += ret;
         return ret;
       } finally {
         seek(oldPos);
@@ -184,6 +186,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       try {
         mHdfsInputStream.seek(position);
         ret = mHdfsInputStream.read(buffer, offset, length);
+        mCurrentPosition += ret;
         return ret;
       } finally {
         mHdfsInputStream.seek(oldPos);
