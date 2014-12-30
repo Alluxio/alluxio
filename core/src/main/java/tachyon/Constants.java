@@ -15,6 +15,9 @@
 
 package tachyon;
 
+import tachyon.client.RemoteBlockReader;
+import tachyon.worker.DataServer;
+
 /**
  * System wide constants
  */
@@ -135,7 +138,6 @@ public class Constants {
   public static final String WORKER_CHECKPOINT_THREADS = "tachyon.worker.checkpoint.threads";
   public static final String WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
       "tachyon.worker.per.thread.checkpoint.cap.mb.sec";
-  public static final String WORKER_NETWORK_TYPE = "tachyon.worker.network.type";
   public static final String WORKER_NETTY_BOSS_THREADS =
       "tachyon.worker.network.netty.boss.threads";
   public static final String WORKER_NETTY_WORKER_THREADS =
@@ -158,6 +160,9 @@ public class Constants {
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
+  public static final String WORKER_DATA_SEVRER = "tachyon.worker.data.server.class";
+  public static final Class<? extends DataServer> WORKER_DATA_SERVER_CLASS =
+      tachyon.worker.netty.NettyDataServer.class;
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";
@@ -168,4 +173,8 @@ public class Constants {
   public static final String USER_REMOTE_READ_BUFFER_SIZE_BYTE =
       "tachyon.user.remote.read.buffer.size.byte";
   public static final String USER_DEFAULT_WRITE_TYPE = "tachyon.user.file.writetype.default";
+  public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
+  public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
+      tachyon.client.tcp.TCPRemoteBlockReader.class;
+  
 }

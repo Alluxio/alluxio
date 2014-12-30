@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.master;
 
 import java.io.File;
@@ -22,6 +23,7 @@ import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.MasterService.AsyncProcessor.worker_cacheBlock;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;

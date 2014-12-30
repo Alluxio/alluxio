@@ -9,9 +9,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.client.RemoteBlockReader;
 import tachyon.client.WriteType;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.NetworkType;
+import tachyon.worker.DataServer;
 import tachyon.worker.netty.ChannelType;
 import tachyon.worker.netty.FileTransferType;
 
@@ -150,10 +151,11 @@ public class TachyonConfTest {
     Assert.assertTrue(value != null);
     Assert.assertTrue(("/mnt/ramdisk").equals(value));
 
-    NetworkType networkType = sDefaultTachyonConf.getEnum(Constants.WORKER_NETWORK_TYPE,
-        NetworkType.NETTY);
-    Assert.assertTrue(networkType != null);
-    Assert.assertTrue(networkType == NetworkType.NETTY);
+    Class<? extends DataServer> dataServer =
+        sDefaultTachyonConf.getClass(Constants.WORKER_DATA_SEVRER,
+            Constants.WORKER_DATA_SERVER_CLASS);
+    Assert.assertTrue(dataServer != null);
+    Assert.assertTrue(dataServer.equals(Constants.WORKER_DATA_SERVER_CLASS));
 
     ChannelType channelType =
         sDefaultTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.NIO);
@@ -208,8 +210,8 @@ public class TachyonConfTest {
 
   @Test
   public void testUserDefault() {
-    WriteType writeType = sDefaultTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE,
-        WriteType.CACHE_THROUGH);
+    WriteType writeType =
+        sDefaultTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.CACHE_THROUGH);
     Assert.assertTrue(writeType != null);
     Assert.assertTrue(writeType == WriteType.CACHE_THROUGH);
 
@@ -227,6 +229,12 @@ public class TachyonConfTest {
 
     longValue = sDefaultTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, 0);
     Assert.assertTrue(longValue == Constants.MB);
+
+    Class<? extends RemoteBlockReader> reader =
+        sDefaultTachyonConf.getClass(Constants.USER_REMOTE_BLOCK_READER,
+            Constants.USER_REMOTE_BLOCK_READER_CLASS);
+    Assert.assertTrue(reader != null);
+    Assert.assertTrue(reader.equals(Constants.USER_REMOTE_BLOCK_READER_CLASS));
   }
 
   @Test
