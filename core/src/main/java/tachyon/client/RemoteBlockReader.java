@@ -13,6 +13,7 @@
  * the License.
  */
 
+
 package tachyon.client;
 
 import java.io.IOException;
@@ -23,6 +24,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
+import tachyon.worker.DataServerMessage;
 
 /**
  * The interface to read remote block from data server.
@@ -33,7 +35,8 @@ public interface RemoteBlockReader {
     public static RemoteBlockReader createRemoteBlockReader(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(conf.getClass(Constants.USER_REMOTE_BLOCK_READER,
-            Constants.USER_REMOTE_BLOCK_READER_CLASS), null, null);
+            Constants.USER_REMOTE_BLOCK_READER_CLASS), new Class[] { TachyonConf.class },
+            new Object[] { conf });
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
@@ -52,5 +55,8 @@ public interface RemoteBlockReader {
    * @throws IOException
    */
   public abstract ByteBuffer readRemoteBlock(String host, int port, long blockId, long offset,
+      long length) throws IOException;
+
+  public abstract DataServerMessage getRemoteMsg(String host, int port, long blockId, long offset,
       long length) throws IOException;
 }

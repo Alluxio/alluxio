@@ -58,6 +58,11 @@ public class RemoteBlockInStreamTest {
         "tachyon.client.tcp.TCPRemoteBlockReader" } });
     list.add(new Object[] { new String[] { "tachyon.worker.nio.NIODataServer",
         "tachyon.client.tcp.TCPRemoteBlockReader" } });
+    String enabled = System.getProperty(Constants.JXIO_ENABLE);
+    if (enabled != null && Boolean.valueOf(enabled)) {
+      list.add(new Object[] { new String[] { "tachyon.worker.rdma.RDMADataServer",
+          "tachyon.client.rdma.RDMARemoteBlockReader" } });
+    }
     return list;
   }
 

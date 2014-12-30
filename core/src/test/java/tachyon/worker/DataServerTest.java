@@ -32,6 +32,7 @@ import org.junit.runners.Parameterized;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
+import tachyon.client.RemoteBlockReader;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
@@ -41,7 +42,7 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
-import tachyon.worker.nio.DataServerMessage;
+import tachyon.worker.DataServerMessage;
 
 /**
  * Unit tests for tachyon.worker.DataServer.
@@ -55,20 +56,29 @@ public class DataServerTest {
   public static Collection<Object[]> data() {
     // creates a new instance of DataServerTest for each network type
     List<Object[]> list = new ArrayList<Object[]>();
-    list.add(new Object[] { "tachyon.worker.netty.NettyDataServer" });
-    list.add(new Object[] { "tachyon.worker.nio.NIODataServer" });
+    list.add(new Object[] { new String[] { "tachyon.worker.netty.NettyDataServer",
+        "tachyon.client.tcp.TCPRemoteBlockReader" } });
+    list.add(new Object[] { new String[] { "tachyon.worker.nio.NIODataServer",
+        "tachyon.client.tcp.TCPRemoteBlockReader" } });
+    String enabled = System.getProperty(Constants.JXIO_ENABLE);
+    if (enabled != null && Boolean.valueOf(enabled)) {
+      list.add(new Object[] { new String[] { "tachyon.worker.rdma.RDMADataServer",
+          "tachyon.client.rdma.RDMARemoteBlockReader" } });
+    }
     return list;
   }
 
   private final String mDataServerClass;
+  private final String mRemoteReaderClass;
   private LocalTachyonCluster mLocalTachyonCluster = null;
 
   private TachyonFS mTFS = null;
 
   private TachyonConf mWorkerTachyonConf;
 
-  public DataServerTest(String className) {
-    mDataServerClass = className;
+  public DataServerTest(String[] classes) {
+    mDataServerClass = classes[0];
+    mRemoteReaderClass = classes[1];
   }
 
   @After
@@ -105,6 +115,7 @@ public class DataServerTest {
   @Before
   public final void before() throws IOException {
     System.setProperty(Constants.WORKER_DATA_SEVRER, mDataServerClass);
+    System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     mLocalTachyonCluster.start();
@@ -212,29 +223,11 @@ public class DataServerTest {
    * Create a new socket to the data port and send a block request. The returned value is the
    * response from the server.
    */
-  private DataServerMessage request(final ClientBlockInfo block, final long offset,
+  protected DataServerMessage request(final ClientBlockInfo block, final long offset,
       final long length) throws IOException {
-    DataServerMessage sendMsg =
-        DataServerMessage.createBlockRequestMessage(block.blockId, offset, length);
-    SocketChannel socketChannel =
-        SocketChannel.open(new InetSocketAddress(block.getLocations().get(0).mHost, block
-            .getLocations().get(0).mSecondaryPort));
-    try {
-      while (!sendMsg.finishSending()) {
-        sendMsg.send(socketChannel);
-      }
-      DataServerMessage recvMsg =
-          DataServerMessage.createBlockResponseMessage(false, block.blockId, offset, length, null);
-      while (!recvMsg.isMessageReady()) {
-        int numRead = recvMsg.recv(socketChannel);
-        if (numRead == -1) {
-          break;
-        }
-      }
-      return recvMsg;
-    } finally {
-      socketChannel.close();
-    }
+    return RemoteBlockReader.Factory.createRemoteBlockReader(mWorkerTachyonConf).getRemoteMsg(
+        block.getLocations().get(0).mHost, block.getLocations().get(0).mSecondaryPort,
+        block.blockId, offset, length);
   }
 
   @Test

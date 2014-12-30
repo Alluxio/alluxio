@@ -102,6 +102,13 @@ public class TachyonConfTest {
 
     long longBytesValue = sDefaultTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE, 0L);
     Assert.assertTrue(longBytesValue == Constants.MB * 5);
+    
+    booleanValue = sDefaultTachyonConf.getBoolean(Constants.JXIO_ENABLE, true);
+    Assert.assertTrue(!booleanValue);
+    
+    value = sDefaultTachyonConf.get(Constants.JXIO_TRANSPORT, null);
+    Assert.assertTrue(value != null);
+    Assert.assertTrue("rdma".equals(value));
   }
 
   @Test
