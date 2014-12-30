@@ -225,10 +225,10 @@ number.
   <td>LRU</td>
   <td>The strategy that worker evict block files when a storage layer runs out of space.</td>
 </tr>
-<tr>
-  <td>tachyon.worker.network.type</td>
-  <td>NETTY</td>
-  <td>Selects networking stack to run the worker with.  Valid options are NETTY and NIO.</td>
+<tr> <td>tachyon.worker.data.server.class</td>
+  <td>tachyon.worker.netty.NettyDataServer</td>
+  <td>Selects networking stack to run the worker with. Valid options are: tachyon.worker.netty.NettyDataServer,
+  tachyon.worker.nio.NIODataServer.</td>
 </tr>
 <tr>
   <td>tachyon.worker.network.netty.channel</td>
@@ -327,6 +327,11 @@ The user configuration specifies values regarding file system access.
   <td>tachyon.worker.network.netty.process.threads</td>
   <td>16</td>
   <td>How many threads to use to process block requests.</td>
+</tr>
+<tr>
+  <td>tachyon.user.remote.block.reader.class</td>
+  <td>tachyon.client.tcp.TCPRemoteBlockReader</td>
+  <td>Selects networking stack to run the client with.</td>
 </tr>
 </table>
 

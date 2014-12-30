@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -32,7 +31,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.nio.DataServerMessage;
 
 /**
  * BlockInStream for remote block.
@@ -234,7 +232,7 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   public static ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, ClientBlockInfo blockInfo,
-      long offset, long len) {
+      long offset, long len, TachyonConf conf) {
     ByteBuffer buf = null;
 
     try {
@@ -261,14 +259,13 @@ public class RemoteBlockInStream extends BlockInStream {
         try {
           buf =
               retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port),
-                  blockInfo.blockId, offset, len);
+                  blockInfo.blockId, offset, len, conf);
           if (buf != null) {
             break;
           }
         } catch (IOException e) {
-          LOG.error("Fail to retrieve byte buffer for block " + blockInfo.blockId
-              + " from remote " + host + ":" + port + " with offset " + offset + " and length "
-              + len, e);
+          LOG.error("Fail to retrieve byte buffer for block " + blockInfo.blockId + " from remote "
+              + host + ":" + port + " with offset " + offset + " and length " + len, e);
           buf = null;
         }
       }
@@ -281,42 +278,9 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   private static ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
-      long blockId, long offset, long length) throws IOException {
-    SocketChannel socketChannel = SocketChannel.open();
-    try {
-      socketChannel.connect(address);
-
-      LOG.info("Connected to remote machine " + address + " sent");
-      DataServerMessage sendMsg =
-          DataServerMessage.createBlockRequestMessage(blockId, offset, length);
-      while (!sendMsg.finishSending()) {
-        sendMsg.send(socketChannel);
-      }
-
-      LOG.info("Data " + blockId + " to remote machine " + address + " sent");
-      DataServerMessage recvMsg =
-          DataServerMessage.createBlockResponseMessage(false, blockId, null);
-      while (!recvMsg.isMessageReady()) {
-        int numRead = recvMsg.recv(socketChannel);
-        if (numRead == -1) {
-          LOG.warn("Read nothing");
-        }
-      }
-      LOG.info("Data " + blockId + " from remote machine " + address + " received");
-
-      if (!recvMsg.isMessageReady()) {
-        LOG.info("Data " + blockId + " from remote machine is not ready.");
-        return null;
-      }
-
-      if (recvMsg.getBlockId() < 0) {
-        LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
-        return null;
-      }
-      return recvMsg.getReadOnlyData();
-    } finally {
-      socketChannel.close();
-    }
+      long blockId, long offset, long length, TachyonConf conf) throws IOException {
+    return RemoteBlockReader.Factory.createRemoteBlockReader(conf).readRemoteBlock(
+        address.getHostName(), address.getPort(), blockId, offset, length);
   }
 
   @Override
@@ -393,8 +357,8 @@ public class RemoteBlockInStream extends BlockInStream {
    * @throws IOException
    */
   private boolean updateCurrentBuffer() throws IOException {
-    long bufferSize = mTachyonConf.getInt(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE,
-        Constants.MB);
+    long bufferSize =
+        mTachyonConf.getInt(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, Constants.MB);
     if (mCurrentBuffer != null && mBufferStartPos <= mBlockPos
         && mBlockPos < Math.min(mBufferStartPos + bufferSize, mBlockInfo.length)) {
       // We move the buffer to read at mBlockPos
@@ -410,7 +374,8 @@ public class RemoteBlockInStream extends BlockInStream {
         mBlockInfo.blockId, mBufferStartPos, length));
 
     for (int i = 0; i < MAX_REMOTE_READ_ATTEMPTS; i ++) {
-      mCurrentBuffer = readRemoteByteBuffer(mTachyonFS, mBlockInfo, mBufferStartPos, length);
+      mCurrentBuffer =
+          readRemoteByteBuffer(mTachyonFS, mBlockInfo, mBufferStartPos, length, mTachyonConf);
       if (mCurrentBuffer != null) {
         return true;
       }

@@ -76,7 +76,8 @@ public class NIODataServer implements Runnable, DataServer {
    * @param address The address of the data server.
    * @param locker The lock system for lock blocks.
    */
-  public NIODataServer(InetSocketAddress address, BlocksLocker locker, TachyonConf tachyonConf) {
+  public NIODataServer(final InetSocketAddress address, final BlocksLocker locker,
+      TachyonConf tachyonConf) {
     LOG.info("Starting DataServer @ " + address);
     mTachyonConf = tachyonConf;
     TachyonConf.assertValidPort(address, mTachyonConf);
@@ -221,7 +222,7 @@ public class NIODataServer implements Runnable, DataServer {
       ByteBuffer data;
       int dataLen = 0;
       try {
-        data = storageDir.getBlockData(blockId, tMessage.getOffset(), (int)tMessage.getLength());
+        data = storageDir.getBlockData(blockId, tMessage.getOffset(), (int) tMessage.getLength());
         storageDir.accessBlock(blockId);
         dataLen = data.limit();
       } catch (Exception e) {
