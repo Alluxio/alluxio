@@ -87,6 +87,22 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
   }
 
+  private void getHdfsInputStream() throws IOException {
+    if (mHdfsInputStream == null) {
+      FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
+      mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
+      mHdfsInputStream.seek(mCurrentPosition);
+    }
+  }
+
+  private void getHdfsInputStream(long position) throws IOException {
+    if (mHdfsInputStream == null) {
+      FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
+      mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
+    }
+    mHdfsInputStream.seek(position);;
+  }
+
   /**
    * Return the current offset from the start of the file
    */
@@ -109,14 +125,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       }
     }
 
-    if (mHdfsInputStream != null) {
-      return readFromHdfsBuffer();
-    }
-
-    FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
-    mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-    mHdfsInputStream.seek(mCurrentPosition);
-
+    getHdfsInputStream();
     return readFromHdfsBuffer();
   }
 
@@ -139,18 +148,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       }
     }
 
-    if (mHdfsInputStream != null) {
-      b[off] = (byte) readFromHdfsBuffer();
-      if (b[off] == -1) {
-        return -1;
-      }
-      return 1;
-    }
-
-    FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
-    mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-    mHdfsInputStream.seek(mCurrentPosition);
-
+    getHdfsInputStream();
     b[off] = (byte) readFromHdfsBuffer();
     if (b[off] == -1) {
       return -1;
@@ -182,22 +180,10 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       }
     }
 
-    if (mHdfsInputStream != null) {
-      try {
-        mHdfsInputStream.seek(position);
-        ret = mHdfsInputStream.read(buffer, offset, length);
-        mCurrentPosition += ret;
-        return ret;
-      } finally {
-        mHdfsInputStream.seek(oldPos);
-      }
-    }
-
     try {
-      FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
-      mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-      mHdfsInputStream.seek(position);
+      getHdfsInputStream(position);
       ret = mHdfsInputStream.read(buffer, offset, length);
+      mCurrentPosition += ret;
     } finally {
       if (mHdfsInputStream != null) {
         mHdfsInputStream.seek(oldPos);
@@ -259,12 +245,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
     if (mTachyonFileInputStream != null) {
       mTachyonFileInputStream.seek(pos);
-    } else if (mHdfsInputStream != null) {
-      mHdfsInputStream.seek(pos);
     } else {
-      FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
-      mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-      mHdfsInputStream.seek(pos);
+      getHdfsInputStream(pos);
     }
 
     mCurrentPosition = pos;
