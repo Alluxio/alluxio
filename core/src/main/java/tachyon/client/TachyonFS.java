@@ -157,7 +157,6 @@ public class TachyonFS extends AbstractTachyonFS {
     mMasterClient =
         mCloser.register(new MasterClient(mMasterAddress, mZookeeperMode, mExecutorService));
     mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService));
-
   }
 
   /**
@@ -556,7 +555,6 @@ public class TachyonFS extends AbstractTachyonFS {
    * 
    * @param path the path in Tachyon file system
    * @return the file id if exists, -1 otherwise
-   * @throws IOException
    */
   public synchronized int getFileId(TachyonURI path) {
     try {
@@ -790,7 +788,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Frees in memory file or folder
-   * 
+   *
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the path parameter.
    * @param path The path of the file / folder. It could be empty iff id is not -1.
