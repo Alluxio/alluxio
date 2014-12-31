@@ -585,14 +585,13 @@ public class TachyonFS extends AbstractTachyonFS {
   private synchronized <K> ClientFileInfo getFileStatus(Map<K, ClientFileInfo> cache, K key,
       int fileId, String path, boolean useCachedMetaData) throws IOException {
     ClientFileInfo info = cache.get(key);
-    boolean cacheHit = info != null;
-    if (useCachedMetaData && cacheHit) {
+    if (useCachedMetaData && info != null) {
       return info;
     }
 
     info = mMasterClient.getFileStatus(fileId, path);
     fileId = info.getId();
-    if (cacheHit && fileId == -1) {
+    if (fileId == -1) {
       cache.remove(key);
       return null;
     }

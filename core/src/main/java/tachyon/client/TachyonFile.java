@@ -17,8 +17,8 @@ package tachyon.client;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -447,11 +447,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) {
     // We call into the remote block in stream class to read a remote byte buffer
-    ByteBuffer buf =
-        RemoteBlockInStream.readRemoteByteBuffer(mTachyonFS, blockInfo, 0, blockInfo.length);
+    ByteBuffer buf = RemoteBlockInStream.readRemoteByteBuffer(mTachyonFS,
+        blockInfo, 0, blockInfo.length);
     return (buf == null) ? null : new TachyonByteBuffer(mTachyonFS, buf, blockInfo.blockId, -1);
   }
-
 
   // TODO remove this method. do streaming cache. This is not a right API.
   public boolean recache() throws IOException {
