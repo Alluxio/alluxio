@@ -41,6 +41,8 @@ public class TachyonFSTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
+  private static String sHost = null;
+  private static int sPort = -1;
   private static TachyonFS sTfs = null;
 
   @AfterClass
@@ -57,6 +59,8 @@ public class TachyonFSTest {
     sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
+    sHost = sLocalTachyonCluster.getMasterHostname();
+    sPort = sLocalTachyonCluster.getMasterPort();
   }
 
   @Test
@@ -231,30 +235,28 @@ public class TachyonFSTest {
 
   @Test(expected = IOException.class)
   public void getTestAbnormal1() throws IOException {
-    String host = sLocalTachyonCluster.getMasterHostname();
-    int port = sLocalTachyonCluster.getMasterPort();
-    TachyonFS.get(new TachyonURI("/" + host + ":" + port));
+    TachyonFS.get(new TachyonURI("/" + sHost + ":" + sPort));
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal2() throws IOException {
-    String host = sLocalTachyonCluster.getMasterHostname();
-    int port = sLocalTachyonCluster.getMasterPort();
-    TachyonFS.get(new TachyonURI("/" + host + port));
+    TachyonFS.get(new TachyonURI("/" + sHost + sPort));
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal3() throws IOException {
-    String host = sLocalTachyonCluster.getMasterHostname();
-    int port = sLocalTachyonCluster.getMasterPort();
-    TachyonFS.get(new TachyonURI("/" + host + ":" + (port - 1)));
+    TachyonFS.get(new TachyonURI("/" + sHost + ":" + (sPort - 1)));
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal4() throws IOException {
-    String host = sLocalTachyonCluster.getMasterHostname();
-    int port = sLocalTachyonCluster.getMasterPort();
-    TachyonFS.get(new TachyonURI("/" + host + ":" + port + "/ab/c.txt"));
+    TachyonFS.get(new TachyonURI("/" + sHost + ":" + sPort + "/ab/c.txt"));
+  }
+
+  @Test(expected = IOException.class)
+  public void getTestAbnormal5() throws IOException {
+    // API user may have this typo: tacyon
+    TachyonFS.get(new TachyonURI("tacyon://" + sHost + ":" + sPort));
   }
 
   private void getTestHelper(TachyonFS tfs) throws IOException {
@@ -266,25 +268,25 @@ public class TachyonFSTest {
 
   @Test
   public void getTestNormal1() throws IOException {
-    String host = sLocalTachyonCluster.getMasterHostname();
-    int port = sLocalTachyonCluster.getMasterPort();
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port));
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort));
     getTestHelper(tfs);
   }
 
   @Test
   public void getTestNormal2() throws IOException {
-    String host = sLocalTachyonCluster.getMasterHostname();
-    int port = sLocalTachyonCluster.getMasterPort();
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port + "/"));
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort + "/"));
     getTestHelper(tfs);
   }
 
   @Test
   public void getTestNormal3() throws IOException {
-    String host = sLocalTachyonCluster.getMasterHostname();
-    int port = sLocalTachyonCluster.getMasterPort();
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port + "/ab/c.txt"));
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort + "/ab/c.txt"));
+    getTestHelper(tfs);
+  }
+
+  @Test
+  public void getTestNormal4() throws IOException {
+    TachyonFS tfs = TachyonFS.get(sHost, sPort, false);
     getTestHelper(tfs);
   }
 
@@ -292,8 +294,8 @@ public class TachyonFSTest {
   public void mkdirTest() throws IOException {
     String uniqPath = TestUtils.uniqPath();
     for (int k = 0; k < 10; k ++) {
-      Assert.assertEquals(true, sTfs.mkdir(new TachyonURI(uniqPath + k)));
-      Assert.assertEquals(true, sTfs.mkdir(new TachyonURI(uniqPath + k)));
+      Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k)));
+      Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k)));
     }
   }
 
@@ -313,9 +315,10 @@ public class TachyonFSTest {
 
   @Test
   public void renameFileTest2() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
-    sTfs.createFile(new TachyonURI(uniqPath));
-    Assert.assertTrue(sTfs.rename(new TachyonURI(uniqPath), new TachyonURI(uniqPath)));
+    TachyonURI uniqUri = new TachyonURI(TestUtils.uniqPath());
+    int fileId = sTfs.createFile(uniqUri);
+    Assert.assertTrue(sTfs.rename(uniqUri, uniqUri));
+    Assert.assertEquals(fileId, sTfs.getFileId(uniqUri));
   }
 
   @Test
@@ -336,7 +339,23 @@ public class TachyonFSTest {
 
   @Test
   public void toStringTest() throws IOException {
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://127.0.0.1:19998"));
-    Assert.assertEquals(tfs.toString(), "tachyon:///127.0.0.1:19998");
+    TachyonFS tfs = null;
+    String[] originUrls =
+        new String[] {"tachyon://127.0.0.1:19998", "tachyon-ft://127.0.0.1:19998",};
+    String[] resultUrls =
+        new String[] {"tachyon:///127.0.0.1:19998", "tachyon-ft:///127.0.0.1:19998",};
+    for (int i = 0, n = originUrls.length; i < n; i ++) {
+      String originUrl = originUrls[i];
+      String resultUrl = resultUrls[i];
+      tfs = TachyonFS.get(new TachyonURI(originUrl));
+      Assert.assertEquals(resultUrl, tfs.toString());
+      tfs = TachyonFS.get(new TachyonURI(originUrl + "/a/b"));
+      Assert.assertEquals(resultUrl, tfs.toString());
+    }
+
+    tfs = TachyonFS.get("localhost", 19998, false);
+    Assert.assertEquals("tachyon://localhost/127.0.0.1:19998", tfs.toString());
+    tfs = TachyonFS.get("localhost", 19998, true);
+    Assert.assertEquals("tachyon-ft://localhost/127.0.0.1:19998", tfs.toString());
   }
 }
