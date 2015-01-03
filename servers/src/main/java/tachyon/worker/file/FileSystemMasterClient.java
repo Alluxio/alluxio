@@ -33,7 +33,7 @@ import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.TachyonService;
 
 /**
- * A wrapper for the thrift client to interact with the file system master, used by tachyon worker.
+ * A wrapper for the thrift client to interact with the file system master, used by Tachyon worker.
  * <p/>
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
