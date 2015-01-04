@@ -586,6 +586,12 @@ public class TachyonFS extends AbstractTachyonFS {
     return getFileStatus(fileId, TachyonURI.EMPTY_URI, useCachedMetadata);
   }
 
+  private synchronized void updateFileStatusCache(int fileId, String path, ClientFileInfo info) {
+    // TODO: LRU
+    mIdToClientFileInfo.put(fileId, info);
+    mPathToClientFileInfo.put(path, info);
+  }
+
   private synchronized <K> ClientFileInfo getFileStatus(Map<K, ClientFileInfo> cache, K key,
       int fileId, String path, boolean useCachedMetaData) throws IOException {
     ClientFileInfo info = cache.get(key);
@@ -601,9 +607,7 @@ public class TachyonFS extends AbstractTachyonFS {
     }
     path = info.getPath();
 
-    // TODO: LRU
-    mIdToClientFileInfo.put(fileId, info);
-    mPathToClientFileInfo.put(path, info);
+    updateFileStatusCache(fileId, path, info);
 
     return info;
   }
