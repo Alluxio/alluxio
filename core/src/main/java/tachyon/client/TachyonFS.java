@@ -568,24 +568,6 @@ public class TachyonFS extends AbstractTachyonFS {
     }
   }
 
-  @Override
-  public ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException {
-    return getFileStatus(fileId, path, false);
-  }
-
-  /**
-   * Get ClientFileInfo object based on fileId.
-   * 
-   * @param fileId the file id of the file or folder.
-   * @param useCachedMetadata if true use the local cached meta data
-   * @return the ClientFileInfo of the file. null if the file does not exist.
-   * @throws IOException
-   */
-  public synchronized ClientFileInfo getFileStatus(int fileId, boolean useCachedMetadata)
-      throws IOException {
-    return getFileStatus(fileId, TachyonURI.EMPTY_URI, useCachedMetadata);
-  }
-
   private synchronized void updateFileStatusCache(int fileId, String path, ClientFileInfo info) {
     // TODO: LRU
     mIdToClientFileInfo.put(fileId, info);
@@ -633,6 +615,24 @@ public class TachyonFS extends AbstractTachyonFS {
       String p = path.getPath();
       return getFileStatus(mPathToClientFileInfo, p, fileId, p, useCachedMetadata);
     }
+  }
+
+  @Override
+  public ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException {
+    return getFileStatus(fileId, path, false);
+  }
+
+  /**
+   * Get ClientFileInfo object based on fileId.
+   * 
+   * @param fileId the file id of the file or folder.
+   * @param useCachedMetadata if true use the local cached meta data
+   * @return the ClientFileInfo of the file. null if the file does not exist.
+   * @throws IOException
+   */
+  public synchronized ClientFileInfo getFileStatus(int fileId, boolean useCachedMetadata)
+      throws IOException {
+    return getFileStatus(fileId, TachyonURI.EMPTY_URI, useCachedMetadata);
   }
 
   /**
