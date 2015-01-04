@@ -157,6 +157,10 @@ public class TachyonFS extends AbstractTachyonFS {
     mMasterClient =
         mCloser.register(new MasterClient(mMasterAddress, mZookeeperMode, mExecutorService));
     mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService));
+
+    String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
+    String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
+    mRootUri = new TachyonURI(scheme, authority, TachyonURI.SEPARATOR);
   }
 
   /**
@@ -674,11 +678,6 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   @Override
   public synchronized TachyonURI getUri() {
-    if (mRootUri == null) {
-      String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
-      String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
-      mRootUri = new TachyonURI(scheme, authority, TachyonURI.SEPARATOR);
-    }
     return mRootUri;
   }
 
@@ -952,10 +951,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param uri The uri to validate
    */
   private void validateUri(TachyonURI uri) throws IOException {
-    TachyonURI thisFs = getUri();
     if (uri == null || (!uri.isPathAbsolute() && !TachyonURI.EMPTY_URI.equals(uri))
-        || (uri.hasScheme() && !thisFs.getScheme().equals(uri.getScheme()))
-        || (uri.hasAuthority() && !thisFs.getAuthority().equals(uri.getAuthority()))) {
+        || (uri.hasScheme() && !mRootUri.getScheme().equals(uri.getScheme()))
+        || (uri.hasAuthority() && !mRootUri.getAuthority().equals(uri.getAuthority()))) {
       throw new IOException("Uri " + uri + " is invalid.");
     }
   }
