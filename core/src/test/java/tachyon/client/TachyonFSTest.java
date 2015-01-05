@@ -337,6 +337,6 @@ public class TachyonFSTest {
   @Test
   public void toStringTest() throws IOException {
     TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://127.0.0.1:19998"));
-    Assert.assertEquals(tfs.toString(), "tachyon:///127.0.0.1:19998");
+    Assert.assertEquals(tfs.toString(), "tachyon://localhost/127.0.0.1:19998");
   }
 }
