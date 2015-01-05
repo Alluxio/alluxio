@@ -46,6 +46,7 @@ import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.util.ConfUtils;
 import tachyon.util.UfsUtils;
 
 /**
@@ -343,7 +344,7 @@ abstract class AbstractTFS extends FileSystem {
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
 
     // Load TachyonConf if any and merge to the one in TachyonFS
-    TachyonConf siteConf = TachyonConf.loadFromHadoopConfiguration(conf);
+    TachyonConf siteConf = ConfUtils.loadFromHadoopConfiguration(conf);
     if (siteConf != null) {
       mTachyonConf.merge(siteConf);
     }
