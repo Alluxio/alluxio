@@ -171,26 +171,23 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
     if (mTachyonFileInputStream != null) {
       try {
-        seek(position);
+        mTachyonFileInputStream.seek(position);
         ret = mTachyonFileInputStream.read(buffer, offset, length);
-        mCurrentPosition += ret;
         return ret;
       } finally {
-        seek(oldPos);
+        mTachyonFileInputStream.seek(oldPos);
       }
     }
 
     try {
       getHdfsInputStream(position);
       ret = mHdfsInputStream.read(buffer, offset, length);
-      mCurrentPosition += ret;
+      return ret;
     } finally {
       if (mHdfsInputStream != null) {
         mHdfsInputStream.seek(oldPos);
       }
     }
-
-    return ret;
   }
 
   private int readFromHdfsBuffer() throws IOException {

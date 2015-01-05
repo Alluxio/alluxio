@@ -115,21 +115,25 @@ public class HdfsFileInputStreamTest {
     int length = mInMemInputStream.read(0, buf, 0, FILE_LEN);
     Assert.assertEquals(FILE_LEN, length);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(FILE_LEN, buf));
+    Assert.assertEquals(0, mInMemInputStream.getPos());
 
     Arrays.fill(buf, (byte)0);
     length = mUfsInputStream.read(0, buf, 0, FILE_LEN);
     Assert.assertEquals(FILE_LEN, length);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(FILE_LEN, buf));
+    Assert.assertEquals(0, mUfsInputStream.getPos());
 
     Arrays.fill(buf, (byte)0);
-    length = mInMemInputStream.read(0, buf, 0, FILE_LEN);
-    Assert.assertEquals(FILE_LEN, length);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(FILE_LEN, buf));
+    length = mInMemInputStream.read(10, buf, 0, FILE_LEN - 10);
+    Assert.assertEquals(FILE_LEN - 10, length);
+    Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, FILE_LEN - 10, buf));
+    Assert.assertEquals(0, mInMemInputStream.getPos());
 
     Arrays.fill(buf, (byte)0);
-    length = mUfsInputStream.read(0, buf, 0, FILE_LEN);
-    Assert.assertEquals(FILE_LEN, length);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(FILE_LEN, buf));
+    length = mUfsInputStream.read(10, buf, 0, FILE_LEN - 10);
+    Assert.assertEquals(FILE_LEN - 10, length);
+    Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, FILE_LEN - 10, buf));
+    Assert.assertEquals(0, mUfsInputStream.getPos());
 
     Arrays.fill(buf, (byte)0);
     length = mInMemInputStream.read(-1, buf, 0, FILE_LEN);
