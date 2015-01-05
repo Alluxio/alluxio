@@ -18,7 +18,6 @@ package tachyon.worker;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -75,7 +74,7 @@ public class WorkerClient implements Closeable {
   public WorkerClient(MasterClient masterClient, ExecutorService executorService)
       throws IOException {
     mMasterClient = masterClient;
-    this.mExecutorService = executorService;
+    mExecutorService = executorService;
   }
 
   /**
@@ -85,14 +84,14 @@ public class WorkerClient implements Closeable {
    * @throws IOException
    */
   public synchronized void accessBlock(long blockId) throws IOException {
-    if (connect()) {
-      try {
-        mClient.accessBlock(blockId);
-      } catch (TException e) {
-        LOG.error("TachyonClient accessLocalBlock(" + blockId + ") failed");
-        mConnected = false;
-        throw new IOException(e);
-      }
+    mustConnect();
+
+    try {
+      mClient.accessBlock(blockId);
+    } catch (TException e) {
+      LOG.error("TachyonClient accessLocalBlock(" + blockId + ") failed");
+      mConnected = false;
+      throw new IOException(e);
     }
   }
 
@@ -196,11 +195,8 @@ public class WorkerClient implements Closeable {
         LOG.info("Trying to get local worker host : " + localHostName);
         workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
         mIsLocal = true;
-      } catch (NoWorkerException e) {
+      } catch (Exception e) {
         LOG.info(e.getMessage());
-        workerNetAddress = null;
-      } catch (UnknownHostException e) {
-        LOG.error(e.getMessage(), e);
         workerNetAddress = null;
       }
 
@@ -208,24 +204,18 @@ public class WorkerClient implements Closeable {
         try {
           workerNetAddress = mMasterClient.user_getWorker(true, "");
         } catch (NoWorkerException e) {
-          LOG.info(e.getMessage());
-          workerNetAddress = null;
+          LOG.info("No worker running in the system: " + e.getMessage());
+          mClient = null;
+          return false;
         }
       }
 
-      if (workerNetAddress == null) {
-        LOG.info("No worker running in the system");
-        mClient = null;
-        return false;
-      }
-
-      mWorkerAddress =
-          new InetSocketAddress(NetworkUtils.getFqdnHost(workerNetAddress), workerNetAddress.mPort);
+      String host = NetworkUtils.getFqdnHost(workerNetAddress);
+      int port = workerNetAddress.mPort;
+      mWorkerAddress = new InetSocketAddress(host, port);
       LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
 
-      mProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(
-              NetworkUtils.getFqdnHost(mWorkerAddress), mWorkerAddress.getPort())));
+      mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(host, port)));
       mClient = new WorkerService.Client(mProtocol);
 
       HeartbeatExecutor heartBeater =
