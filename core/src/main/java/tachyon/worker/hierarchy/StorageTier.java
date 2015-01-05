@@ -27,9 +27,9 @@ import tachyon.Pair;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
-import tachyon.conf.WorkerConf;
 import tachyon.worker.eviction.EvictStrategies;
 import tachyon.worker.eviction.EvictStrategy;
+import tachyon.worker.eviction.EvictStrategyType;
 
 /**
  * Used to manage StorageDirs, request space for new coming blocks, and evict old blocks to its
@@ -88,10 +88,10 @@ public class StorageTier {
     }
     mCapacityBytes = quotaBytes;
     mNextStorageTier = nextTier;
-    mSpaceAllocator =
-        AllocateStrategies.getAllocateStrategy(WorkerConf.get().ALLOCATE_STRATEGY_TYPE);
-    mBlockEvictor =
-        EvictStrategies.getEvictStrategy(WorkerConf.get().EVICT_STRATEGY_TYPE, isLastTier());
+    mSpaceAllocator = AllocateStrategies.getAllocateStrategy(mTachyonConf.getEnum(
+        Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocateStrategyType.MAX_FREE));
+    mBlockEvictor = EvictStrategies.getEvictStrategy(mTachyonConf.getEnum(
+        Constants.WORKER_EVICT_STRATEGY_TYPE, EvictStrategyType.LRU), isLastTier());
   }
 
   /**
