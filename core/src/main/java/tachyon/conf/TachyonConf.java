@@ -14,8 +14,6 @@ import java.util.regex.Pattern;
 import com.google.common.base.Preconditions;
 
 import org.apache.commons.lang3.SerializationUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.DefaultStringifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,54 +56,6 @@ public class TachyonConf {
 
   public static void assertValidPort(final InetSocketAddress address, TachyonConf tachyonConf) {
     assertValidPort(address.getPort(), tachyonConf);
-  }
-
-  /**
-   * Store the source {@link TachyonConf} object to the target
-   * Hadoop {@link org.apache.hadoop.conf.Configuration} object.
-   *
-   * @param source the {@link TachyonConf} to be stored
-   * @param target the {@link org.apache.hadoop.conf.Configuration} target
-   */
-  public static void storeToHadoopConfiguration(TachyonConf source, Configuration target) {
-    // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
-    target.set("io.serializations", "org.apache.hadoop.io.serializer.JavaSerialization,"
-        + "org.apache.hadoop.io.serializer.WritableSerialization");
-    Properties confProperties = source.getInternalProperties();
-    try {
-      DefaultStringifier.store(target, confProperties, Constants.TACHYON_CONF_SITE);
-    } catch (IOException ex) {
-      LOG.error("Unable to store TachyonConf in Haddop configuration", ex);
-      throw new RuntimeException(ex);
-    }
-  }
-
-  /**
-   * Load {@link TachyonConf} from Hadoop {@link org.apache.hadoop.conf.Configuration} source
-   * @param source the {@link org.apache.hadoop.conf.Configuration} to load from.
-   * @return instance of {@link TachyonConf} to be loaded
-   */
-  public static TachyonConf loadFromHadoopConfiguration(Configuration source) {
-    // Load TachyonConf if any and merge to the one in TachyonFS
-    // Push TachyonConf to the Job conf
-    if (source.get(Constants.TACHYON_CONF_SITE) != null) {
-      LOG.info("Found TachyonConf site from Job configuration for Tachyon");
-      Properties tachyonConfProperties = null;
-      try {
-        tachyonConfProperties = DefaultStringifier.load(source, Constants.TACHYON_CONF_SITE,
-            Properties.class);
-      } catch (IOException ex) {
-        LOG.error("Unable to load TachyonConf from Haddop configuration", ex);
-        throw new RuntimeException(ex);
-      }
-      if (tachyonConfProperties != null) {
-        return new TachyonConf(tachyonConfProperties);
-      } else {
-        return null;
-      }
-    } else {
-      return null;
-    }
   }
 
   /**

@@ -63,6 +63,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.hadoop.TFS;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.util.ConfUtils;
 
 /**
  * Distributed i/o benchmark.
@@ -219,7 +220,7 @@ public class TestDFSIO implements Tool {
 
     // Store TachyonConf in Hadoop Configuration
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    TachyonConf.storeToHadoopConfiguration(tachyonConf,bench.getConf());
+    ConfUtils.storeToHadoopConfiguration(tachyonConf, bench.getConf());
 
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     bench.createControlFile(fs, DEFAULT_NR_BYTES, DEFAULT_NR_FILES);
