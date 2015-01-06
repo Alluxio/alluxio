@@ -25,7 +25,6 @@ import tachyon.UnderFileSystemCluster;
 import tachyon.UnderFileSystemsUtils;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 
@@ -85,8 +84,6 @@ public final class LocalTachyonMaster {
     CommonUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis());
 
     System.setProperty("tachyon.underfs.address", mUnderFSFolder);
-
-    WorkerConf.clear();
 
     System.setProperty("tachyon.web.resources", System.getProperty("user.dir")
         + "/src/main/webapp");

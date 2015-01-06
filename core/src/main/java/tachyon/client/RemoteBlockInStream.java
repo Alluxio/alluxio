@@ -269,7 +269,8 @@ public class RemoteBlockInStream extends BlockInStream {
 
       LOG.info("Data " + blockId + " to remote machine " + address + " sent");
 
-      DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
+      DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId,
+          mTachyonConf);
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {
