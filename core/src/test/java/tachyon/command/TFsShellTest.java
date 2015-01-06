@@ -62,14 +62,12 @@ public class TFsShellTest {
   public final void after() throws Exception {
     mFsShell.close();
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
     System.setOut(mOldOutput);
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(SIZE_BYTES);
+    mLocalTachyonCluster = new LocalTachyonCluster(SIZE_BYTES, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mFsShell = new TFsShell(mLocalTachyonCluster.getMasterTachyonConf());

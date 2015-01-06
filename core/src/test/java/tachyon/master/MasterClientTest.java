@@ -39,21 +39,19 @@ public class MasterClientTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
-  private TachyonConf mTachyonConf = null;
+  private TachyonConf mMasterTachyonConf = null;
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     mExecutorService.shutdown();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(1000);
+    mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
-    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
   }
 
@@ -61,7 +59,7 @@ public class MasterClientTest {
   public void openCloseTest() throws FileAlreadyExistException, InvalidPathException, TException,
       IOException {
     MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService,
-        mTachyonConf);
+        mMasterTachyonConf);
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
@@ -80,7 +78,7 @@ public class MasterClientTest {
     // the timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
     MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService,
-        mTachyonConf);
+        mMasterTachyonConf);
     masterClient.user_getClientBlockInfo(Long.MAX_VALUE);
     masterClient.close();
   }
@@ -91,7 +89,7 @@ public class MasterClientTest {
     // the timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
     MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService,
-        mTachyonConf);
+        mMasterTachyonConf);
     masterClient.user_getWorker(false, "host.doesnotexist.fail");
     masterClient.close();
   }

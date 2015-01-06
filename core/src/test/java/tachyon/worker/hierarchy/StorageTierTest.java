@@ -29,6 +29,7 @@ import tachyon.StorageLevelAlias;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.BlockHandler;
+import tachyon.conf.TachyonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
@@ -38,6 +39,7 @@ public class StorageTierTest {
   private final long mUserId = 1;
 
   private StorageTier[] mStorageTiers;
+  private TachyonConf mTachyonConf;
 
   @After
   public final void after() throws Exception {
@@ -66,6 +68,7 @@ public class StorageTierTest {
     // Clear worker configurations which are set by other tests
     WorkerConf.clear();
     final int maxLevel = WorkerConf.get().MAX_HIERARCHY_STORAGE_LEVEL;
+    mTachyonConf = new TachyonConf();
     mStorageTiers = new StorageTier[maxLevel];
     StorageTier nextTier = null;
     for (int level = maxLevel - 1; level >= 0; level --) {
@@ -83,8 +86,8 @@ public class StorageTierTest {
           j ++;
         }
       }
-      StorageTier curTier =
-          new StorageTier(level, Alias, dirPaths, dirCapacities, "/data", "/user", nextTier, null);
+      StorageTier curTier = new StorageTier(level, Alias, dirPaths, dirCapacities, "/data",
+          "/user", nextTier, null, mTachyonConf);
       mStorageTiers[level] = curTier;
       curTier.initialize();
       for (StorageDir dir : curTier.getStorageDirs()) {

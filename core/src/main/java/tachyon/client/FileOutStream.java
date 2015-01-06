@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -53,10 +54,12 @@ public class FileOutStream extends OutStream {
    * @param file the output file
    * @param opType the OutStream's write type
    * @param ufsConf the under file system configuration
+   * @param tachyonConf the TachyonConf instance for this file output stream.
    * @throws IOException
    */
-  FileOutStream(TachyonFile file, WriteType opType, Object ufsConf) throws IOException {
-    super(file, opType);
+  FileOutStream(TachyonFile file, WriteType opType, Object ufsConf, TachyonConf tachyonConf)
+      throws IOException {
+    super(file, opType, tachyonConf);
 
     mBlockCapacityByte = file.getBlockSizeByte();
 
@@ -159,7 +162,8 @@ public class FileOutStream extends OutStream {
       mCurrentBlockLeftByte = mBlockCapacityByte;
 
       mCurrentBlockOutStream =
-          new BlockOutStream(mFile, mWriteType, (int) (mCachedBytes / mBlockCapacityByte));
+          new BlockOutStream(mFile, mWriteType, (int) (mCachedBytes / mBlockCapacityByte),
+              mTachyonConf);
     }
   }
 

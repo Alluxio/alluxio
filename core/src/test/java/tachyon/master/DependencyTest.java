@@ -29,13 +29,14 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 public class DependencyTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private String mMasterValue = "localhost";
   private String mPortValue = "8080";
-  private TachyonConf mTachyonConf;
+  private TachyonConf mMasterTachyonConf;
 
   @After
   public final void after() throws Exception {
@@ -45,11 +46,11 @@ public class DependencyTest {
 
   @Before
   public final void before() throws IOException {
-    mLocalTachyonCluster = new LocalTachyonCluster(10000);
+    mLocalTachyonCluster = new LocalTachyonCluster(10000, 8 * Constants.MB, Constants.GB);
     mLocalTachyonCluster.start();
     DependencyVariables.VARIABLES.put("master", mMasterValue);
     DependencyVariables.VARIABLES.put("port", mPortValue);
-    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
   @Test
@@ -62,7 +63,7 @@ public class DependencyTest {
     Collection<Integer> parentDependencies = new ArrayList<Integer>();
     Dependency dep =
         new Dependency(0, parents, children, cmd, data, "Dependency Test", "Tachyon Tests", "0.4",
-            DependencyType.Narrow, parentDependencies, 0L, mTachyonConf);
+            DependencyType.Narrow, parentDependencies, 0L, mMasterTachyonConf);
     Assert.assertEquals(parsedCmd, dep.parseCommandPrefix());
   }
 
@@ -81,7 +82,7 @@ public class DependencyTest {
     Collection<Integer> parentDependencies = new ArrayList<Integer>();
     Dependency dep =
         new Dependency(0, parents, children, cmd, data, "Dependency Test", "Tachyon Tests", "0.4",
-            DependencyType.Narrow, parentDependencies, 0L, mTachyonConf);
+            DependencyType.Narrow, parentDependencies, 0L, mMasterTachyonConf);
 
     // write the image
     dep.writeImage(writer, dos);

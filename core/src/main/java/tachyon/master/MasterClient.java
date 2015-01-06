@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -45,7 +44,6 @@ import tachyon.LeaderInquireClient;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
-import tachyon.conf.UserConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.thrift.BlockInfoException;
@@ -188,9 +186,11 @@ public final class MasterClient implements Closeable {
         HeartbeatExecutor heartBeater = new MasterClientHeartbeatExecutor(this);
 
         String threadName = "master-heartbeat-" + mMasterAddress;
+        int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
+            Constants.SECOND_MS);
         mHeartbeat =
             mExecutorService.submit(new HeartbeatThread(threadName, heartBeater,
-                UserConf.get().HEARTBEAT_INTERVAL_MS / 2));
+                interval / 2));
       } catch (TTransportException e) {
         lastException = e;
         LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress 

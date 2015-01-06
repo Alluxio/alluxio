@@ -16,7 +16,6 @@ package tachyon.master;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
@@ -26,7 +25,6 @@ import tachyon.UnderFileSystemCluster;
 import tachyon.UnderFileSystemsUtils;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -89,7 +87,6 @@ public final class LocalTachyonMaster {
     System.setProperty("tachyon.underfs.address", mUnderFSFolder);
 
     WorkerConf.clear();
-    UserConf.clear();
 
     System.setProperty("tachyon.web.resources", System.getProperty("user.dir")
         + "/src/main/webapp");
@@ -202,7 +199,7 @@ public final class LocalTachyonMaster {
   }
 
   public TachyonFS getClient() throws IOException {
-    return mClientPool.getClient();
+    return mClientPool.getClient(mTachyonMaster.getTachyonConf());
   }
 
   public String getEditLogPath() {

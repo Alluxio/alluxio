@@ -1,6 +1,5 @@
 package tachyon.conf;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -13,6 +12,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Preconditions;
+
+import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +79,17 @@ public class TachyonConf {
   }
 
   /**
+   * Overrides default properties.
+   *
+   * @param props override {@link Properties}
+   */
+  public TachyonConf(Properties props) {
+    if (props != null) {
+      mProperties.putAll(props);
+    }
+  }
+
+  /**
    * Default constructor.
    *
    * Most clients will call this constructor to allow default loading of properties to happen.
@@ -95,6 +107,27 @@ public class TachyonConf {
    */
   TachyonConf(boolean includeSystemProperties) {
     loadDefault(includeSystemProperties);
+  }
+
+  @Override
+  public int hashCode() {
+    int hash = 0;
+    for (Object s : mProperties.keySet()) {
+      hash ^= s.hashCode();
+    }
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    } else if (obj instanceof TachyonConf) {
+      Properties props = ((TachyonConf) obj).getInternalProperties();
+      return mProperties.equals(props);
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -160,10 +193,10 @@ public class TachyonConf {
   }
 
   /**
-   * @return the internal <code>Properties</code> of this TachyonConf instance.
+   * @return the deep copy of the internal <code>Properties</code> of this TachyonConf instance.
    */
-  private Properties getInternalProperties() {
-    return mProperties;
+  public Properties getInternalProperties() {
+    return SerializationUtils.clone(mProperties);
   }
 
   /**
