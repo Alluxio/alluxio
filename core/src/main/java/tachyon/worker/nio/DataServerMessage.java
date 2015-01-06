@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.client.TachyonByteBuffer;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -96,10 +96,12 @@ public class DataServerMessage {
    * 
    * @param toSend If true the message is to send the data, otherwise it's used to receive data.
    * @param blockId The id of the block
+   * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to be used.
    * @return The created block response message
    */
-  public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId) {
-    return createBlockResponseMessage(toSend, blockId, 0, -1);
+  public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
+      TachyonConf tachyonConf) {
+    return createBlockResponseMessage(toSend, blockId, 0, -1, tachyonConf);
   }
 
   /**
@@ -113,10 +115,11 @@ public class DataServerMessage {
    * @param offset The responded data's offset in the block
    * @param len The length of the responded data. If it's -1, it means respond the data from offset
    *        to the block's end.
+   * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to be used.
    * @return The created block response message
    */
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
-      long offset, long len) {
+      long offset, long len, TachyonConf tachyonConf) {
     DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
 
     if (toSend) {
@@ -130,7 +133,8 @@ public class DataServerMessage {
           throw new IOException("Length can not be negative except -1: " + len);
         }
 
-        String filePath = CommonUtils.concat(WorkerConf.get().DATA_FOLDER, blockId);
+        String workerDataFolder = tachyonConf.get(Constants.WORKER_DATA_FOLDER, "/mnt/ramdisk");
+        String filePath = CommonUtils.concat(workerDataFolder, blockId);
         LOG.info("Try to response remote request by reading from " + filePath);
         RandomAccessFile file = new RandomAccessFile(filePath, "r");
 

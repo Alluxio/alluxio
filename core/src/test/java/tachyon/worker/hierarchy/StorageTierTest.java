@@ -39,7 +39,6 @@ public class StorageTierTest {
   private final long mUserId = 1;
 
   private StorageTier[] mStorageTiers;
-  private TachyonConf mTachyonConf;
 
   @After
   public final void after() throws Exception {
@@ -59,24 +58,24 @@ public class StorageTierTest {
 
     final int maxLevel = 2;
 
-    mTachyonConf = new TachyonConf();
-    mTachyonConf.set(Constants.TACHYON_HOME, tachyonHome);
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set(Constants.TACHYON_HOME, tachyonHome);
 
     // Setup conf for worker
-    mTachyonConf.set(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, Integer.toString(maxLevel));
-    mTachyonConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
-    mTachyonConf.set("tachyon.worker.hierarchystore.level0.dirs.path", tachyonHome + "/ramdisk");
-    mTachyonConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", 1000 + "");
-    mTachyonConf.set("tachyon.worker.hierarchystore.level1.alias", "HDD");
-    mTachyonConf.set("tachyon.worker.hierarchystore.level1.dirs.path", tachyonHome + "/disk1,"
+    tachyonConf.set(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, Integer.toString(maxLevel));
+    tachyonConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
+    tachyonConf.set("tachyon.worker.hierarchystore.level0.dirs.path", tachyonHome + "/ramdisk");
+    tachyonConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", 1000 + "");
+    tachyonConf.set("tachyon.worker.hierarchystore.level1.alias", "HDD");
+    tachyonConf.set("tachyon.worker.hierarchystore.level1.dirs.path", tachyonHome + "/disk1,"
         + tachyonHome + "/disk2");
-    mTachyonConf.set("tachyon.worker.hierarchystore.level1.dirs.quota", 4000 + "," + 4000);
+    tachyonConf.set("tachyon.worker.hierarchystore.level1.dirs.quota", 4000 + "," + 4000);
 
     mStorageTiers = new StorageTier[maxLevel];
     StorageTier nextTier = null;
     for (int level = maxLevel - 1; level >= 0; level --) {
       String tierDirsPathProp = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
-      String tierDirsPaths = mTachyonConf.get(tierDirsPathProp, "/mnt/ramdisk");
+      String tierDirsPaths = tachyonConf.get(tierDirsPathProp, "/mnt/ramdisk");
 
       String[] dirPaths = tierDirsPaths.split(",");
       for (int i = 0; i < dirPaths.length; i ++) {
@@ -84,7 +83,7 @@ public class StorageTierTest {
       }
 
       String tierLevelAliasProp = "tachyon.worker.hierarchystore.level" + level + ".alias";
-      StorageLevelAlias storageAlias = mTachyonConf.getEnum(tierLevelAliasProp,
+      StorageLevelAlias storageAlias = tachyonConf.getEnum(tierLevelAliasProp,
           StorageLevelAlias.MEM);
 
 
@@ -93,7 +92,7 @@ public class StorageTierTest {
       if (index >= Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length) {
         index = level - 1;
       }
-      String tierDirsCapacity = mTachyonConf.get(tierDirsCapacityProp,
+      String tierDirsCapacity = tachyonConf.get(tierDirsCapacityProp,
           Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[index]);
 
       String[] strDirCapacities = tierDirsCapacity.split(",");
@@ -107,7 +106,7 @@ public class StorageTierTest {
       }
 
       StorageTier curTier = new StorageTier(level, storageAlias, dirPaths, dirCapacities, "/data",
-          "/user", nextTier, null, mTachyonConf);
+          "/user", nextTier, null, tachyonConf);
       mStorageTiers[level] = curTier;
       curTier.initialize();
       for (StorageDir dir : curTier.getStorageDirs()) {

@@ -22,7 +22,6 @@ import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.conf.WorkerConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -160,20 +159,8 @@ public final class LocalTachyonCluster {
 
     mLocalhostName = NetworkUtils.getLocalHostName();
 
-    System.setProperty("tachyon.test.mode", "true");
-
-    System.setProperty("tachyon.worker.port", 0 + "");
-    System.setProperty("tachyon.worker.data.port", 0 + "");
-    System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
-    System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
-    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
-    System.setProperty("tachyon.worker.selector.threads", Integer.toString(1));
-    System.setProperty("tachyon.worker.server.threads", Integer.toString(2));
-    System.setProperty("tachyon.worker.network.netty.worker.threads", Integer.toString(2));
-
-    WorkerConf.clear();
-
     TachyonConf masterConf = new TachyonConf();
+    masterConf.set(Constants.IN_TEST_MODE, "true");
     masterConf.set(Constants.TACHYON_HOME, mTachyonHome);
     masterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
     masterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
@@ -190,6 +177,15 @@ public final class LocalTachyonCluster {
     TachyonConf workerConf = new TachyonConf(masterConf);
     workerConf.set(Constants.MASTER_PORT, getMasterPort() + "");
     workerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
+    workerConf.set(Constants.WORKER_PORT, "0");
+    workerConf.set(Constants.WORKER_DATA_PORT, "0");
+    workerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
+    workerConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
+    workerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, "15");
+    workerConf.set(Constants.WORKER_SELECTOR_THREADS, Integer.toString(1));
+    workerConf.set(Constants.WORKER_SERVER_THREADS, Integer.toString(2));
+    workerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, Integer.toString(2));
+
     mWorker =
         TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
             new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,

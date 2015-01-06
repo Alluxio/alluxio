@@ -50,7 +50,7 @@ public final class NettyDataServer implements DataServer {
   public NettyDataServer(final SocketAddress address, final BlocksLocker locker,
       final TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(locker));
+    mBootstrap = createBootstrap().childHandler(new PipelineHandler(locker, mTachyonConf));
 
     try {
       mChannelFuture = mBootstrap.bind(address).sync();

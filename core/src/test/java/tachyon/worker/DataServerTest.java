@@ -225,7 +225,8 @@ public class DataServerTest {
         sendMsg.send(socketChannel);
       }
       DataServerMessage recvMsg =
-          DataServerMessage.createBlockResponseMessage(false, block.blockId, offset, length);
+          DataServerMessage.createBlockResponseMessage(false, block.blockId, offset, length,
+              mWorkerTachyonConf);
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {
