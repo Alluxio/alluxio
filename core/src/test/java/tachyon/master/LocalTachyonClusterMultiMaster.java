@@ -31,7 +31,6 @@ import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -44,13 +43,13 @@ public class LocalTachyonClusterMultiMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public static void main(String[] args) throws Exception {
-    LocalTachyonCluster cluster = new LocalTachyonCluster(100);
+    LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
     cluster.stop();
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
 
-    cluster = new LocalTachyonCluster(100);
+    cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
     cluster.stop();
@@ -61,6 +60,7 @@ public class LocalTachyonClusterMultiMaster {
   private int mNumOfMasters = 0;
   private TachyonWorker mWorker = null;
   private long mWorkerCapacityBytes;
+  private int mUserBlockSize;
 
   private String mTachyonHome;
   private String mWorkerDataFolder;
@@ -79,9 +79,14 @@ public class LocalTachyonClusterMultiMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSuppliers);
 
-  public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters) {
+  private TachyonConf mMasterConf;
+
+  private TachyonConf mWorkerConf;
+
+  public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters, int userBlockSize) {
     mNumOfMasters = masters;
     mWorkerCapacityBytes = workerCapacityBytes;
+    mUserBlockSize = userBlockSize;
 
     try {
       mCuratorServer = new TestingServer();
@@ -91,7 +96,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public synchronized TachyonFS getClient() throws IOException {
-    return mClientPool.getClient();
+    return mClientPool.getClient(mMasterConf);
   }
 
   public String getUri() {
@@ -147,36 +152,38 @@ public class LocalTachyonClusterMultiMaster {
     mLocalhostName = NetworkUtils.getLocalHostName();
 
     System.setProperty("tachyon.test.mode", "true");
-    System.setProperty("tachyon.home", mTachyonHome);
-    System.setProperty("tachyon.usezookeeper", "true");
-    System.setProperty("tachyon.zookeeper.address", mCuratorServer.getConnectString());
-    System.setProperty("tachyon.zookeeper.election.path", "/election");
-    System.setProperty("tachyon.zookeeper.leader.path", "/leader");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
 
     WorkerConf.clear();
-    UserConf.clear();
 
-    TachyonConf masterConf = new TachyonConf();
-    mkdir(masterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
-    mkdir(masterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
+    mMasterConf = new TachyonConf();
+    mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
+    mMasterConf.set(Constants.USE_ZOOKEEPER, "true");
+    mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
+    mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
+    mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
+    mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, "10000");
+    mMasterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
+
+    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
+    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
 
     for (int k = 0; k < mNumOfMasters; k ++) {
-      final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome, masterConf);
+      final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
       master.start();
       mMasters.add(master);
     }
 
     CommonUtils.sleepMs(null, 10);
 
-    TachyonConf workerConf = new TachyonConf();
+    mWorkerConf = new TachyonConf(mMasterConf);
     mWorker =
         TachyonWorker.createWorker(
             CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
             new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
-            mWorkerCapacityBytes, workerConf);
+            mWorkerCapacityBytes, mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {

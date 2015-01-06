@@ -40,12 +40,13 @@ import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.CommonConf;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.util.ConfUtils;
 import tachyon.util.UfsUtils;
 
 /**
@@ -67,6 +68,7 @@ abstract class AbstractTFS extends FileSystem {
   private Path mWorkingDir = new Path(TachyonURI.SEPARATOR);
   private TachyonFS mTFS = null;
   private String mTachyonHeader = null;
+  private final TachyonConf mTachyonConf = new TachyonConf();
 
   @Override
   public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
@@ -81,7 +83,8 @@ abstract class AbstractTFS extends FileSystem {
       LOG.warn("This maybe an error.");
     }
 
-    return new FSDataOutputStream(file.getOutStream(UserConf.get().DEFAULT_WRITE_TYPE), null);
+    WriteType type = getWriteType();
+    return new FSDataOutputStream(file.getOutStream(type), null);
   }
 
   @Override
@@ -100,7 +103,9 @@ abstract class AbstractTFS extends FileSystem {
       int fileId = mTFS.createFile(path, blockSize);
       TachyonFile file = mTFS.getFile(fileId);
       file.setUFSConf(getConf());
-      return new FSDataOutputStream(file.getOutStream(UserConf.get().DEFAULT_WRITE_TYPE), null);
+
+      WriteType type = getWriteType();
+      return new FSDataOutputStream(file.getOutStream(type), null);
     }
 
     if (cPath.toString().contains(FIRST_COM_PATH) && !cPath.toString().contains("SUCCESS")) {
@@ -152,7 +157,7 @@ abstract class AbstractTFS extends FileSystem {
     } else {
       TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       int fileId;
-      WriteType type = UserConf.get().DEFAULT_WRITE_TYPE;
+      WriteType type =  getWriteType();
       if (mTFS.exist(path)) {
         fileId = mTFS.getFileId(path);
         type = WriteType.MUST_CACHE;
@@ -337,7 +342,15 @@ abstract class AbstractTFS extends FileSystem {
     Utils.addS3Credentials(conf);
     setConf(conf);
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
-    mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode());
+
+    // Load TachyonConf if any and merge to the one in TachyonFS
+    TachyonConf siteConf = ConfUtils.loadFromHadoopConfiguration(conf);
+    if (siteConf != null) {
+      mTachyonConf.merge(siteConf);
+    }
+
+    mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode(), mTachyonConf);
+
     mUri = URI.create(mTachyonHeader);
     mUnderFSAddress = mTFS.getUfsAddress();
     LOG.info(mTachyonHeader + " " + mUri + " " + mUnderFSAddress);
@@ -391,7 +404,7 @@ abstract class AbstractTFS extends FileSystem {
     int fileId = mTFS.getFileId(path);
 
     return new FSDataInputStream(new HdfsFileInputStream(mTFS, fileId,
-        Utils.getHDFSPath(path, mUnderFSAddress), getConf(), bufferSize));
+        Utils.getHDFSPath(path, mUnderFSAddress), getConf(), bufferSize, mTachyonConf));
   }
 
   @Override
@@ -425,5 +438,9 @@ abstract class AbstractTFS extends FileSystem {
   @Deprecated
   private boolean useHdfs() {
     return mUnderFSAddress != null && URI.create(mUnderFSAddress).getScheme() != null;
+  }
+
+  private WriteType getWriteType() {
+    return mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.CACHE_THROUGH);
   }
 }

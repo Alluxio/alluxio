@@ -23,10 +23,12 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
+import com.google.common.primitives.Ints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -58,10 +60,12 @@ public class BlockOutStream extends OutStream {
    * @param file the file the block belongs to
    * @param opType the OutStream's write type
    * @param blockIndex the index of the block in the file
+   * @param tachyonConf the TachyonConf instance for this file output stream.
    * @throws IOException
    */
-  BlockOutStream(TachyonFile file, WriteType opType, int blockIndex) throws IOException {
-    super(file, opType);
+  BlockOutStream(TachyonFile file, WriteType opType, int blockIndex, TachyonConf tachyonConf)
+      throws IOException {
+    super(file, opType, tachyonConf);
 
     if (!opType.isCache()) {
       throw new IOException("BlockOutStream only support WriteType.CACHE");
@@ -97,7 +101,9 @@ public class BlockOutStream extends OutStream {
     CommonUtils.setLocalFileStickyBit(mLocalFilePath);
     LOG.info(mLocalFilePath + " was created!");
 
-    mBuffer = ByteBuffer.allocate(mUserConf.FILE_BUFFER_BYTES + 4);
+    long allocateBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES,
+        Constants.MB) + 4L;
+    mBuffer = ByteBuffer.allocate(Ints.checkedCast(allocateBytes));
   }
 
   private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
@@ -106,7 +112,7 @@ public class BlockOutStream extends OutStream {
       mCanWrite = false;
 
       String msg =
-          "Local tachyon worker does not have enough " + "space (" + length + ") or no worker for "
+          "Local tachyon worker does not have enough space (" + length + ") or no worker for "
               + mFile.mFileId + " " + mBlockId;
 
       throw new IOException(msg);
@@ -201,7 +207,8 @@ public class BlockOutStream extends OutStream {
       throw new IOException("Out of capacity.");
     }
 
-    if (mBuffer.position() + len >= mUserConf.FILE_BUFFER_BYTES) {
+    if (mBuffer.position() + len >= mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES,
+        Constants.MB)) {
       if (mBuffer.position() > 0) {
         appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
         mBuffer.clear();
@@ -226,7 +233,8 @@ public class BlockOutStream extends OutStream {
       throw new IOException("Out of capacity.");
     }
 
-    if (mBuffer.position() >= mUserConf.FILE_BUFFER_BYTES) {
+    if (mBuffer.position() >= mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES,
+        Constants.MB)) {
       appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       mBuffer.clear();
     }
