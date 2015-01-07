@@ -124,7 +124,7 @@ public class TachyonMaster {
           Constants.FORMAT_FILE_PREFIX);
       Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
           "Tachyon was not formatted! The journal folder is " + journalFolder);
-      mJournal = new Journal(journalFolder, "image.data", "log.data");
+      mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService, mTachyonConf);
 
       if (mZookeeperMode) {
@@ -176,7 +176,7 @@ public class TachyonMaster {
     if (!folder.endsWith(TachyonURI.SEPARATOR)) {
       folder += TachyonURI.SEPARATOR;
     }
-    UnderFileSystem ufs = UnderFileSystem.get(folder);
+    UnderFileSystem ufs = UnderFileSystem.get(folder, mTachyonConf);
     String[] files = ufs.list(folder);
     if (files == null) {
       return false;
@@ -213,7 +213,8 @@ public class TachyonMaster {
     if (masterKeytab == null || masterPrincipal == null) {
       return;
     }
-    UnderFileSystem ufs = UnderFileSystem.get(mTachyonConf.get(Constants.UNDERFS_ADDRESS, null));
+    UnderFileSystem ufs = UnderFileSystem.get(mTachyonConf.get(Constants.UNDERFS_ADDRESS, null),
+        mTachyonConf);
     if (ufs instanceof UnderFileSystemHdfs) {
       ((UnderFileSystemHdfs) ufs).login(masterKeytab, masterKeytab, masterPrincipal,
           masterPrincipal, NetworkUtils.getFqdnHost(mMasterAddress));

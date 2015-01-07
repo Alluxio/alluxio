@@ -118,7 +118,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path, mMasterConf);
 
     if (ufs.exists(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
@@ -126,7 +126,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   private void mkdir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path, mMasterConf);
 
     if (ufs.exists(path)) {
       ufs.delete(path, true);
@@ -143,11 +143,6 @@ public class LocalTachyonClusterMultiMaster {
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
 
-    deleteDir(mTachyonHome);
-    mkdir(mTachyonHome);
-    mkdir(masterDataFolder);
-    mkdir(masterLogFolder);
-
     mLocalhostName = NetworkUtils.getLocalHostName();
 
     mMasterConf = new TachyonConf();
@@ -159,6 +154,11 @@ public class LocalTachyonClusterMultiMaster {
     mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
     mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, "10000");
     mMasterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
+
+    deleteDir(mTachyonHome);
+    mkdir(mTachyonHome);
+    mkdir(masterDataFolder);
+    mkdir(masterLogFolder);
 
     mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
     mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));

@@ -90,7 +90,7 @@ public class TachyonFSTest {
   @Test
   public void createFileWithUfsFileTest() throws IOException {
     String tempFolder = mMasterTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underfs");
-    UnderFileSystem underFs = UnderFileSystem.get(tempFolder);
+    UnderFileSystem underFs = UnderFileSystem.get(tempFolder, mMasterTachyonConf);
     OutputStream os = underFs.create(tempFolder + "/temp", 100);
     os.close();
     TachyonURI uri = new TachyonURI("/abc");

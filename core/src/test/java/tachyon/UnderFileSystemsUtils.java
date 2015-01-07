@@ -16,6 +16,8 @@ package tachyon;
 
 import java.io.IOException;
 
+import tachyon.conf.TachyonConf;
+
 /**
  * Utility functions for working with {@link tachyon.UnderFileSystem}.
  * 
@@ -28,8 +30,8 @@ public final class UnderFileSystemsUtils {
    * Deletes the directory at the given path. If delete is unsuccessful, then this operation will
    * throw a {@link java.io.IOException}.
    */
-  public static void deleteDir(final String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+  public static void deleteDir(final String path, TachyonConf tachyonConf) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
 
     if (ufs.exists(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
@@ -40,8 +42,8 @@ public final class UnderFileSystemsUtils {
    * Attempts to create the directory if it does not already exist. If unable to create the
    * directory, then a {@link java.io.IOException} is thrown.
    */
-  public static void mkdirIfNotExists(final String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+  public static void mkdirIfNotExists(final String path, TachyonConf tachyonConf) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
 
     if (!ufs.exists(path)) {
       if (!ufs.mkdirs(path, true)) {

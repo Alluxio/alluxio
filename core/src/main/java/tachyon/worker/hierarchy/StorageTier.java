@@ -83,7 +83,7 @@ public class StorageTier {
           StorageDirId.getStorageDirId(storageLevel, mStorageLevelAlias.getValue(), i);
       mStorageDirs[i] =
           new StorageDir(storageDirId, dirPaths[i], dirCapacityBytes[i], dataFolder,
-              userTempFolder, conf);
+              userTempFolder, conf, mTachyonConf);
       quotaBytes += dirCapacityBytes[i];
     }
     mCapacityBytes = quotaBytes;
