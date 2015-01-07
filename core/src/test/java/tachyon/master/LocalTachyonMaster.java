@@ -64,8 +64,8 @@ public final class LocalTachyonMaster {
     mDataDir = path(mTachyonHome, "data");
     mLogDir = path(mTachyonHome, "logs");
 
-    UnderFileSystemsUtils.mkdirIfNotExists(mDataDir);
-    UnderFileSystemsUtils.mkdirIfNotExists(mLogDir);
+    UnderFileSystemsUtils.mkdirIfNotExists(mDataDir, tachyonConf);
+    UnderFileSystemsUtils.mkdirIfNotExists(mLogDir, tachyonConf);
 
     mHostname = NetworkUtils.getLocalHostName();
 
@@ -74,14 +74,14 @@ public final class LocalTachyonMaster {
     // "mTachyonHome/tachyon*". Otherwise, it starts some distributed file system cluster e.g.,
     // miniDFSCluster (see also {@link tachyon.LocalMiniDFScluster} and setup the folder like
     // "hdfs://xxx:xxx/tachyon*".
-    mUnderFSCluster = UnderFileSystemCluster.get(mTachyonHome + "/dfs");
+    mUnderFSCluster = UnderFileSystemCluster.get(mTachyonHome + "/dfs", tachyonConf);
     mUnderFSFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
     // To setup the journalFolder under either local file system or distributed ufs like
     // miniDFSCluster
     mJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
 
-    UnderFileSystemsUtils.mkdirIfNotExists(mJournalFolder);
-    CommonUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis());
+    UnderFileSystemsUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
+    CommonUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(), tachyonConf);
 
     System.setProperty("tachyon.underfs.address", mUnderFSFolder);
 
@@ -129,8 +129,8 @@ public final class LocalTachyonMaster {
    */
   public static LocalTachyonMaster create(TachyonConf tachyonConf) throws IOException {
     final String tachyonHome = uniquePath();
-    UnderFileSystemsUtils.deleteDir(tachyonHome);
-    UnderFileSystemsUtils.mkdirIfNotExists(tachyonHome);
+    UnderFileSystemsUtils.deleteDir(tachyonHome, tachyonConf);
+    UnderFileSystemsUtils.mkdirIfNotExists(tachyonHome, tachyonConf);
 
     // Update Tachyon home in the passed TachyonConf instance.
     tachyonConf.set(Constants.TACHYON_HOME, tachyonHome);

@@ -15,53 +15,62 @@
 package tachyon;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import tachyon.conf.TachyonConf;
 
 /**
  * Unit tests for {@link UnderFileSystem}
  */
 public final class UnderFileSystemTest {
+  private TachyonConf mTachyonConf;
+
+  @Before
+  public void before() {
+    mTachyonConf = new TachyonConf();
+  }
 
   @Test
   public void parseTest() {
-    Pair<String, String> result = UnderFileSystem.parse(new TachyonURI("/path"));
+    Pair<String, String> result = UnderFileSystem.parse(new TachyonURI("/path"), mTachyonConf);
     Assert.assertEquals(result.getFirst(), "/");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("file:///path"));
+    result = UnderFileSystem.parse(new TachyonURI("file:///path"), mTachyonConf);
     Assert.assertEquals(result.getFirst(), "/");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("tachyon://localhost:19998"));
+    result = UnderFileSystem.parse(new TachyonURI("tachyon://localhost:19998"), mTachyonConf);
     Assert.assertEquals(result.getFirst(), "tachyon://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/");
 
-    result = UnderFileSystem.parse(new TachyonURI("tachyon://localhost:19998/"));
+    result = UnderFileSystem.parse(new TachyonURI("tachyon://localhost:19998/"), mTachyonConf);
     Assert.assertEquals(result.getFirst(), "tachyon://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/");
 
-    result = UnderFileSystem.parse(new TachyonURI("tachyon://localhost:19998/path"));
+    result = UnderFileSystem.parse(new TachyonURI("tachyon://localhost:19998/path"), mTachyonConf);
     Assert.assertEquals(result.getFirst(), "tachyon://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("tachyon-ft://localhost:19998/path"));
+    result = UnderFileSystem.parse(new TachyonURI("tachyon-ft://localhost:19998/path"),
+        mTachyonConf);
     Assert.assertEquals(result.getFirst(), "tachyon-ft://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("hdfs://localhost:19998/path"));
+    result = UnderFileSystem.parse(new TachyonURI("hdfs://localhost:19998/path"), mTachyonConf);
     Assert.assertEquals(result.getFirst(), "hdfs://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("s3://localhost:19998/path"));
+    result = UnderFileSystem.parse(new TachyonURI("s3://localhost:19998/path"), mTachyonConf);
     Assert.assertEquals(result.getFirst(), "s3://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    result = UnderFileSystem.parse(new TachyonURI("s3n://localhost:19998/path"));
+    result = UnderFileSystem.parse(new TachyonURI("s3n://localhost:19998/path"), mTachyonConf);
     Assert.assertEquals(result.getFirst(), "s3n://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
-    Assert.assertEquals(UnderFileSystem.parse(null), null);
-    Assert.assertEquals(UnderFileSystem.parse(TachyonURI.EMPTY_URI), null);
-    Assert.assertEquals(UnderFileSystem.parse(new TachyonURI("anythingElse")), null);
+    Assert.assertEquals(UnderFileSystem.parse(null, mTachyonConf), null);
+    Assert.assertEquals(UnderFileSystem.parse(TachyonURI.EMPTY_URI, mTachyonConf), null);
+    Assert.assertEquals(UnderFileSystem.parse(new TachyonURI("anythingElse"), mTachyonConf), null);
   }
 }

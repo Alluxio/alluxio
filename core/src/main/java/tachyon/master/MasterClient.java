@@ -77,7 +77,6 @@ import tachyon.util.NetworkUtils;
 // so all exceptions are handled poorly. This logic needs to be redone and be consistent.
 public final class MasterClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final int MAX_CONNECT_TRY = 5;
 
   private boolean mUseZookeeper;
   private MasterService.Client mClient = null;
@@ -169,7 +168,8 @@ public final class MasterClient implements Closeable {
     }
 
     Exception lastException = null;
-    RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, MAX_CONNECT_TRY);
+    int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT, 29);
+    RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, maxConnectsTry);
     do {
       mMasterAddress = getMasterAddress();
 

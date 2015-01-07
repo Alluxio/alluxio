@@ -72,7 +72,7 @@ public class FileOutStream extends OutStream {
 
     if (mWriteType.isThrough()) {
       mUnderFsFile = CommonUtils.concat(mTachyonFS.createAndGetUserUfsTempFolder(), mFile.mFileId);
-      UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile, ufsConf);
+      UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile, ufsConf, tachyonConf);
       if (mBlockCapacityByte > Integer.MAX_VALUE) {
         throw new IOException("BLOCK_CAPCAITY (" + mBlockCapacityByte + ") can not bigger than "
             + Integer.MAX_VALUE);
@@ -98,7 +98,7 @@ public class FileOutStream extends OutStream {
       if (mWriteType.isThrough()) {
         if (mCancel) {
           mCheckpointOutputStream.close();
-          UnderFileSystem underFsClient = UnderFileSystem.get(mUnderFsFile);
+          UnderFileSystem underFsClient = UnderFileSystem.get(mUnderFsFile, mTachyonConf);
           underFsClient.delete(mUnderFsFile, false);
         } else {
           mCheckpointOutputStream.flush();

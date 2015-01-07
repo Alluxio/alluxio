@@ -39,7 +39,6 @@ import tachyon.TachyonURI;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
-import tachyon.conf.CommonConf;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -93,7 +92,8 @@ abstract class AbstractTFS extends FileSystem {
     LOG.info("create(" + cPath + ", " + permission + ", " + overwrite + ", " + bufferSize + ", "
         + replication + ", " + blockSize + ", " + progress + ")");
 
-    if (!CommonConf.get().ASYNC_ENABLED) {
+    boolean asyncEnabled = mTachyonConf.getBoolean(Constants.ASYNC_ENABLED, true);
+    if (!asyncEnabled) {
       TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       if (mTFS.exist(path)) {
         if (!mTFS.delete(path, false)) {
@@ -228,7 +228,7 @@ abstract class AbstractTFS extends FileSystem {
         TachyonURI ufsAddrPath = new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(),
             path.getPath());
         // Set the path as the TFS root path.
-        UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
+        UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null), mTachyonConf);
       }
     }
   }

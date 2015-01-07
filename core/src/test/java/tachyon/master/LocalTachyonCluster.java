@@ -60,6 +60,10 @@ public final class LocalTachyonCluster {
 
   private LocalTachyonMaster mMaster;
 
+  private TachyonConf mMasterConf;
+
+  private TachyonConf mWorkerConf;
+
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
     mQuotaUnitBytes = quotaUnitBytes;
@@ -79,7 +83,7 @@ public final class LocalTachyonCluster {
   }
 
   public TachyonConf getMasterTachyonConf() {
-    return mMaster.getTachyonConf();
+    return mMasterConf;
   }
 
   public InetSocketAddress getMasterAddress() {
@@ -111,7 +115,7 @@ public final class LocalTachyonCluster {
   }
 
   public TachyonConf getWorkerTachyonConf() {
-    return mWorker.getTachyonConf();
+    return mWorkerConf;
   }
 
   public NetAddress getWorkerAddress() {
@@ -131,7 +135,7 @@ public final class LocalTachyonCluster {
   }
 
   private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path, getMasterTachyonConf());
 
     if (ufs.exists(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
@@ -139,7 +143,7 @@ public final class LocalTachyonCluster {
   }
 
   private void mkdir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path, getMasterTachyonConf());
 
     if (ufs.exists(path)) {
       ufs.delete(path, true);
@@ -154,42 +158,42 @@ public final class LocalTachyonCluster {
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
     mWorkerDataFolder = mTachyonHome + "/ramdisk";
 
+    mLocalhostName = NetworkUtils.getLocalHostName();
+
+    mMasterConf = new TachyonConf();
+    mMasterConf.set(Constants.IN_TEST_MODE, "true");
+    mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
+    mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
+    mMasterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
+    mMasterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "64");
+
     deleteDir(mTachyonHome);
     mkdir(mTachyonHome);
 
-    mLocalhostName = NetworkUtils.getLocalHostName();
-
-    TachyonConf masterConf = new TachyonConf();
-    masterConf.set(Constants.IN_TEST_MODE, "true");
-    masterConf.set(Constants.TACHYON_HOME, mTachyonHome);
-    masterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
-    masterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
-    masterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "64");
-
-    mMaster = LocalTachyonMaster.create(mTachyonHome, masterConf);
+    mMaster = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
     mMaster.start();
 
-    mkdir(masterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
-    mkdir(masterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
+    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
+    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
 
     CommonUtils.sleepMs(null, 10);
 
-    TachyonConf workerConf = new TachyonConf(masterConf);
-    workerConf.set(Constants.MASTER_PORT, getMasterPort() + "");
-    workerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
-    workerConf.set(Constants.WORKER_PORT, "0");
-    workerConf.set(Constants.WORKER_DATA_PORT, "0");
-    workerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
-    workerConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
-    workerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, "15");
-    workerConf.set(Constants.WORKER_SELECTOR_THREADS, Integer.toString(1));
-    workerConf.set(Constants.WORKER_SERVER_THREADS, Integer.toString(2));
-    workerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, Integer.toString(2));
+    mWorkerConf = new TachyonConf(mMasterConf);
+    mWorkerConf.set(Constants.MASTER_PORT, getMasterPort() + "");
+    mWorkerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
+    mWorkerConf.set(Constants.WORKER_PORT, "0");
+    mWorkerConf.set(Constants.WORKER_DATA_PORT, "0");
+    mWorkerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
+    mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
+    mWorkerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, "15");
+    mWorkerConf.set(Constants.WORKER_SELECTOR_THREADS, Integer.toString(1));
+    mWorkerConf.set(Constants.WORKER_SERVER_THREADS, Integer.toString(2));
+    mWorkerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, Integer.toString(2));
 
     mWorker =
         TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
             new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
-            mWorkerCapacityBytes, workerConf);
+            mWorkerCapacityBytes, mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {

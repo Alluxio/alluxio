@@ -36,7 +36,6 @@ import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemHdfs;
 import tachyon.Users;
 import tachyon.Version;
-import tachyon.conf.CommonConf;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
@@ -295,7 +294,8 @@ public class TachyonWorker implements Runnable {
     if (workerKeytabFile == null || workerPrincipal == null) {
       return;
     }
-    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS);
+    String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "localhost/underfs");
+    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
     if (ufs instanceof UnderFileSystemHdfs) {
       ((UnderFileSystemHdfs) ufs).login(Constants.WORKER_KEYTAB_KEY, workerKeytabFile,
           Constants.WORKER_PRINCIPAL_KEY, workerPrincipal,

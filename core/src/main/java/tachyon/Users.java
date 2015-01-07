@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
-import tachyon.conf.CommonConf;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
@@ -51,7 +50,7 @@ public class Users {
 
   private final TachyonConf mTachyonConf;
 
-  public Users(final String userfolder, final String userUfsFolder,  TachyonConf tachyonConf) {
+  public Users(final String userfolder, final String userUfsFolder, TachyonConf tachyonConf) {
     mUserFolder = userfolder;
     mUserUnderFSFolder = userUfsFolder;
     mUsers = new HashMap<Long, UserInfo>();
@@ -157,7 +156,8 @@ public class Users {
       folder = getUserUfsTempFolder(userId);
       sb.append(" Also remove users underfs folder ").append(folder);
       try {
-        UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
+        String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underfs");
+        UnderFileSystem.get(ufsAddress, mTachyonConf).delete(folder, true);
       } catch (IOException e) {
         LOG.warn(e.getMessage(), e);
       }

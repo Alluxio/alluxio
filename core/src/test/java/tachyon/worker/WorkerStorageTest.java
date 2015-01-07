@@ -90,7 +90,8 @@ public class WorkerStorageTest {
     try {
       ws.initialize(mWorkerAddress);
       String orpahnblock = ws.getUfsOrphansFolder() + TachyonURI.SEPARATOR + bid;
-      UnderFileSystem ufs = UnderFileSystem.get(orpahnblock);
+      UnderFileSystem ufs = UnderFileSystem.get(orpahnblock,
+          mLocalTachyonCluster.getMasterTachyonConf());
       Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", new File(
           mWorkerDataFolder + TachyonURI.SEPARATOR + bid).exists());
       Assert.assertTrue("UFS hasn't the orphan block file ", ufs.exists(orpahnblock));

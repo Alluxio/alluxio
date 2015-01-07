@@ -74,7 +74,7 @@ public class UfsUtils {
 
     PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");
 
-    loadUnderFs(tfs, tfsAddrRootPath, ufsAddrRootPath, excludePathPrefix);
+    loadUnderFs(tfs, tfsAddrRootPath, ufsAddrRootPath, excludePathPrefix, tachyonConf);
   }
 
   /**
@@ -86,10 +86,11 @@ public class UfsUtils {
    * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/dir".
    * @param excludePathPrefix paths to exclude from ufsRootPath, which will not be registered in
    *        mTachyonFS.
+   * @param tachyonConf instance of TachyonConf
    * @throws IOException
    */
   public static void loadUnderFs(TachyonFS tfs, TachyonURI tachyonPath, TachyonURI ufsAddrRootPath,
-      PrefixList excludePathPrefix) throws IOException {
+      PrefixList excludePathPrefix, TachyonConf tachyonConf) throws IOException {
     LOG.info("Loading to " + tachyonPath + " " + ufsAddrRootPath + " " + excludePathPrefix);
 
     try {
@@ -104,7 +105,7 @@ public class UfsUtils {
       throw new IOException(e);
     }
 
-    Pair<String, String> ufsPair = UnderFileSystem.parse(ufsAddrRootPath);
+    Pair<String, String> ufsPair = UnderFileSystem.parse(ufsAddrRootPath, tachyonConf);
     String ufsAddress = ufsPair.getFirst();
     String ufsRootPath = ufsPair.getSecond();
 
@@ -119,7 +120,7 @@ public class UfsUtils {
     }
 
     // create the under FS handler (e.g. hdfs, local FS, s3 etc.)
-    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress);
+    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, tachyonConf);
 
     Queue<TachyonURI> ufsPathQueue = new LinkedList<TachyonURI>();
     if (excludePathPrefix.outList(ufsRootPath)) {

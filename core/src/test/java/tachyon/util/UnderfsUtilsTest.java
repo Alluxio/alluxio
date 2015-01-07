@@ -55,7 +55,8 @@ public class UnderfsUtilsTest {
     mTfs = mLocalTachyonCluster.getClient();
 
     mUnderfsAddress = System.getProperty("tachyon.underfs.address");
-    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR);
+    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR,
+        mLocalTachyonCluster.getMasterTachyonConf());
   }
 
   @Test
@@ -76,11 +77,13 @@ public class UnderfsUtilsTest {
       if (!mUfs.exists(inclusion)) {
         mUfs.mkdirs(inclusion, true);
       }
-      CommonUtils.touch(mUnderfsAddress + inclusion + "/1");
+      CommonUtils.touch(mUnderfsAddress + inclusion + "/1",
+          mLocalTachyonCluster.getMasterTachyonConf());
     }
 
     UfsUtils.loadUnderFs(mTfs, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(mUnderfsAddress
-        + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"));
+        + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"),
+        mLocalTachyonCluster.getMasterTachyonConf());
 
     List<String> paths = null;
     for (String exclusion : exclusions) {

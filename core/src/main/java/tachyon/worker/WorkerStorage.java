@@ -190,7 +190,7 @@ public class WorkerStorage {
               + mLocalDataFolder.toString() + " to " + midPath + " to " + dstPath);
 
           if (mCheckpointUfs == null) {
-            mCheckpointUfs = UnderFileSystem.get(midPath);
+            mCheckpointUfs = UnderFileSystem.get(midPath, mTachyonConf);
           }
 
           final long startCopyTimeMs = System.currentTimeMillis();
@@ -331,7 +331,7 @@ public class WorkerStorage {
         ufsAddress + "/tachyon/workers");
     mUfsWorkerFolder = CommonUtils.concat(ufsWorkerFolder, mWorkerId);
     mUfsWorkerDataFolder = mUfsWorkerFolder + "/data";
-    mUfs = UnderFileSystem.get(ufsAddress);
+    mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
     mUsers = new Users(mLocalUserFolder.toString(), mUfsWorkerFolder, mTachyonConf);
 
     int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
