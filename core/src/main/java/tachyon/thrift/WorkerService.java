@@ -42,11 +42,7 @@ public class WorkerService {
 
     public boolean asyncCheckpoint(int fileId) throws TachyonException, org.apache.thrift.TException;
 
-    public void cacheBlock(long userId, long storageDirId, long blockId) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException;
-
-    public ClientLocationInfo getLocalBlockLocation(long blockId) throws FileDoesNotExistException, org.apache.thrift.TException;
-
-    public String getUserLocalTempFolder(long userId, long storageDirId) throws org.apache.thrift.TException;
+    public void cacheBlock(long userId, long blockId, long unusedBytes) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException;
 
     public String getUserUfsTempFolder(long userId) throws org.apache.thrift.TException;
 
@@ -54,11 +50,11 @@ public class WorkerService {
 
     public boolean promoteBlock(long userId, long blockId) throws org.apache.thrift.TException;
 
-    public void returnSpace(long userId, long storageDirId, long returnedBytes) throws org.apache.thrift.TException;
+    public void cancelBlock(long userId, long blockId, long unusedBytes) throws org.apache.thrift.TException;
 
-    public ClientLocationInfo requestSpace(long userId, long requestBytes) throws OutOfSpaceException, org.apache.thrift.TException;
+    public String getBlockLocation(long userId, long blockId, long initialBytes) throws OutOfSpaceException, FileAlreadyExistException, org.apache.thrift.TException;
 
-    public boolean requestSpaceInPlace(long userId, long storageDirId, long requestBytes) throws org.apache.thrift.TException;
+    public boolean requestSpace(long userId, long blockId, long requestBytes) throws OutOfSpaceException, FileDoesNotExistException, org.apache.thrift.TException;
 
     public boolean unlockBlock(long blockId, long userId) throws org.apache.thrift.TException;
 
@@ -74,11 +70,7 @@ public class WorkerService {
 
     public void asyncCheckpoint(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void cacheBlock(long userId, long storageDirId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void getLocalBlockLocation(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void getUserLocalTempFolder(long userId, long storageDirId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void cacheBlock(long userId, long blockId, long unusedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void getUserUfsTempFolder(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -86,11 +78,11 @@ public class WorkerService {
 
     public void promoteBlock(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void returnSpace(long userId, long storageDirId, long returnedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void cancelBlock(long userId, long blockId, long unusedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void requestSpace(long userId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getBlockLocation(long userId, long blockId, long initialBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void requestSpaceInPlace(long userId, long storageDirId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void requestSpace(long userId, long blockId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void unlockBlock(long blockId, long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -197,18 +189,18 @@ public class WorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "asyncCheckpoint failed: unknown result");
     }
 
-    public void cacheBlock(long userId, long storageDirId, long blockId) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException
+    public void cacheBlock(long userId, long blockId, long unusedBytes) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException
     {
-      send_cacheBlock(userId, storageDirId, blockId);
+      send_cacheBlock(userId, blockId, unusedBytes);
       recv_cacheBlock();
     }
 
-    public void send_cacheBlock(long userId, long storageDirId, long blockId) throws org.apache.thrift.TException
+    public void send_cacheBlock(long userId, long blockId, long unusedBytes) throws org.apache.thrift.TException
     {
       cacheBlock_args args = new cacheBlock_args();
       args.setUserId(userId);
-      args.setStorageDirId(storageDirId);
       args.setBlockId(blockId);
+      args.setUnusedBytes(unusedBytes);
       sendBase("cacheBlock", args);
     }
 
@@ -226,56 +218,6 @@ public class WorkerService {
         throw result.eB;
       }
       return;
-    }
-
-    public ClientLocationInfo getLocalBlockLocation(long blockId) throws FileDoesNotExistException, org.apache.thrift.TException
-    {
-      send_getLocalBlockLocation(blockId);
-      return recv_getLocalBlockLocation();
-    }
-
-    public void send_getLocalBlockLocation(long blockId) throws org.apache.thrift.TException
-    {
-      getLocalBlockLocation_args args = new getLocalBlockLocation_args();
-      args.setBlockId(blockId);
-      sendBase("getLocalBlockLocation", args);
-    }
-
-    public ClientLocationInfo recv_getLocalBlockLocation() throws FileDoesNotExistException, org.apache.thrift.TException
-    {
-      getLocalBlockLocation_result result = new getLocalBlockLocation_result();
-      receiveBase(result, "getLocalBlockLocation");
-      if (result.isSetSuccess()) {
-        return result.success;
-      }
-      if (result.eP != null) {
-        throw result.eP;
-      }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getLocalBlockLocation failed: unknown result");
-    }
-
-    public String getUserLocalTempFolder(long userId, long storageDirId) throws org.apache.thrift.TException
-    {
-      send_getUserLocalTempFolder(userId, storageDirId);
-      return recv_getUserLocalTempFolder();
-    }
-
-    public void send_getUserLocalTempFolder(long userId, long storageDirId) throws org.apache.thrift.TException
-    {
-      getUserLocalTempFolder_args args = new getUserLocalTempFolder_args();
-      args.setUserId(userId);
-      args.setStorageDirId(storageDirId);
-      sendBase("getUserLocalTempFolder", args);
-    }
-
-    public String recv_getUserLocalTempFolder() throws org.apache.thrift.TException
-    {
-      getUserLocalTempFolder_result result = new getUserLocalTempFolder_result();
-      receiveBase(result, "getUserLocalTempFolder");
-      if (result.isSetSuccess()) {
-        return result.success;
-      }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUserLocalTempFolder failed: unknown result");
     }
 
     public String getUserUfsTempFolder(long userId) throws org.apache.thrift.TException
@@ -352,43 +294,75 @@ public class WorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "promoteBlock failed: unknown result");
     }
 
-    public void returnSpace(long userId, long storageDirId, long returnedBytes) throws org.apache.thrift.TException
+    public void cancelBlock(long userId, long blockId, long unusedBytes) throws org.apache.thrift.TException
     {
-      send_returnSpace(userId, storageDirId, returnedBytes);
-      recv_returnSpace();
+      send_cancelBlock(userId, blockId, unusedBytes);
+      recv_cancelBlock();
     }
 
-    public void send_returnSpace(long userId, long storageDirId, long returnedBytes) throws org.apache.thrift.TException
+    public void send_cancelBlock(long userId, long blockId, long unusedBytes) throws org.apache.thrift.TException
     {
-      returnSpace_args args = new returnSpace_args();
+      cancelBlock_args args = new cancelBlock_args();
       args.setUserId(userId);
-      args.setStorageDirId(storageDirId);
-      args.setReturnedBytes(returnedBytes);
-      sendBase("returnSpace", args);
+      args.setBlockId(blockId);
+      args.setUnusedBytes(unusedBytes);
+      sendBase("cancelBlock", args);
     }
 
-    public void recv_returnSpace() throws org.apache.thrift.TException
+    public void recv_cancelBlock() throws org.apache.thrift.TException
     {
-      returnSpace_result result = new returnSpace_result();
-      receiveBase(result, "returnSpace");
+      cancelBlock_result result = new cancelBlock_result();
+      receiveBase(result, "cancelBlock");
       return;
     }
 
-    public ClientLocationInfo requestSpace(long userId, long requestBytes) throws OutOfSpaceException, org.apache.thrift.TException
+    public String getBlockLocation(long userId, long blockId, long initialBytes) throws OutOfSpaceException, FileAlreadyExistException, org.apache.thrift.TException
     {
-      send_requestSpace(userId, requestBytes);
+      send_getBlockLocation(userId, blockId, initialBytes);
+      return recv_getBlockLocation();
+    }
+
+    public void send_getBlockLocation(long userId, long blockId, long initialBytes) throws org.apache.thrift.TException
+    {
+      getBlockLocation_args args = new getBlockLocation_args();
+      args.setUserId(userId);
+      args.setBlockId(blockId);
+      args.setInitialBytes(initialBytes);
+      sendBase("getBlockLocation", args);
+    }
+
+    public String recv_getBlockLocation() throws OutOfSpaceException, FileAlreadyExistException, org.apache.thrift.TException
+    {
+      getBlockLocation_result result = new getBlockLocation_result();
+      receiveBase(result, "getBlockLocation");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      if (result.eP != null) {
+        throw result.eP;
+      }
+      if (result.eS != null) {
+        throw result.eS;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getBlockLocation failed: unknown result");
+    }
+
+    public boolean requestSpace(long userId, long blockId, long requestBytes) throws OutOfSpaceException, FileDoesNotExistException, org.apache.thrift.TException
+    {
+      send_requestSpace(userId, blockId, requestBytes);
       return recv_requestSpace();
     }
 
-    public void send_requestSpace(long userId, long requestBytes) throws org.apache.thrift.TException
+    public void send_requestSpace(long userId, long blockId, long requestBytes) throws org.apache.thrift.TException
     {
       requestSpace_args args = new requestSpace_args();
       args.setUserId(userId);
+      args.setBlockId(blockId);
       args.setRequestBytes(requestBytes);
       sendBase("requestSpace", args);
     }
 
-    public ClientLocationInfo recv_requestSpace() throws OutOfSpaceException, org.apache.thrift.TException
+    public boolean recv_requestSpace() throws OutOfSpaceException, FileDoesNotExistException, org.apache.thrift.TException
     {
       requestSpace_result result = new requestSpace_result();
       receiveBase(result, "requestSpace");
@@ -398,32 +372,10 @@ public class WorkerService {
       if (result.eP != null) {
         throw result.eP;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "requestSpace failed: unknown result");
-    }
-
-    public boolean requestSpaceInPlace(long userId, long storageDirId, long requestBytes) throws org.apache.thrift.TException
-    {
-      send_requestSpaceInPlace(userId, storageDirId, requestBytes);
-      return recv_requestSpaceInPlace();
-    }
-
-    public void send_requestSpaceInPlace(long userId, long storageDirId, long requestBytes) throws org.apache.thrift.TException
-    {
-      requestSpaceInPlace_args args = new requestSpaceInPlace_args();
-      args.setUserId(userId);
-      args.setStorageDirId(storageDirId);
-      args.setRequestBytes(requestBytes);
-      sendBase("requestSpaceInPlace", args);
-    }
-
-    public boolean recv_requestSpaceInPlace() throws org.apache.thrift.TException
-    {
-      requestSpaceInPlace_result result = new requestSpaceInPlace_result();
-      receiveBase(result, "requestSpaceInPlace");
-      if (result.isSetSuccess()) {
-        return result.success;
+      if (result.eS != null) {
+        throw result.eS;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "requestSpaceInPlace failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "requestSpace failed: unknown result");
     }
 
     public boolean unlockBlock(long blockId, long userId) throws org.apache.thrift.TException
@@ -587,30 +539,30 @@ public class WorkerService {
       }
     }
 
-    public void cacheBlock(long userId, long storageDirId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void cacheBlock(long userId, long blockId, long unusedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      cacheBlock_call method_call = new cacheBlock_call(userId, storageDirId, blockId, resultHandler, this, ___protocolFactory, ___transport);
+      cacheBlock_call method_call = new cacheBlock_call(userId, blockId, unusedBytes, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class cacheBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long userId;
-      private long storageDirId;
       private long blockId;
-      public cacheBlock_call(long userId, long storageDirId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private long unusedBytes;
+      public cacheBlock_call(long userId, long blockId, long unusedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.userId = userId;
-        this.storageDirId = storageDirId;
         this.blockId = blockId;
+        this.unusedBytes = unusedBytes;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("cacheBlock", org.apache.thrift.protocol.TMessageType.CALL, 0));
         cacheBlock_args args = new cacheBlock_args();
         args.setUserId(userId);
-        args.setStorageDirId(storageDirId);
         args.setBlockId(blockId);
+        args.setUnusedBytes(unusedBytes);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -622,73 +574,6 @@ public class WorkerService {
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
         (new Client(prot)).recv_cacheBlock();
-      }
-    }
-
-    public void getLocalBlockLocation(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      getLocalBlockLocation_call method_call = new getLocalBlockLocation_call(blockId, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class getLocalBlockLocation_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private long blockId;
-      public getLocalBlockLocation_call(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.blockId = blockId;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getLocalBlockLocation", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        getLocalBlockLocation_args args = new getLocalBlockLocation_args();
-        args.setBlockId(blockId);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public ClientLocationInfo getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_getLocalBlockLocation();
-      }
-    }
-
-    public void getUserLocalTempFolder(long userId, long storageDirId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      getUserLocalTempFolder_call method_call = new getUserLocalTempFolder_call(userId, storageDirId, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class getUserLocalTempFolder_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private long userId;
-      private long storageDirId;
-      public getUserLocalTempFolder_call(long userId, long storageDirId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.userId = userId;
-        this.storageDirId = storageDirId;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getUserLocalTempFolder", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        getUserLocalTempFolder_args args = new getUserLocalTempFolder_args();
-        args.setUserId(userId);
-        args.setStorageDirId(storageDirId);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public String getResult() throws org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_getUserLocalTempFolder();
       }
     }
 
@@ -794,30 +679,30 @@ public class WorkerService {
       }
     }
 
-    public void returnSpace(long userId, long storageDirId, long returnedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void cancelBlock(long userId, long blockId, long unusedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      returnSpace_call method_call = new returnSpace_call(userId, storageDirId, returnedBytes, resultHandler, this, ___protocolFactory, ___transport);
+      cancelBlock_call method_call = new cancelBlock_call(userId, blockId, unusedBytes, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class returnSpace_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class cancelBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long userId;
-      private long storageDirId;
-      private long returnedBytes;
-      public returnSpace_call(long userId, long storageDirId, long returnedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private long blockId;
+      private long unusedBytes;
+      public cancelBlock_call(long userId, long blockId, long unusedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.userId = userId;
-        this.storageDirId = storageDirId;
-        this.returnedBytes = returnedBytes;
+        this.blockId = blockId;
+        this.unusedBytes = unusedBytes;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("returnSpace", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        returnSpace_args args = new returnSpace_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("cancelBlock", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        cancelBlock_args args = new cancelBlock_args();
         args.setUserId(userId);
-        args.setStorageDirId(storageDirId);
-        args.setReturnedBytes(returnedBytes);
+        args.setBlockId(blockId);
+        args.setUnusedBytes(unusedBytes);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -828,23 +713,63 @@ public class WorkerService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_returnSpace();
+        (new Client(prot)).recv_cancelBlock();
       }
     }
 
-    public void requestSpace(long userId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getBlockLocation(long userId, long blockId, long initialBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      requestSpace_call method_call = new requestSpace_call(userId, requestBytes, resultHandler, this, ___protocolFactory, ___transport);
+      getBlockLocation_call method_call = new getBlockLocation_call(userId, blockId, initialBytes, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class getBlockLocation_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private long userId;
+      private long blockId;
+      private long initialBytes;
+      public getBlockLocation_call(long userId, long blockId, long initialBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.userId = userId;
+        this.blockId = blockId;
+        this.initialBytes = initialBytes;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getBlockLocation", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getBlockLocation_args args = new getBlockLocation_args();
+        args.setUserId(userId);
+        args.setBlockId(blockId);
+        args.setInitialBytes(initialBytes);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public String getResult() throws OutOfSpaceException, FileAlreadyExistException, org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_getBlockLocation();
+      }
+    }
+
+    public void requestSpace(long userId, long blockId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      requestSpace_call method_call = new requestSpace_call(userId, blockId, requestBytes, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class requestSpace_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long userId;
+      private long blockId;
       private long requestBytes;
-      public requestSpace_call(long userId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public requestSpace_call(long userId, long blockId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.userId = userId;
+        this.blockId = blockId;
         this.requestBytes = requestBytes;
       }
 
@@ -852,56 +777,19 @@ public class WorkerService {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("requestSpace", org.apache.thrift.protocol.TMessageType.CALL, 0));
         requestSpace_args args = new requestSpace_args();
         args.setUserId(userId);
+        args.setBlockId(blockId);
         args.setRequestBytes(requestBytes);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public ClientLocationInfo getResult() throws OutOfSpaceException, org.apache.thrift.TException {
+      public boolean getResult() throws OutOfSpaceException, FileDoesNotExistException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
         return (new Client(prot)).recv_requestSpace();
-      }
-    }
-
-    public void requestSpaceInPlace(long userId, long storageDirId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      requestSpaceInPlace_call method_call = new requestSpaceInPlace_call(userId, storageDirId, requestBytes, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class requestSpaceInPlace_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private long userId;
-      private long storageDirId;
-      private long requestBytes;
-      public requestSpaceInPlace_call(long userId, long storageDirId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.userId = userId;
-        this.storageDirId = storageDirId;
-        this.requestBytes = requestBytes;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("requestSpaceInPlace", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        requestSpaceInPlace_args args = new requestSpaceInPlace_args();
-        args.setUserId(userId);
-        args.setStorageDirId(storageDirId);
-        args.setRequestBytes(requestBytes);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public boolean getResult() throws org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_requestSpaceInPlace();
       }
     }
 
@@ -989,14 +877,12 @@ public class WorkerService {
       processMap.put("addCheckpoint", new addCheckpoint());
       processMap.put("asyncCheckpoint", new asyncCheckpoint());
       processMap.put("cacheBlock", new cacheBlock());
-      processMap.put("getLocalBlockLocation", new getLocalBlockLocation());
-      processMap.put("getUserLocalTempFolder", new getUserLocalTempFolder());
       processMap.put("getUserUfsTempFolder", new getUserUfsTempFolder());
       processMap.put("lockBlock", new lockBlock());
       processMap.put("promoteBlock", new promoteBlock());
-      processMap.put("returnSpace", new returnSpace());
+      processMap.put("cancelBlock", new cancelBlock());
+      processMap.put("getBlockLocation", new getBlockLocation());
       processMap.put("requestSpace", new requestSpace());
-      processMap.put("requestSpaceInPlace", new requestSpaceInPlace());
       processMap.put("unlockBlock", new unlockBlock());
       processMap.put("userHeartbeat", new userHeartbeat());
       return processMap;
@@ -1093,7 +979,7 @@ public class WorkerService {
       public cacheBlock_result getResult(I iface, cacheBlock_args args) throws org.apache.thrift.TException {
         cacheBlock_result result = new cacheBlock_result();
         try {
-          iface.cacheBlock(args.userId, args.storageDirId, args.blockId);
+          iface.cacheBlock(args.userId, args.blockId, args.unusedBytes);
         } catch (FileDoesNotExistException eP) {
           result.eP = eP;
         } catch (SuspectedFileSizeException eS) {
@@ -1101,50 +987,6 @@ public class WorkerService {
         } catch (BlockInfoException eB) {
           result.eB = eB;
         }
-        return result;
-      }
-    }
-
-    public static class getLocalBlockLocation<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getLocalBlockLocation_args> {
-      public getLocalBlockLocation() {
-        super("getLocalBlockLocation");
-      }
-
-      public getLocalBlockLocation_args getEmptyArgsInstance() {
-        return new getLocalBlockLocation_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public getLocalBlockLocation_result getResult(I iface, getLocalBlockLocation_args args) throws org.apache.thrift.TException {
-        getLocalBlockLocation_result result = new getLocalBlockLocation_result();
-        try {
-          result.success = iface.getLocalBlockLocation(args.blockId);
-        } catch (FileDoesNotExistException eP) {
-          result.eP = eP;
-        }
-        return result;
-      }
-    }
-
-    public static class getUserLocalTempFolder<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getUserLocalTempFolder_args> {
-      public getUserLocalTempFolder() {
-        super("getUserLocalTempFolder");
-      }
-
-      public getUserLocalTempFolder_args getEmptyArgsInstance() {
-        return new getUserLocalTempFolder_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public getUserLocalTempFolder_result getResult(I iface, getUserLocalTempFolder_args args) throws org.apache.thrift.TException {
-        getUserLocalTempFolder_result result = new getUserLocalTempFolder_result();
-        result.success = iface.getUserLocalTempFolder(args.userId, args.storageDirId);
         return result;
       }
     }
@@ -1214,22 +1056,48 @@ public class WorkerService {
       }
     }
 
-    public static class returnSpace<I extends Iface> extends org.apache.thrift.ProcessFunction<I, returnSpace_args> {
-      public returnSpace() {
-        super("returnSpace");
+    public static class cancelBlock<I extends Iface> extends org.apache.thrift.ProcessFunction<I, cancelBlock_args> {
+      public cancelBlock() {
+        super("cancelBlock");
       }
 
-      public returnSpace_args getEmptyArgsInstance() {
-        return new returnSpace_args();
+      public cancelBlock_args getEmptyArgsInstance() {
+        return new cancelBlock_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public returnSpace_result getResult(I iface, returnSpace_args args) throws org.apache.thrift.TException {
-        returnSpace_result result = new returnSpace_result();
-        iface.returnSpace(args.userId, args.storageDirId, args.returnedBytes);
+      public cancelBlock_result getResult(I iface, cancelBlock_args args) throws org.apache.thrift.TException {
+        cancelBlock_result result = new cancelBlock_result();
+        iface.cancelBlock(args.userId, args.blockId, args.unusedBytes);
+        return result;
+      }
+    }
+
+    public static class getBlockLocation<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getBlockLocation_args> {
+      public getBlockLocation() {
+        super("getBlockLocation");
+      }
+
+      public getBlockLocation_args getEmptyArgsInstance() {
+        return new getBlockLocation_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public getBlockLocation_result getResult(I iface, getBlockLocation_args args) throws org.apache.thrift.TException {
+        getBlockLocation_result result = new getBlockLocation_result();
+        try {
+          result.success = iface.getBlockLocation(args.userId, args.blockId, args.initialBytes);
+        } catch (OutOfSpaceException eP) {
+          result.eP = eP;
+        } catch (FileAlreadyExistException eS) {
+          result.eS = eS;
+        }
         return result;
       }
     }
@@ -1250,31 +1118,13 @@ public class WorkerService {
       public requestSpace_result getResult(I iface, requestSpace_args args) throws org.apache.thrift.TException {
         requestSpace_result result = new requestSpace_result();
         try {
-          result.success = iface.requestSpace(args.userId, args.requestBytes);
+          result.success = iface.requestSpace(args.userId, args.blockId, args.requestBytes);
+          result.setSuccessIsSet(true);
         } catch (OutOfSpaceException eP) {
           result.eP = eP;
+        } catch (FileDoesNotExistException eS) {
+          result.eS = eS;
         }
-        return result;
-      }
-    }
-
-    public static class requestSpaceInPlace<I extends Iface> extends org.apache.thrift.ProcessFunction<I, requestSpaceInPlace_args> {
-      public requestSpaceInPlace() {
-        super("requestSpaceInPlace");
-      }
-
-      public requestSpaceInPlace_args getEmptyArgsInstance() {
-        return new requestSpaceInPlace_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public requestSpaceInPlace_result getResult(I iface, requestSpaceInPlace_args args) throws org.apache.thrift.TException {
-        requestSpaceInPlace_result result = new requestSpaceInPlace_result();
-        result.success = iface.requestSpaceInPlace(args.userId, args.storageDirId, args.requestBytes);
-        result.setSuccessIsSet(true);
         return result;
       }
     }
@@ -1337,14 +1187,12 @@ public class WorkerService {
       processMap.put("addCheckpoint", new addCheckpoint());
       processMap.put("asyncCheckpoint", new asyncCheckpoint());
       processMap.put("cacheBlock", new cacheBlock());
-      processMap.put("getLocalBlockLocation", new getLocalBlockLocation());
-      processMap.put("getUserLocalTempFolder", new getUserLocalTempFolder());
       processMap.put("getUserUfsTempFolder", new getUserUfsTempFolder());
       processMap.put("lockBlock", new lockBlock());
       processMap.put("promoteBlock", new promoteBlock());
-      processMap.put("returnSpace", new returnSpace());
+      processMap.put("cancelBlock", new cancelBlock());
+      processMap.put("getBlockLocation", new getBlockLocation());
       processMap.put("requestSpace", new requestSpace());
-      processMap.put("requestSpaceInPlace", new requestSpaceInPlace());
       processMap.put("unlockBlock", new unlockBlock());
       processMap.put("userHeartbeat", new userHeartbeat());
       return processMap;
@@ -1591,115 +1439,7 @@ public class WorkerService {
       }
 
       public void start(I iface, cacheBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.cacheBlock(args.userId, args.storageDirId, args.blockId,resultHandler);
-      }
-    }
-
-    public static class getLocalBlockLocation<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getLocalBlockLocation_args, ClientLocationInfo> {
-      public getLocalBlockLocation() {
-        super("getLocalBlockLocation");
-      }
-
-      public getLocalBlockLocation_args getEmptyArgsInstance() {
-        return new getLocalBlockLocation_args();
-      }
-
-      public AsyncMethodCallback<ClientLocationInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<ClientLocationInfo>() { 
-          public void onComplete(ClientLocationInfo o) {
-            getLocalBlockLocation_result result = new getLocalBlockLocation_result();
-            result.success = o;
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            getLocalBlockLocation_result result = new getLocalBlockLocation_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.eP = (FileDoesNotExistException) e;
-                        result.setEPIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, getLocalBlockLocation_args args, org.apache.thrift.async.AsyncMethodCallback<ClientLocationInfo> resultHandler) throws TException {
-        iface.getLocalBlockLocation(args.blockId,resultHandler);
-      }
-    }
-
-    public static class getUserLocalTempFolder<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getUserLocalTempFolder_args, String> {
-      public getUserLocalTempFolder() {
-        super("getUserLocalTempFolder");
-      }
-
-      public getUserLocalTempFolder_args getEmptyArgsInstance() {
-        return new getUserLocalTempFolder_args();
-      }
-
-      public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<String>() { 
-          public void onComplete(String o) {
-            getUserLocalTempFolder_result result = new getUserLocalTempFolder_result();
-            result.success = o;
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            getUserLocalTempFolder_result result = new getUserLocalTempFolder_result();
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, getUserLocalTempFolder_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
-        iface.getUserLocalTempFolder(args.userId, args.storageDirId,resultHandler);
+        iface.cacheBlock(args.userId, args.blockId, args.unusedBytes,resultHandler);
       }
     }
 
@@ -1863,20 +1603,20 @@ public class WorkerService {
       }
     }
 
-    public static class returnSpace<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, returnSpace_args, Void> {
-      public returnSpace() {
-        super("returnSpace");
+    public static class cancelBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, cancelBlock_args, Void> {
+      public cancelBlock() {
+        super("cancelBlock");
       }
 
-      public returnSpace_args getEmptyArgsInstance() {
-        return new returnSpace_args();
+      public cancelBlock_args getEmptyArgsInstance() {
+        return new cancelBlock_args();
       }
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<Void>() { 
           public void onComplete(Void o) {
-            returnSpace_result result = new returnSpace_result();
+            cancelBlock_result result = new cancelBlock_result();
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -1888,7 +1628,7 @@ public class WorkerService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            returnSpace_result result = new returnSpace_result();
+            cancelBlock_result result = new cancelBlock_result();
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1908,25 +1648,25 @@ public class WorkerService {
         return false;
       }
 
-      public void start(I iface, returnSpace_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.returnSpace(args.userId, args.storageDirId, args.returnedBytes,resultHandler);
+      public void start(I iface, cancelBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
+        iface.cancelBlock(args.userId, args.blockId, args.unusedBytes,resultHandler);
       }
     }
 
-    public static class requestSpace<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, requestSpace_args, ClientLocationInfo> {
-      public requestSpace() {
-        super("requestSpace");
+    public static class getBlockLocation<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getBlockLocation_args, String> {
+      public getBlockLocation() {
+        super("getBlockLocation");
       }
 
-      public requestSpace_args getEmptyArgsInstance() {
-        return new requestSpace_args();
+      public getBlockLocation_args getEmptyArgsInstance() {
+        return new getBlockLocation_args();
       }
 
-      public AsyncMethodCallback<ClientLocationInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<ClientLocationInfo>() { 
-          public void onComplete(ClientLocationInfo o) {
-            requestSpace_result result = new requestSpace_result();
+        return new AsyncMethodCallback<String>() { 
+          public void onComplete(String o) {
+            getBlockLocation_result result = new getBlockLocation_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -1939,10 +1679,15 @@ public class WorkerService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            requestSpace_result result = new requestSpace_result();
+            getBlockLocation_result result = new getBlockLocation_result();
             if (e instanceof OutOfSpaceException) {
                         result.eP = (OutOfSpaceException) e;
                         result.setEPIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof FileAlreadyExistException) {
+                        result.eS = (FileAlreadyExistException) e;
+                        result.setESIsSet(true);
                         msg = result;
             }
              else 
@@ -1965,25 +1710,25 @@ public class WorkerService {
         return false;
       }
 
-      public void start(I iface, requestSpace_args args, org.apache.thrift.async.AsyncMethodCallback<ClientLocationInfo> resultHandler) throws TException {
-        iface.requestSpace(args.userId, args.requestBytes,resultHandler);
+      public void start(I iface, getBlockLocation_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
+        iface.getBlockLocation(args.userId, args.blockId, args.initialBytes,resultHandler);
       }
     }
 
-    public static class requestSpaceInPlace<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, requestSpaceInPlace_args, Boolean> {
-      public requestSpaceInPlace() {
-        super("requestSpaceInPlace");
+    public static class requestSpace<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, requestSpace_args, Boolean> {
+      public requestSpace() {
+        super("requestSpace");
       }
 
-      public requestSpaceInPlace_args getEmptyArgsInstance() {
-        return new requestSpaceInPlace_args();
+      public requestSpace_args getEmptyArgsInstance() {
+        return new requestSpace_args();
       }
 
       public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<Boolean>() { 
           public void onComplete(Boolean o) {
-            requestSpaceInPlace_result result = new requestSpaceInPlace_result();
+            requestSpace_result result = new requestSpace_result();
             result.success = o;
             result.setSuccessIsSet(true);
             try {
@@ -1997,7 +1742,18 @@ public class WorkerService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            requestSpaceInPlace_result result = new requestSpaceInPlace_result();
+            requestSpace_result result = new requestSpace_result();
+            if (e instanceof OutOfSpaceException) {
+                        result.eP = (OutOfSpaceException) e;
+                        result.setEPIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof FileDoesNotExistException) {
+                        result.eS = (FileDoesNotExistException) e;
+                        result.setESIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2017,8 +1773,8 @@ public class WorkerService {
         return false;
       }
 
-      public void start(I iface, requestSpaceInPlace_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
-        iface.requestSpaceInPlace(args.userId, args.storageDirId, args.requestBytes,resultHandler);
+      public void start(I iface, requestSpace_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
+        iface.requestSpace(args.userId, args.blockId, args.requestBytes,resultHandler);
       }
     }
 
@@ -4644,8 +4400,8 @@ public class WorkerService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("cacheBlock_args");
 
     private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField STORAGE_DIR_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("storageDirId", org.apache.thrift.protocol.TType.I64, (short)2);
-    private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)3);
+    private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField UNUSED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("unusedBytes", org.apache.thrift.protocol.TType.I64, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4654,14 +4410,14 @@ public class WorkerService {
     }
 
     public long userId; // required
-    public long storageDirId; // required
     public long blockId; // required
+    public long unusedBytes; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       USER_ID((short)1, "userId"),
-      STORAGE_DIR_ID((short)2, "storageDirId"),
-      BLOCK_ID((short)3, "blockId");
+      BLOCK_ID((short)2, "blockId"),
+      UNUSED_BYTES((short)3, "unusedBytes");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4678,10 +4434,10 @@ public class WorkerService {
         switch(fieldId) {
           case 1: // USER_ID
             return USER_ID;
-          case 2: // STORAGE_DIR_ID
-            return STORAGE_DIR_ID;
-          case 3: // BLOCK_ID
+          case 2: // BLOCK_ID
             return BLOCK_ID;
+          case 3: // UNUSED_BYTES
+            return UNUSED_BYTES;
           default:
             return null;
         }
@@ -4723,17 +4479,17 @@ public class WorkerService {
 
     // isset id assignments
     private static final int __USERID_ISSET_ID = 0;
-    private static final int __STORAGEDIRID_ISSET_ID = 1;
-    private static final int __BLOCKID_ISSET_ID = 2;
+    private static final int __BLOCKID_ISSET_ID = 1;
+    private static final int __UNUSEDBYTES_ISSET_ID = 2;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.STORAGE_DIR_ID, new org.apache.thrift.meta_data.FieldMetaData("storageDirId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.UNUSED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("unusedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cacheBlock_args.class, metaDataMap);
@@ -4744,16 +4500,16 @@ public class WorkerService {
 
     public cacheBlock_args(
       long userId,
-      long storageDirId,
-      long blockId)
+      long blockId,
+      long unusedBytes)
     {
       this();
       this.userId = userId;
       setUserIdIsSet(true);
-      this.storageDirId = storageDirId;
-      setStorageDirIdIsSet(true);
       this.blockId = blockId;
       setBlockIdIsSet(true);
+      this.unusedBytes = unusedBytes;
+      setUnusedBytesIsSet(true);
     }
 
     /**
@@ -4762,8 +4518,8 @@ public class WorkerService {
     public cacheBlock_args(cacheBlock_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.userId = other.userId;
-      this.storageDirId = other.storageDirId;
       this.blockId = other.blockId;
+      this.unusedBytes = other.unusedBytes;
     }
 
     public cacheBlock_args deepCopy() {
@@ -4774,10 +4530,10 @@ public class WorkerService {
     public void clear() {
       setUserIdIsSet(false);
       this.userId = 0;
-      setStorageDirIdIsSet(false);
-      this.storageDirId = 0;
       setBlockIdIsSet(false);
       this.blockId = 0;
+      setUnusedBytesIsSet(false);
+      this.unusedBytes = 0;
     }
 
     public long getUserId() {
@@ -4803,29 +4559,6 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USERID_ISSET_ID, value);
     }
 
-    public long getStorageDirId() {
-      return this.storageDirId;
-    }
-
-    public cacheBlock_args setStorageDirId(long storageDirId) {
-      this.storageDirId = storageDirId;
-      setStorageDirIdIsSet(true);
-      return this;
-    }
-
-    public void unsetStorageDirId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID);
-    }
-
-    /** Returns true if field storageDirId is set (has been assigned a value) and false otherwise */
-    public boolean isSetStorageDirId() {
-      return EncodingUtils.testBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID);
-    }
-
-    public void setStorageDirIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID, value);
-    }
-
     public long getBlockId() {
       return this.blockId;
     }
@@ -4849,6 +4582,29 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
+    public long getUnusedBytes() {
+      return this.unusedBytes;
+    }
+
+    public cacheBlock_args setUnusedBytes(long unusedBytes) {
+      this.unusedBytes = unusedBytes;
+      setUnusedBytesIsSet(true);
+      return this;
+    }
+
+    public void unsetUnusedBytes() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __UNUSEDBYTES_ISSET_ID);
+    }
+
+    /** Returns true if field unusedBytes is set (has been assigned a value) and false otherwise */
+    public boolean isSetUnusedBytes() {
+      return EncodingUtils.testBit(__isset_bitfield, __UNUSEDBYTES_ISSET_ID);
+    }
+
+    public void setUnusedBytesIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __UNUSEDBYTES_ISSET_ID, value);
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case USER_ID:
@@ -4856,14 +4612,6 @@ public class WorkerService {
           unsetUserId();
         } else {
           setUserId((Long)value);
-        }
-        break;
-
-      case STORAGE_DIR_ID:
-        if (value == null) {
-          unsetStorageDirId();
-        } else {
-          setStorageDirId((Long)value);
         }
         break;
 
@@ -4875,6 +4623,14 @@ public class WorkerService {
         }
         break;
 
+      case UNUSED_BYTES:
+        if (value == null) {
+          unsetUnusedBytes();
+        } else {
+          setUnusedBytes((Long)value);
+        }
+        break;
+
       }
     }
 
@@ -4883,11 +4639,11 @@ public class WorkerService {
       case USER_ID:
         return Long.valueOf(getUserId());
 
-      case STORAGE_DIR_ID:
-        return Long.valueOf(getStorageDirId());
-
       case BLOCK_ID:
         return Long.valueOf(getBlockId());
+
+      case UNUSED_BYTES:
+        return Long.valueOf(getUnusedBytes());
 
       }
       throw new IllegalStateException();
@@ -4902,10 +4658,10 @@ public class WorkerService {
       switch (field) {
       case USER_ID:
         return isSetUserId();
-      case STORAGE_DIR_ID:
-        return isSetStorageDirId();
       case BLOCK_ID:
         return isSetBlockId();
+      case UNUSED_BYTES:
+        return isSetUnusedBytes();
       }
       throw new IllegalStateException();
     }
@@ -4932,21 +4688,21 @@ public class WorkerService {
           return false;
       }
 
-      boolean this_present_storageDirId = true;
-      boolean that_present_storageDirId = true;
-      if (this_present_storageDirId || that_present_storageDirId) {
-        if (!(this_present_storageDirId && that_present_storageDirId))
-          return false;
-        if (this.storageDirId != that.storageDirId)
-          return false;
-      }
-
       boolean this_present_blockId = true;
       boolean that_present_blockId = true;
       if (this_present_blockId || that_present_blockId) {
         if (!(this_present_blockId && that_present_blockId))
           return false;
         if (this.blockId != that.blockId)
+          return false;
+      }
+
+      boolean this_present_unusedBytes = true;
+      boolean that_present_unusedBytes = true;
+      if (this_present_unusedBytes || that_present_unusedBytes) {
+        if (!(this_present_unusedBytes && that_present_unusedBytes))
+          return false;
+        if (this.unusedBytes != that.unusedBytes)
           return false;
       }
 
@@ -4976,22 +4732,22 @@ public class WorkerService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetStorageDirId()).compareTo(other.isSetStorageDirId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetStorageDirId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.storageDirId, other.storageDirId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       lastComparison = Boolean.valueOf(isSetBlockId()).compareTo(other.isSetBlockId());
       if (lastComparison != 0) {
         return lastComparison;
       }
       if (isSetBlockId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockId, other.blockId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetUnusedBytes()).compareTo(other.isSetUnusedBytes());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetUnusedBytes()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.unusedBytes, other.unusedBytes);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -5020,12 +4776,12 @@ public class WorkerService {
       sb.append(this.userId);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("storageDirId:");
-      sb.append(this.storageDirId);
-      first = false;
-      if (!first) sb.append(", ");
       sb.append("blockId:");
       sb.append(this.blockId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("unusedBytes:");
+      sb.append(this.unusedBytes);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -5080,18 +4836,18 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // STORAGE_DIR_ID
+            case 2: // BLOCK_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.storageDirId = iprot.readI64();
-                struct.setStorageDirIdIsSet(true);
+                struct.blockId = iprot.readI64();
+                struct.setBlockIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 3: // BLOCK_ID
+            case 3: // UNUSED_BYTES
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.blockId = iprot.readI64();
-                struct.setBlockIdIsSet(true);
+                struct.unusedBytes = iprot.readI64();
+                struct.setUnusedBytesIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -5114,11 +4870,11 @@ public class WorkerService {
         oprot.writeFieldBegin(USER_ID_FIELD_DESC);
         oprot.writeI64(struct.userId);
         oprot.writeFieldEnd();
-        oprot.writeFieldBegin(STORAGE_DIR_ID_FIELD_DESC);
-        oprot.writeI64(struct.storageDirId);
-        oprot.writeFieldEnd();
         oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
         oprot.writeI64(struct.blockId);
+        oprot.writeFieldEnd();
+        oprot.writeFieldBegin(UNUSED_BYTES_FIELD_DESC);
+        oprot.writeI64(struct.unusedBytes);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -5141,21 +4897,21 @@ public class WorkerService {
         if (struct.isSetUserId()) {
           optionals.set(0);
         }
-        if (struct.isSetStorageDirId()) {
+        if (struct.isSetBlockId()) {
           optionals.set(1);
         }
-        if (struct.isSetBlockId()) {
+        if (struct.isSetUnusedBytes()) {
           optionals.set(2);
         }
         oprot.writeBitSet(optionals, 3);
         if (struct.isSetUserId()) {
           oprot.writeI64(struct.userId);
         }
-        if (struct.isSetStorageDirId()) {
-          oprot.writeI64(struct.storageDirId);
-        }
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
+        }
+        if (struct.isSetUnusedBytes()) {
+          oprot.writeI64(struct.unusedBytes);
         }
       }
 
@@ -5168,12 +4924,12 @@ public class WorkerService {
           struct.setUserIdIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.storageDirId = iprot.readI64();
-          struct.setStorageDirIdIsSet(true);
-        }
-        if (incoming.get(2)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.unusedBytes = iprot.readI64();
+          struct.setUnusedBytesIsSet(true);
         }
       }
     }
@@ -5734,1619 +5490,6 @@ public class WorkerService {
           struct.eB = new BlockInfoException();
           struct.eB.read(iprot);
           struct.setEBIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class getLocalBlockLocation_args implements org.apache.thrift.TBase<getLocalBlockLocation_args, getLocalBlockLocation_args._Fields>, java.io.Serializable, Cloneable, Comparable<getLocalBlockLocation_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getLocalBlockLocation_args");
-
-    private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new getLocalBlockLocation_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getLocalBlockLocation_argsTupleSchemeFactory());
-    }
-
-    public long blockId; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      BLOCK_ID((short)1, "blockId");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // BLOCK_ID
-            return BLOCK_ID;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __BLOCKID_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getLocalBlockLocation_args.class, metaDataMap);
-    }
-
-    public getLocalBlockLocation_args() {
-    }
-
-    public getLocalBlockLocation_args(
-      long blockId)
-    {
-      this();
-      this.blockId = blockId;
-      setBlockIdIsSet(true);
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public getLocalBlockLocation_args(getLocalBlockLocation_args other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.blockId = other.blockId;
-    }
-
-    public getLocalBlockLocation_args deepCopy() {
-      return new getLocalBlockLocation_args(this);
-    }
-
-    @Override
-    public void clear() {
-      setBlockIdIsSet(false);
-      this.blockId = 0;
-    }
-
-    public long getBlockId() {
-      return this.blockId;
-    }
-
-    public getLocalBlockLocation_args setBlockId(long blockId) {
-      this.blockId = blockId;
-      setBlockIdIsSet(true);
-      return this;
-    }
-
-    public void unsetBlockId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __BLOCKID_ISSET_ID);
-    }
-
-    /** Returns true if field blockId is set (has been assigned a value) and false otherwise */
-    public boolean isSetBlockId() {
-      return EncodingUtils.testBit(__isset_bitfield, __BLOCKID_ISSET_ID);
-    }
-
-    public void setBlockIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case BLOCK_ID:
-        if (value == null) {
-          unsetBlockId();
-        } else {
-          setBlockId((Long)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case BLOCK_ID:
-        return Long.valueOf(getBlockId());
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case BLOCK_ID:
-        return isSetBlockId();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof getLocalBlockLocation_args)
-        return this.equals((getLocalBlockLocation_args)that);
-      return false;
-    }
-
-    public boolean equals(getLocalBlockLocation_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_blockId = true;
-      boolean that_present_blockId = true;
-      if (this_present_blockId || that_present_blockId) {
-        if (!(this_present_blockId && that_present_blockId))
-          return false;
-        if (this.blockId != that.blockId)
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(getLocalBlockLocation_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetBlockId()).compareTo(other.isSetBlockId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetBlockId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockId, other.blockId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("getLocalBlockLocation_args(");
-      boolean first = true;
-
-      sb.append("blockId:");
-      sb.append(this.blockId);
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class getLocalBlockLocation_argsStandardSchemeFactory implements SchemeFactory {
-      public getLocalBlockLocation_argsStandardScheme getScheme() {
-        return new getLocalBlockLocation_argsStandardScheme();
-      }
-    }
-
-    private static class getLocalBlockLocation_argsStandardScheme extends StandardScheme<getLocalBlockLocation_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getLocalBlockLocation_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // BLOCK_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.blockId = iprot.readI64();
-                struct.setBlockIdIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getLocalBlockLocation_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
-        oprot.writeI64(struct.blockId);
-        oprot.writeFieldEnd();
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class getLocalBlockLocation_argsTupleSchemeFactory implements SchemeFactory {
-      public getLocalBlockLocation_argsTupleScheme getScheme() {
-        return new getLocalBlockLocation_argsTupleScheme();
-      }
-    }
-
-    private static class getLocalBlockLocation_argsTupleScheme extends TupleScheme<getLocalBlockLocation_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getLocalBlockLocation_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetBlockId()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetBlockId()) {
-          oprot.writeI64(struct.blockId);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getLocalBlockLocation_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.blockId = iprot.readI64();
-          struct.setBlockIdIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class getLocalBlockLocation_result implements org.apache.thrift.TBase<getLocalBlockLocation_result, getLocalBlockLocation_result._Fields>, java.io.Serializable, Cloneable, Comparable<getLocalBlockLocation_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getLocalBlockLocation_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
-    private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new getLocalBlockLocation_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getLocalBlockLocation_resultTupleSchemeFactory());
-    }
-
-    public ClientLocationInfo success; // required
-    public FileDoesNotExistException eP; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E_P((short)1, "eP");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          case 1: // E_P
-            return E_P;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientLocationInfo.class)));
-      tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getLocalBlockLocation_result.class, metaDataMap);
-    }
-
-    public getLocalBlockLocation_result() {
-    }
-
-    public getLocalBlockLocation_result(
-      ClientLocationInfo success,
-      FileDoesNotExistException eP)
-    {
-      this();
-      this.success = success;
-      this.eP = eP;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public getLocalBlockLocation_result(getLocalBlockLocation_result other) {
-      if (other.isSetSuccess()) {
-        this.success = new ClientLocationInfo(other.success);
-      }
-      if (other.isSetEP()) {
-        this.eP = new FileDoesNotExistException(other.eP);
-      }
-    }
-
-    public getLocalBlockLocation_result deepCopy() {
-      return new getLocalBlockLocation_result(this);
-    }
-
-    @Override
-    public void clear() {
-      this.success = null;
-      this.eP = null;
-    }
-
-    public ClientLocationInfo getSuccess() {
-      return this.success;
-    }
-
-    public getLocalBlockLocation_result setSuccess(ClientLocationInfo success) {
-      this.success = success;
-      return this;
-    }
-
-    public void unsetSuccess() {
-      this.success = null;
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return this.success != null;
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      if (!value) {
-        this.success = null;
-      }
-    }
-
-    public FileDoesNotExistException getEP() {
-      return this.eP;
-    }
-
-    public getLocalBlockLocation_result setEP(FileDoesNotExistException eP) {
-      this.eP = eP;
-      return this;
-    }
-
-    public void unsetEP() {
-      this.eP = null;
-    }
-
-    /** Returns true if field eP is set (has been assigned a value) and false otherwise */
-    public boolean isSetEP() {
-      return this.eP != null;
-    }
-
-    public void setEPIsSet(boolean value) {
-      if (!value) {
-        this.eP = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((ClientLocationInfo)value);
-        }
-        break;
-
-      case E_P:
-        if (value == null) {
-          unsetEP();
-        } else {
-          setEP((FileDoesNotExistException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return getSuccess();
-
-      case E_P:
-        return getEP();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E_P:
-        return isSetEP();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof getLocalBlockLocation_result)
-        return this.equals((getLocalBlockLocation_result)that);
-      return false;
-    }
-
-    public boolean equals(getLocalBlockLocation_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (!this.success.equals(that.success))
-          return false;
-      }
-
-      boolean this_present_eP = true && this.isSetEP();
-      boolean that_present_eP = true && that.isSetEP();
-      if (this_present_eP || that_present_eP) {
-        if (!(this_present_eP && that_present_eP))
-          return false;
-        if (!this.eP.equals(that.eP))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(getLocalBlockLocation_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEP()).compareTo(other.isSetEP());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEP()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eP, other.eP);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("getLocalBlockLocation_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      if (this.success == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.success);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eP:");
-      if (this.eP == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eP);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-      if (success != null) {
-        success.validate();
-      }
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class getLocalBlockLocation_resultStandardSchemeFactory implements SchemeFactory {
-      public getLocalBlockLocation_resultStandardScheme getScheme() {
-        return new getLocalBlockLocation_resultStandardScheme();
-      }
-    }
-
-    private static class getLocalBlockLocation_resultStandardScheme extends StandardScheme<getLocalBlockLocation_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getLocalBlockLocation_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new ClientLocationInfo();
-                struct.success.read(iprot);
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E_P
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eP = new FileDoesNotExistException();
-                struct.eP.read(iprot);
-                struct.setEPIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getLocalBlockLocation_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          struct.success.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eP != null) {
-          oprot.writeFieldBegin(E_P_FIELD_DESC);
-          struct.eP.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class getLocalBlockLocation_resultTupleSchemeFactory implements SchemeFactory {
-      public getLocalBlockLocation_resultTupleScheme getScheme() {
-        return new getLocalBlockLocation_resultTupleScheme();
-      }
-    }
-
-    private static class getLocalBlockLocation_resultTupleScheme extends TupleScheme<getLocalBlockLocation_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getLocalBlockLocation_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
-          optionals.set(0);
-        }
-        if (struct.isSetEP()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetSuccess()) {
-          struct.success.write(oprot);
-        }
-        if (struct.isSetEP()) {
-          struct.eP.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getLocalBlockLocation_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.success = new ClientLocationInfo();
-          struct.success.read(iprot);
-          struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.eP = new FileDoesNotExistException();
-          struct.eP.read(iprot);
-          struct.setEPIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class getUserLocalTempFolder_args implements org.apache.thrift.TBase<getUserLocalTempFolder_args, getUserLocalTempFolder_args._Fields>, java.io.Serializable, Cloneable, Comparable<getUserLocalTempFolder_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getUserLocalTempFolder_args");
-
-    private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField STORAGE_DIR_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("storageDirId", org.apache.thrift.protocol.TType.I64, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new getUserLocalTempFolder_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getUserLocalTempFolder_argsTupleSchemeFactory());
-    }
-
-    public long userId; // required
-    public long storageDirId; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      USER_ID((short)1, "userId"),
-      STORAGE_DIR_ID((short)2, "storageDirId");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // USER_ID
-            return USER_ID;
-          case 2: // STORAGE_DIR_ID
-            return STORAGE_DIR_ID;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __USERID_ISSET_ID = 0;
-    private static final int __STORAGEDIRID_ISSET_ID = 1;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.STORAGE_DIR_ID, new org.apache.thrift.meta_data.FieldMetaData("storageDirId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getUserLocalTempFolder_args.class, metaDataMap);
-    }
-
-    public getUserLocalTempFolder_args() {
-    }
-
-    public getUserLocalTempFolder_args(
-      long userId,
-      long storageDirId)
-    {
-      this();
-      this.userId = userId;
-      setUserIdIsSet(true);
-      this.storageDirId = storageDirId;
-      setStorageDirIdIsSet(true);
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public getUserLocalTempFolder_args(getUserLocalTempFolder_args other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.userId = other.userId;
-      this.storageDirId = other.storageDirId;
-    }
-
-    public getUserLocalTempFolder_args deepCopy() {
-      return new getUserLocalTempFolder_args(this);
-    }
-
-    @Override
-    public void clear() {
-      setUserIdIsSet(false);
-      this.userId = 0;
-      setStorageDirIdIsSet(false);
-      this.storageDirId = 0;
-    }
-
-    public long getUserId() {
-      return this.userId;
-    }
-
-    public getUserLocalTempFolder_args setUserId(long userId) {
-      this.userId = userId;
-      setUserIdIsSet(true);
-      return this;
-    }
-
-    public void unsetUserId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __USERID_ISSET_ID);
-    }
-
-    /** Returns true if field userId is set (has been assigned a value) and false otherwise */
-    public boolean isSetUserId() {
-      return EncodingUtils.testBit(__isset_bitfield, __USERID_ISSET_ID);
-    }
-
-    public void setUserIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USERID_ISSET_ID, value);
-    }
-
-    public long getStorageDirId() {
-      return this.storageDirId;
-    }
-
-    public getUserLocalTempFolder_args setStorageDirId(long storageDirId) {
-      this.storageDirId = storageDirId;
-      setStorageDirIdIsSet(true);
-      return this;
-    }
-
-    public void unsetStorageDirId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID);
-    }
-
-    /** Returns true if field storageDirId is set (has been assigned a value) and false otherwise */
-    public boolean isSetStorageDirId() {
-      return EncodingUtils.testBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID);
-    }
-
-    public void setStorageDirIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID, value);
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case USER_ID:
-        if (value == null) {
-          unsetUserId();
-        } else {
-          setUserId((Long)value);
-        }
-        break;
-
-      case STORAGE_DIR_ID:
-        if (value == null) {
-          unsetStorageDirId();
-        } else {
-          setStorageDirId((Long)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case USER_ID:
-        return Long.valueOf(getUserId());
-
-      case STORAGE_DIR_ID:
-        return Long.valueOf(getStorageDirId());
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case USER_ID:
-        return isSetUserId();
-      case STORAGE_DIR_ID:
-        return isSetStorageDirId();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof getUserLocalTempFolder_args)
-        return this.equals((getUserLocalTempFolder_args)that);
-      return false;
-    }
-
-    public boolean equals(getUserLocalTempFolder_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_userId = true;
-      boolean that_present_userId = true;
-      if (this_present_userId || that_present_userId) {
-        if (!(this_present_userId && that_present_userId))
-          return false;
-        if (this.userId != that.userId)
-          return false;
-      }
-
-      boolean this_present_storageDirId = true;
-      boolean that_present_storageDirId = true;
-      if (this_present_storageDirId || that_present_storageDirId) {
-        if (!(this_present_storageDirId && that_present_storageDirId))
-          return false;
-        if (this.storageDirId != that.storageDirId)
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(getUserLocalTempFolder_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetUserId()).compareTo(other.isSetUserId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetUserId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.userId, other.userId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetStorageDirId()).compareTo(other.isSetStorageDirId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetStorageDirId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.storageDirId, other.storageDirId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("getUserLocalTempFolder_args(");
-      boolean first = true;
-
-      sb.append("userId:");
-      sb.append(this.userId);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("storageDirId:");
-      sb.append(this.storageDirId);
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class getUserLocalTempFolder_argsStandardSchemeFactory implements SchemeFactory {
-      public getUserLocalTempFolder_argsStandardScheme getScheme() {
-        return new getUserLocalTempFolder_argsStandardScheme();
-      }
-    }
-
-    private static class getUserLocalTempFolder_argsStandardScheme extends StandardScheme<getUserLocalTempFolder_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getUserLocalTempFolder_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // USER_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.userId = iprot.readI64();
-                struct.setUserIdIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // STORAGE_DIR_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.storageDirId = iprot.readI64();
-                struct.setStorageDirIdIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getUserLocalTempFolder_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(USER_ID_FIELD_DESC);
-        oprot.writeI64(struct.userId);
-        oprot.writeFieldEnd();
-        oprot.writeFieldBegin(STORAGE_DIR_ID_FIELD_DESC);
-        oprot.writeI64(struct.storageDirId);
-        oprot.writeFieldEnd();
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class getUserLocalTempFolder_argsTupleSchemeFactory implements SchemeFactory {
-      public getUserLocalTempFolder_argsTupleScheme getScheme() {
-        return new getUserLocalTempFolder_argsTupleScheme();
-      }
-    }
-
-    private static class getUserLocalTempFolder_argsTupleScheme extends TupleScheme<getUserLocalTempFolder_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getUserLocalTempFolder_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetUserId()) {
-          optionals.set(0);
-        }
-        if (struct.isSetStorageDirId()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetUserId()) {
-          oprot.writeI64(struct.userId);
-        }
-        if (struct.isSetStorageDirId()) {
-          oprot.writeI64(struct.storageDirId);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getUserLocalTempFolder_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.userId = iprot.readI64();
-          struct.setUserIdIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.storageDirId = iprot.readI64();
-          struct.setStorageDirIdIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class getUserLocalTempFolder_result implements org.apache.thrift.TBase<getUserLocalTempFolder_result, getUserLocalTempFolder_result._Fields>, java.io.Serializable, Cloneable, Comparable<getUserLocalTempFolder_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getUserLocalTempFolder_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new getUserLocalTempFolder_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getUserLocalTempFolder_resultTupleSchemeFactory());
-    }
-
-    public String success; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getUserLocalTempFolder_result.class, metaDataMap);
-    }
-
-    public getUserLocalTempFolder_result() {
-    }
-
-    public getUserLocalTempFolder_result(
-      String success)
-    {
-      this();
-      this.success = success;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public getUserLocalTempFolder_result(getUserLocalTempFolder_result other) {
-      if (other.isSetSuccess()) {
-        this.success = other.success;
-      }
-    }
-
-    public getUserLocalTempFolder_result deepCopy() {
-      return new getUserLocalTempFolder_result(this);
-    }
-
-    @Override
-    public void clear() {
-      this.success = null;
-    }
-
-    public String getSuccess() {
-      return this.success;
-    }
-
-    public getUserLocalTempFolder_result setSuccess(String success) {
-      this.success = success;
-      return this;
-    }
-
-    public void unsetSuccess() {
-      this.success = null;
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return this.success != null;
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      if (!value) {
-        this.success = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((String)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return getSuccess();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof getUserLocalTempFolder_result)
-        return this.equals((getUserLocalTempFolder_result)that);
-      return false;
-    }
-
-    public boolean equals(getUserLocalTempFolder_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (!this.success.equals(that.success))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(getUserLocalTempFolder_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("getUserLocalTempFolder_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      if (this.success == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.success);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class getUserLocalTempFolder_resultStandardSchemeFactory implements SchemeFactory {
-      public getUserLocalTempFolder_resultStandardScheme getScheme() {
-        return new getUserLocalTempFolder_resultStandardScheme();
-      }
-    }
-
-    private static class getUserLocalTempFolder_resultStandardScheme extends StandardScheme<getUserLocalTempFolder_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getUserLocalTempFolder_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.success = iprot.readString();
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getUserLocalTempFolder_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeString(struct.success);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class getUserLocalTempFolder_resultTupleSchemeFactory implements SchemeFactory {
-      public getUserLocalTempFolder_resultTupleScheme getScheme() {
-        return new getUserLocalTempFolder_resultTupleScheme();
-      }
-    }
-
-    private static class getUserLocalTempFolder_resultTupleScheme extends TupleScheme<getUserLocalTempFolder_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getUserLocalTempFolder_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetSuccess()) {
-          oprot.writeString(struct.success);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getUserLocalTempFolder_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.success = iprot.readString();
-          struct.setSuccessIsSet(true);
         }
       }
     }
@@ -9761,28 +7904,28 @@ public class WorkerService {
 
   }
 
-  public static class returnSpace_args implements org.apache.thrift.TBase<returnSpace_args, returnSpace_args._Fields>, java.io.Serializable, Cloneable, Comparable<returnSpace_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("returnSpace_args");
+  public static class cancelBlock_args implements org.apache.thrift.TBase<cancelBlock_args, cancelBlock_args._Fields>, java.io.Serializable, Cloneable, Comparable<cancelBlock_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("cancelBlock_args");
 
     private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField STORAGE_DIR_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("storageDirId", org.apache.thrift.protocol.TType.I64, (short)2);
-    private static final org.apache.thrift.protocol.TField RETURNED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("returnedBytes", org.apache.thrift.protocol.TType.I64, (short)3);
+    private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField UNUSED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("unusedBytes", org.apache.thrift.protocol.TType.I64, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new returnSpace_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new returnSpace_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new cancelBlock_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new cancelBlock_argsTupleSchemeFactory());
     }
 
     public long userId; // required
-    public long storageDirId; // required
-    public long returnedBytes; // required
+    public long blockId; // required
+    public long unusedBytes; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       USER_ID((short)1, "userId"),
-      STORAGE_DIR_ID((short)2, "storageDirId"),
-      RETURNED_BYTES((short)3, "returnedBytes");
+      BLOCK_ID((short)2, "blockId"),
+      UNUSED_BYTES((short)3, "unusedBytes");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -9799,10 +7942,10 @@ public class WorkerService {
         switch(fieldId) {
           case 1: // USER_ID
             return USER_ID;
-          case 2: // STORAGE_DIR_ID
-            return STORAGE_DIR_ID;
-          case 3: // RETURNED_BYTES
-            return RETURNED_BYTES;
+          case 2: // BLOCK_ID
+            return BLOCK_ID;
+          case 3: // UNUSED_BYTES
+            return UNUSED_BYTES;
           default:
             return null;
         }
@@ -9844,68 +7987,68 @@ public class WorkerService {
 
     // isset id assignments
     private static final int __USERID_ISSET_ID = 0;
-    private static final int __STORAGEDIRID_ISSET_ID = 1;
-    private static final int __RETURNEDBYTES_ISSET_ID = 2;
+    private static final int __BLOCKID_ISSET_ID = 1;
+    private static final int __UNUSEDBYTES_ISSET_ID = 2;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.STORAGE_DIR_ID, new org.apache.thrift.meta_data.FieldMetaData("storageDirId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.RETURNED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("returnedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.UNUSED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("unusedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(returnSpace_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cancelBlock_args.class, metaDataMap);
     }
 
-    public returnSpace_args() {
+    public cancelBlock_args() {
     }
 
-    public returnSpace_args(
+    public cancelBlock_args(
       long userId,
-      long storageDirId,
-      long returnedBytes)
+      long blockId,
+      long unusedBytes)
     {
       this();
       this.userId = userId;
       setUserIdIsSet(true);
-      this.storageDirId = storageDirId;
-      setStorageDirIdIsSet(true);
-      this.returnedBytes = returnedBytes;
-      setReturnedBytesIsSet(true);
+      this.blockId = blockId;
+      setBlockIdIsSet(true);
+      this.unusedBytes = unusedBytes;
+      setUnusedBytesIsSet(true);
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public returnSpace_args(returnSpace_args other) {
+    public cancelBlock_args(cancelBlock_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.userId = other.userId;
-      this.storageDirId = other.storageDirId;
-      this.returnedBytes = other.returnedBytes;
+      this.blockId = other.blockId;
+      this.unusedBytes = other.unusedBytes;
     }
 
-    public returnSpace_args deepCopy() {
-      return new returnSpace_args(this);
+    public cancelBlock_args deepCopy() {
+      return new cancelBlock_args(this);
     }
 
     @Override
     public void clear() {
       setUserIdIsSet(false);
       this.userId = 0;
-      setStorageDirIdIsSet(false);
-      this.storageDirId = 0;
-      setReturnedBytesIsSet(false);
-      this.returnedBytes = 0;
+      setBlockIdIsSet(false);
+      this.blockId = 0;
+      setUnusedBytesIsSet(false);
+      this.unusedBytes = 0;
     }
 
     public long getUserId() {
       return this.userId;
     }
 
-    public returnSpace_args setUserId(long userId) {
+    public cancelBlock_args setUserId(long userId) {
       this.userId = userId;
       setUserIdIsSet(true);
       return this;
@@ -9924,50 +8067,50 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USERID_ISSET_ID, value);
     }
 
-    public long getStorageDirId() {
-      return this.storageDirId;
+    public long getBlockId() {
+      return this.blockId;
     }
 
-    public returnSpace_args setStorageDirId(long storageDirId) {
-      this.storageDirId = storageDirId;
-      setStorageDirIdIsSet(true);
+    public cancelBlock_args setBlockId(long blockId) {
+      this.blockId = blockId;
+      setBlockIdIsSet(true);
       return this;
     }
 
-    public void unsetStorageDirId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID);
+    public void unsetBlockId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __BLOCKID_ISSET_ID);
     }
 
-    /** Returns true if field storageDirId is set (has been assigned a value) and false otherwise */
-    public boolean isSetStorageDirId() {
-      return EncodingUtils.testBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID);
+    /** Returns true if field blockId is set (has been assigned a value) and false otherwise */
+    public boolean isSetBlockId() {
+      return EncodingUtils.testBit(__isset_bitfield, __BLOCKID_ISSET_ID);
     }
 
-    public void setStorageDirIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID, value);
+    public void setBlockIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
-    public long getReturnedBytes() {
-      return this.returnedBytes;
+    public long getUnusedBytes() {
+      return this.unusedBytes;
     }
 
-    public returnSpace_args setReturnedBytes(long returnedBytes) {
-      this.returnedBytes = returnedBytes;
-      setReturnedBytesIsSet(true);
+    public cancelBlock_args setUnusedBytes(long unusedBytes) {
+      this.unusedBytes = unusedBytes;
+      setUnusedBytesIsSet(true);
       return this;
     }
 
-    public void unsetReturnedBytes() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RETURNEDBYTES_ISSET_ID);
+    public void unsetUnusedBytes() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __UNUSEDBYTES_ISSET_ID);
     }
 
-    /** Returns true if field returnedBytes is set (has been assigned a value) and false otherwise */
-    public boolean isSetReturnedBytes() {
-      return EncodingUtils.testBit(__isset_bitfield, __RETURNEDBYTES_ISSET_ID);
+    /** Returns true if field unusedBytes is set (has been assigned a value) and false otherwise */
+    public boolean isSetUnusedBytes() {
+      return EncodingUtils.testBit(__isset_bitfield, __UNUSEDBYTES_ISSET_ID);
     }
 
-    public void setReturnedBytesIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RETURNEDBYTES_ISSET_ID, value);
+    public void setUnusedBytesIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __UNUSEDBYTES_ISSET_ID, value);
     }
 
     public void setFieldValue(_Fields field, Object value) {
@@ -9980,19 +8123,19 @@ public class WorkerService {
         }
         break;
 
-      case STORAGE_DIR_ID:
+      case BLOCK_ID:
         if (value == null) {
-          unsetStorageDirId();
+          unsetBlockId();
         } else {
-          setStorageDirId((Long)value);
+          setBlockId((Long)value);
         }
         break;
 
-      case RETURNED_BYTES:
+      case UNUSED_BYTES:
         if (value == null) {
-          unsetReturnedBytes();
+          unsetUnusedBytes();
         } else {
-          setReturnedBytes((Long)value);
+          setUnusedBytes((Long)value);
         }
         break;
 
@@ -10004,11 +8147,11 @@ public class WorkerService {
       case USER_ID:
         return Long.valueOf(getUserId());
 
-      case STORAGE_DIR_ID:
-        return Long.valueOf(getStorageDirId());
+      case BLOCK_ID:
+        return Long.valueOf(getBlockId());
 
-      case RETURNED_BYTES:
-        return Long.valueOf(getReturnedBytes());
+      case UNUSED_BYTES:
+        return Long.valueOf(getUnusedBytes());
 
       }
       throw new IllegalStateException();
@@ -10023,10 +8166,10 @@ public class WorkerService {
       switch (field) {
       case USER_ID:
         return isSetUserId();
-      case STORAGE_DIR_ID:
-        return isSetStorageDirId();
-      case RETURNED_BYTES:
-        return isSetReturnedBytes();
+      case BLOCK_ID:
+        return isSetBlockId();
+      case UNUSED_BYTES:
+        return isSetUnusedBytes();
       }
       throw new IllegalStateException();
     }
@@ -10035,12 +8178,12 @@ public class WorkerService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof returnSpace_args)
-        return this.equals((returnSpace_args)that);
+      if (that instanceof cancelBlock_args)
+        return this.equals((cancelBlock_args)that);
       return false;
     }
 
-    public boolean equals(returnSpace_args that) {
+    public boolean equals(cancelBlock_args that) {
       if (that == null)
         return false;
 
@@ -10053,21 +8196,21 @@ public class WorkerService {
           return false;
       }
 
-      boolean this_present_storageDirId = true;
-      boolean that_present_storageDirId = true;
-      if (this_present_storageDirId || that_present_storageDirId) {
-        if (!(this_present_storageDirId && that_present_storageDirId))
+      boolean this_present_blockId = true;
+      boolean that_present_blockId = true;
+      if (this_present_blockId || that_present_blockId) {
+        if (!(this_present_blockId && that_present_blockId))
           return false;
-        if (this.storageDirId != that.storageDirId)
+        if (this.blockId != that.blockId)
           return false;
       }
 
-      boolean this_present_returnedBytes = true;
-      boolean that_present_returnedBytes = true;
-      if (this_present_returnedBytes || that_present_returnedBytes) {
-        if (!(this_present_returnedBytes && that_present_returnedBytes))
+      boolean this_present_unusedBytes = true;
+      boolean that_present_unusedBytes = true;
+      if (this_present_unusedBytes || that_present_unusedBytes) {
+        if (!(this_present_unusedBytes && that_present_unusedBytes))
           return false;
-        if (this.returnedBytes != that.returnedBytes)
+        if (this.unusedBytes != that.unusedBytes)
           return false;
       }
 
@@ -10080,7 +8223,7 @@ public class WorkerService {
     }
 
     @Override
-    public int compareTo(returnSpace_args other) {
+    public int compareTo(cancelBlock_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -10097,22 +8240,22 @@ public class WorkerService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetStorageDirId()).compareTo(other.isSetStorageDirId());
+      lastComparison = Boolean.valueOf(isSetBlockId()).compareTo(other.isSetBlockId());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetStorageDirId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.storageDirId, other.storageDirId);
+      if (isSetBlockId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockId, other.blockId);
         if (lastComparison != 0) {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetReturnedBytes()).compareTo(other.isSetReturnedBytes());
+      lastComparison = Boolean.valueOf(isSetUnusedBytes()).compareTo(other.isSetUnusedBytes());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetReturnedBytes()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.returnedBytes, other.returnedBytes);
+      if (isSetUnusedBytes()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.unusedBytes, other.unusedBytes);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -10134,19 +8277,19 @@ public class WorkerService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("returnSpace_args(");
+      StringBuilder sb = new StringBuilder("cancelBlock_args(");
       boolean first = true;
 
       sb.append("userId:");
       sb.append(this.userId);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("storageDirId:");
-      sb.append(this.storageDirId);
+      sb.append("blockId:");
+      sb.append(this.blockId);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("returnedBytes:");
-      sb.append(this.returnedBytes);
+      sb.append("unusedBytes:");
+      sb.append(this.unusedBytes);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -10175,15 +8318,15 @@ public class WorkerService {
       }
     }
 
-    private static class returnSpace_argsStandardSchemeFactory implements SchemeFactory {
-      public returnSpace_argsStandardScheme getScheme() {
-        return new returnSpace_argsStandardScheme();
+    private static class cancelBlock_argsStandardSchemeFactory implements SchemeFactory {
+      public cancelBlock_argsStandardScheme getScheme() {
+        return new cancelBlock_argsStandardScheme();
       }
     }
 
-    private static class returnSpace_argsStandardScheme extends StandardScheme<returnSpace_args> {
+    private static class cancelBlock_argsStandardScheme extends StandardScheme<cancelBlock_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, returnSpace_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, cancelBlock_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -10201,18 +8344,18 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // STORAGE_DIR_ID
+            case 2: // BLOCK_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.storageDirId = iprot.readI64();
-                struct.setStorageDirIdIsSet(true);
+                struct.blockId = iprot.readI64();
+                struct.setBlockIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 3: // RETURNED_BYTES
+            case 3: // UNUSED_BYTES
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.returnedBytes = iprot.readI64();
-                struct.setReturnedBytesIsSet(true);
+                struct.unusedBytes = iprot.readI64();
+                struct.setUnusedBytesIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -10228,18 +8371,18 @@ public class WorkerService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, returnSpace_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, cancelBlock_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
         oprot.writeFieldBegin(USER_ID_FIELD_DESC);
         oprot.writeI64(struct.userId);
         oprot.writeFieldEnd();
-        oprot.writeFieldBegin(STORAGE_DIR_ID_FIELD_DESC);
-        oprot.writeI64(struct.storageDirId);
+        oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
+        oprot.writeI64(struct.blockId);
         oprot.writeFieldEnd();
-        oprot.writeFieldBegin(RETURNED_BYTES_FIELD_DESC);
-        oprot.writeI64(struct.returnedBytes);
+        oprot.writeFieldBegin(UNUSED_BYTES_FIELD_DESC);
+        oprot.writeI64(struct.unusedBytes);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -10247,41 +8390,41 @@ public class WorkerService {
 
     }
 
-    private static class returnSpace_argsTupleSchemeFactory implements SchemeFactory {
-      public returnSpace_argsTupleScheme getScheme() {
-        return new returnSpace_argsTupleScheme();
+    private static class cancelBlock_argsTupleSchemeFactory implements SchemeFactory {
+      public cancelBlock_argsTupleScheme getScheme() {
+        return new cancelBlock_argsTupleScheme();
       }
     }
 
-    private static class returnSpace_argsTupleScheme extends TupleScheme<returnSpace_args> {
+    private static class cancelBlock_argsTupleScheme extends TupleScheme<cancelBlock_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, returnSpace_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, cancelBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetUserId()) {
           optionals.set(0);
         }
-        if (struct.isSetStorageDirId()) {
+        if (struct.isSetBlockId()) {
           optionals.set(1);
         }
-        if (struct.isSetReturnedBytes()) {
+        if (struct.isSetUnusedBytes()) {
           optionals.set(2);
         }
         oprot.writeBitSet(optionals, 3);
         if (struct.isSetUserId()) {
           oprot.writeI64(struct.userId);
         }
-        if (struct.isSetStorageDirId()) {
-          oprot.writeI64(struct.storageDirId);
+        if (struct.isSetBlockId()) {
+          oprot.writeI64(struct.blockId);
         }
-        if (struct.isSetReturnedBytes()) {
-          oprot.writeI64(struct.returnedBytes);
+        if (struct.isSetUnusedBytes()) {
+          oprot.writeI64(struct.unusedBytes);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, returnSpace_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, cancelBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
@@ -10289,26 +8432,26 @@ public class WorkerService {
           struct.setUserIdIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.storageDirId = iprot.readI64();
-          struct.setStorageDirIdIsSet(true);
+          struct.blockId = iprot.readI64();
+          struct.setBlockIdIsSet(true);
         }
         if (incoming.get(2)) {
-          struct.returnedBytes = iprot.readI64();
-          struct.setReturnedBytesIsSet(true);
+          struct.unusedBytes = iprot.readI64();
+          struct.setUnusedBytesIsSet(true);
         }
       }
     }
 
   }
 
-  public static class returnSpace_result implements org.apache.thrift.TBase<returnSpace_result, returnSpace_result._Fields>, java.io.Serializable, Cloneable, Comparable<returnSpace_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("returnSpace_result");
+  public static class cancelBlock_result implements org.apache.thrift.TBase<cancelBlock_result, cancelBlock_result._Fields>, java.io.Serializable, Cloneable, Comparable<cancelBlock_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("cancelBlock_result");
 
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new returnSpace_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new returnSpace_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new cancelBlock_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new cancelBlock_resultTupleSchemeFactory());
     }
 
 
@@ -10371,20 +8514,20 @@ public class WorkerService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(returnSpace_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cancelBlock_result.class, metaDataMap);
     }
 
-    public returnSpace_result() {
+    public cancelBlock_result() {
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public returnSpace_result(returnSpace_result other) {
+    public cancelBlock_result(cancelBlock_result other) {
     }
 
-    public returnSpace_result deepCopy() {
-      return new returnSpace_result(this);
+    public cancelBlock_result deepCopy() {
+      return new cancelBlock_result(this);
     }
 
     @Override
@@ -10417,12 +8560,12 @@ public class WorkerService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof returnSpace_result)
-        return this.equals((returnSpace_result)that);
+      if (that instanceof cancelBlock_result)
+        return this.equals((cancelBlock_result)that);
       return false;
     }
 
-    public boolean equals(returnSpace_result that) {
+    public boolean equals(cancelBlock_result that) {
       if (that == null)
         return false;
 
@@ -10435,7 +8578,7 @@ public class WorkerService {
     }
 
     @Override
-    public int compareTo(returnSpace_result other) {
+    public int compareTo(cancelBlock_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -10459,7 +8602,7 @@ public class WorkerService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("returnSpace_result(");
+      StringBuilder sb = new StringBuilder("cancelBlock_result(");
       boolean first = true;
 
       sb.append(")");
@@ -10487,15 +8630,15 @@ public class WorkerService {
       }
     }
 
-    private static class returnSpace_resultStandardSchemeFactory implements SchemeFactory {
-      public returnSpace_resultStandardScheme getScheme() {
-        return new returnSpace_resultStandardScheme();
+    private static class cancelBlock_resultStandardSchemeFactory implements SchemeFactory {
+      public cancelBlock_resultStandardScheme getScheme() {
+        return new cancelBlock_resultStandardScheme();
       }
     }
 
-    private static class returnSpace_resultStandardScheme extends StandardScheme<returnSpace_result> {
+    private static class cancelBlock_resultStandardScheme extends StandardScheme<cancelBlock_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, returnSpace_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, cancelBlock_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -10516,7 +8659,7 @@ public class WorkerService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, returnSpace_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, cancelBlock_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -10526,46 +8669,49 @@ public class WorkerService {
 
     }
 
-    private static class returnSpace_resultTupleSchemeFactory implements SchemeFactory {
-      public returnSpace_resultTupleScheme getScheme() {
-        return new returnSpace_resultTupleScheme();
+    private static class cancelBlock_resultTupleSchemeFactory implements SchemeFactory {
+      public cancelBlock_resultTupleScheme getScheme() {
+        return new cancelBlock_resultTupleScheme();
       }
     }
 
-    private static class returnSpace_resultTupleScheme extends TupleScheme<returnSpace_result> {
+    private static class cancelBlock_resultTupleScheme extends TupleScheme<cancelBlock_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, returnSpace_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, cancelBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, returnSpace_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, cancelBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
       }
     }
 
   }
 
-  public static class requestSpace_args implements org.apache.thrift.TBase<requestSpace_args, requestSpace_args._Fields>, java.io.Serializable, Cloneable, Comparable<requestSpace_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("requestSpace_args");
+  public static class getBlockLocation_args implements org.apache.thrift.TBase<getBlockLocation_args, getBlockLocation_args._Fields>, java.io.Serializable, Cloneable, Comparable<getBlockLocation_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getBlockLocation_args");
 
     private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField REQUEST_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("requestBytes", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField INITIAL_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("initialBytes", org.apache.thrift.protocol.TType.I64, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new requestSpace_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new requestSpace_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getBlockLocation_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getBlockLocation_argsTupleSchemeFactory());
     }
 
     public long userId; // required
-    public long requestBytes; // required
+    public long blockId; // required
+    public long initialBytes; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       USER_ID((short)1, "userId"),
-      REQUEST_BYTES((short)2, "requestBytes");
+      BLOCK_ID((short)2, "blockId"),
+      INITIAL_BYTES((short)3, "initialBytes");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -10582,7 +8728,1107 @@ public class WorkerService {
         switch(fieldId) {
           case 1: // USER_ID
             return USER_ID;
-          case 2: // REQUEST_BYTES
+          case 2: // BLOCK_ID
+            return BLOCK_ID;
+          case 3: // INITIAL_BYTES
+            return INITIAL_BYTES;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    private static final int __USERID_ISSET_ID = 0;
+    private static final int __BLOCKID_ISSET_ID = 1;
+    private static final int __INITIALBYTES_ISSET_ID = 2;
+    private byte __isset_bitfield = 0;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.INITIAL_BYTES, new org.apache.thrift.meta_data.FieldMetaData("initialBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getBlockLocation_args.class, metaDataMap);
+    }
+
+    public getBlockLocation_args() {
+    }
+
+    public getBlockLocation_args(
+      long userId,
+      long blockId,
+      long initialBytes)
+    {
+      this();
+      this.userId = userId;
+      setUserIdIsSet(true);
+      this.blockId = blockId;
+      setBlockIdIsSet(true);
+      this.initialBytes = initialBytes;
+      setInitialBytesIsSet(true);
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public getBlockLocation_args(getBlockLocation_args other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.userId = other.userId;
+      this.blockId = other.blockId;
+      this.initialBytes = other.initialBytes;
+    }
+
+    public getBlockLocation_args deepCopy() {
+      return new getBlockLocation_args(this);
+    }
+
+    @Override
+    public void clear() {
+      setUserIdIsSet(false);
+      this.userId = 0;
+      setBlockIdIsSet(false);
+      this.blockId = 0;
+      setInitialBytesIsSet(false);
+      this.initialBytes = 0;
+    }
+
+    public long getUserId() {
+      return this.userId;
+    }
+
+    public getBlockLocation_args setUserId(long userId) {
+      this.userId = userId;
+      setUserIdIsSet(true);
+      return this;
+    }
+
+    public void unsetUserId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __USERID_ISSET_ID);
+    }
+
+    /** Returns true if field userId is set (has been assigned a value) and false otherwise */
+    public boolean isSetUserId() {
+      return EncodingUtils.testBit(__isset_bitfield, __USERID_ISSET_ID);
+    }
+
+    public void setUserIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USERID_ISSET_ID, value);
+    }
+
+    public long getBlockId() {
+      return this.blockId;
+    }
+
+    public getBlockLocation_args setBlockId(long blockId) {
+      this.blockId = blockId;
+      setBlockIdIsSet(true);
+      return this;
+    }
+
+    public void unsetBlockId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __BLOCKID_ISSET_ID);
+    }
+
+    /** Returns true if field blockId is set (has been assigned a value) and false otherwise */
+    public boolean isSetBlockId() {
+      return EncodingUtils.testBit(__isset_bitfield, __BLOCKID_ISSET_ID);
+    }
+
+    public void setBlockIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
+    }
+
+    public long getInitialBytes() {
+      return this.initialBytes;
+    }
+
+    public getBlockLocation_args setInitialBytes(long initialBytes) {
+      this.initialBytes = initialBytes;
+      setInitialBytesIsSet(true);
+      return this;
+    }
+
+    public void unsetInitialBytes() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __INITIALBYTES_ISSET_ID);
+    }
+
+    /** Returns true if field initialBytes is set (has been assigned a value) and false otherwise */
+    public boolean isSetInitialBytes() {
+      return EncodingUtils.testBit(__isset_bitfield, __INITIALBYTES_ISSET_ID);
+    }
+
+    public void setInitialBytesIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __INITIALBYTES_ISSET_ID, value);
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case USER_ID:
+        if (value == null) {
+          unsetUserId();
+        } else {
+          setUserId((Long)value);
+        }
+        break;
+
+      case BLOCK_ID:
+        if (value == null) {
+          unsetBlockId();
+        } else {
+          setBlockId((Long)value);
+        }
+        break;
+
+      case INITIAL_BYTES:
+        if (value == null) {
+          unsetInitialBytes();
+        } else {
+          setInitialBytes((Long)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case USER_ID:
+        return Long.valueOf(getUserId());
+
+      case BLOCK_ID:
+        return Long.valueOf(getBlockId());
+
+      case INITIAL_BYTES:
+        return Long.valueOf(getInitialBytes());
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case USER_ID:
+        return isSetUserId();
+      case BLOCK_ID:
+        return isSetBlockId();
+      case INITIAL_BYTES:
+        return isSetInitialBytes();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof getBlockLocation_args)
+        return this.equals((getBlockLocation_args)that);
+      return false;
+    }
+
+    public boolean equals(getBlockLocation_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_userId = true;
+      boolean that_present_userId = true;
+      if (this_present_userId || that_present_userId) {
+        if (!(this_present_userId && that_present_userId))
+          return false;
+        if (this.userId != that.userId)
+          return false;
+      }
+
+      boolean this_present_blockId = true;
+      boolean that_present_blockId = true;
+      if (this_present_blockId || that_present_blockId) {
+        if (!(this_present_blockId && that_present_blockId))
+          return false;
+        if (this.blockId != that.blockId)
+          return false;
+      }
+
+      boolean this_present_initialBytes = true;
+      boolean that_present_initialBytes = true;
+      if (this_present_initialBytes || that_present_initialBytes) {
+        if (!(this_present_initialBytes && that_present_initialBytes))
+          return false;
+        if (this.initialBytes != that.initialBytes)
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    @Override
+    public int compareTo(getBlockLocation_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetUserId()).compareTo(other.isSetUserId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetUserId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.userId, other.userId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetBlockId()).compareTo(other.isSetBlockId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetBlockId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockId, other.blockId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetInitialBytes()).compareTo(other.isSetInitialBytes());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetInitialBytes()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.initialBytes, other.initialBytes);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("getBlockLocation_args(");
+      boolean first = true;
+
+      sb.append("userId:");
+      sb.append(this.userId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("blockId:");
+      sb.append(this.blockId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("initialBytes:");
+      sb.append(this.initialBytes);
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class getBlockLocation_argsStandardSchemeFactory implements SchemeFactory {
+      public getBlockLocation_argsStandardScheme getScheme() {
+        return new getBlockLocation_argsStandardScheme();
+      }
+    }
+
+    private static class getBlockLocation_argsStandardScheme extends StandardScheme<getBlockLocation_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getBlockLocation_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // USER_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.userId = iprot.readI64();
+                struct.setUserIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // BLOCK_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.blockId = iprot.readI64();
+                struct.setBlockIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // INITIAL_BYTES
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.initialBytes = iprot.readI64();
+                struct.setInitialBytesIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getBlockLocation_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(USER_ID_FIELD_DESC);
+        oprot.writeI64(struct.userId);
+        oprot.writeFieldEnd();
+        oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
+        oprot.writeI64(struct.blockId);
+        oprot.writeFieldEnd();
+        oprot.writeFieldBegin(INITIAL_BYTES_FIELD_DESC);
+        oprot.writeI64(struct.initialBytes);
+        oprot.writeFieldEnd();
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class getBlockLocation_argsTupleSchemeFactory implements SchemeFactory {
+      public getBlockLocation_argsTupleScheme getScheme() {
+        return new getBlockLocation_argsTupleScheme();
+      }
+    }
+
+    private static class getBlockLocation_argsTupleScheme extends TupleScheme<getBlockLocation_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, getBlockLocation_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetUserId()) {
+          optionals.set(0);
+        }
+        if (struct.isSetBlockId()) {
+          optionals.set(1);
+        }
+        if (struct.isSetInitialBytes()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetUserId()) {
+          oprot.writeI64(struct.userId);
+        }
+        if (struct.isSetBlockId()) {
+          oprot.writeI64(struct.blockId);
+        }
+        if (struct.isSetInitialBytes()) {
+          oprot.writeI64(struct.initialBytes);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, getBlockLocation_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(3);
+        if (incoming.get(0)) {
+          struct.userId = iprot.readI64();
+          struct.setUserIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.blockId = iprot.readI64();
+          struct.setBlockIdIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.initialBytes = iprot.readI64();
+          struct.setInitialBytesIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class getBlockLocation_result implements org.apache.thrift.TBase<getBlockLocation_result, getBlockLocation_result._Fields>, java.io.Serializable, Cloneable, Comparable<getBlockLocation_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getBlockLocation_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_S_FIELD_DESC = new org.apache.thrift.protocol.TField("eS", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new getBlockLocation_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getBlockLocation_resultTupleSchemeFactory());
+    }
+
+    public String success; // required
+    public OutOfSpaceException eP; // required
+    public FileAlreadyExistException eS; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
+      E_P((short)1, "eP"),
+      E_S((short)2, "eS");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          case 1: // E_P
+            return E_P;
+          case 2: // E_S
+            return E_S;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_S, new org.apache.thrift.meta_data.FieldMetaData("eS", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getBlockLocation_result.class, metaDataMap);
+    }
+
+    public getBlockLocation_result() {
+    }
+
+    public getBlockLocation_result(
+      String success,
+      OutOfSpaceException eP,
+      FileAlreadyExistException eS)
+    {
+      this();
+      this.success = success;
+      this.eP = eP;
+      this.eS = eS;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public getBlockLocation_result(getBlockLocation_result other) {
+      if (other.isSetSuccess()) {
+        this.success = other.success;
+      }
+      if (other.isSetEP()) {
+        this.eP = new OutOfSpaceException(other.eP);
+      }
+      if (other.isSetES()) {
+        this.eS = new FileAlreadyExistException(other.eS);
+      }
+    }
+
+    public getBlockLocation_result deepCopy() {
+      return new getBlockLocation_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+      this.eP = null;
+      this.eS = null;
+    }
+
+    public String getSuccess() {
+      return this.success;
+    }
+
+    public getBlockLocation_result setSuccess(String success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public OutOfSpaceException getEP() {
+      return this.eP;
+    }
+
+    public getBlockLocation_result setEP(OutOfSpaceException eP) {
+      this.eP = eP;
+      return this;
+    }
+
+    public void unsetEP() {
+      this.eP = null;
+    }
+
+    /** Returns true if field eP is set (has been assigned a value) and false otherwise */
+    public boolean isSetEP() {
+      return this.eP != null;
+    }
+
+    public void setEPIsSet(boolean value) {
+      if (!value) {
+        this.eP = null;
+      }
+    }
+
+    public FileAlreadyExistException getES() {
+      return this.eS;
+    }
+
+    public getBlockLocation_result setES(FileAlreadyExistException eS) {
+      this.eS = eS;
+      return this;
+    }
+
+    public void unsetES() {
+      this.eS = null;
+    }
+
+    /** Returns true if field eS is set (has been assigned a value) and false otherwise */
+    public boolean isSetES() {
+      return this.eS != null;
+    }
+
+    public void setESIsSet(boolean value) {
+      if (!value) {
+        this.eS = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((String)value);
+        }
+        break;
+
+      case E_P:
+        if (value == null) {
+          unsetEP();
+        } else {
+          setEP((OutOfSpaceException)value);
+        }
+        break;
+
+      case E_S:
+        if (value == null) {
+          unsetES();
+        } else {
+          setES((FileAlreadyExistException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      case E_P:
+        return getEP();
+
+      case E_S:
+        return getES();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      case E_P:
+        return isSetEP();
+      case E_S:
+        return isSetES();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof getBlockLocation_result)
+        return this.equals((getBlockLocation_result)that);
+      return false;
+    }
+
+    public boolean equals(getBlockLocation_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      boolean this_present_eP = true && this.isSetEP();
+      boolean that_present_eP = true && that.isSetEP();
+      if (this_present_eP || that_present_eP) {
+        if (!(this_present_eP && that_present_eP))
+          return false;
+        if (!this.eP.equals(that.eP))
+          return false;
+      }
+
+      boolean this_present_eS = true && this.isSetES();
+      boolean that_present_eS = true && that.isSetES();
+      if (this_present_eS || that_present_eS) {
+        if (!(this_present_eS && that_present_eS))
+          return false;
+        if (!this.eS.equals(that.eS))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    @Override
+    public int compareTo(getBlockLocation_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEP()).compareTo(other.isSetEP());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEP()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eP, other.eP);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetES()).compareTo(other.isSetES());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetES()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eS, other.eS);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("getBlockLocation_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eP:");
+      if (this.eP == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eP);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eS:");
+      if (this.eS == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eS);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class getBlockLocation_resultStandardSchemeFactory implements SchemeFactory {
+      public getBlockLocation_resultStandardScheme getScheme() {
+        return new getBlockLocation_resultStandardScheme();
+      }
+    }
+
+    private static class getBlockLocation_resultStandardScheme extends StandardScheme<getBlockLocation_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getBlockLocation_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.success = iprot.readString();
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 1: // E_P
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eP = new OutOfSpaceException();
+                struct.eP.read(iprot);
+                struct.setEPIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // E_S
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eS = new FileAlreadyExistException();
+                struct.eS.read(iprot);
+                struct.setESIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getBlockLocation_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          oprot.writeString(struct.success);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eP != null) {
+          oprot.writeFieldBegin(E_P_FIELD_DESC);
+          struct.eP.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eS != null) {
+          oprot.writeFieldBegin(E_S_FIELD_DESC);
+          struct.eS.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class getBlockLocation_resultTupleSchemeFactory implements SchemeFactory {
+      public getBlockLocation_resultTupleScheme getScheme() {
+        return new getBlockLocation_resultTupleScheme();
+      }
+    }
+
+    private static class getBlockLocation_resultTupleScheme extends TupleScheme<getBlockLocation_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, getBlockLocation_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        if (struct.isSetEP()) {
+          optionals.set(1);
+        }
+        if (struct.isSetES()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetSuccess()) {
+          oprot.writeString(struct.success);
+        }
+        if (struct.isSetEP()) {
+          struct.eP.write(oprot);
+        }
+        if (struct.isSetES()) {
+          struct.eS.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, getBlockLocation_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(3);
+        if (incoming.get(0)) {
+          struct.success = iprot.readString();
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.eP = new OutOfSpaceException();
+          struct.eP.read(iprot);
+          struct.setEPIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.eS = new FileAlreadyExistException();
+          struct.eS.read(iprot);
+          struct.setESIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class requestSpace_args implements org.apache.thrift.TBase<requestSpace_args, requestSpace_args._Fields>, java.io.Serializable, Cloneable, Comparable<requestSpace_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("requestSpace_args");
+
+    private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField REQUEST_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("requestBytes", org.apache.thrift.protocol.TType.I64, (short)3);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new requestSpace_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new requestSpace_argsTupleSchemeFactory());
+    }
+
+    public long userId; // required
+    public long blockId; // required
+    public long requestBytes; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      USER_ID((short)1, "userId"),
+      BLOCK_ID((short)2, "blockId"),
+      REQUEST_BYTES((short)3, "requestBytes");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // USER_ID
+            return USER_ID;
+          case 2: // BLOCK_ID
+            return BLOCK_ID;
+          case 3: // REQUEST_BYTES
             return REQUEST_BYTES;
           default:
             return null;
@@ -10625,12 +9871,15 @@ public class WorkerService {
 
     // isset id assignments
     private static final int __USERID_ISSET_ID = 0;
-    private static final int __REQUESTBYTES_ISSET_ID = 1;
+    private static final int __BLOCKID_ISSET_ID = 1;
+    private static final int __REQUESTBYTES_ISSET_ID = 2;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.REQUEST_BYTES, new org.apache.thrift.meta_data.FieldMetaData("requestBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
@@ -10643,11 +9892,14 @@ public class WorkerService {
 
     public requestSpace_args(
       long userId,
+      long blockId,
       long requestBytes)
     {
       this();
       this.userId = userId;
       setUserIdIsSet(true);
+      this.blockId = blockId;
+      setBlockIdIsSet(true);
       this.requestBytes = requestBytes;
       setRequestBytesIsSet(true);
     }
@@ -10658,6 +9910,7 @@ public class WorkerService {
     public requestSpace_args(requestSpace_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.userId = other.userId;
+      this.blockId = other.blockId;
       this.requestBytes = other.requestBytes;
     }
 
@@ -10669,6 +9922,8 @@ public class WorkerService {
     public void clear() {
       setUserIdIsSet(false);
       this.userId = 0;
+      setBlockIdIsSet(false);
+      this.blockId = 0;
       setRequestBytesIsSet(false);
       this.requestBytes = 0;
     }
@@ -10694,6 +9949,29 @@ public class WorkerService {
 
     public void setUserIdIsSet(boolean value) {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USERID_ISSET_ID, value);
+    }
+
+    public long getBlockId() {
+      return this.blockId;
+    }
+
+    public requestSpace_args setBlockId(long blockId) {
+      this.blockId = blockId;
+      setBlockIdIsSet(true);
+      return this;
+    }
+
+    public void unsetBlockId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __BLOCKID_ISSET_ID);
+    }
+
+    /** Returns true if field blockId is set (has been assigned a value) and false otherwise */
+    public boolean isSetBlockId() {
+      return EncodingUtils.testBit(__isset_bitfield, __BLOCKID_ISSET_ID);
+    }
+
+    public void setBlockIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
     public long getRequestBytes() {
@@ -10729,6 +10007,14 @@ public class WorkerService {
         }
         break;
 
+      case BLOCK_ID:
+        if (value == null) {
+          unsetBlockId();
+        } else {
+          setBlockId((Long)value);
+        }
+        break;
+
       case REQUEST_BYTES:
         if (value == null) {
           unsetRequestBytes();
@@ -10744,6 +10030,9 @@ public class WorkerService {
       switch (field) {
       case USER_ID:
         return Long.valueOf(getUserId());
+
+      case BLOCK_ID:
+        return Long.valueOf(getBlockId());
 
       case REQUEST_BYTES:
         return Long.valueOf(getRequestBytes());
@@ -10761,6 +10050,8 @@ public class WorkerService {
       switch (field) {
       case USER_ID:
         return isSetUserId();
+      case BLOCK_ID:
+        return isSetBlockId();
       case REQUEST_BYTES:
         return isSetRequestBytes();
       }
@@ -10786,6 +10077,15 @@ public class WorkerService {
         if (!(this_present_userId && that_present_userId))
           return false;
         if (this.userId != that.userId)
+          return false;
+      }
+
+      boolean this_present_blockId = true;
+      boolean that_present_blockId = true;
+      if (this_present_blockId || that_present_blockId) {
+        if (!(this_present_blockId && that_present_blockId))
+          return false;
+        if (this.blockId != that.blockId)
           return false;
       }
 
@@ -10824,6 +10124,16 @@ public class WorkerService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetBlockId()).compareTo(other.isSetBlockId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetBlockId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockId, other.blockId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetRequestBytes()).compareTo(other.isSetRequestBytes());
       if (lastComparison != 0) {
         return lastComparison;
@@ -10856,6 +10166,10 @@ public class WorkerService {
 
       sb.append("userId:");
       sb.append(this.userId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("blockId:");
+      sb.append(this.blockId);
       first = false;
       if (!first) sb.append(", ");
       sb.append("requestBytes:");
@@ -10914,7 +10228,15 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // REQUEST_BYTES
+            case 2: // BLOCK_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.blockId = iprot.readI64();
+                struct.setBlockIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // REQUEST_BYTES
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.requestBytes = iprot.readI64();
                 struct.setRequestBytesIsSet(true);
@@ -10940,6 +10262,9 @@ public class WorkerService {
         oprot.writeFieldBegin(USER_ID_FIELD_DESC);
         oprot.writeI64(struct.userId);
         oprot.writeFieldEnd();
+        oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
+        oprot.writeI64(struct.blockId);
+        oprot.writeFieldEnd();
         oprot.writeFieldBegin(REQUEST_BYTES_FIELD_DESC);
         oprot.writeI64(struct.requestBytes);
         oprot.writeFieldEnd();
@@ -10964,12 +10289,18 @@ public class WorkerService {
         if (struct.isSetUserId()) {
           optionals.set(0);
         }
-        if (struct.isSetRequestBytes()) {
+        if (struct.isSetBlockId()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetRequestBytes()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetUserId()) {
           oprot.writeI64(struct.userId);
+        }
+        if (struct.isSetBlockId()) {
+          oprot.writeI64(struct.blockId);
         }
         if (struct.isSetRequestBytes()) {
           oprot.writeI64(struct.requestBytes);
@@ -10979,12 +10310,16 @@ public class WorkerService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, requestSpace_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.userId = iprot.readI64();
           struct.setUserIdIsSet(true);
         }
         if (incoming.get(1)) {
+          struct.blockId = iprot.readI64();
+          struct.setBlockIdIsSet(true);
+        }
+        if (incoming.get(2)) {
           struct.requestBytes = iprot.readI64();
           struct.setRequestBytesIsSet(true);
         }
@@ -10996,8 +10331,9 @@ public class WorkerService {
   public static class requestSpace_result implements org.apache.thrift.TBase<requestSpace_result, requestSpace_result._Fields>, java.io.Serializable, Cloneable, Comparable<requestSpace_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("requestSpace_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_S_FIELD_DESC = new org.apache.thrift.protocol.TField("eS", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -11005,13 +10341,15 @@ public class WorkerService {
       schemes.put(TupleScheme.class, new requestSpace_resultTupleSchemeFactory());
     }
 
-    public ClientLocationInfo success; // required
+    public boolean success; // required
     public OutOfSpaceException eP; // required
+    public FileDoesNotExistException eS; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E_P((short)1, "eP");
+      E_P((short)1, "eP"),
+      E_S((short)2, "eS");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -11030,1002 +10368,8 @@ public class WorkerService {
             return SUCCESS;
           case 1: // E_P
             return E_P;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientLocationInfo.class)));
-      tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestSpace_result.class, metaDataMap);
-    }
-
-    public requestSpace_result() {
-    }
-
-    public requestSpace_result(
-      ClientLocationInfo success,
-      OutOfSpaceException eP)
-    {
-      this();
-      this.success = success;
-      this.eP = eP;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public requestSpace_result(requestSpace_result other) {
-      if (other.isSetSuccess()) {
-        this.success = new ClientLocationInfo(other.success);
-      }
-      if (other.isSetEP()) {
-        this.eP = new OutOfSpaceException(other.eP);
-      }
-    }
-
-    public requestSpace_result deepCopy() {
-      return new requestSpace_result(this);
-    }
-
-    @Override
-    public void clear() {
-      this.success = null;
-      this.eP = null;
-    }
-
-    public ClientLocationInfo getSuccess() {
-      return this.success;
-    }
-
-    public requestSpace_result setSuccess(ClientLocationInfo success) {
-      this.success = success;
-      return this;
-    }
-
-    public void unsetSuccess() {
-      this.success = null;
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return this.success != null;
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      if (!value) {
-        this.success = null;
-      }
-    }
-
-    public OutOfSpaceException getEP() {
-      return this.eP;
-    }
-
-    public requestSpace_result setEP(OutOfSpaceException eP) {
-      this.eP = eP;
-      return this;
-    }
-
-    public void unsetEP() {
-      this.eP = null;
-    }
-
-    /** Returns true if field eP is set (has been assigned a value) and false otherwise */
-    public boolean isSetEP() {
-      return this.eP != null;
-    }
-
-    public void setEPIsSet(boolean value) {
-      if (!value) {
-        this.eP = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((ClientLocationInfo)value);
-        }
-        break;
-
-      case E_P:
-        if (value == null) {
-          unsetEP();
-        } else {
-          setEP((OutOfSpaceException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return getSuccess();
-
-      case E_P:
-        return getEP();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E_P:
-        return isSetEP();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof requestSpace_result)
-        return this.equals((requestSpace_result)that);
-      return false;
-    }
-
-    public boolean equals(requestSpace_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (!this.success.equals(that.success))
-          return false;
-      }
-
-      boolean this_present_eP = true && this.isSetEP();
-      boolean that_present_eP = true && that.isSetEP();
-      if (this_present_eP || that_present_eP) {
-        if (!(this_present_eP && that_present_eP))
-          return false;
-        if (!this.eP.equals(that.eP))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(requestSpace_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEP()).compareTo(other.isSetEP());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEP()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eP, other.eP);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("requestSpace_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      if (this.success == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.success);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eP:");
-      if (this.eP == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eP);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-      if (success != null) {
-        success.validate();
-      }
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class requestSpace_resultStandardSchemeFactory implements SchemeFactory {
-      public requestSpace_resultStandardScheme getScheme() {
-        return new requestSpace_resultStandardScheme();
-      }
-    }
-
-    private static class requestSpace_resultStandardScheme extends StandardScheme<requestSpace_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, requestSpace_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new ClientLocationInfo();
-                struct.success.read(iprot);
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E_P
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eP = new OutOfSpaceException();
-                struct.eP.read(iprot);
-                struct.setEPIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, requestSpace_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          struct.success.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eP != null) {
-          oprot.writeFieldBegin(E_P_FIELD_DESC);
-          struct.eP.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class requestSpace_resultTupleSchemeFactory implements SchemeFactory {
-      public requestSpace_resultTupleScheme getScheme() {
-        return new requestSpace_resultTupleScheme();
-      }
-    }
-
-    private static class requestSpace_resultTupleScheme extends TupleScheme<requestSpace_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, requestSpace_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
-          optionals.set(0);
-        }
-        if (struct.isSetEP()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetSuccess()) {
-          struct.success.write(oprot);
-        }
-        if (struct.isSetEP()) {
-          struct.eP.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, requestSpace_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.success = new ClientLocationInfo();
-          struct.success.read(iprot);
-          struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.eP = new OutOfSpaceException();
-          struct.eP.read(iprot);
-          struct.setEPIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class requestSpaceInPlace_args implements org.apache.thrift.TBase<requestSpaceInPlace_args, requestSpaceInPlace_args._Fields>, java.io.Serializable, Cloneable, Comparable<requestSpaceInPlace_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("requestSpaceInPlace_args");
-
-    private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField STORAGE_DIR_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("storageDirId", org.apache.thrift.protocol.TType.I64, (short)2);
-    private static final org.apache.thrift.protocol.TField REQUEST_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("requestBytes", org.apache.thrift.protocol.TType.I64, (short)3);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new requestSpaceInPlace_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new requestSpaceInPlace_argsTupleSchemeFactory());
-    }
-
-    public long userId; // required
-    public long storageDirId; // required
-    public long requestBytes; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      USER_ID((short)1, "userId"),
-      STORAGE_DIR_ID((short)2, "storageDirId"),
-      REQUEST_BYTES((short)3, "requestBytes");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // USER_ID
-            return USER_ID;
-          case 2: // STORAGE_DIR_ID
-            return STORAGE_DIR_ID;
-          case 3: // REQUEST_BYTES
-            return REQUEST_BYTES;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __USERID_ISSET_ID = 0;
-    private static final int __STORAGEDIRID_ISSET_ID = 1;
-    private static final int __REQUESTBYTES_ISSET_ID = 2;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.STORAGE_DIR_ID, new org.apache.thrift.meta_data.FieldMetaData("storageDirId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.REQUEST_BYTES, new org.apache.thrift.meta_data.FieldMetaData("requestBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestSpaceInPlace_args.class, metaDataMap);
-    }
-
-    public requestSpaceInPlace_args() {
-    }
-
-    public requestSpaceInPlace_args(
-      long userId,
-      long storageDirId,
-      long requestBytes)
-    {
-      this();
-      this.userId = userId;
-      setUserIdIsSet(true);
-      this.storageDirId = storageDirId;
-      setStorageDirIdIsSet(true);
-      this.requestBytes = requestBytes;
-      setRequestBytesIsSet(true);
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public requestSpaceInPlace_args(requestSpaceInPlace_args other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.userId = other.userId;
-      this.storageDirId = other.storageDirId;
-      this.requestBytes = other.requestBytes;
-    }
-
-    public requestSpaceInPlace_args deepCopy() {
-      return new requestSpaceInPlace_args(this);
-    }
-
-    @Override
-    public void clear() {
-      setUserIdIsSet(false);
-      this.userId = 0;
-      setStorageDirIdIsSet(false);
-      this.storageDirId = 0;
-      setRequestBytesIsSet(false);
-      this.requestBytes = 0;
-    }
-
-    public long getUserId() {
-      return this.userId;
-    }
-
-    public requestSpaceInPlace_args setUserId(long userId) {
-      this.userId = userId;
-      setUserIdIsSet(true);
-      return this;
-    }
-
-    public void unsetUserId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __USERID_ISSET_ID);
-    }
-
-    /** Returns true if field userId is set (has been assigned a value) and false otherwise */
-    public boolean isSetUserId() {
-      return EncodingUtils.testBit(__isset_bitfield, __USERID_ISSET_ID);
-    }
-
-    public void setUserIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USERID_ISSET_ID, value);
-    }
-
-    public long getStorageDirId() {
-      return this.storageDirId;
-    }
-
-    public requestSpaceInPlace_args setStorageDirId(long storageDirId) {
-      this.storageDirId = storageDirId;
-      setStorageDirIdIsSet(true);
-      return this;
-    }
-
-    public void unsetStorageDirId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID);
-    }
-
-    /** Returns true if field storageDirId is set (has been assigned a value) and false otherwise */
-    public boolean isSetStorageDirId() {
-      return EncodingUtils.testBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID);
-    }
-
-    public void setStorageDirIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STORAGEDIRID_ISSET_ID, value);
-    }
-
-    public long getRequestBytes() {
-      return this.requestBytes;
-    }
-
-    public requestSpaceInPlace_args setRequestBytes(long requestBytes) {
-      this.requestBytes = requestBytes;
-      setRequestBytesIsSet(true);
-      return this;
-    }
-
-    public void unsetRequestBytes() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __REQUESTBYTES_ISSET_ID);
-    }
-
-    /** Returns true if field requestBytes is set (has been assigned a value) and false otherwise */
-    public boolean isSetRequestBytes() {
-      return EncodingUtils.testBit(__isset_bitfield, __REQUESTBYTES_ISSET_ID);
-    }
-
-    public void setRequestBytesIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REQUESTBYTES_ISSET_ID, value);
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case USER_ID:
-        if (value == null) {
-          unsetUserId();
-        } else {
-          setUserId((Long)value);
-        }
-        break;
-
-      case STORAGE_DIR_ID:
-        if (value == null) {
-          unsetStorageDirId();
-        } else {
-          setStorageDirId((Long)value);
-        }
-        break;
-
-      case REQUEST_BYTES:
-        if (value == null) {
-          unsetRequestBytes();
-        } else {
-          setRequestBytes((Long)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case USER_ID:
-        return Long.valueOf(getUserId());
-
-      case STORAGE_DIR_ID:
-        return Long.valueOf(getStorageDirId());
-
-      case REQUEST_BYTES:
-        return Long.valueOf(getRequestBytes());
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case USER_ID:
-        return isSetUserId();
-      case STORAGE_DIR_ID:
-        return isSetStorageDirId();
-      case REQUEST_BYTES:
-        return isSetRequestBytes();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof requestSpaceInPlace_args)
-        return this.equals((requestSpaceInPlace_args)that);
-      return false;
-    }
-
-    public boolean equals(requestSpaceInPlace_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_userId = true;
-      boolean that_present_userId = true;
-      if (this_present_userId || that_present_userId) {
-        if (!(this_present_userId && that_present_userId))
-          return false;
-        if (this.userId != that.userId)
-          return false;
-      }
-
-      boolean this_present_storageDirId = true;
-      boolean that_present_storageDirId = true;
-      if (this_present_storageDirId || that_present_storageDirId) {
-        if (!(this_present_storageDirId && that_present_storageDirId))
-          return false;
-        if (this.storageDirId != that.storageDirId)
-          return false;
-      }
-
-      boolean this_present_requestBytes = true;
-      boolean that_present_requestBytes = true;
-      if (this_present_requestBytes || that_present_requestBytes) {
-        if (!(this_present_requestBytes && that_present_requestBytes))
-          return false;
-        if (this.requestBytes != that.requestBytes)
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(requestSpaceInPlace_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetUserId()).compareTo(other.isSetUserId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetUserId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.userId, other.userId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetStorageDirId()).compareTo(other.isSetStorageDirId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetStorageDirId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.storageDirId, other.storageDirId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetRequestBytes()).compareTo(other.isSetRequestBytes());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetRequestBytes()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.requestBytes, other.requestBytes);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("requestSpaceInPlace_args(");
-      boolean first = true;
-
-      sb.append("userId:");
-      sb.append(this.userId);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("storageDirId:");
-      sb.append(this.storageDirId);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("requestBytes:");
-      sb.append(this.requestBytes);
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class requestSpaceInPlace_argsStandardSchemeFactory implements SchemeFactory {
-      public requestSpaceInPlace_argsStandardScheme getScheme() {
-        return new requestSpaceInPlace_argsStandardScheme();
-      }
-    }
-
-    private static class requestSpaceInPlace_argsStandardScheme extends StandardScheme<requestSpaceInPlace_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, requestSpaceInPlace_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // USER_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.userId = iprot.readI64();
-                struct.setUserIdIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // STORAGE_DIR_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.storageDirId = iprot.readI64();
-                struct.setStorageDirIdIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 3: // REQUEST_BYTES
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.requestBytes = iprot.readI64();
-                struct.setRequestBytesIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, requestSpaceInPlace_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(USER_ID_FIELD_DESC);
-        oprot.writeI64(struct.userId);
-        oprot.writeFieldEnd();
-        oprot.writeFieldBegin(STORAGE_DIR_ID_FIELD_DESC);
-        oprot.writeI64(struct.storageDirId);
-        oprot.writeFieldEnd();
-        oprot.writeFieldBegin(REQUEST_BYTES_FIELD_DESC);
-        oprot.writeI64(struct.requestBytes);
-        oprot.writeFieldEnd();
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class requestSpaceInPlace_argsTupleSchemeFactory implements SchemeFactory {
-      public requestSpaceInPlace_argsTupleScheme getScheme() {
-        return new requestSpaceInPlace_argsTupleScheme();
-      }
-    }
-
-    private static class requestSpaceInPlace_argsTupleScheme extends TupleScheme<requestSpaceInPlace_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, requestSpaceInPlace_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetUserId()) {
-          optionals.set(0);
-        }
-        if (struct.isSetStorageDirId()) {
-          optionals.set(1);
-        }
-        if (struct.isSetRequestBytes()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
-        if (struct.isSetUserId()) {
-          oprot.writeI64(struct.userId);
-        }
-        if (struct.isSetStorageDirId()) {
-          oprot.writeI64(struct.storageDirId);
-        }
-        if (struct.isSetRequestBytes()) {
-          oprot.writeI64(struct.requestBytes);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, requestSpaceInPlace_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
-        if (incoming.get(0)) {
-          struct.userId = iprot.readI64();
-          struct.setUserIdIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.storageDirId = iprot.readI64();
-          struct.setStorageDirIdIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.requestBytes = iprot.readI64();
-          struct.setRequestBytesIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class requestSpaceInPlace_result implements org.apache.thrift.TBase<requestSpaceInPlace_result, requestSpaceInPlace_result._Fields>, java.io.Serializable, Cloneable, Comparable<requestSpaceInPlace_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("requestSpaceInPlace_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new requestSpaceInPlace_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new requestSpaceInPlace_resultTupleSchemeFactory());
-    }
-
-    public boolean success; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
+          case 2: // E_S
+            return E_S;
           default:
             return null;
         }
@@ -12073,44 +10417,60 @@ public class WorkerService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+      tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_S, new org.apache.thrift.meta_data.FieldMetaData("eS", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestSpaceInPlace_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestSpace_result.class, metaDataMap);
     }
 
-    public requestSpaceInPlace_result() {
+    public requestSpace_result() {
     }
 
-    public requestSpaceInPlace_result(
-      boolean success)
+    public requestSpace_result(
+      boolean success,
+      OutOfSpaceException eP,
+      FileDoesNotExistException eS)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
+      this.eP = eP;
+      this.eS = eS;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public requestSpaceInPlace_result(requestSpaceInPlace_result other) {
+    public requestSpace_result(requestSpace_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
+      if (other.isSetEP()) {
+        this.eP = new OutOfSpaceException(other.eP);
+      }
+      if (other.isSetES()) {
+        this.eS = new FileDoesNotExistException(other.eS);
+      }
     }
 
-    public requestSpaceInPlace_result deepCopy() {
-      return new requestSpaceInPlace_result(this);
+    public requestSpace_result deepCopy() {
+      return new requestSpace_result(this);
     }
 
     @Override
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
+      this.eP = null;
+      this.eS = null;
     }
 
     public boolean isSuccess() {
       return this.success;
     }
 
-    public requestSpaceInPlace_result setSuccess(boolean success) {
+    public requestSpace_result setSuccess(boolean success) {
       this.success = success;
       setSuccessIsSet(true);
       return this;
@@ -12129,6 +10489,54 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
+    public OutOfSpaceException getEP() {
+      return this.eP;
+    }
+
+    public requestSpace_result setEP(OutOfSpaceException eP) {
+      this.eP = eP;
+      return this;
+    }
+
+    public void unsetEP() {
+      this.eP = null;
+    }
+
+    /** Returns true if field eP is set (has been assigned a value) and false otherwise */
+    public boolean isSetEP() {
+      return this.eP != null;
+    }
+
+    public void setEPIsSet(boolean value) {
+      if (!value) {
+        this.eP = null;
+      }
+    }
+
+    public FileDoesNotExistException getES() {
+      return this.eS;
+    }
+
+    public requestSpace_result setES(FileDoesNotExistException eS) {
+      this.eS = eS;
+      return this;
+    }
+
+    public void unsetES() {
+      this.eS = null;
+    }
+
+    /** Returns true if field eS is set (has been assigned a value) and false otherwise */
+    public boolean isSetES() {
+      return this.eS != null;
+    }
+
+    public void setESIsSet(boolean value) {
+      if (!value) {
+        this.eS = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -12139,6 +10547,22 @@ public class WorkerService {
         }
         break;
 
+      case E_P:
+        if (value == null) {
+          unsetEP();
+        } else {
+          setEP((OutOfSpaceException)value);
+        }
+        break;
+
+      case E_S:
+        if (value == null) {
+          unsetES();
+        } else {
+          setES((FileDoesNotExistException)value);
+        }
+        break;
+
       }
     }
 
@@ -12146,6 +10570,12 @@ public class WorkerService {
       switch (field) {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
+
+      case E_P:
+        return getEP();
+
+      case E_S:
+        return getES();
 
       }
       throw new IllegalStateException();
@@ -12160,6 +10590,10 @@ public class WorkerService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case E_P:
+        return isSetEP();
+      case E_S:
+        return isSetES();
       }
       throw new IllegalStateException();
     }
@@ -12168,12 +10602,12 @@ public class WorkerService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof requestSpaceInPlace_result)
-        return this.equals((requestSpaceInPlace_result)that);
+      if (that instanceof requestSpace_result)
+        return this.equals((requestSpace_result)that);
       return false;
     }
 
-    public boolean equals(requestSpaceInPlace_result that) {
+    public boolean equals(requestSpace_result that) {
       if (that == null)
         return false;
 
@@ -12186,6 +10620,24 @@ public class WorkerService {
           return false;
       }
 
+      boolean this_present_eP = true && this.isSetEP();
+      boolean that_present_eP = true && that.isSetEP();
+      if (this_present_eP || that_present_eP) {
+        if (!(this_present_eP && that_present_eP))
+          return false;
+        if (!this.eP.equals(that.eP))
+          return false;
+      }
+
+      boolean this_present_eS = true && this.isSetES();
+      boolean that_present_eS = true && that.isSetES();
+      if (this_present_eS || that_present_eS) {
+        if (!(this_present_eS && that_present_eS))
+          return false;
+        if (!this.eS.equals(that.eS))
+          return false;
+      }
+
       return true;
     }
 
@@ -12195,7 +10647,7 @@ public class WorkerService {
     }
 
     @Override
-    public int compareTo(requestSpaceInPlace_result other) {
+    public int compareTo(requestSpace_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -12208,6 +10660,26 @@ public class WorkerService {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEP()).compareTo(other.isSetEP());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEP()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eP, other.eP);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetES()).compareTo(other.isSetES());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetES()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eS, other.eS);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -12229,11 +10701,27 @@ public class WorkerService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("requestSpaceInPlace_result(");
+      StringBuilder sb = new StringBuilder("requestSpace_result(");
       boolean first = true;
 
       sb.append("success:");
       sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eP:");
+      if (this.eP == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eP);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eS:");
+      if (this.eS == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eS);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -12262,15 +10750,15 @@ public class WorkerService {
       }
     }
 
-    private static class requestSpaceInPlace_resultStandardSchemeFactory implements SchemeFactory {
-      public requestSpaceInPlace_resultStandardScheme getScheme() {
-        return new requestSpaceInPlace_resultStandardScheme();
+    private static class requestSpace_resultStandardSchemeFactory implements SchemeFactory {
+      public requestSpace_resultStandardScheme getScheme() {
+        return new requestSpace_resultStandardScheme();
       }
     }
 
-    private static class requestSpaceInPlace_resultStandardScheme extends StandardScheme<requestSpaceInPlace_result> {
+    private static class requestSpace_resultStandardScheme extends StandardScheme<requestSpace_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, requestSpaceInPlace_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, requestSpace_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -12288,6 +10776,24 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // E_P
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eP = new OutOfSpaceException();
+                struct.eP.read(iprot);
+                struct.setEPIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // E_S
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eS = new FileDoesNotExistException();
+                struct.eS.read(iprot);
+                struct.setESIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -12299,7 +10805,7 @@ public class WorkerService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, requestSpaceInPlace_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, requestSpace_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -12308,40 +10814,72 @@ public class WorkerService {
           oprot.writeBool(struct.success);
           oprot.writeFieldEnd();
         }
+        if (struct.eP != null) {
+          oprot.writeFieldBegin(E_P_FIELD_DESC);
+          struct.eP.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eS != null) {
+          oprot.writeFieldBegin(E_S_FIELD_DESC);
+          struct.eS.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class requestSpaceInPlace_resultTupleSchemeFactory implements SchemeFactory {
-      public requestSpaceInPlace_resultTupleScheme getScheme() {
-        return new requestSpaceInPlace_resultTupleScheme();
+    private static class requestSpace_resultTupleSchemeFactory implements SchemeFactory {
+      public requestSpace_resultTupleScheme getScheme() {
+        return new requestSpace_resultTupleScheme();
       }
     }
 
-    private static class requestSpaceInPlace_resultTupleScheme extends TupleScheme<requestSpaceInPlace_result> {
+    private static class requestSpace_resultTupleScheme extends TupleScheme<requestSpace_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, requestSpaceInPlace_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, requestSpace_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetEP()) {
+          optionals.set(1);
+        }
+        if (struct.isSetES()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
+        }
+        if (struct.isSetEP()) {
+          struct.eP.write(oprot);
+        }
+        if (struct.isSetES()) {
+          struct.eS.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, requestSpaceInPlace_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, requestSpace_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.eP = new OutOfSpaceException();
+          struct.eP.read(iprot);
+          struct.setEPIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.eS = new FileDoesNotExistException();
+          struct.eS.read(iprot);
+          struct.setESIsSet(true);
         }
       }
     }
