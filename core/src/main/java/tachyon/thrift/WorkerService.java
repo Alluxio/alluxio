@@ -42,7 +42,7 @@ public class WorkerService {
 
     public boolean asyncCheckpoint(int fileId) throws TachyonException, org.apache.thrift.TException;
 
-    public void cacheBlock(long userId, long blockId, long unusedBytes) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException;
+    public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException;
 
     public String getUserUfsTempFolder(long userId) throws org.apache.thrift.TException;
 
@@ -50,11 +50,11 @@ public class WorkerService {
 
     public boolean promoteBlock(long userId, long blockId) throws org.apache.thrift.TException;
 
-    public void cancelBlock(long userId, long blockId, long unusedBytes) throws org.apache.thrift.TException;
+    public void cancelBlock(long userId, long blockId) throws org.apache.thrift.TException;
 
     public String getBlockLocation(long userId, long blockId, long initialBytes) throws OutOfSpaceException, FileAlreadyExistException, org.apache.thrift.TException;
 
-    public boolean requestSpace(long userId, long blockId, long requestBytes) throws OutOfSpaceException, FileDoesNotExistException, org.apache.thrift.TException;
+    public boolean requestSpace(long userId, long blockId, long requestBytes) throws FileDoesNotExistException, org.apache.thrift.TException;
 
     public boolean unlockBlock(long blockId, long userId) throws org.apache.thrift.TException;
 
@@ -70,7 +70,7 @@ public class WorkerService {
 
     public void asyncCheckpoint(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void cacheBlock(long userId, long blockId, long unusedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void cacheBlock(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void getUserUfsTempFolder(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -78,7 +78,7 @@ public class WorkerService {
 
     public void promoteBlock(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void cancelBlock(long userId, long blockId, long unusedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void cancelBlock(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void getBlockLocation(long userId, long blockId, long initialBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -189,18 +189,17 @@ public class WorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "asyncCheckpoint failed: unknown result");
     }
 
-    public void cacheBlock(long userId, long blockId, long unusedBytes) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException
+    public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException
     {
-      send_cacheBlock(userId, blockId, unusedBytes);
+      send_cacheBlock(userId, blockId);
       recv_cacheBlock();
     }
 
-    public void send_cacheBlock(long userId, long blockId, long unusedBytes) throws org.apache.thrift.TException
+    public void send_cacheBlock(long userId, long blockId) throws org.apache.thrift.TException
     {
       cacheBlock_args args = new cacheBlock_args();
       args.setUserId(userId);
       args.setBlockId(blockId);
-      args.setUnusedBytes(unusedBytes);
       sendBase("cacheBlock", args);
     }
 
@@ -294,18 +293,17 @@ public class WorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "promoteBlock failed: unknown result");
     }
 
-    public void cancelBlock(long userId, long blockId, long unusedBytes) throws org.apache.thrift.TException
+    public void cancelBlock(long userId, long blockId) throws org.apache.thrift.TException
     {
-      send_cancelBlock(userId, blockId, unusedBytes);
+      send_cancelBlock(userId, blockId);
       recv_cancelBlock();
     }
 
-    public void send_cancelBlock(long userId, long blockId, long unusedBytes) throws org.apache.thrift.TException
+    public void send_cancelBlock(long userId, long blockId) throws org.apache.thrift.TException
     {
       cancelBlock_args args = new cancelBlock_args();
       args.setUserId(userId);
       args.setBlockId(blockId);
-      args.setUnusedBytes(unusedBytes);
       sendBase("cancelBlock", args);
     }
 
@@ -347,7 +345,7 @@ public class WorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getBlockLocation failed: unknown result");
     }
 
-    public boolean requestSpace(long userId, long blockId, long requestBytes) throws OutOfSpaceException, FileDoesNotExistException, org.apache.thrift.TException
+    public boolean requestSpace(long userId, long blockId, long requestBytes) throws FileDoesNotExistException, org.apache.thrift.TException
     {
       send_requestSpace(userId, blockId, requestBytes);
       return recv_requestSpace();
@@ -362,7 +360,7 @@ public class WorkerService {
       sendBase("requestSpace", args);
     }
 
-    public boolean recv_requestSpace() throws OutOfSpaceException, FileDoesNotExistException, org.apache.thrift.TException
+    public boolean recv_requestSpace() throws FileDoesNotExistException, org.apache.thrift.TException
     {
       requestSpace_result result = new requestSpace_result();
       receiveBase(result, "requestSpace");
@@ -371,9 +369,6 @@ public class WorkerService {
       }
       if (result.eP != null) {
         throw result.eP;
-      }
-      if (result.eS != null) {
-        throw result.eS;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "requestSpace failed: unknown result");
     }
@@ -539,9 +534,9 @@ public class WorkerService {
       }
     }
 
-    public void cacheBlock(long userId, long blockId, long unusedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void cacheBlock(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      cacheBlock_call method_call = new cacheBlock_call(userId, blockId, unusedBytes, resultHandler, this, ___protocolFactory, ___transport);
+      cacheBlock_call method_call = new cacheBlock_call(userId, blockId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -549,12 +544,10 @@ public class WorkerService {
     public static class cacheBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long userId;
       private long blockId;
-      private long unusedBytes;
-      public cacheBlock_call(long userId, long blockId, long unusedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public cacheBlock_call(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.userId = userId;
         this.blockId = blockId;
-        this.unusedBytes = unusedBytes;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -562,7 +555,6 @@ public class WorkerService {
         cacheBlock_args args = new cacheBlock_args();
         args.setUserId(userId);
         args.setBlockId(blockId);
-        args.setUnusedBytes(unusedBytes);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -679,9 +671,9 @@ public class WorkerService {
       }
     }
 
-    public void cancelBlock(long userId, long blockId, long unusedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void cancelBlock(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      cancelBlock_call method_call = new cancelBlock_call(userId, blockId, unusedBytes, resultHandler, this, ___protocolFactory, ___transport);
+      cancelBlock_call method_call = new cancelBlock_call(userId, blockId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -689,12 +681,10 @@ public class WorkerService {
     public static class cancelBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long userId;
       private long blockId;
-      private long unusedBytes;
-      public cancelBlock_call(long userId, long blockId, long unusedBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public cancelBlock_call(long userId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.userId = userId;
         this.blockId = blockId;
-        this.unusedBytes = unusedBytes;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -702,7 +692,6 @@ public class WorkerService {
         cancelBlock_args args = new cancelBlock_args();
         args.setUserId(userId);
         args.setBlockId(blockId);
-        args.setUnusedBytes(unusedBytes);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -783,7 +772,7 @@ public class WorkerService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws OutOfSpaceException, FileDoesNotExistException, org.apache.thrift.TException {
+      public boolean getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -979,7 +968,7 @@ public class WorkerService {
       public cacheBlock_result getResult(I iface, cacheBlock_args args) throws org.apache.thrift.TException {
         cacheBlock_result result = new cacheBlock_result();
         try {
-          iface.cacheBlock(args.userId, args.blockId, args.unusedBytes);
+          iface.cacheBlock(args.userId, args.blockId);
         } catch (FileDoesNotExistException eP) {
           result.eP = eP;
         } catch (SuspectedFileSizeException eS) {
@@ -1071,7 +1060,7 @@ public class WorkerService {
 
       public cancelBlock_result getResult(I iface, cancelBlock_args args) throws org.apache.thrift.TException {
         cancelBlock_result result = new cancelBlock_result();
-        iface.cancelBlock(args.userId, args.blockId, args.unusedBytes);
+        iface.cancelBlock(args.userId, args.blockId);
         return result;
       }
     }
@@ -1120,10 +1109,8 @@ public class WorkerService {
         try {
           result.success = iface.requestSpace(args.userId, args.blockId, args.requestBytes);
           result.setSuccessIsSet(true);
-        } catch (OutOfSpaceException eP) {
+        } catch (FileDoesNotExistException eP) {
           result.eP = eP;
-        } catch (FileDoesNotExistException eS) {
-          result.eS = eS;
         }
         return result;
       }
@@ -1439,7 +1426,7 @@ public class WorkerService {
       }
 
       public void start(I iface, cacheBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.cacheBlock(args.userId, args.blockId, args.unusedBytes,resultHandler);
+        iface.cacheBlock(args.userId, args.blockId,resultHandler);
       }
     }
 
@@ -1649,7 +1636,7 @@ public class WorkerService {
       }
 
       public void start(I iface, cancelBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.cancelBlock(args.userId, args.blockId, args.unusedBytes,resultHandler);
+        iface.cancelBlock(args.userId, args.blockId,resultHandler);
       }
     }
 
@@ -1743,14 +1730,9 @@ public class WorkerService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             requestSpace_result result = new requestSpace_result();
-            if (e instanceof OutOfSpaceException) {
-                        result.eP = (OutOfSpaceException) e;
+            if (e instanceof FileDoesNotExistException) {
+                        result.eP = (FileDoesNotExistException) e;
                         result.setEPIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof FileDoesNotExistException) {
-                        result.eS = (FileDoesNotExistException) e;
-                        result.setESIsSet(true);
                         msg = result;
             }
              else 
@@ -4401,7 +4383,6 @@ public class WorkerService {
 
     private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)2);
-    private static final org.apache.thrift.protocol.TField UNUSED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("unusedBytes", org.apache.thrift.protocol.TType.I64, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4411,13 +4392,11 @@ public class WorkerService {
 
     public long userId; // required
     public long blockId; // required
-    public long unusedBytes; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       USER_ID((short)1, "userId"),
-      BLOCK_ID((short)2, "blockId"),
-      UNUSED_BYTES((short)3, "unusedBytes");
+      BLOCK_ID((short)2, "blockId");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4436,8 +4415,6 @@ public class WorkerService {
             return USER_ID;
           case 2: // BLOCK_ID
             return BLOCK_ID;
-          case 3: // UNUSED_BYTES
-            return UNUSED_BYTES;
           default:
             return null;
         }
@@ -4480,7 +4457,6 @@ public class WorkerService {
     // isset id assignments
     private static final int __USERID_ISSET_ID = 0;
     private static final int __BLOCKID_ISSET_ID = 1;
-    private static final int __UNUSEDBYTES_ISSET_ID = 2;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
@@ -4488,8 +4464,6 @@ public class WorkerService {
       tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.UNUSED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("unusedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cacheBlock_args.class, metaDataMap);
@@ -4500,16 +4474,13 @@ public class WorkerService {
 
     public cacheBlock_args(
       long userId,
-      long blockId,
-      long unusedBytes)
+      long blockId)
     {
       this();
       this.userId = userId;
       setUserIdIsSet(true);
       this.blockId = blockId;
       setBlockIdIsSet(true);
-      this.unusedBytes = unusedBytes;
-      setUnusedBytesIsSet(true);
     }
 
     /**
@@ -4519,7 +4490,6 @@ public class WorkerService {
       __isset_bitfield = other.__isset_bitfield;
       this.userId = other.userId;
       this.blockId = other.blockId;
-      this.unusedBytes = other.unusedBytes;
     }
 
     public cacheBlock_args deepCopy() {
@@ -4532,8 +4502,6 @@ public class WorkerService {
       this.userId = 0;
       setBlockIdIsSet(false);
       this.blockId = 0;
-      setUnusedBytesIsSet(false);
-      this.unusedBytes = 0;
     }
 
     public long getUserId() {
@@ -4582,29 +4550,6 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
-    public long getUnusedBytes() {
-      return this.unusedBytes;
-    }
-
-    public cacheBlock_args setUnusedBytes(long unusedBytes) {
-      this.unusedBytes = unusedBytes;
-      setUnusedBytesIsSet(true);
-      return this;
-    }
-
-    public void unsetUnusedBytes() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __UNUSEDBYTES_ISSET_ID);
-    }
-
-    /** Returns true if field unusedBytes is set (has been assigned a value) and false otherwise */
-    public boolean isSetUnusedBytes() {
-      return EncodingUtils.testBit(__isset_bitfield, __UNUSEDBYTES_ISSET_ID);
-    }
-
-    public void setUnusedBytesIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __UNUSEDBYTES_ISSET_ID, value);
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case USER_ID:
@@ -4623,14 +4568,6 @@ public class WorkerService {
         }
         break;
 
-      case UNUSED_BYTES:
-        if (value == null) {
-          unsetUnusedBytes();
-        } else {
-          setUnusedBytes((Long)value);
-        }
-        break;
-
       }
     }
 
@@ -4641,9 +4578,6 @@ public class WorkerService {
 
       case BLOCK_ID:
         return Long.valueOf(getBlockId());
-
-      case UNUSED_BYTES:
-        return Long.valueOf(getUnusedBytes());
 
       }
       throw new IllegalStateException();
@@ -4660,8 +4594,6 @@ public class WorkerService {
         return isSetUserId();
       case BLOCK_ID:
         return isSetBlockId();
-      case UNUSED_BYTES:
-        return isSetUnusedBytes();
       }
       throw new IllegalStateException();
     }
@@ -4694,15 +4626,6 @@ public class WorkerService {
         if (!(this_present_blockId && that_present_blockId))
           return false;
         if (this.blockId != that.blockId)
-          return false;
-      }
-
-      boolean this_present_unusedBytes = true;
-      boolean that_present_unusedBytes = true;
-      if (this_present_unusedBytes || that_present_unusedBytes) {
-        if (!(this_present_unusedBytes && that_present_unusedBytes))
-          return false;
-        if (this.unusedBytes != that.unusedBytes)
           return false;
       }
 
@@ -4742,16 +4665,6 @@ public class WorkerService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetUnusedBytes()).compareTo(other.isSetUnusedBytes());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetUnusedBytes()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.unusedBytes, other.unusedBytes);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       return 0;
     }
 
@@ -4778,10 +4691,6 @@ public class WorkerService {
       if (!first) sb.append(", ");
       sb.append("blockId:");
       sb.append(this.blockId);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("unusedBytes:");
-      sb.append(this.unusedBytes);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -4844,14 +4753,6 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 3: // UNUSED_BYTES
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.unusedBytes = iprot.readI64();
-                struct.setUnusedBytesIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -4872,9 +4773,6 @@ public class WorkerService {
         oprot.writeFieldEnd();
         oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
         oprot.writeI64(struct.blockId);
-        oprot.writeFieldEnd();
-        oprot.writeFieldBegin(UNUSED_BYTES_FIELD_DESC);
-        oprot.writeI64(struct.unusedBytes);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -4900,25 +4798,19 @@ public class WorkerService {
         if (struct.isSetBlockId()) {
           optionals.set(1);
         }
-        if (struct.isSetUnusedBytes()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetUserId()) {
           oprot.writeI64(struct.userId);
         }
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
         }
-        if (struct.isSetUnusedBytes()) {
-          oprot.writeI64(struct.unusedBytes);
-        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, cacheBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.userId = iprot.readI64();
           struct.setUserIdIsSet(true);
@@ -4926,10 +4818,6 @@ public class WorkerService {
         if (incoming.get(1)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.unusedBytes = iprot.readI64();
-          struct.setUnusedBytesIsSet(true);
         }
       }
     }
@@ -7909,7 +7797,6 @@ public class WorkerService {
 
     private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)2);
-    private static final org.apache.thrift.protocol.TField UNUSED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("unusedBytes", org.apache.thrift.protocol.TType.I64, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -7919,13 +7806,11 @@ public class WorkerService {
 
     public long userId; // required
     public long blockId; // required
-    public long unusedBytes; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       USER_ID((short)1, "userId"),
-      BLOCK_ID((short)2, "blockId"),
-      UNUSED_BYTES((short)3, "unusedBytes");
+      BLOCK_ID((short)2, "blockId");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -7944,8 +7829,6 @@ public class WorkerService {
             return USER_ID;
           case 2: // BLOCK_ID
             return BLOCK_ID;
-          case 3: // UNUSED_BYTES
-            return UNUSED_BYTES;
           default:
             return null;
         }
@@ -7988,7 +7871,6 @@ public class WorkerService {
     // isset id assignments
     private static final int __USERID_ISSET_ID = 0;
     private static final int __BLOCKID_ISSET_ID = 1;
-    private static final int __UNUSEDBYTES_ISSET_ID = 2;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
@@ -7996,8 +7878,6 @@ public class WorkerService {
       tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.UNUSED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("unusedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cancelBlock_args.class, metaDataMap);
@@ -8008,16 +7888,13 @@ public class WorkerService {
 
     public cancelBlock_args(
       long userId,
-      long blockId,
-      long unusedBytes)
+      long blockId)
     {
       this();
       this.userId = userId;
       setUserIdIsSet(true);
       this.blockId = blockId;
       setBlockIdIsSet(true);
-      this.unusedBytes = unusedBytes;
-      setUnusedBytesIsSet(true);
     }
 
     /**
@@ -8027,7 +7904,6 @@ public class WorkerService {
       __isset_bitfield = other.__isset_bitfield;
       this.userId = other.userId;
       this.blockId = other.blockId;
-      this.unusedBytes = other.unusedBytes;
     }
 
     public cancelBlock_args deepCopy() {
@@ -8040,8 +7916,6 @@ public class WorkerService {
       this.userId = 0;
       setBlockIdIsSet(false);
       this.blockId = 0;
-      setUnusedBytesIsSet(false);
-      this.unusedBytes = 0;
     }
 
     public long getUserId() {
@@ -8090,29 +7964,6 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
-    public long getUnusedBytes() {
-      return this.unusedBytes;
-    }
-
-    public cancelBlock_args setUnusedBytes(long unusedBytes) {
-      this.unusedBytes = unusedBytes;
-      setUnusedBytesIsSet(true);
-      return this;
-    }
-
-    public void unsetUnusedBytes() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __UNUSEDBYTES_ISSET_ID);
-    }
-
-    /** Returns true if field unusedBytes is set (has been assigned a value) and false otherwise */
-    public boolean isSetUnusedBytes() {
-      return EncodingUtils.testBit(__isset_bitfield, __UNUSEDBYTES_ISSET_ID);
-    }
-
-    public void setUnusedBytesIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __UNUSEDBYTES_ISSET_ID, value);
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case USER_ID:
@@ -8131,14 +7982,6 @@ public class WorkerService {
         }
         break;
 
-      case UNUSED_BYTES:
-        if (value == null) {
-          unsetUnusedBytes();
-        } else {
-          setUnusedBytes((Long)value);
-        }
-        break;
-
       }
     }
 
@@ -8149,9 +7992,6 @@ public class WorkerService {
 
       case BLOCK_ID:
         return Long.valueOf(getBlockId());
-
-      case UNUSED_BYTES:
-        return Long.valueOf(getUnusedBytes());
 
       }
       throw new IllegalStateException();
@@ -8168,8 +8008,6 @@ public class WorkerService {
         return isSetUserId();
       case BLOCK_ID:
         return isSetBlockId();
-      case UNUSED_BYTES:
-        return isSetUnusedBytes();
       }
       throw new IllegalStateException();
     }
@@ -8202,15 +8040,6 @@ public class WorkerService {
         if (!(this_present_blockId && that_present_blockId))
           return false;
         if (this.blockId != that.blockId)
-          return false;
-      }
-
-      boolean this_present_unusedBytes = true;
-      boolean that_present_unusedBytes = true;
-      if (this_present_unusedBytes || that_present_unusedBytes) {
-        if (!(this_present_unusedBytes && that_present_unusedBytes))
-          return false;
-        if (this.unusedBytes != that.unusedBytes)
           return false;
       }
 
@@ -8250,16 +8079,6 @@ public class WorkerService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetUnusedBytes()).compareTo(other.isSetUnusedBytes());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetUnusedBytes()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.unusedBytes, other.unusedBytes);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       return 0;
     }
 
@@ -8286,10 +8105,6 @@ public class WorkerService {
       if (!first) sb.append(", ");
       sb.append("blockId:");
       sb.append(this.blockId);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("unusedBytes:");
-      sb.append(this.unusedBytes);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -8352,14 +8167,6 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 3: // UNUSED_BYTES
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.unusedBytes = iprot.readI64();
-                struct.setUnusedBytesIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -8380,9 +8187,6 @@ public class WorkerService {
         oprot.writeFieldEnd();
         oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
         oprot.writeI64(struct.blockId);
-        oprot.writeFieldEnd();
-        oprot.writeFieldBegin(UNUSED_BYTES_FIELD_DESC);
-        oprot.writeI64(struct.unusedBytes);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -8408,25 +8212,19 @@ public class WorkerService {
         if (struct.isSetBlockId()) {
           optionals.set(1);
         }
-        if (struct.isSetUnusedBytes()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetUserId()) {
           oprot.writeI64(struct.userId);
         }
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
         }
-        if (struct.isSetUnusedBytes()) {
-          oprot.writeI64(struct.unusedBytes);
-        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, cancelBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.userId = iprot.readI64();
           struct.setUserIdIsSet(true);
@@ -8434,10 +8232,6 @@ public class WorkerService {
         if (incoming.get(1)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.unusedBytes = iprot.readI64();
-          struct.setUnusedBytesIsSet(true);
         }
       }
     }
@@ -10333,7 +10127,6 @@ public class WorkerService {
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_S_FIELD_DESC = new org.apache.thrift.protocol.TField("eS", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -10342,14 +10135,12 @@ public class WorkerService {
     }
 
     public boolean success; // required
-    public OutOfSpaceException eP; // required
-    public FileDoesNotExistException eS; // required
+    public FileDoesNotExistException eP; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E_P((short)1, "eP"),
-      E_S((short)2, "eS");
+      E_P((short)1, "eP");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -10368,8 +10159,6 @@ public class WorkerService {
             return SUCCESS;
           case 1: // E_P
             return E_P;
-          case 2: // E_S
-            return E_S;
           default:
             return null;
         }
@@ -10419,8 +10208,6 @@ public class WorkerService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_S, new org.apache.thrift.meta_data.FieldMetaData("eS", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestSpace_result.class, metaDataMap);
     }
@@ -10430,14 +10217,12 @@ public class WorkerService {
 
     public requestSpace_result(
       boolean success,
-      OutOfSpaceException eP,
-      FileDoesNotExistException eS)
+      FileDoesNotExistException eP)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
       this.eP = eP;
-      this.eS = eS;
     }
 
     /**
@@ -10447,10 +10232,7 @@ public class WorkerService {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
       if (other.isSetEP()) {
-        this.eP = new OutOfSpaceException(other.eP);
-      }
-      if (other.isSetES()) {
-        this.eS = new FileDoesNotExistException(other.eS);
+        this.eP = new FileDoesNotExistException(other.eP);
       }
     }
 
@@ -10463,7 +10245,6 @@ public class WorkerService {
       setSuccessIsSet(false);
       this.success = false;
       this.eP = null;
-      this.eS = null;
     }
 
     public boolean isSuccess() {
@@ -10489,11 +10270,11 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public OutOfSpaceException getEP() {
+    public FileDoesNotExistException getEP() {
       return this.eP;
     }
 
-    public requestSpace_result setEP(OutOfSpaceException eP) {
+    public requestSpace_result setEP(FileDoesNotExistException eP) {
       this.eP = eP;
       return this;
     }
@@ -10513,30 +10294,6 @@ public class WorkerService {
       }
     }
 
-    public FileDoesNotExistException getES() {
-      return this.eS;
-    }
-
-    public requestSpace_result setES(FileDoesNotExistException eS) {
-      this.eS = eS;
-      return this;
-    }
-
-    public void unsetES() {
-      this.eS = null;
-    }
-
-    /** Returns true if field eS is set (has been assigned a value) and false otherwise */
-    public boolean isSetES() {
-      return this.eS != null;
-    }
-
-    public void setESIsSet(boolean value) {
-      if (!value) {
-        this.eS = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -10551,15 +10308,7 @@ public class WorkerService {
         if (value == null) {
           unsetEP();
         } else {
-          setEP((OutOfSpaceException)value);
-        }
-        break;
-
-      case E_S:
-        if (value == null) {
-          unsetES();
-        } else {
-          setES((FileDoesNotExistException)value);
+          setEP((FileDoesNotExistException)value);
         }
         break;
 
@@ -10573,9 +10322,6 @@ public class WorkerService {
 
       case E_P:
         return getEP();
-
-      case E_S:
-        return getES();
 
       }
       throw new IllegalStateException();
@@ -10592,8 +10338,6 @@ public class WorkerService {
         return isSetSuccess();
       case E_P:
         return isSetEP();
-      case E_S:
-        return isSetES();
       }
       throw new IllegalStateException();
     }
@@ -10626,15 +10370,6 @@ public class WorkerService {
         if (!(this_present_eP && that_present_eP))
           return false;
         if (!this.eP.equals(that.eP))
-          return false;
-      }
-
-      boolean this_present_eS = true && this.isSetES();
-      boolean that_present_eS = true && that.isSetES();
-      if (this_present_eS || that_present_eS) {
-        if (!(this_present_eS && that_present_eS))
-          return false;
-        if (!this.eS.equals(that.eS))
           return false;
       }
 
@@ -10674,16 +10409,6 @@ public class WorkerService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetES()).compareTo(other.isSetES());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetES()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eS, other.eS);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       return 0;
     }
 
@@ -10713,14 +10438,6 @@ public class WorkerService {
         sb.append("null");
       } else {
         sb.append(this.eP);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eS:");
-      if (this.eS == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eS);
       }
       first = false;
       sb.append(")");
@@ -10778,18 +10495,9 @@ public class WorkerService {
               break;
             case 1: // E_P
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eP = new OutOfSpaceException();
+                struct.eP = new FileDoesNotExistException();
                 struct.eP.read(iprot);
                 struct.setEPIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // E_S
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eS = new FileDoesNotExistException();
-                struct.eS.read(iprot);
-                struct.setESIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -10819,11 +10527,6 @@ public class WorkerService {
           struct.eP.write(oprot);
           oprot.writeFieldEnd();
         }
-        if (struct.eS != null) {
-          oprot.writeFieldBegin(E_S_FIELD_DESC);
-          struct.eS.write(oprot);
-          oprot.writeFieldEnd();
-        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -10848,38 +10551,27 @@ public class WorkerService {
         if (struct.isSetEP()) {
           optionals.set(1);
         }
-        if (struct.isSetES()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
         }
         if (struct.isSetEP()) {
           struct.eP.write(oprot);
         }
-        if (struct.isSetES()) {
-          struct.eS.write(oprot);
-        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, requestSpace_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.eP = new OutOfSpaceException();
+          struct.eP = new FileDoesNotExistException();
           struct.eP.read(iprot);
           struct.setEPIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.eS = new FileDoesNotExistException();
-          struct.eS.read(iprot);
-          struct.setESIsSet(true);
         }
       }
     }
