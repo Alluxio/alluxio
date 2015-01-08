@@ -23,6 +23,8 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
+import com.google.common.io.Closer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +42,7 @@ public class BlockOutStream extends OutStream {
   private final long mBlockId;
   private final long mBlockOffset;
   private final boolean mPin;
+  private final Closer mCloser = Closer.create(); 
 
   private long mInFileBytes = 0;
   private long mWrittenBytes = 0;
@@ -52,7 +55,6 @@ public class BlockOutStream extends OutStream {
 
   private boolean mCanWrite = false;
   private boolean mClosed = false;
-  private boolean mCancel = false;
 
   /**
    * @param file the file the block belongs to
@@ -89,8 +91,8 @@ public class BlockOutStream extends OutStream {
     }
 
     mLocalFilePath = CommonUtils.concat(localFolder.getPath(), mBlockId);
-    mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
-    mLocalFileChannel = mLocalFile.getChannel();
+    mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
+    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
     // change the permission of the temporary file in order that the worker can move it.
     CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
     // use the sticky bit, only the client and the worker can write to the block
@@ -119,8 +121,13 @@ public class BlockOutStream extends OutStream {
 
   @Override
   public void cancel() throws IOException {
-    mCancel = true;
-    close();
+    if (!mClosed) {
+      mCloser.close();
+      new File(mLocalFilePath).delete();
+      mClosed = true;
+      mTachyonFS.releaseSpace(mWrittenBytes - mBuffer.position());
+      LOG.info("Block cancelled! " + mBlockId + ", deleted local file " + mLocalFilePath);
+    }
   }
 
   /**
@@ -132,25 +139,14 @@ public class BlockOutStream extends OutStream {
 
   @Override
   public void close() throws IOException {
-    if (!mClosed) {
-      if (!mCancel && mBuffer.position() > 0) {
-        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-      }
-
-      if (mLocalFileChannel != null) {
-        mLocalFileChannel.close();
-        mLocalFile.close();
-      }
-
-      if (mCancel) {
-        mTachyonFS.releaseSpace(mWrittenBytes - mBuffer.position());
-        new File(mLocalFilePath).delete();
-        LOG.info("Canceled output of block " + mBlockId + ", deleted local file " + mLocalFilePath);
-      } else {
-        mTachyonFS.cacheBlock(mBlockId);
-      }
+    if (canWrite() && mBuffer.position() > 0) {
+      appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
     }
-    mClosed = true;
+    if (!mClosed) {
+      mCloser.close();
+      mTachyonFS.cacheBlock(mBlockId);
+      mClosed = true;
+    }
   }
 
   @Override
@@ -194,7 +190,7 @@ public class BlockOutStream extends OutStream {
           b.length, off, len));
     }
 
-    if (!mCanWrite) {
+    if (!canWrite()) {
       throw new IOException("Can not write cache.");
     }
     if (mWrittenBytes + len > mBlockCapacityByte) {
@@ -219,7 +215,7 @@ public class BlockOutStream extends OutStream {
 
   @Override
   public void write(int b) throws IOException {
-    if (!mCanWrite) {
+    if (!canWrite()) {
       throw new IOException("Can not write cache.");
     }
     if (mWrittenBytes + 1 > mBlockCapacityByte) {
