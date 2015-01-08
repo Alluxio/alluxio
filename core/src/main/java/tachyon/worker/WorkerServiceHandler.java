@@ -22,11 +22,11 @@ import org.apache.thrift.TException;
 import tachyon.StorageDirId;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
-import tachyon.thrift.ClientLocationInfo;
 import tachyon.thrift.WorkerService;
 import tachyon.worker.hierarchy.StorageDir;
 
@@ -65,30 +65,19 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void cacheBlock(long userId, long storageDirId, long blockId)
+  public void cacheBlock(long userId, long blockId, long unusedBytes)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     try {
-      mWorkerStorage.cacheBlock(userId, storageDirId, blockId);
+      mWorkerStorage.cacheBlock(userId, blockId, unusedBytes);
     } catch (IOException e) {
       throw new TException(e);
     }
   }
 
   @Override
-  public ClientLocationInfo getLocalBlockLocation(long blockId)
-      throws FileDoesNotExistException, TException {
-    StorageDir storageDir = mWorkerStorage.getStorageDirByBlockId(blockId);
-    if (storageDir == null) {
-      throw new FileDoesNotExistException("Block not found! blockId:" + blockId);
-    } else {
-      return new ClientLocationInfo(storageDir.getStorageDirId(),
-          storageDir.getBlockFilePath(blockId));
-    }
-  }
-
-  @Override
-  public String getUserLocalTempFolder(long userId, long storageDirId) throws TException {
-    return mWorkerStorage.getUserLocalTempFolder(userId, storageDirId);
+  public String getBlockLocation(long userId, long blockId, long initialBytes)
+      throws OutOfSpaceException, FileAlreadyExistException, TException {
+    return mWorkerStorage.getBlockLocation(userId, blockId, initialBytes);
   }
 
   @Override
@@ -114,26 +103,14 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public ClientLocationInfo requestSpace(long userId, long requestBytes)
-      throws OutOfSpaceException, TException {
-    StorageDir storageDir = mWorkerStorage.requestSpace(userId, requestBytes);
-    if (storageDir == null) {
-      throw new OutOfSpaceException("Failed to allocate space! requestBytes:" + requestBytes);
-    } else {
-      return new ClientLocationInfo(storageDir.getStorageDirId(),
-          storageDir.getUserTempPath(userId));
-    }
+  public boolean requestSpace(long userId, long blockId, long requestBytes)
+      throws FileDoesNotExistException, TException {
+    return mWorkerStorage.requestSpace(userId, blockId, requestBytes);
   }
 
   @Override
-  public boolean requestSpaceInPlace(long userId, long storageDirId, long requestBytes)
-      throws TException {
-    return mWorkerStorage.requestSpace(userId, storageDirId, requestBytes);
-  }
-
-  @Override
-  public void returnSpace(long userId, long storageDirId, long returnedBytes) throws TException {
-    mWorkerStorage.returnSpace(userId, storageDirId, returnedBytes);
+  public void cancelBlock(long userId, long blockId, long unusedBytes) throws TException {
+    mWorkerStorage.cancelBlock(userId, blockId, unusedBytes);
   }
 
   @Override

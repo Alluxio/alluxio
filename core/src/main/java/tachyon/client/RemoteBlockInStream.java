@@ -123,7 +123,12 @@ public class RemoteBlockInStream extends BlockInStream {
 
     mRecache = readType.isCache();
     if (mRecache) {
-      mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
+      try {
+        mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
+      } catch (Exception e) {
+        LOG.warn("Recache is canceled! because:" + e.getMessage());
+        cancelRecache();
+      }
     }
 
     mUFSConf = ufsConf;
@@ -137,7 +142,9 @@ public class RemoteBlockInStream extends BlockInStream {
   private void cancelRecache() throws IOException {
     if (mRecache) {
       mRecache = false;
-      mBlockOutStream.cancel();
+      if (mBlockOutStream != null) {
+        mBlockOutStream.cancel();
+      }
     }
   }
 

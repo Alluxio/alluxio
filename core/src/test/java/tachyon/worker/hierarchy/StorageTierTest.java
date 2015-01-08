@@ -107,7 +107,7 @@ public class StorageTierTest {
     } finally {
       bhSrc.close();
     }
-    dir.cacheBlock(USER_ID, blockId);
+    dir.cacheBlock(USER_ID, blockId, 0);
   }
 
   @Test

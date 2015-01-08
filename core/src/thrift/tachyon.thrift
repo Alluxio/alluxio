@@ -73,11 +73,6 @@ struct Command {
   2: list<i64> mData
 }
 
-struct ClientLocationInfo {
-  1: i64 storageDirId
-  2: string path
-}
-
 exception BlockInfoException {
   1: string message
 }
@@ -263,14 +258,9 @@ service WorkerService {
   bool asyncCheckpoint(1: i32 fileId)
     throws (1: TachyonException e)
 
-  void cacheBlock(1: i64 userId, 2: i64 storageDirId, 3: i64 blockId)
+  void cacheBlock(1: i64 userId, 2: i64 blockId, 3: i64 unusedBytes)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: BlockInfoException eB)
-
-  ClientLocationInfo getLocalBlockLocation(1: i64 blockId)
-    throws (1: FileDoesNotExistException eP)
-
-  string getUserLocalTempFolder(1: i64 userId 2: i64 storageDirId)
 
   string getUserUfsTempFolder(1: i64 userId)
 
@@ -279,12 +269,13 @@ service WorkerService {
 
   bool promoteBlock(1: i64 userId, 2: i64 blockId)
 
-  void returnSpace(1: i64 userId, 2: i64 storageDirId 3: i64 returnedBytes)
+  void cancelBlock(1: i64 userId, 2: i64 blockId, 3: i64 unusedBytes)
 
-  ClientLocationInfo requestSpace(1: i64 userId, 2: i64 requestBytes)
-    throws (1: OutOfSpaceException eP)
+  string getBlockLocation(1: i64 userId, 2: i64 blockId, 3: i64 initialBytes)
+    throws (1: OutOfSpaceException eP, 2: FileAlreadyExistException eS)
 
-  bool requestSpaceInPlace(1: i64 userId, 2: i64 storageDirId, 3: i64 requestBytes)
+  bool requestSpace(1: i64 userId, 2: i64 blockId, 3: i64 requestBytes)
+    throws (1: OutOfSpaceException eP, 2: FileDoesNotExistException eS)
 
   bool unlockBlock(1: i64 blockId 2: i64 userId) // unlock the file
 

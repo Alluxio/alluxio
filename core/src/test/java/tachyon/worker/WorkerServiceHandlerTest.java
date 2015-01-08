@@ -14,6 +14,7 @@
  */
 package tachyon.worker;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.thrift.TException;
@@ -22,17 +23,15 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.StorageDirId;
-import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
+import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.ClientLocationInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -71,6 +70,48 @@ public class WorkerServiceHandlerTest {
   }
 
   @Test
+  public void cancelBlockTest() throws TException, IOException {
+    final long userId = 1L;
+    final long blockId = 12345L;
+    String filename = mWorkerServiceHandler.getBlockLocation(userId, blockId,
+        WORKER_CAPACITY_BYTES / 10L);
+    Assert.assertTrue(filename != null);
+    createBlockFile(filename, (int)(WORKER_CAPACITY_BYTES / 10L - 10L));
+    mWorkerServiceHandler.cancelBlock(userId, blockId, 10L);
+    Assert.assertFalse(new File(filename).exists());
+  }
+
+  @Test
+  public void cacheBlockTest() throws TException, IOException {
+    final long userId = 1L;
+    final int fileId = mTfs.createFile(new TachyonURI("/testFile1"));
+    final long blockId0 = mTfs.getBlockId(fileId, 0);
+    final long blockId1 = mTfs.getBlockId(fileId, 1);
+    String filename = mWorkerServiceHandler.getBlockLocation(userId, blockId0,
+        WORKER_CAPACITY_BYTES / 10L);
+    Assert.assertTrue(filename != null);
+    createBlockFile(filename, (int)(WORKER_CAPACITY_BYTES / 10L - 10L));
+    mWorkerServiceHandler.cacheBlock(userId, blockId0, 10L);
+    Assert.assertEquals(WORKER_CAPACITY_BYTES / 10L - 10, mMasterInfo.getUsedBytes());
+
+    Exception exception = null;
+    try {
+      mWorkerServiceHandler.cacheBlock(userId, blockId1, 10L);
+    } catch (FileDoesNotExistException e) {
+      exception = e;
+    }
+    Assert.assertEquals(
+        new FileDoesNotExistException("Block doesn't exist! blockId:" + blockId1), exception);
+  }
+
+  private void createBlockFile(String filename, int fileLen)
+      throws IOException, InvalidPathException {
+    UnderFileSystem.get(filename).mkdirs(CommonUtils.getParent(filename), true);
+    BlockHandler handler = BlockHandler.get(filename);
+    handler.append(0, TestUtils.getIncreasingByteArray(fileLen), 0, fileLen);
+    handler.close();
+  }
+  @Test
   public void evictionTest() throws InvalidPathException, FileAlreadyExistException, IOException,
       FileDoesNotExistException, TException {
     int fileId1 =
@@ -101,86 +142,53 @@ public class WorkerServiceHandlerTest {
   }
 
   @Test
-  public void overCapacityRequestSpaceTest() throws TException, IOException {
-    ClientLocationInfo locationInfo =
-        mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L);
-    Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
-        locationInfo.getStorageDirId());
+  public void requestSpaceTest() throws TException, IOException {
+    final long userId = 1L;
+    final long blockId1 = 12345L;
+    final long blockId2 = 12346L;
+    String filename = mWorkerServiceHandler.getBlockLocation(userId, blockId1,
+        WORKER_CAPACITY_BYTES / 10L);
+    Assert.assertTrue(filename != null);
+    boolean result =
+        mWorkerServiceHandler.requestSpace(userId, blockId1, WORKER_CAPACITY_BYTES / 10L);
+    Assert.assertEquals(true, result);
+    result = mWorkerServiceHandler.requestSpace(userId, blockId1, WORKER_CAPACITY_BYTES);
+    Assert.assertEquals(false, result);
     Exception exception = null;
     try {
-      mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
-    } catch (OutOfSpaceException e) {
+      mWorkerServiceHandler.requestSpace(userId, blockId2, WORKER_CAPACITY_BYTES / 10L);
+    } catch (FileDoesNotExistException e) {
       exception = e;
     }
-    Assert.assertEquals(new OutOfSpaceException(
-        "Failed to allocate space! requestBytes:" + WORKER_CAPACITY_BYTES), exception);
-  }
+    Assert.assertEquals(new FileDoesNotExistException(
+        "Temporary block file doesn't exist! blockId:" + blockId2), exception);
 
-  @Test
-  public void overReturnSpaceTest() throws TException, IOException {
-    ClientLocationInfo locationInfo = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L);
-    Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
-        locationInfo.getStorageDirId());
-    mWorkerServiceHandler.returnSpace(1L, locationInfo.getStorageDirId(), WORKER_CAPACITY_BYTES);
-    Exception exception = null;
     try {
-      mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+      mWorkerServiceHandler.getBlockLocation(userId, blockId2, WORKER_CAPACITY_BYTES + 1);
     } catch (OutOfSpaceException e) {
       exception = e;
     }
-    Assert.assertEquals(new OutOfSpaceException(
-        "Failed to allocate space! requestBytes:" + WORKER_CAPACITY_BYTES), exception);
-  }
-
-  @Test
-  public void returnSpaceTest() throws TException {
-    ClientLocationInfo locationInfo0 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
-    Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
-        locationInfo0.getStorageDirId());
-    Exception exception = null;
-    try {
-      mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
-    } catch (OutOfSpaceException e) {
-      exception = e;
-    }
-    Assert.assertEquals(new OutOfSpaceException(
-        "Failed to allocate space! requestBytes:" + WORKER_CAPACITY_BYTES), exception);
-    mWorkerServiceHandler.returnSpace(1L, locationInfo0.getStorageDirId(), WORKER_CAPACITY_BYTES);
-    ClientLocationInfo locationInfo2 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
-    Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
-        locationInfo2.getStorageDirId());
-    mWorkerServiceHandler.returnSpace(2L, locationInfo2.getStorageDirId(), WORKER_CAPACITY_BYTES);
-    try {
-      mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES / 10);
-    } catch (OutOfSpaceException e) {
-      exception = e;
-    }
-    Assert.assertEquals(new OutOfSpaceException(
-        "Failed to allocate space! requestBytes:" + WORKER_CAPACITY_BYTES / 10), exception);
+    Assert.assertEquals(new OutOfSpaceException(String.format("Failed to allocate space for block!"
+        + " blockId(%d) sizeBytes(%d)", blockId2, WORKER_CAPACITY_BYTES + 1)), exception);
+    
   }
 
   @Test
   public void totalOverCapacityRequestSpaceTest() throws TException {
-    ClientLocationInfo locationInfo = mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2);
-    Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
-        locationInfo.getStorageDirId());
-    locationInfo = mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2);
-    Assert.assertEquals(StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0),
-        locationInfo.getStorageDirId());
-    Exception exception = null;
-    try {
-      mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 2);
-    } catch (OutOfSpaceException e) {
-      exception = e;
-    }
-    Assert.assertEquals(new OutOfSpaceException(
-        "Failed to allocate space! requestBytes:" + WORKER_CAPACITY_BYTES / 2), exception);
-    try {
-      mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES / 2);
-    } catch (OutOfSpaceException e) {
-      exception = e;
-    }
-    Assert.assertEquals(new OutOfSpaceException(
-        "Failed to allocate space! requestBytes:" + WORKER_CAPACITY_BYTES / 2), exception);
+    final long userId1 = 1L;
+    final long blockId1 = 12345L;
+    final long userId2 = 2L;
+    final long blockId2 = 23456L;
+    String filePath1 = mWorkerServiceHandler.getBlockLocation(userId1, blockId1,
+        WORKER_CAPACITY_BYTES / 2);
+    Assert.assertTrue(filePath1 != null);
+    String filePath2 = mWorkerServiceHandler.getBlockLocation(userId2, blockId2,
+        WORKER_CAPACITY_BYTES / 2);
+    Assert.assertTrue(filePath2 != null);
+
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(userId1, blockId1,
+        WORKER_CAPACITY_BYTES / 2));
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(userId2, blockId2,
+        WORKER_CAPACITY_BYTES / 2));
   }
 }

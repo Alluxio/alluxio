@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -74,8 +75,8 @@ public final class StorageDir {
   private final UnderFileSystem mFs;
   /** Configuration of under file system */
   private final Object mConf;
-  /** Mapping from user Id to available space in bytes */
-  private final ConcurrentMap<Long, Long> mUserAvailableBytes = new ConcurrentHashMap<Long, Long>();
+  /** Mapping from user Id to space size owned by the user in bytes */
+  private final ConcurrentMap<Long, Long> mOwnBytesPerUser = new ConcurrentHashMap<Long, Long>();
   /** Mapping from user Id to list of blocks locked by the user */
   private final Multimap<Long, Long> mLockedBlocksPerUser = Multimaps
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
@@ -148,47 +149,76 @@ public final class StorageDir {
   /**
    * Move the cached block file from user temporary directory to data directory
    * 
-   * @param userId Id of the user
-   * @param blockId Id of the block
+   * @param userId the id of the user
+   * @param blockId the id of the block
+   * @param unusedBytes space size in bytes that is allocated but not used
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public boolean cacheBlock(long userId, long blockId) throws IOException {
+  public boolean cacheBlock(long userId, long blockId, long unusedBytes) throws IOException {
     String srcPath = getUserTempFilePath(userId, blockId);
     String dstPath = getBlockFilePath(blockId);
-    long blockSize = mFs.getFileSize(srcPath);
-    if (blockSize < 0) {
-      throw new IOException("Negative size of block! size:" + blockSize);
+    long blockSize = 0;
+    boolean result;
+    try {
+      blockSize = mFs.getFileSize(srcPath);
+      if (blockSize < 0) {
+        throw new IOException("Negative size of block! size:" + blockSize);
+      }
+      result = mFs.rename(srcPath, dstPath);
+    } catch (Exception e) {
+      result = false;
     }
-    boolean result = mFs.rename(srcPath, dstPath);
     if (result) {
       addBlockId(blockId, blockSize, false);
-      Long used;
-      do {
-        used = mUserAvailableBytes.get(userId);
-        if (used == null) {
-          LOG.error("Failed to record allocated space for user! Id:" + userId);
-          break;
-        }
-      } while (!mUserAvailableBytes.replace(userId, used, used - blockSize));
+      returnSpace(userId, unusedBytes);
+    } else {
+      cancelBlock(userId, blockId, unusedBytes);
     }
     return result;
   }
 
   /**
-   * Check status of the users, removedUsers can't be modified any more after being passed down from
-   * the caller
+   * Cancel a block which is being written
    * 
-   * @param removedUsers list of the removed users
+   * @param userId the id of the user
+   * @param blockId the id of the block to be cancelled
+   * @param allocatedBytes space bytes allocated to the block
+   * @return true if success, false otherwise
+   * @throws IOException
    */
-  public void checkStatus(List<Long> removedUsers) {
-    for (long userId : removedUsers) {
-      Collection<Long> blockIds = mLockedBlocksPerUser.removeAll(userId);
-      for (long blockId : blockIds) {
-        mUserPerLockedBlock.remove(blockId, userId);
-      }
-      returnSpace(userId);
+  public boolean cancelBlock(long userId, long blockId, long unusedBytes) throws IOException {
+    String filePath = getUserTempFilePath(userId, blockId);
+    returnSpace(userId, unusedBytes);
+    if (!mFs.exists(filePath)) {
+      return true;
     }
+
+    long blockSize = mFs.getFileSize(filePath);
+    if (mFs.delete(filePath, false)) {
+      returnSpace(userId, blockSize);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Clean resources related to the removed user
+   * 
+   * @param removedUserId id of the removed user
+   */
+  public void cleanUserResources(long removedUserId) {
+    Collection<Long> blockIds = mLockedBlocksPerUser.removeAll(removedUserId);
+    for (long blockId : blockIds) {
+      mUserPerLockedBlock.remove(blockId, removedUserId);
+    }
+    try {
+      mFs.delete(getUserTempPath(removedUserId), true);
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
+    returnSpace(removedUserId);
   }
 
   /**
@@ -473,7 +503,7 @@ public final class StorageDir {
    * @param blockId Id of the block
    * @return temporary file path of the block
    */
-  String getUserTempFilePath(long userId, long blockId) {
+  public String getUserTempFilePath(long userId, long blockId) {
     return mUserTempPath.join("" + userId).join("" + blockId).toString();
   }
 
@@ -595,10 +625,10 @@ public final class StorageDir {
   public boolean requestSpace(long userId, long size) {
     boolean result = mSpaceCounter.requestSpaceBytes(size);
     if (result && userId != Users.EVICT_USER_ID) {
-      Long used = mUserAvailableBytes.putIfAbsent(userId, size);
+      Long used = mOwnBytesPerUser.putIfAbsent(userId, size);
       if (used != null) {
-        while (!mUserAvailableBytes.replace(userId, used, used + size)) {
-          used = mUserAvailableBytes.get(userId);
+        while (!mOwnBytesPerUser.replace(userId, used, used + size)) {
+          used = mOwnBytesPerUser.get(userId);
           if (used == null) {
             LOG.error("Failed to request space! unknown user Id:" + userId);
             break;
@@ -610,17 +640,14 @@ public final class StorageDir {
   }
 
   /**
-   * Return space to current StorageDir
+   * Return space owned by the user to current StorageDir
    * 
-   * @param userId Id of the user to return space
+   * @param userId Id of the user
    */
-  private void returnSpace(long userId) {
-    Long returnedSize = mUserAvailableBytes.remove(userId);
-    if (returnedSize != null) {
-      LOG.info(String.format("Return space(%d) from removed user(%d):", returnedSize, userId));
-      mSpaceCounter.returnUsedBytes(returnedSize);
-    } else {
-      LOG.warn("No space allocation record for removed user! Id:" + userId);
+  public void returnSpace(long userId) {
+    Long ownBytes = mOwnBytesPerUser.remove(userId);
+    if (ownBytes != null) {
+      mSpaceCounter.returnUsedBytes(ownBytes);
     }
   }
 
@@ -634,12 +661,12 @@ public final class StorageDir {
     mSpaceCounter.returnUsedBytes(size);
     Long used;
     do {
-      used = mUserAvailableBytes.get(userId);
+      used = mOwnBytesPerUser.get(userId);
       if (used == null) {
         LOG.error("Failed to return space! unknown user Id:" + userId);
         break;
       }
-    } while (!mUserAvailableBytes.replace(userId, used, used - size));
+    } while (!mOwnBytesPerUser.replace(userId, used, used - size));
   }
 
   /**

@@ -28,8 +28,6 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.thrift.ClientLocationInfo;
-import tachyon.util.CommonUtils;
 
 /**
  * Unit tests for <code>tachyon.client.BlockHandlerLocal</code>.
@@ -59,13 +57,11 @@ public class BlockHandlerLocalTest {
 
     int fileId = mTfs.createFile(new TachyonURI(TestUtils.uniqPath()));
     long blockId = mTfs.getBlockId(fileId, 0);
-    ClientLocationInfo locationInfo = mTfs.requestSpace(100);
-    String tempFolder = mTfs.createAndGetUserLocalTempFolder(locationInfo.getPath());
-    String filename = CommonUtils.concat(tempFolder, blockId);
+    String filename = mTfs.getLocalBlockLocation(blockId, 100);
     BlockHandler handler = BlockHandler.get(filename);
     try {
       handler.append(0, buf);
-      mTfs.cacheBlock(locationInfo.getStorageDirId(), blockId);
+      mTfs.cacheBlock(blockId, 0);
       TachyonFile file = mTfs.getFile(fileId);
       long fileLen = file.length();
       Assert.assertEquals(100, fileLen);
@@ -78,15 +74,13 @@ public class BlockHandlerLocalTest {
   @Test
   public void heapByteBufferwriteTest() throws IOException {
     int fileId = mTfs.createFile(new TachyonURI(TestUtils.uniqPath()));
-    long blockId = mTfs.getBlockId(fileId, 0);
-    ClientLocationInfo locationInfo = mTfs.requestSpace(100);
-    String tempFolder = mTfs.createAndGetUserLocalTempFolder(locationInfo.getPath());
-    String filename = CommonUtils.concat(tempFolder, blockId);
-    BlockHandler handler = BlockHandler.get(filename);
     byte[] buf = TestUtils.getIncreasingByteArray(100);
+    long blockId = mTfs.getBlockId(fileId, 0);
+    String filename = mTfs.getLocalBlockLocation(blockId, 100);
+    BlockHandler handler = BlockHandler.get(filename);
     try {
       handler.append(0, ByteBuffer.wrap(buf));
-      mTfs.cacheBlock(locationInfo.getStorageDirId(), blockId);
+      mTfs.cacheBlock(blockId, 0);
       TachyonFile file = mTfs.getFile(fileId);
       long fileLen = file.length();
       Assert.assertEquals(100, fileLen);
