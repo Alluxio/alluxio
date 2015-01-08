@@ -35,7 +35,6 @@ import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.ClientLocationInfo;
 import tachyon.thrift.NetAddress;
 
 /**
@@ -184,12 +183,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public String getLocalFilename(int blockIndex) throws IOException {
     ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-    ClientLocationInfo blockLocation = mTachyonFS.getLocalBlockLocation(blockInfo.getBlockId());
-    if (blockLocation == null) {
-      return null;
-    } else {
-      return blockLocation.getPath();
+    long blockId = blockInfo.getBlockId();
+    int blockLockId = mTachyonFS.getBlockLockId();
+    String filename = mTachyonFS.lockBlock(blockId, blockLockId);
+    if (filename != null) {
+      mTachyonFS.unlockBlock(blockId, blockLockId);
     }
+    return filename;
   }
 
   /**

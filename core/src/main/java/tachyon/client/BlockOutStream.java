@@ -15,7 +15,6 @@
 
 package tachyon.client;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -29,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.thrift.ClientLocationInfo;
 import tachyon.util.CommonUtils;
 
 /**
@@ -43,17 +41,15 @@ public class BlockOutStream extends OutStream {
   private final long mBlockId;
   private final long mBlockOffset;
   private final boolean mPin;
-  private final Closer mCloser = Closer.create();
+  private final Closer mCloser = Closer.create(); 
+  private final String mLocalFilePath;
+  private final RandomAccessFile mLocalFile;
+  private final FileChannel mLocalFileChannel;
+  private final ByteBuffer mBuffer;
 
+  private long mAvailableBytes = 0;
   private long mInFileBytes = 0;
   private long mWrittenBytes = 0;
-  private ClientLocationInfo mLocationInfo = null;
-
-  private String mLocalFilePath = null;
-  private RandomAccessFile mLocalFile = null;
-  private FileChannel mLocalFileChannel = null;
-
-  private ByteBuffer mBuffer = ByteBuffer.allocate(0);
 
   private boolean mCanWrite = false;
   private boolean mClosed = false;
@@ -85,45 +81,46 @@ public class BlockOutStream extends OutStream {
       throw new IOException(msg);
     }
 
+    mLocalFilePath = mTachyonFS.getLocalBlockLocation(mBlockId, mUserConf.QUOTA_UNIT_BYTES);
+    mAvailableBytes = mUserConf.QUOTA_UNIT_BYTES;
+    mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
+    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
+    // change the permission of the temporary file in order that the worker can move it.
+    CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
+    // use the sticky bit, only the client and the worker can write to the block
+    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
+    LOG.info(mLocalFilePath + " was created!");
+
     mBuffer = ByteBuffer.allocate(mUserConf.FILE_BUFFER_BYTES + 4);
   }
 
   private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
       throws IOException {
-    if (!requestSpace(length)) {
-      mCanWrite = false;
-
-      String msg =
-          "Local tachyon worker does not have enough " + "space (" + length + ") or no worker for "
-              + mFile.mFileId + " " + mBlockId;
-
-      throw new IOException(msg);
-    }
-    if (mLocalFilePath == null) {
-      String localTempFolder = createUserLocalTempFolder();
-      mLocalFilePath = CommonUtils.concat(localTempFolder, mBlockId);
-      mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
-      mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
-      // change the permission of the temporary file in order that the worker can move it.
-      CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
-      // use the sticky bit, only the client and the worker can write to the block
-      CommonUtils.setLocalFileStickyBit(mLocalFilePath);
-      LOG.info(mLocalFilePath + " was created!");
+    if (mAvailableBytes < length) {
+      long bytesRequested = mTachyonFS.requestSpace(mBlockId, length - mAvailableBytes);
+      if (bytesRequested <= 0) {
+        mCanWrite = false;
+        throw new IOException(String.format("No enough space on local worker: fileId(%d)"
+            + " blockId(%d) requestSize(%d)", mFile.mFileId, mBlockId, length - mAvailableBytes));
+      } else {
+        mAvailableBytes += bytesRequested;
+      }
     }
 
     MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, mInFileBytes, length);
     out.put(buf, offset, length);
     mInFileBytes += length;
+    mAvailableBytes -= length;
   }
 
   @Override
   public void cancel() throws IOException {
     if (!mClosed) {
       mCloser.close();
-      new File(mLocalFilePath).delete();
       mClosed = true;
-      mTachyonFS.releaseSpace(mLocationInfo.getStorageDirId(), mWrittenBytes - mBuffer.position());
-      LOG.info("Block cancelled! " + mBlockId + ", deleted local file " + mLocalFilePath);
+      mTachyonFS.cancelBlock(mBlockId, mAvailableBytes);
+      LOG.info(String.format("Canceled output of block. blockId(%d) path(%s)", mBlockId,
+          mLocalFilePath));
     }
   }
 
@@ -141,31 +138,9 @@ public class BlockOutStream extends OutStream {
         appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       }
       mCloser.close();
-
-      if (mLocationInfo != null) {
-        mTachyonFS.cacheBlock(mLocationInfo.getStorageDirId(), mBlockId);
-      }
+      mTachyonFS.cacheBlock(mBlockId, mAvailableBytes);
       mClosed = true;
     }
-  }
-
-  /**
-   * Create temporary folder for the user in some StorageDir
-   * 
-   * @return the path of the folder
-   * @throws IOException
-   */
-  private String createUserLocalTempFolder() throws IOException {
-    String localTempFolder = null;
-    if (mLocationInfo != null) {
-      localTempFolder = mTachyonFS.createAndGetUserLocalTempFolder(mLocationInfo.getPath());
-    }
-
-    if (localTempFolder == null) {
-      mCanWrite = false;
-      throw new IOException("Failed to create temp user folder for tachyon client.");
-    }
-    return localTempFolder;
   }
 
   @Override
@@ -192,21 +167,6 @@ public class BlockOutStream extends OutStream {
    */
   public long getRemainingSpaceByte() {
     return mBlockCapacityByte - mWrittenBytes;
-  }
-
-  /**
-   * Request space for the block file from worker
-   * @param length size bytes to request
-   * @return true if success, false otherwise
-   * @throws IOException
-   */
-  private boolean requestSpace(int length) throws IOException {
-    if (mLocationInfo == null) {
-      mLocationInfo = mTachyonFS.requestSpace(length);
-      return (mLocationInfo != null);
-    } else {
-      return mTachyonFS.requestSpace(mLocationInfo.getStorageDirId(), length);
-    }
   }
 
   @Override

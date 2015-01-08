@@ -26,17 +26,7 @@ public class UserInfoTest {
   private static final int DELTA = 50;
 
   private static final String USERINFOR_TOSTRING =
-      "UserInfo( mUserId: 99, mOwnBytes: 1064, mLastHeartbeatMs: ";
-
-  @Test
-  public void addOwnBytesTest() {
-    UserInfo tUserInfo = new UserInfo(1);
-    tUserInfo.addOwnBytes(7);
-    tUserInfo.addOwnBytes(70);
-    tUserInfo.addOwnBytes(700);
-    tUserInfo.addOwnBytes(7000);
-    Assert.assertEquals(7777, tUserInfo.getOwnBytes());
-  }
+      "UserInfo( mUserId: 99, mLastHeartbeatMs: ";
 
   @Test
   public void constructorTest() {
@@ -52,16 +42,6 @@ public class UserInfoTest {
       UserInfo tUserInfo = new UserInfo(k);
       Assert.assertEquals(k, tUserInfo.getUserId());
       Assert.fail("UserId " + k + " should be invalid.");
-    }
-  }
-
-  @Test
-  public void generalTest() {
-    for (int k = MIN_LEN; k < MAX_LEN; k ++) {
-      UserInfo tUserInfo = new UserInfo(k);
-      tUserInfo.addOwnBytes(3222 * k);
-      tUserInfo.addOwnBytes(-1111 * k);
-      Assert.assertEquals(2111 * k, tUserInfo.getOwnBytes());
     }
   }
 
@@ -82,8 +62,6 @@ public class UserInfoTest {
   @Test
   public void toStringTest() {
     UserInfo tUserInfo = new UserInfo(99);
-    tUserInfo.addOwnBytes(2093);
-    tUserInfo.addOwnBytes(-1029);
     Assert.assertEquals(USERINFOR_TOSTRING,
         tUserInfo.toString().substring(0, USERINFOR_TOSTRING.length()));
   }
