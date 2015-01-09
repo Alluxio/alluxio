@@ -161,7 +161,7 @@ public final class StorageDir {
       while (!mTempBlockAllocatedBytes.replace(blockId, oldSize, oldSize + addedBytes)) {
         oldSize = mOwnBytesPerUser.get(blockId);
         if (oldSize == null) {
-          LOG.error("Temporary block doesn't exist! blockId:" + blockId);
+          LOG.error("Temporary block doesn't exist! blockId:{}", blockId);
           break;
         }
       }
@@ -183,24 +183,23 @@ public final class StorageDir {
     if (allocatedBytes == null) {
       allocatedBytes = 0L;
     }
-    long blockSize = 0;
-    boolean result;
-    try {
-      blockSize = mFs.getFileSize(srcPath);
-      if (blockSize < 0) {
-        throw new IOException("Negative size of block! blockId:" + blockId);
-      }
-      result = mFs.rename(srcPath, dstPath);
-    } catch (Exception e) {
-      result = false;
-    }
-    if (result) {
-      addBlockId(blockId, blockSize, false);
-      returnSpace(userId, allocatedBytes - blockSize);
-    } else {
+
+    if (!mFs.exists(srcPath)) {
       cancelBlock(userId, blockId);
+      throw new IOException("Block file doesn't exist! blockId:" + blockId);
     }
-    return result;
+    long blockSize = mFs.getFileSize(srcPath);
+    if (blockSize < 0) {
+      cancelBlock(userId, blockId);
+      throw new IOException("Negative size of block! blockId:" + blockId);
+    }
+    returnSpace(userId, allocatedBytes - blockSize);
+    if (mFs.rename(srcPath, dstPath)) {
+      addBlockId(blockId, blockSize, false);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -268,7 +267,7 @@ public final class StorageDir {
   public boolean copyBlock(long blockId, StorageDir dstDir) throws IOException {
     long size = getBlockSize(blockId);
     if (size == -1) {
-      LOG.error("Block file doesn't exist! blockId:" + blockId);
+      LOG.error("Block file doesn't exist! blockId:{}", blockId);
       return false;
     }
     boolean copySuccess = false;
@@ -310,15 +309,15 @@ public final class StorageDir {
       } finally {
         if (result) {
           deleteBlockId(blockId);
-          LOG.debug("Removed block file:" + blockfile);
+          LOG.debug("Removed block file:{}", blockfile);
         } else {
           mLastBlockAccessTimeMs.put(blockId, accessTimeMs);
-          LOG.error("Failed to delete block file! file name:" + blockfile);
+          LOG.error("Failed to delete block file! filename:{}", blockfile);
         }
       }
       return result;
     } else {
-      LOG.warn("Block " + blockId + " does not exist in current StorageDir.");
+      LOG.warn("Block does not exist in current StorageDir! blockId:{}", blockId);
       return false;
     }
   }
@@ -560,7 +559,7 @@ public final class StorageDir {
   public void initailize() throws IOException {
     String dataPath = mDataPath.toString();
     if (!mFs.exists(dataPath)) {
-      LOG.info("Data folder " + mDataPath + " does not exist. Creating a new one.");
+      LOG.info("Data folder {} does not exist. Creating a new one.", mDataPath);
       mFs.mkdirs(dataPath, true);
       mFs.setPermission(dataPath, "775");
     } else if (mFs.isFile(dataPath)) {
@@ -570,7 +569,7 @@ public final class StorageDir {
 
     String userTempPath = mUserTempPath.toString();
     if (!mFs.exists(userTempPath)) {
-      LOG.info("User temp folder " + mUserTempPath + " does not exist. Creating a new one.");
+      LOG.info("User temp folder {} does not exist. Creating a new one.", mUserTempPath);
       mFs.mkdirs(userTempPath, true);
       mFs.setPermission(userTempPath, "775");
     } else if (mFs.isFile(userTempPath)) {
@@ -584,7 +583,7 @@ public final class StorageDir {
       if (mFs.isFile(path)) {
         cnt ++;
         long fileSize = mFs.getFileSize(path);
-        LOG.debug("File " + cnt + ": " + path + " with size " + fileSize + " Bs.");
+        LOG.debug("File {}: {} with size {} Bs.", cnt, path, fileSize);
         long blockId = CommonUtils.getBlockIdFromFileName(name);
         boolean success = mSpaceCounter.requestSpaceBytes(fileSize);
         if (success) {
@@ -656,7 +655,7 @@ public final class StorageDir {
         while (!mOwnBytesPerUser.replace(userId, used, used + size)) {
           used = mOwnBytesPerUser.get(userId);
           if (used == null) {
-            LOG.error("Failed to request space! unknown user Id:" + userId);
+            LOG.error("Failed to request space! unknown userId:{}", userId);
             break;
           }
         }
@@ -689,7 +688,7 @@ public final class StorageDir {
     do {
       used = mOwnBytesPerUser.get(userId);
       if (used == null) {
-        LOG.error("Failed to return space! unknown user Id:" + userId);
+        LOG.error("Failed to return space! unknown userId:{}", userId);
         break;
       }
     } while (!mOwnBytesPerUser.replace(userId, used, used - size));

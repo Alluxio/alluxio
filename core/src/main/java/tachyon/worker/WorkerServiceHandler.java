@@ -96,7 +96,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     long storageDirId = mWorkerStorage.lockBlock(blockId, userId);
     StorageDir storageDir = mWorkerStorage.getStorageDirById(storageDirId);
     if (storageDir == null) {
-      throw new FileDoesNotExistException("Block file not found! blockId" + blockId);
+      throw new FileDoesNotExistException("Block file not found! blockId:" + blockId);
     } else {
       return storageDir.getBlockFilePath(blockId);
     }

@@ -319,8 +319,7 @@ public class DataServerMessage {
             mData = ByteBuffer.allocate((int) mLength);
           }
         }
-        LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)",
-            mBlockId, mOffset, mLength));
+        LOG.info("data {}, blockId:{} offset:{} dataLength:{}", mData, mBlockId, mOffset, mLength);
         if (mMessageType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
           mIsMessageReady = true;
         }
