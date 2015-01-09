@@ -28,7 +28,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -222,9 +221,6 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   @Override
   public synchronized void close() throws IOException {
-    if (mWorkerClient.isConnected()) {
-      mWorkerClient.close();
-    }
     try {
       mCloser.close();
     } finally {
@@ -636,10 +632,6 @@ public class TachyonFS extends AbstractTachyonFS {
       throws IOException {
     String blockPath = mWorkerClient.getBlockLocation(blockId, initialBytes);
 
-    if (StringUtils.isBlank(blockPath)) {
-      throw new IOException(String.format("Unable to get local path for block(%d).", blockId));
-    }
-
     File localTempFolder;
     try {
       localTempFolder = new File(CommonUtils.getParent(blockPath));
@@ -650,7 +642,7 @@ public class TachyonFS extends AbstractTachyonFS {
     if (!localTempFolder.exists()) {
       if (localTempFolder.mkdirs()) {
         CommonUtils.changeLocalFileToFullPermission(localTempFolder.getAbsolutePath());
-        LOG.info("Folder " + localTempFolder + " was created!");
+        LOG.info("Folder {} was created!", localTempFolder);
       } else {
         throw new IOException("Failed to create folder " + localTempFolder);
       }
@@ -931,8 +923,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
    *        non-negative.
    */
-  synchronized boolean unlockBlock(long blockId, int blockLockId)
-      throws IOException {
+  synchronized boolean unlockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
       return false;
     }

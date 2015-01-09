@@ -290,19 +290,18 @@ public class StorageTier {
                       pinList, removedBlockIds);
               srcDir.moveBlock(blockId, dstDir);
             }
-            LOG.debug("Evicted block Id:" + blockId);
+            LOG.debug("Evicted block Id:{}" + blockId);
           }
         }
         if (dirSelected.requestSpace(userId, requestSizeBytes)) {
           return dirSelected;
         } else {
-          LOG.warn("Request space attempt failed! attempt time:" + attempt + " storage level:"
-              + mStorageLevel);
+          LOG.warn("Request space failed! attempt:{} storageLevel:{}", attempt, mStorageLevel);
         }
       }
     }
-    LOG.warn("No StorageDir is allocated! requestSize:" + requestSizeBytes + " usedSpace:"
-        + getUsedBytes() + " capacity:" + getCapacityBytes());
+    LOG.warn("No StorageDir is allocated! requestSize:{} storageLevel:{} used:{} capacity:{}",
+        requestSizeBytes, mStorageLevel, getUsedBytes(), getCapacityBytes());
     return null;
   }
 

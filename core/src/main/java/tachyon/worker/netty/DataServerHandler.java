@@ -72,8 +72,8 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(handler));
       storageDir.accessBlock(blockId);
-      LOG.info("Response remote request by reading from " + storageDir.getBlockFilePath(blockId)
-          + " preparation done.");
+      LOG.info("Response remote request by reading from {}, preparation done.",
+          storageDir.getBlockFilePath(blockId));
     } catch (Exception e) {
       // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);

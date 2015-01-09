@@ -212,16 +212,14 @@ public class WorkerStorage {
               long blockId = fileInfo.blockIds.get(k);
               storageDirIds[k] = lockBlock(blockId, Users.CHECKPOINT_USER_ID);
               if (StorageDirId.isUnknown(storageDirIds[k])) {
-                throw new IOException("Block doesn't exist!");
+                throw new IOException("Block doesn't exist! blockId:" + blockId);
               }
             }
             OutputStream os = 
                 closer.register(mCheckpointUfs.create(midPath, (int) fileInfo.getBlockSizeByte()));
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-              StorageDir storageDir = getStorageDirById(storageDirIds[k]);
-              BlockHandler handler = 
-                  closer.register(storageDir.getBlockHandler(fileInfo.blockIds.get(k)));
-              ByteBuffer byteBuffer = handler.read(0, -1);
+              ByteBuffer byteBuffer = getStorageDirById(storageDirIds[k])
+                  .getBlockData(fileInfo.blockIds.get(k), 0, -1);
               byte[] buf = new byte[16 * Constants.KB];
               int writeLen;
               while (byteBuffer.remaining() > 0) {
@@ -354,8 +352,8 @@ public class WorkerStorage {
       throw Throwables.propagate(e);
     }
 
-    LOG.info("Current Worker Info: ID " + mWorkerId + ", mWorkerAddress: " + mWorkerAddress
-        + ", CapacityBytes: " + mCapacityBytes);
+    LOG.info("Current Worker ID: {}, mWorkerAddress: {}, CapacityBytes: {}", mWorkerId,
+        mWorkerAddress, mCapacityBytes);
   }
 
   /**
@@ -426,7 +424,7 @@ public class WorkerStorage {
             mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytes(),
                 curStorageDir.getStorageDirId(), blockSize.getKey(), blockSize.getValue());
           } catch (FileDoesNotExistException e) {
-            LOG.error("BlockId: " + blockSize.getKey() + " Not Exist in Metadata");
+            LOG.error("Block not exist in metadata! blockId:{}", blockSize.getKey());
             swapoutOrphanBlocks(curStorageDir, blockSize.getKey());
             freeBlock(blockSize.getKey());
           }
@@ -491,7 +489,7 @@ public class WorkerStorage {
     try {
       result = storageDir.cacheBlock(userId, blockId);
     } catch (IOException e) {
-      throw new FileDoesNotExistException("Failed to cache block! block id:" + blockId);
+      throw new FileDoesNotExistException("Failed to cache block! blockId:" + blockId);
     }
     if (result) {
       long blockSize = storageDir.getBlockSize(blockId);
@@ -514,7 +512,7 @@ public class WorkerStorage {
       try {
         storageDir.cancelBlock(userId, blockId);
       } catch (IOException e) {
-        LOG.error("Failed to cancel block! blockId:" + blockId);;
+        LOG.error("Failed to cancel block! blockId:{}", blockId);
       }
     }
   }
@@ -571,7 +569,7 @@ public class WorkerStorage {
       try {
         freeBlock(blockId);
       } catch (IOException e) {
-        LOG.error("Failed to delete block file! blockId:" + blockId);
+        LOG.error("Failed to delete block file! blockId:{}", blockId);
       }
     }
   }
@@ -761,7 +759,7 @@ public class WorkerStorage {
         return storageDir.getStorageDirId();
       }
     }
-    LOG.warn(String.format("Failed to lock block! blockId(%d)", blockId));
+    LOG.warn("Failed to lock block! blockId:{}", blockId);
     return StorageDirId.unknownId();
   }
 
@@ -782,7 +780,7 @@ public class WorkerStorage {
       long blockSize = srcStorageDir.getBlockSize(blockId);
       StorageDir dstStorageDir = requestSpace(null, userId, blockSize);
       if (dstStorageDir == null) {
-        LOG.error("Failed to promote block! blockId:" + blockId);
+        LOG.error("Failed to promote block! blockId:{}", blockId);
         srcStorageDir.unlockBlock(blockId, userId);
         return false;
       }
@@ -798,7 +796,7 @@ public class WorkerStorage {
         }
         return result;
       } catch (IOException e) {
-        LOG.error("Failed to promote block! blockId:" + blockId);
+        LOG.error("Failed to promote block! blockId:{}", blockId);
         return false;
       }
     } else {
@@ -965,7 +963,7 @@ public class WorkerStorage {
         return storageDir.getStorageDirId();
       }
     }
-    LOG.warn(String.format("Failed to unlock block! blockId(%d)", blockId));
+    LOG.warn("Failed to unlock block! blockId:{}", blockId);
     return StorageDirId.unknownId();
   }
 

@@ -17,6 +17,9 @@ package tachyon;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.WorkerConf;
@@ -26,18 +29,19 @@ import tachyon.util.CommonUtils;
  * Format Tachyon File System.
  */
 public class Format {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String USAGE = "java -cp target/tachyon-" + Version.VERSION
       + "-jar-with-dependencies.jar tachyon.Format <MASTER/WORKER>";
 
   private static boolean formatFolder(String name, String folder) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(folder);
-    System.out.println("Formatting " + name + ": " + folder);
+    LOG.info("Formatting {}:{}", name, folder);
     if (ufs.exists(folder) && !ufs.delete(folder, true)) {
-      System.out.println("Failed to remove " + name + ": " + folder);
+      LOG.info("Failed to remove {}:{}", name, folder);
       return false;
     }
     if (!ufs.mkdirs(folder, true)) {
-      System.out.println("Failed to create " + name + ": " + folder);
+      LOG.info("Failed to create {}:{}", name, folder);
       return false;
     }
     return true;
@@ -45,7 +49,7 @@ public class Format {
 
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {
-      System.out.println(USAGE);
+      LOG.info(USAGE);
       System.exit(-1);
     }
 
@@ -71,7 +75,7 @@ public class Format {
         for (int i = 0; i < dirPaths.length; i ++) {
           String dataPath = CommonUtils.concat(dirPaths[i].trim(), workerConf.DATA_FOLDER);
           UnderFileSystem ufs = UnderFileSystem.get(dataPath);
-          System.out.println("Removing data under folder: " + dataPath);
+          LOG.info("Removing data under folder: {}", dataPath);
           if (ufs.exists(dataPath)) {
             String[] files = ufs.list(dataPath);
             for (String file : files) {
@@ -81,7 +85,7 @@ public class Format {
         }
       }
     } else {
-      System.out.println(USAGE);
+      LOG.info(USAGE);
       System.exit(-1);
     }
   }

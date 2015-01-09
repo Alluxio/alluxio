@@ -123,12 +123,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
     mRecache = readType.isCache();
     if (mRecache) {
-      try {
-        mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
-      } catch (Exception e) {
-        LOG.warn("Recache is canceled! because:" + e.getMessage());
-        cancelRecache();
-      }
+      mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
     }
 
     mUFSConf = ufsConf;
@@ -255,7 +250,8 @@ public class RemoteBlockInStream extends BlockInStream {
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())
             || host.equals(NetworkUtils.getLocalHostName())) {
-          LOG.warn("Master thinks the local machine has data, But not!");
+          LOG.warn("Master thinks the local machine has data, But not! blockId:{}",
+              blockInfo.blockId);
         }
         LOG.info(host + ":" + port + " current host is " + NetworkUtils.getLocalHostName() + " "
             + NetworkUtils.getLocalIpAddress());
@@ -407,8 +403,8 @@ public class RemoteBlockInStream extends BlockInStream {
     // be the one at mBlockPos
     mBufferStartPos = mBlockPos;
     long length = Math.min(BUFFER_SIZE, mBlockInfo.length - mBufferStartPos);
-    LOG.info(String.format("Try to find remote worker and read block %d from %d, with len %d",
-        mBlockInfo.blockId, mBufferStartPos, length));
+    LOG.info("Try to find remote worker and read block {} from {}, with len {}",
+        mBlockInfo.blockId, mBufferStartPos, length);
 
     for (int i = 0; i < MAX_REMOTE_READ_ATTEMPTS; i ++) {
       mCurrentBuffer = readRemoteByteBuffer(mTachyonFS, mBlockInfo, mBufferStartPos, length);

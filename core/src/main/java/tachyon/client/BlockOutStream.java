@@ -42,11 +42,11 @@ public class BlockOutStream extends OutStream {
   private final long mBlockOffset;
   private final boolean mPin;
   private final Closer mCloser = Closer.create(); 
-  private final String mLocalFilePath;
-  private final RandomAccessFile mLocalFile;
-  private final FileChannel mLocalFileChannel;
   private final ByteBuffer mBuffer;
 
+  private String mLocalFilePath = null;
+  private RandomAccessFile mLocalFile = null;
+  private FileChannel mLocalFileChannel = null;
   private long mAvailableBytes = 0;
   private long mInFileBytes = 0;
   private long mWrittenBytes = 0;
@@ -81,29 +81,16 @@ public class BlockOutStream extends OutStream {
       throw new IOException(msg);
     }
 
-    mLocalFilePath = mTachyonFS.getLocalBlockLocation(mBlockId, mUserConf.QUOTA_UNIT_BYTES);
-    mAvailableBytes = mUserConf.QUOTA_UNIT_BYTES;
-    mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
-    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
-    // change the permission of the temporary file in order that the worker can move it.
-    CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
-    // use the sticky bit, only the client and the worker can write to the block
-    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
-    LOG.info(mLocalFilePath + " was created!");
-
     mBuffer = ByteBuffer.allocate(mUserConf.FILE_BUFFER_BYTES + 4);
   }
 
   private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
       throws IOException {
     if (mAvailableBytes < length) {
-      long bytesRequested = mTachyonFS.requestSpace(mBlockId, length - mAvailableBytes);
-      if (bytesRequested <= 0) {
+      if (!requestSpaceOnWrite(length - mAvailableBytes)) {
         mCanWrite = false;
         throw new IOException(String.format("No enough space on local worker: fileId(%d)"
             + " blockId(%d) requestSize(%d)", mFile.mFileId, mBlockId, length - mAvailableBytes));
-      } else {
-        mAvailableBytes += bytesRequested;
       }
     }
 
@@ -138,7 +125,9 @@ public class BlockOutStream extends OutStream {
         appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       }
       mCloser.close();
-      mTachyonFS.cacheBlock(mBlockId);
+      if (mLocalFilePath != null) {
+        mTachyonFS.cacheBlock(mBlockId);
+      }
       mClosed = true;
     }
   }
@@ -167,6 +156,35 @@ public class BlockOutStream extends OutStream {
    */
   public long getRemainingSpaceByte() {
     return mBlockCapacityByte - mWrittenBytes;
+  }
+
+  /**
+   * Request space when writing data into block file
+   * 
+   * @param requestSizeBytes space size to request in bytes
+   * @return true if success, false otherwise
+   * @throws IOException
+   */
+  private boolean requestSpaceOnWrite(long requestSizeBytes) throws IOException {
+    if (mLocalFilePath == null) {
+      mLocalFilePath = mTachyonFS.getLocalBlockLocation(mBlockId, requestSizeBytes);
+      mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
+      mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
+      // change the permission of the temporary file in order that the worker can move it.
+      CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
+      // use the sticky bit, only the client and the worker can write to the block
+      CommonUtils.setLocalFileStickyBit(mLocalFilePath);
+      LOG.info(mLocalFilePath + " was created!");
+      mAvailableBytes += requestSizeBytes;
+    } else {
+      long bytesRequested = mTachyonFS.requestSpace(mBlockId, requestSizeBytes);
+      if (bytesRequested <= 0) {
+        return false;
+      }
+      mAvailableBytes += bytesRequested;
+    }
+
+    return true;
   }
 
   @Override
