@@ -58,7 +58,7 @@ public class AllocateStrategyTest {
       bhSrc.close();
     }
     dir.requestSpace(USER_ID, blockSize);
-    dir.cacheBlock(USER_ID, blockId, blockSize);
+    dir.cacheBlock(USER_ID, blockId);
   }
 
   @Test

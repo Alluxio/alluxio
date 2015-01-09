@@ -77,7 +77,7 @@ public class WorkerServiceHandlerTest {
         WORKER_CAPACITY_BYTES / 10L);
     Assert.assertTrue(filename != null);
     createBlockFile(filename, (int)(WORKER_CAPACITY_BYTES / 10L - 10L));
-    mWorkerServiceHandler.cancelBlock(userId, blockId, 10L);
+    mWorkerServiceHandler.cancelBlock(userId, blockId);
     Assert.assertFalse(new File(filename).exists());
   }
 
@@ -91,12 +91,12 @@ public class WorkerServiceHandlerTest {
         WORKER_CAPACITY_BYTES / 10L);
     Assert.assertTrue(filename != null);
     createBlockFile(filename, (int)(WORKER_CAPACITY_BYTES / 10L - 10L));
-    mWorkerServiceHandler.cacheBlock(userId, blockId0, 10L);
+    mWorkerServiceHandler.cacheBlock(userId, blockId0);
     Assert.assertEquals(WORKER_CAPACITY_BYTES / 10L - 10, mMasterInfo.getUsedBytes());
 
     Exception exception = null;
     try {
-      mWorkerServiceHandler.cacheBlock(userId, blockId1, 10L);
+      mWorkerServiceHandler.cacheBlock(userId, blockId1);
     } catch (FileDoesNotExistException e) {
       exception = e;
     }

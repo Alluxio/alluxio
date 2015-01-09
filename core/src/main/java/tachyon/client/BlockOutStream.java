@@ -118,7 +118,7 @@ public class BlockOutStream extends OutStream {
     if (!mClosed) {
       mCloser.close();
       mClosed = true;
-      mTachyonFS.cancelBlock(mBlockId, mAvailableBytes);
+      mTachyonFS.cancelBlock(mBlockId);
       LOG.info(String.format("Canceled output of block. blockId(%d) path(%s)", mBlockId,
           mLocalFilePath));
     }
@@ -138,7 +138,7 @@ public class BlockOutStream extends OutStream {
         appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       }
       mCloser.close();
-      mTachyonFS.cacheBlock(mBlockId, mAvailableBytes);
+      mTachyonFS.cacheBlock(mBlockId);
       mClosed = true;
     }
   }

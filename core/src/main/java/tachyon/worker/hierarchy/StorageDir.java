@@ -75,8 +75,11 @@ public final class StorageDir {
   private final UnderFileSystem mFs;
   /** Configuration of under file system */
   private final Object mConf;
-  /** Mapping from user Id to space size owned by the user in bytes */
+  /** Mapping from user Id to space size bytes owned by the user */
   private final ConcurrentMap<Long, Long> mOwnBytesPerUser = new ConcurrentHashMap<Long, Long>();
+  /** Mapping from temporary block id to the size bytes allocated to it */
+  private final ConcurrentMap<Long, Long> mTempBlockAllocatedBytes =
+      new ConcurrentHashMap<Long, Long>();
   /** Mapping from user Id to list of blocks locked by the user */
   private final Multimap<Long, Long> mLockedBlocksPerUser = Multimaps
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
@@ -147,23 +150,45 @@ public final class StorageDir {
   }
 
   /**
+   * Add allocated space bytes of a temporary block in current StorageDir
+   * 
+   * @param blockId Id of the block
+   * @param addedBytes added space size of the block in bytes
+   */
+  public void addTempBlockAllocatedBytes(long blockId, long addedBytes) {
+    Long oldSize = mTempBlockAllocatedBytes.putIfAbsent(blockId, addedBytes);
+    if (oldSize != null) {
+      while (!mTempBlockAllocatedBytes.replace(blockId, oldSize, oldSize + addedBytes)) {
+        oldSize = mOwnBytesPerUser.get(blockId);
+        if (oldSize == null) {
+          LOG.error("Temporary block doesn't exist! blockId:" + blockId);
+          break;
+        }
+      }
+    }
+  }
+
+  /**
    * Move the cached block file from user temporary directory to data directory
    * 
    * @param userId the id of the user
    * @param blockId the id of the block
-   * @param unusedBytes space size in bytes that is allocated but not used
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public boolean cacheBlock(long userId, long blockId, long unusedBytes) throws IOException {
+  public boolean cacheBlock(long userId, long blockId) throws IOException {
     String srcPath = getUserTempFilePath(userId, blockId);
     String dstPath = getBlockFilePath(blockId);
+    Long allocatedBytes = mTempBlockAllocatedBytes.remove(blockId);
+    if (allocatedBytes == null) {
+      allocatedBytes = 0L;
+    }
     long blockSize = 0;
     boolean result;
     try {
       blockSize = mFs.getFileSize(srcPath);
       if (blockSize < 0) {
-        throw new IOException("Negative size of block! size:" + blockSize);
+        throw new IOException("Negative size of block! blockId:" + blockId);
       }
       result = mFs.rename(srcPath, dstPath);
     } catch (Exception e) {
@@ -171,9 +196,9 @@ public final class StorageDir {
     }
     if (result) {
       addBlockId(blockId, blockSize, false);
-      returnSpace(userId, unusedBytes);
+      returnSpace(userId, allocatedBytes - blockSize);
     } else {
-      cancelBlock(userId, blockId, unusedBytes);
+      cancelBlock(userId, blockId);
     }
     return result;
   }
@@ -183,23 +208,20 @@ public final class StorageDir {
    * 
    * @param userId the id of the user
    * @param blockId the id of the block to be cancelled
-   * @param allocatedBytes space bytes allocated to the block
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public boolean cancelBlock(long userId, long blockId, long unusedBytes) throws IOException {
+  public boolean cancelBlock(long userId, long blockId) throws IOException {  
     String filePath = getUserTempFilePath(userId, blockId);
-    returnSpace(userId, unusedBytes);
+    Long allocatedBytes = mTempBlockAllocatedBytes.remove(blockId);
+    if (allocatedBytes == null) {
+      allocatedBytes = 0L;
+    }
+    returnSpace(userId, allocatedBytes);
     if (!mFs.exists(filePath)) {
       return true;
-    }
-
-    long blockSize = mFs.getFileSize(filePath);
-    if (mFs.delete(filePath, false)) {
-      returnSpace(userId, blockSize);
-      return true;
     } else {
-      return false;
+      return mFs.delete(filePath, false);
     }
   }
 
@@ -207,11 +229,15 @@ public final class StorageDir {
    * Clean resources related to the removed user
    * 
    * @param removedUserId id of the removed user
+   * @param tempBlockIdList list of block ids that are being written by the user
    */
-  public void cleanUserResources(long removedUserId) {
+  public void cleanUserResources(long removedUserId, Collection<Long> tempBlockIdList) {
     Collection<Long> blockIds = mLockedBlocksPerUser.removeAll(removedUserId);
     for (long blockId : blockIds) {
       mUserPerLockedBlock.remove(blockId, removedUserId);
+    }
+    for (Long tempBlockId : tempBlockIdList) {
+      mTempBlockAllocatedBytes.remove(tempBlockId);
     }
     try {
       mFs.delete(getUserTempPath(removedUserId), true);

@@ -258,26 +258,26 @@ service WorkerService {
   bool asyncCheckpoint(1: i32 fileId)
     throws (1: TachyonException e)
 
-  void cacheBlock(1: i64 userId, 2: i64 blockId, 3: i64 unusedBytes)
+  void cacheBlock(1: i64 userId, 2: i64 blockId)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: BlockInfoException eB)
 
   string getUserUfsTempFolder(1: i64 userId)
 
-  string lockBlock(1: i64 blockId 2: i64 userId) // Lock the file in memory while the user is reading it.
+  string lockBlock(1: i64 blockId, 2: i64 userId) // Lock the file in memory while the user is reading it.
     throws (1: FileDoesNotExistException eP) // the path of the file locked is returned
 
   bool promoteBlock(1: i64 userId, 2: i64 blockId)
 
-  void cancelBlock(1: i64 userId, 2: i64 blockId, 3: i64 unusedBytes)
+  void cancelBlock(1: i64 userId, 2: i64 blockId)
 
   string getBlockLocation(1: i64 userId, 2: i64 blockId, 3: i64 initialBytes)
     throws (1: OutOfSpaceException eP, 2: FileAlreadyExistException eS)
 
   bool requestSpace(1: i64 userId, 2: i64 blockId, 3: i64 requestBytes)
-    throws (1: OutOfSpaceException eP, 2: FileDoesNotExistException eS)
+    throws (1: FileDoesNotExistException eP)
 
-  bool unlockBlock(1: i64 blockId 2: i64 userId) // unlock the file
+  bool unlockBlock(1: i64 blockId, 2: i64 userId) // unlock the file
 
   void userHeartbeat(1: i64 userId)   // Local user send heartbeat to local worker to keep its temp folder.
 }

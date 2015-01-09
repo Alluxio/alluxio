@@ -61,7 +61,7 @@ public class BlockHandlerLocalTest {
     BlockHandler handler = BlockHandler.get(filename);
     try {
       handler.append(0, buf);
-      mTfs.cacheBlock(blockId, 0);
+      mTfs.cacheBlock(blockId);
       TachyonFile file = mTfs.getFile(fileId);
       long fileLen = file.length();
       Assert.assertEquals(100, fileLen);
@@ -80,7 +80,7 @@ public class BlockHandlerLocalTest {
     BlockHandler handler = BlockHandler.get(filename);
     try {
       handler.append(0, ByteBuffer.wrap(buf));
-      mTfs.cacheBlock(blockId, 0);
+      mTfs.cacheBlock(blockId);
       TachyonFile file = mTfs.getFile(fileId);
       long fileLen = file.length();
       Assert.assertEquals(100, fileLen);
