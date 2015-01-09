@@ -65,13 +65,18 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void cacheBlock(long userId, long blockId, long unusedBytes)
+  public void cacheBlock(long userId, long blockId)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     try {
-      mWorkerStorage.cacheBlock(userId, blockId, unusedBytes);
+      mWorkerStorage.cacheBlock(userId, blockId);
     } catch (IOException e) {
       throw new TException(e);
     }
+  }
+
+  @Override
+  public void cancelBlock(long userId, long blockId) throws TException {
+    mWorkerStorage.cancelBlock(userId, blockId);
   }
 
   @Override
@@ -106,11 +111,6 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   public boolean requestSpace(long userId, long blockId, long requestBytes)
       throws FileDoesNotExistException, TException {
     return mWorkerStorage.requestSpace(userId, blockId, requestBytes);
-  }
-
-  @Override
-  public void cancelBlock(long userId, long blockId, long unusedBytes) throws TException {
-    mWorkerStorage.cancelBlock(userId, blockId, unusedBytes);
   }
 
   @Override

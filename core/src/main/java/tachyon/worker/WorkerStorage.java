@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -473,13 +474,12 @@ public class WorkerStorage {
    * 
    * @param userId The user id of the client who send the notification
    * @param blockId The id of the block
-   * @param unusedBytes The space size in bytes that is allocated but not used
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    * @throws IOException
    */
-  public void cacheBlock(long userId, long blockId, long unusedBytes)
+  public void cacheBlock(long userId, long blockId)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
       IOException {
     StorageDir storageDir = mTempBlockInfo.remove(blockId);
@@ -489,7 +489,7 @@ public class WorkerStorage {
     mUserIdToTempBlockIds.remove(userId, blockId);
     boolean result = false;
     try {
-      result = storageDir.cacheBlock(userId, blockId, unusedBytes);
+      result = storageDir.cacheBlock(userId, blockId);
     } catch (IOException e) {
       throw new FileDoesNotExistException("Failed to cache block! block id:" + blockId);
     }
@@ -505,15 +505,14 @@ public class WorkerStorage {
    * 
    * @param userId The id of the user who wants to cancel the block
    * @param blockId The id of the block that is cancelled
-   * @param unusedBytes The space size in bytes that is allocated but not used
    */
-  public void cancelBlock(long userId, long blockId, long unusedBytes) {
+  public void cancelBlock(long userId, long blockId) {
     StorageDir storageDir = mTempBlockInfo.remove(blockId);
     
     if (storageDir != null) {
       mUserIdToTempBlockIds.remove(userId, blockId);
       try {
-        storageDir.cancelBlock(userId, blockId, unusedBytes);
+        storageDir.cancelBlock(userId, blockId);
       } catch (IOException e) {
         LOG.error("Failed to cancel block! blockId:" + blockId);;
       }
@@ -529,13 +528,14 @@ public class WorkerStorage {
     List<Long> removedUsers = mUsers.checkStatus();
 
     for (long userId : removedUsers) {
+      Collection<Long> tempBlockIdList = mUserIdToTempBlockIds.removeAll(userId);
+      for (Long blockId : tempBlockIdList) {
+        mTempBlockInfo.remove(blockId);
+      }
       for (StorageTier storageTier : mStorageTiers) {
         for (StorageDir storageDir : storageTier.getStorageDirs()) {
-          storageDir.cleanUserResources(userId);
+          storageDir.cleanUserResources(userId, tempBlockIdList);
         }
-      }
-      for (Long blockId : mUserIdToTempBlockIds.removeAll(userId)) {
-        mTempBlockInfo.remove(blockId);
       }
       mUsers.removeUser(userId);
     }
@@ -599,6 +599,7 @@ public class WorkerStorage {
     }
     mTempBlockInfo.put(blockId, storageDir);
     mUserIdToTempBlockIds.put(userId, blockId);
+    storageDir.addTempBlockAllocatedBytes(blockId, initialBytes);
 
     return storageDir.getUserTempFilePath(userId, blockId);
   }
@@ -858,7 +859,8 @@ public class WorkerStorage {
     List<Long> removedBlockIds = new ArrayList<Long>();
     try {
       if (dirCandidate == null) {
-        storageDir = mStorageTiers[0].requestSpace(userId, requestBytes, pinList, removedBlockIds);
+        storageDir = 
+            mStorageTiers[0].requestSpace(userId, requestBytes, pinList, removedBlockIds);
       } else {
         if (mStorageTiers[0].requestSpace(dirCandidate, userId, requestBytes, pinList,
             removedBlockIds)) {
@@ -893,7 +895,12 @@ public class WorkerStorage {
           "Temporary block file doesn't exist! blockId:" + blockId);
     }
 
-    return storageDir == requestSpace(storageDir, userId, requestBytes);
+    if (storageDir == requestSpace(storageDir, userId, requestBytes)) {
+      storageDir.addTempBlockAllocatedBytes(blockId, requestBytes);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**

@@ -64,7 +64,8 @@ public class EvictStrategyTest {
       bhSrc.close();
     }
     dir.requestSpace(USER_ID, blockSize);
-    dir.cacheBlock(USER_ID, blockId, 0);
+    dir.addTempBlockAllocatedBytes(blockId, blockSize);
+    dir.cacheBlock(USER_ID, blockId);
   }
 
   @Test

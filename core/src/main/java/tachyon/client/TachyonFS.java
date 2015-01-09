@@ -199,22 +199,20 @@ public class TachyonFS extends AbstractTachyonFS {
    * Notify the worker the block is cached.
    * 
    * @param blockId the block id
-   * @param unusedBytes the space size in bytes that is allocated but not used
    * @throws IOException
    */
-  public synchronized void cacheBlock(long blockId, long unusedBytes) throws IOException {
-    mWorkerClient.cacheBlock(blockId, unusedBytes);
+  public synchronized void cacheBlock(long blockId) throws IOException {
+    mWorkerClient.cacheBlock(blockId);
   }
 
   /**
    * Notify the worker the block is canceled.
    * 
    * @param blockId the block id
-   * @param unusedBytes the space size in bytes that is allocated but not used
    * @throws IOException
    */
-  public synchronized void cancelBlock(long blockId, long unusedBytes) throws IOException {
-    mWorkerClient.cancelBlock(blockId, unusedBytes);
+  public synchronized void cancelBlock(long blockId) throws IOException {
+    mWorkerClient.cancelBlock(blockId);
   }
 
   /**

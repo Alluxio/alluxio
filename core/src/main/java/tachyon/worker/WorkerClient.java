@@ -147,14 +147,13 @@ public class WorkerClient implements Closeable {
    * 
    * @param storageDirId The id of StorageDir that the block is stored in
    * @param blockId The id of the block
-   * @param unusedBytes The space size in bytes that is allocated but not used
    * @throws IOException
    */
-  public synchronized void cacheBlock(long blockId, long unusedBytes) throws IOException {
+  public synchronized void cacheBlock(long blockId) throws IOException {
     mustConnect();
 
     try {
-      mClient.cacheBlock(mMasterClient.getUserId(), blockId, unusedBytes);
+      mClient.cacheBlock(mMasterClient.getUserId(), blockId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (BlockInfoException e) {
@@ -171,14 +170,13 @@ public class WorkerClient implements Closeable {
    * Notify worker that the block has been cancelled
    * 
    * @param blockId The Id of the block to be cancelled
-   * @param unusedBytes the space size in bytes that is allocated but not used
    * @throws IOException
    */
-  public synchronized void cancelBlock(long blockId, long unusedBytes) throws IOException {
+  public synchronized void cancelBlock(long blockId) throws IOException {
     mustConnect();
 
     try {
-      mClient.cancelBlock(mMasterClient.getUserId(), blockId, unusedBytes);
+      mClient.cancelBlock(mMasterClient.getUserId(), blockId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
