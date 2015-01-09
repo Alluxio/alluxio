@@ -35,6 +35,8 @@ public class TachyonConfTest {
     sTestProperties.put("path2", "path2");
     sTestProperties.put("multiplesubs", "${home}/path1/${path2}");
     sTestProperties.put("recursive", "${multiplesubs}");
+    sTestProperties.put("home.port", "8080");
+    sTestProperties.put("complex.address", "tachyon://${home}:${home.port}");
 
     // initialize
     sDefaultTachyonConf = new TachyonConf(false);
@@ -243,6 +245,14 @@ public class TachyonConfTest {
 
     String multiplesubs = mCustomPropsTachyonConf.get("multiplesubs", null);
     Assert.assertTrue((home + "/path1/" + path2).equals(multiplesubs));
+
+    String homePort = mCustomPropsTachyonConf.get("home.port", null);
+    Assert.assertTrue(("8080").equals(homePort));
+
+    sTestProperties.put("complex.address", "tachyon://${home}:${home.port}");
+    String complexAddress = mCustomPropsTachyonConf.get("complex.address", null);
+    Assert.assertTrue(("tachyon://" + home + ":" + homePort).equals(complexAddress));
+
   }
 
   @Test
