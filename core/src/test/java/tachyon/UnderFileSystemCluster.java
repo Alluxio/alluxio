@@ -72,8 +72,8 @@ public abstract class UnderFileSystemCluster {
     if (mUfsClz != null && !mUfsClz.equals("")) {
       try {
         UnderFileSystemCluster ufsCluster =
-            (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class)
-                .newInstance(baseDir);
+            (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class,
+                TachyonConf.class).newInstance(baseDir, tachyonConf);
         return ufsCluster;
       } catch (Exception e) {
         System.out.println("Failed to initialize the ufsCluster of " + mUfsClz
