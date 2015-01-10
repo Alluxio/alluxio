@@ -31,7 +31,6 @@ import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.TachyonWorker;
@@ -151,14 +150,8 @@ public class LocalTachyonClusterMultiMaster {
 
     mLocalhostName = NetworkUtils.getLocalHostName();
 
-    System.setProperty("tachyon.test.mode", "true");
-    System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
-    System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
-    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
-
-    WorkerConf.clear();
-
     mMasterConf = new TachyonConf();
+    mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
     mMasterConf.set(Constants.USE_ZOOKEEPER, "true");
     mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
@@ -179,6 +172,10 @@ public class LocalTachyonClusterMultiMaster {
     CommonUtils.sleepMs(null, 10);
 
     mWorkerConf = new TachyonConf(mMasterConf);
+    mWorkerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
+    mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, mWorkerCapacityBytes + "");
+    mWorkerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, 15 + "");
+
     mWorker =
         TachyonWorker.createWorker(
             CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),

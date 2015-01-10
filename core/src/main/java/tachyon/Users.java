@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -48,10 +49,13 @@ public class Users {
   /** Map from UserId to {@link tachyon.UserInfo} object **/
   private final Map<Long, UserInfo> mUsers;
 
-  public Users(final String userfolder, final String userUfsFolder) {
+  private final TachyonConf mTachyonConf;
+
+  public Users(final String userfolder, final String userUfsFolder,  TachyonConf tachyonConf) {
     mUserFolder = userfolder;
     mUserUnderFSFolder = userUfsFolder;
     mUsers = new HashMap<Long, UserInfo>();
+    mTachyonConf = tachyonConf;
   }
 
   /**
@@ -173,7 +177,7 @@ public class Users {
       if (mUsers.containsKey(userId)) {
         mUsers.get(userId).heartbeat();
       } else {
-        mUsers.put(userId, new UserInfo(userId));
+        mUsers.put(userId, new UserInfo(userId, mTachyonConf));
       }
     }
   }

@@ -215,7 +215,7 @@ public class NIODataServer implements Runnable, DataServer {
       int lockId = mBlockLocker.lock(tMessage.getBlockId());
       DataServerMessage tResponseMessage =
           DataServerMessage.createBlockResponseMessage(true, tMessage.getBlockId(),
-              tMessage.getOffset(), tMessage.getLength());
+              tMessage.getOffset(), tMessage.getLength(), mTachyonConf);
       tResponseMessage.setLockId(lockId);
       mSendingData.put(socketChannel, tResponseMessage);
     }

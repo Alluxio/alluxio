@@ -27,7 +27,6 @@ import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
-import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -42,8 +41,6 @@ import tachyon.util.CommonUtils;
 public class WorkerServiceHandlerTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
-  private static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
-      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
@@ -84,7 +81,8 @@ public class WorkerServiceHandlerTest {
     int fileId3 =
         TestUtils.createByteFile(mTfs, "/file3", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 2);
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null,
+        TestUtils.getToMasterHeartBeatIntervalMs(mLocalTachyonCluster.getWorkerTachyonConf()));
     fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
     fileInfo2 = mMasterInfo.getClientFileInfo(new TachyonURI("/file2"));
     ClientFileInfo fileInfo3 = mMasterInfo.getClientFileInfo(new TachyonURI("/file3"));
