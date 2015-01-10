@@ -26,7 +26,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.FileAlreadyExistException;
@@ -39,8 +39,6 @@ import tachyon.util.CommonUtils;
 public class TachyonFileTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
-  private static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
-      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
   private static final int MAX_FILES = WORKER_CAPACITY_BYTES / USER_QUOTA_UNIT_BYTES;
 
   private static final int MIN_LEN = 0;
@@ -49,6 +47,8 @@ public class TachyonFileTest {
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+
+  private TachyonConf mWorkerTachyonConf;
 
   @After
   public final void after() throws Exception {
@@ -61,6 +61,7 @@ public class TachyonFileTest {
         Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
+    mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
   }
 
   /**
@@ -117,7 +118,7 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf));
     for (int k = 0; k < MAX_FILES; k ++) {
       TachyonFile file = mTfs.getFile(new TachyonURI("/file" + k));
       Assert.assertTrue(file.isInMemory());
@@ -130,7 +131,7 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf));
     TachyonFile file = mTfs.getFile(new TachyonURI("/file" + 0));
     Assert.assertFalse(file.isInMemory());
 
@@ -165,7 +166,7 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf));
 
     file = mTfs.getFile(new TachyonURI("/pin/file"));
     Assert.assertTrue(file.isInMemory());

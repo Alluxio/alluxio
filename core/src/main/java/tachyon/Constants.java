@@ -76,6 +76,7 @@ public class Constants {
   public static final String DEFAULT_HOME = "/mnt/tachyon_default_home";
   public static final String DEFAULT_DATA_FOLDER = "/tachyon/data";
   public static final String DEFAULT_JOURNAL_FOLDER = DEFAULT_HOME + "/journal/";
+  public static final String[] DEFAULT_STORAGE_TIER_DIR_QUOTA = "512MB,64GB,1TB".split(",");
 
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String WEB_RESOURCES = "tachyon.web.resources";
@@ -153,6 +154,9 @@ public class Constants {
   public static final String WORKER_ALLOCATE_STRATEGY_TYPE = "tachyon.worker.allocate.strategy";
   public static final String WORKER_MAX_HIERARCHY_STORAGE_LEVEL =
       "tachyon.worker.hierarchystore.level.max";
+  public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
+  public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
+  public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";

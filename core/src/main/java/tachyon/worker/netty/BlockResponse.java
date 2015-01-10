@@ -28,7 +28,8 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 
-import tachyon.conf.WorkerConf;
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.worker.nio.DataServerMessage;
 
 /**
@@ -42,6 +43,14 @@ public final class BlockResponse {
    */
   public static final class Encoder extends MessageToMessageEncoder<BlockResponse> {
     private static final int MESSAGE_LENGTH = Shorts.BYTES + Longs.BYTES * 3;
+
+    private final TachyonConf mTachyonConf;
+
+    public Encoder(TachyonConf tachyonConf) {
+      super();
+
+      mTachyonConf = tachyonConf;
+    }
 
     private ByteBuf createHeader(final ChannelHandlerContext ctx, final BlockResponse msg) {
       ByteBuf header = ctx.alloc().buffer(MESSAGE_LENGTH);
@@ -57,7 +66,9 @@ public final class BlockResponse {
         final List<Object> out) throws Exception {
       out.add(createHeader(ctx, msg));
       if (msg.getChannel() != null) {
-        switch (WorkerConf.get().NETTY_FILE_TRANSFER_TYPE) {
+        FileTransferType type = mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE,
+            FileTransferType.MAPPED);
+        switch (type) {
           case MAPPED:
             MappedByteBuffer data =
                 msg.getChannel().map(FileChannel.MapMode.READ_ONLY, msg.getOffset(),
@@ -65,12 +76,8 @@ public final class BlockResponse {
             out.add(Unpooled.wrappedBuffer(data));
             msg.getChannel().close();
             break;
-          case TRANSFER:
-            out.add(new DefaultFileRegion(msg.getChannel(), msg.getOffset(), msg.getLength()));
-            break;
           default:
-            throw new AssertionError("Unknown file transfer type: "
-                + WorkerConf.get().NETTY_FILE_TRANSFER_TYPE);
+            out.add(new DefaultFileRegion(msg.getChannel(), msg.getOffset(), msg.getLength()));
         }
       }
     }

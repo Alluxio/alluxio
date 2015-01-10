@@ -15,7 +15,10 @@
 package tachyon;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
+import tachyon.conf.TachyonConf;
 
 /**
  * Unit tests for tachyon.UserInfo
@@ -28,9 +31,16 @@ public class UserInfoTest {
   private static final String USERINFOR_TOSTRING =
       "UserInfo( mUserId: 99, mOwnBytes: 1064, mLastHeartbeatMs: ";
 
+  private TachyonConf mTachyonConf;
+
+  @Before
+  public final void before() {
+    mTachyonConf = new TachyonConf();
+  }
+
   @Test
   public void addOwnBytesTest() {
-    UserInfo tUserInfo = new UserInfo(1);
+    UserInfo tUserInfo = new UserInfo(1, mTachyonConf);
     tUserInfo.addOwnBytes(7);
     tUserInfo.addOwnBytes(70);
     tUserInfo.addOwnBytes(700);
@@ -41,7 +51,7 @@ public class UserInfoTest {
   @Test
   public void constructorTest() {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      UserInfo tUserInfo = new UserInfo(k);
+      UserInfo tUserInfo = new UserInfo(k, mTachyonConf);
       Assert.assertEquals(k, tUserInfo.getUserId());
     }
   }
@@ -49,7 +59,7 @@ public class UserInfoTest {
   @Test(expected = RuntimeException.class)
   public void constructorWithExceptionTest() {
     for (int k = 0; k >= -1000; k -= DELTA) {
-      UserInfo tUserInfo = new UserInfo(k);
+      UserInfo tUserInfo = new UserInfo(k, mTachyonConf);
       Assert.assertEquals(k, tUserInfo.getUserId());
       Assert.fail("UserId " + k + " should be invalid.");
     }
@@ -58,7 +68,7 @@ public class UserInfoTest {
   @Test
   public void generalTest() {
     for (int k = MIN_LEN; k < MAX_LEN; k ++) {
-      UserInfo tUserInfo = new UserInfo(k);
+      UserInfo tUserInfo = new UserInfo(k, mTachyonConf);
       tUserInfo.addOwnBytes(3222 * k);
       tUserInfo.addOwnBytes(-1111 * k);
       Assert.assertEquals(2111 * k, tUserInfo.getOwnBytes());
@@ -68,20 +78,20 @@ public class UserInfoTest {
   @Test
   public void getUserIdTest() {
     for (int k = MIN_LEN; k < MAX_LEN; k += 66) {
-      UserInfo tUserInfo = new UserInfo(k);
+      UserInfo tUserInfo = new UserInfo(k, mTachyonConf);
       Assert.assertEquals(k, tUserInfo.getUserId());
     }
   }
 
   @Test
   public void timeoutTest() {
-    UserInfo tUserInfo = new UserInfo(1);
+    UserInfo tUserInfo = new UserInfo(1, mTachyonConf);
     Assert.assertFalse(tUserInfo.timeout());
   }
 
   @Test
   public void toStringTest() {
-    UserInfo tUserInfo = new UserInfo(99);
+    UserInfo tUserInfo = new UserInfo(99, mTachyonConf);
     tUserInfo.addOwnBytes(2093);
     tUserInfo.addOwnBytes(-1029);
     Assert.assertEquals(USERINFOR_TOSTRING,

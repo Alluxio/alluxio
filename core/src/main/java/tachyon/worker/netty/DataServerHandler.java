@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.io.Closeables;
 
 import tachyon.Constants;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlocksLocker;
 
@@ -44,9 +44,11 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final BlocksLocker mLocker;
+  private final TachyonConf mTachyonConf;
 
-  public DataServerHandler(BlocksLocker locker) {
+  public DataServerHandler(BlocksLocker locker, TachyonConf tachyonConf) {
     mLocker = locker;
+    mTachyonConf = tachyonConf;
   }
 
   @Override
@@ -64,7 +66,8 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     try {
       validateInput(req);
 
-      String filePath = CommonUtils.concat(WorkerConf.get().DATA_FOLDER, blockId);
+      String workerDataFolder = mTachyonConf.get(Constants.WORKER_DATA_FOLDER, "/mnt/ramdisk");
+      String filePath = CommonUtils.concat(workerDataFolder, blockId);
       LOG.info("Try to response remote request by reading from " + filePath);
 
       file = new RandomAccessFile(filePath, "r");
