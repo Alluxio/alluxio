@@ -39,6 +39,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.client.BlockHandler;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.SpaceCounter;
 
@@ -77,6 +78,8 @@ public final class StorageDir {
   /** Mapping from block Id to list of users that lock the block */
   private final Multimap<Long, Long> mUserPerLockedBlock = Multimaps
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
+  /** TachyonConf for this StorageDir **/
+  private final TachyonConf mTachyonConf;
 
   /**
    * Create a new StorageDir.
@@ -87,12 +90,14 @@ public final class StorageDir {
    * @param dataFolder data folder in current StorageDir
    * @param userTempFolder temporary folder for users in current StorageDir
    * @param conf configuration of under file system
+   * @param tachyonConf the TachyonConf instance of the under file system
    */
   StorageDir(long storageDirId, String dirPath, long capacityBytes, String dataFolder,
-      String userTempFolder, Object conf) {
+      String userTempFolder, Object conf, TachyonConf tachyonConf) {
     mDirPath = new TachyonURI(dirPath);
     mConf = conf;
-    mFs = UnderFileSystem.get(dirPath, conf);
+    mTachyonConf = tachyonConf;
+    mFs = UnderFileSystem.get(dirPath, conf, mTachyonConf);
     mSpaceCounter = new SpaceCounter(capacityBytes);
     mStorageDirId = storageDirId;
     mDataPath = mDirPath.join(dataFolder);

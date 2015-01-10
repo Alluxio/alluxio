@@ -124,7 +124,8 @@ public class MasterInfo extends ImageWriter {
                 if (tFile != null) {
                   int blockIndex = BlockInfo.computeBlockIndex(blockId);
                   tFile.removeLocation(blockIndex, worker.getId());
-                  if (!tFile.hasCheckpointed() && tFile.getBlockLocations(blockIndex).size() == 0) {
+                  if (!tFile.hasCheckpointed()
+                      && tFile.getBlockLocations(blockIndex, mTachyonConf).size() == 0) {
                     LOG.info("Block " + blockId + " got lost from worker " + worker.getId() + " .");
                     int depId = tFile.getDependencyId();
                     if (depId == -1) {
@@ -258,7 +259,7 @@ public class MasterInfo extends ImageWriter {
   // A map from file ID's to Inodes. All operations on it are currently synchronized on mRootLock.
   private final Map<Integer, Inode> mFileIdToInodes = new HashMap<Integer, Inode>();
   private final Map<Integer, Dependency> mFileIdToDependency = new HashMap<Integer, Dependency>();
-  private final RawTables mRawTables = new RawTables();
+  private final RawTables mRawTables;
 
   // TODO add initialization part for master failover or restart. All operations on these members
   // are synchronized on mFileIdToDependency.
@@ -295,6 +296,8 @@ public class MasterInfo extends ImageWriter {
     mTachyonConf = tachyonConf;
     mUFSDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER,
         Constants.DEFAULT_DATA_FOLDER);
+
+    mRawTables = new RawTables(mTachyonConf);
 
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1, System.currentTimeMillis());
     mFileIdToInodes.put(mRoot.getId(), mRoot);
@@ -627,7 +630,7 @@ public class MasterInfo extends ImageWriter {
         if (delInode.isFile()) {
           String checkpointPath = ((InodeFile) delInode).getUfsPath();
           if (!checkpointPath.equals("")) {
-            UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
+            UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mTachyonConf);
             try {
               if (!ufs.exists(checkpointPath)) {
                 LOG.warn("File does not exist the underfs: " + checkpointPath);
@@ -1185,7 +1188,8 @@ public class MasterInfo extends ImageWriter {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
       ClientBlockInfo ret =
-          ((InodeFile) inode).getClientBlockInfo(BlockInfo.computeBlockIndex(blockId));
+          ((InodeFile) inode).getClientBlockInfo(BlockInfo.computeBlockIndex(blockId),
+              mTachyonConf);
       LOG.debug("getClientBlockInfo: {} : {}", blockId, ret);
       return ret;
     }
@@ -1319,7 +1323,7 @@ public class MasterInfo extends ImageWriter {
       if (inode == null || inode.isDirectory()) {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
-      List<ClientBlockInfo> ret = ((InodeFile) inode).getClientBlockInfos();
+      List<ClientBlockInfo> ret = ((InodeFile) inode).getClientBlockInfos(mTachyonConf);
       LOG.debug("getFileLocations: {} {}", fileId, ret);
       return ret;
     }
@@ -1639,7 +1643,7 @@ public class MasterInfo extends ImageWriter {
    * @throws IOException
    */
   public long getUnderFsCapacityBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder);
+    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, mTachyonConf);
     return ufs.getSpace(mUFSDataFolder, SpaceType.SPACE_TOTAL);
   }
 
@@ -1650,7 +1654,7 @@ public class MasterInfo extends ImageWriter {
    * @throws IOException
    */
   public long getUnderFsFreeBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder);
+    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, mTachyonConf);
     return ufs.getSpace(mUFSDataFolder, SpaceType.SPACE_FREE);
   }
 
@@ -1661,7 +1665,7 @@ public class MasterInfo extends ImageWriter {
    * @throws IOException
    */
   public long getUnderFsUsedBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder);
+    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, mTachyonConf);
     return ufs.getSpace(mUFSDataFolder, SpaceType.SPACE_USED);
   }
 
@@ -2334,5 +2338,14 @@ public class MasterInfo extends ImageWriter {
 
       writeElement(objWriter, dos, ele);
     }
+  }
+
+  /**
+   * Used by internal classes when trying to create new instance based on this MasterInfo
+   *
+   * @return TachyonConf used by this MasterInfo.
+   */
+  TachyonConf getTachyonConf() {
+    return mTachyonConf;
   }
 }

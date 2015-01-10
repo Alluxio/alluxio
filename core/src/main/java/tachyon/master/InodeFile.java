@@ -23,6 +23,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import tachyon.Pair;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -220,12 +221,13 @@ public class InodeFile extends Inode {
    * @return a list of the worker's net address who caches the block
    * @throws BlockInfoException
    */
-  public synchronized List<NetAddress> getBlockLocations(int blockIndex) throws BlockInfoException {
+  public synchronized List<NetAddress> getBlockLocations(int blockIndex, TachyonConf tachyonConf)
+      throws BlockInfoException {
     if (blockIndex < 0 || blockIndex > mBlocks.size()) {
       throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
     }
 
-    return mBlocks.get(blockIndex).getLocations();
+    return mBlocks.get(blockIndex).getLocations(tachyonConf);
   }
 
   /**
@@ -250,15 +252,17 @@ public class InodeFile extends Inode {
    * Get a ClientBlockInfo of the specified block.
    * 
    * @param blockIndex The index of the block in the file
+   * @param tachyonConf The {@link tachyon.conf.TachyonConf} instance
    * @return the generated ClientBlockInfo
    * @throws BlockInfoException
    */
-  public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws BlockInfoException {
+  public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex, TachyonConf tachyonConf)
+      throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
     }
 
-    return mBlocks.get(blockIndex).generateClientBlockInfo();
+    return mBlocks.get(blockIndex).generateClientBlockInfo(tachyonConf);
   }
 
   /**
@@ -266,10 +270,10 @@ public class InodeFile extends Inode {
    * 
    * @return all blocks ClientBlockInfo
    */
-  public synchronized List<ClientBlockInfo> getClientBlockInfos() {
+  public synchronized List<ClientBlockInfo> getClientBlockInfos(TachyonConf tachyonConf) {
     List<ClientBlockInfo> ret = new ArrayList<ClientBlockInfo>(mBlocks.size());
     for (BlockInfo tInfo : mBlocks) {
-      ret.add(tInfo.generateClientBlockInfo());
+      ret.add(tInfo.generateClientBlockInfo(tachyonConf));
     }
     return ret;
   }
