@@ -203,14 +203,10 @@ public class MasterServiceHandler implements MasterService.Iface {
   public List<ClientBlockInfo> user_getFileBlocks(int fileId, String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
     List<ClientBlockInfo> ret = null;
-    try {
-      if (fileId != -1) {
-        ret = mMasterInfo.getFileBlocks(fileId);
-      } else {
-        ret = mMasterInfo.getFileBlocks(new TachyonURI(path));
-      }
-    } catch (IOException e) {
-      throw new FileDoesNotExistException(e.getMessage());
+    if (fileId != -1) {
+      ret = mMasterInfo.getFileBlocks(fileId);
+    } else {
+      ret = mMasterInfo.getFileBlocks(new TachyonURI(path));
     }
     return ret;
   }
