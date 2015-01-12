@@ -1297,10 +1297,8 @@ public class MasterInfo extends ImageWriter {
    * @param fileId The id of the file to look up
    * @return the block infos of the file
    * @throws FileDoesNotExistException
-   * @throws IOException
    */
-  public List<ClientBlockInfo> getFileBlocks(int fileId) throws FileDoesNotExistException,
-      IOException {
+  public List<ClientBlockInfo> getFileBlocks(int fileId) throws FileDoesNotExistException {
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fileId);
       if (inode == null || inode.isDirectory()) {
@@ -1320,10 +1318,9 @@ public class MasterInfo extends ImageWriter {
    * @return the block infos of the file
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
-   * @throws IOException
    */
   public List<ClientBlockInfo> getFileBlocks(TachyonURI path) throws FileDoesNotExistException,
-      InvalidPathException, IOException {
+      InvalidPathException {
     LOG.info("getFileLocations: " + path);
     synchronized (mRootLock) {
       Inode inode = getInode(path);
