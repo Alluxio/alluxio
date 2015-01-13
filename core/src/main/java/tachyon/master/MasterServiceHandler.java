@@ -174,13 +174,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public ClientBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException,
       BlockInfoException, TException {
-    ClientBlockInfo ret = null;
-    try {
-      ret = mMasterInfo.getClientBlockInfo(blockId);
-    } catch (IOException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    }
-    return ret;
+    return mMasterInfo.getClientBlockInfo(blockId);
   }
 
   @Override

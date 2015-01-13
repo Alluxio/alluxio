@@ -1163,11 +1163,10 @@ public class MasterInfo extends ImageWriter {
    * @param blockId The id of the block return
    * @return the block info
    * @throws FileDoesNotExistException
-   * @throws IOException
    * @throws BlockInfoException
    */
   public ClientBlockInfo getClientBlockInfo(long blockId) throws FileDoesNotExistException,
-      IOException, BlockInfoException {
+      BlockInfoException {
     int fileId = BlockInfo.computeInodeId(blockId);
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fileId);
