@@ -19,7 +19,7 @@ import tachyon.worker.netty.FileTransferType;
  * Unit test for TachyonConf class
  */
 public class TachyonConfTest {
-  private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs:,s3:,s3n:,glusterfs:";
+  private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,s3://,s3n://,glusterfs:///";
 
   private static TachyonConf sDefaultTachyonConf;
   private static final Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
