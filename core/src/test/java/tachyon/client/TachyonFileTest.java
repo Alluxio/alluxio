@@ -36,6 +36,7 @@ import tachyon.util.CommonUtils;
 public class TachyonFileTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
+  private static final int FILE_BUFFER_BYTES = WORKER_CAPACITY_BYTES / 4;
   private static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
       WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
   private static final int MAX_FILES = WORKER_CAPACITY_BYTES / USER_QUOTA_UNIT_BYTES;
@@ -51,11 +52,13 @@ public class TachyonFileTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.user.file.buffer.bytes");
   }
 
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
+    System.setProperty("tachyon.user.file.buffer.bytes", FILE_BUFFER_BYTES + "");
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
