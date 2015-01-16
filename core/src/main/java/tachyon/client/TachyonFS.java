@@ -282,11 +282,7 @@ public class TachyonFS extends AbstractTachyonFS {
     }
 
     if (mUnderFileSystem == null) {
-<<<<<<< HEAD
-      mUnderFileSystem = UnderFileSystem.get(tmpFolder, mTachyonConf);
-=======
-      mUnderFileSystem = UnderFileSystem.get(tmpFolder, ufsConf);
->>>>>>> master
+      mUnderFileSystem = UnderFileSystem.get(tmpFolder, ufsConf, mTachyonConf);
     }
 
     mUnderFileSystem.mkdirs(tmpFolder, true);
