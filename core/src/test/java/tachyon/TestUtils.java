@@ -41,7 +41,7 @@ public final class TestUtils {
       throws IOException {
     return createByteFile(tfs, new TachyonURI(fileName), op, len);
   }
-  
+
   /**
    * Create a simple file with <code>len</code> bytes.
    * 
@@ -153,5 +153,14 @@ public final class TestUtils {
   public static int getToMasterHeartBeatIntervalMs(TachyonConf tachyonConf) {
     return tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
         Constants.SECOND_MS);
+  }
+
+  /**
+   * Creates a unique path based off the caller.
+   */
+  public static final String uniqPath() {
+    StackTraceElement caller = new Throwable().getStackTrace()[1];
+    long time = System.nanoTime();
+    return "/" + caller.getClassName() + "/" + caller.getMethodName() + "/" + time;
   }
 }

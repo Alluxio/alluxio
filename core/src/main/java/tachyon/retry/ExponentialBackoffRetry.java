@@ -24,7 +24,7 @@ import com.google.common.base.Preconditions;
  * sleep gets much larger than the last. To make sure that this growth does not grow out of control,
  * a max sleep is used as a bounding.
  */
-public final class ExponentialBackoffRetry extends SleepingRetry {
+public class ExponentialBackoffRetry extends SleepingRetry {
   private final Random mRandom = new Random();
   private final int mBaseSleepTimeMs;
   private final int mMaxSleepMs;
@@ -40,7 +40,21 @@ public final class ExponentialBackoffRetry extends SleepingRetry {
 
   @Override
   protected long getSleepTime() {
-    int sleepMs = mBaseSleepTimeMs * Math.max(1, mRandom.nextInt(1 << (getRetryCount() + 1)));
-    return Math.min(sleepMs, mMaxSleepMs);
+    int count = getRetryCount();
+    if (count >= 30) {
+      // current logic overflows at 30, so set value to max
+      return mMaxSleepMs;
+    } else {
+      int sleepMs = mBaseSleepTimeMs * Math.max(1, mRandom.nextInt(1 << (count + 1)));
+      return Math.min(abs(sleepMs, mMaxSleepMs), mMaxSleepMs);
+    }
+  }
+
+  private static int abs(int value, int defaultValue) {
+    int result = Math.abs(value);
+    if (result == Integer.MIN_VALUE) {
+      result = defaultValue;
+    }
+    return result;
   }
 }

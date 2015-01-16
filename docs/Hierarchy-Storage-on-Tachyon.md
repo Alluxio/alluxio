@@ -43,9 +43,8 @@ one storage directory per hardware device for SSD and HDD.
 The quotas for all storage directories in a storage layer, which are also be delimited by comma. x
 represents the storage layer. Workers use the corresponding quota in the configuration for storage
 directories. If the quota for some storage directories are not set, the last quota will be used.
-There are also default quotas for storage directories in certain storage layer (512MB for level0,
-64GB for level1 and 1TB for level2 and next levels). If the quota configuration for some storage
-layer is not set, default value will be used for all directories in the layer.
+There is default quota(128MB) for storage layer with alias MEM, if the quota for any other storage
+layer is not set, the system will report the error and exit the initialization.
 
     $ tachyon.worker.allocate.strategy
 Space allocation strategy defines how workers allocate space in storage directories in certain

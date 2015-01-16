@@ -340,6 +340,14 @@ public class TachyonURITest {
         new TachyonURI("tachyon:/a/c.txt").join(new TachyonURI("/../b.txt")));
     Assert.assertEquals(new TachyonURI("C:\\\\a\\b"),
         new TachyonURI("C:\\\\a").join(new TachyonURI("\\b")));
+
+    final String pathWithSpecialChar = "×ö,ßbÁ»$o\u0005ÉÆ[\u000F| \u009E=BÕ½";
+    Assert.assertEquals(new TachyonURI("/" + pathWithSpecialChar),
+            new TachyonURI("/").join(pathWithSpecialChar));
+
+    final String pathWithSpecialCharAndColon = "×ö,ßbÁ»$o\u0005ÉÆ[\u000F| \u009E=BÕ:½";
+    Assert.assertEquals(new TachyonURI("/" + pathWithSpecialCharAndColon),
+            new TachyonURI("/").join(pathWithSpecialCharAndColon));
   }
 
   @Test

@@ -38,7 +38,7 @@ public abstract class BlockInStream extends InStream {
    */
   public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex,
       TachyonConf tachyonConf) throws IOException {
-    return get(tachyonFile, readType, blockIndex, null, tachyonConf);
+    return get(tachyonFile, readType, blockIndex, tachyonFile.getUFSConf(), tachyonConf);
   }
 
   /**
