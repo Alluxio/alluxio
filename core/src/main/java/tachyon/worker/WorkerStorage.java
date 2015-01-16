@@ -610,10 +610,9 @@ public class WorkerStorage {
    * Heartbeat with the TachyonMaster. Send the removed block list to the Master.
    * 
    * @return The Command received from the Master
-   * @throws BlockInfoException
    * @throws IOException
    */
-  public Command heartbeat() throws BlockInfoException, IOException {
+  public Command heartbeat() throws IOException {
     ArrayList<Long> sendRemovedPartitionList = new ArrayList<Long>();
     while (mRemovedBlockList.size() > 0) {
       sendRemovedPartitionList.add(mRemovedBlockList.poll());

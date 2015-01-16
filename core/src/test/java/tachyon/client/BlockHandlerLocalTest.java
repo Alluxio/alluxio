@@ -17,9 +17,9 @@ package tachyon.client;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
@@ -28,18 +28,20 @@ import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
 
+/**
+ * Unit tests for <code>tachyon.client.BlockHandlerLocal</code>.
+ */
 public class BlockHandlerLocalTest {
+  private static LocalTachyonCluster mLocalTachyonCluster = null;
+  private static TachyonFS mTfs = null;
 
-  private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTfs = null;
-
-  @After
-  public final void after() throws Exception {
+  @AfterClass
+  public static final void afterClass() throws Exception {
     mLocalTachyonCluster.stop();
   }
 
-  @Before
-  public final void before() throws IOException {
+  @BeforeClass
+  public static final void beforeClass() throws IOException {
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
@@ -50,7 +52,7 @@ public class BlockHandlerLocalTest {
     ByteBuffer buf = ByteBuffer.allocateDirect(100);
     buf.put(TestUtils.getIncreasingByteArray(100));
 
-    int fileId = mTfs.createFile(new TachyonURI("/root/testFile"));
+    int fileId = mTfs.createFile(new TachyonURI(TestUtils.uniqPath()));
     long blockId = mTfs.getBlockId(fileId, 0);
     String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
     String filename = CommonUtils.concat(localFolder, blockId);
@@ -64,12 +66,11 @@ public class BlockHandlerLocalTest {
     } finally {
       handler.close();
     }
-    return;
   }
 
   @Test
   public void heapByteBufferwriteTest() throws IOException {
-    int fileId = mTfs.createFile(new TachyonURI("/root/testFile"));
+    int fileId = mTfs.createFile(new TachyonURI(TestUtils.uniqPath()));
     long blockId = mTfs.getBlockId(fileId, 0);
     String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
     String filename = CommonUtils.concat(localFolder, blockId);
@@ -84,12 +85,11 @@ public class BlockHandlerLocalTest {
     } finally {
       handler.close();
     }
-    return;
   }
 
   @Test
   public void readExceptionTest() throws IOException {
-    int fileId = TestUtils.createByteFile(mTfs, "/root/testFile", WriteType.MUST_CACHE, 100);
+    int fileId = TestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
     TachyonFile file = mTfs.getFile(fileId);
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);
@@ -112,12 +112,11 @@ public class BlockHandlerLocalTest {
     } finally {
       handler.close();
     }
-    return;
   }
 
   @Test
   public void readTest() throws IOException {
-    int fileId = TestUtils.createByteFile(mTfs, "/root/testFile", WriteType.MUST_CACHE, 100);
+    int fileId = TestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
     TachyonFile file = mTfs.getFile(fileId);
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);
@@ -129,6 +128,5 @@ public class BlockHandlerLocalTest {
     } finally {
       handler.close();
     }
-    return;
   }
 }

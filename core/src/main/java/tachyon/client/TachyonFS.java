@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -271,18 +271,22 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Create a user UnderFileSystem temporary folder and return it
-   * 
+   * @param ufsConf the configuration of UnderFileSystem
    * @return the UnderFileSystem temporary folder
    * @throws IOException
    */
-  synchronized String createAndGetUserUfsTempFolder() throws IOException {
+  synchronized String createAndGetUserUfsTempFolder(Object ufsConf) throws IOException {
     String tmpFolder = mWorkerClient.getUserUfsTempFolder();
     if (tmpFolder == null) {
       return null;
     }
 
     if (mUnderFileSystem == null) {
+<<<<<<< HEAD
       mUnderFileSystem = UnderFileSystem.get(tmpFolder, mTachyonConf);
+=======
+      mUnderFileSystem = UnderFileSystem.get(tmpFolder, ufsConf);
+>>>>>>> master
     }
 
     mUnderFileSystem.mkdirs(tmpFolder, true);
@@ -803,6 +807,23 @@ public class TachyonFS extends AbstractTachyonFS {
   /** Alias for setPinned(fid, true). */
   public synchronized void pinFile(int fid) throws IOException {
     setPinned(fid, true);
+  }
+
+ /**
+  * Frees in memory file or folder
+  * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+  *        Otherwise, the method uses the path parameter.
+  * @param path The path of the file / folder. It could be empty iff id is not -1.
+  * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
+  *        or not
+  * @return true if in-memory free successfully, false otherwise.
+  * @throws IOException
+  */
+  @Override
+  public synchronized boolean freepath(int fileId, TachyonURI path, boolean recursive)
+      throws IOException {
+    validateUri(path);
+    return mMasterClient.user_freepath(fileId, path.getPath(), recursive);
   }
 
   public synchronized void releaseSpace(long releaseSpaceBytes) {
