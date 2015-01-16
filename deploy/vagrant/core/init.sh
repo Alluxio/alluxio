@@ -5,16 +5,18 @@
 mkdir -p /vagrant/shared
 cd /vagrant/shared
 sudo yum install -y -q wget 
+
 # install maven
-if [ ! -f apache-maven-3.2.3-bin.tar.gz ]
+if [ ! -f epel-apache-maven.repo ]
 then
-    wget -q http://mirrors.gigenet.com/apache/maven/maven-3/3.2.3/binaries/apache-maven-3.2.3-bin.tar.gz 
+    wget -q http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo
 fi
 
-if [ -f apache-maven-3.2.3-bin.tar.gz ]
+if [ -f epel-apache-maven.repo ]
 then
-    tar -zxf apache-maven-3.2.3-bin.tar.gz -C /opt/
-    sudo ln -f -s /opt/apache-maven-3.2.3/bin/mvn /usr/bin/mvn
+    sudo cp epel-apache-maven.repo /etc/yum.repos.d/epel-apache-maven.repo
+    sudo yum install -q -y apache-maven
+    sudo ln -f -s /usr/share/apache-maven/bin/mvn /usr/bin/mvn
     # relocate local repo to shared folder
     mkdir -p ~/.m2
     cat > ~/.m2/settings.xml <<EOF
