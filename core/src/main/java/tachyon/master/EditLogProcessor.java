@@ -66,7 +66,7 @@ public class EditLogProcessor implements Runnable {
   @Override
   public void run() {
     LOG.info("Edit log processor with path " + mPath + " started.");
-    UnderFileSystem ufs = UnderFileSystem.get(mPath);
+    UnderFileSystem ufs = UnderFileSystem.get(mPath, mTachyonConf);
     while (mIsStandby) {
       try {
         synchronized (mJournal) {

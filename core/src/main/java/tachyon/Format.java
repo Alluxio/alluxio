@@ -27,8 +27,9 @@ public class Format {
   private static final String USAGE = "java -cp target/tachyon-" + Version.VERSION
       + "-jar-with-dependencies.jar tachyon.Format <MASTER/WORKER>";
 
-  private static boolean formatFolder(String name, String folder) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(folder);
+  private static boolean formatFolder(String name, String folder, TachyonConf tachyonConf)
+      throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(folder, tachyonConf);
     System.out.println("Formatting " + name + ": " + folder);
     if (ufs.exists(folder) && !ufs.delete(folder, true)) {
       System.out.println("Failed to remove " + name + ": " + folder);
@@ -53,7 +54,7 @@ public class Format {
 
       String masterJournal = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
           Constants.DEFAULT_JOURNAL_FOLDER);
-      if (!formatFolder("JOURNAL_FOLDER", masterJournal)) {
+      if (!formatFolder("JOURNAL_FOLDER", masterJournal, tachyonConf)) {
         System.exit(-1);
       }
 
@@ -63,15 +64,16 @@ public class Format {
           ufsAddress + "/tachyon/data");
       String ufsWorkerFolder = tachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER,
           ufsAddress + "/tachyon/workers");
-      if (!formatFolder("UNDERFS_DATA_FOLDER", ufsDataFolder)
-          || !formatFolder("UNDERFS_WORKERS_FOLDER", ufsWorkerFolder)) {
+      if (!formatFolder("UNDERFS_DATA_FOLDER", ufsDataFolder, tachyonConf)
+          || !formatFolder("UNDERFS_WORKERS_FOLDER", ufsWorkerFolder, tachyonConf)) {
         System.exit(-1);
       }
 
-      CommonUtils.touch(masterJournal + Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis());
+      CommonUtils.touch(masterJournal + Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis(),
+          tachyonConf);
     } else if (args[0].toUpperCase().equals("WORKER")) {
       String localFolder = tachyonConf.get(Constants.WORKER_DATA_FOLDER, "/mnt/ramdisk");
-      UnderFileSystem ufs = UnderFileSystem.get(localFolder);
+      UnderFileSystem ufs = UnderFileSystem.get(localFolder, tachyonConf);
       System.out.println("Removing local data under folder: " + localFolder);
       if (ufs.exists(localFolder)) {
         String[] files = ufs.list(localFolder);

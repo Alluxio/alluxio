@@ -27,8 +27,9 @@ import java.util.Map.Entry;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
+import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.io.Utils;
 import tachyon.thrift.TachyonException;
 
@@ -39,6 +40,12 @@ public class RawTables extends ImageWriter {
   // Mapping from table id to <Columns, Metadata>
   private Map<Integer, Pair<Integer, ByteBuffer>> mData =
       new HashMap<Integer, Pair<Integer, ByteBuffer>>();
+
+  private final TachyonConf mTachyonConf;
+
+  public RawTables(TachyonConf tachyonConf) {
+    mTachyonConf = tachyonConf;
+  }
 
   /**
    * Add a raw table. It will check if the raw table is already added.
@@ -165,7 +172,8 @@ public class RawTables extends ImageWriter {
     if (metadata == null) {
       data.setSecond(ByteBuffer.allocate(0));
     } else {
-      if (metadata.limit() - metadata.position() >= CommonConf.get().MAX_TABLE_METADATA_BYTE) {
+      long maxVal = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE, 0L);
+      if (metadata.limit() - metadata.position() >= maxVal) {
         throw new TachyonException("Too big table metadata: " + metadata.toString());
       }
       ByteBuffer tMetadata = ByteBuffer.allocate(metadata.limit() - metadata.position());

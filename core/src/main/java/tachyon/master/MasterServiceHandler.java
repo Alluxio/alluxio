@@ -26,9 +26,9 @@ import java.util.Set;
 
 import org.apache.thrift.TException;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
-import tachyon.conf.CommonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -127,7 +127,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
       SuspectedFileSizeException, TachyonException, TException {
     if (!ufsPath.isEmpty()) {
-      UnderFileSystem underfs = UnderFileSystem.get(ufsPath);
+      UnderFileSystem underfs = UnderFileSystem.get(ufsPath, mMasterInfo.getTachyonConf());
       try {
         long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
         long fileSizeByte = underfs.getFileSize(ufsPath);
@@ -222,7 +222,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public String user_getUfsAddress() throws TException {
-    return CommonConf.get().UNDERFS_ADDRESS;
+    return mMasterInfo.getTachyonConf().get(Constants.UNDERFS_ADDRESS, "/underfs");
   }
 
   @Override

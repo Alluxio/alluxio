@@ -324,7 +324,7 @@ public class RemoteBlockInStream extends BlockInStream {
     String checkpointPath = mFile.getUfsPath();
     if (!checkpointPath.equals("")) {
       LOG.info("May stream from underlayer fs: " + checkpointPath);
-      UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath, conf);
+      UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath, conf, mTachyonConf);
       try {
         mCheckpointInputStream = underfsClient.open(checkpointPath);
         while (offset > 0) {

@@ -27,14 +27,9 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterInfo;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.TableColumnException;
-import tachyon.thrift.TableDoesNotExistException;
 
 /**
  * Unit tests for tachyon.client.RawColumn.
@@ -50,10 +45,13 @@ public class RawColumnTest {
 
   @Test
   public void basicTest() throws IOException, TException {
-    int fileId = mTfs.createRawTable(new TachyonURI("/table"), CommonConf.get().MAX_COLUMNS / 10);
+    TachyonConf conf = mLocalTachyonCluster.getMasterTachyonConf();
+    int maxCols = conf.getInt(Constants.MAX_COLUMNS, 1000);
+
+    int fileId = mTfs.createRawTable(new TachyonURI("/table"), maxCols / 10);
     RawTable table = mTfs.getRawTable(fileId);
 
-    for (int col = 0; col < CommonConf.get().MAX_COLUMNS / 10; col ++) {
+    for (int col = 0; col < maxCols / 10; col ++) {
       RawColumn column = table.getRawColumn(col);
       for (int pid = 0; pid < 5; pid ++) {
         Assert.assertTrue(column.createPartition(pid));
