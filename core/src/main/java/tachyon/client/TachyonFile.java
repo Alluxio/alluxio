@@ -451,7 +451,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) {
     // We call into the remote block in stream class to read a remote byte buffer
     ByteBuffer buf = RemoteBlockInStream.readRemoteByteBuffer(mTachyonFS,
-        blockInfo, 0, blockInfo.length);
+        blockInfo, 0, blockInfo.length, mTachyonConf);
     return (buf == null) ? null : new TachyonByteBuffer(mTachyonFS, buf, blockInfo.blockId, -1);
   }
 
