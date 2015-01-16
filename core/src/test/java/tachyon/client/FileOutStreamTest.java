@@ -78,7 +78,7 @@ public class FileOutStreamTest {
     if (op.isThrough()) {
       TachyonFile file = mTfs.getFile(filePath);
       String checkpointPath = file.getUfsPath();
-      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
+      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mMasterTachyonConf);
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) file.length()];

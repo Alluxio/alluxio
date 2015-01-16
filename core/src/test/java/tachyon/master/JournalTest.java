@@ -68,7 +68,7 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     AddBlockTestUtil(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
-    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    UnderFileSystem.get(editLogPath, mMasterTachyonConf).delete(editLogPath, true);
     AddBlockTestUtil(fInfo);
   }
 
@@ -76,7 +76,7 @@ public class JournalTest {
       FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
@@ -106,7 +106,7 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     AddCheckpointTestUtil(fInfo, ckFileInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
-    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    UnderFileSystem.get(editLogPath, mMasterTachyonConf).delete(editLogPath, true);
     AddCheckpointTestUtil(fInfo, ckFileInfo);
   }
 
@@ -114,7 +114,7 @@ public class JournalTest {
       throws IOException, InvalidPathException, FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
@@ -166,9 +166,11 @@ public class JournalTest {
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     String completedPath =
         editLogPath.substring(0, editLogPath.lastIndexOf(TachyonURI.SEPARATOR)) + "/completed";
-    Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length > 1);
+    Assert.assertTrue(UnderFileSystem.get(completedPath,
+        mMasterTachyonConf).list(completedPath).length > 1);
     MultiEditLogTestUtil();
-    Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length == 0);
+    Assert.assertTrue(UnderFileSystem.get(completedPath,
+        mMasterTachyonConf).list(completedPath).length == 0);
     MultiEditLogTestUtil();
   }
 
@@ -194,14 +196,14 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     DeleteTestUtil();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
-    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    UnderFileSystem.get(editLogPath, mMasterTachyonConf).delete(editLogPath, true);
     DeleteTestUtil();
   }
 
   private void DeleteTestUtil() throws IOException, InvalidPathException, FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
@@ -220,7 +222,7 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
@@ -245,14 +247,14 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     FileFolderUtil();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
-    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    UnderFileSystem.get(editLogPath, mMasterTachyonConf).delete(editLogPath, true);
     FileFolderUtil();
   }
 
   private void FileFolderUtil() throws IOException, InvalidPathException, FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
@@ -279,7 +281,7 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     FileTestUtil(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
-    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    UnderFileSystem.get(editLogPath, mMasterTachyonConf).delete(editLogPath, true);
     FileTestUtil(fInfo);
   }
 
@@ -287,7 +289,7 @@ public class JournalTest {
       FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
@@ -315,7 +317,7 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     PinTestUtil(folderInfo, file0Info, file1Info);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
-    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    UnderFileSystem.get(editLogPath, mMasterTachyonConf).delete(editLogPath, true);
     PinTestUtil(folderInfo, file0Info, file1Info);
   }
 
@@ -323,7 +325,7 @@ public class JournalTest {
       throws IOException, InvalidPathException, FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
@@ -354,7 +356,7 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     FolderTest(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
-    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    UnderFileSystem.get(editLogPath, mMasterTachyonConf).delete(editLogPath, true);
     FolderTest(fInfo);
   }
 
@@ -362,7 +364,7 @@ public class JournalTest {
       FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
@@ -386,7 +388,7 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     ManyFileTestUtil();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
-    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    UnderFileSystem.get(editLogPath, mMasterTachyonConf).delete(editLogPath, true);
     ManyFileTestUtil();
   }
 
@@ -394,7 +396,7 @@ public class JournalTest {
       FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
@@ -421,7 +423,7 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     MultiEditLogTestUtil();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
-    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    UnderFileSystem.get(editLogPath, mMasterTachyonConf).delete(editLogPath, true);
     MultiEditLogTestUtil();
   }
 
@@ -429,7 +431,7 @@ public class JournalTest {
       FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
@@ -451,7 +453,7 @@ public class JournalTest {
     String journalPrefix = "/tmp/JournalDir" + String.valueOf(System.currentTimeMillis());
     String journalPath = journalPrefix + "/log.data";
     String completedStr = journalPrefix + "/completed/";
-    UnderFileSystem ufs = UnderFileSystem.get(journalPath);
+    UnderFileSystem ufs = UnderFileSystem.get(journalPath, mMasterTachyonConf);
     ufs.delete(journalPrefix, true);
     ufs.mkdirs(journalPrefix, true);
     OutputStream ops = ufs.create(journalPath);
@@ -463,7 +465,7 @@ public class JournalTest {
     }
 
     // Write operation and flush them to completed directory.
-    EditLog log = new EditLog(journalPath, false, 0);
+    EditLog log = new EditLog(journalPath, false, 0, mMasterTachyonConf);
     log.setMaxLogSize(100);
     for (int i = 0; i < 124; i ++) {
       log.createFile(false, new TachyonURI("/sth" + i), false, Constants.DEFAULT_BLOCK_SIZE_BYTE,
@@ -473,11 +475,11 @@ public class JournalTest {
     log.close();
 
     // Rename completed edit logs when loading them.
-    ufs = UnderFileSystem.get(completedStr);
+    ufs = UnderFileSystem.get(completedStr, mMasterTachyonConf);
     int numOfCompleteFiles = ufs.list(completedStr).length;
     Assert.assertTrue(numOfCompleteFiles > 0);
     EditLog.setBackUpLogStartNum(numOfCompleteFiles / 2);
-    log = new EditLog(journalPath, false, 0);
+    log = new EditLog(journalPath, false, 0, mMasterTachyonConf);
     int numOfCompleteFilesLeft = numOfCompleteFiles - numOfCompleteFiles / 2 + 1;
     Assert.assertEquals(numOfCompleteFilesLeft, ufs.list(completedStr).length);
     for (int i = 0; i < numOfCompleteFilesLeft; i ++) {
@@ -509,14 +511,14 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     RenameTestUtil();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
-    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    UnderFileSystem.get(editLogPath, mMasterTachyonConf).delete(editLogPath, true);
     RenameTestUtil();
   }
 
   private void RenameTestUtil() throws IOException, InvalidPathException, FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
@@ -543,7 +545,7 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     TableTest(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
-    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    UnderFileSystem.get(editLogPath, mMasterTachyonConf).delete(editLogPath, true);
     TableTest(fInfo);
   }
 
@@ -551,7 +553,7 @@ public class JournalTest {
       FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data");
+    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();

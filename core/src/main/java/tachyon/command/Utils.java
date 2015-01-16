@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.CommonConf;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
@@ -69,7 +68,7 @@ public class Utils {
     } else {
       String hostname = tachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
       int port =  tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-      if (CommonConf.get().USE_ZOOKEEPER) {
+      if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false)) {
         return CommonUtils.concat(Constants.HEADER_FT + hostname + ":" + port, path);
       }
       return CommonUtils.concat(Constants.HEADER + hostname + ":" + port, path);

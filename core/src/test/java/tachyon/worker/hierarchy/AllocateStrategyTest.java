@@ -25,6 +25,7 @@ import org.junit.Test;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.BlockHandler;
+import tachyon.conf.TachyonConf;
 import tachyon.master.BlockInfo;
 import tachyon.util.CommonUtils;
 
@@ -42,7 +43,7 @@ public class AllocateStrategyTest {
     for (int i = 0; i < 3; i++) {
       mStorageDirs[i] =
           new StorageDir(i + 1, workerDirFolder + dirPaths[i], mCapacities[i], "/data", "/user",
-              null);
+              null, new TachyonConf());
       initializeStorageDir(mStorageDirs[i], mUserId);
     }
   }

@@ -306,7 +306,7 @@ public class MasterInfoTest {
 
       String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
           Constants.DEFAULT_JOURNAL_FOLDER);
-      Journal journal = new Journal(masterJournal, "image.data", "log.data");
+      Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
       MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
           mMasterTachyonConf);
       info.init();
@@ -680,7 +680,8 @@ public class MasterInfoTest {
   public void writeImageTest() throws IOException {
     // initialize the MasterInfo
     Journal journal =
-        new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data");
+        new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data",
+            mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
 
