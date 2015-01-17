@@ -136,4 +136,17 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   public synchronized boolean rename(TachyonURI srcPath, TachyonURI dstPath) throws IOException {
     return rename(-1, srcPath, dstPath);
   }
+
+ /**
+  * Frees the in-memory blocks of file/folder denoted by the path
+  *
+  * @param path the file/folder path
+  * @param recursive if free the path recursively
+  * @return true if the memory free succeed (including the case that the path does not exist in the
+  *         first place), false otherwise.
+  * @throws IOException
+  */
+  public synchronized boolean freepath(TachyonURI path, boolean recursive) throws IOException {
+    return freepath(-1, path, recursive);
+  }
 }

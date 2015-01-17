@@ -110,7 +110,7 @@ function copyDir {
   fi
 
   bin=`cd "$( dirname "$0" )"; pwd`
-  SLAVES=`cat $TACHYON_CONF_DIR/slaves`
+  WORKERS=`cat $TACHYON_CONF_DIR/workers`
 
   DIR=`readlink -f "$1"`
   DIR=`echo "$DIR"|sed 's@/$@@'`
@@ -118,10 +118,10 @@ function copyDir {
 
   SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=5"
 
-  echo "RSYNC'ing $DIR to slaves..."
-  for slave in $SLAVES; do
-      echo $slave
-      rsync -e "ssh $SSH_OPTS" -az "$DIR" "$slave:$DEST" & sleep 0.05
+  echo "RSYNC'ing $DIR to workers..."
+  for worker in $WORKERS; do
+      echo $worker
+      rsync -e "ssh $SSH_OPTS" -az "$DIR" "$worker:$DEST" & sleep 0.05
   done
   wait
 }
@@ -176,7 +176,7 @@ if [ "$COMMAND" == "format" ]; then
     TACHYON_MASTER_ADDRESS=localhost
   fi
 
-  $bin/tachyon-slaves.sh $bin/tachyon formatWorker
+  $bin/tachyon-workers.sh $bin/tachyon formatWorker
 
   echo "Formatting Tachyon Master @ $TACHYON_MASTER_ADDRESS"
   CLASS=tachyon.Format

@@ -248,8 +248,6 @@ public final class MasterClient implements Closeable {
 
       try {
         return mClient.getFileStatus(fileId, path);
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
       } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -716,6 +714,22 @@ public final class MasterClient implements Closeable {
     }
   }
 
+  public synchronized boolean user_freepath(int fileId, String path, boolean recursive)
+      throws IOException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_freepath(fileId, path, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return false;
+  }
+
   public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId,
       long length) throws IOException, FileDoesNotExistException, SuspectedFileSizeException,
       BlockInfoException {
@@ -766,7 +780,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      List<Long> removedPartitionList) throws BlockInfoException, IOException {
+      List<Long> removedPartitionList) throws IOException {
     while (!mIsShutdown) {
       connect();
 

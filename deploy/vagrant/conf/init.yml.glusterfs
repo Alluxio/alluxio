@@ -1,5 +1,5 @@
 # Ufs = {glusterfs|hadoop2|hadoop1}
-Ufs: 'hadoop2'
+Ufs: 'glusterfs'
 # Provider = {vb|aws}
 Provider: 'vb'
 # Memory is the amount memory allocated to each VM

@@ -35,12 +35,12 @@ The common configuration contains constants which specify paths and the log appe
 </tr>
 <tr>
   <td>tachyon.data.folder</td>
-  <td>$tachyon.underfs.address + "/tachyon/data"</td>
+  <td>$tachyon.underfs.address + "/tmp/tachyon/data"</td>
   <td>Tachyon's data folder in the underlayer file system.</td>
 </tr>
 <tr>
   <td>tachyon.workers.folder</td>
-  <td>$tachyon.underfs.address + "/tachyon/workers"</td>
+  <td>$tachyon.underfs.address + "/tmp/tachyon/workers"</td>
   <td>Tachyon's workers folders in the underlayer file system.</td>
 </tr>
 <tr>
@@ -107,6 +107,11 @@ The common configuration contains constants which specify paths and the log appe
   <td>tachyon.underfs.hadoop.prefixes</td>
   <td>hdfs:// s3:// s3n:// glusterfs:///</td>
   <td>Optionally specify which prefixes should run through the Apache Hadoop's implementation of UnderFileSystem.  The delimiter is any whitespace and/or ','</td>
+</tr>
+<tr>
+  <td>tachyon.master.retry</td>
+  <td>29</td>
+  <td>How many times to try to reconnect with master.</td>
 </tr>
 </table>
 
