@@ -344,10 +344,12 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     LOG.debug("Renaming from {} to {}", src, dst);
     if (!exists(src)) {
       LOG.error("File " + src + " does not exist. Therefore rename to " + dst + " failed.");
+      return false;
     }
 
     if (exists(dst)) {
       LOG.error("File " + dst + " does exist. Therefore rename from " + src + " failed.");
+      return false;
     }
 
     int cnt = 0;

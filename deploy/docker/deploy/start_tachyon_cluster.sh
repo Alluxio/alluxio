@@ -47,7 +47,7 @@ function print_cluster_info() {
   echo "ssh into master via:     ssh -i $SSH_ID_RSA_DIR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@${MASTER_IP}"
   echo "you can also ssh into workers via the command above with the ip substituted"
   echo ""
-  echo "after ssh into either master/worker, /root/tachyon_container is tachyon home"
+  echo "after ssh into either master/worker, /opt/tachyon_container is tachyon home"
   echo ""
   echo "to enable the host to resolve {'master', 'worker1', 'worker2'...} to corresponding ip, set 'nameserver $NAMESERVER_IP' as first line in your host's /etc/resolv.conf"
   echo ""

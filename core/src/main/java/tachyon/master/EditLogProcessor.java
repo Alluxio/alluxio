@@ -40,8 +40,8 @@ public class EditLogProcessor implements Runnable {
   private int mCurrentLogFileNum = 0;
   private int mLastImageFileNum = 0;
   private long mLoadedImageModTime = 0L;
-  private boolean mIsStandby = true;
   private final TachyonConf mTachyonConf;
+  private volatile boolean mIsStandby = true;
 
   /**
    * Create a new EditLogProcessor.
@@ -104,7 +104,7 @@ public class EditLogProcessor implements Runnable {
         throw Throwables.propagate(e);
       }
     }
-    LOG.info("Standy log processor with path " + mPath + " stopped.");
+    LOG.info("Standby log processor with path " + mPath + " stopped.");
   }
 
   /**

@@ -26,7 +26,7 @@ end
 
 
 def config_hosts(name)
-  file = File.open("../../conf/slaves","w")
+  file = File.open("../../conf/workers","w")
   system 'mkdir', '-p', './files'
   for i in (1..Total)
     if i == Total 
