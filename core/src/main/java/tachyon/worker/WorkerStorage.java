@@ -231,6 +231,7 @@ public class WorkerStorage {
                 byteBuffer.get(buf, 0, writeLen);
                 os.write(buf, 0, writeLen);
               }
+              CommonUtils.cleanDirectBuffer(byteBuffer);
             }
           } finally {
             closer.close();
@@ -935,12 +936,16 @@ public class WorkerStorage {
     OutputStream os = mUfs.create(ufsOrphanBlock);
     final int bulkSize = Constants.KB * 64;
     byte[] bulk = new byte[bulkSize];
-    for (int k = 0; k < (buf.limit() + bulkSize - 1) / bulkSize; k ++) {
-      int len = bulkSize < buf.remaining() ? bulkSize : buf.remaining();
-      buf.get(bulk, 0, len);
-      os.write(bulk, 0, len);
+    try {
+      for (int k = 0; k < (buf.limit() + bulkSize - 1) / bulkSize; k ++) {
+        int len = bulkSize < buf.remaining() ? bulkSize : buf.remaining();
+        buf.get(bulk, 0, len);
+        os.write(bulk, 0, len);
+      }
+    } finally {
+      os.close();
+      CommonUtils.cleanDirectBuffer(buf);
     }
-    os.close();
   }
 
   /**

@@ -60,6 +60,7 @@ public final class BlockHandlerLocal extends BlockHandler {
     int bufLen = srcBuf.limit();
     ByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, blockOffset, bufLen);
     out.put(srcBuf);
+    CommonUtils.cleanDirectBuffer(out);
 
     return bufLen;
   }
