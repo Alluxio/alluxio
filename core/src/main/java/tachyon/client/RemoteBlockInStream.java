@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 
+import org.eclipse.jetty.util.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +124,12 @@ public class RemoteBlockInStream extends BlockInStream {
 
     mRecache = readType.isCache();
     if (mRecache) {
-      mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
+      try {
+        mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
+      } catch (Exception e) {
+        LOG.warn(e.getMessage());;
+        cancelRecache();
+      }
     }
 
     mUFSConf = ufsConf;
