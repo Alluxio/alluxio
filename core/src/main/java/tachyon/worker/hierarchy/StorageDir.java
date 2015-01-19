@@ -272,13 +272,15 @@ public final class StorageDir {
     }
     boolean copySuccess = false;
     Closer closer = Closer.create();
+    ByteBuffer buffer = null;
     try {
       BlockHandler bhSrc = closer.register(getBlockHandler(blockId));
       BlockHandler bhDst = closer.register(dstDir.getBlockHandler(blockId));
-      ByteBuffer srcBuf = bhSrc.read(0, (int) size);
-      copySuccess = (bhDst.append(0, srcBuf) == size);
+      buffer = bhSrc.read(0, (int) size);
+      copySuccess = (bhDst.append(0, buffer) == size);
     } finally {
       closer.close();
+      CommonUtils.cleanDirectBuffer(buffer);
     }
     if (copySuccess) {
       long accessTime = mLastBlockAccessTimeMs.get(blockId);
