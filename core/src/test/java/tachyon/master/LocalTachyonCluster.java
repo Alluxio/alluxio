@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -144,10 +144,10 @@ public final class LocalTachyonCluster {
   }
 
   public void start() throws IOException {
-    mTachyonHome =
-        File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
+    mTachyonHome = File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = mTachyonHome + "/ramdisk";
 
+    // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
     mkdir(mTachyonHome);
 
@@ -211,7 +211,7 @@ public final class LocalTachyonCluster {
 
   /**
    * Stop both of the tachyon and underfs service threads.
-   * 
+   *
    * @throws Exception
    */
   public void stop() throws Exception {
@@ -221,7 +221,7 @@ public final class LocalTachyonCluster {
 
   /**
    * Stop the tachyon filesystem's service thread only
-   * 
+   *
    * @throws Exception
    */
   public void stopTFS() throws Exception {
@@ -248,7 +248,7 @@ public final class LocalTachyonCluster {
 
   /**
    * Cleanup the underfs cluster test folder only
-   * 
+   *
    * @throws Exception
    */
   public void stopUFS() throws Exception {
