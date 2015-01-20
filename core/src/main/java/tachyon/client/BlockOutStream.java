@@ -139,10 +139,10 @@ public class BlockOutStream extends OutStream {
 
   @Override
   public void close() throws IOException {
-    if (canWrite() && mBuffer.position() > 0) {
-      appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-    }
     if (!mClosed) {
+      if (mBuffer.position() > 0) {
+        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
+      }
       mCloser.close();
       mTachyonFS.cacheBlock(mBlockId);
       mClosed = true;
