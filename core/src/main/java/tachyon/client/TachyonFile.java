@@ -478,16 +478,17 @@ public class TachyonFile implements Comparable<TachyonFile> {
     String path = getUfsPath();
     UnderFileSystem underFsClient = UnderFileSystem.get(path);
 
+    InputStream inputStream = null;
     BlockOutStream bos = null;
     try {
-      InputStream inputStream = underFsClient.open(path);
+      inputStream = underFsClient.open(path);
 
       long length = getBlockSizeByte();
       long offset = blockIndex * length;
       inputStream.skip(offset);
 
-      bos = new BlockOutStream(this, WriteType.TRY_CACHE, blockIndex);
       byte[] buffer = new byte[mUserConf.FILE_BUFFER_BYTES * 4];
+      bos = new BlockOutStream(this, WriteType.TRY_CACHE, blockIndex);
       int limit;
       while (length > 0 && ((limit = inputStream.read(buffer)) >= 0)) {
         if (limit != 0) {
@@ -507,6 +508,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
         bos.cancel();
       }
       return false;
+    } finally {
+      if (inputStream != null) {
+        inputStream.close();
+      }
     }
 
     return true;
