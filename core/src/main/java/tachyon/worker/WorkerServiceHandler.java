@@ -65,8 +65,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void cacheBlock(long userId, long blockId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
+  public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
+      SuspectedFileSizeException, BlockInfoException, TException {
     try {
       mWorkerStorage.cacheBlock(userId, blockId);
     } catch (IOException e) {
@@ -91,10 +91,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public String lockBlock(long blockId, long userId)
-      throws FileDoesNotExistException, TException {
-    long storageDirId = mWorkerStorage.lockBlock(blockId, userId);
-    StorageDir storageDir = mWorkerStorage.getStorageDirById(storageDirId);
+  public String lockBlock(long blockId, long userId) throws FileDoesNotExistException, TException {
+    StorageDir storageDir = mWorkerStorage.lockBlock(blockId, userId);
     if (storageDir == null) {
       throw new FileDoesNotExistException("Block file not found! blockId:" + blockId);
     } else {
@@ -115,12 +113,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
 
   @Override
   public boolean unlockBlock(long blockId, long userId) throws TException {
-    long storageDirId = mWorkerStorage.unlockBlock(blockId, userId);
-    if (StorageDirId.isUnknown(storageDirId)) {
-      return false;
-    } else {
-      return true;
-    }
+    return mWorkerStorage.unlockBlock(blockId, userId);
   }
 
   @Override

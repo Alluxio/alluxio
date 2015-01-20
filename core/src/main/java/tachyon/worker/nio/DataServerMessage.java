@@ -72,8 +72,7 @@ public class DataServerMessage {
    *        to the block's end.
    * @return The created block request message
    */
-  public static DataServerMessage createBlockRequestMessage(long blockId,
-      long offset, long len) {
+  public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len) {
     DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
 
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);

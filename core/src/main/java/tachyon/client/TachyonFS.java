@@ -110,8 +110,8 @@ public class TachyonFS extends AbstractTachyonFS {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mUserQuotaUnitBytes = UserConf.get().QUOTA_UNIT_BYTES;
-  private final ExecutorService mExecutorService;
   private final int mUserFailedSpaceRequestLimits = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
+  private final ExecutorService mExecutorService;
 
   // The RPC client talks to the system master.
   private final MasterClient mMasterClient;
@@ -749,7 +749,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Lock a block in certain StorageDir in the current TachyonFS.
+   * Lock a block in the current TachyonFS.
    * 
    * @param blockId The id of the block to lock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
@@ -757,8 +757,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the path of the block file locked
    * @throws IOException
    */
-  synchronized String lockBlock(long blockId, int blockLockId)
-      throws IOException {
+  synchronized String lockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
       return null;
     }

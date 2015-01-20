@@ -170,8 +170,7 @@ public class TachyonWorker implements Runnable {
 
     mMasterAddress = masterAddress;
 
-    mWorkerStorage =
-        new WorkerStorage(mMasterAddress, mExecutorService);
+    mWorkerStorage = new WorkerStorage(mMasterAddress, mExecutorService);
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
@@ -211,9 +210,9 @@ public class TachyonWorker implements Runnable {
       final BlocksLocker blockLocker) {
     switch (WorkerConf.get().NETWORK_TYPE) {
       case NIO:
-        return new NIODataServer(dataAddress, blockLocker, mWorkerStorage);
+        return new NIODataServer(dataAddress, blockLocker);
       case NETTY:
-        return new NettyDataServer(dataAddress, blockLocker, mWorkerStorage);
+        return new NettyDataServer(dataAddress, blockLocker);
       default:
         throw new AssertionError("Unknown network type: " + WorkerConf.get().NETWORK_TYPE);
     }

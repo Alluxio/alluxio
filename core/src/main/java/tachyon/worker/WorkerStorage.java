@@ -41,7 +41,6 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
@@ -190,8 +189,8 @@ public class WorkerStorage {
           // master
           String midPath = CommonUtils.concat(mUfsWorkerDataFolder, fileId);
           String dstPath = CommonUtils.concat(CommonConf.get().UNDERFS_DATA_FOLDER, fileId);
-          LOG.info("Thread " + mId + " is checkpointing file " + fileId + " to " + midPath + " to "
-              + dstPath);
+          LOG.info("Thread {} is checkpointing file {}. midPath: {} dsPath: {}", mId, fileId,
+              midPath, dstPath);
 
           if (mCheckpointUfs == null) {
             mCheckpointUfs = UnderFileSystem.get(midPath);
@@ -200,26 +199,24 @@ public class WorkerStorage {
           final long startCopyTimeMs = System.currentTimeMillis();
           ClientFileInfo fileInfo = mMasterClient.getFileStatus(fileId, "");
           if (!fileInfo.isComplete) {
-            LOG.error("File " + fileInfo + " is not complete!");
+            LOG.error("File {} is not complete!", fileInfo);
             continue;
           }
 
-          long[] storageDirIds = new long[fileInfo.blockIds.size()];
-          Closer closer = Closer.create();
+          StorageDir[] storageDirs = new StorageDir[fileInfo.blockIds.size()];
+          OutputStream os = null;
           long fileSizeByte = 0;
           try {
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
               long blockId = fileInfo.blockIds.get(k);
-              storageDirIds[k] = lockBlock(blockId, Users.CHECKPOINT_USER_ID);
-              if (StorageDirId.isUnknown(storageDirIds[k])) {
+              storageDirs[k] = lockBlock(blockId, Users.CHECKPOINT_USER_ID);
+              if (storageDirs[k] == null) {
                 throw new IOException("Block doesn't exist! blockId:" + blockId);
               }
             }
-            OutputStream os = 
-                closer.register(mCheckpointUfs.create(midPath, (int) fileInfo.getBlockSizeByte()));
+            os = mCheckpointUfs.create(midPath, (int) fileInfo.getBlockSizeByte());
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-              ByteBuffer byteBuffer = getStorageDirById(storageDirIds[k])
-                  .getBlockData(fileInfo.blockIds.get(k), 0, -1);
+              ByteBuffer byteBuffer = storageDirs[k].getBlockData(fileInfo.blockIds.get(k), 0, -1);
               byte[] buf = new byte[16 * Constants.KB];
               int writeLen;
               while (byteBuffer.remaining() > 0) {
@@ -234,10 +231,13 @@ public class WorkerStorage {
               CommonUtils.cleanDirectBuffer(byteBuffer);
             }
           } finally {
-            closer.close();
             for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-              long blockId = fileInfo.blockIds.get(k);
-              unlockBlock(blockId, Users.CHECKPOINT_USER_ID);
+              if (storageDirs[k] != null) {
+                storageDirs[k].unlockBlock(fileInfo.blockIds.get(k), Users.CHECKPOINT_USER_ID);
+              }
+            }
+            if (os != null) {
+              os.close();
             }
           }
           if (!mCheckpointUfs.rename(midPath, dstPath)) {
@@ -296,7 +296,7 @@ public class WorkerStorage {
   private StorageTier[] mStorageTiers;
   private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
-  /** Mapping from temporary block Id to StorageDir and allocated space bytes for it */
+  /** Mapping from temporary block Id to StorageDir */
   private final Map<Long, StorageDir> mTempBlockInfo = Collections
       .synchronizedMap(new HashMap<Long, StorageDir>());
   /** Mapping from user id to temporary block ids */
@@ -598,7 +598,7 @@ public class WorkerStorage {
     }
     mTempBlockInfo.put(blockId, storageDir);
     mUserIdToTempBlockIds.put(userId, blockId);
-    storageDir.addTempBlockAllocatedBytes(blockId, initialBytes);
+    storageDir.updateTempBlockAllocatedBytes(blockId, initialBytes);
 
     return storageDir.getUserTempFilePath(userId, blockId);
   }
@@ -615,24 +615,6 @@ public class WorkerStorage {
       storageDir = storageTier.getStorageDirByBlockId(blockId);
       if (storageDir != null) {
         return storageDir;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Get StorageDir specified by id
-   * 
-   * @param storageDirId the id of the StorageDir
-   * @return StorageDir specified by the id
-   */
-  public StorageDir getStorageDirById(long storageDirId) {
-    int storageLevel = StorageDirId.getStorageLevel(storageDirId);
-    int dirIndex = StorageDirId.getStorageDirIndex(storageDirId);
-    if (storageLevel >= 0 && storageLevel < mStorageTiers.length) {
-      StorageDir[] storageDirs = mStorageTiers[storageLevel].getStorageDirs();
-      if (dirIndex >= 0 && dirIndex < storageDirs.length) {
-        return storageDirs[dirIndex];
       }
     }
     return null;
@@ -751,17 +733,17 @@ public class WorkerStorage {
    * 
    * @param blockId The id of the block
    * @param userId The id of the user who locks the block
-   * @return the Id of the StorageDir in which the block is locked
+   * @return the StorageDir in which the block is locked
    */
-  public long lockBlock(long blockId, long userId) {
+  public StorageDir lockBlock(long blockId, long userId) {
     StorageDir storageDir = getStorageDirByBlockId(blockId);
     if (storageDir != null) {
       if (storageDir.lockBlock(blockId, userId)) {
-        return storageDir.getStorageDirId();
+        return storageDir;
       }
     }
     LOG.warn("Failed to lock block! blockId:{}", blockId);
-    return StorageDirId.unknownId();
+    return null;
   }
 
   /**
@@ -772,28 +754,27 @@ public class WorkerStorage {
    * @return true if success, false otherwise
    */
   public boolean promoteBlock(long userId, long blockId) {
-    long storageDirIdLocked = lockBlock(blockId, userId);
-    if (StorageDirId.isUnknown(storageDirIdLocked)) {
+    StorageDir storageDir = lockBlock(blockId, userId);
+    if (storageDir == null) {
       return false;
-    } else if (StorageDirId.getStorageLevelAliasValue(storageDirIdLocked) != mStorageTiers[0]
-        .getStorageLevelAlias().getValue()) {
-      StorageDir srcStorageDir = getStorageDirById(storageDirIdLocked);
-      long blockSize = srcStorageDir.getBlockSize(blockId);
+    } else if (StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId())
+        != mStorageTiers[0].getStorageLevelAlias().getValue()) {
+      long blockSize = storageDir.getBlockSize(blockId);
       StorageDir dstStorageDir = requestSpace(null, userId, blockSize);
       if (dstStorageDir == null) {
         LOG.error("Failed to promote block! blockId:{}", blockId);
-        srcStorageDir.unlockBlock(blockId, userId);
+        storageDir.unlockBlock(blockId, userId);
         return false;
       }
       boolean result = false;
       try {
         try {
-          result = srcStorageDir.copyBlock(blockId, dstStorageDir);
+          result = storageDir.copyBlock(blockId, dstStorageDir);
         } finally {
-          srcStorageDir.unlockBlock(blockId, userId);
+          storageDir.unlockBlock(blockId, userId);
         }
         if (result) {
-          srcStorageDir.deleteBlock(blockId);
+          storageDir.deleteBlock(blockId);
         }
         return result;
       } catch (IOException e) {
@@ -895,7 +876,7 @@ public class WorkerStorage {
     }
 
     if (storageDir == requestSpace(storageDir, userId, requestBytes)) {
-      storageDir.addTempBlockAllocatedBytes(blockId, requestBytes);
+      storageDir.updateTempBlockAllocatedBytes(blockId, requestBytes);
       return true;
     } else {
       return false;
@@ -959,17 +940,15 @@ public class WorkerStorage {
    * 
    * @param blockId The id of the block
    * @param userId The id of the user who unlocks the block
-   * @return the Id of the StorageDir in which the block is unlocked
+   * @return true if success, false otherwise
    */
-  public long unlockBlock(long blockId, long userId) {
+  public boolean unlockBlock(long blockId, long userId) {
     StorageDir storageDir = getStorageDirByBlockId(blockId);
     if (storageDir != null) {
-      if (storageDir.unlockBlock(blockId, userId)) {
-        return storageDir.getStorageDirId();
-      }
+      return storageDir.unlockBlock(blockId, userId);
     }
     LOG.warn("Failed to unlock block! blockId:{}", blockId);
-    return StorageDirId.unknownId();
+    return false;
   }
 
   /**

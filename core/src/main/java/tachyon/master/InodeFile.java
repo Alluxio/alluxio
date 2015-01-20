@@ -375,8 +375,7 @@ public class InodeFile extends Inode {
    * @param workerId The id of the removed location worker
    * @throws BlockInfoException
    */
-  public synchronized void removeLocation(int blockIndex, long workerId)
-      throws BlockInfoException {
+  public synchronized void removeLocation(int blockIndex, long workerId) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
