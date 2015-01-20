@@ -62,6 +62,10 @@ public abstract class UnderFileSystem {
    * @return null for any unknown scheme.
    */
   public static UnderFileSystem get(String path, Object conf) {
+    if (path == null) {
+      return null;
+    }
+
     if (isHadoopUnderFS(path)) {
       return UnderFileSystemHdfs.getClient(path, conf);
     } else if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
