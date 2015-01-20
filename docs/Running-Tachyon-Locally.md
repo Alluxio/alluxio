@@ -9,7 +9,7 @@ The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 6 o
 
 Download the binary distribution of Tachyon {{site.TACHYON_RELEASED_VERSION}}:
 
-    $ wget http://tachyon-project.org/downloads/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+    $ wget https://github.com/amplab/tachyon/releases/download/v{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
     $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
     $ cd tachyon-{{site.TACHYON_RELEASED_VERSION}}
 
