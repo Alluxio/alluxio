@@ -74,10 +74,10 @@ public class BlockHandlerLocalTest {
   @Test
   public void heapByteBufferwriteTest() throws IOException {
     int fileId = mTfs.createFile(new TachyonURI(TestUtils.uniqPath()));
-    byte[] buf = TestUtils.getIncreasingByteArray(100);
     long blockId = mTfs.getBlockId(fileId, 0);
     String filename = mTfs.getLocalBlockLocation(blockId, 100);
     BlockHandler handler = BlockHandler.get(filename);
+    byte[] buf = TestUtils.getIncreasingByteArray(100);
     try {
       handler.append(0, ByteBuffer.wrap(buf));
       mTfs.cacheBlock(blockId);

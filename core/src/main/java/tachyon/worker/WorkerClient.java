@@ -145,7 +145,6 @@ public class WorkerClient implements Closeable {
   /**
    * Notify the worker the block is cached.
    * 
-   * @param storageDirId The id of StorageDir that the block is stored in
    * @param blockId The id of the block
    * @throws IOException
    */
@@ -274,8 +273,7 @@ public class WorkerClient implements Closeable {
    * @return the temporary path of the block
    * @throws IOException
    */
-  public synchronized String getBlockLocation(long blockId, long initialBytes)
-      throws IOException {
+  public synchronized String getBlockLocation(long blockId, long initialBytes) throws IOException {
     mustConnect();
 
     try {
@@ -369,6 +367,7 @@ public class WorkerClient implements Closeable {
    * Promote block back to the top StorageTier
    * 
    * @param blockId The id of the block that will be promoted
+   * @return true if succeed, false otherwise
    * @throws IOException
    */
   public synchronized boolean promoteBlock(long blockId) throws IOException {

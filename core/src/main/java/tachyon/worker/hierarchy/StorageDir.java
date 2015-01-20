@@ -150,25 +150,6 @@ public final class StorageDir {
   }
 
   /**
-   * Add allocated space bytes of a temporary block in current StorageDir
-   * 
-   * @param blockId Id of the block
-   * @param addedBytes added space size of the block in bytes
-   */
-  public void addTempBlockAllocatedBytes(long blockId, long addedBytes) {
-    Long oldSize = mTempBlockAllocatedBytes.putIfAbsent(blockId, addedBytes);
-    if (oldSize != null) {
-      while (!mTempBlockAllocatedBytes.replace(blockId, oldSize, oldSize + addedBytes)) {
-        oldSize = mOwnBytesPerUser.get(blockId);
-        if (oldSize == null) {
-          LOG.error("Temporary block doesn't exist! blockId:{}", blockId);
-          break;
-        }
-      }
-    }
-  }
-
-  /**
    * Move the cached block file from user temporary directory to data directory
    * 
    * @param userId the id of the user
@@ -180,11 +161,8 @@ public final class StorageDir {
     String srcPath = getUserTempFilePath(userId, blockId);
     String dstPath = getBlockFilePath(blockId);
     Long allocatedBytes = mTempBlockAllocatedBytes.remove(blockId);
-    if (allocatedBytes == null) {
-      allocatedBytes = 0L;
-    }
 
-    if (!mFs.exists(srcPath)) {
+    if (!mFs.exists(srcPath) || allocatedBytes == null) {
       cancelBlock(userId, blockId);
       throw new IOException("Block file doesn't exist! blockId:" + blockId);
     }
@@ -196,6 +174,7 @@ public final class StorageDir {
     returnSpace(userId, allocatedBytes - blockSize);
     if (mFs.rename(srcPath, dstPath)) {
       addBlockId(blockId, blockSize, false);
+      updateUserOwnBytes(userId, -blockSize);
       return true;
     } else {
       return false;
@@ -652,16 +631,7 @@ public final class StorageDir {
   public boolean requestSpace(long userId, long size) {
     boolean result = mSpaceCounter.requestSpaceBytes(size);
     if (result && userId != Users.EVICT_USER_ID) {
-      Long used = mOwnBytesPerUser.putIfAbsent(userId, size);
-      if (used != null) {
-        while (!mOwnBytesPerUser.replace(userId, used, used + size)) {
-          used = mOwnBytesPerUser.get(userId);
-          if (used == null) {
-            LOG.error("Failed to request space! unknown userId:{}", userId);
-            break;
-          }
-        }
-      }
+      updateUserOwnBytes(userId, size);
     }
     return result;
   }
@@ -686,14 +656,7 @@ public final class StorageDir {
    */
   public void returnSpace(long userId, long size) {
     mSpaceCounter.returnUsedBytes(size);
-    Long used;
-    do {
-      used = mOwnBytesPerUser.get(userId);
-      if (used == null) {
-        LOG.error("Failed to return space! unknown userId:{}", userId);
-        break;
-      }
-    } while (!mOwnBytesPerUser.replace(userId, used, used - size));
+    updateUserOwnBytes(userId, -size);
   }
 
   /**
@@ -719,5 +682,43 @@ public final class StorageDir {
       }
     }
     return true;
+  }
+
+  /**
+   * update allocated space bytes of a temporary block in current StorageDir
+   * 
+   * @param blockId Id of the block
+   * @param sizeBytes updated space size in bytes
+   */
+  public void updateTempBlockAllocatedBytes(long blockId, long sizeBytes) {
+    Long oldSize = mTempBlockAllocatedBytes.putIfAbsent(blockId, sizeBytes);
+    if (oldSize != null) {
+      while (!mTempBlockAllocatedBytes.replace(blockId, oldSize, oldSize + sizeBytes)) {
+        oldSize = mTempBlockAllocatedBytes.get(blockId);
+        if (oldSize == null) {
+          LOG.error("Temporary block doesn't exist! blockId:{}", blockId);
+          break;
+        }
+      }
+    }
+  }
+
+  /**
+   * update user owned space bytes
+   * 
+   * @param userId Id of the user
+   * @param sizeBytes updated space size in bytes
+   */
+  private void updateUserOwnBytes(long userId, long sizeBytes) {
+    Long used = mOwnBytesPerUser.putIfAbsent(userId, sizeBytes);
+    if (used != null) {
+      while (!mOwnBytesPerUser.replace(userId, used, used + sizeBytes)) {
+        used = mOwnBytesPerUser.get(userId);
+        if (used == null) {
+          LOG.error("Failed to request space! unknown userId:{}", userId);
+          break;
+        }
+      }
+    }
   }
 }

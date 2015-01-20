@@ -61,7 +61,6 @@ public class WorkerServiceHandlerTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mWorkerServiceHandler = mLocalTachyonCluster.getWorker().getWorkerServiceHandler();
@@ -79,6 +78,8 @@ public class WorkerServiceHandlerTest {
     createBlockFile(filename, (int)(WORKER_CAPACITY_BYTES / 10L - 10L));
     mWorkerServiceHandler.cancelBlock(userId, blockId);
     Assert.assertFalse(new File(filename).exists());
+    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    Assert.assertEquals(0, mMasterInfo.getUsedBytes());
   }
 
   @Test
@@ -111,6 +112,7 @@ public class WorkerServiceHandlerTest {
     handler.append(0, TestUtils.getIncreasingByteArray(fileLen), 0, fileLen);
     handler.close();
   }
+
   @Test
   public void evictionTest() throws InvalidPathException, FileAlreadyExistException, IOException,
       FileDoesNotExistException, TException {

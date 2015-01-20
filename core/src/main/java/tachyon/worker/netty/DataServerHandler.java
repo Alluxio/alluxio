@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
-import tachyon.worker.WorkerStorage;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
@@ -40,11 +39,9 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final BlocksLocker mLocker;
-  private final WorkerStorage mWorkerStorage;
 
-  public DataServerHandler(BlocksLocker locker, WorkerStorage workerStorage) {
+  public DataServerHandler(BlocksLocker locker) {
     mLocker = locker;
-    mWorkerStorage = workerStorage;
   }
 
   @Override
@@ -56,12 +53,11 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     final long offset = req.getOffset();
     final long len = req.getLength();
     final int lockId = mLocker.getLockId();
-    final long storageDirIdLocked = mLocker.lock(blockId, lockId);
+    final StorageDir storageDir = mLocker.lock(blockId, lockId);
 
     BlockHandler handler = null;
     try {
       validateInput(req);
-      StorageDir storageDir = mWorkerStorage.getStorageDirById(storageDirIdLocked);
       handler = storageDir.getBlockHandler(blockId);
 
       final long fileLength = handler.getLength();
@@ -77,7 +73,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     } catch (Exception e) {
       // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);
-      BlockResponse resp = BlockResponse.createErrorResponse(storageDirIdLocked, blockId);
+      BlockResponse resp = BlockResponse.createErrorResponse(blockId);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       if (handler != null) {

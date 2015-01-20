@@ -102,6 +102,8 @@ public class StorageTierTest {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
     BlockHandler bhSrc =
         BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
+    dir.requestSpace(USER_ID, blockSize);
+    dir.updateTempBlockAllocatedBytes(blockId, blockSize);
     try {
       bhSrc.append(0, ByteBuffer.wrap(buf));
     } finally {
@@ -147,7 +149,7 @@ public class StorageTierTest {
     Assert.assertEquals(8000, mStorageTiers[1].getCapacityBytes());
     StorageDir dir = mStorageTiers[0].requestSpace(USER_ID, 500, new HashSet<Integer>(),
         removedBlockIds);
-    dir.addTempBlockAllocatedBytes(blockId, 500);
+    dir.updateTempBlockAllocatedBytes(blockId, 500);
     Assert.assertEquals(mStorageTiers[0].getStorageDirs()[0], dir);
     Assert.assertEquals(500, dir.getAvailableBytes());
     Assert.assertEquals(500, dir.getUsedBytes());

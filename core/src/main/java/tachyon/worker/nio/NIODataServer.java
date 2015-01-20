@@ -37,7 +37,6 @@ import tachyon.Constants;
 import tachyon.conf.CommonConf;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
-import tachyon.worker.WorkerStorage;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
@@ -67,22 +66,18 @@ public class NIODataServer implements Runnable, DataServer {
 
   private volatile boolean mShutdown = false;
   private volatile boolean mShutdowned = false;
-  private final WorkerStorage mWorkerStorage;
 
   /**
    * Create a data server with direct access to worker storage.
    * 
    * @param address The address of the data server.
    * @param locker The lock system for lock blocks.
-   * @param workerStorage The WorkerStorage of current worker
    */
-  public NIODataServer(InetSocketAddress address, BlocksLocker locker,
-      WorkerStorage workerStorage) {
+  public NIODataServer(InetSocketAddress address, BlocksLocker locker) {
     LOG.info("Starting DataServer @ " + address);
     CommonConf.assertValidPort(address);
     mAddress = address;
     mBlockLocker = locker;
-    mWorkerStorage = workerStorage;
     try {
       mSelector = initSelector();
       mListenerThread = new Thread(this);
@@ -214,22 +209,19 @@ public class NIODataServer implements Runnable, DataServer {
       }
 
       key.interestOps(SelectionKey.OP_WRITE);
-      LOG.info("Get request for " + tMessage.getBlockId());
       final long blockId = tMessage.getBlockId();
-      final int lockId = mBlockLocker.getLockId();
-      final long storageDirIdLocked = mBlockLocker.lock(blockId, lockId);
+      LOG.info("Get request for blockId: {}", blockId);
 
-      StorageDir storageDir = mWorkerStorage.getStorageDirById(storageDirIdLocked);
-      ByteBuffer data = null;
+      final int lockId = mBlockLocker.getLockId();
+      final StorageDir storageDir = mBlockLocker.lock(blockId, lockId);
+      ByteBuffer data;
       int dataLen = 0;
       try {
-        data =
-            storageDir.getBlockData(tMessage.getBlockId(), tMessage.getOffset(),
-                (int) tMessage.getLength());
-        storageDir.accessBlock(tMessage.getBlockId());
+        data = storageDir.getBlockData(blockId, tMessage.getOffset(), (int)tMessage.getLength());
+        storageDir.accessBlock(blockId);
         dataLen = data.limit();
       } catch (Exception e) {
-        LOG.error(e.getMessage());
+        LOG.error(e.getMessage(), e);
         data = null;
       }
       DataServerMessage tResponseMessage =

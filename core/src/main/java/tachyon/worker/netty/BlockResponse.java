@@ -86,7 +86,7 @@ public final class BlockResponse {
    * Creates a {@link tachyon.worker.netty.BlockResponse} that represents a error case for the given
    * block.
    */
-  public static BlockResponse createErrorResponse(final long storageDirId, final long blockId) {
+  public static BlockResponse createErrorResponse(final long blockId) {
     return new BlockResponse(-blockId, 0, 0, null);
   }
 
@@ -97,8 +97,7 @@ public final class BlockResponse {
 
   private final BlockHandler mHandler;
 
-  public BlockResponse(long blockId, long offset, long length,
-      BlockHandler handler) {
+  public BlockResponse(long blockId, long offset, long length, BlockHandler handler) {
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;

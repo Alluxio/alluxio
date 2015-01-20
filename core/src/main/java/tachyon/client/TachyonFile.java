@@ -403,16 +403,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
     int blockLockId = mTachyonFS.getBlockLockId();
     String localFileName = mTachyonFS.lockBlock(blockId, blockLockId);
-    if (localFileName == null) {
-      return null;
-    }
 
     if (localFileName != null) {
       Closer closer = Closer.create();
       try {
         RandomAccessFile localFile = closer.register(new RandomAccessFile(localFileName, "r"));
-        long fileLength = localFile.length();
 
+        long fileLength = localFile.length();
         String error = null;
         if (offset > fileLength) {
           error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
