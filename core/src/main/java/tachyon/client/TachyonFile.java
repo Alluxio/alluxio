@@ -205,14 +205,12 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public List<String> getLocationHosts() throws IOException {
     List<String> ret = new ArrayList<String>();
-    if (getNumberOfBlocks() == 0) {
-      return ret;
-    }
-
-    List<NetAddress> locations = getClientBlockInfo(0).getLocations();
-    if (locations != null) {
-      for (int k = 0; k < locations.size(); k ++) {
-        ret.add(locations.get(k).mHost);
+    if (getNumberOfBlocks() > 0) {
+      List<NetAddress> locations = getClientBlockInfo(0).getLocations();
+      if (locations != null) {
+        for (int k = 0; k < locations.size(); k ++) {
+          ret.add(locations.get(k).mHost);
+        }
       }
     }
 
