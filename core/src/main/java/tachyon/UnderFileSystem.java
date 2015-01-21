@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.conf.CommonConf;
 
 /**
@@ -62,9 +64,7 @@ public abstract class UnderFileSystem {
    * @return null for any unknown scheme.
    */
   public static UnderFileSystem get(String path, Object conf) {
-    if (path == null) {
-      return null;
-    }
+    Preconditions.checkArgument(path != null, "path may not be null");
 
     if (isHadoopUnderFS(path)) {
       return UnderFileSystemHdfs.getClient(path, conf);
@@ -101,9 +101,7 @@ public abstract class UnderFileSystem {
    *         address is "/" and the path starts with "/".
    */
   public static Pair<String, String> parse(TachyonURI path) {
-    if (path == null) {
-      return null;
-    }
+    Preconditions.checkArgument(path != null, "path may not be null");
 
     if (path.hasScheme()) {
       String header = path.getScheme() + "://";
