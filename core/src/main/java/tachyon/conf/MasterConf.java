@@ -81,7 +81,7 @@ public class MasterConf extends Utils {
         (CommonConf.get().USE_ZOOKEEPER ? Constants.HEADER_FT : Constants.HEADER) + HOSTNAME + ":"
             + PORT;
     WEB_PORT = getIntProperty("tachyon.master.web.port", Constants.DEFAULT_MASTER_WEB_PORT);
-    WEB_THREAD_COUNT = getIntProperty("tachyon.master.web.threads", 9);
+    WEB_THREAD_COUNT = getIntProperty("tachyon.master.web.threads", 1);
     TEMPORARY_FOLDER = getProperty("tachyon.master.temporary.folder", "/tmp");
 
     HEARTBEAT_INTERVAL_MS =
