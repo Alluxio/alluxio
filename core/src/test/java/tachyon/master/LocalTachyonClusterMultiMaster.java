@@ -134,7 +134,8 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public void start() throws IOException {
-    mTachyonHome = File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
+    mTachyonHome = File.createTempFile("Tachyon",
+        "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = mTachyonHome + "/ramdisk";
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
