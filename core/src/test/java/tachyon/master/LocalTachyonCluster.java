@@ -144,8 +144,8 @@ public final class LocalTachyonCluster {
   }
 
   public void start() throws IOException {
-    mTachyonHome = File.createTempFile("Tachyon",
-        "U" + System.currentTimeMillis()).getAbsolutePath();
+    mTachyonHome =
+        File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = mTachyonHome + "/ramdisk";
 
     // re-build the dir to set permission to 777
