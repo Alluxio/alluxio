@@ -112,7 +112,7 @@ To build against a Hortonworks release, just use a version like `$apacheRelease.
 
 Some times you will need to play with a few system settings in order to have the unit tests pass locally.  A common setting that may need to be set is ulimit.
 
-## ulimit Mac
+## Mac
 
 In order to increase the number of files and procs allowed, run the following
 
@@ -123,3 +123,5 @@ sudo launchctl limit maxproc 2048 2048
 sudo ulimit -n 16384
 sudo ulimit -u 2048
 ```
+
+It is also recommended to exclude your local clone of Tachyon from Spotlight indexing as otherwise your Mac may hang constantly trying to re-index the file system during the unit tests.  To do this go to `System Preferences > Spotlight > Privacy` and click the `+` button, browse to the folder containing your local clone of Tachyon and click `Choose` to add it to the exclusions list.
