@@ -48,7 +48,8 @@ public abstract class UnderFileSystem {
    * Get the UnderFileSystem instance according to its schema.
    * 
    * @param path file path storing over the ufs.
-   * @return null for any unknown scheme.
+   * @throws IllegalArgumentException for unknown scheme
+   * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path) {
     return get(path, null);
@@ -59,7 +60,8 @@ public abstract class UnderFileSystem {
    * 
    * @param path file path storing over the ufs
    * @param conf the configuration object for ufs only
-   * @return null for any unknown scheme.
+   * @throws IllegalArgumentException for unknown scheme
+   * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, Object conf) {
     if (isHadoopUnderFS(path)) {
