@@ -30,7 +30,7 @@ public class UnderFileSystemClusterTest {
     String mTachyon2Dir = "/tmp/mTachyonHome2/dfs";
     UnderFileSystemCluster mUnderFSCluster1 = UnderFileSystemCluster.get(mTachyon1Dir);
     UnderFileSystemCluster mUnderFSCluster2 = UnderFileSystemCluster.get(mTachyon2Dir);
-    Assert.assertEquals(mUnderFSCluster1.getUnderFilesystemAddress(), mTachyon1Dir);
-    Assert.assertEquals(mUnderFSCluster2.getUnderFilesystemAddress(), mTachyon2Dir);
+    Assert.assertEquals(mUnderFSCluster1.mBaseDir, mTachyon1Dir);
+    Assert.assertEquals(mUnderFSCluster2.mBaseDir, mTachyon2Dir);
   }
 }
