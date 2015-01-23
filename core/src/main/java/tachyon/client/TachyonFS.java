@@ -569,17 +569,25 @@ public class TachyonFS extends AbstractTachyonFS {
     }
   }
 
-  private synchronized void updateFileStatusCache(int fileId, String path, ClientFileInfo info) {
-    // TODO: LRU
-    mIdToClientFileInfo.put(fileId, info);
-    mPathToClientFileInfo.put(path, info);
-  }
-
-  private synchronized <K> ClientFileInfo getFileStatus(Map<K, ClientFileInfo> cache, K key,
-      int fileId, String path, boolean useCachedMetaData) throws IOException {
-    ClientFileInfo info = cache.get(key);
-    if (useCachedMetaData && info != null) {
-      return info;
+  /**
+   * Gets file status.
+   * 
+   * @param cache ClientFileInfo cache.
+   * @param key the key in the cache.
+   * @param fileId the id of the queried file. If it is -1, uses path.
+   * @param path the path of the queried file. If fielId is not -1, this parameter is ignored.
+   * @param useCachedMetaData whether to use the cached data or not.
+   * @return
+   * @throws IOException
+   */
+  private synchronized <KeyType> ClientFileInfo getFileStatus(Map<KeyType, ClientFileInfo> cache,
+      KeyType key, int fileId, String path, boolean useCachedMetaData) throws IOException {
+    ClientFileInfo info = null;
+    if (useCachedMetaData) {
+      info = cache.get(key);
+      if (info != null) {
+        return info;
+      }
     }
 
     info = mMasterClient.getFileStatus(fileId, path);
@@ -590,7 +598,9 @@ public class TachyonFS extends AbstractTachyonFS {
     }
     path = info.getPath();
 
-    updateFileStatusCache(fileId, path, info);
+    // TODO: LRU
+    mIdToClientFileInfo.put(fileId, info);
+    mPathToClientFileInfo.put(path, info);
 
     return info;
   }
