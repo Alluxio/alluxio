@@ -556,7 +556,8 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized int getFileId(TachyonURI path) throws IOException {
     try {
-      return getFileStatus(-1, path, false).getId();
+      ClientFileInfo fileInfo = getFileStatus(-1, path, false);
+      return fileInfo == null ? -1 : fileInfo.getId();
     } catch (IOException e) {
       return -1;
     }
