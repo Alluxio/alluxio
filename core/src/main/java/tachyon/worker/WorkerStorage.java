@@ -43,6 +43,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
 import tachyon.Constants;
+import tachyon.Pair;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.UnderFileSystem;
@@ -297,8 +298,8 @@ public class WorkerStorage {
   private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
   /** Mapping from temporary block Id to StorageDir */
-  private final Map<Long, StorageDir> mTempBlockInfo = Collections
-      .synchronizedMap(new HashMap<Long, StorageDir>());
+  private final Map<Pair<Long, Long>, StorageDir> mTempBlockLocation = Collections
+      .synchronizedMap(new HashMap<Pair<Long, Long>, StorageDir>());
   /** Mapping from user id to temporary block ids */
   private final Multimap<Long, Long> mUserIdToTempBlockIds = Multimaps
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
@@ -481,7 +482,7 @@ public class WorkerStorage {
   public void cacheBlock(long userId, long blockId)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
       IOException {
-    StorageDir storageDir = mTempBlockInfo.remove(blockId);
+    StorageDir storageDir = mTempBlockLocation.remove(new Pair<Long, Long>(userId, blockId));
     if (storageDir == null) {
       throw new FileDoesNotExistException("Block doesn't exist! blockId:" + blockId);
     }
@@ -506,7 +507,7 @@ public class WorkerStorage {
    * @param blockId The id of the block that is cancelled
    */
   public void cancelBlock(long userId, long blockId) {
-    StorageDir storageDir = mTempBlockInfo.remove(blockId);
+    StorageDir storageDir = mTempBlockLocation.remove(new Pair<Long, Long>(userId, blockId));
     
     if (storageDir != null) {
       mUserIdToTempBlockIds.remove(userId, blockId);
@@ -529,7 +530,7 @@ public class WorkerStorage {
     for (long userId : removedUsers) {
       Collection<Long> tempBlockIdList = mUserIdToTempBlockIds.removeAll(userId);
       for (Long blockId : tempBlockIdList) {
-        mTempBlockInfo.remove(blockId);
+        mTempBlockLocation.remove(new Pair<Long, Long>(userId, blockId));
       }
       for (StorageTier storageTier : mStorageTiers) {
         for (StorageDir storageDir : storageTier.getStorageDirs()) {
@@ -587,8 +588,9 @@ public class WorkerStorage {
    */
   public String getBlockLocation(long userId, long blockId, long initialBytes)
       throws OutOfSpaceException, FileAlreadyExistException {
-    if (mTempBlockInfo.containsKey(blockId)) {
-      throw new FileAlreadyExistException("Block file is being written! blockId:" + blockId);
+    if (mTempBlockLocation.containsKey(new Pair<Long, Long>(userId, blockId))) {
+      throw new FileAlreadyExistException(String.format("Block file is being written! userId(%d)"
+          + " blockId(%d)", userId, blockId));
     }
 
     StorageDir storageDir = requestSpace(null, userId, initialBytes);
@@ -596,9 +598,9 @@ public class WorkerStorage {
       throw new OutOfSpaceException(String.format("Failed to allocate space for block! blockId(%d)"
           + " sizeBytes(%d)", blockId, initialBytes));
     }
-    mTempBlockInfo.put(blockId, storageDir);
+    mTempBlockLocation.put(new Pair<Long, Long>(userId, blockId), storageDir);
     mUserIdToTempBlockIds.put(userId, blockId);
-    storageDir.updateTempBlockAllocatedBytes(blockId, initialBytes);
+    storageDir.updateTempBlockAllocatedBytes(userId, blockId, initialBytes);
 
     return storageDir.getUserTempFilePath(userId, blockId);
   }
@@ -869,14 +871,14 @@ public class WorkerStorage {
    */
   public boolean requestSpace(long userId, long blockId, long requestBytes)
       throws FileDoesNotExistException {
-    StorageDir storageDir = mTempBlockInfo.get(blockId);
+    StorageDir storageDir = mTempBlockLocation.get(new Pair<Long, Long>(userId, blockId));
     if (storageDir == null) {
       throw new FileDoesNotExistException(
           "Temporary block file doesn't exist! blockId:" + blockId);
     }
 
     if (storageDir == requestSpace(storageDir, userId, requestBytes)) {
-      storageDir.updateTempBlockAllocatedBytes(blockId, requestBytes);
+      storageDir.updateTempBlockAllocatedBytes(userId, blockId, requestBytes);
       return true;
     } else {
       return false;

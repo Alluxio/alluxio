@@ -71,6 +71,7 @@ public class FileOutStreamTest {
       byte[] res = new byte[(int) file.length()];
       Assert.assertEquals((int) file.length(), is.read(res));
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(increasingByteArrayLen, res));
+      is.close();
     }
 
     if (op.isThrough()) {
@@ -87,6 +88,7 @@ public class FileOutStreamTest {
         Assert.assertEquals((int) file.length(), is.read(res));
       }
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(increasingByteArrayLen, res));
+      is.close();
     }
   }
 

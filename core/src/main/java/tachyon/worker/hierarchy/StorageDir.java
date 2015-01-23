@@ -39,6 +39,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
+import tachyon.Pair;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.Users;
@@ -78,8 +79,8 @@ public final class StorageDir {
   /** Mapping from user Id to space size bytes owned by the user */
   private final ConcurrentMap<Long, Long> mOwnBytesPerUser = new ConcurrentHashMap<Long, Long>();
   /** Mapping from temporary block id to the size bytes allocated to it */
-  private final ConcurrentMap<Long, Long> mTempBlockAllocatedBytes =
-      new ConcurrentHashMap<Long, Long>();
+  private final ConcurrentMap<Pair<Long, Long>, Long> mTempBlockAllocatedBytes =
+      new ConcurrentHashMap<Pair<Long, Long>, Long>();
   /** Mapping from user Id to list of blocks locked by the user */
   private final Multimap<Long, Long> mLockedBlocksPerUser = Multimaps
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
@@ -160,7 +161,7 @@ public final class StorageDir {
   public boolean cacheBlock(long userId, long blockId) throws IOException {
     String srcPath = getUserTempFilePath(userId, blockId);
     String dstPath = getBlockFilePath(blockId);
-    Long allocatedBytes = mTempBlockAllocatedBytes.remove(blockId);
+    Long allocatedBytes = mTempBlockAllocatedBytes.remove(new Pair<Long, Long>(userId, blockId));
 
     if (!mFs.exists(srcPath) || allocatedBytes == null) {
       cancelBlock(userId, blockId);
@@ -191,7 +192,7 @@ public final class StorageDir {
    */
   public boolean cancelBlock(long userId, long blockId) throws IOException {  
     String filePath = getUserTempFilePath(userId, blockId);
-    Long allocatedBytes = mTempBlockAllocatedBytes.remove(blockId);
+    Long allocatedBytes = mTempBlockAllocatedBytes.remove(new Pair<Long, Long>(userId, blockId));
     if (allocatedBytes == null) {
       allocatedBytes = 0L;
     }
@@ -206,23 +207,23 @@ public final class StorageDir {
   /**
    * Clean resources related to the removed user
    * 
-   * @param removedUserId id of the removed user
+   * @param userId id of the removed user
    * @param tempBlockIdList list of block ids that are being written by the user
    */
-  public void cleanUserResources(long removedUserId, Collection<Long> tempBlockIdList) {
-    Collection<Long> blockIds = mLockedBlocksPerUser.removeAll(removedUserId);
+  public void cleanUserResources(long userId, Collection<Long> tempBlockIdList) {
+    Collection<Long> blockIds = mLockedBlocksPerUser.removeAll(userId);
     for (long blockId : blockIds) {
-      mUserPerLockedBlock.remove(blockId, removedUserId);
+      mUserPerLockedBlock.remove(blockId, userId);
     }
     for (Long tempBlockId : tempBlockIdList) {
-      mTempBlockAllocatedBytes.remove(tempBlockId);
+      mTempBlockAllocatedBytes.remove(new Pair<Long, Long>(userId, tempBlockId));
     }
     try {
-      mFs.delete(getUserTempPath(removedUserId), true);
+      mFs.delete(getUserTempPath(userId), true);
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
-    returnSpace(removedUserId);
+    returnSpace(userId);
   }
 
   /**
@@ -687,14 +688,16 @@ public final class StorageDir {
   /**
    * update allocated space bytes of a temporary block in current StorageDir
    * 
+   * @param userId Id of the user
    * @param blockId Id of the block
    * @param sizeBytes updated space size in bytes
    */
-  public void updateTempBlockAllocatedBytes(long blockId, long sizeBytes) {
-    Long oldSize = mTempBlockAllocatedBytes.putIfAbsent(blockId, sizeBytes);
+  public void updateTempBlockAllocatedBytes(long userId, long blockId, long sizeBytes) {
+    Pair<Long, Long> blockInfo = new Pair<Long, Long>(userId, blockId);
+    Long oldSize = mTempBlockAllocatedBytes.putIfAbsent(blockInfo, sizeBytes);
     if (oldSize != null) {
-      while (!mTempBlockAllocatedBytes.replace(blockId, oldSize, oldSize + sizeBytes)) {
-        oldSize = mTempBlockAllocatedBytes.get(blockId);
+      while (!mTempBlockAllocatedBytes.replace(blockInfo, oldSize, oldSize + sizeBytes)) {
+        oldSize = mTempBlockAllocatedBytes.get(blockInfo);
         if (oldSize == null) {
           LOG.error("Temporary block doesn't exist! blockId:{}", blockId);
           break;

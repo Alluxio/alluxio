@@ -123,12 +123,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
     mRecache = readType.isCache();
     if (mRecache) {
-      try {
-        mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
-      } catch (Exception e) {
-        LOG.warn(e.getMessage(), e);
-        cancelRecache();
-      }
+      mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
     }
 
     mUFSConf = ufsConf;

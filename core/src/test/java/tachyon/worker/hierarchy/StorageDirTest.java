@@ -71,7 +71,7 @@ public class StorageDirTest {
     BlockHandler bhSrc =
         BlockHandler.get(CommonUtils.concat(dir.getUserTempFilePath(USER_ID, blockId)));
     dir.requestSpace(USER_ID, blockSize);
-    dir.updateTempBlockAllocatedBytes(blockId, blockSize);
+    dir.updateTempBlockAllocatedBytes(USER_ID, blockId, blockSize);
     try {
       bhSrc.append(0, ByteBuffer.wrap(buf));
     } finally {
