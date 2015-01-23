@@ -18,11 +18,13 @@ package tachyon.web;
 import java.io.File;
 import java.net.InetSocketAddress;
 
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -57,10 +59,16 @@ public class UIWebServer {
   public UIWebServer(String serverName, InetSocketAddress address, MasterInfo masterInfo) {
     mAddress = address;
     mServerName = serverName;
-    mServer = new Server(mAddress);
+    mServer = new Server();
+    SelectChannelConnector connector = new SelectChannelConnector();
+    connector.setPort(address.getPort());
+    connector.setAcceptors(MasterConf.get().WEB_THREAD_COUNT);
+    mServer.setConnectors(new Connector[] { connector });
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    threadPool.setMaxThreads(MasterConf.get().WEB_THREAD_COUNT);
+    // Jetty needs at least (1 + selectors + acceptors) threads.
+    threadPool.setMinThreads(MasterConf.get().WEB_THREAD_COUNT * 2 + 1);
+    threadPool.setMaxThreads(MasterConf.get().WEB_THREAD_COUNT * 2 + 100);
     mServer.setThreadPool(threadPool);
 
     WebAppContext webappcontext = new WebAppContext();
