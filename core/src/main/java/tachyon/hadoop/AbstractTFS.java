@@ -228,7 +228,9 @@ abstract class AbstractTFS extends FileSystem {
   private void fromHdfsToTachyon(TachyonURI path) throws IOException {
     if (!mTFS.exist(path)) {
       Path hdfsPath = Utils.getHDFSPath(path, mUnderFSAddress);
-      FileSystem fs = hdfsPath.getFileSystem(getConf());
+      Configuration conf = new Configuration(getConf());
+      conf.set("fs.defaultFS", mUnderFSAddress);
+      FileSystem fs = hdfsPath.getFileSystem(conf);
       if (fs.exists(hdfsPath)) {
         TachyonURI ufsUri = new TachyonURI(mUnderFSAddress);
         TachyonURI ufsAddrPath = new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(),
