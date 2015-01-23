@@ -59,7 +59,7 @@ public class EvictStrategyTest {
     BlockHandler bhSrc =
         BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
     dir.requestSpace(USER_ID, blockSize);
-    dir.updateTempBlockAllocatedBytes(blockId, blockSize);
+    dir.updateTempBlockAllocatedBytes(USER_ID, blockId, blockSize);
     try {
       bhSrc.append(0, ByteBuffer.wrap(buf));
     } finally {
