@@ -81,7 +81,6 @@ public class Users {
    * Remove <code> userId </code> from user pool.
    *
    * @param userId The user to be removed.
-   * @return The space quote the removed user occupied in bytes.
    */
   public synchronized void removeUser(long userId) {
     StringBuilder sb = new StringBuilder("Trying to cleanup user " + userId + " : ");

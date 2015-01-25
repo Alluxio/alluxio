@@ -13,10 +13,12 @@
  * the License.
  */
 
-package tachyon.worker.hierarchy;
+package tachyon.worker.allocation;
+
+import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * Request space from current StorageTier. It returns the affordable StorageDir according to
+ * Allocate space from current StorageTier. It returns the affordable StorageDir according to
  * AllocateStrategy, null if no enough space available on StorageDirs.
  */
 public interface AllocateStrategy {

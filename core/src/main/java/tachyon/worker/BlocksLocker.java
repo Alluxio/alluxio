@@ -29,7 +29,7 @@ import tachyon.worker.hierarchy.StorageDir;
 public class BlocksLocker {
   // All Blocks has been locked.
   private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
-  // Mapping from block id to id of the StorageDir in which the block is locked
+  // Mapping from block id to the StorageDir in which the block is locked
   private final Map<Long, StorageDir> mLockedBlockIdToStorageDir =
       new HashMap<Long, StorageDir>();
   // Each user facing block has a unique block lock id. 
@@ -44,7 +44,7 @@ public class BlocksLocker {
   }
 
   /**
-   * Lock a block with lock id.
+   * Lock a block with specified lock id.
    * 
    * @param blockId The id of the block.
    * @param blockLockId The lock id of the block
@@ -101,6 +101,6 @@ public class BlocksLocker {
       }
       return true;
     }
-    return false;
+    return true;
   }
 }
