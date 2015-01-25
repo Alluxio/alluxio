@@ -29,6 +29,8 @@ import tachyon.StorageLevelAlias;
 import tachyon.Users;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
+import tachyon.worker.allocation.AllocateStrategies;
+import tachyon.worker.allocation.AllocateStrategy;
 import tachyon.worker.eviction.EvictStrategies;
 import tachyon.worker.eviction.EvictStrategy;
 
@@ -214,7 +216,7 @@ public class StorageTier {
   }
 
   /**
-   * Request space from current StorageTier by some user
+   * Request space from all StorageDirs in current StorageTier by some user
    * 
    * @param userId id of the user
    * @param requestSizeBytes size to request in bytes
@@ -229,7 +231,7 @@ public class StorageTier {
   }
 
   /**
-   * Request space from current StorageTier by some user
+   * Request space from specified StorageDir in current StorageTier by some user
    * 
    * @param storageDir StorageDir that the space will be allocated in
    * @param userId id of the user
@@ -251,7 +253,7 @@ public class StorageTier {
   }
 
   /**
-   * Request space from current StorageTier by some user
+   * Request space from some StorageDir candidates in current StorageTier by some user 
    * 
    * @param dirCandidates candidates of StorageDir that the space will be allocated in
    * @param userId id of the user

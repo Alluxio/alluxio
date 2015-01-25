@@ -642,7 +642,7 @@ public final class StorageDir {
    * 
    * @param userId Id of the user
    */
-  public void returnSpace(long userId) {
+  private void returnSpace(long userId) {
     Long ownBytes = mOwnBytesPerUser.remove(userId);
     if (ownBytes != null) {
       mSpaceCounter.returnUsedBytes(ownBytes);
@@ -679,14 +679,15 @@ public final class StorageDir {
           mToRemoveBlockIdSet.remove(blockId);
         }
       } catch (IOException e) {
-        LOG.error(e.getMessage());
+        LOG.error(e.getMessage(), e);
+        return false;
       }
     }
     return true;
   }
 
   /**
-   * update allocated space bytes of a temporary block in current StorageDir
+   * Update allocated space bytes of a temporary block in current StorageDir
    * 
    * @param userId Id of the user
    * @param blockId Id of the block
@@ -707,7 +708,7 @@ public final class StorageDir {
   }
 
   /**
-   * update user owned space bytes
+   * Update user owned space bytes
    * 
    * @param userId Id of the user
    * @param sizeBytes updated space size in bytes

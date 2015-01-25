@@ -297,10 +297,10 @@ public class WorkerStorage {
   private StorageTier[] mStorageTiers;
   private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
-  /** Mapping from temporary block Id to StorageDir */
+  /** Mapping from temporary block Information to StorageDir in which the block is */
   private final Map<Pair<Long, Long>, StorageDir> mTempBlockLocation = Collections
       .synchronizedMap(new HashMap<Pair<Long, Long>, StorageDir>());
-  /** Mapping from user id to temporary block ids */
+  /** Mapping from user id to ids of temporary blocks which are being written by the user */
   private final Multimap<Long, Long> mUserIdToTempBlockIds = Multimaps
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
 
@@ -501,7 +501,7 @@ public class WorkerStorage {
   }
 
   /**
-   * Cancel the block
+   * Cancel the block which is being written by some user
    * 
    * @param userId The id of the user who wants to cancel the block
    * @param blockId The id of the block that is cancelled
@@ -542,16 +542,19 @@ public class WorkerStorage {
   }
 
   /**
-   * Remove a block from WorkerStorage.
+   * Remove a block from Tachyon cache space.
    * 
    * @param blockId The block to be removed.
-   * @throws IOException
    */
-  private void freeBlock(long blockId) throws IOException {
+  private void freeBlock(long blockId) {
     for (StorageTier storageTier : mStorageTiers) {
       for (StorageDir storageDir : storageTier.getStorageDirs()) {
         if (storageDir.containsBlock(blockId)) {
-          storageDir.deleteBlock(blockId);
+          try {
+            storageDir.deleteBlock(blockId);
+          } catch (IOException e) {
+            LOG.error("Failed to delete block file! blockId:{}", blockId);
+          }
         }
       }
     }
@@ -559,7 +562,7 @@ public class WorkerStorage {
   }
 
   /**
-   * Remove blocks from the memory.
+   * Remove blocks from Tachyon cache space.
    * 
    * This is triggered when the worker heartbeats to the master, which sends a
    * {@link tachyon.thrift.Command} with type {@link tachyon.thrift.CommandType#Free}
@@ -568,21 +571,18 @@ public class WorkerStorage {
    */
   public void freeBlocks(List<Long> blockIds) {
     for (long blockId : blockIds) {
-      try {
-        freeBlock(blockId);
-      } catch (IOException e) {
-        LOG.error("Failed to delete block file! blockId:{}", blockId);
-      }
+      freeBlock(blockId);
     }
   }
 
   /**
-   * Get the temporary path of the block file
+   * Get temporary file path for some block, it is used to choose appropriate StorageDir for some
+   * block file with specified initial size. 
    * 
    * @param userId the id of the user who wants to write the file
    * @param blockId the id of the block
    * @param initialBytes the initial size allocated for the block 
-   * @return the path of the block file
+   * @return the temporary path of the block file
    * @throws OutOfSpaceException
    * @throws FileAlreadyExistException 
    */
@@ -725,7 +725,7 @@ public class WorkerStorage {
   }
 
   /**
-   * Lock the block
+   * Lock the block by some user
    * 
    * Used internally to make sure blocks are unmodified, but also used in
    * {@link tachyon.client.TachyonFS} for caching blocks locally for users. When a user tries to
@@ -821,11 +821,13 @@ public class WorkerStorage {
   }
 
   /**
-   * Request space from the worker
+   * Request space from the worker, and expecting worker return the appropriate StorageDir which
+   * has enough space for the requested space size
    * 
+   * @param dirCandidate The StorageDir in which the space will be allocated.
    * @param userId The id of the user who send the request
    * @param requestBytes The requested space size, in bytes
-   * @return StorageDir assigned if success, null otherwise
+   * @return StorageDir assigned, null if failed
    */
   private StorageDir requestSpace(StorageDir dirCandidate, long userId, long requestBytes) {
     Set<Integer> pinList;
@@ -841,9 +843,10 @@ public class WorkerStorage {
     List<Long> removedBlockIds = new ArrayList<Long>();
     try {
       if (dirCandidate == null) {
+        // if StorageDir candidate is not set, request space from all available StorageDirs
         storageDir = 
             mStorageTiers[0].requestSpace(userId, requestBytes, pinList, removedBlockIds);
-      } else {
+      } else { // request space from the StorageDir specified
         if (mStorageTiers[0].requestSpace(dirCandidate, userId, requestBytes, pinList,
             removedBlockIds)) {
           storageDir = dirCandidate;
@@ -861,7 +864,8 @@ public class WorkerStorage {
   }
 
   /**
-   * Request space from the specified StorageDir
+   * Request space from the specified StorageDir, it is used for requesting space for the block
+   * which is partially written in some StorageDir
    * 
    * @param userId The id of the user who send the request
    * @param blockId The id of the block that the space is allocated for

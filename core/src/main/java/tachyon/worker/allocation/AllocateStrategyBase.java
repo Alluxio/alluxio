@@ -13,22 +13,24 @@
  * the License.
  */
 
-package tachyon.worker.hierarchy;
+package tachyon.worker.allocation;
 
+import tachyon.worker.hierarchy.StorageDir;
+ 
 /**
- * Different types of AllocationStrategy, which are used to allocate space among StorageDirs
+ * Base class for AllocateStrategy, which provides basic function for AllocateStrategy
  */
-public enum AllocateStrategyType {
-  /**
-   * Allocate space on StorageDir that has max free space
-   */
-  MAX_FREE,
-  /**
-   * Allocate space on StorageDirs randomly
-   */
-  RANDOM,
-  /**
-   * Allocate space on StorageDirs by round robin
-   */
-  ROUND_ROBIN;
+public abstract class AllocateStrategyBase implements AllocateStrategy {
+  @Override
+  public boolean fitInPossible(StorageDir[] storageDirs, long requestSizeBytes) {
+    boolean isPossible = false;
+    for (StorageDir dir : storageDirs) {
+      if (dir.getCapacityBytes() - dir.getLockedSizeBytes() >= requestSizeBytes) {
+        isPossible = true;
+        break;
+      }
+    }
+    return isPossible;
+  }
 }
+

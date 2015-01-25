@@ -22,8 +22,8 @@ import tachyon.StorageLevelAlias;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.NetworkType;
+import tachyon.worker.allocation.AllocateStrategyType;
 import tachyon.worker.eviction.EvictStrategyType;
-import tachyon.worker.hierarchy.AllocateStrategyType;
 import tachyon.worker.netty.ChannelType;
 import tachyon.worker.netty.FileTransferType;
 

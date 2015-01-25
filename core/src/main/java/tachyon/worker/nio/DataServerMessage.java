@@ -92,6 +92,7 @@ public class DataServerMessage {
    * 
    * @param toSend If true the message is to send the data, otherwise it's used to receive data.
    * @param blockId The id of the block
+   * @param data The data of the message
    * @return The created block response message
    */
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
@@ -110,6 +111,7 @@ public class DataServerMessage {
    * @param offset The responded data's offset in the block
    * @param len The length of the responded data. If it's -1, it means respond the data from offset
    *        to the block's end.
+   * @param data The data of the message
    * @return The created block response message
    */
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
@@ -134,7 +136,7 @@ public class DataServerMessage {
         ret.mData = ByteBuffer.allocate(0);
         ret.mIsMessageReady = true;
         ret.generateHeader();
-        LOG.error("The file is not here");
+        LOG.error("The file is not here! blockId:{}", blockId);
       }
     } else {
       ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
