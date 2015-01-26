@@ -182,7 +182,7 @@ public final class LocalTachyonCluster {
     mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
 
     CommonUtils.sleepMs(null, 10);
- q
+
     mWorkerConf = new TachyonConf(mMasterConf);
     mWorkerConf.set(Constants.MASTER_PORT, getMasterPort() + "");
     mWorkerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
