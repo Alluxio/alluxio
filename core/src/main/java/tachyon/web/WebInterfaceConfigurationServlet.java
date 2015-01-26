@@ -78,6 +78,10 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
     request.setAttribute("tachyon.max.columns", "" + mCommonConf.MAX_COLUMNS);
     request.setAttribute("tachyon.max.table.metadata.byte", ""
         + mCommonConf.MAX_TABLE_METADATA_BYTE);
+    request.setAttribute("tachyon.underfs.hadoop.prefixes", "" 
+        + mCommonConf.DEFAULT_HADOOP_UFS_PREFIX);
+    request.setAttribute("tachyon.test.mode", "" + mCommonConf.IN_TEST_MODE);
+    request.setAttribute("tachyon.master.retry", "" + mCommonConf.MASTER_RETRY_COUNT);
 
     // MasterConf
     request.setAttribute("tachyon.master.journal.folder", "" + mMasterConf.JOURNAL_FOLDER);
@@ -86,6 +90,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
     request.setAttribute("tachyon.master.port", "" + mMasterConf.PORT);
     request.setAttribute("MASTER_ADDRESS", "" + mMasterConf.MASTER_ADDRESS);
     request.setAttribute("tachyon.master.web.port", "" + mMasterConf.WEB_PORT);
+    request.setAttribute("tachyon.master.web.threads", "" + mMasterConf.WEB_THREAD_COUNT);
     request.setAttribute("tachyon.master.temporary.folder", "" + mMasterConf.TEMPORARY_FOLDER);
     request.setAttribute("tachyon.master.heartbeat.interval.ms", ""
         + mMasterConf.HEARTBEAT_INTERVAL_MS);
@@ -94,6 +99,8 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
         + mMasterConf.QUEUE_SIZE_PER_SELECTOR);
     request.setAttribute("tachyon.master.server.threads", "" + mMasterConf.SERVER_THREADS);
     request.setAttribute("tachyon.master.worker.timeout.ms", "" + mMasterConf.WORKER_TIMEOUT_MS);
+    request.setAttribute("tachyon.master.keytab.file", "" + mMasterConf.KEYTAB);
+    request.setAttribute("tachyon.master.principal", "" + mMasterConf.PRINCIPAL);
 
     getServletContext().getRequestDispatcher("/configuration.jsp").forward(request, response);
   }
