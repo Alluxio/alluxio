@@ -97,7 +97,7 @@
                   <th>tachyon.max.table.metadata.byte</th>
                   <th><%= request.getAttribute("tachyon.max.table.metadata.byte") %></th>
                 </tr>
-		<tr>
+                <tr>
                   <th>tachyon.underfs.hadoop.prefixes</th>
                   <th><%= request.getAttribute("tachyon.underfs.hadoop.prefixes") %></th>
                 </tr>
@@ -109,7 +109,6 @@
                   <th>tachyon.master.retry</th>
                   <th><%= request.getAttribute("tachyon.master.retry") %></th>
                 </tr>
-
               </tbody>
             </table>
           </div>
@@ -153,7 +152,7 @@
                   <th>tachyon.master.web.port</th>
                   <th><%= request.getAttribute("tachyon.master.web.port") %></th>
                 </tr>
-		<tr>
+                <tr>
                   <th>tachyon.master.web.threads</th>
                   <th><%= request.getAttribute("tachyon.master.web.threads") %></th>
                 </tr>
@@ -181,7 +180,7 @@
                   <th>tachyon.master.worker.timeout.ms</th>
                   <th><%= request.getAttribute("tachyon.master.worker.timeout.ms") %></th>
                 </tr>
-		 <tr>
+                <tr>
                   <th>tachyon.master.keytab.file</th>
                   <th><%= request.getAttribute("tachyon.master.keytab.file") %></th>
                 </tr>
@@ -189,7 +188,6 @@
                   <th>tachyon.master.principal</th>
                   <th><%= request.getAttribute("tachyon.master.principal") %></th>
                 </tr>
-
               </tbody>
             </table>
           </div>
