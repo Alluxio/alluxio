@@ -45,6 +45,8 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
    * 
    * @param request The HttpServletRequest object
    * @param response The HttpServletReponse object
+   * @throws ServletException
+   * @throws IOException
    */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -100,6 +102,12 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
         + mTachyonConf.getInt(Constants.MASTER_WEB_PORT, 0));
     request.setAttribute("tachyon.master.temporary.folder", ""
         + mTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER, ""));
+    request.setAttribute("tachyon.underfs.hadoop.prefixes", "" 
+        + mTachyonConf.get(Constants.UNDERFS_HADOOP_PREFIXS, ""));
+    request.setAttribute("tachyon.test.mode", ""
+        + mTachyonConf.get(Constants.IN_TEST_MODE, "false"));
+    request.setAttribute("tachyon.master.retry", ""
+        + mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT, 29));
     request.setAttribute("tachyon.master.heartbeat.interval.ms", ""
         + mTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS, -1));
     request.setAttribute("tachyon.master.selector.threads", ""

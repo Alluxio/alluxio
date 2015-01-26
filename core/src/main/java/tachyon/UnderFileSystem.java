@@ -51,7 +51,8 @@ public abstract class UnderFileSystem {
    * 
    * @param path file path storing over the ufs.
    * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance.
-   * @return null for any unknown scheme.
+   * @throws IllegalArgumentException for unknown scheme
+   * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, TachyonConf tachyonConf) {
     return get(path, null, tachyonConf);
@@ -63,7 +64,8 @@ public abstract class UnderFileSystem {
    * @param path file path storing over the ufs
    * @param conf the configuration object for ufs only
    * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance.
-   * @return null for any unknown scheme.
+   * @throws IllegalArgumentException for unknown scheme
+   * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, Object conf, TachyonConf tachyonConf) {
     if (isHadoopUnderFS(path, tachyonConf)) {
