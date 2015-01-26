@@ -64,17 +64,24 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     mUfsPrefix = fsDefaultName;
     Configuration tConf;
     if (conf != null) {
-      tConf = (Configuration) conf;
+      tConf = new Configuration((Configuration) conf);
     } else {
       tConf = new Configuration();
     }
     String glusterfsPrefix = "glusterfs:///";
+    tConf.set("fs.defaultFS", fsDefaultName);
     if (fsDefaultName.startsWith(glusterfsPrefix)) {
-      tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
-      tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
-      tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
-      tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
-          CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
+      if (tConf.get("fs.glusterfs.impl") == null) {
+        tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
+      }
+      if (tConf.get("mapred.system.dir") == null) {
+        tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
+      }
+      if (tConf.get("fs.glusterfs.volumes") == null) {
+        tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
+        tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
+                  CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
+      }
     } else {
       tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
 
