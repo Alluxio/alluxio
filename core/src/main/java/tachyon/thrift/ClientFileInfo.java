@@ -32,7 +32,6 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("all")
 public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, ClientFileInfo._Fields>, java.io.Serializable, Cloneable, Comparable<ClientFileInfo> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ClientFileInfo");
 
