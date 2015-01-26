@@ -163,6 +163,13 @@ public class TachyonFSTest {
     sTfs.createRawTable(new TachyonURI(TestUtils.uniqPath()), -1);
   }
 
+  @Test(expected = IOException.class)
+  public void createRawTableWithTableColumnExceptionTest4() throws IOException {
+    int column = CommonConf.get().MAX_COLUMNS + 1;
+    Assert.assertTrue(column > CommonConf.get().MAX_COLUMNS);
+    sTfs.createRawTable(new TachyonURI(TestUtils.uniqPath()), column);
+  }
+
   @Test
   public void deleteFileTest() throws IOException {
     String uniqPath = TestUtils.uniqPath();
