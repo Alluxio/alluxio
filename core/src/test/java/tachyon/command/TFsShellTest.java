@@ -195,6 +195,13 @@ public class TFsShellTest {
   }
 
   @Test
+  public void countNotExistTest() throws IOException {
+    int ret = mFsShell.count(new String[] {"count", "/NotExistFile"});
+    Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
+    Assert.assertEquals(-1, ret);
+  }
+
+  @Test
   public void countTest() throws IOException {
     TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     TestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
@@ -205,6 +212,13 @@ public class TFsShellTest {
     expected += String.format(format, "File Count", "Folder Count", "Total Bytes");
     expected += String.format(format, 3, 2, 60);
     Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  @Test
+  public void fileinfoNotExistTest() throws IOException {
+    int ret = mFsShell.fileinfo(new String[] {"fileinfo", "/NotExistFile"});
+    Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
+    Assert.assertEquals(-1, ret);
   }
 
   @Test
@@ -275,6 +289,13 @@ public class TFsShellTest {
       }
     }
     return null;
+  }
+
+  @Test
+  public void locationNotExistTest() throws IOException {
+    int ret = mFsShell.location(new String[] {"location", "/NotExistFile"});
+    Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
+    Assert.assertEquals(-1, ret);
   }
 
   @Test

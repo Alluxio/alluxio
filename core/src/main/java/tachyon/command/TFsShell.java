@@ -39,6 +39,7 @@ import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.util.CommonUtils;
 
 /**
@@ -232,16 +233,24 @@ public class TFsShell implements Closeable {
       return -1;
     }
     TachyonURI path = new TachyonURI(argv[1]);
-    long[] values = countHelper(path);
-    String format = "%-25s%-25s%-15s%n";
-    System.out.format(format, "File Count", "Folder Count", "Total Bytes");
-    System.out.format(format, values[0], values[1], values[2]);
+    try {
+      long[] values = countHelper(path);
+      String format = "%-25s%-25s%-15s%n";
+      System.out.format(format, "File Count", "Folder Count", "Total Bytes");
+      System.out.format(format, values[0], values[1], values[2]);
+    } catch (FileDoesNotExistException e) {
+      System.out.println(e.getMessage() + " does not exist.");
+      return -1;
+    }
     return 0;
   }
 
-  private long[] countHelper(TachyonURI path) throws IOException {
+  private long[] countHelper(TachyonURI path) throws FileDoesNotExistException, IOException {
     TachyonFS tachyonClient = createFS(path);
     TachyonFile tFile = tachyonClient.getFile(path);
+    if (tFile == null) {
+      throw new FileDoesNotExistException(path.toString());
+    }
 
     if (tFile.isFile()) {
       return new long[] {1L, 0L, tFile.length()};
@@ -275,6 +284,10 @@ public class TFsShell implements Closeable {
     TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
+    if (fileId == -1) {
+      System.out.println(path + " does not exist.");
+      return -1;
+    }
     List<ClientBlockInfo> blocks = tachyonClient.getFileBlocks(fileId);
     System.out.println(path + " with file id " + fileId + " has the following blocks: ");
     for (ClientBlockInfo block : blocks) {
@@ -298,6 +311,10 @@ public class TFsShell implements Closeable {
     TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
+    if (fileId == -1) {
+      System.out.println(path + " does not exist.");
+      return -1;
+    }
     List<String> hosts = tachyonClient.getFile(fileId).getLocationHosts();
     System.out.println(path + " with file id " + fileId + " is on nodes: ");
     for (String host : hosts) {
