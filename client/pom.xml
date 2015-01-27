@@ -1,14 +1,13 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-parent</artifactId>
     <version>0.6.0-SNAPSHOT</version>
   </parent>
-  <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-client</artifactId>
-  <version>0.6.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
   <description>Tachyon Project Client</description>
   <name>Tachyon Project Client</name>
 
@@ -85,6 +84,25 @@
 
   <build>
     <plugins>
+      <!-- This module is used to build an uber-jar client with all the dependencies included so has 
+        no actual code to be compiled. We override this plugin so we don't bother generating a unnecessary empty 
+        JAR and getting a pointless warning from Maven -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <skipIfEmpty>true</skipIfEmpty>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -99,7 +117,7 @@
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>
               <filters>
                 <filter>
