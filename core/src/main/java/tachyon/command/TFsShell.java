@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -48,7 +48,7 @@ import tachyon.util.CommonUtils;
 public class TFsShell implements Closeable {
   /**
    * Main method, starts a new TFsShell
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    */
   public static void main(String[] argv) throws IOException {
@@ -71,7 +71,7 @@ public class TFsShell implements Closeable {
 
   /**
    * Prints the file's contents to the console.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -111,7 +111,7 @@ public class TFsShell implements Closeable {
   /**
    * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
    * fail if the path given already exists in the filesystem.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -139,11 +139,15 @@ public class TFsShell implements Closeable {
 
   private int copyPath(File src, TachyonFS tachyonClient, TachyonURI dstPath) throws IOException {
     if (!src.isDirectory()) {
+      TachyonFile tFile = tachyonClient.getFile(dstPath);
+      if (tFile != null && tFile.isDirectory()) {
+        dstPath = dstPath.join(src.getName());
+      }
       int fileId = tachyonClient.createFile(dstPath);
       if (fileId == -1) {
         return -1;
       }
-      TachyonFile tFile = tachyonClient.getFile(fileId);
+      tFile = tachyonClient.getFile(fileId);
       Closer closer = Closer.create();
       try {
         OutStream os = closer.register(tFile.getOutStream(UserConf.get().DEFAULT_WRITE_TYPE));
@@ -173,7 +177,7 @@ public class TFsShell implements Closeable {
 
   /**
    * Copies a file specified by argv from the filesystem to the local filesystem.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -214,7 +218,7 @@ public class TFsShell implements Closeable {
 
   /**
    * Displays the number of folders and files matching the specified prefix in argv.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -263,7 +267,7 @@ public class TFsShell implements Closeable {
 
   /**
    * Displays the file's all blocks info
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -290,7 +294,7 @@ public class TFsShell implements Closeable {
 
   /**
    * Displays a list of hosts that have the file specified in argv stored.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -317,7 +321,7 @@ public class TFsShell implements Closeable {
 
   /**
    * Displays information for all directories and files directly under the path specified in argv.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -350,7 +354,7 @@ public class TFsShell implements Closeable {
   /**
    * Displays information for all directories and files under the path specified in argv
    * recursively.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -386,7 +390,7 @@ public class TFsShell implements Closeable {
   /**
    * Creates a new directory specified by the path in argv, including any parent folders that are
    * required. This method fails if a directory or file with the same path already exists.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -409,7 +413,7 @@ public class TFsShell implements Closeable {
   /**
    * Pins the given file or folder (recursively pinning all children if a folder). Pinned files are
    * never evicted from memory.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -422,7 +426,7 @@ public class TFsShell implements Closeable {
     TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
-    
+
     try {
       tachyonClient.pinFile(fileId);
       System.out.println("File '" + path + "' was successfully pinned.");
@@ -461,7 +465,7 @@ public class TFsShell implements Closeable {
 
   /**
    * Renames a file or directory specified by argv. Will fail if the new path name already exists.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -511,7 +515,7 @@ public class TFsShell implements Closeable {
   /**
    * Removes the file or directory specified by argv. Will remove all files and directories in the
    * directory if a directory is specified.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -534,7 +538,7 @@ public class TFsShell implements Closeable {
   /**
    * Method which determines how to handle the user's request, will display usage help to the user
    * if command format is incorrect.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred
    */
@@ -596,7 +600,7 @@ public class TFsShell implements Closeable {
 
   /**
    * Prints the file's last 1KB of contents to the console.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.f
    * @throws IOException
@@ -639,7 +643,7 @@ public class TFsShell implements Closeable {
 
   /**
    * Creates a 0 byte file specified by argv.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command if successful, -1 if an error occurred.
    * @throws IOException
@@ -661,7 +665,7 @@ public class TFsShell implements Closeable {
   /**
    * Unpins the given file or folder (recursively unpinning all children if a folder). Pinned files
    * are never evicted from memory, so this method will allow such files to be evicted.
-   * 
+   *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
