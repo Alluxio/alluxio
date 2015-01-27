@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -164,6 +164,22 @@ public class TFsShellTest {
     assertThat(tFile.length(), equalTo(10L));
     byte[] read = readContent(tFile, 10);
     assertThat(TestUtils.equalIncreasingByteArray(10, read), equalTo(true));
+  }
+
+  @Test
+  public void copyFromLocalFileToDstPathTest() throws IOException {
+    String dataString = "copyFromLocalFileToDstPathTest";
+    byte[] data = dataString.getBytes();
+    File localDir = new File(mLocalTachyonCluster.getTachyonHome() + "/localDir");
+    localDir.mkdir();
+    File localFile = generateFileContent("/localDir/testFile", data);
+    mFsShell.mkdir(new String[] {"mkdir", "/dstDir"});
+    mFsShell.copyFromLocal(new String[] {"copyFromLocal", localFile.getPath(), "/dstDir"});
+
+    TachyonFile tFile = mTfs.getFile(new TachyonURI("/dstDir/testFile"));
+    Assert.assertNotNull(tFile);
+    byte[] read = readContent(tFile, data.length);
+    Assert.assertEquals(new String(read), dataString);
   }
 
   @Test
