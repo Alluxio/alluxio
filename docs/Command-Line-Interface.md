@@ -48,6 +48,11 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>rm</td>
     <td>rm "path"</td>
+    <td>Remove a file. Will fail if the path is a directory.</td>
+  </tr>
+  <tr>
+    <td>rmr</td>
+    <td>rmr "path"</td>
     <td>Remove a file or directory and all folders and files under that directory.</td>
   </tr>
   <tr>
