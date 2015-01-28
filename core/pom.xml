@@ -1,13 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-parent</artifactId>
     <version>0.6.0-SNAPSHOT</version>
   </parent>
-  <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon</artifactId>
-  <version>0.6.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Tachyon: A Reliable Memory Centric Distributed Storage System</description>
   <name>Tachyon Project Core</name>
@@ -153,13 +152,14 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <ufs/>
+        <ufs />
       </properties>
       <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.2</version>
             <executions>
               <execution>
                 <id>default-testCompile</id>
@@ -168,6 +168,9 @@
                   <testExcludes>
                     <exclude>**/LocalMiniDFSCluster.java</exclude>
                   </testExcludes>
+                  <compilerArgs>
+                    <arg>-Xlint:-unchecked</arg>
+                  </compilerArgs>
                 </configuration>
                 <goals>
                   <goal>testCompile</goal>
@@ -266,6 +269,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.2</version>
             <executions>
               <execution>
                 <id>default-testCompile</id>
@@ -294,6 +298,25 @@
       </resource>
     </resources>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.2</version>
+        <executions>
+          <execution>
+            <id>default-compile</id>
+            <phase>compile</phase>
+            <configuration>
+              <compilerArgs>
+                <arg>-Xlint:none</arg>
+              </compilerArgs>
+            </configuration>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -337,7 +360,7 @@
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>
               <filters>
                 <filter>
