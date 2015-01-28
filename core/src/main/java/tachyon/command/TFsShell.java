@@ -449,6 +449,7 @@ public class TFsShell implements Closeable {
     System.out.println("       [lsr <path>]");
     System.out.println("       [mkdir <path>]");
     System.out.println("       [rm <path>]");
+    System.out.println("       [rmr <path>]");
     System.out.println("       [tail <path>]");
     System.out.println("       [touch <path>]");
     System.out.println("       [mv <src> <dst>]");
@@ -513,8 +514,7 @@ public class TFsShell implements Closeable {
   }
 
   /**
-   * Removes the file or directory specified by argv. Will remove all files and directories in the
-   * directory if a directory is specified.
+   * Removes the file specified by argv.
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
@@ -523,6 +523,35 @@ public class TFsShell implements Closeable {
   public int rm(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs rm <path>");
+      return -1;
+    }
+    TachyonURI path = new TachyonURI(argv[1]);
+    TachyonFS tachyonClient = createFS(path);
+    TachyonFile tFile = tachyonClient.getFile(path);
+    if (tFile != null && tFile.isDirectory()) {
+      System.out.println("can't remove a directory, please try rmr <path>");
+      return -1;
+    }
+
+    if (tachyonClient.delete(path, false)) {
+      System.out.println(path + " has been removed");
+      return 0;
+    } else {
+      return -1;
+    }
+  }
+
+  /**
+   * Removes the file or directory specified by argv. Will remove all files and directories in the
+   * directory if a directory is specified.
+   *
+   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int rmr(String[] argv) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs rmr <path>");
       return -1;
     }
     TachyonURI path = new TachyonURI(argv[1]);
@@ -563,6 +592,8 @@ public class TFsShell implements Closeable {
         exitCode = mkdir(argv);
       } else if (cmd.equals("rm")) {
         exitCode = rm(argv);
+      } else if (cmd.equals("rmr")) {
+        exitCode = rmr(argv);
       } else if (cmd.equals("tail")) {
         exitCode = tail(argv);
       } else if (cmd.equals("mv")) {
