@@ -276,7 +276,7 @@ public class TFsShellTest {
         return null;
       } else if (cmd.equals("mkdir")) {
         return "Successfully created directory " + command[1] + "\n";
-      } else if (cmd.equals("rm")) {
+      } else if (cmd.equals("rm") || cmd.equals("rmr")) {
         return command[1] + " has been removed" + "\n";
       } else if (cmd.equals("touch")) {
         return command[1] + " has been created" + "\n";
@@ -484,9 +484,12 @@ public class TFsShellTest {
   @Test
   public void rmTest() throws IOException {
     StringBuilder toCompare = new StringBuilder();
-    mFsShell.mkdir(new String[] {"mkdir", "/testFolder1/testFolder2/testFile2"});
+    mFsShell.mkdir(new String[] {"mkdir", "/testFolder1/testFolder2"});
     toCompare
-        .append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2/testFile2"}));
+        .append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
+    mFsShell.touch(new String[] {"touch", "/testFolder1/testFolder2/testFile2"});
+    toCompare
+        .append(getCommandOutput(new String[] {"touch", "/testFolder1/testFolder2/testFile2"}));
     TachyonURI testFolder1 = new TachyonURI("/testFolder1");
     TachyonURI testFolder2 = new TachyonURI("/testFolder1/testFolder2");
     TachyonURI testFile2 = new TachyonURI("/testFolder1/testFolder2/testFile2");
@@ -499,8 +502,31 @@ public class TFsShellTest {
     Assert.assertNotNull(mTfs.getFile(testFolder1));
     Assert.assertNotNull(mTfs.getFile(testFolder2));
     Assert.assertNull(mTfs.getFile(testFile2));
-    mFsShell.rm(new String[] {"rm", "/testFolder1"});
-    toCompare.append(getCommandOutput(new String[] {"rm", "/testFolder1"}));
+  }
+
+  @Test
+  public void rmrTest() throws IOException {
+    StringBuilder toCompare = new StringBuilder();
+    mFsShell.mkdir(new String[] {"mkdir", "/testFolder1/testFolder2"});
+    toCompare
+        .append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
+    mFsShell.touch(new String[] {"touch", "/testFolder1/testFolder2/testFile2"});
+    toCompare
+        .append(getCommandOutput(new String[] {"touch", "/testFolder1/testFolder2/testFile2"}));
+    TachyonURI testFolder1 = new TachyonURI("/testFolder1");
+    TachyonURI testFolder2 = new TachyonURI("/testFolder1/testFolder2");
+    TachyonURI testFile2 = new TachyonURI("/testFolder1/testFolder2/testFile2");
+    Assert.assertNotNull(mTfs.getFile(testFolder1));
+    Assert.assertNotNull(mTfs.getFile(testFolder2));
+    Assert.assertNotNull(mTfs.getFile(testFile2));
+    mFsShell.rmr(new String[] {"rmr", "/testFolder1/testFolder2/testFile2"});
+    toCompare.append(getCommandOutput(new String[] {"rm", "/testFolder1/testFolder2/testFile2"}));
+    Assert.assertEquals(toCompare.toString(), mOutput.toString());
+    Assert.assertNotNull(mTfs.getFile(testFolder1));
+    Assert.assertNotNull(mTfs.getFile(testFolder2));
+    Assert.assertNull(mTfs.getFile(testFile2));
+    mFsShell.rmr(new String[] {"rmr", "/testFolder1"});
+    toCompare.append(getCommandOutput(new String[] {"rmr", "/testFolder1"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertNull(mTfs.getFile(testFolder1));
     Assert.assertNull(mTfs.getFile(testFolder2));
