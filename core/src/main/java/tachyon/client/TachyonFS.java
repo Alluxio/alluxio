@@ -484,12 +484,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return TachyonFile of the file id, or null if the file does not exist.
    */
   public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
-    if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
-      ClientFileInfo clientFileInfo = getFileStatus(fid, TachyonURI.EMPTY_URI);
-      if (clientFileInfo == null) {
-        return null;
-      }
-      mIdToClientFileInfo.put(fid, clientFileInfo);
+    ClientFileInfo clientFileInfo = getFileStatus(fid, TachyonURI.EMPTY_URI, useCachedMetadata);
+    if (clientFileInfo == null) {
+      return null;
     }
     return new TachyonFile(this, fid);
   }
