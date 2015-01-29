@@ -4,6 +4,12 @@
 # Starts the master on this node.
 # Starts a worker on each node specified in conf/workers
 
+LAUNCHER=
+# If debugging is enabled propagate that through to sub-shells
+if [[ "$-" == *x* ]]; then
+  LAUNCHER="bash -x"
+fi
+
 Usage="Usage: tachyon-mount.sh [Mount|SudoMount] [MACHINE]
 \nIf omitted, MACHINE is default to be 'local'. MACHINE is one of:\n
   local\t\t\tMount local machine\n
@@ -140,7 +146,7 @@ case "${1}" in
         mount_local $1
         ;;
       workers)
-        $bin/tachyon-workers.sh $bin/tachyon-mount.sh $1
+        $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon-mount.sh $1
         ;;
     esac
     ;;
