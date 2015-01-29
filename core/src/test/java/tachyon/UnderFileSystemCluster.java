@@ -15,6 +15,8 @@
 package tachyon;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.base.Throwables;
 
@@ -51,8 +53,12 @@ public abstract class UnderFileSystemCluster {
    * @throws InterruptedException
    */
   public static synchronized UnderFileSystemCluster get(String baseDir) throws IOException {
-    if (null == mUnderFSCluster || !mUnderFSCluster.mBaseDir.equals(baseDir)) {
+    UnderFileSystemCluster mUnderFSCluster;
+    if (!mDirToUfsCluster.containsKey(baseDir)) {
       mUnderFSCluster = getUnderFilesystemCluster(baseDir);
+      mDirToUfsCluster.put(baseDir, mUnderFSCluster);
+    } else {
+      mUnderFSCluster = mDirToUfsCluster.get(baseDir);
     }
 
     if (!mUnderFSCluster.isStarted()) {
@@ -83,7 +89,8 @@ public abstract class UnderFileSystemCluster {
 
   protected String mBaseDir;
 
-  private static UnderFileSystemCluster mUnderFSCluster = null;
+  private static final Map<String, UnderFileSystemCluster> mDirToUfsCluster =
+      new HashMap<String, UnderFileSystemCluster>();
 
   /**
    * This method is only for unit-test {@link tachyon.client.FileOutStreamTest} temporally
