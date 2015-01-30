@@ -17,6 +17,7 @@ package tachyon;
 import java.io.IOException;
 
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystemCluster;
 
 public class GlusterfsCluster extends UnderFileSystemCluster {
 
