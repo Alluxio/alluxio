@@ -12,7 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.util;
+package tachyon.underfs;
 
 import static org.junit.Assert.fail;
 
@@ -27,10 +27,11 @@ import org.junit.Test;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.CommonUtils;
+import tachyon.util.UfsUtils;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.
