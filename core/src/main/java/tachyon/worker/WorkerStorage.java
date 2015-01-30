@@ -4,9 +4,7 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -245,8 +243,10 @@ public class WorkerStorage {
             LOG.error("Failed to rename from " + midPath + " to " + dstPath);
           }
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
-          long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB
-              / WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
+          long shouldTakeMs =
+              (long) (1000.0 * fileSizeByte 
+                             / Constants.MB 
+                             / WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
           long currentTimeMs = System.currentTimeMillis();
           if (startCopyTimeMs + shouldTakeMs > currentTimeMs) {
             long shouldSleepMs = startCopyTimeMs + shouldTakeMs - currentTimeMs;
@@ -289,8 +289,7 @@ public class WorkerStorage {
   private List<Integer> mPriorityDependencies = new ArrayList<Integer>();
 
   private final ExecutorService mCheckpointExecutor = Executors.newFixedThreadPool(
-      WorkerConf.get().WORKER_CHECKPOINT_THREADS,
-      ThreadFactoryUtils.build("checkpoint-%d"));
+      WorkerConf.get().WORKER_CHECKPOINT_THREADS, ThreadFactoryUtils.build("checkpoint-%d"));
 
   private final ExecutorService mExecutorService;
   private long mCapacityBytes;
@@ -361,7 +360,8 @@ public class WorkerStorage {
   /**
    * Update the latest block access time on the worker.
    * 
-   * @param blockId The id of the block
+   * @param blockId
+   *          The id of the block
    */
   void accessBlock(long blockId) {
     StorageDir foundDir = getStorageDirByBlockId(blockId);
@@ -376,11 +376,14 @@ public class WorkerStorage {
    * This method is normally triggered from {@link tachyon.client.FileOutStream#close()} if and only
    * if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
    * checkpointing is that through {@link tachyon.client.WriteType} operations write to
-   * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a user temp directory
+   * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a user temp
+   * directory
    * (temp directory is defined in the worker as {@link #getUserUfsTempFolder(long)}).
    * 
-   * @param userId The user id of the client who send the notification
-   * @param fileId The id of the checkpointed file
+   * @param userId
+   *          The user id of the client who send the notification
+   * @param fileId
+   *          The id of the checkpointed file
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    * @throws FailedToCheckpointException
@@ -438,7 +441,8 @@ public class WorkerStorage {
   /**
    * Notify the worker to checkpoint the file asynchronously.
    * 
-   * @param fileId The id of the file
+   * @param fileId
+   *          The id of the file
    * @return true if succeed, false otherwise
    * @throws IOException
    */
@@ -472,8 +476,10 @@ public class WorkerStorage {
    * If all conditions are true, then and only then can this method ever be called; all operations
    * work on local files.
    * 
-   * @param userId The user id of the client who send the notification
-   * @param blockId The id of the block
+   * @param userId
+   *          The user id of the client who send the notification
+   * @param blockId
+   *          The id of the block
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
@@ -544,7 +550,8 @@ public class WorkerStorage {
   /**
    * Remove a block from Tachyon cache space.
    * 
-   * @param blockId The block to be removed.
+   * @param blockId
+   *          The block to be removed.
    */
   private void freeBlock(long blockId) {
     for (StorageTier storageTier : mStorageTiers) {
@@ -567,7 +574,8 @@ public class WorkerStorage {
    * This is triggered when the worker heartbeats to the master, which sends a
    * {@link tachyon.thrift.Command} with type {@link tachyon.thrift.CommandType#Free}
    * 
-   * @param blockIds The id list of blocks to be removed.
+   * @param blocks
+   *          The list of blocks to be removed.
    */
   public void freeBlocks(List<Long> blockIds) {
     for (long blockId : blockIds) {
@@ -614,22 +622,18 @@ public class WorkerStorage {
 
   /**
    * Get the user temporary folder in the under file system of the specified user.
-   * 
+   * <p>
    * This method is a wrapper around {@link tachyon.Users#getUserUfsTempFolder(long)}, and as such
    * should be referentially transparent with {@link Users#getUserUfsTempFolder(long)}. In the
    * context of {@code this}, this call will output the result of path concat of
    * {@link #mUfsWorkerFolder} with the provided {@literal userId}.
-   * 
-<<<<<<< HEAD
+   * </p>
+   * <p>
    * This temp folder generated lives inside the {@link tachyon.UnderFileSystem}, and as such, will
    * be stored remotely, most likely on disk.
-=======
-   * This method differs from {@link #getUserLocalTempFolder(long)} in the context of where write
-   * operations end up. This temp folder generated lives inside the {@link tachyon.underfs.UnderFileSystem},
-   * and as such, will be stored remotely, most likely on disk.
->>>>>>> Initial work on Under File System refactoring (TACHYON-221)
-   * 
-   * @param userId The id of the user
+   * </p>
+   * @param userId
+   *          The id of the user
    * @return The user temporary folder in the under file system
    */
   public String getUserUfsTempFolder(long userId) {
@@ -711,8 +715,10 @@ public class WorkerStorage {
    * attempt to cache the block on the local users's node, while the user is reading from the local
    * block, the given block is locked and unlocked once read.
    * 
-   * @param blockId The id of the block
-   * @param userId The id of the user who locks the block
+   * @param blockId
+   *          The id of the block
+   * @param userId
+   *          The id of the user who locks the block
    * @return the StorageDir in which the block is locked
    */
   public StorageDir lockBlock(long blockId, long userId) {
@@ -731,7 +737,7 @@ public class WorkerStorage {
    * If the block is not on top StorageTier, promote block to top StorageTier
    * 
    * @param blockId the id of the block
-   * @return true if success, false otherwise
+   * @return true if block is promoted, false otherwise
    */
   public boolean promoteBlock(long blockId) {
     final long userId = Users.MIGRATE_DATA_USER_ID;
@@ -802,7 +808,7 @@ public class WorkerStorage {
   /**
    * Get temporary file path for some block, it is used to choose appropriate StorageDir for some
    * block file with specified initial size. 
-   * 
+   *
    * @param userId the id of the user who wants to write the file
    * @param blockId the id of the block
    * @param initialBytes the initial size allocated for the block 
@@ -875,7 +881,8 @@ public class WorkerStorage {
    * Request space from the specified StorageDir, it is used for requesting space for the block
    * which is partially written in some StorageDir
    * 
-   * @param userId The id of the user who send the request
+   * @param userId
+   *          The id of the user who wants to return the space
    * @param blockId The id of the block that the space is allocated for
    * @param requestBytes The requested space size, in bytes
    * @return true if succeed, false otherwise
@@ -950,9 +957,11 @@ public class WorkerStorage {
    * read a block ({@link tachyon.client.TachyonFile#readByteBuffer(int)}), the client will attempt
    * to cache the block on the local users's node, while the user is reading from the local block,
    * the given block is locked and unlocked once read.
-   * 
-   * @param blockId The id of the block
-   * @param userId The id of the user who unlocks the block
+   *
+   * @param blockId
+   *          The id of the block
+   * @param userId
+   *          The id of the user who unlocks the block
    * @return true if success, false otherwise
    */
   public boolean unlockBlock(long blockId, long userId) {
@@ -970,7 +979,8 @@ public class WorkerStorage {
   /**
    * Handle the user's heartbeat.
    * 
-   * @param userId The id of the user
+   * @param userId
+   *          The id of the user
    */
   public void userHeartbeat(long userId) {
     mUsers.userHeartbeat(userId);
