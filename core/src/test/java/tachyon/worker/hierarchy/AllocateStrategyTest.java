@@ -23,9 +23,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.client.BlockHandler;
 import tachyon.master.BlockInfo;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 public class AllocateStrategyTest {

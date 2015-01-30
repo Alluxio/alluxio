@@ -26,9 +26,9 @@ import org.junit.Test;
 
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**

@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * Master data image.

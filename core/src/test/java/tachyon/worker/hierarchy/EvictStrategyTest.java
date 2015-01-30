@@ -27,9 +27,9 @@ import org.junit.Test;
 
 import tachyon.Pair;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.client.BlockHandler;
 import tachyon.master.BlockInfo;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.eviction.EvictLRU;
 import tachyon.worker.eviction.EvictPartialLRU;

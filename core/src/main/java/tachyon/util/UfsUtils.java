@@ -27,9 +27,9 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
 import tachyon.Version;
 import tachyon.client.TachyonFS;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * Utilities related to under filesystem

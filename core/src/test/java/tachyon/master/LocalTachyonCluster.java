@@ -19,13 +19,13 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import tachyon.Constants;
-import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.NetAddress;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.TachyonWorker;

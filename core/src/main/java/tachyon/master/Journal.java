@@ -18,7 +18,7 @@ package tachyon.master;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * The Journal manages Tachyon image and journal log.

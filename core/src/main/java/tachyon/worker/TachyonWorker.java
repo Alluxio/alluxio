@@ -31,8 +31,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystemHdfs;
 import tachyon.Users;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
@@ -40,6 +38,7 @@ import tachyon.conf.WorkerConf;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
@@ -250,16 +249,9 @@ public class TachyonWorker implements Runnable {
     return mWorkerServiceHandler;
   }
 
-  private void login() throws IOException {
-    WorkerConf wConf = WorkerConf.get();
-    if (wConf.KEYTAB == null || wConf.PRINCIPAL == null) {
-      return;
-    }
+  private void connect() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS);
-    if (ufs instanceof UnderFileSystemHdfs) {
-      ((UnderFileSystemHdfs) ufs).login(wConf.KEYTAB_KEY, wConf.KEYTAB, wConf.PRINCIPAL_KEY,
-          wConf.PRINCIPAL, NetworkUtils.getFqdnHost(mWorkerAddress));
-    }
+    ufs.connectFromWorker(NetworkUtils.getFqdnHost(mWorkerAddress));
   }
 
   @Override
@@ -322,7 +314,7 @@ public class TachyonWorker implements Runnable {
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() throws IOException {
-    login();
+    connect();
 
     mHeartbeatThread.start();
 

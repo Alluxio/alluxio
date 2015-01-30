@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Map;
 
 import tachyon.Pair;
-import tachyon.UnderFileSystem;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.NetworkUtils;
 
 /**

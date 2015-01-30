@@ -36,7 +36,6 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
 import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
@@ -46,6 +45,7 @@ import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerClient;

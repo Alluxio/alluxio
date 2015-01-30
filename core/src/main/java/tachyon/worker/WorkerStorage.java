@@ -45,7 +45,6 @@ import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
-import tachyon.UnderFileSystem;
 import tachyon.Users;
 import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
@@ -58,6 +57,7 @@ import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 
@@ -370,7 +370,7 @@ public class WorkerStorage {
    * This method is normally triggered from {@link tachyon.client.FileOutStream#close()} if and only
    * if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
    * checkpointing is that through {@link tachyon.client.WriteType} operations write to
-   * {@link tachyon.UnderFileSystem} on the client's write path, but under a user temp directory
+   * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a user temp directory
    * (temp directory is defined in the worker as {@link #getUserUfsTempFolder(long)}).
    * 
    * @param userId The user id of the client who send the notification
@@ -583,7 +583,7 @@ public class WorkerStorage {
    * {@link #mUfsWorkerFolder} with the provided {@literal userId}.
    * 
    * This method differs from {@link #getUserLocalTempFolder(long)} in the context of where write
-   * operations end up. This temp folder generated lives inside the {@link tachyon.UnderFileSystem},
+   * operations end up. This temp folder generated lives inside the {@link tachyon.underfs.UnderFileSystem},
    * and as such, will be stored remotely, most likely on disk.
    * 
    * @param userId The id of the user

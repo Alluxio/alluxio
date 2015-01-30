@@ -32,11 +32,11 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**

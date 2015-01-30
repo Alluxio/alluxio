@@ -29,13 +29,13 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.NetAddress;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * Unit tests for tachyon.WorkerStorage

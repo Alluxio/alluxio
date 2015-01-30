@@ -25,10 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.nio.DataServerMessage;

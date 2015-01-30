@@ -20,6 +20,7 @@ import java.io.IOException;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.WorkerConf;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
