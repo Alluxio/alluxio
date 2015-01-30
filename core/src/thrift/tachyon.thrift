@@ -63,9 +63,9 @@ struct ClientRawTableInfo {
 enum CommandType {
   Unknown = 0,
   Nothing = 1,
-  Register = 2,   // Ask the worker to re-register.
-  Free = 3,				// Ask the worker to free files.
-  Delete = 4,			// Ask the worker to delete files.
+  Register = 2,   	// Ask the worker to re-register.
+  Free = 3,			// Ask the worker to free files.
+  Delete = 4,		// Ask the worker to delete files.
 }
 
 struct Command {
@@ -133,18 +133,44 @@ service MasterService {
 
   // Services to Workers
   /**
-   * Worker register.
+   * Worker register and synch up capacity of cache space, used space bytes and blocks in each
+   * storage directory to master. 
+   * 
+   * @param workerNetAddress address of the worker
+   * @param totalBytes the capacity of the cache space
+   * @param usedBytes the used space size in bytes
+   * @param currentBlocks mapping from id of storage directory to the blocks it contains
    * @return value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
    */
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes,
-      4: map<i64, list<i64>> currentBlocks) // mapping from Id of StorageDir to the blocks it contains
+      4: map<i64, list<i64>> currentBlocks)
     throws (1: BlockInfoException e)
 
+  /**
+   * Heart beat between worker and master, worker update used bytes, removed blocks and added
+   * blocks in each storage directory by eviction and promotion to master
+   * 
+   * @param workerId the id of the worker
+   * @param usedBytes the used space size in bytes
+   * @param removedBlockIds list of the blocks that is removed from Tachyon cache space
+   * @param addedBlockIds mapping from id of storage directory to the blocks added in it
+   * @return the command from master to worker
+   */
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlockIds,
-      4: map<i64, list<i64>> addedBlockIds) // mapping from Id of StorageDir to the blocks added
+      4: map<i64, list<i64>> addedBlockIds)
     throws (1: BlockInfoException e)
 
-  void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 storageDirId, 4: i64 blockId, 5: i64 length)
+  /**
+   * Update information of the block newly cached to master.
+   *
+   * @param workerId the id of the worker
+   * @param workerUsedBytes the used space size in bytes
+   * @param storageDirId the id of the storage directory in which the block is
+   * @param blockId the id of the block
+   * @param length the size of the block in bytes
+   */
+  void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 storageDirId,
+      4: i64 blockId, 5: i64 length)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
 
   set<i32> worker_getPinIdList()
@@ -203,7 +229,10 @@ service MasterService {
   list<ClientBlockInfo> user_getFileBlocks(1: i32 fileId, 2: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 
-  bool user_delete(1: i32 fileId, 2: string path, 3: bool recursive) // Delete file
+  /**
+   * Delete file
+   */
+  bool user_delete(1: i32 fileId, 2: string path, 3: bool recursive)
     throws (1: TachyonException e)
 
   bool user_rename(1: i32 fileId, 2: string srcPath, 3: string dstPath)
@@ -258,26 +287,69 @@ service WorkerService {
   bool asyncCheckpoint(1: i32 fileId)
     throws (1: TachyonException e)
 
+  /**
+   * Used to cache a block into Tachyon's cache space, worker will move the temporary block file
+   * from user folder to data folder, and update the space usage information related. then update
+   * the block information to master. 
+   */
   void cacheBlock(1: i64 userId, 2: i64 blockId)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: BlockInfoException eB)
 
+  /**
+   * Used to cancel a block which is being written. worker will delete the temporary block file and
+   * the location and space information related, then reclaim space allocated to the block.
+   */
   void cancelBlock(1: i64 userId, 2: i64 blockId)
 
+  /**
+   * Used to allocate location and space for a new coming block, worker will choose the appropriate
+   * storage directory which fits the initial block size by some allocation strategy, and the
+   * temporary file path of the block file will be returned. if there is no enough space on Tachyon
+   * storage OutOfSpaceException will be thrown, if the file is already being written by the user,
+   * FileAlreadyExistException will be thrown.
+   */
   string getBlockLocation(1: i64 userId, 2: i64 blockId, 3: i64 initialBytes)
     throws (1: OutOfSpaceException eP, 2: FileAlreadyExistException eS)
 
+  /**
+   * Used to get user's temporary folder on under file system, and the path of the user's temporary
+   * folder will be returned.
+   */
   string getUserUfsTempFolder(1: i64 userId)
 
-  string lockBlock(1: i64 blockId, 2: i64 userId) // Lock the file in memory while the user is reading it.
-    throws (1: FileDoesNotExistException eP) // the path of the file locked is returned
+  /**
+   * Lock the file in Tachyon's cache space while the user is reading it, and the path of the block
+   * file locked will be returned, if the block file is not found, FileDoesNotExistException will
+   * be thrown.
+   */
+  string lockBlock(1: i64 blockId, 2: i64 userId)
+    throws (1: FileDoesNotExistException eP)
 
+  /**
+   * Used to promote block on under storage layer to top storage layer when there are more than one
+   * storage layers in Tachyon's cache space. return true if the block is successfully promoted,
+   * false otherwise.
+   */
   bool promoteBlock(1: i64 userId, 2: i64 blockId)
 
+  /**
+   * Used to request space for some block file. return true if the worker successfully allocates
+   * space for the block on block’s location, false if there is no enough space, if there is no
+   * information of the block on worker, FileDoesNotExistException will be thrown.
+   */
   bool requestSpace(1: i64 userId, 2: i64 blockId, 3: i64 requestBytes)
     throws (1: FileDoesNotExistException eP)
 
-  bool unlockBlock(1: i64 blockId, 2: i64 userId) // unlock the file
+  /**
+   * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
+   * block file. return true if successfully unlock the block, return false if the block is not
+   * found or failed to delete the block.
+   */
+  bool unlockBlock(1: i64 blockId, 2: i64 userId)
 
-  void userHeartbeat(1: i64 userId)   // Local user send heartbeat to local worker to keep its temp folder.
+  /**
+   * Local user send heartbeat to local worker to keep its temporary folder.
+   */
+  void userHeartbeat(1: i64 userId)
 }

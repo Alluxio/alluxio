@@ -137,7 +137,7 @@ public final class StorageDir {
    * @param blockId Id of the block
    * @param sizeBytes size of the block in bytes
    * @param accessTime access time of the block
-   * @param need to be reported During heart beat with master
+   * @param report whether need to be reported During heart beat with master
    */
   private void addBlockId(long blockId, long sizeBytes, long accessTime, boolean report) {
     mLastBlockAccessTimeMs.put(blockId, accessTime);
