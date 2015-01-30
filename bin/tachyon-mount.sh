@@ -117,8 +117,13 @@ function mount_ramfs_mac() {
   mem_size_to_bytes
   NUM_SECTORS=$((BYTE_SIZE / 512))
 
+  # Format the RAM FS
+  # We may have a pre-existing RAM FS which we need to throw away
   echo "Formatting RamFS: $F $NUM_SECTORS sectors ($MEM_SIZE)."
-  diskutil unmount force /Volumes/$F
+  DEVICE=`df -l | grep $F | cut -d " " -f 1`
+  if [[ -n "${DEVICE}" ]]; then
+    hdiutil detach -force $DEVICE
+  fi
   diskutil erasevolume HFS+ $F `hdiutil attach -nomount ram://$NUM_SECTORS`
 }
 
