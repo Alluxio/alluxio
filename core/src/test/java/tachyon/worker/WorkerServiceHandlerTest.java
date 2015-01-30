@@ -72,7 +72,7 @@ public class WorkerServiceHandlerTest {
   public void cancelBlockTest() throws TException, IOException {
     final long userId = 1L;
     final long blockId = 12345L;
-    String filename = mWorkerServiceHandler.getBlockLocation(userId, blockId,
+    String filename = mWorkerServiceHandler.requestBlockLocation(userId, blockId,
         WORKER_CAPACITY_BYTES / 10L);
     Assert.assertTrue(filename != null);
     createBlockFile(filename, (int)(WORKER_CAPACITY_BYTES / 10L - 10L));
@@ -88,7 +88,7 @@ public class WorkerServiceHandlerTest {
     final int fileId = mTfs.createFile(new TachyonURI("/testFile1"));
     final long blockId0 = mTfs.getBlockId(fileId, 0);
     final long blockId1 = mTfs.getBlockId(fileId, 1);
-    String filename = mWorkerServiceHandler.getBlockLocation(userId, blockId0,
+    String filename = mWorkerServiceHandler.requestBlockLocation(userId, blockId0,
         WORKER_CAPACITY_BYTES / 10L);
     Assert.assertTrue(filename != null);
     createBlockFile(filename, (int)(WORKER_CAPACITY_BYTES / 10L - 10L));
@@ -148,7 +148,7 @@ public class WorkerServiceHandlerTest {
     final long userId = 1L;
     final long blockId1 = 12345L;
     final long blockId2 = 12346L;
-    String filename = mWorkerServiceHandler.getBlockLocation(userId, blockId1,
+    String filename = mWorkerServiceHandler.requestBlockLocation(userId, blockId1,
         WORKER_CAPACITY_BYTES / 10L);
     Assert.assertTrue(filename != null);
     boolean result =
@@ -166,7 +166,7 @@ public class WorkerServiceHandlerTest {
         "Temporary block file doesn't exist! blockId:" + blockId2), exception);
 
     try {
-      mWorkerServiceHandler.getBlockLocation(userId, blockId2, WORKER_CAPACITY_BYTES + 1);
+      mWorkerServiceHandler.requestBlockLocation(userId, blockId2, WORKER_CAPACITY_BYTES + 1);
     } catch (OutOfSpaceException e) {
       exception = e;
     }
@@ -181,10 +181,10 @@ public class WorkerServiceHandlerTest {
     final long blockId1 = 12345L;
     final long userId2 = 2L;
     final long blockId2 = 23456L;
-    String filePath1 = mWorkerServiceHandler.getBlockLocation(userId1, blockId1,
+    String filePath1 = mWorkerServiceHandler.requestBlockLocation(userId1, blockId1,
         WORKER_CAPACITY_BYTES / 2);
     Assert.assertTrue(filePath1 != null);
-    String filePath2 = mWorkerServiceHandler.getBlockLocation(userId2, blockId2,
+    String filePath2 = mWorkerServiceHandler.requestBlockLocation(userId2, blockId2,
         WORKER_CAPACITY_BYTES / 2);
     Assert.assertTrue(filePath2 != null);
 

@@ -504,6 +504,19 @@ public final class StorageDir {
   }
 
   /**
+   * Get temporary space owned by the user in current StorageDir
+   * 
+   * @return temporary space in bytes owned by the user in current StorageDir
+   */
+  public long getUserOwnBytes(long userId) {
+    Long ownBytes = mOwnBytesPerUser.get(userId);
+    if (ownBytes == null) {
+      ownBytes = 0L;
+    }
+    return ownBytes;
+  }
+
+  /**
    * Get temporary file path of block written by some user
    * 
    * @param userId Id of the user

@@ -576,36 +576,6 @@ public class WorkerStorage {
   }
 
   /**
-   * Get temporary file path for some block, it is used to choose appropriate StorageDir for some
-   * block file with specified initial size. 
-   * 
-   * @param userId the id of the user who wants to write the file
-   * @param blockId the id of the block
-   * @param initialBytes the initial size allocated for the block 
-   * @return the temporary path of the block file
-   * @throws OutOfSpaceException
-   * @throws FileAlreadyExistException 
-   */
-  public String getBlockLocation(long userId, long blockId, long initialBytes)
-      throws OutOfSpaceException, FileAlreadyExistException {
-    if (mTempBlockLocation.containsKey(new Pair<Long, Long>(userId, blockId))) {
-      throw new FileAlreadyExistException(String.format("Block file is being written! userId(%d)"
-          + " blockId(%d)", userId, blockId));
-    }
-
-    StorageDir storageDir = requestSpace(null, userId, initialBytes);
-    if (storageDir == null) {
-      throw new OutOfSpaceException(String.format("Failed to allocate space for block! blockId(%d)"
-          + " sizeBytes(%d)", blockId, initialBytes));
-    }
-    mTempBlockLocation.put(new Pair<Long, Long>(userId, blockId), storageDir);
-    mUserIdToTempBlockIds.put(userId, blockId);
-    storageDir.updateTempBlockAllocatedBytes(userId, blockId, initialBytes);
-
-    return storageDir.getUserTempFilePath(userId, blockId);
-  }
-
-  /**
    * Get StorageDir which contains specified block
    * 
    * @param blockId the id of the block
@@ -749,7 +719,7 @@ public class WorkerStorage {
   }
 
   /**
-   * Promote block back to top StorageTier
+   * If the block is not on top StorageTier, promote block to top StorageTier
    * 
    * @param userId the id of the user
    * @param blockId the id of the block
@@ -818,6 +788,36 @@ public class WorkerStorage {
       }
     }
     mWorkerId = id;
+  }
+
+  /**
+   * Get temporary file path for some block, it is used to choose appropriate StorageDir for some
+   * block file with specified initial size. 
+   * 
+   * @param userId the id of the user who wants to write the file
+   * @param blockId the id of the block
+   * @param initialBytes the initial size allocated for the block 
+   * @return the temporary path of the block file
+   * @throws OutOfSpaceException
+   * @throws FileAlreadyExistException 
+   */
+  public String requestBlockLocation(long userId, long blockId, long initialBytes)
+      throws OutOfSpaceException, FileAlreadyExistException {
+    if (mTempBlockLocation.containsKey(new Pair<Long, Long>(userId, blockId))) {
+      throw new FileAlreadyExistException(String.format("Block file is being written! userId(%d)"
+          + " blockId(%d)", userId, blockId));
+    }
+
+    StorageDir storageDir = requestSpace(null, userId, initialBytes);
+    if (storageDir == null) {
+      throw new OutOfSpaceException(String.format("Failed to allocate space for block! blockId(%d)"
+          + " sizeBytes(%d)", blockId, initialBytes));
+    }
+    mTempBlockLocation.put(new Pair<Long, Long>(userId, blockId), storageDir);
+    mUserIdToTempBlockIds.put(userId, blockId);
+    storageDir.updateTempBlockAllocatedBytes(userId, blockId, initialBytes);
+
+    return storageDir.getUserTempFilePath(userId, blockId);
   }
 
   /**
