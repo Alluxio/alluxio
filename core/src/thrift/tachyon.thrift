@@ -64,7 +64,7 @@ enum CommandType {
   Unknown = 0,
   Nothing = 1,
   Register = 2,   	// Ask the worker to re-register.
-  Free = 3,			// Ask the worker to free files.
+  Free = 3,		// Ask the worker to free files.
   Delete = 4,		// Ask the worker to delete files.
 }
 
@@ -133,41 +133,29 @@ service MasterService {
 
   // Services to Workers
   /**
-   * Worker register and synch up capacity of cache space, used space bytes and blocks in each
-   * storage directory to master. 
-   * 
-   * @param workerNetAddress address of the worker
-   * @param totalBytes the capacity of the cache space
-   * @param usedBytes the used space size in bytes
-   * @param currentBlocks mapping from id of storage directory to the blocks it contains
-   * @return value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
+   * Worker register and synch up capacity of Tachyon space, used space bytes and blocks in each
+   * storage directory to master, the return value rv % 100,000 is really workerId, rv / 1000,000
+   * is master started time. currentBlocks maps from id of storage directory to the blocks it
+   * contains.
    */
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes,
       4: map<i64, list<i64>> currentBlocks)
     throws (1: BlockInfoException e)
 
   /**
-   * Heart beat between worker and master, worker update used bytes, removed blocks and added
-   * blocks in each storage directory by eviction and promotion to master
-   * 
-   * @param workerId the id of the worker
-   * @param usedBytes the used space size in bytes
-   * @param removedBlockIds list of the blocks that is removed from Tachyon cache space
-   * @param addedBlockIds mapping from id of storage directory to the blocks added in it
-   * @return the command from master to worker
+   * Heart beat between worker and master, worker update used Tachyon space in bytes, removed
+   * blocks and added blocks in each storage directory by eviction and promotion to master, and
+   * return the command from master to worker. addedBlockIds maps from id of storage directory
+   * to the blocks added in it.
    */
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlockIds,
       4: map<i64, list<i64>> addedBlockIds)
     throws (1: BlockInfoException e)
 
   /**
-   * Update information of the block newly cached to master.
-   *
-   * @param workerId the id of the worker
-   * @param workerUsedBytes the used space size in bytes
-   * @param storageDirId the id of the storage directory in which the block is
-   * @param blockId the id of the block
-   * @param length the size of the block in bytes
+   * Update information of the block newly cached to master, including used Tachyon space size in
+   * bytes, the id of the storage directory in which the block is, the id of the block and the size
+   * of the block in bytes.
    */
   void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 storageDirId,
       4: i64 blockId, 5: i64 length)
@@ -288,9 +276,9 @@ service WorkerService {
     throws (1: TachyonException e)
 
   /**
-   * Used to cache a block into Tachyon's cache space, worker will move the temporary block file
-   * from user folder to data folder, and update the space usage information related. then update
-   * the block information to master. 
+   * Used to cache a block into Tachyon space, worker will move the temporary block file from user
+   * folder to data folder, and update the space usage information related. then update the block
+   * information to master. 
    */
   void cacheBlock(1: i64 userId, 2: i64 blockId)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
@@ -303,35 +291,35 @@ service WorkerService {
   void cancelBlock(1: i64 userId, 2: i64 blockId)
 
   /**
-   * Used to allocate location and space for a new coming block, worker will choose the appropriate
-   * storage directory which fits the initial block size by some allocation strategy, and the
-   * temporary file path of the block file will be returned. if there is no enough space on Tachyon
-   * storage OutOfSpaceException will be thrown, if the file is already being written by the user,
-   * FileAlreadyExistException will be thrown.
-   */
-  string getBlockLocation(1: i64 userId, 2: i64 blockId, 3: i64 initialBytes)
-    throws (1: OutOfSpaceException eP, 2: FileAlreadyExistException eS)
-
-  /**
    * Used to get user's temporary folder on under file system, and the path of the user's temporary
    * folder will be returned.
    */
   string getUserUfsTempFolder(1: i64 userId)
 
   /**
-   * Lock the file in Tachyon's cache space while the user is reading it, and the path of the block
-   * file locked will be returned, if the block file is not found, FileDoesNotExistException will
-   * be thrown.
+   * Lock the file in Tachyon's space while the user is reading it, and the path of the block file
+   * locked will be returned, if the block file is not found, FileDoesNotExistException will be
+   * thrown.
    */
   string lockBlock(1: i64 blockId, 2: i64 userId)
     throws (1: FileDoesNotExistException eP)
 
   /**
    * Used to promote block on under storage layer to top storage layer when there are more than one
-   * storage layers in Tachyon's cache space. return true if the block is successfully promoted,
-   * false otherwise.
+   * storage layers in Tachyon's space. return true if the block is successfully promoted, false
+   * otherwise.
    */
   bool promoteBlock(1: i64 userId, 2: i64 blockId)
+
+  /**
+   * Used to allocate location and space for a new coming block, worker will choose the appropriate
+   * storage directory which fits the initial block size by some allocation strategy, and the
+   * temporary file path of the block file will be returned. if there is no enough space on Tachyon
+   * storage OutOfSpaceException will be thrown, if the file is already being written by the user,
+   * FileAlreadyExistException will be thrown.
+   */
+  string requestBlockLocation(1: i64 userId, 2: i64 blockId, 3: i64 initialBytes)
+    throws (1: OutOfSpaceException eP, 2: FileAlreadyExistException eS)
 
   /**
    * Used to request space for some block file. return true if the worker successfully allocates

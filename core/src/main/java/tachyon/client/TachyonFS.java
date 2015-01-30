@@ -621,16 +621,16 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Create a user local temporary folder in some StorageDir
+   * Get block's temporary path from worker with initial space allocated.
    * 
    * @param the id of the block
    * @param the initial bytes allocated for the block file
    * @return the temporary path of the block file
    * @throws IOException
    */
-  public synchronized String getLocalBlockLocation(long blockId, long initialBytes)
+  public synchronized String getLocalBlockTemporaryPath(long blockId, long initialBytes)
       throws IOException {
-    String blockPath = mWorkerClient.getBlockLocation(blockId, initialBytes);
+    String blockPath = mWorkerClient.requestBlockLocation(blockId, initialBytes);
 
     File localTempFolder;
     try {
@@ -876,7 +876,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * 
    * @param blockId the id of the block that space will be allocated for
    * @param requestSpaceBytes size to request in bytes
-   * @return the size bytes that allocated to the block
+   * @return the size bytes that allocated to the block, -1 if no local worker exists
    * @throws IOException
    */
   public synchronized long requestSpace(long blockId, long requestSpaceBytes)

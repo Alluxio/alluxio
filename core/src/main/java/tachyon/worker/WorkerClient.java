@@ -266,29 +266,6 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Get temporary path for the block from the worker
-   * 
-   * @param blockId The id of the block
-   * @param initialBytes The initial size bytes allocated for the block
-   * @return the temporary path of the block
-   * @throws IOException
-   */
-  public synchronized String getBlockLocation(long blockId, long initialBytes) throws IOException {
-    mustConnect();
-
-    try {
-      return mClient.getBlockLocation(mMasterClient.getUserId(), blockId, initialBytes);
-    } catch (OutOfSpaceException e) {
-      throw new IOException(e);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  /**
    * Get the user temporary folder in the under file system of the specified user.
    * 
    * @return The user temporary folder in the under file system
@@ -375,6 +352,30 @@ public class WorkerClient implements Closeable {
 
     try {
       return mClient.promoteBlock(mMasterClient.getUserId(), blockId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  /**
+   * Get temporary path for the block from the worker
+   * 
+   * @param blockId The id of the block
+   * @param initialBytes The initial size bytes allocated for the block
+   * @return the temporary path of the block
+   * @throws IOException
+   */
+  public synchronized String requestBlockLocation(long blockId, long initialBytes)
+      throws IOException {
+    mustConnect();
+
+    try {
+      return mClient.requestBlockLocation(mMasterClient.getUserId(), blockId, initialBytes);
+    } catch (OutOfSpaceException e) {
+      throw new IOException(e);
+    } catch (FileAlreadyExistException e) {
+      throw new IOException(e);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

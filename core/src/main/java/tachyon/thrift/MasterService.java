@@ -43,8 +43,10 @@ public class MasterService {
     public List<ClientFileInfo> liststatus(String path) throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException;
 
     /**
-     * Worker register.
-     * @return value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
+     * Worker register and synch up capacity of Tachyon space, used space bytes and blocks in each
+     * storage directory to master, the return value rv % 100,000 is really workerId, rv / 1000,000
+     * is master started time. currentBlocks maps from id of storage directory to the blocks it
+     * contains.
      * 
      * @param workerNetAddress
      * @param totalBytes
@@ -53,8 +55,30 @@ public class MasterService {
      */
     public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes, Map<Long,List<Long>> currentBlocks) throws BlockInfoException, org.apache.thrift.TException;
 
+    /**
+     * Heart beat between worker and master, worker update used Tachyon space in bytes, removed
+     * blocks and added blocks in each storage directory by eviction and promotion to master, and
+     * return the command from master to worker. addedBlockIds maps from id of storage directory
+     * to the blocks added in it.
+     * 
+     * @param workerId
+     * @param usedBytes
+     * @param removedBlockIds
+     * @param addedBlockIds
+     */
     public Command worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlockIds, Map<Long,List<Long>> addedBlockIds) throws BlockInfoException, org.apache.thrift.TException;
 
+    /**
+     * Update information of the block newly cached to master, including used Tachyon space size in
+     * bytes, the id of the storage directory in which the block is, the id of the block and the size
+     * of the block in bytes.
+     * 
+     * @param workerId
+     * @param workerUsedBytes
+     * @param storageDirId
+     * @param blockId
+     * @param length
+     */
     public void worker_cacheBlock(long workerId, long workerUsedBytes, long storageDirId, long blockId, long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException;
 
     public Set<Integer> worker_getPinIdList() throws org.apache.thrift.TException;
@@ -104,6 +128,13 @@ public class MasterService {
      */
     public List<ClientBlockInfo> user_getFileBlocks(int fileId, String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
+    /**
+     * Delete file
+     * 
+     * @param fileId
+     * @param path
+     * @param recursive
+     */
     public boolean user_delete(int fileId, String path, boolean recursive) throws TachyonException, org.apache.thrift.TException;
 
     public boolean user_rename(int fileId, String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;

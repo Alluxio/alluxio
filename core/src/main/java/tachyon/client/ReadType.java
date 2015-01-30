@@ -29,7 +29,8 @@ public enum ReadType {
   CACHE(2),
 
   /**
-   * Read the file and promote it back to top StorageTier
+   * If the block is on local Tachyon space but not on top storage layer, promote the block to top
+   * storage layer after reading.
    */
   CACHE_PROMOTE(3);
 

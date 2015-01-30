@@ -80,12 +80,6 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public String getBlockLocation(long userId, long blockId, long initialBytes)
-      throws OutOfSpaceException, FileAlreadyExistException, TException {
-    return mWorkerStorage.getBlockLocation(userId, blockId, initialBytes);
-  }
-
-  @Override
   public String getUserUfsTempFolder(long userId) throws TException {
     return mWorkerStorage.getUserUfsTempFolder(userId);
   }
@@ -103,6 +97,12 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   @Override
   public boolean promoteBlock(long userId, long blockId) throws TException {
     return mWorkerStorage.promoteBlock(userId, blockId);
+  }
+
+  @Override
+  public String requestBlockLocation(long userId, long blockId, long initialBytes)
+      throws OutOfSpaceException, FileAlreadyExistException, TException {
+    return mWorkerStorage.requestBlockLocation(userId, blockId, initialBytes);
   }
 
   @Override

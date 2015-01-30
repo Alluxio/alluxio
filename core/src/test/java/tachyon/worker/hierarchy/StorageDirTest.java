@@ -131,8 +131,10 @@ public class StorageDirTest {
     requestSrc = mSrcDir.requestSpace(USER_ID, CAPACITY / 2 + 1);
     Assert.assertFalse(requestSrc);
     Assert.assertEquals(CAPACITY / 2, mSrcDir.getUsedBytes());
+    Assert.assertEquals(CAPACITY / 2, mSrcDir.getUserOwnBytes(USER_ID));
     Assert.assertEquals(CAPACITY / 2, mSrcDir.getAvailableBytes());
     mSrcDir.returnSpace(USER_ID, CAPACITY / 2);
     Assert.assertEquals(CAPACITY, mSrcDir.getAvailableBytes());
+    Assert.assertEquals(0, mSrcDir.getUserOwnBytes(USER_ID));
   }
 }
