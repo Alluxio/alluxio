@@ -4,16 +4,14 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 
-package tachyon;
+package tachyon.underfs.hdfs;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,13 +34,17 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
+import tachyon.Constants;
 import tachyon.conf.CommonConf;
+import tachyon.conf.MasterConf;
+import tachyon.conf.WorkerConf;
 import tachyon.hadoop.Utils;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * HDFS UnderFilesystem implementation.
  */
-public class UnderFileSystemHdfs extends UnderFileSystem {
+public class HdfsUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
 
@@ -52,15 +54,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   private static final FsPermission PERMISSION = new FsPermission((short) 0777)
       .applyUMask(FsPermission.createImmutable((short) 0000));
 
-  public static UnderFileSystemHdfs getClient(String path) {
-    return new UnderFileSystemHdfs(path, null);
-  }
-
-  public static UnderFileSystemHdfs getClient(String path, Object conf) {
-    return new UnderFileSystemHdfs(path, conf);
-  }
-
-  private UnderFileSystemHdfs(String fsDefaultName, Object conf) {
+  public HdfsUnderFileSystem(String fsDefaultName, Object conf) {
     mUfsPrefix = fsDefaultName;
     Configuration tConf;
     if (conf != null) {
@@ -251,14 +245,14 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     // as Tachyon can load/store data out of entire HDFS cluster
     if (mFs instanceof DistributedFileSystem) {
       switch (type) {
-        case SPACE_TOTAL:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
-        case SPACE_USED:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
-        case SPACE_FREE:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
-        default:
-          throw new IOException("Unknown getSpace parameter: " + type);
+      case SPACE_TOTAL:
+        return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
+      case SPACE_USED:
+        return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
+      case SPACE_FREE:
+        return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
+      default:
+        throw new IOException("Unknown getSpace parameter: " + type);
       }
     }
     return -1;
@@ -285,8 +279,28 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
   }
 
-  public void login(String keytabFileKey, String keytabFile, String principalKey, String principal,
-      String hostname) throws IOException {
+  @Override
+  public void connectFromMaster(String host) throws IOException {
+    MasterConf mConf = MasterConf.get();
+    if (mConf.KEYTAB == null || mConf.PRINCIPAL == null) {
+      return;
+    }
+
+    this.login(mConf.KEYTAB_KEY, mConf.KEYTAB, mConf.PRINCIPAL_KEY, mConf.PRINCIPAL, host);
+  }
+
+  @Override
+  public void connectFromWorker(String host) throws IOException {
+    WorkerConf wConf = WorkerConf.get();
+    if (wConf.KEYTAB == null || wConf.PRINCIPAL == null) {
+      return;
+    }
+
+    this.login(wConf.KEYTAB_KEY, wConf.KEYTAB, wConf.PRINCIPAL_KEY, wConf.PRINCIPAL, host);
+  }
+
+  public void login(String keytabFileKey, String keytabFile, String principalKey,
+      String principal, String hostname) throws IOException {
     Configuration conf = new Configuration();
     conf.set(keytabFileKey, keytabFile);
     conf.set(principalKey, principal);

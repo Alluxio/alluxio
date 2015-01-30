@@ -15,7 +15,7 @@
  * 
  * <h3>Checkpoint</h3>
  * 
- * The act of moving temporary data into accessible data on {@link tachyon.UnderFileSystem}. This is
+ * The act of moving temporary data into accessible data on {@link tachyon.underfs.UnderFileSystem}. This is
  * triggered by {@link tachyon.client.WriteType#isThrough()} operations.
  * 
  * Implementation can be found at {@link tachyon.worker.WorkerStorage#addCheckpoint(long, int)}

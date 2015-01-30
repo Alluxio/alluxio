@@ -20,8 +20,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.UnderFileSystem;
 import tachyon.conf.CommonConf;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * Unit tests for <code>tachyon.hadoop.GlusterFS</code>.

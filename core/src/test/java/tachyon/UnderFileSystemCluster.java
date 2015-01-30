@@ -18,6 +18,7 @@ import java.io.IOException;
 
 import com.google.common.base.Throwables;
 
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 public abstract class UnderFileSystemCluster {

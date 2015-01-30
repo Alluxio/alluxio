@@ -33,12 +33,11 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystemHdfs;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.thrift.MasterService;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
@@ -186,20 +185,13 @@ public class TachyonMaster {
     return mZookeeperMode;
   }
 
-  private void login() throws IOException {
-    MasterConf mConf = MasterConf.get();
-    if (mConf.KEYTAB == null || mConf.PRINCIPAL == null) {
-      return;
-    }
+  private void connect() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS);
-    if (ufs instanceof UnderFileSystemHdfs) {
-      ((UnderFileSystemHdfs) ufs).login(mConf.KEYTAB_KEY, mConf.KEYTAB, mConf.PRINCIPAL_KEY,
-          mConf.PRINCIPAL, NetworkUtils.getFqdnHost(mMasterAddress));
-    }
+    ufs.connectFromMaster(NetworkUtils.getFqdnHost(mMasterAddress));
   }
 
   private void setup() throws IOException, TTransportException {
-    login();
+    connect();
     if (mZookeeperMode) {
       mEditLogProcessor.stop();
     }
