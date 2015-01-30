@@ -28,11 +28,11 @@ import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.

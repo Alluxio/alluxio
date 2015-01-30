@@ -55,8 +55,6 @@ import tachyon.PrefixList;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystem.SpaceType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
@@ -75,6 +73,8 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.underfs.UnderFileSystem;
+import tachyon.underfs.UnderFileSystem.SpaceType;
 import tachyon.util.CommonUtils;
 
 /**

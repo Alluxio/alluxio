@@ -34,7 +34,6 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.io.Utils;
 import tachyon.thrift.BlockInfoException;
@@ -44,6 +43,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
