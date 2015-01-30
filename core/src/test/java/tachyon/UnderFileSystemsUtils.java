@@ -17,9 +17,10 @@ package tachyon;
 import java.io.IOException;
 
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
 
 /**
- * Utility functions for working with {@link tachyon.UnderFileSystem}.
+ * Utility functions for working with {@link tachyon.underfs.UnderFileSystem}.
  * 
  * TODO May move this to non-testing code.
  */

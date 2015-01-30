@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.underfs.local;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.conf.TachyonConf;
+import tachyon.Constants;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 
@@ -34,14 +36,10 @@ import tachyon.util.NetworkUtils;
  * 
  * This only works for single machine. It is for local unit test and single machine mode.
  */
-public class UnderFileSystemSingleLocal extends UnderFileSystem {
-
-  protected UnderFileSystemSingleLocal(TachyonConf tachyonConf) {
-    super(tachyonConf);
-  }
-
-  public static UnderFileSystem getClient(TachyonConf tachyonConf) {
-    return new UnderFileSystemSingleLocal(tachyonConf);
+public class SingleMachineLocalUnderFileSystem extends UnderFileSystem {
+  
+  public SingleMachineLocalUnderFileSystem(TachyonConf conf) {
+    super(conf);
   }
 
   @Override
@@ -197,5 +195,15 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {
     CommonUtils.changeLocalFilePermission(path, posixPerm);
+  }
+
+  @Override
+  public void connectFromMaster(TachyonConf conf, String hostname) throws IOException {
+    // No-op
+  }
+  
+  @Override
+  public void connectFromWorker(TachyonConf conf, String hostname) throws IOException {
+    // No-op
   }
 }
