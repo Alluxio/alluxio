@@ -36,7 +36,6 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
@@ -45,7 +44,11 @@ import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
+
 import tachyon.thrift.InvalidPathException;
+
+import tachyon.underfs.UnderFileSystem;
+
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
@@ -195,7 +198,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Update the latest block access time on the worker.
    * 
-   * @param blockId the local block's id
+   * @param blockId
+   *          the local block's id
    * @throws IOException
    */
   synchronized void accessLocalBlock(long blockId) throws IOException {
@@ -207,7 +211,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Notify the worker that the checkpoint file of the file mFileId has been added.
    * 
-   * @param fid the file id
+   * @param fid
+   *          the file id
    * @throws IOException
    */
   synchronized void addCheckpoint(int fid) throws IOException {
@@ -217,7 +222,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Notify the worker to checkpoint the file asynchronously
    * 
-   * @param fid the file id
+   * @param fid
+   *          the file id
    * @return true if succeed, false otherwise
    * @throws IOException
    */
@@ -228,7 +234,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Notify the worker the block is cached.
    * 
-   * @param blockId the block id
+   * @param blockId
+   *          the block id
    * @throws IOException
    */
   public synchronized void cacheBlock(long blockId) throws IOException {
@@ -238,7 +245,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Notify the worker the block is canceled.
    * 
-   * @param blockId the block id
+   * @param blockId
+   *          the block id
    * @throws IOException
    */
   public synchronized void cancelBlock(long blockId) throws IOException {
@@ -262,7 +270,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * The file is complete.
    * 
-   * @param fid the file id
+   * @param fid
+   *          the file id
    * @throws IOException
    */
   synchronized void completeFile(int fid) throws IOException {
@@ -272,7 +281,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Create a user UnderFileSystem temporary folder and return it
    * 
-   * @param ufsConf the configuration of UnderFileSystem
+   * @param ufsConf
+   *          the configuration of UnderFileSystem
    * @return the UnderFileSystem temporary folder
    * @throws IOException
    */
@@ -294,15 +304,19 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Create a Dependency
    * 
-   * @param parents the dependency's input files
-   * @param children the dependency's output files
+   * @param parents
+   *          the dependency's input files
+   * @param children
+   *          the dependency's output files
    * @param commandPrefix
    * @param data
    * @param comment
    * @param framework
    * @param frameworkVersion
-   * @param dependencyType the dependency's type, Wide or Narrow
-   * @param childrenBlockSizeByte the block size of the dependency's output files
+   * @param dependencyType
+   *          the dependency's type, Wide or Narrow
+   * @param childrenBlockSizeByte
+   *          the block size of the dependency's output files
    * @return the dependency's id
    * @throws IOException
    */
@@ -316,11 +330,15 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Creates a new file in the file system.
    * 
-   * @param path The path of the file
-   * @param ufsPath The path of the file in the under file system. If this is empty, the file does
-   *        not exist in the under file system yet.
-   * @param blockSizeByte The size of the block in bytes. It is -1 iff ufsPath is non-empty.
-   * @param recursive Creates necessary parent folders if true, not otherwise.
+   * @param path
+   *          The path of the file
+   * @param ufsPath
+   *          The path of the file in the under file system. If this is empty, the file does
+   *          not exist in the under file system yet.
+   * @param blockSizeByte
+   *          The size of the block in bytes. It is -1 iff ufsPath is non-empty.
+   * @param recursive
+   *          Creates necessary parent folders if true, not otherwise.
    * @return The file id, which is globally unique.
    */
   @Override
@@ -335,9 +353,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * Create a file with the default block size (1GB) in the system. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
    * 
-   * @param path the path of the file
+   * @param path
+   *          the path of the file
    * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException If file already exists, or path is invalid.
+   * @throws IOException
+   *           If file already exists, or path is invalid.
    */
   @Deprecated
   public synchronized int createFile(String path) throws IOException {
@@ -347,8 +367,10 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Create a RawTable and return its id
    * 
-   * @param path the RawTable's path
-   * @param columns number of columns it has
+   * @param path
+   *          the RawTable's path
+   * @param columns
+   *          number of columns it has
    * @return the id if succeed, -1 otherwise
    * @throws IOException
    */
@@ -359,9 +381,12 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Create a RawTable and return its id
    * 
-   * @param path the RawTable's path
-   * @param columns number of columns it has
-   * @param metadata the meta data of the RawTable
+   * @param path
+   *          the RawTable's path
+   * @param columns
+   *          number of columns it has
+   * @param metadata
+   *          the meta data of the RawTable
    * @return the id if succeed, -1 otherwise
    * @throws IOException
    */
@@ -380,11 +405,14 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Deletes a file or folder
    * 
-   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
-   *        Otherwise, the method uses the path parameter.
-   * @param path The path of the file / folder. It could be empty iff id is not -1.
-   * @param recursive If fileId or path represents a non-empty folder, delete the folder recursively
-   *        or not
+   * @param fileId
+   *          The id of the file / folder. If it is not -1, path parameter is ignored.
+   *          Otherwise, the method uses the path parameter.
+   * @param path
+   *          The path of the file / folder. It could be empty iff id is not -1.
+   * @param recursive
+   *          If fileId or path represents a non-empty folder, delete the folder recursively
+   *          or not
    * @return true if deletes successfully, false otherwise.
    * @throws IOException
    */
@@ -398,8 +426,10 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Delete the file denoted by the path.
    * 
-   * @param path the file path
-   * @param recursive if delete the path recursively.
+   * @param path
+   *          the file path
+   * @param recursive
+   *          if delete the path recursively.
    * @return true if the deletion succeed (including the case that the path does not exist in the
    *         first place), false otherwise.
    * @throws IOException
@@ -412,7 +442,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Return whether the file exists or not
    * 
-   * @param path the file's path in Tachyon file system
+   * @param path
+   *          the file's path in Tachyon file system
    * @return true if it exists, false otherwise
    * @throws IOException
    */
@@ -424,10 +455,13 @@ public class TachyonFS extends AbstractTachyonFS {
    * Get the block id by the file id and block index. it will check whether the file and the block
    * exist.
    * 
-   * @param fileId the file id
-   * @param blockIndex The index of the block in the file.
+   * @param fileId
+   *          the file id
+   * @param blockIndex
+   *          The index of the block in the file.
    * @return the block id if exists
-   * @throws IOException if the file does not exist, or connection issue.
+   * @throws IOException
+   *           if the file does not exist, or connection issue.
    */
   public synchronized long getBlockId(int fileId, int blockIndex) throws IOException {
     ClientFileInfo info = getFileStatus(fileId, true);
@@ -453,7 +487,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get a ClientBlockInfo by blockId
    * 
-   * @param blockId the id of the block
+   * @param blockId
+   *          the id of the block
    * @return the ClientBlockInfo of the specified block
    * @throws IOException
    */
@@ -464,7 +499,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get a ClientDependencyInfo by the dependency id
    * 
-   * @param depId the dependency id
+   * @param depId
+   *          the dependency id
    * @return the ClientDependencyInfo of the specified dependency
    * @throws IOException
    */
@@ -479,7 +515,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * such as the pinned flag. This is also different from the behavior of getFile(path), which by
    * default will not use cached metadata.
    * 
-   * @param fid file id.
+   * @param fid
+   *          file id.
    * @return TachyonFile of the file id, or null if the file does not exist.
    */
   public synchronized TachyonFile getFile(int fid) throws IOException {
@@ -503,7 +540,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
    * 
-   * @param path file path.
+   * @param path
+   *          file path.
    * @return TachyonFile of the path, or null if the file does not exist.
    * @throws IOException
    */
@@ -515,7 +553,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
    * 
-   * @param path file path.
+   * @param path
+   *          file path.
    * @return TachyonFile of the path, or null if the file does not exist.
    * @throws IOException
    */
@@ -551,7 +590,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get all the blocks' info of the file
    * 
-   * @param fid the file id
+   * @param fid
+   *          the file id
    * @return the list of the blocks' info
    * @throws IOException
    */
@@ -563,7 +603,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get file id by the path. It will check if the path exists.
    * 
-   * @param path the path in Tachyon file system
+   * @param path
+   *          the path in Tachyon file system
    * @return the file id if exists, -1 otherwise
    */
   public synchronized int getFileId(TachyonURI path) {
@@ -578,11 +619,16 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Gets file status.
    * 
-   * @param cache ClientFileInfo cache.
-   * @param key the key in the cache.
-   * @param fileId the id of the queried file. If it is -1, uses path.
-   * @param path the path of the queried file. If fielId is not -1, this parameter is ignored.
-   * @param useCachedMetaData whether to use the cached data or not.
+   * @param cache
+   *          ClientFileInfo cache.
+   * @param key
+   *          the key in the cache.
+   * @param fileId
+   *          the id of the queried file. If it is -1, uses path.
+   * @param path
+   *          the path of the queried file. If fielId is not -1, this parameter is ignored.
+   * @param useCachedMetaData
+   *          whether to use the cached data or not.
    * @return the clientFileInfo.
    * @throws IOException
    */
@@ -616,9 +662,12 @@ public class TachyonFS extends AbstractTachyonFS {
    * 
    * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
    * 
-   * @param fileId the file id of the file or folder.
-   * @param path the path of the file or folder. valid iff fileId is -1.
-   * @param useCachedMetadata if true use the local cached meta data
+   * @param fileId
+   *          the file id of the file or folder.
+   * @param path
+   *          the path of the file or folder. valid iff fileId is -1.
+   * @param useCachedMetadata
+   *          if true use the local cached meta data
    * @return the ClientFileInfo of the file. null if the file does not exist.
    * @throws IOException
    */
@@ -642,8 +691,10 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get ClientFileInfo object based on fileId.
    * 
-   * @param fileId the file id of the file or folder.
-   * @param useCachedMetadata if true use the local cached meta data
+   * @param fileId
+   *          the file id of the file or folder.
+   * @param useCachedMetadata
+   *          if true use the local cached meta data
    * @return the ClientFileInfo of the file. null if the file does not exist.
    * @throws IOException
    */
@@ -686,7 +737,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get the RawTable by id
    * 
-   * @param id the id of the raw table
+   * @param id
+   *          the id of the raw table
    * @return the RawTable
    * @throws IOException
    */
@@ -698,7 +750,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get the RawTable by path
    * 
-   * @param path the path of the raw table
+   * @param path
+   *          the path of the raw table
    * @return the RawTable
    * @throws IOException
    */
@@ -776,7 +829,8 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * @param fid the file id
+   * @param fid
+   *          the file id
    * @return true if the file is a directory, false otherwise
    */
   synchronized boolean isDirectory(int fid) {
@@ -787,7 +841,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
    * <code>path</code> is a file, return its ClientFileInfo.
    * 
-   * @param path the target directory/file path
+   * @param path
+   *          the target directory/file path
    * @return A list of ClientFileInfo, null if the file or folder does not exist.
    * @throws IOException
    */
@@ -800,9 +855,11 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Lock a block in the current TachyonFS.
    * 
-   * @param blockId The id of the block to lock. <code>blockId</code> must be positive.
-   * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
-   *        non-negative.
+   * @param blockId
+   *          The id of the block to lock. <code>blockId</code> must be positive.
+   * @param blockLockId
+   *          The block lock id of the block of lock. <code>blockLockId</code> must be
+   *          non-negative.
    * @return the path of the block file locked
    * @throws IOException
    */
@@ -834,8 +891,10 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Creates a folder.
    * 
-   * @param path the path of the folder to be created
-   * @param recursive Creates necessary parent folders if true, not otherwise.
+   * @param path
+   *          the path of the folder to be created
+   * @param recursive
+   *          Creates necessary parent folders if true, not otherwise.
    * @return true if the folder is created successfully or already existing. false otherwise.
    * @throws IOException
    */
@@ -853,11 +912,14 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Frees in memory file or folder
    *
-   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
-   *        Otherwise, the method uses the path parameter.
-   * @param path The path of the file / folder. It could be empty iff id is not -1.
-   * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
-   *        or not
+   * @param fileId
+   *          The id of the file / folder. If it is not -1, path parameter is ignored.
+   *          Otherwise, the method uses the path parameter.
+   * @param path
+   *          The path of the file / folder. It could be empty iff id is not -1.
+   * @param recursive
+   *          If fileId or path represents a non-empty folder, free the folder recursively
+   *          or not
    * @return true if in-memory free successfully, false otherwise.
    * @throws IOException
    */
@@ -871,7 +933,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Promote block file back to the top StorageTier, after the block file is accessed.
    * 
-   * @param blockId the id of the block
+   * @param blockId
+   *          the id of the block
    * @return true if success, false otherwise
    * @throws IOException
    */
@@ -885,10 +948,13 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Renames a file or folder to another path.
    * 
-   * @param fileId The id of the source file / folder. If it is not -1, path parameter is ignored.
-   *        Otherwise, the method uses the srcPath parameter.
-   * @param srcPath The path of the source file / folder. It could be empty iff id is not -1.
-   * @param dstPath The path of the destination file / folder. It could be empty iff id is not -1.
+   * @param fileId
+   *          The id of the source file / folder. If it is not -1, path parameter is ignored.
+   *          Otherwise, the method uses the srcPath parameter.
+   * @param srcPath
+   *          The path of the source file / folder. It could be empty iff id is not -1.
+   * @param dstPath
+   *          The path of the destination file / folder. It could be empty iff id is not -1.
    * @return true if renames successfully, false otherwise.
    * @throws IOException
    */
@@ -903,7 +969,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Report the lost file to master
    * 
-   * @param fileId the lost file id
+   * @param fileId
+   *          the lost file id
    * @throws IOException
    */
   public synchronized void reportLostFile(int fileId) throws IOException {
@@ -913,7 +980,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Request the dependency's needed files
    * 
-   * @param depId the dependency id
+   * @param depId
+   *          the dependency id
    * @throws IOException
    */
   public synchronized void requestFilesInDependency(int depId) throws IOException {
@@ -923,14 +991,15 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Try to request space for certain block. Only works when a local worker exists.
    * 
-   * @param blockId the id of the block that space will be allocated for
-   * @param requestSpaceBytes size to request in bytes
+   * @param blockId
+   *          the id of the block that space will be allocated for
+   * @param requestSpaceBytes
+   *          size to request in bytes
    * @return the size bytes that allocated to the block, -1 if no local worker exists
    * @throws IOException
    */
   public synchronized long requestSpace(long blockId, long requestSpaceBytes)
       throws IOException {
-
     if (!hasLocalWorker()) {
       return -1;
     }
@@ -971,9 +1040,11 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Unlock a block in the current TachyonFS.
    * 
-   * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
-   * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
-   *        non-negative.
+   * @param blockId
+   *          The id of the block to unlock. <code>blockId</code> must be positive.
+   * @param blockLockId
+   *          The block lock id of the block of unlock. <code>blockLockId</code> must be
+   *          non-negative.
    */
   synchronized boolean unlockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
@@ -1006,8 +1077,10 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Update the RawTable's meta data
    * 
-   * @param id the raw table's id
-   * @param metadata the new meta data
+   * @param id
+   *          the raw table's id
+   * @param metadata
+   *          the new meta data
    * @throws IOException
    */
   public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata) throws IOException {
@@ -1017,7 +1090,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Validates the given uri, throwing an IOException if the uri is invalid.
    * 
-   * @param uri The uri to validate
+   * @param uri
+   *          The uri to validate
    */
   private void validateUri(TachyonURI uri) throws IOException {
     if (uri == null || (!uri.isPathAbsolute() && !TachyonURI.EMPTY_URI.equals(uri))

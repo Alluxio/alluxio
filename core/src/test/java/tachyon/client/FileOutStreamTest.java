@@ -26,10 +26,10 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * Unit tests for <code>tachyon.client.FileOutStream</code>.

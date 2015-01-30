@@ -28,7 +28,6 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
@@ -36,6 +35,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * Test master journal, including image and edit log. Most tests will test edit log first, followed

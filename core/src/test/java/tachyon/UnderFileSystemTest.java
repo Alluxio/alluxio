@@ -19,6 +19,8 @@ import org.junit.Before;
 import org.junit.Test;
 import tachyon.conf.TachyonConf;
 
+import tachyon.underfs.UnderFileSystem;
+
 /**
  * Unit tests for {@link UnderFileSystem}
  */
