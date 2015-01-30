@@ -10,8 +10,9 @@ public class SingleMachineLocalUnderFileSystemFactory implements UnderFileSystem
 
   @Override
   public boolean supportsPath(String path) {
-    if (path == null)
+    if (path == null) {
       return false;
+    }
     return path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://");
   }
 
