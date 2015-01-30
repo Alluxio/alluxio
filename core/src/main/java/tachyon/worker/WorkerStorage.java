@@ -4,9 +4,7 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -46,7 +44,6 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
-import tachyon.UnderFileSystem;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
@@ -59,6 +56,7 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.hierarchy.StorageDir;
@@ -387,7 +385,8 @@ public class WorkerStorage {
    * This method is normally triggered from {@link tachyon.client.FileOutStream#close()} if and only
    * if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
    * checkpointing is that through {@link tachyon.client.WriteType} operations write to
-   * {@link tachyon.UnderFileSystem} on the client's write path, but under a user temp directory
+   * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a user temp
+   * directory
    * (temp directory is defined in the worker as {@link #getUserUfsTempFolder(long)}).
    *
    * @param userId The user id of the client who send the notification
@@ -628,14 +627,16 @@ public class WorkerStorage {
 
   /**
    * Get the user temporary folder in the under file system of the specified user.
-   *
+   * <p>
    * This method is a wrapper around {@link tachyon.Users#getUserUfsTempFolder(long)}, and as such
    * should be referentially transparent with {@link Users#getUserUfsTempFolder(long)}. In the
    * context of {@code this}, this call will output the result of path concat of
    * {@link #mUfsWorkerFolder} with the provided {@literal userId}.
-   *
+   * </p>
+   * <p>
    * This temp folder generated lives inside the {@link tachyon.UnderFileSystem}, and as such, will
    * be stored remotely, most likely on disk.
+   * </p>
    *
    * @param userId The id of the user
    * @return The user temporary folder in the under file system
@@ -752,7 +753,7 @@ public class WorkerStorage {
    * If the block is not on top StorageTier, promote block to top StorageTier
    *
    * @param blockId the id of the block
-   * @return true if success, false otherwise
+   * @return true if block is promoted, false otherwise
    */
   public boolean promoteBlock(long blockId) {
     final long userId = Users.MIGRATE_DATA_USER_ID;
@@ -975,9 +976,11 @@ public class WorkerStorage {
    * read a block ({@link tachyon.client.TachyonFile#readByteBuffer(int)}), the client will attempt
    * to cache the block on the local users's node, while the user is reading from the local block,
    * the given block is locked and unlocked once read.
-   * 
-   * @param blockId The id of the block
-   * @param userId The id of the user who unlocks the block
+   *
+   * @param blockId
+   *          The id of the block
+   * @param userId
+   *          The id of the user who unlocks the block
    * @return true if success, false otherwise
    */
   public boolean unlockBlock(long blockId, long userId) {
@@ -995,7 +998,8 @@ public class WorkerStorage {
   /**
    * Handle the user's heartbeat.
    * 
-   * @param userId The id of the user
+   * @param userId
+   *          The id of the user
    */
   public void userHeartbeat(long userId) {
     mUsers.userHeartbeat(userId);

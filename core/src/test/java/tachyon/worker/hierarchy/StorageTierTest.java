@@ -28,9 +28,9 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
 

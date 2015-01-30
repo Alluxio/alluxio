@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<fileset-config file-format-version="1.2.0" simple-config="false" sync-formatter="false">
+  <local-check-config name="maven-checkstyle-plugin checkstyle" location="file:/Users/rvesse/Documents/Work/Code/tachyon/build/checkstyle/tachyon_checks.xml" type="remote" description="maven-checkstyle-plugin configuration checkstyle">
+    <property name="checkstyle.cache.file" value="${project_loc}/target/checkstyle-cachefile"/>
+    <property name="checkstyle.suppressions.file" value="/Users/rvesse/Documents/Work/Code/tachyon/underfs/hdfs/target/checkstyle-suppressions-checkstyle.xml"/>
+  </local-check-config>
+  <fileset name="java-sources-checkstyle" enabled="true" check-config-name="maven-checkstyle-plugin checkstyle" local="true">
+    <file-match-pattern match-pattern="src/main/java/.*\.java" include-pattern="true"/>
+    <file-match-pattern match-pattern="src/main/java.*.*tachyon/thrift/.*" include-pattern="false"/>
+    <file-match-pattern match-pattern="src/main/resources/.*\.properties" include-pattern="true"/>
+    <file-match-pattern match-pattern="src/test/resources/.*\.properties" include-pattern="true"/>
+  </fileset>
+</fileset-config>
