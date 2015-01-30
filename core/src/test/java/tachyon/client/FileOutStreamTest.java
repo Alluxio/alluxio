@@ -24,10 +24,10 @@ import org.junit.Test;
 
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystemCluster;
 import tachyon.conf.UserConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.underfs.UnderFileSystemCluster;
 
 /**
  * Unit tests for <code>tachyon.client.FileOutStream</code>.

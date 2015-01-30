@@ -22,13 +22,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
 import tachyon.Constants;
-import tachyon.UnderFileSystemCluster;
-import tachyon.UnderFileSystemsUtils;
 import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
+import tachyon.underfs.UnderFileSystemCluster;
+import tachyon.underfs.UnderFileSystemsUtils;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 
@@ -157,7 +157,7 @@ public final class LocalTachyonMaster {
   /**
    * Stops the master and cleans up client connections.
    * 
-   * This method will not clean up {@link tachyon.UnderFileSystemsUtils} data. To do that you must
+   * This method will not clean up {@link tachyon.underfs.UnderFileSystemsUtils} data. To do that you must
    * call {@link #cleanupUnderfs()}.
    */
   public void stop() throws Exception {
