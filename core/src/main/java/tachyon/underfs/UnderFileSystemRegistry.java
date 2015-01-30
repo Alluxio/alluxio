@@ -15,17 +15,18 @@ import tachyon.Constants;
 public class UnderFileSystemRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static final List<UnderFileSystemFactory> factories =
+  private static final List<UnderFileSystemFactory> FACTORIES =
       new ArrayList<UnderFileSystemFactory>();
-  private static boolean init = false;
+  private static boolean sInit = false;
 
   static {
     init();
   }
 
   static synchronized void init() {
-    if (init)
+    if (sInit) {
       return;
+    }
 
     ServiceLoader<UnderFileSystemFactory> discoverableFactories =
         ServiceLoader.load(UnderFileSystemFactory.class);
@@ -34,10 +35,10 @@ public class UnderFileSystemRegistry {
       UnderFileSystemFactory factory = iter.next();
       LOG.debug("Discovered Under File System Factory implementation {} - {}", factory.getClass(),
           factory.toString());
-      factories.add(factory);
+      FACTORIES.add(factory);
     }
 
-    init = true;
+    sInit = true;
   }
 
   /**
@@ -54,12 +55,13 @@ public class UnderFileSystemRegistry {
    *          Factory to add
    */
   public static void add(UnderFileSystemFactory factory) {
-    if (factory == null)
+    if (factory == null) {
       return;
+    }
 
     LOG.debug("Registered Under File System Factory implementation {} - {}", factory.getClass(),
         factory.toString());
-    factories.add(0, factory);
+    FACTORIES.add(0, factory);
   }
 
   /**
@@ -69,12 +71,13 @@ public class UnderFileSystemRegistry {
    *          Factory to remove
    */
   public static void remove(UnderFileSystemFactory factory) {
-    if (factory == null)
+    if (factory == null) {
       return;
+    }
 
     LOG.debug("Unregistered Under File System Factory implementation {} - {}", factory.getClass(),
         factory.toString());
-    factories.remove(factory);
+    FACTORIES.remove(factory);
   }
 
   /**
@@ -87,7 +90,7 @@ public class UnderFileSystemRegistry {
   public static UnderFileSystemFactory find(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    for (UnderFileSystemFactory factory : factories) {
+    for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path)) {
         LOG.debug("Selected Under File System Factory implementation {} for path {}",
             factory.getClass(), path);
@@ -113,9 +116,10 @@ public class UnderFileSystemRegistry {
   public static UnderFileSystem create(String path, Object conf) {
     // Try to obtain the appropriate factory
     UnderFileSystemFactory factory = find(path);
-    if (factory == null)
+    if (factory == null) {
       throw new IllegalArgumentException(String.format(
           "No known Under File System supports the given path %s", path));
+    }
 
     // Use the factory to create the actual client for the Under File System
     return factory.create(path, conf);

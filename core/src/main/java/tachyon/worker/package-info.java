@@ -15,8 +15,8 @@
  * 
  * <h3>Checkpoint</h3>
  * 
- * The act of moving temporary data into accessible data on {@link tachyon.underfs.UnderFileSystem}. This is
- * triggered by {@link tachyon.client.WriteType#isThrough()} operations.
+ * The act of moving temporary data into accessible data on {@link tachyon.underfs.UnderFileSystem}.
+ * This is triggered by {@link tachyon.client.WriteType#isThrough()} operations.
  * 
  * Implementation can be found at {@link tachyon.worker.WorkerStorage#addCheckpoint(long, int)}
  * 
@@ -49,10 +49,12 @@
  * two different types: read
  * {@link tachyon.worker.nio.DataServerMessage#createBlockRequestMessage(long, long, long)} and
  * write
- * {@link tachyon.worker.nio.DataServerMessage#createBlockResponseMessage(boolean, long, long,
- * long)}.
+ * {@link tachyon.worker.nio.DataServerMessage#createBlockResponseMessage(boolean, 
+ * long, long, long)}
+ * .
  * Side note, the netty implementation does not use this class, but has defined two classes for
  * the read and write case: {@link tachyon.worker.netty.BlockRequest},
  * {@link tachyon.worker.netty.BlockResponse}; theses classes are network compatible.
  */
 package tachyon.worker;
+
