@@ -12,13 +12,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon;
+package tachyon.underfs;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import tachyon.conf.TachyonConf;
 
+import tachyon.Pair;
+import tachyon.TachyonURI;
 import tachyon.underfs.UnderFileSystem;
 
 /**
