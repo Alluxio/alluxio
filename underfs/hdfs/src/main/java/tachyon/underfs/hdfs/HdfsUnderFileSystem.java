@@ -57,44 +57,13 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     super(tachyonConf);
     mUfsPrefix = fsDefaultName;
     Configuration tConf;
-    if (conf != null) {
-      tConf = new Configuration((Configuration) conf);
+    if (conf != null && conf instanceof Configuration) {
+      tConf = (Configuration) conf;
     } else {
       tConf = new Configuration();
     }
-    String glusterfsPrefix = "glusterfs:///";
-    tConf.set("fs.defaultFS", fsDefaultName);
-    if (fsDefaultName.startsWith(glusterfsPrefix)) {
-      String gfsImpl =
-          mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_IMPL,
-              "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
-      String gfsMrDir =
-          mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR, "glusterfs:///mapred/system");
-      String gfsVolumes = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null);
-      String gfsMounts = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null);
 
-      if (tConf.get("fs.glusterfs.impl") == null) {
-        tConf.set("fs.glusterfs.impl", gfsImpl);
-      }
-      if (tConf.get("mapred.system.dir") == null) {
-        tConf.set("mapred.system.dir", gfsMrDir);
-      }
-      if (tConf.get("fs.glusterfs.volumes") == null) {
-        tConf.set("fs.glusterfs.volumes", gfsVolumes);
-        tConf.set("fs.glusterfs.volume.fuse." + gfsVolumes, gfsMounts);
-      }
-    } else {
-      String ufsHdfsImpl =
-          mTachyonConf.get(Constants.UNDERFS_HDFS_IMPL,
-              "org.apache.hadoop.hdfs.DistributedFileSystem");
-      tConf.set("fs.hdfs.impl", ufsHdfsImpl);
-
-      // To disable the instance cache for hdfs client, otherwise it causes the
-      // FileSystem closed exception. Being configurable for unit/integration
-      // test only, and not expose to the end-user currently.
-      tConf.set("fs.hdfs.impl.disable.cache",
-          System.getProperty("fs.hdfs.impl.disable.cache", "false"));
-    }
+    prepareConfiguration(fsDefaultName, tachyonConf, tConf);
 
     Utils.addS3Credentials(tConf);
 
@@ -105,6 +74,33 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       LOG.error("Exception thrown when trying to get FileSystem for " + mUfsPrefix, e);
       throw Throwables.propagate(e);
     }
+  }
+
+  /**
+   * Prepares the Hadoop configuration necessary to successfully obtain a {@link FileSystem}
+   * instance that can access the provided path
+   * <p>
+   * Derived implementations that work with specialised Hadoop {@linkplain FileSystem} API
+   * compatible implementations can override this method to add implementation specific
+   * configuration necessary for obtaining a usable {@linkplain FileSystem} instance.
+   * </p>
+   * 
+   * @param path
+   *          File system path
+   * @param config
+   *          Hadoop Configuration
+   */
+  protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
+    String ufsHdfsImpl =
+        mTachyonConf.get(Constants.UNDERFS_HDFS_IMPL,
+            "org.apache.hadoop.hdfs.DistributedFileSystem");
+    config.set("fs.hdfs.impl", ufsHdfsImpl);
+
+    // To disable the instance cache for hdfs client, otherwise it causes the
+    // FileSystem closed exception. Being configurable for unit/integration
+    // test only, and not expose to the end-user currently.
+    config.set("fs.hdfs.impl.disable.cache",
+        System.getProperty("fs.hdfs.impl.disable.cache", "false"));
   }
 
   @Override
@@ -322,7 +318,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         workerPrincipal, host);
   }
 
-  public void login(String keytabFileKey, String keytabFile, String principalKey,
+  private void login(String keytabFileKey, String keytabFile, String principalKey,
       String principal, String hostname) throws IOException {
     Configuration conf = new Configuration();
     conf.set(keytabFileKey, keytabFile);
