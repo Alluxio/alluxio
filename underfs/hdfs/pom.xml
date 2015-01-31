@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.tachyonproject</groupId>
@@ -8,12 +9,75 @@
   <artifactId>tachyon-underfs-hdfs</artifactId>
   <name>Tachyon Under File System - HDFS</name>
   <description>HDFS Under File System implementation</description>
-  
+
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon</artifactId>
       <version>${project.version}</version>
     </dependency>
+    
+    <!-- Test Dependencies -->
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon</artifactId>
+      <version>${project.version}</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>hdfsTest</id>
+      <activation>
+        <property>
+          <name>test.profile</name>
+          <value>hdfs</value>
+        </property>
+      </activation>
+      <properties>
+        <ufs>tachyon.LocalMiniDFSCluster</ufs>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-minicluster</artifactId>
+          <version>${hadoop.version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>asm</groupId>
+              <artifactId>asm</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.18.1</version>
+            <configuration>
+              <dependenciesToScan>
+                <dependency>org.tachyonproject:tachyon</dependency>
+              </dependenciesToScan>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
