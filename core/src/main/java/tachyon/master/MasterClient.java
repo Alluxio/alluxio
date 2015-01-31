@@ -802,14 +802,10 @@ public final class MasterClient implements Closeable {
   /**
    * Register the worker to the master.
    * 
-   * @param workerNetAddress
-   *          Worker's NetAddress
-   * @param totalBytes
-   *          Worker's capacity
-   * @param usedBytes
-   *          Worker's used storage
-   * @param currentBlockList
-   *          Blocks in worker's space.
+   * @param workerNetAddress Worker's NetAddress
+   * @param totalBytes Worker's capacity
+   * @param usedBytes Worker's used storage
+   * @param currentBlockList Blocks in worker's space.
    * @return the worker id assigned by the master.
    * @throws BlockInfoException
    * @throws TException
