@@ -57,27 +57,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   public HdfsUnderFileSystem(String fsDefaultName, Object conf) {
     mUfsPrefix = fsDefaultName;
     Configuration tConf;
-    if (conf != null) {
+    if (conf != null && conf instanceof Configuration) {
       tConf = (Configuration) conf;
     } else {
       tConf = new Configuration();
     }
-    String glusterfsPrefix = "glusterfs:///";
-    if (fsDefaultName.startsWith(glusterfsPrefix)) {
-      tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
-      tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
-      tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
-      tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
-          CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
-    } else {
-      tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
-
-      // To disable the instance cache for hdfs client, otherwise it causes the
-      // FileSystem closed exception. Being configurable for unit/integration
-      // test only, and not expose to the end-user currently.
-      tConf.set("fs.hdfs.impl.disable.cache",
-          System.getProperty("fs.hdfs.impl.disable.cache", "false"));
-    }
+    prepareConfiguration(fsDefaultName, tConf);
 
     Utils.addS3Credentials(tConf);
 
@@ -88,6 +73,30 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       LOG.error("Exception thrown when trying to get FileSystem for " + mUfsPrefix, e);
       throw Throwables.propagate(e);
     }
+  }
+
+  /**
+   * Prepares the Hadoop configuration necessary to successfully obtain a {@link FileSystem}
+   * instance that can access the provided path
+   * <p>
+   * Derived implementations that work with specialised Hadoop {@linkplain FileSystem} API
+   * compatible implementations can override this method to add implementation specific
+   * configuration necessary for obtaining a usable {@linkplain FileSystem} instance.
+   * </p>
+   * 
+   * @param path
+   *          File system path
+   * @param config
+   *          Hadoop Configuration
+   */
+  protected void prepareConfiguration(String path, Configuration config) {
+    config.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
+
+    // To disable the instance cache for hdfs client, otherwise it causes the
+    // FileSystem closed exception. Being configurable for unit/integration
+    // test only, and not expose to the end-user currently.
+    config.set("fs.hdfs.impl.disable.cache",
+        System.getProperty("fs.hdfs.impl.disable.cache", "false"));
   }
 
   @Override
@@ -299,7 +308,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     this.login(wConf.KEYTAB_KEY, wConf.KEYTAB, wConf.PRINCIPAL_KEY, wConf.PRINCIPAL, host);
   }
 
-  public void login(String keytabFileKey, String keytabFile, String principalKey,
+  private void login(String keytabFileKey, String keytabFile, String principalKey,
       String principal, String hostname) throws IOException {
     Configuration conf = new Configuration();
     conf.set(keytabFileKey, keytabFile);
