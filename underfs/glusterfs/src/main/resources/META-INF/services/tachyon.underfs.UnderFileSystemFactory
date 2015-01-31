@@ -1,1 +1,1 @@
-tachyon.underfs.hdfs.GlusterFSUnderFileSystemFactory
+tachyon.underfs.glusterfs.GlusterFSUnderFileSystemFactory
