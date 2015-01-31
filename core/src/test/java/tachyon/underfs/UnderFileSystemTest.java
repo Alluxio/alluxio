@@ -4,9 +4,7 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -16,6 +14,7 @@ package tachyon.underfs;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Assume;
 import org.junit.Test;
 import tachyon.conf.TachyonConf;
 
@@ -76,27 +75,46 @@ public final class UnderFileSystemTest {
     Assert.assertEquals(UnderFileSystem.parse(TachyonURI.EMPTY_URI, mTachyonConf), null);
     Assert.assertEquals(UnderFileSystem.parse(new TachyonURI("anythingElse"), mTachyonConf), null);
   }
-  
+
   @Test
-  public void factoryTest() {
+  public void coreFactoryTest() {
     // Supported in core
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/test/path");
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/test/path", mTachyonConf);
     Assert.assertNotNull("A UnderFileSystemFactory should exist for local file paths", factory);
-    
-    factory = UnderFileSystemRegistry.find("file:///test/path");
+
+    factory = UnderFileSystemRegistry.find("file:///test/path", mTachyonConf);
     Assert.assertNotNull("A UnderFileSystemFactory should exist for local file paths", factory);
-    
+  }
+
+  @Test
+  public void externalFactoryTest() {
+    // As we are going to use some Maven trickery to re-use the test cases as is in the external
+    // modules this test needs to assume that only the core implementations are present as otherwise
+    // when we try and run it in the external modules it will fail
+    // In core there is only one under file system implementation, if there are any more we aren't
+    // running in core
+    Assume.assumeTrue(UnderFileSystemRegistry.available().size() == 1);
+
     // Requires additional modules
-    factory = UnderFileSystemRegistry.find("hdfs://localhost/test/path");
-    Assert.assertNull("No UnderFileSystemFactory should exist for HDFS paths as it requires a separate module", factory);
-    
-    factory = UnderFileSystemRegistry.find("s3://localhost/test/path");
-    Assert.assertNull("No UnderFileSystemFactory should exist for S3 paths as it requires a separate module", factory);
-    
-    factory = UnderFileSystemRegistry.find("s3n://localhost/test/path");
-    Assert.assertNull("No UnderFileSystemFactory should exist for S3 paths as it requires a separate module", factory);
-    
-    factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path");
-    Assert.assertNull("No UnderFileSystemFactory should exist for Gluster FS paths as it requires a separate module", factory);
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("hdfs://localhost/test/path", mTachyonConf);
+    Assert.assertNull(
+        "No UnderFileSystemFactory should exist for HDFS paths as it requires a separate module",
+        factory);
+
+    factory = UnderFileSystemRegistry.find("s3://localhost/test/path", mTachyonConf);
+    Assert.assertNull(
+        "No UnderFileSystemFactory should exist for S3 paths as it requires a separate module",
+        factory);
+
+    factory = UnderFileSystemRegistry.find("s3n://localhost/test/path", mTachyonConf);
+    Assert.assertNull(
+        "No UnderFileSystemFactory should exist for S3 paths as it requires a separate module",
+        factory);
+
+    factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mTachyonConf);
+    Assert
+        .assertNull(
+            "No UnderFileSystemFactory should exist for Gluster FS paths as it requires a separate module",
+            factory);
   }
 }

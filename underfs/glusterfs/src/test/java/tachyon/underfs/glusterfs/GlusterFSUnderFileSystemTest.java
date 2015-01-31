@@ -56,7 +56,7 @@ public class GlusterFSUnderFileSystemTest {
   
   @Test
   public void factoryTest() {
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path");
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mTachyonConf);
     Assert.assertNotNull("A UnderFileSystemFactory should exist for Gluster FS paths when using this module", factory);
   }
 }
