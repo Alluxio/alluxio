@@ -67,4 +67,27 @@ public final class UnderFileSystemTest {
     Assert.assertEquals(UnderFileSystem.parse(TachyonURI.EMPTY_URI), null);
     Assert.assertEquals(UnderFileSystem.parse(new TachyonURI("anythingElse")), null);
   }
+  
+  @Test
+  public void factoryTest() {
+    // Supported in core
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/test/path");
+    Assert.assertNotNull("A UnderFileSystemFactory should exist for local file paths", factory);
+    
+    factory = UnderFileSystemRegistry.find("file:///test/path");
+    Assert.assertNotNull("A UnderFileSystemFactory should exist for local file paths", factory);
+    
+    // Requires additional modules
+    factory = UnderFileSystemRegistry.find("hdfs://localhost/test/path");
+    Assert.assertNull("No UnderFileSystemFactory should exist for HDFS paths as it requires a separate module", factory);
+    
+    factory = UnderFileSystemRegistry.find("s3://localhost/test/path");
+    Assert.assertNull("No UnderFileSystemFactory should exist for S3 paths as it requires a separate module", factory);
+    
+    factory = UnderFileSystemRegistry.find("s3n://localhost/test/path");
+    Assert.assertNull("No UnderFileSystemFactory should exist for S3 paths as it requires a separate module", factory);
+    
+    factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path");
+    Assert.assertNull("No UnderFileSystemFactory should exist for Gluster FS paths as it requires a separate module", factory);
+  }
 }
