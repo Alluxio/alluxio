@@ -42,7 +42,7 @@ public class BlockOutStream extends OutStream {
   private final long mBlockId;
   private final long mBlockOffset;
   private final boolean mPin;
-  private final Closer mCloser = Closer.create(); 
+  private final Closer mCloser = Closer.create();
 
   private long mInFileBytes = 0;
   private long mWrittenBytes = 0;
@@ -197,15 +197,13 @@ public class BlockOutStream extends OutStream {
       throw new IOException("Out of capacity.");
     }
 
-    if (mBuffer.position() + len >= mUserConf.FILE_BUFFER_BYTES) {
-      if (mBuffer.position() > 0) {
-        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-        mBuffer.clear();
-      }
+    if (mBuffer.position() + len >= mUserConf.FILE_BUFFER_BYTES && mBuffer.position() > 0) {
+      appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
+      mBuffer.clear();
+    }
 
-      if (len > 0) {
-        appendCurrentBuffer(b, off, len);
-      }
+    if (len >= mUserConf.FILE_BUFFER_BYTES) {
+      appendCurrentBuffer(b, off, len);
     } else {
       mBuffer.put(b, off, len);
     }
