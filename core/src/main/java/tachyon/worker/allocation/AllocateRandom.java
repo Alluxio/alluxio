@@ -26,22 +26,17 @@ public class AllocateRandom extends AllocateStrategyBase {
   private Random mRandm = new Random(System.currentTimeMillis());
 
   @Override
-  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestSizeBytes) {
-    StorageDir availableDir = null;
+  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestBytes) {
     int i = mRandm.nextInt(storageDirs.length);
     for (int j = 0; j < storageDirs.length; j ++, i ++) {
-      if (i == storageDirs.length) {
-        i = 0;
-      }
+      i = i % storageDirs.length;
       StorageDir dir = storageDirs[i];
-      if (dir.getAvailableBytes() >= requestSizeBytes) {
-        availableDir = dir;
-        if (availableDir.requestSpace(userId, requestSizeBytes)) {
-          break;
+      if (dir.getAvailableBytes() >= requestBytes) {
+        if (dir.requestSpace(userId, requestBytes)) {
+          return dir;
         }
       }
     }
-    return availableDir;
+    return null;
   }
 }
-
