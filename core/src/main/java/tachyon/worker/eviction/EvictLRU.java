@@ -50,28 +50,26 @@ public final class EvictLRU extends EvictLRUBase {
       // Get oldest block in StorageDir candidates
       Pair<StorageDir, Long> candidate =
           getLRUBlockCandidate(storageDirs, dir2LRUBlocks, dir2BlocksToEvict, pinList);
-      StorageDir dirCandidate = candidate.getFirst();
-      long blockId = candidate.getSecond();
-      long blockSize = 0;
-      if (dirCandidate == null) {
+      StorageDir dir = candidate.getFirst();
+      if (dir == null) {
         return null;
-      } else {
-        blockSize = dirCandidate.getBlockSize(blockId);
       }
+      long blockId = candidate.getSecond();
+      long blockSize = dir.getBlockSize(blockId);
       // Add info of the block to the list
-      blockInfoList.add(new BlockInfo(dirCandidate, blockId, blockSize));
-      dir2BlocksToEvict.put(dirCandidate, blockId);
-      dir2LRUBlocks.remove(dirCandidate);
-      long evictionBytes;
+      blockInfoList.add(new BlockInfo(dir, blockId, blockSize));
+      dir2BlocksToEvict.put(dir, blockId);
+      dir2LRUBlocks.remove(dir);
+      long evictBytes;
       // Update eviction size for this StorageDir
-      if (sizeToEvict.containsKey(dirCandidate)) {
-        evictionBytes = sizeToEvict.get(dirCandidate) + blockSize;
+      if (sizeToEvict.containsKey(dir)) {
+        evictBytes = sizeToEvict.get(dir) + blockSize;
       } else {
-        evictionBytes = blockSize;
+        evictBytes = blockSize;
       }
-      sizeToEvict.put(dirCandidate, evictionBytes);
-      if (evictionBytes + dirCandidate.getAvailableBytes() >= requestBytes) {
-        return new Pair<StorageDir, List<BlockInfo>>(dirCandidate, blockInfoList);
+      sizeToEvict.put(dir, evictBytes);
+      if (evictBytes + dir.getAvailableBytes() >= requestBytes) {
+        return new Pair<StorageDir, List<BlockInfo>>(dir, blockInfoList);
       }
     }
   }

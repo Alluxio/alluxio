@@ -28,9 +28,7 @@ public class AllocateRR extends AllocateStrategyBase {
       long requestSizeBytes) {
     StorageDir availableDir = null;
     for (int j = 0; j < storageDirs.length; mDirIndex ++, j ++) {
-      if (mDirIndex == storageDirs.length) {
-        mDirIndex = 0;
-      }
+      mDirIndex = mDirIndex % storageDirs.length;
       if (storageDirs[mDirIndex].getAvailableBytes() >= requestSizeBytes) {
         availableDir = storageDirs[mDirIndex];
         mDirIndex ++;
