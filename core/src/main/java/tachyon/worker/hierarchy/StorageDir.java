@@ -62,7 +62,7 @@ public final class StorageDir {
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
   /** List of to be removed block Ids */
   private final Set<Long> mToRemoveBlockIdSet = Collections.synchronizedSet(new HashSet<Long>());
-  /** Space counter of current StorageDir */
+  /** Space counter of the StorageDir */
   private final SpaceCounter mSpaceCounter;
   /** Id of StorageDir */
   private final long mStorageDirId;
@@ -151,7 +151,7 @@ public final class StorageDir {
   }
 
   /**
-   * Move the cached block file from user temporary directory to data directory
+   * Move the cached block file from user temporary folder to data folder
    * 
    * @param userId the id of the user
    * @param blockId the id of the block
@@ -165,12 +165,12 @@ public final class StorageDir {
 
     if (!mFs.exists(srcPath) || allocatedBytes == null) {
       cancelBlock(userId, blockId);
-      throw new IOException("Block file doesn't exist! blockId:" + blockId);
+      throw new IOException("Block file doesn't exist! blockId:" + blockId + " " + srcPath);
     }
     long blockSize = mFs.getFileSize(srcPath);
     if (blockSize < 0) {
       cancelBlock(userId, blockId);
-      throw new IOException("Negative size of block! blockId:" + blockId);
+      throw new IOException("Negative block size! blockId:" + blockId);
     }
     returnSpace(userId, allocatedBytes - blockSize);
     if (mFs.rename(srcPath, dstPath)) {
@@ -227,7 +227,7 @@ public final class StorageDir {
   }
 
   /**
-   * Check whether current StorageDir contains certain block
+   * Check whether the StorageDir contains certain block
    * 
    * @param blockId Id of the block
    * @return true if StorageDir contains the block, false otherwise
@@ -237,7 +237,7 @@ public final class StorageDir {
   }
 
   /**
-   * Copy block file from current StorageDir to another StorageDir
+   * Copy block file from this StorageDir to another StorageDir
    * 
    * @param blockId Id of the block
    * @param dstDir destination StorageDir
@@ -263,8 +263,7 @@ public final class StorageDir {
       CommonUtils.cleanDirectBuffer(buffer);
     }
     if (copySuccess) {
-      long accessTime = mLastBlockAccessTimeMs.get(blockId);
-      dstDir.addBlock(blockId, size, accessTime, true);
+      dstDir.addBlock(blockId, size, mLastBlockAccessTimeMs.get(blockId), true);
     }
     return copySuccess;
   }

@@ -36,7 +36,6 @@ import tachyon.util.CommonUtils;
  * BlockHandler for files on LocalFS, such as RamDisk, SSD and HDD.
  */
 public final class BlockHandlerLocal extends BlockHandler {
-
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final RandomAccessFile mLocalFile;
@@ -96,25 +95,23 @@ public final class BlockHandlerLocal extends BlockHandler {
   }
 
   @Override
-  public ByteBuffer read(long blockOffset, int length) throws IOException {
+  public ByteBuffer read(long offset, int length) throws IOException {
     long fileLength = mLocalFile.length();
     String error = null;
-    if (blockOffset > fileLength) {
+    if (offset > fileLength) {
+      error = String.format("offset(%d) is larger than file length(%d)", offset, fileLength);
+    } else if (length != -1 && offset + length > fileLength) {
       error =
-          String.format("blockOffset(%d) is larger than file length(%d)", blockOffset, fileLength);
-    }
-    if (error == null && length != -1 && blockOffset + length > fileLength) {
-      error =
-          String.format("blockOffset(%d) plus length(%d) is larger than file length(%d)",
-              blockOffset, length, fileLength);
+          String.format("offset(%d) plus length(%d) is larger than file length(%d)", offset,
+              length, fileLength);
     }
     if (error != null) {
       throw new IllegalArgumentException(error);
     }
     if (length == -1) {
-      length = (int) (fileLength - blockOffset);
+      length = (int) (fileLength - offset);
     }
-    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, blockOffset, length);
+    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
     return buf;
   }
 }
