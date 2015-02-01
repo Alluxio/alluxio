@@ -48,7 +48,7 @@ import tachyon.worker.BlockHandler;
 import tachyon.worker.SpaceCounter;
 
 /**
- * Used to store and manage block files in storage's directory on different under file systems.
+ * Stores and manages block files in storage's directory in different storage systems.
  */
 public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -66,11 +66,11 @@ public final class StorageDir {
   private final SpaceCounter mSpaceCounter;
   /** Id of StorageDir */
   private final long mStorageDirId;
-  /** Path of the data in current StorageDir */
-  private final TachyonURI mDataPath;
-  /** Root path of the current StorageDir */
+  /** Root path of the StorageDir */
   private final TachyonURI mDirPath;
-  /** Path of user temporary directory in current StorageDir */
+  /** Path of the data in the StorageDir */
+  private final TachyonURI mDataPath;
+  /** Path of user temporary directory in the StorageDir */
   private final TachyonURI mUserTempPath;
   /** Under file system of current StorageDir */
   private final UnderFileSystem mFs;
@@ -91,22 +91,22 @@ public final class StorageDir {
   /**
    * Create a new StorageDir.
    * 
-   * @param storageDirId id of StorageDir
-   * @param dirPath root path of StorageDir
-   * @param capacityBytes capacity of StorageDir in bytes
-   * @param dataFolder data folder in current StorageDir
-   * @param userTempFolder temporary folder for users in current StorageDir
-   * @param conf configuration of under file system
+   * @param storageDirId the id of the StorageDir
+   * @param dirPath the root path of the StorageDir
+   * @param capacityBytes the capacity of the StorageDir in bytes
+   * @param dataFolder the data folder in the StorageDir
+   * @param userTempFolder the temporary folder for users in the StorageDir
+   * @param conf the configuration of the under file system
    */
   StorageDir(long storageDirId, String dirPath, long capacityBytes, String dataFolder,
       String userTempFolder, Object conf) {
-    mDirPath = new TachyonURI(dirPath);
-    mConf = conf;
-    mFs = UnderFileSystem.get(dirPath, conf);
-    mSpaceCounter = new SpaceCounter(capacityBytes);
     mStorageDirId = storageDirId;
+    mDirPath = new TachyonURI(dirPath);
+    mSpaceCounter = new SpaceCounter(capacityBytes);
     mDataPath = mDirPath.join(dataFolder);
     mUserTempPath = mDirPath.join(userTempFolder);
+    mConf = conf;
+    mFs = UnderFileSystem.get(dirPath, conf);
   }
 
   /**
@@ -121,26 +121,26 @@ public final class StorageDir {
   }
 
   /**
-   * Add information of a block in current StorageDir
+   * Adds a block into the dir.
    * 
-   * @param blockId Id of the block
-   * @param sizeBytes size of the block in bytes
-   * @param need to be reported During heart beat with master
+   * @param blockId the Id of the block
+   * @param sizeBytes the size of the block in bytes
+   * @param report need to be reported during heartbeat with master
    */
-  private void addBlockId(long blockId, long sizeBytes, boolean report) {
-    addBlockId(blockId, sizeBytes, System.currentTimeMillis(), report);
+  private void addBlock(long blockId, long sizeBytes, boolean report) {
+    addBlock(blockId, sizeBytes, System.currentTimeMillis(), report);
   }
 
   /**
-   * Add information of a block in current StorageDir
+   * Adds a block into the dir.
    * 
    * @param blockId Id of the block
    * @param sizeBytes size of the block in bytes
-   * @param accessTime access time of the block
+   * @param accessTimeMs access time of the block in millisecond.
    * @param report whether need to be reported During heart beat with master
    */
-  private void addBlockId(long blockId, long sizeBytes, long accessTime, boolean report) {
-    mLastBlockAccessTimeMs.put(blockId, accessTime);
+  private void addBlock(long blockId, long sizeBytes, long accessTimeMs, boolean report) {
+    mLastBlockAccessTimeMs.put(blockId, accessTimeMs);
     if (mBlockSizes.containsKey(blockId)) {
       mSpaceCounter.returnUsedBytes(mBlockSizes.remove(blockId));
     }
@@ -174,7 +174,7 @@ public final class StorageDir {
     }
     returnSpace(userId, allocatedBytes - blockSize);
     if (mFs.rename(srcPath, dstPath)) {
-      addBlockId(blockId, blockSize, false);
+      addBlock(blockId, blockSize, false);
       updateUserOwnBytes(userId, -blockSize);
       return true;
     } else {
@@ -264,7 +264,7 @@ public final class StorageDir {
     }
     if (copySuccess) {
       long accessTime = mLastBlockAccessTimeMs.get(blockId);
-      dstDir.addBlockId(blockId, size, accessTime, true);
+      dstDir.addBlock(blockId, size, accessTime, true);
     }
     return copySuccess;
   }
@@ -582,7 +582,7 @@ public final class StorageDir {
         long blockId = CommonUtils.getBlockIdFromFileName(name);
         boolean success = mSpaceCounter.requestSpaceBytes(fileSize);
         if (success) {
-          addBlockId(blockId, fileSize, true);
+          addBlock(blockId, fileSize, true);
         } else {
           mFs.delete(path, true);
           throw new RuntimeException("Pre-existing files exceed storage capacity.");

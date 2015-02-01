@@ -70,7 +70,7 @@ public class Format {
           + System.currentTimeMillis());
     } else if (args[0].toUpperCase().equals("WORKER")) {
       WorkerConf workerConf = WorkerConf.get();
-      for (int level = 0; level < workerConf.MAX_HIERARCHY_STORAGE_LEVEL; level ++) {
+      for (int level = 0; level < workerConf.STORAGE_LEVELS; level ++) {
         String[] dirPaths = workerConf.STORAGE_TIER_DIRS[level].split(",");
         for (int i = 0; i < dirPaths.length; i ++) {
           String dataPath = CommonUtils.concat(dirPaths[i].trim(), workerConf.DATA_FOLDER);

@@ -294,7 +294,7 @@ public class WorkerStorage {
 
   private final ExecutorService mExecutorService;
   private long mCapacityBytes;
-  private StorageTier[] mStorageTiers;
+  private ArrayList<StorageTier> mStorageTiers;
   private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
   /** Mapping from temporary block Information to StorageDir in which the block is */
@@ -661,20 +661,23 @@ public class WorkerStorage {
    * @throws IOException
    */
   public void initializeStorageTier() throws IOException {
-    mStorageTiers = new StorageTier[WorkerConf.get().MAX_HIERARCHY_STORAGE_LEVEL];
+    mStorageTiers = new ArrayList<StorageTier>(WorkerConf.get().STORAGE_LEVELS);
+    for (int k = 0; k < WorkerConf.get().STORAGE_LEVELS; k ++) {
+      mStorageTiers.add(null);
+    }
     StorageTier nextStorageTier = null;
-    for (int level = mStorageTiers.length - 1; level >= 0; level --) {
+    for (int level = WorkerConf.get().STORAGE_LEVELS - 1; level >= 0; level --) {
       if (WorkerConf.get().STORAGE_TIER_DIRS[level] == null) {
         throw new IOException("No directory path is set for layer " + level);
+      }
+      if (WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level] == null) {
+        throw new IOException("No directory quota is set for layer " + level);
       }
       String[] dirPaths = WorkerConf.get().STORAGE_TIER_DIRS[level].split(",");
       for (int i = 0; i < dirPaths.length; i ++) {
         dirPaths[i] = dirPaths[i].trim();
       }
       StorageLevelAlias alias = WorkerConf.get().STORAGE_LEVEL_ALIAS[level];
-      if (WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level] == null) {
-        throw new IOException("No directory quota is set for layer " + level);
-      }
       String[] dirCapacityStrings = WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level].split(",");
       long[] dirCapacities = new long[dirPaths.length];
       for (int i = 0, j = 0; i < dirPaths.length; i ++) {
@@ -684,13 +687,13 @@ public class WorkerStorage {
           j ++;
         }
       }
-      StorageTier curStorageTier =
+      StorageTier curTier =
           new StorageTier(level, alias, dirPaths, dirCapacities, mDataFolder, mUserFolder,
               nextStorageTier, null); // TODO add conf for UFS
-      curStorageTier.initialize();
-      mCapacityBytes += curStorageTier.getCapacityBytes();
-      mStorageTiers[level] = curStorageTier;
-      nextStorageTier = curStorageTier;
+      curTier.initialize();
+      mCapacityBytes += curTier.getCapacityBytes();
+      mStorageTiers.set(level, curTier);
+      nextStorageTier = curTier;
     }
   }
 
@@ -730,7 +733,7 @@ public class WorkerStorage {
     if (storageDir == null) {
       return false;
     } else if (StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId())
-        != mStorageTiers[0].getStorageLevelAlias().getValue()) {
+        != mStorageTiers.get(0).getAlias().getValue()) {
       long blockSize = storageDir.getBlockSize(blockId);
       StorageDir dstStorageDir = requestSpace(null, userId, blockSize);
       if (dstStorageDir == null) {
@@ -839,17 +842,16 @@ public class WorkerStorage {
       pinList = new HashSet<Integer>();
     }
 
-    StorageDir storageDir = null;
+    StorageDir dir = null;
     List<Long> removedBlockIds = new ArrayList<Long>();
     try {
       if (dirCandidate == null) {
         // if StorageDir candidate is not set, request space from all available StorageDirs
-        storageDir = 
-            mStorageTiers[0].requestSpace(userId, requestBytes, pinList, removedBlockIds);
+        dir = mStorageTiers.get(0).requestSpace(userId, requestBytes, pinList, removedBlockIds);
       } else { // request space from the StorageDir specified
-        if (mStorageTiers[0].requestSpace(dirCandidate, userId, requestBytes, pinList,
+        if (mStorageTiers.get(0).requestSpace(dirCandidate, userId, requestBytes, pinList,
             removedBlockIds)) {
-          storageDir = dirCandidate;
+          dir = dirCandidate;
         }
       }
     } catch (IOException e) {
@@ -860,7 +862,7 @@ public class WorkerStorage {
       }
     }
 
-    return storageDir;
+    return dir;
   }
 
   /**
@@ -877,8 +879,7 @@ public class WorkerStorage {
       throws FileDoesNotExistException {
     StorageDir storageDir = mTempBlockLocation.get(new Pair<Long, Long>(userId, blockId));
     if (storageDir == null) {
-      throw new FileDoesNotExistException(
-          "Temporary block file doesn't exist! blockId:" + blockId);
+      throw new FileDoesNotExistException("Temporary block file doesn't exist! blockId:" + blockId);
     }
 
     if (storageDir == requestSpace(storageDir, userId, requestBytes)) {

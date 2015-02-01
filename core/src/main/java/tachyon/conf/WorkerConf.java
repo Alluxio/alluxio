@@ -83,7 +83,7 @@ public class WorkerConf extends Utils {
   public final EvictStrategyType EVICT_STRATEGY_TYPE;
   public final AllocateStrategyType ALLOCATE_STRATEGY_TYPE;
 
-  public final int MAX_HIERARCHY_STORAGE_LEVEL;
+  public final int STORAGE_LEVELS;
   public final StorageLevelAlias[] STORAGE_LEVEL_ALIAS;
   public final String[] STORAGE_TIER_DIRS;
   public final String[] STORAGE_TIER_DIR_QUOTA;
@@ -135,14 +135,15 @@ public class WorkerConf extends Utils {
     NETTY_RECIEVE_BUFFER =
         Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.buffer.receive",
             null));
+
     EVICT_STRATEGY_TYPE = getEnumProperty("tachyon.worker.evict.strategy", EvictStrategyType.LRU);
     ALLOCATE_STRATEGY_TYPE =
         getEnumProperty("tachyon.worker.allocate.strategy", AllocateStrategyType.MAX_FREE);
-    MAX_HIERARCHY_STORAGE_LEVEL = getIntProperty("tachyon.worker.hierarchystore.level.max", 1);
-    STORAGE_LEVEL_ALIAS = new StorageLevelAlias[MAX_HIERARCHY_STORAGE_LEVEL];
-    STORAGE_TIER_DIRS = new String[MAX_HIERARCHY_STORAGE_LEVEL];
-    STORAGE_TIER_DIR_QUOTA = new String[MAX_HIERARCHY_STORAGE_LEVEL];
-    for (int i = 0; i < MAX_HIERARCHY_STORAGE_LEVEL; i ++) {
+    STORAGE_LEVELS = getIntProperty("tachyon.worker.hierarchystore.level.max", 1);
+    STORAGE_LEVEL_ALIAS = new StorageLevelAlias[STORAGE_LEVELS];
+    STORAGE_TIER_DIRS = new String[STORAGE_LEVELS];
+    STORAGE_TIER_DIR_QUOTA = new String[STORAGE_LEVELS];
+    for (int i = 0; i < STORAGE_LEVELS; i ++) {
       STORAGE_LEVEL_ALIAS[i] =
           getEnumProperty("tachyon.worker.hierarchystore.level" + i + ".alias",
               StorageLevelAlias.MEM);
