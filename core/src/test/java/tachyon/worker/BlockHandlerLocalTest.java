@@ -103,14 +103,14 @@ public class BlockHandlerLocalTest {
       } catch (IllegalArgumentException e) {
         exception = e;
       }
-      Assert.assertEquals("blockOffset(101) is larger than file length(100)",
+      Assert.assertEquals("offset(101) is larger than file length(100)",
           exception.getMessage());
       try {
         handler.read(10, 100);
       } catch (IllegalArgumentException e) {
         exception = e;
       }
-      Assert.assertEquals("blockOffset(10) plus length(100) is larger than file length(100)",
+      Assert.assertEquals("offset(10) plus length(100) is larger than file length(100)",
           exception.getMessage());
     } finally {
       handler.close();
