@@ -23,14 +23,12 @@ import tachyon.worker.hierarchy.StorageDir;
 public abstract class AllocateStrategyBase implements AllocateStrategy {
   @Override
   public boolean fitInPossible(StorageDir[] storageDirs, long requestSizeBytes) {
-    boolean isPossible = false;
     for (StorageDir dir : storageDirs) {
       if (dir.getCapacityBytes() - dir.getLockedSizeBytes() >= requestSizeBytes) {
-        isPossible = true;
-        break;
+        return true;
       }
     }
-    return isPossible;
+    return false;
   }
 }
 

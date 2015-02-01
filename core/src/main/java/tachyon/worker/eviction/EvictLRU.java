@@ -38,7 +38,7 @@ public final class EvictLRU extends EvictLRUBase {
 
   @Override
   public synchronized Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
-      Set<Integer> pinList, long requestSize) {
+      Set<Integer> pinList, long requestBytes) {
     List<BlockInfo> blockInfoList = new ArrayList<BlockInfo>();
     Map<StorageDir, Pair<Long, Long>> dir2LRUBlocks = new HashMap<StorageDir, Pair<Long, Long>>();
     HashMultimap<StorageDir, Long> dir2BlocksToEvict = HashMultimap.create();
@@ -62,15 +62,15 @@ public final class EvictLRU extends EvictLRUBase {
       blockInfoList.add(new BlockInfo(dirCandidate, blockId, blockSize));
       dir2BlocksToEvict.put(dirCandidate, blockId);
       dir2LRUBlocks.remove(dirCandidate);
-      long evictionSize;
+      long evictionBytes;
       // Update eviction size for this StorageDir
       if (sizeToEvict.containsKey(dirCandidate)) {
-        evictionSize = sizeToEvict.get(dirCandidate) + blockSize;
+        evictionBytes = sizeToEvict.get(dirCandidate) + blockSize;
       } else {
-        evictionSize = blockSize;
+        evictionBytes = blockSize;
       }
-      sizeToEvict.put(dirCandidate, evictionSize);
-      if (evictionSize + dirCandidate.getAvailableBytes() >= requestSize) {
+      sizeToEvict.put(dirCandidate, evictionBytes);
+      if (evictionBytes + dirCandidate.getAvailableBytes() >= requestBytes) {
         return new Pair<StorageDir, List<BlockInfo>>(dirCandidate, blockInfoList);
       }
     }

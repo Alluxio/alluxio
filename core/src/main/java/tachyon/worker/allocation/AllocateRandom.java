@@ -23,7 +23,7 @@ import tachyon.worker.hierarchy.StorageDir;
  * Allocate space on StorageDirs randomly
  */
 public class AllocateRandom extends AllocateStrategyBase {
-  Random mRandm = new Random(System.currentTimeMillis());
+  private Random mRandm = new Random(System.currentTimeMillis());
 
   @Override
   public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestSizeBytes) {
