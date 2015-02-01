@@ -35,14 +35,14 @@ public final class EvictPartialLRU extends EvictLRUBase {
 
   @Override
   public synchronized Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
-      Set<Integer> pinList, long requestSize) {
+      Set<Integer> pinList, long requestBytes) {
     List<BlockInfo> blockInfoList = new ArrayList<BlockInfo>();
     Set<StorageDir> ignoredDirs = new HashSet<StorageDir>();
-    StorageDir dirSelected = getDirWithMaxFreeSpace(requestSize, storageDirs, ignoredDirs);
+    StorageDir dirSelected = getDirWithMaxFreeSpace(requestBytes, storageDirs, ignoredDirs);
     while (dirSelected != null) {
       Set<Long> blockIdSet = new HashSet<Long>();
       long sizeToEvict = 0;
-      while (sizeToEvict + dirSelected.getAvailableBytes() < requestSize) {
+      while (sizeToEvict + dirSelected.getAvailableBytes() < requestBytes) {
         Pair<Long, Long> oldestAccess = getLRUBlock(dirSelected, blockIdSet, pinList);
         if (oldestAccess.getFirst() != -1) {
           long blockSize = dirSelected.getBlockSize(oldestAccess.getFirst());
@@ -53,11 +53,11 @@ public final class EvictPartialLRU extends EvictLRUBase {
           break;
         }
       }
-      if (sizeToEvict + dirSelected.getAvailableBytes() < requestSize) {
+      if (sizeToEvict + dirSelected.getAvailableBytes() < requestBytes) {
         ignoredDirs.add(dirSelected);
         blockInfoList.clear();
         blockIdSet.clear();
-        dirSelected = getDirWithMaxFreeSpace(requestSize, storageDirs, ignoredDirs);
+        dirSelected = getDirWithMaxFreeSpace(requestBytes, storageDirs, ignoredDirs);
       } else {
         return new Pair<StorageDir, List<BlockInfo>>(dirSelected, blockInfoList);
       }

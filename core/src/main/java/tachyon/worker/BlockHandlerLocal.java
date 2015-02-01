@@ -47,18 +47,16 @@ public final class BlockHandlerLocal extends BlockHandler {
   BlockHandlerLocal(String filePath) throws IOException {
     mFilePath = Preconditions.checkNotNull(filePath);
     LOG.debug("{} is created", mFilePath);
-    mLocalFile = new RandomAccessFile(mFilePath, "rw");
-    mLocalFileChannel = mLocalFile.getChannel();
-    mCloser.register(mLocalFile);
-    mCloser.register(mLocalFileChannel);
+    mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
+    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
   }
 
   @Override
-  public int append(long blockOffset, ByteBuffer srcBuf) throws IOException {
+  public int append(long offset, ByteBuffer buf) throws IOException {
     checkPermission();
-    int bufLen = srcBuf.limit();
-    ByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, blockOffset, bufLen);
-    out.put(srcBuf);
+    int bufLen = buf.limit();
+    ByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, offset, bufLen);
+    out.put(buf);
     CommonUtils.cleanDirectBuffer(out);
 
     return bufLen;

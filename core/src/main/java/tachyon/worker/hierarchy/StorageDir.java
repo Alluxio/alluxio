@@ -618,20 +618,18 @@ public final class StorageDir {
   }
 
   /**
-   * Move block file from current StorageDir to another StorageDir
+   * Move a block from its current StorageDir to another StorageDir
    * 
-   * @param blockId Id of the block
-   * @param dstDir destination StorageDir
+   * @param blockId the id of the block
+   * @param dstDir the destination StorageDir
    * @return true if success, false otherwise
    * @throws IOException
    */
   public boolean moveBlock(long blockId, StorageDir dstDir) throws IOException {
-    boolean copySuccess = copyBlock(blockId, dstDir);
-    if (copySuccess) {
+    if (copyBlock(blockId, dstDir)) {
       return deleteBlock(blockId);
-    } else {
-      return false;
     }
+    return false;
   }
 
   /**

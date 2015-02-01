@@ -67,8 +67,9 @@ public class BlocksLocker {
     }
   }
 
-  /** 
+  /**
    * Get new lock id
+   * 
    * @return the lock id
    */
   public synchronized int getLockId() {

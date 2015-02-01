@@ -21,7 +21,7 @@ import tachyon.worker.hierarchy.StorageDir;
  * Allocate space on StorageDirs by round robin
  */
 public class AllocateRR extends AllocateStrategyBase {
-  int mDirIndex = 0;
+  private int mDirIndex = 0;
 
   @Override
   public synchronized StorageDir getStorageDir(StorageDir[] storageDirs, long userId,
