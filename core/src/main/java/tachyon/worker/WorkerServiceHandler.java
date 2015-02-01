@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import org.apache.thrift.TException;
 
-import tachyon.StorageDirId;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;

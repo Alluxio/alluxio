@@ -68,7 +68,7 @@ public class StorageTierTest {
 
     // Clear worker configurations which are set by other tests
     WorkerConf.clear();
-    final int maxLevel = WorkerConf.get().MAX_HIERARCHY_STORAGE_LEVEL;
+    final int maxLevel = WorkerConf.get().STORAGE_LEVELS;
     mStorageTiers = new StorageTier[maxLevel];
     StorageTier nextTier = null;
     for (int level = maxLevel - 1; level >= 0; level --) {
