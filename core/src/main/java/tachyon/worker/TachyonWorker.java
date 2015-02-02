@@ -276,7 +276,7 @@ public class TachyonWorker implements Runnable {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         cmd = null;
         if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf.get().HEARTBEAT_TIMEOUT_MS) {
-          throw new RuntimeException("Timebeat timeout "
+          throw new RuntimeException("Heartbeat timeout "
               + (System.currentTimeMillis() - lastHeartbeatMs) + "ms");
         }
       }

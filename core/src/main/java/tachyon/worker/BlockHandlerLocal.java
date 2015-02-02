@@ -104,7 +104,7 @@ public final class BlockHandlerLocal extends BlockHandler {
               length, fileLength);
     }
     if (error != null) {
-      throw new IllegalArgumentException(error);
+      throw new IOException(error);
     }
     if (length == -1) {
       length = (int) (fileLength - offset);
