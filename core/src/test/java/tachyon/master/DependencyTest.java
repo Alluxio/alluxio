@@ -4,9 +4,7 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -41,7 +39,9 @@ public class DependencyTest {
   @After
   public final void after() throws Exception {
     DependencyVariables.VARIABLES.clear();
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
   }
 
   @Before
@@ -89,9 +89,12 @@ public class DependencyTest {
 
     // decode the written bytes
     ImageElement decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
-    TypeReference<List<Integer>> intListRef = new TypeReference<List<Integer>>() {};
-    TypeReference<DependencyType> depTypeRef = new TypeReference<DependencyType>() {};
-    TypeReference<List<ByteBuffer>> byteListRef = new TypeReference<List<ByteBuffer>>() {};
+    TypeReference<List<Integer>> intListRef = new TypeReference<List<Integer>>() {
+    };
+    TypeReference<DependencyType> depTypeRef = new TypeReference<DependencyType>() {
+    };
+    TypeReference<List<ByteBuffer>> byteListRef = new TypeReference<List<ByteBuffer>>() {
+    };
 
     // test the decoded ImageElement
     // can't use equals(decoded) because ImageElement doesn't have an equals method and can have
