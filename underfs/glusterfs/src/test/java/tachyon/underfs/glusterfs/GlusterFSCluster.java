@@ -12,16 +12,16 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon;
+package tachyon.underfs.glusterfs;
 
 import java.io.IOException;
 
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
 
-public class GlusterfsCluster extends UnderFileSystemCluster {
+public class GlusterFSCluster extends UnderFileSystemCluster {
 
-  public GlusterfsCluster(String baseDir, TachyonConf tachyonConf) {
+  public GlusterFSCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
   }
 

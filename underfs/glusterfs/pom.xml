@@ -10,6 +10,10 @@
   <name>Tachyon Under File System - Gluster FS</name>
   <description>Tachyon Under File System implementation which adds Gluster FS as a Under File System</description>
 
+  <properties>
+    <ufs>tachyon.underfs.glusterfs.GlusterFSCluster</ufs>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
@@ -24,4 +28,58 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>glusterfsTest</id>
+      <activation>
+        <property>
+          <name>test.profile</name>
+          <value>glusterfs</value>
+        </property>
+      </activation>
+      <properties>
+        <ufs>tachyon.underfs.glusterfs.GlusterFSCluster</ufs>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.gluster</groupId>
+          <artifactId>glusterfs-hadoop</artifactId>
+          <version>${glusterfs-hadoop.version}</version>
+          <type>jar</type>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <version>${hadoop.version}</version>
+        </dependency>
+        
+        <!-- Test Dependencies -->
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.18.1</version>
+            <configuration>
+              <dependenciesToScan>
+                <dependency>org.tachyonproject:tachyon</dependency>
+              </dependenciesToScan>
+            </configuration>
+            <executions>
+              <execution>
+                <id>default-test</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
