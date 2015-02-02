@@ -97,17 +97,17 @@ public class BlockHandlerLocalTest {
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);
     try {
-      IllegalArgumentException exception = null;
+      Exception exception = null;
       try {
         handler.read(101, 10);
-      } catch (IllegalArgumentException e) {
+      } catch (IOException e) {
         exception = e;
       }
       Assert.assertEquals("offset(101) is larger than file length(100)",
           exception.getMessage());
       try {
         handler.read(10, 100);
-      } catch (IllegalArgumentException e) {
+      } catch (IOException e) {
         exception = e;
       }
       Assert.assertEquals("offset(10) plus length(100) is larger than file length(100)",

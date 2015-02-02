@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -127,8 +126,8 @@ public final class StorageDir {
    * @param sizeBytes the size of the block in bytes
    * @param report need to be reported during heartbeat with master
    */
-  private void addBlock(long blockId, long sizeBytes, boolean report) {
-    addBlock(blockId, sizeBytes, System.currentTimeMillis(), report);
+  private void addBlockId(long blockId, long sizeBytes, boolean report) {
+    addBlockId(blockId, sizeBytes, System.currentTimeMillis(), report);
   }
 
   /**
@@ -139,7 +138,7 @@ public final class StorageDir {
    * @param accessTimeMs access time of the block in millisecond.
    * @param report whether need to be reported During heart beat with master
    */
-  private void addBlock(long blockId, long sizeBytes, long accessTimeMs, boolean report) {
+  private void addBlockId(long blockId, long sizeBytes, long accessTimeMs, boolean report) {
     mLastBlockAccessTimeMs.put(blockId, accessTimeMs);
     if (mBlockSizes.containsKey(blockId)) {
       mSpaceCounter.returnUsedBytes(mBlockSizes.remove(blockId));
@@ -174,7 +173,7 @@ public final class StorageDir {
     }
     returnSpace(userId, allocatedBytes - blockSize);
     if (mFs.rename(srcPath, dstPath)) {
-      addBlock(blockId, blockSize, false);
+      addBlockId(blockId, blockSize, false);
       updateUserOwnBytes(userId, -blockSize);
       return true;
     } else {
@@ -221,7 +220,7 @@ public final class StorageDir {
     try {
       mFs.delete(getUserTempPath(userId), true);
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      LOG.error(e.getMessage(), e);
     }
     returnSpace(userId);
   }
@@ -263,7 +262,7 @@ public final class StorageDir {
       CommonUtils.cleanDirectBuffer(buffer);
     }
     if (copySuccess) {
-      dstDir.addBlock(blockId, size, mLastBlockAccessTimeMs.get(blockId), true);
+      dstDir.addBlockId(blockId, size, mLastBlockAccessTimeMs.get(blockId), true);
     }
     return copySuccess;
   }
@@ -581,10 +580,10 @@ public final class StorageDir {
         long blockId = CommonUtils.getBlockIdFromFileName(name);
         boolean success = mSpaceCounter.requestSpaceBytes(fileSize);
         if (success) {
-          addBlock(blockId, fileSize, true);
+          addBlockId(blockId, fileSize, true);
         } else {
           mFs.delete(path, true);
-          throw new RuntimeException("Pre-existing files exceed storage capacity.");
+          LOG.warn("Pre-existing files exceed storage capacity. deleting file:{}", path);
         }
       }
     }
@@ -729,7 +728,7 @@ public final class StorageDir {
       while (!mOwnBytesPerUser.replace(userId, used, used + sizeBytes)) {
         used = mOwnBytesPerUser.get(userId);
         if (used == null) {
-          LOG.error("Failed to request space! unknown userId:{}", userId);
+          LOG.error("Unknown user! userId:{}", userId);
           break;
         }
       }

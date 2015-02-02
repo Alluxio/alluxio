@@ -31,12 +31,12 @@ public class AllocateRR extends AllocateStrategyBase {
       mDirIndex = mDirIndex % storageDirs.length;
       if (storageDirs[mDirIndex].getAvailableBytes() >= requestSizeBytes) {
         availableDir = storageDirs[mDirIndex];
-        mDirIndex ++;
         if (availableDir.requestSpace(userId, requestSizeBytes)) {
-          break;
+          mDirIndex ++;
+          return availableDir;
         }
       }
     }
-    return availableDir;
+    return null;
   }
 }
