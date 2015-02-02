@@ -14,9 +14,9 @@ public class HdfsUnderFileSystemTest {
     Assert.assertNotNull("A UnderFileSystemFactory should exist for HDFS paths when using this module", factory);
     
     factory = UnderFileSystemRegistry.find("s3://localhost/test/path");
-    Assert.assertNull("A UnderFileSystemFactory should exist for S3 paths when using this module", factory);
+    Assert.assertNotNull("A UnderFileSystemFactory should exist for S3 paths when using this module", factory);
     
     factory = UnderFileSystemRegistry.find("s3n://localhost/test/path");
-    Assert.assertNull("A UnderFileSystemFactory should exist for S3 paths when using this module", factory);
+    Assert.assertNotNull("A UnderFileSystemFactory should exist for S3 paths when using this module", factory);
   }
 }
