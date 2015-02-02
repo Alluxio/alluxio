@@ -4,9 +4,7 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -79,13 +77,16 @@ public abstract class UnderFileSystemCluster {
         UnderFileSystemCluster ufsCluster =
             (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class,
                 TachyonConf.class).newInstance(baseDir, tachyonConf);
+        System.out.println("Initialized under file system testing cluster of type "
+            + ufsCluster.getClass().getCanonicalName() + " for integration testing");
         return ufsCluster;
-      } catch (Exception e) {
+      } catch (Throwable e) {
         System.err.println("Failed to initialize the ufsCluster of " + mUfsClz
             + " for integration test.");
         throw Throwables.propagate(e);
       }
     }
+    System.out.println("Using default LocalFilesystemCluster for integration testing");
     return new LocalFilesystemCluster(baseDir, tachyonConf);
   }
 
