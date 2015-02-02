@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,9 +65,8 @@ public class UnderfsUtilsTest {
 
   @Test
   public void loadUnderFsTest() throws IOException {
-    if (!UnderFileSystemCluster.isUFSHDFS()) {
-      return;
-    }
+    // TODO Is this test really tied to HDFS?  Or could it run on any Under File System?
+    Assume.assumeTrue(UnderFileSystemCluster.isUFSHDFS());
 
     String[] exclusions = {"/tachyon", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
