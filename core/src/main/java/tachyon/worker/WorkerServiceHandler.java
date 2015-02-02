@@ -94,8 +94,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public boolean promoteBlock(long userId, long blockId) throws TException {
-    return mWorkerStorage.promoteBlock(userId, blockId);
+  public boolean promoteBlock(long blockId) throws TException {
+    return mWorkerStorage.promoteBlock(blockId);
   }
 
   @Override

@@ -309,7 +309,7 @@ service WorkerService {
    * storage layers in Tachyon's space. return true if the block is successfully promoted, false
    * otherwise.
    */
-  bool promoteBlock(1: i64 userId, 2: i64 blockId)
+  bool promoteBlock(1: i64 blockId)
 
   /**
    * Used to allocate location and space for a new coming block, worker will choose the appropriate

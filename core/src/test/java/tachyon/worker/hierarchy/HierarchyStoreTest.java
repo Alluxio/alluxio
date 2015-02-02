@@ -99,10 +99,13 @@ public class HierarchyStoreTest {
     Assert.assertEquals(false, file1.isInMemory());
     Assert.assertEquals(true, file2.isInMemory());
     Assert.assertEquals(true, file3.isInMemory());
+    Assert.assertEquals(MEM_CAPACITY_BYTES / 6 + MEM_CAPACITY_BYTES,
+        mLocalTachyonCluster.getMasterInfo().getUsedBytes());
 
     InStream is = file1.getInStream(ReadType.CACHE_PROMOTE);
     byte[] buf = new byte[MEM_CAPACITY_BYTES / 6];
     int len = is.read(buf);
+    is.close();
 
     CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     Assert.assertEquals(MEM_CAPACITY_BYTES / 6, len);
