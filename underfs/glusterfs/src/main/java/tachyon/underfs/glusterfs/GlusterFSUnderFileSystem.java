@@ -6,6 +6,14 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.hdfs.HdfsUnderFileSystem;
 
+/**
+ * A variant of {@link HdfsUnderFileSystem} that instead uses the Gluster FS
+ * <p>
+ * Currently this implementation simply manages the extra configuration setup necessary to connect
+ * to Gluster FS
+ * </p>
+ *
+ */
 public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
 
   /**
@@ -34,6 +42,8 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
               tachyonConf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null));
     } else {
       // If not Gluster FS fall back to default HDFS behaviour
+      // This should only happen if someone creates an instance of this directly rather than via the
+      // registry and factory which enforces the GlusterFS prefix being present.
       super.prepareConfiguration(path, tachyonConf, config);
     }
   }
