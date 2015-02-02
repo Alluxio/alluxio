@@ -351,7 +351,7 @@ public class WorkerClient implements Closeable {
     mustConnect();
 
     try {
-      return mClient.promoteBlock(mMasterClient.getUserId(), blockId);
+      return mClient.promoteBlock(blockId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

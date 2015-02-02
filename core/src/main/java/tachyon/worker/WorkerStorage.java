@@ -620,9 +620,8 @@ public class WorkerStorage {
    * context of {@code this}, this call will output the result of path concat of
    * {@link #mUfsWorkerFolder} with the provided {@literal userId}.
    * 
-   * This method differs from {@link #getUserLocalTempFolder(long)} in the context of where write
-   * operations end up. This temp folder generated lives inside the {@link tachyon.UnderFileSystem},
-   * and as such, will be stored remotely, most likely on disk.
+   * This temp folder generated lives inside the {@link tachyon.UnderFileSystem}, and as such, will
+   * be stored remotely, most likely on disk.
    * 
    * @param userId The id of the user
    * @return The user temporary folder in the under file system
@@ -724,18 +723,18 @@ public class WorkerStorage {
   /**
    * If the block is not on top StorageTier, promote block to top StorageTier
    * 
-   * @param userId the id of the user
    * @param blockId the id of the block
    * @return true if success, false otherwise
    */
-  public boolean promoteBlock(long userId, long blockId) {
+  public boolean promoteBlock(long blockId) {
+    final long userId = Users.MIGRATE_DATA_USER_ID;
     StorageDir storageDir = lockBlock(blockId, userId);
     if (storageDir == null) {
       return false;
     } else if (StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId())
         != mStorageTiers.get(0).getAlias().getValue()) {
       long blockSize = storageDir.getBlockSize(blockId);
-      StorageDir dstStorageDir = requestSpace(null, Users.MIGRATE_DATA_USER_ID, blockSize);
+      StorageDir dstStorageDir = requestSpace(null, userId, blockSize);
       if (dstStorageDir == null) {
         LOG.error("Failed to promote block! blockId:{}", blockId);
         storageDir.unlockBlock(blockId, userId);
