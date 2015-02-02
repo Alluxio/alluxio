@@ -640,7 +640,7 @@ public final class StorageDir {
    */
   public boolean requestSpace(long userId, long size) {
     boolean result = mSpaceCounter.requestSpaceBytes(size);
-    if (result && userId != Users.EVICT_USER_ID) {
+    if (result && userId != Users.MIGRATE_DATA_USER_ID) {
       updateUserOwnBytes(userId, size);
     }
     return result;
