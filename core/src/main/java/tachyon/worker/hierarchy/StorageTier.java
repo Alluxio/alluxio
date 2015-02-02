@@ -284,7 +284,7 @@ public class StorageTier {
               removedBlockIds.add(blockId);
             } else {
               StorageDir dstDir =
-                  mNextTier.requestSpace(Users.EVICT_USER_ID, blockInfo.getSize(), pinList,
+                  mNextTier.requestSpace(Users.MIGRATE_DATA_USER_ID, blockInfo.getSize(), pinList,
                       removedBlockIds);
               dir.moveBlock(blockId, dstDir);
             }

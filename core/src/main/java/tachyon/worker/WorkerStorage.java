@@ -735,7 +735,7 @@ public class WorkerStorage {
     } else if (StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId())
         != mStorageTiers.get(0).getAlias().getValue()) {
       long blockSize = storageDir.getBlockSize(blockId);
-      StorageDir dstStorageDir = requestSpace(null, userId, blockSize);
+      StorageDir dstStorageDir = requestSpace(null, Users.MIGRATE_DATA_USER_ID, blockSize);
       if (dstStorageDir == null) {
         LOG.error("Failed to promote block! blockId:{}", blockId);
         storageDir.unlockBlock(blockId, userId);
