@@ -710,10 +710,11 @@ public class WorkerStorage {
    * @return the StorageDir in which the block is locked
    */
   public StorageDir lockBlock(long blockId, long userId) {
-    StorageDir storageDir = getStorageDirByBlockId(blockId);
-    if (storageDir != null) {
-      if (storageDir.lockBlock(blockId, userId)) {
-        return storageDir;
+    for (StorageTier tier : mStorageTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.lockBlock(blockId, userId)) {
+          return dir;
+        }
       }
     }
     LOG.warn("Failed to lock block! blockId:{}", blockId);
@@ -949,9 +950,12 @@ public class WorkerStorage {
    * @return true if success, false otherwise
    */
   public boolean unlockBlock(long blockId, long userId) {
-    StorageDir storageDir = getStorageDirByBlockId(blockId);
-    if (storageDir != null) {
-      return storageDir.unlockBlock(blockId, userId);
+    for (StorageTier tier : mStorageTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.unlockBlock(blockId, userId)) {
+          return true;
+        }
+      }
     }
     LOG.warn("Failed to unlock block! blockId:{}", blockId);
     return false;
