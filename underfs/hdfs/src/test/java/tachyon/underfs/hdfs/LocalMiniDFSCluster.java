@@ -12,7 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon;
+package tachyon.underfs.hdfs;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +24,9 @@ import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 
 import tachyon.conf.TachyonConf;
+import tachyon.TachyonURI;
+import tachyon.underfs.UnderFileSystem;
+import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.CommonUtils;
 
 /**
