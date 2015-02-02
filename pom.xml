@@ -121,7 +121,6 @@
   </pluginRepositories>
 
   <properties>
-    <test.profile>local</test.profile>
     <test.output.redirect>true</test.output.redirect>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.6</java.version>
