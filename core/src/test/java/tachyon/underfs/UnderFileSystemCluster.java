@@ -16,6 +16,8 @@ package tachyon.underfs;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.base.Throwables;
 
 import tachyon.conf.TachyonConf;
@@ -72,14 +74,14 @@ public abstract class UnderFileSystemCluster {
       TachyonConf tachyonConf) {
     mUfsClz = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
 
-    if (mUfsClz != null && !mUfsClz.equals("")) {
+    if (!StringUtils.isEmpty(mUfsClz)) {
       try {
         UnderFileSystemCluster ufsCluster =
             (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class,
                 TachyonConf.class).newInstance(baseDir, tachyonConf);
         return ufsCluster;
       } catch (Exception e) {
-        System.out.println("Failed to initialize the ufsCluster of " + mUfsClz
+        System.err.println("Failed to initialize the ufsCluster of " + mUfsClz
             + " for integration test.");
         throw Throwables.propagate(e);
       }
@@ -99,7 +101,10 @@ public abstract class UnderFileSystemCluster {
    * @return
    */
   public static boolean isUFSHDFS() {
-    return (null != mUfsClz) && (mUfsClz.equals("tachyon.LocalMiniDFSCluster"));
+    // TODO This should be renamed to something technology agnostic
+    // e.g. doZeroLengthFileReadsReturnNegative()
+    // TODO Should be dynamically determined - may need additional method on UnderFileSystem
+    return (null != mUfsClz) && (mUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster"));
   }
 
   public UnderFileSystemCluster(String baseDir, TachyonConf tachyonConf) {
