@@ -165,9 +165,6 @@
                 <id>default-testCompile</id>
                 <phase>test-compile</phase>
                 <configuration>
-                  <testExcludes>
-                    <exclude>**/LocalMiniDFSCluster.java</exclude>
-                  </testExcludes>
                   <compilerArgs>
                     <arg>-Xlint:-unchecked</arg>
                   </compilerArgs>
@@ -247,9 +244,6 @@
                 <id>default-testCompile</id>
                 <phase>test-compile</phase>
                 <configuration>
-                  <testExcludes>
-                    <exclude>**/LocalMiniDFSCluster.java</exclude>
-                  </testExcludes>
                 </configuration>
                 <goals>
                   <goal>testCompile</goal>
