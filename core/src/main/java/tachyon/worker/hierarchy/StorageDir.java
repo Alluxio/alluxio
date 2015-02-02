@@ -232,7 +232,7 @@ public final class StorageDir {
    * @return true if StorageDir contains the block, false otherwise
    */
   public boolean containsBlock(long blockId) {
-    return mLastBlockAccessTimeMs.containsKey(blockId) || isBlockLocked(blockId);
+    return mLastBlockAccessTimeMs.containsKey(blockId);
   }
 
   /**
@@ -268,7 +268,8 @@ public final class StorageDir {
   }
 
   /**
-   * Remove a block from current StorageDir
+   * Remove a block from current StorageDir, once user calls this method, the block will not be
+   * available any longer.
    * 
    * @param blockId Id of the block to be removed.
    * @return true if succeed, false otherwise
@@ -278,24 +279,18 @@ public final class StorageDir {
     Long accessTimeMs = mLastBlockAccessTimeMs.remove(blockId);
     if (accessTimeMs != null) {
       String blockfile = getBlockFilePath(blockId);
-      boolean result = false;
-      try {
-        // Should check lock status here 
-        if (!isBlockLocked(blockId)) {
-          result = mFs.delete(blockfile, true);
-        } else {
-          mToRemoveBlockIdSet.add(blockId);
-        }
-      } finally {
-        if (result) {
-          deleteBlockId(blockId);
-          LOG.debug("Removed block file:{}", blockfile);
-        } else {
-          mLastBlockAccessTimeMs.put(blockId, accessTimeMs);
+      // Should check lock status here 
+      if (!isBlockLocked(blockId)) {
+        if (!mFs.delete(blockfile, false)) {
           LOG.error("Failed to delete block file! filename:{}", blockfile);
+          return false;
         }
+        deleteBlockId(blockId);
+      } else {
+        mToRemoveBlockIdSet.add(blockId);
+        LOG.debug("Add block file {} to remove list!", blockfile);
       }
-      return result;
+      return true;
     } else {
       LOG.warn("Block does not exist in current StorageDir! blockId:{}", blockId);
       return false;
@@ -677,22 +672,23 @@ public final class StorageDir {
    * @return true if success, false otherwise
    */
   public boolean unlockBlock(long blockId, long userId) {
-    if (!containsBlock(blockId)) {
-      return false;
-    }
-    mUserPerLockedBlock.remove(blockId, userId);
-    mLockedBlocksPerUser.remove(userId, blockId);
-    if (!mUserPerLockedBlock.containsKey(blockId) && mToRemoveBlockIdSet.contains(blockId)) {
-      try {
-        if (deleteBlock(blockId)) {
+    if (mUserPerLockedBlock.remove(blockId, userId) 
+        && mLockedBlocksPerUser.remove(userId, blockId)) {
+      if (!isBlockLocked(blockId) && mToRemoveBlockIdSet.contains(blockId)) {
+        try {
+          if (!mFs.delete(getBlockFilePath(blockId), false)) {
+            return false;
+          }
           mToRemoveBlockIdSet.remove(blockId);
+          deleteBlockId(blockId);
+        } catch (IOException e) {
+          LOG.error(e.getMessage(), e);
+          return false;
         }
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-        return false;
       }
+      return true;
     }
-    return true;
+    return false;
   }
 
   /**
