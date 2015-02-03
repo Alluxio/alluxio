@@ -114,8 +114,10 @@ public final class StorageDir {
    * @param blockId Id of the block
    */
   public void accessBlock(long blockId) {
-    if (containsBlock(blockId)) {
-      mLastBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
+    synchronized (mLastBlockAccessTimeMs) {
+      if (containsBlock(blockId)) {
+        mLastBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
+      }
     }
   }
 
@@ -139,13 +141,15 @@ public final class StorageDir {
    * @param report whether need to be reported During heart beat with master
    */
   private void addBlockId(long blockId, long sizeBytes, long accessTimeMs, boolean report) {
-    mLastBlockAccessTimeMs.put(blockId, accessTimeMs);
-    if (mBlockSizes.containsKey(blockId)) {
-      mSpaceCounter.returnUsedBytes(mBlockSizes.remove(blockId));
-    }
-    mBlockSizes.put(blockId, sizeBytes);
-    if (report) {
-      mAddedBlockIdList.add(blockId);
+    synchronized (mLastBlockAccessTimeMs) {
+      mLastBlockAccessTimeMs.put(blockId, accessTimeMs);
+      if (mBlockSizes.containsKey(blockId)) {
+        mSpaceCounter.returnUsedBytes(mBlockSizes.remove(blockId));
+      }
+      mBlockSizes.put(blockId, sizeBytes);
+      if (report) {
+        mAddedBlockIdList.add(blockId);
+      }
     }
   }
 
@@ -236,7 +240,8 @@ public final class StorageDir {
   }
 
   /**
-   * Copy block file from this StorageDir to another StorageDir
+   * Copy block file from this StorageDir to another StorageDir, the caller needs to make sure the
+   * block is locked during copying
    * 
    * @param blockId Id of the block
    * @param dstDir destination StorageDir
@@ -268,8 +273,8 @@ public final class StorageDir {
   }
 
   /**
-   * Remove a block from current StorageDir, once user calls this method, the block will not be
-   * available any longer.
+   * Remove a block from current StorageDir, once calling this method, the block will not be
+   * available any longer
    * 
    * @param blockId Id of the block to be removed.
    * @return true if succeed, false otherwise
@@ -277,24 +282,23 @@ public final class StorageDir {
    */
   public boolean deleteBlock(long blockId) throws IOException {
     Long accessTimeMs = mLastBlockAccessTimeMs.remove(blockId);
-    if (accessTimeMs != null) {
-      String blockfile = getBlockFilePath(blockId);
-      // Should check lock status here 
-      if (!isBlockLocked(blockId)) {
-        if (!mFs.delete(blockfile, false)) {
-          LOG.error("Failed to delete block file! filename:{}", blockfile);
-          return false;
-        }
-        deleteBlockId(blockId);
-      } else {
-        mToRemoveBlockIdSet.add(blockId);
-        LOG.debug("Add block file {} to remove list!", blockfile);
-      }
-      return true;
-    } else {
+    if (accessTimeMs == null) {
       LOG.warn("Block does not exist in current StorageDir! blockId:{}", blockId);
       return false;
     }
+    String blockfile = getBlockFilePath(blockId);
+    // Should check lock status here 
+    if (!isBlockLocked(blockId)) {
+      if (!mFs.delete(blockfile, false)) {
+        LOG.error("Failed to delete block file! filename:{}", blockfile);
+        return false;
+      }
+      deleteBlockId(blockId);
+    } else {
+      mToRemoveBlockIdSet.add(blockId);
+      LOG.debug("Add block file {} to remove list!", blockfile);
+    }
+    return true;
   }
 
   /**
@@ -303,10 +307,12 @@ public final class StorageDir {
    * @param blockId Id of the block
    */
   private void deleteBlockId(long blockId) {
-    mLastBlockAccessTimeMs.remove(blockId);
-    mSpaceCounter.returnUsedBytes(mBlockSizes.remove(blockId));
-    if (mAddedBlockIdList.contains(blockId)) {
-      mAddedBlockIdList.remove(blockId);
+    synchronized (mLastBlockAccessTimeMs) {
+      mLastBlockAccessTimeMs.remove(blockId);
+      mSpaceCounter.returnUsedBytes(mBlockSizes.remove(blockId));
+      if (mAddedBlockIdList.contains(blockId)) {
+        mAddedBlockIdList.remove(blockId);
+      }
     }
   }
 
@@ -331,7 +337,8 @@ public final class StorageDir {
   }
 
   /**
-   * Read data into ByteBuffer from some block file
+   * Read data into ByteBuffer from some block file, caller needs to make sure the block is locked
+   * during reading
    * 
    * @param blockId Id of the block
    * @param offset starting position of the block file
@@ -603,12 +610,14 @@ public final class StorageDir {
    * @return true if success, false otherwise
    */
   public boolean lockBlock(long blockId, long userId) {
-    if (!containsBlock(blockId)) {
-      return false;
+    synchronized (mLastBlockAccessTimeMs) {
+      if (!containsBlock(blockId)) {
+        return false;
+      }
+      mUserPerLockedBlock.put(blockId, userId);
+      mLockedBlocksPerUser.put(userId, blockId);
+      return true;
     }
-    mUserPerLockedBlock.put(blockId, userId);
-    mLockedBlocksPerUser.put(userId, blockId);
-    return true;
   }
 
   /**
@@ -672,8 +681,8 @@ public final class StorageDir {
    * @return true if success, false otherwise
    */
   public boolean unlockBlock(long blockId, long userId) {
-    if (mUserPerLockedBlock.remove(blockId, userId) 
-        && mLockedBlocksPerUser.remove(userId, blockId)) {
+    if (mUserPerLockedBlock.remove(blockId, userId)) {
+      mLockedBlocksPerUser.remove(userId, blockId);
       if (!isBlockLocked(blockId) && mToRemoveBlockIdSet.contains(blockId)) {
         try {
           if (!mFs.delete(getBlockFilePath(blockId), false)) {
