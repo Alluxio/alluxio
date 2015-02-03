@@ -177,7 +177,9 @@ public class Users {
       if (mUsers.containsKey(userId)) {
         mUsers.get(userId).heartbeat();
       } else {
-        mUsers.put(userId, new UserInfo(userId, mTachyonConf));
+        int userTimeoutMs = mTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS,
+            10 * Constants.SECOND_MS);
+        mUsers.put(userId, new UserInfo(userId, userTimeoutMs));
       }
     }
   }

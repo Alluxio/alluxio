@@ -27,16 +27,15 @@ public class UserInfo {
 
   private long mOwnBytes;
   private long mLastHeartbeatMs;
+  private int mUserTimeoutMs;
 
-  private final TachyonConf mTachyonConf;
-
-  public UserInfo(long userId, TachyonConf tachyonConf) {
+  public UserInfo(long userId, int userTimeoutMs) {
     Preconditions.checkArgument(userId > 0, "Invalid user id " + userId);
-    Preconditions.checkArgument(tachyonConf != null, "Cannot pass null for TachyonConf");
+    Preconditions.checkArgument(userTimeoutMs > 0, "Invalid user timeout");
     mUserId = userId;
     mOwnBytes = 0;
     mLastHeartbeatMs = System.currentTimeMillis();
-    mTachyonConf = tachyonConf;
+    mUserTimeoutMs = userTimeoutMs;
   }
 
   public synchronized void addOwnBytes(long addOwnBytes) {
@@ -56,9 +55,7 @@ public class UserInfo {
   }
 
   public synchronized boolean timeout() {
-    int userTimeoutMs = mTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS,
-        10 * Constants.SECOND_MS);
-    return (System.currentTimeMillis() - mLastHeartbeatMs > userTimeoutMs);
+    return (System.currentTimeMillis() - mLastHeartbeatMs > mUserTimeoutMs);
   }
 
   @Override
