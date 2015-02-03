@@ -21,10 +21,19 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Test Dependencies -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon</artifactId>
+      <version>${project.version}</version>
+      <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -32,15 +41,6 @@
   <profiles>
     <profile>
       <id>glusterfsTest</id>
-      <activation>
-        <property>
-          <name>test.profile</name>
-          <value>glusterfs</value>
-        </property>
-      </activation>
-      <properties>
-        <ufs>tachyon.underfs.glusterfs.GlusterFSCluster</ufs>
-      </properties>
       <dependencies>
         <dependency>
           <groupId>org.gluster</groupId>
@@ -56,13 +56,6 @@
         </dependency>
 
         <!-- Test Dependencies -->
-        <dependency>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon</artifactId>
-          <version>${project.version}</version>
-          <classifier>tests</classifier>
-          <scope>test</scope>
-        </dependency>
         <dependency>
           <groupId>org.apache.thrift</groupId>
           <artifactId>libthrift</artifactId>
@@ -110,6 +103,9 @@
               <dependenciesToScan>
                 <dependency>org.tachyonproject:tachyon</dependency>
               </dependenciesToScan>
+              <systemPropertyVariables>
+                <ufs>tachyon.underfs.glusterfs.GlusterFSCluster</ufs>
+              </systemPropertyVariables>
             </configuration>
             <executions>
               <execution>
