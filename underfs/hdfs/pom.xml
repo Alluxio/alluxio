@@ -10,10 +10,6 @@
   <name>Tachyon Under File System - HDFS</name>
   <description>HDFS Under File System implementation</description>
 
-  <properties>
-    <ufs>tachyon.underfs.hdfs.LocalMiniDFSCluster</ufs>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
@@ -98,6 +94,9 @@
           <dependenciesToScan>
             <dependency>org.tachyonproject:tachyon</dependency>
           </dependenciesToScan>
+          <systemPropertyVariables>
+            <ufs>tachyon.underfs.hdfs.LocalMiniDFSCluster</ufs>
+          </systemPropertyVariables>
         </configuration>
         <executions>
           <execution>

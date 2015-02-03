@@ -4,9 +4,7 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -47,7 +45,9 @@ public class TachyonFSTest {
 
   @AfterClass
   public static final void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
+    if (sLocalTachyonCluster != null) {
+      sLocalTachyonCluster.stop();
+    }
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.clearProperty("tachyon.max.columns");
   }
@@ -287,7 +287,8 @@ public class TachyonFSTest {
 
   @Test
   public void getTestNormal3() throws IOException {
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort + "/ab/c.txt"));
+    TachyonFS tfs =
+        TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort + "/ab/c.txt"));
     getTestHelper(tfs);
   }
 
@@ -348,9 +349,10 @@ public class TachyonFSTest {
   public void toStringTest() throws IOException {
     TachyonFS tfs = null;
     String[] originUrls =
-        new String[] {"tachyon://127.0.0.1:19998", "tachyon-ft://127.0.0.1:19998",};
+        new String[] { "tachyon://127.0.0.1:19998", "tachyon-ft://127.0.0.1:19998", };
     String[] resultUrls =
-        new String[] {"tachyon://localhost/127.0.0.1:19998", "tachyon-ft://localhost/127.0.0.1:19998",};
+        new String[] { "tachyon://localhost/127.0.0.1:19998",
+            "tachyon-ft://localhost/127.0.0.1:19998", };
     for (int i = 0, n = originUrls.length; i < n; i ++) {
       String originUrl = originUrls[i];
       String resultUrl = resultUrls[i];

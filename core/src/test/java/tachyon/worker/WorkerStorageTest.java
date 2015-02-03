@@ -4,9 +4,7 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -56,7 +54,9 @@ public class WorkerStorageTest {
 
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
     mExecutorService.shutdown();
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }
@@ -78,13 +78,16 @@ public class WorkerStorageTest {
     int fid = TestUtils.createByteFile(mTfs, "/xyz", WriteType.MUST_CACHE, filesize);
     long bid = mTfs.getBlockId(fid, 0);
     mLocalTachyonCluster.stopWorker();
-    // If you call mTfs.delete(fid, true), this will throw a java.util.concurrent.RejectedExecutionException
+    // If you call mTfs.delete(fid, true), this will throw a
+    // java.util.concurrent.RejectedExecutionException
     // this is because stopWorker will close all clients
     // when a client is closed, you are no longer able to do any operations on it
     // so we need to get a fresh client to call delete
     mLocalTachyonCluster.getClient().delete(fid, true);
 
-    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES, mExecutorService);
+    WorkerStorage ws =
+        new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES,
+            mExecutorService);
     try {
       ws.initialize(mWorkerAddress);
       String orpahnblock = ws.getUfsOrphansFolder() + TachyonURI.SEPARATOR + bid;
@@ -92,7 +95,8 @@ public class WorkerStorageTest {
       Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", new File(
           mWorkerDataFolder + TachyonURI.SEPARATOR + bid).exists());
       Assert.assertTrue("UFS hasn't the orphan block file ", ufs.exists(orpahnblock));
-      Assert.assertTrue("Orpahblock file size is changed", ufs.getFileSize(orpahnblock) == filesize);
+      Assert.assertTrue("Orpahblock file size is changed",
+          ufs.getFileSize(orpahnblock) == filesize);
     } finally {
       ws.stop();
     }
@@ -156,7 +160,9 @@ public class WorkerStorageTest {
     // try a non-numerical file name
     File unknownFile = new File(mWorkerDataFolder + TachyonURI.SEPARATOR + "xyz");
     unknownFile.createNewFile();
-    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES, mExecutorService);
+    WorkerStorage ws =
+        new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES,
+            mExecutorService);
     try {
       ws.initialize(mWorkerAddress);
     } finally {

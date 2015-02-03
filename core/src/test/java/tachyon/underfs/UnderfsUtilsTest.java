@@ -4,9 +4,7 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -45,7 +43,9 @@ public class UnderfsUtilsTest {
 
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.clearProperty("tachyon.user.default.block.size.byte");
   }
@@ -65,11 +65,11 @@ public class UnderfsUtilsTest {
 
   @Test
   public void loadUnderFsTest() throws IOException {
-    // TODO Is this test really tied to HDFS?  Or could it run on any Under File System?
+    // TODO Is this test really tied to HDFS? Or could it run on any Under File System?
     Assume.assumeTrue(UnderFileSystemCluster.isUFSHDFS());
 
-    String[] exclusions = {"/tachyon", "/exclusions"};
-    String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
+    String[] exclusions = { "/tachyon", "/exclusions" };
+    String[] inclusions = { "/inclusions/sub-1", "/inclusions/sub-2" };
     for (String exclusion : exclusions) {
       if (!mUfs.exists(exclusion)) {
         mUfs.mkdirs(exclusion, true);
@@ -83,8 +83,8 @@ public class UnderfsUtilsTest {
       CommonUtils.touch(mUnderfsAddress + inclusion + "/1");
     }
 
-    UfsUtils.loadUnderFs(mTfs, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(mUnderfsAddress
-        + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"));
+    UfsUtils.loadUnderFs(mTfs, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(
+        mUnderfsAddress + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"));
 
     List<String> paths = null;
     for (String exclusion : exclusions) {
