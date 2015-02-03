@@ -77,7 +77,7 @@ function runTest {
       exit 1
       ;;
   esac
-  $LAUNCHER $bin/tachyon tfs rm "$file"
+  $LAUNCHER $bin/tachyon tfs rmr "$file"
   $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS "$class" tachyon://$MASTER_ADDRESS:19998 "$file" "$args"
 }
 
