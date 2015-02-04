@@ -60,6 +60,10 @@ public class TachyonFileTest {
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
+
+    TachyonConf masterConf =  mLocalTachyonCluster.getMasterTachyonConf();
+    int userCapacityBytes = WORKER_CAPACITY_BYTES / 4;
+    masterConf.set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(userCapacityBytes));
   }
 
   /**

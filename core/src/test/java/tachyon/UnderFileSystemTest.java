@@ -68,7 +68,6 @@ public final class UnderFileSystemTest {
     result = UnderFileSystem.parse(new TachyonURI("s3n://localhost:19998/path"), mTachyonConf);
     Assert.assertEquals(result.getFirst(), "s3n://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
-
     Assert.assertEquals(UnderFileSystem.parse(null, mTachyonConf), null);
     Assert.assertEquals(UnderFileSystem.parse(TachyonURI.EMPTY_URI, mTachyonConf), null);
     Assert.assertEquals(UnderFileSystem.parse(new TachyonURI("anythingElse"), mTachyonConf), null);
