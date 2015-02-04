@@ -65,7 +65,8 @@ public class UnderfsUtilsTest {
 
   @Test
   public void loadUnderFsTest() throws IOException {
-    // TODO Is this test really tied to HDFS? Or could it run on any Under File System?
+    // TODO Is this test really tied to HDFS?
+    // Or could it run on some general subsets of Under File Systems?
     Assume.assumeTrue(UnderFileSystemCluster.isUFSHDFS());
 
     String[] exclusions = { "/tachyon", "/exclusions" };
