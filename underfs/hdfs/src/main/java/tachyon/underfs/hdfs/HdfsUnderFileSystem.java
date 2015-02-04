@@ -42,7 +42,7 @@ import tachyon.hadoop.Utils;
 import tachyon.underfs.UnderFileSystem;
 
 /**
- * HDFS UnderFilesystem implementation.
+ * HDFS UnderFilesystem implementation
  */
 public class HdfsUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -254,14 +254,14 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     // as Tachyon can load/store data out of entire HDFS cluster
     if (mFs instanceof DistributedFileSystem) {
       switch (type) {
-      case SPACE_TOTAL:
-        return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
-      case SPACE_USED:
-        return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
-      case SPACE_FREE:
-        return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
-      default:
-        throw new IOException("Unknown getSpace parameter: " + type);
+        case SPACE_TOTAL:
+          return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
+        case SPACE_USED:
+          return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
+        case SPACE_FREE:
+          return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
+        default:
+          throw new IOException("Unknown getSpace parameter: " + type);
       }
     }
     return -1;
