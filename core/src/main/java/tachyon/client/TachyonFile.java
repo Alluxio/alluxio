@@ -473,7 +473,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Re-cache the block into memory
-   * 
+   *
    * @param blockIndex The block index of the current file.
    * @return true if succeed, false otherwise
    * @throws IOException
@@ -506,6 +506,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
           }
         }
       }
+      bos.close();
     } catch (IOException e) {
       LOG.warn(e.getMessage(), e);
       if (bos != null) {
