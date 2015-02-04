@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+LAUNCHER=
+# If debugging is enabled propagate that through to sub-shells
+if [[ "$-" == *x* ]]; then
+  LAUNCHER="bash -x"
+fi
+
 function printUsage {
   echo "Usage: tachyon COMMAND "
   echo "where COMMAND is one of:"
@@ -71,7 +77,7 @@ function runTest {
       exit 1
       ;;
   esac
-  $bin/tachyon tfs rm "$file"
+  $LAUNCHER $bin/tachyon tfs rmr "$file"
   $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS "$class" tachyon://$MASTER_ADDRESS:19998 "$file" "$args"
 }
 
@@ -176,7 +182,7 @@ if [ "$COMMAND" == "format" ]; then
     TACHYON_MASTER_ADDRESS=localhost
   fi
 
-  $bin/tachyon-workers.sh $bin/tachyon formatWorker
+  $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon formatWorker
 
   echo "Formatting Tachyon Master @ $TACHYON_MASTER_ADDRESS"
   CLASS=tachyon.Format
@@ -203,8 +209,8 @@ elif [ "$COMMAND" == "runTests" ]; then
   do
     for example in Basic BasicRawTable BasicCheckpoint BasicNonByteBuffer
     do
-      echo $bin/tachyon runTest $example $op
-      $bin/tachyon runTest $example $op
+      echo $LAUNCHER $bin/tachyon runTest $example $op
+      $LAUNCHER $bin/tachyon runTest $example $op
       st=$?
       failed=$(( $failed + $st ))
     done

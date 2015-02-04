@@ -187,13 +187,43 @@ number.
 </tr>
 <tr>
   <td>tachyon.worker.data.folder</td>
-  <td>/mnt/ramdisk</td>
-  <td>The path to the data folder for Tachyon's worker nodes. Note for macs the value should be "/Volumes/"</td>
+  <td>/tachyonworker/</td>
+  <td>The relative path in each storage directory as the data folder for Tachyon's worker nodes.</td>
 </tr>
 <tr>
   <td>tachyon.worker.memory.size</td>
   <td>128 MB</td>
   <td>Memory capacity of each worker node.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.hierarchystore.level.max</td>
+  <td>1</td>
+  <td>The max level of storage layers.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.hierarchystore.level0.alias</td>
+  <td>MEM</td>
+  <td>The alias of top storage layer.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.hierarchystore.level0.dirs.path</td>
+  <td>/mnt/ramdisk/</td>
+  <td>The path of storage directory path for top storage layer. Note for macs the value should be "/Volumes/"</td>
+</tr>
+<tr>
+  <td>tachyon.worker.hierarchystore.level0.dirs.quota</td>
+  <td>${tachyon.worker.memory.size}</td>
+  <td>The capacity of top storage layer.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.allocate.strategy</td>
+  <td>MAX_FREE</td>
+  <td>The strategy that worker allocate space among storage directories in certain storage layer.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.evict.strategy</td>
+  <td>LRU</td>
+  <td>The strategy that worker evict block files when a storage layer runs out of space.</td>
 </tr>
 <tr>
   <td>tachyon.worker.network.type</td>

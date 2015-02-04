@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+LAUNCHER=
+# If debugging is enabled propagate that through to sub-shells
+if [[ "$-" == *x* ]]; then
+  LAUNCHER="bash -x"
+fi
+
 Usage="Usage: tachyon-stop.sh [-h] [component] 
 Where component is one of:
   all\t\t\tStop local master/worker and remote workers. Default.
@@ -11,15 +17,15 @@ Where component is one of:
 bin=`cd "$( dirname "$0" )"; pwd`
 
 kill_master() {
-  $bin/tachyon killAll tachyon.master.TachyonMaster
+  $LAUNCHER $bin/tachyon killAll tachyon.master.TachyonMaster
 }
 
 kill_worker() {
-  $bin/tachyon killAll tachyon.worker.TachyonWorker
+  $LAUNCHER $bin/tachyon killAll tachyon.worker.TachyonWorker
 }
 
 kill_remote_workers() {
-  $bin/tachyon-workers.sh $bin/tachyon killAll tachyon.worker.TachyonWorker
+  $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon killAll tachyon.worker.TachyonWorker
 }
 
 WHAT=${1:-all}

@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.conf.TachyonConf;
 
 /**
@@ -68,6 +70,8 @@ public abstract class UnderFileSystem {
    * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, Object conf, TachyonConf tachyonConf) {
+    Preconditions.checkArgument(path != null, "path may not be null");
+
     if (isHadoopUnderFS(path, tachyonConf)) {
       return UnderFileSystemHdfs.getClient(path, conf, tachyonConf);
     } else if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
@@ -104,9 +108,7 @@ public abstract class UnderFileSystem {
    *         address is "/" and the path starts with "/".
    */
   public static Pair<String, String> parse(TachyonURI path, TachyonConf tachyonConf) {
-    if (path == null) {
-      return null;
-    }
+    Preconditions.checkArgument(path != null, "path may not be null");
 
     if (path.hasScheme()) {
       String header = path.getScheme() + "://";

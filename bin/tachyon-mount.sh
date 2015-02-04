@@ -4,6 +4,12 @@
 # Starts the master on this node.
 # Starts a worker on each node specified in conf/workers
 
+LAUNCHER=
+# If debugging is enabled propagate that through to sub-shells
+if [[ "$-" == *x* ]]; then
+  LAUNCHER="bash -x"
+fi
+
 Usage="Usage: tachyon-mount.sh [Mount|SudoMount] [MACHINE]
 \nIf omitted, MACHINE is default to be 'local'. MACHINE is one of:\n
   local\t\t\tMount local machine\n
@@ -111,8 +117,13 @@ function mount_ramfs_mac() {
   mem_size_to_bytes
   NUM_SECTORS=$((BYTE_SIZE / 512))
 
+  # Format the RAM FS
+  # We may have a pre-existing RAM FS which we need to throw away
   echo "Formatting RamFS: $F $NUM_SECTORS sectors ($MEM_SIZE)."
-  diskutil unmount force /Volumes/$F
+  DEVICE=`df -l | grep $F | cut -d " " -f 1`
+  if [[ -n "${DEVICE}" ]]; then
+    hdiutil detach -force $DEVICE
+  fi
   diskutil erasevolume HFS+ $F `hdiutil attach -nomount ram://$NUM_SECTORS`
 }
 
@@ -140,7 +151,7 @@ case "${1}" in
         mount_local $1
         ;;
       workers)
-        $bin/tachyon-workers.sh $bin/tachyon-mount.sh $1
+        $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon-mount.sh $1
         ;;
     esac
     ;;
