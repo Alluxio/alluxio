@@ -699,8 +699,8 @@ public class WorkerStorage {
    * {@link #mUfsWorkerFolder} with the provided {@literal userId}.
    * </p>
    * <p>
-   * This temp folder generated lives inside the {@link tachyon.UnderFileSystem}, and as such, will
-   * be stored remotely, most likely on disk.
+   * This temp folder generated lives inside the {@link tachyon.underfs.UnderFileSystem}, and as
+   * such, will be stored remotely, most likely on disk.
    * </p>
    *
    * @param userId The id of the user
@@ -915,8 +915,9 @@ public class WorkerStorage {
 
     StorageDir storageDir = requestSpace(null, userId, initialBytes);
     if (storageDir == null) {
-      throw new OutOfSpaceException(String.format("Failed to allocate space for block! blockId(%d)"
-          + " sizeBytes(%d)", blockId, initialBytes));
+      throw new OutOfSpaceException(String.format(
+          "Failed to allocate space for block! blockId(%d)" + " sizeBytes(%d)", blockId,
+          initialBytes));
     }
     mTempBlockLocation.put(new Pair<Long, Long>(userId, blockId), storageDir);
     mUserIdToTempBlockIds.put(userId, blockId);
