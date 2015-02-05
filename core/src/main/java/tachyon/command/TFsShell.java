@@ -203,7 +203,7 @@ public class TFsShell implements Closeable {
     try {
       InStream is = closer.register(tFile.getInStream(ReadType.NO_CACHE));
       FileOutputStream out = closer.register(new FileOutputStream(dst));
-      byte[] buf = new byte[512];
+      byte[] buf = new byte[Constants.DEFAULT_BUFFER_SIZE_BYTE];
       int t = is.read(buf);
       while (t != -1) {
         out.write(buf, 0, t);
