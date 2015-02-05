@@ -153,7 +153,7 @@ public class TFsShell implements Closeable {
         OutStream os = closer.register(tFile.getOutStream(UserConf.get().DEFAULT_WRITE_TYPE));
         FileInputStream in = closer.register(new FileInputStream(src));
         FileChannel channel = closer.register(in.getChannel());
-        ByteBuffer buf = ByteBuffer.allocate(Constants.KB);
+        ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);
         while (channel.read(buf) != -1) {
           buf.flip();
           os.write(buf.array(), 0, buf.limit());
@@ -203,7 +203,7 @@ public class TFsShell implements Closeable {
     try {
       InStream is = closer.register(tFile.getInStream(ReadType.NO_CACHE));
       FileOutputStream out = closer.register(new FileOutputStream(dst));
-      byte[] buf = new byte[Constants.DEFAULT_BUFFER_SIZE_BYTE];
+      byte[] buf = new byte[64 * Constants.MB];
       int t = is.read(buf);
       while (t != -1) {
         out.write(buf, 0, t);
