@@ -17,6 +17,12 @@ package tachyon.command;
 
 import java.io.IOException;
 
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.CommonConf;
@@ -72,4 +78,34 @@ public class Utils {
       return CommonUtils.concat(Constants.HEADER + hostname + ":" + port, path);
     }
   }
+
+  /**
+   * Parse given parameters in this order : tfs command [<path>] [<path>] [-parameter [value]]
+   * [-parameter [value]] ...
+   * 
+   * @param args Input parameters
+   * @return CommandLine containing [-parameter [value]] pair.
+   * @throws IOException
+   */
+  public static CommandLine parse(String[] argv) throws IOException {
+    CommandLineParser parser = new BasicParser();
+    Options option = new Options();
+    for (int i = 0; i < argv.length; i ++) {
+      if (argv[i].startsWith("-")) {
+        if (i < argv.length - 1 && !argv[i + 1].startsWith("-")) {
+          option.addOption(argv[i].substring(1), null, true, null);
+        } else {
+          option.addOption(argv[i].substring(1), null, false, null);
+        }
+      }
+    }
+    CommandLine commandLine = null;
+    try {
+      commandLine = parser.parse(option, argv);
+    } catch (ParseException e) {
+      throw new IOException("Fail to parse parameters to CommandLine.");
+    }
+    return commandLine;
+  }
+
 }
