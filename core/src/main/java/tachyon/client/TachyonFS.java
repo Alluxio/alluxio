@@ -679,9 +679,9 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get block's temporary path from worker with initial space allocated.
    * 
-   * @param the
+   * @param blockId
    *          id of the block
-   * @param the
+   * @param initialBytes
    *          initial bytes allocated for the block file
    * @return the temporary path of the block file
    * @throws IOException

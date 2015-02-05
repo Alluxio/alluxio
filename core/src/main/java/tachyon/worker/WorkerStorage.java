@@ -311,7 +311,8 @@ public class WorkerStorage {
    * This object is lazily initialized. Before an object of this call should be used,
    * {@link #initialize} must be called.
    * 
-   * @param masterAddress The TachyonMaster's address
+   * @param masterAddress
+   *          The TachyonMaster's address
    * @param executorService
    */
   public WorkerStorage(InetSocketAddress masterAddress, ExecutorService executorService) {
@@ -487,9 +488,8 @@ public class WorkerStorage {
    * @throws BlockInfoException
    * @throws IOException
    */
-  public void cacheBlock(long userId, long blockId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
-      IOException {
+  public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
+      SuspectedFileSizeException, BlockInfoException, IOException {
     StorageDir storageDir = mTempBlockLocation.remove(new Pair<Long, Long>(userId, blockId));
     if (storageDir == null) {
       throw new FileDoesNotExistException("Block doesn't exist! blockId:" + blockId);
@@ -511,12 +511,14 @@ public class WorkerStorage {
   /**
    * Cancel the block which is being written by some user
    * 
-   * @param userId The id of the user who wants to cancel the block
-   * @param blockId The id of the block that is cancelled
+   * @param userId
+   *          The id of the user who wants to cancel the block
+   * @param blockId
+   *          The id of the block that is cancelled
    */
   public void cancelBlock(long userId, long blockId) {
     StorageDir storageDir = mTempBlockLocation.remove(new Pair<Long, Long>(userId, blockId));
-    
+
     if (storageDir != null) {
       mUserIdToTempBlockIds.remove(userId, blockId);
       try {
@@ -576,7 +578,7 @@ public class WorkerStorage {
    * This is triggered when the worker heartbeats to the master, which sends a
    * {@link tachyon.thrift.Command} with type {@link tachyon.thrift.CommandType#Free}
    * 
-   * @param blocks
+   * @param blockIds
    *          The list of blocks to be removed.
    */
   public void freeBlocks(List<Long> blockIds) {
@@ -588,7 +590,8 @@ public class WorkerStorage {
   /**
    * Get StorageDir which contains specified block
    * 
-   * @param blockId the id of the block
+   * @param blockId
+   *          the id of the block
    * @return StorageDir which contains the block
    */
   public StorageDir getStorageDirByBlockId(long blockId) {
@@ -631,9 +634,10 @@ public class WorkerStorage {
    * {@link #mUfsWorkerFolder} with the provided {@literal userId}.
    * </p>
    * <p>
-   * This temp folder generated lives inside the {@link tachyon.UnderFileSystem}, and as such, will
-   * be stored remotely, most likely on disk.
+   * This temp folder generated lives inside the {@link tachyon.underfs.UnderFileSystem}, and as
+   * such, will be stored remotely, most likely on disk.
    * </p>
+   * 
    * @param userId
    *          The id of the user
    * @return The user temporary folder in the under file system
@@ -662,8 +666,8 @@ public class WorkerStorage {
         addedBlockIds.put(storageDir.getStorageDirId(), storageDir.getAddedBlockIdList());
       }
     }
-    return mMasterClient
-        .worker_heartbeat(mWorkerId, getUsedBytes(), removedBlockIds, addedBlockIds);
+    return mMasterClient.worker_heartbeat(mWorkerId, getUsedBytes(), removedBlockIds,
+        addedBlockIds);
   }
 
   /**
@@ -738,7 +742,8 @@ public class WorkerStorage {
   /**
    * If the block is not on top StorageTier, promote block to top StorageTier
    * 
-   * @param blockId the id of the block
+   * @param blockId
+   *          the id of the block
    * @return true if block is promoted, false otherwise
    */
   public boolean promoteBlock(long blockId) {
@@ -746,8 +751,8 @@ public class WorkerStorage {
     StorageDir storageDir = lockBlock(blockId, userId);
     if (storageDir == null) {
       return false;
-    } else if (StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId())
-        != mStorageTiers.get(0).getAlias().getValue()) {
+    } else if (StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId()) != mStorageTiers
+        .get(0).getAlias().getValue()) {
       long blockSize = storageDir.getBlockSize(blockId);
       StorageDir dstStorageDir = requestSpace(null, userId, blockSize);
       if (dstStorageDir == null) {
@@ -809,14 +814,17 @@ public class WorkerStorage {
 
   /**
    * Get temporary file path for some block, it is used to choose appropriate StorageDir for some
-   * block file with specified initial size. 
+   * block file with specified initial size.
    *
-   * @param userId the id of the user who wants to write the file
-   * @param blockId the id of the block
-   * @param initialBytes the initial size allocated for the block 
+   * @param userId
+   *          the id of the user who wants to write the file
+   * @param blockId
+   *          the id of the block
+   * @param initialBytes
+   *          the initial size allocated for the block
    * @return the temporary path of the block file
    * @throws OutOfSpaceException
-   * @throws FileAlreadyExistException 
+   * @throws FileAlreadyExistException
    */
   public String requestBlockLocation(long userId, long blockId, long initialBytes)
       throws OutOfSpaceException, FileAlreadyExistException {
@@ -827,8 +835,9 @@ public class WorkerStorage {
 
     StorageDir storageDir = requestSpace(null, userId, initialBytes);
     if (storageDir == null) {
-      throw new OutOfSpaceException(String.format("Failed to allocate space for block! blockId(%d)"
-          + " sizeBytes(%d)", blockId, initialBytes));
+      throw new OutOfSpaceException(String.format(
+          "Failed to allocate space for block! blockId(%d)" + " sizeBytes(%d)", blockId,
+          initialBytes));
     }
     mTempBlockLocation.put(new Pair<Long, Long>(userId, blockId), storageDir);
     mUserIdToTempBlockIds.put(userId, blockId);
@@ -841,9 +850,12 @@ public class WorkerStorage {
    * Request space from the worker, and expecting worker return the appropriate StorageDir which
    * has enough space for the requested space size
    * 
-   * @param dirCandidate The StorageDir in which the space will be allocated.
-   * @param userId The id of the user who send the request
-   * @param requestBytes The requested space size, in bytes
+   * @param dirCandidate
+   *          The StorageDir in which the space will be allocated.
+   * @param userId
+   *          The id of the user who send the request
+   * @param requestBytes
+   *          The requested space size, in bytes
    * @return StorageDir assigned, null if failed
    */
   private StorageDir requestSpace(StorageDir dirCandidate, long userId, long requestBytes) {
@@ -885,10 +897,12 @@ public class WorkerStorage {
    * 
    * @param userId
    *          The id of the user who wants to return the space
-   * @param blockId The id of the block that the space is allocated for
-   * @param requestBytes The requested space size, in bytes
+   * @param blockId
+   *          The id of the block that the space is allocated for
+   * @param requestBytes
+   *          The requested space size, in bytes
    * @return true if succeed, false otherwise
-   * @throws FileDoesNotExistException 
+   * @throws FileDoesNotExistException
    */
   public boolean requestSpace(long userId, long blockId, long requestBytes)
       throws FileDoesNotExistException {
