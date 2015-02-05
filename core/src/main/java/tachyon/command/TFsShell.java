@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -25,6 +25,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.commons.cli.CommandLine;
 
 import com.google.common.io.Closer;
 
@@ -183,9 +185,22 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int copyToLocal(String[] argv) throws IOException {
-    if (argv.length != 3) {
-      System.out.println("Usage: tfs copyToLocal <src> <localdst>");
+    CommandLine commandLine = Utils.parse(argv);
+    if (argv.length != 3 && argv.length != 5 || argv.length == 5
+        && !commandLine.hasOption("bufferSize")) {
+      System.out.println("Usage: tfs copyToLocal <src> <localdst> [-bufferSize size]");
       return -1;
+    }
+
+    int bufferSize = 512;
+    if (commandLine.hasOption("bufferSize")) {
+      String size = commandLine.getOptionValue("bufferSize");
+      try {
+        bufferSize = Math.max(bufferSize, Integer.parseInt(size));
+      } catch (NumberFormatException e) {
+        System.out.println("Invalid bufferSize value, the value must be an integer.");
+        return -1;
+      }
     }
 
     TachyonURI srcPath = new TachyonURI(argv[1]);
@@ -203,7 +218,7 @@ public class TFsShell implements Closeable {
     try {
       InStream is = closer.register(tFile.getInStream(ReadType.NO_CACHE));
       FileOutputStream out = closer.register(new FileOutputStream(dst));
-      byte[] buf = new byte[512];
+      byte[] buf = new byte[bufferSize];
       int t = is.read(buf);
       while (t != -1) {
         out.write(buf, 0, t);
@@ -454,7 +469,7 @@ public class TFsShell implements Closeable {
     System.out.println("       [touch <path>]");
     System.out.println("       [mv <src> <dst>]");
     System.out.println("       [copyFromLocal <src> <remoteDst>]");
-    System.out.println("       [copyToLocal <src> <localDst>]");
+    System.out.println("       [copyToLocal <src> <localDst> [-bufferSize size]]");
     System.out.println("       [fileinfo <path>]");
     System.out.println("       [location <path>]");
     System.out.println("       [report <path>]");
