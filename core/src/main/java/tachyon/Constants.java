@@ -50,6 +50,8 @@ public class Constants {
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;
   public static final int DEFAULT_WORKER_DATA_SERVER_PORT = DEFAULT_WORKER_PORT + 1;
+  
+  public static final int DEFAULT_BUFFER_SIZE_BYTE = 64 * MB;
 
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
 
