@@ -28,7 +28,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +45,7 @@ import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerClient;
@@ -58,7 +58,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Create a TachyonFS handler.
-   *
+   * 
    * @param tachyonPath a Tachyon path contains master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
    * @return the corresponding TachyonFS hanlder
@@ -132,14 +132,13 @@ public class TachyonFS extends AbstractTachyonFS {
 
   // All Blocks has been locked.
   private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
+  // Mapping from block id to path of the block locked
+  private final Map<Long, String> mLockedBlockIdToPath = new HashMap<Long, String>();
 
   // Each user facing block has a unique block lock id.
   private final AtomicInteger mBlockLockId = new AtomicInteger(0);
 
   private TachyonURI mRootUri = null;
-
-  // Available memory space for this client.
-  private Long mAvailableSpaceBytes;
 
   private TachyonFS(TachyonURI tachyonURI) throws IOException {
     this(new InetSocketAddress(tachyonURI.getHost(), tachyonURI.getPort()), tachyonURI.getScheme()
@@ -149,7 +148,6 @@ public class TachyonFS extends AbstractTachyonFS {
   private TachyonFS(InetSocketAddress masterAddress, boolean zookeeperMode) throws IOException {
     mMasterAddress = masterAddress;
     mZookeeperMode = zookeeperMode;
-    mAvailableSpaceBytes = 0L;
 
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.daemon("client-heartbeat-%d"));
@@ -182,7 +180,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   synchronized void addCheckpoint(int fid) throws IOException {
-    mWorkerClient.addCheckpoint(mMasterClient.getUserId(), fid);
+    mWorkerClient.addCheckpoint(fid);
   }
 
   /**
@@ -207,15 +205,22 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
+   * Notify the worker the block is canceled.
+   * 
+   * @param blockId the block id
+   * @throws IOException
+   */
+  public synchronized void cancelBlock(long blockId) throws IOException {
+    mWorkerClient.cancelBlock(blockId);
+  }
+
+  /**
    * Close the client. Close the connections to both to master and worker
    * 
    * @throws IOException
    */
   @Override
   public synchronized void close() throws IOException {
-    if (mWorkerClient.isConnected()) {
-      mWorkerClient.returnSpace(mMasterClient.getUserId(), mAvailableSpaceBytes);
-    }
     try {
       mCloser.close();
     } finally {
@@ -231,34 +236,6 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   synchronized void completeFile(int fid) throws IOException {
     mMasterClient.user_completeFile(fid);
-  }
-
-  /**
-   * Create a user local temporary folder and return it
-   * 
-   * @return the local temporary folder for the user or null if unable to allocate one.
-   * @throws IOException
-   */
-  synchronized File createAndGetUserLocalTempFolder() throws IOException {
-    String userTempFolder = mWorkerClient.getUserTempFolder();
-
-    if (StringUtils.isBlank(userTempFolder)) {
-      LOG.error("Unable to get local temporary folder \"{}\" for user.", userTempFolder);
-      return null;
-    }
-
-    File ret = new File(userTempFolder);
-    if (!ret.exists()) {
-      if (ret.mkdir()) {
-        CommonUtils.changeLocalFileToFullPermission(ret.getAbsolutePath());
-        LOG.info("Folder " + ret + " was created!");
-      } else {
-        LOG.error("Failed to create folder " + ret);
-        return null;
-      }
-    }
-
-    return ret;
   }
 
   /**
@@ -326,7 +303,7 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Create a file with the default block size (1GB) in the system. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
-   *
+   * 
    * @param path the path of the file
    * @return The unique file id. It returns -1 if the creation failed.
    * @throws IOException If file already exists, or path is invalid.
@@ -370,7 +347,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Deletes a file or folder
-   *
+   * 
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the path parameter.
    * @param path The path of the file / folder. It could be empty iff id is not -1.
@@ -388,7 +365,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Delete the file denoted by the path.
-   *
+   * 
    * @param path the file path
    * @param recursive if delete the path recursively.
    * @return true if the deletion succeed (including the case that the path does not exist in the
@@ -505,7 +482,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Get <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
-   *
+   * 
    * @param path file path.
    * @return TachyonFile of the path, or null if the file does not exist.
    * @throws IOException
@@ -644,6 +621,37 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
+   * Get block's temporary path from worker with initial space allocated.
+   * 
+   * @param the id of the block
+   * @param the initial bytes allocated for the block file
+   * @return the temporary path of the block file
+   * @throws IOException
+   */
+  public synchronized String getLocalBlockTemporaryPath(long blockId, long initialBytes)
+      throws IOException {
+    String blockPath = mWorkerClient.requestBlockLocation(blockId, initialBytes);
+
+    File localTempFolder;
+    try {
+      localTempFolder = new File(CommonUtils.getParent(blockPath));
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
+
+    if (!localTempFolder.exists()) {
+      if (localTempFolder.mkdirs()) {
+        CommonUtils.changeLocalFileToFullPermission(localTempFolder.getAbsolutePath());
+        LOG.info("Folder {} was created!", localTempFolder);
+      } else {
+        throw new IOException("Failed to create folder " + localTempFolder);
+      }
+    }
+
+    return blockPath;
+  }
+
+  /**
    * Get the RawTable by id
    * 
    * @param id the id of the raw table
@@ -667,14 +675,6 @@ public class TachyonFS extends AbstractTachyonFS {
     ClientRawTableInfo clientRawTableInfo =
         mMasterClient.user_getClientRawTableInfo(-1, path.getPath());
     return new RawTable(this, clientRawTableInfo);
-  }
-
-  /**
-   * @return the local root data folder
-   * @throws IOException
-   */
-  synchronized String getLocalDataFolder() throws IOException {
-    return mWorkerClient.getDataFolder();
   }
 
   /**
@@ -754,27 +754,32 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockId The id of the block to lock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
    *        non-negative.
-   * @return true if successfully lock the block, false otherwise (or invalid parameter).
+   * @return the path of the block file locked
+   * @throws IOException
    */
-  synchronized boolean lockBlock(long blockId, int blockLockId) throws IOException {
+  synchronized String lockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
-      return false;
+      return null;
     }
 
     if (mLockedBlockIds.containsKey(blockId)) {
       mLockedBlockIds.get(blockId).add(blockLockId);
-      return true;
+      return mLockedBlockIdToPath.get(blockId);
     }
 
     if (!mWorkerClient.isLocal()) {
-      return false;
+      return null;
     }
-    mWorkerClient.lockBlock(blockId, mMasterClient.getUserId());
+    String blockPath = mWorkerClient.lockBlock(blockId);
 
-    Set<Integer> lockIds = new HashSet<Integer>(4);
-    lockIds.add(blockLockId);
-    mLockedBlockIds.put(blockId, lockIds);
-    return true;
+    if (blockPath != null) {
+      Set<Integer> lockIds = new HashSet<Integer>(4);
+      lockIds.add(blockLockId);
+      mLockedBlockIds.put(blockId, lockIds);
+      mLockedBlockIdToPath.put(blockId, blockPath);
+      return blockPath;
+    }
+    return null;
   }
 
   /**
@@ -814,8 +819,18 @@ public class TachyonFS extends AbstractTachyonFS {
     return mMasterClient.user_freepath(fileId, path.getPath(), recursive);
   }
 
-  public synchronized void releaseSpace(long releaseSpaceBytes) {
-    mAvailableSpaceBytes += releaseSpaceBytes;
+  /**
+   * Promote block file back to the top StorageTier, after the block file is accessed.
+   * 
+   * @param blockId the id of the block
+   * @return true if success, false otherwise
+   * @throws IOException
+   */
+  public synchronized boolean promoteBlock(long blockId) throws IOException {
+    if (mWorkerClient.isLocal()) {
+      return mWorkerClient.promoteBlock(blockId);
+    }
+    return false;
   }
 
   /**
@@ -857,34 +872,26 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Try to request space from worker. Only works when a local worker exists.
+   * Try to request space for certain block. Only works when a local worker exists.
    * 
-   * @param requestSpaceBytes the space size in bytes
-   * @return true if succeed, false otherwise
+   * @param blockId the id of the block that space will be allocated for
+   * @param requestSpaceBytes size to request in bytes
+   * @return the size bytes that allocated to the block, -1 if no local worker exists
    * @throws IOException
    */
-  public synchronized boolean requestSpace(long requestSpaceBytes) throws IOException {
-    if (!mWorkerClient.isLocal()) {
-      return false;
+  public synchronized long requestSpace(long blockId, long requestSpaceBytes)
+      throws IOException {
+    if (!hasLocalWorker()) {
+      return -1;
     }
-    int failedTimes = 0;
-    while (mAvailableSpaceBytes < requestSpaceBytes) {
-      long toRequestSpaceBytes =
-          Math.max(requestSpaceBytes - mAvailableSpaceBytes, mUserQuotaUnitBytes);
-      if (mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes)) {
-        mAvailableSpaceBytes += toRequestSpaceBytes;
-      } else {
-        LOG.info("Failed to request " + toRequestSpaceBytes + " bytes local space. " + "Time "
-            + (failedTimes ++));
-        if (failedTimes == mUserFailedSpaceRequestLimits) {
-          return false;
-        }
+
+    long toRequestSpaceBytes = Math.max(requestSpaceBytes, mUserQuotaUnitBytes);
+    for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
+      if (mWorkerClient.requestSpace(blockId, toRequestSpaceBytes)) {
+        return toRequestSpaceBytes;
       }
     }
-
-    mAvailableSpaceBytes -= requestSpaceBytes;
-
-    return true;
+    return 0;
   }
 
   /**
@@ -914,8 +921,6 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
    *        non-negative.
-   * @return true if successfully unlock the block with <code>blockLockId</code>, false otherwise
-   *         (or invalid parameter).
    */
   synchronized boolean unlockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
@@ -935,10 +940,9 @@ public class TachyonFS extends AbstractTachyonFS {
       return false;
     }
 
-    mWorkerClient.unlockBlock(blockId, mMasterClient.getUserId());
+    mLockedBlockIdToPath.remove(blockId);
     mLockedBlockIds.remove(blockId);
-
-    return true;
+    return mWorkerClient.unlockBlock(blockId);
   }
 
   /** Alias for setPinned(fid, false). */

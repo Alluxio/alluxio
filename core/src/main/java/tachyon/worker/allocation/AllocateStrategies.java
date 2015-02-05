@@ -13,37 +13,31 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.worker.allocation;
 
 /**
- * Different storage level alias for StorageTier.
+ * Define several AllocateStrategy, and get specific AllocateStrategy by AllocateStrategyType
  */
-public enum StorageLevelAlias {
-  /**
-   * Memory Layer
-   */
-  MEM(1),
-  /**
-   * SSD Layer
-   */
-  SSD(2),
-  /**
-   * HDD Layer
-   */
-  HDD(3);
+public class AllocateStrategies {
 
-  private int mValue;
-
-  private StorageLevelAlias(int value) {
-    mValue = value;
+  /**
+   * Get AllocateStrategy based on configuration
+   *
+   * @param strategyType configuration of AllocateStrategy
+   * @return AllocationStrategy generated
+   */
+  public static AllocateStrategy getAllocateStrategy(AllocateStrategyType strategyType) {
+    switch (strategyType) {
+      case MAX_FREE:
+        return new AllocateMaxFree();
+      case RANDOM:
+        return new AllocateRandom();
+      case ROUND_ROBIN:
+        return new AllocateRR();
+      default:
+        return new AllocateMaxFree();
+    }
   }
 
-  /**
-   * Get value of the storage level alias
-   * 
-   * @return value of the storage level alias
-   */
-  public int getValue() {
-    return mValue;
-  }
+  private AllocateStrategies() {}
 }
