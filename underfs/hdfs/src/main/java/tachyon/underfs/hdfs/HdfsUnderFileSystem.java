@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -93,10 +94,16 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    *          Hadoop Configuration
    */
   protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
+    // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
+    // discover available file system implementations. However this configuration setting is
+    // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
+    // if present propagate it to the Hadoop configuration
     String ufsHdfsImpl =
         mTachyonConf.get(Constants.UNDERFS_HDFS_IMPL,
-            "org.apache.hadoop.hdfs.DistributedFileSystem");
-    config.set("fs.hdfs.impl", ufsHdfsImpl);
+            null);
+    if (!StringUtils.isEmpty(ufsHdfsImpl)) {
+      config.set("fs.hdfs.impl", ufsHdfsImpl);
+    }
 
     // To disable the instance cache for hdfs client, otherwise it causes the
     // FileSystem closed exception. Being configurable for unit/integration
