@@ -110,7 +110,7 @@
           </execution>
         </executions>
       </plugin>
-      
+
       <!-- Code Verifications -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -157,6 +157,37 @@
             <version>5.9</version>
           </dependency>
         </dependencies>
+      </plugin>
+
+      <!-- License Plugin -->
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.9</version>
+        <configuration>
+          <header>${project.parent.parent.basedir}/build/license/HEADER.txt</header>
+          <failIfMissing>true</failIfMissing>
+          <aggregate>true</aggregate>
+          <excludes>
+            <exclude>src/test/resources/*</exclude>
+            <exclude>logs/*</exclude>
+            <exclude>**/package-info.java</exclude>
+            <exclude>pom.xml</exclude>
+          </excludes>
+          <mapping>
+            <java>SLASHSTAR_STYLE</java>
+          </mapping>
+          <useDefaultMapping>true</useDefaultMapping>
+          <strictCheck>true</strictCheck>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
