@@ -29,7 +29,7 @@
  * 
  * <h3>Lock / Unlock</h3>
  * 
- * Tachyon supports cacheing blocks to local disk (client side). When this happens, a lock is given
+ * Tachyon supports caching blocks to local disk (client side). When this happens, a lock is given
  * to the client to protect it from the remote block changing.
  * 
  * Implementation can be found at {@link tachyon.worker.WorkerStorage#lockBlock(long, long)} and
