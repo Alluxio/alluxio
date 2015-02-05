@@ -15,7 +15,6 @@
 
 package tachyon.client;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +36,6 @@ import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.util.CommonUtils;
 
 /**
  * Tachyon File.
@@ -185,16 +183,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public String getLocalFilename(int blockIndex) throws IOException {
     ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-
-    String rootFolder = mTachyonFS.getLocalDataFolder();
-    if (rootFolder != null) {
-      String localFileName = CommonUtils.concat(rootFolder, blockInfo.getBlockId());
-      File file = new File(localFileName);
-      if (file.exists()) {
-        return localFileName;
-      }
+    long blockId = blockInfo.getBlockId();
+    int blockLockId = mTachyonFS.getBlockLockId();
+    String filename = mTachyonFS.lockBlock(blockId, blockLockId);
+    if (filename != null) {
+      mTachyonFS.unlockBlock(blockId, blockLockId);
     }
-    return null;
+    return filename;
   }
 
   /**
@@ -340,6 +335,18 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
+   * Promote block back to top layer after access
+   * 
+   * @param blockIndex the index of the block
+   * @return true if success, false otherwise
+   * @throws IOException
+   */
+  public boolean promoteBlock(int blockIndex) throws IOException {
+    ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
+    return mTachyonFS.promoteBlock(blockInfo.getBlockId());
+  }
+
+  /**
    * Advanced API.
    * 
    * Return a TachyonByteBuffer of the block specified by the blockIndex
@@ -395,11 +402,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
     long blockId = info.blockId;
 
     int blockLockId = mTachyonFS.getBlockLockId();
-    if (!mTachyonFS.lockBlock(blockId, blockLockId)) {
-      return null;
-    }
+    String localFileName = mTachyonFS.lockBlock(blockId, blockLockId);
 
-    String localFileName = getLocalFilename(blockIndex);
     if (localFileName != null) {
       Closer closer = Closer.create();
       try {

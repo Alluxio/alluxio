@@ -13,37 +13,22 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.worker.allocation;
 
+import tachyon.worker.hierarchy.StorageDir;
+ 
 /**
- * Different storage level alias for StorageTier.
+ * Base class for AllocateStrategy, which provides basic function for AllocateStrategy
  */
-public enum StorageLevelAlias {
-  /**
-   * Memory Layer
-   */
-  MEM(1),
-  /**
-   * SSD Layer
-   */
-  SSD(2),
-  /**
-   * HDD Layer
-   */
-  HDD(3);
-
-  private int mValue;
-
-  private StorageLevelAlias(int value) {
-    mValue = value;
-  }
-
-  /**
-   * Get value of the storage level alias
-   * 
-   * @return value of the storage level alias
-   */
-  public int getValue() {
-    return mValue;
+public abstract class AllocateStrategyBase implements AllocateStrategy {
+  @Override
+  public boolean fitInPossible(StorageDir[] storageDirs, long requestSizeBytes) {
+    for (StorageDir dir : storageDirs) {
+      if (dir.getCapacityBytes() - dir.getLockedSizeBytes() >= requestSizeBytes) {
+        return true;
+      }
+    }
+    return false;
   }
 }
+

@@ -25,22 +25,12 @@ import tachyon.conf.WorkerConf;
 public class UserInfo {
   private final long mUserId;
 
-  private long mOwnBytes;
   private long mLastHeartbeatMs;
 
   public UserInfo(long userId) {
     Preconditions.checkArgument(userId > 0, "Invalid user id " + userId);
     mUserId = userId;
-    mOwnBytes = 0;
     mLastHeartbeatMs = System.currentTimeMillis();
-  }
-
-  public synchronized void addOwnBytes(long addOwnBytes) {
-    mOwnBytes += addOwnBytes;
-  }
-
-  public synchronized long getOwnBytes() {
-    return mOwnBytes;
   }
 
   public long getUserId() {
@@ -59,7 +49,6 @@ public class UserInfo {
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("UserInfo(");
     sb.append(" mUserId: ").append(mUserId);
-    sb.append(", mOwnBytes: ").append(mOwnBytes);
     sb.append(", mLastHeartbeatMs: ").append(mLastHeartbeatMs);
     sb.append(")");
     return sb.toString();

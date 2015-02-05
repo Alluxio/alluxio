@@ -16,9 +16,6 @@
 package tachyon.worker.netty;
 
 
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
@@ -28,12 +25,10 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.io.Closeables;
-
 import tachyon.Constants;
-import tachyon.conf.WorkerConf;
-import tachyon.util.CommonUtils;
+import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
+import tachyon.worker.hierarchy.StorageDir;
 
 /**
  * Main logic for the read path. This class consumes {@link tachyon.worker.netty.BlockRequest}
@@ -57,36 +52,32 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
+    final int lockId = mLocker.getLockId();
+    final StorageDir storageDir = mLocker.lock(blockId, lockId);
 
-    final int lockId = mLocker.lock(blockId);
-
-    RandomAccessFile file = null;
+    BlockHandler handler = null;
     try {
       validateInput(req);
+      handler = storageDir.getBlockHandler(blockId);
 
-      String filePath = CommonUtils.concat(WorkerConf.get().DATA_FOLDER, blockId);
-      LOG.info("Try to response remote request by reading from " + filePath);
-
-      file = new RandomAccessFile(filePath, "r");
-      long fileLength = file.length();
+      final long fileLength = handler.getLength();
       validateBounds(req, fileLength);
-
       final long readLength = returnLength(offset, len, fileLength);
-
-      FileChannel channel = file.getChannel();
       ChannelFuture future =
-          ctx.writeAndFlush(new BlockResponse(blockId, offset, readLength, channel));
+          ctx.writeAndFlush(new BlockResponse(blockId, offset, readLength, handler));
       future.addListener(ChannelFutureListener.CLOSE);
-      future.addListener(new ClosableResourceChannelListener(file));
-      LOG.info("Response remote request by reading from " + filePath + " preparation done.");
+      future.addListener(new ClosableResourceChannelListener(handler));
+      storageDir.accessBlock(blockId);
+      LOG.info("Response remote request by reading from {}, preparation done.",
+          storageDir.getBlockFilePath(blockId));
     } catch (Exception e) {
       // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);
       BlockResponse resp = BlockResponse.createErrorResponse(blockId);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
-      if (file != null) {
-        Closeables.close(file, true);
+      if (handler != null) {
+        handler.close();
       }
     } finally {
       mLocker.unlock(blockId, lockId);

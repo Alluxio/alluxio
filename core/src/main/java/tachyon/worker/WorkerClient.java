@@ -38,9 +38,11 @@ import tachyon.conf.UserConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoWorkerException;
+import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
@@ -61,7 +63,6 @@ public class WorkerClient implements Closeable {
   private InetSocketAddress mWorkerAddress;
   private boolean mConnected = false;
   private boolean mIsLocal = false;
-  private String mDataFolder = null;
   private final ExecutorService mExecutorService;
   private Future<?> mHeartbeat;
 
@@ -99,15 +100,14 @@ public class WorkerClient implements Closeable {
   /**
    * Notify the worker that the checkpoint file of the file has been added.
    * 
-   * @param userId The user id of the client who send the notification
    * @param fileId The id of the checkpointed file
    * @throws IOException
    */
-  public synchronized void addCheckpoint(long userId, int fileId) throws IOException {
+  public synchronized void addCheckpoint(int fileId) throws IOException {
     mustConnect();
 
     try {
-      mClient.addCheckpoint(userId, fileId);
+      mClient.addCheckpoint(mMasterClient.getUserId(), fileId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
@@ -126,7 +126,7 @@ public class WorkerClient implements Closeable {
    * Notify the worker to checkpoint the file asynchronously.
    * 
    * @param fid The id of the file
-   * @return true if succeed, false otherwise
+   * @return true if success, false otherwise
    * @throws IOException
    */
   public synchronized boolean asyncCheckpoint(int fid) throws IOException {
@@ -159,6 +159,23 @@ public class WorkerClient implements Closeable {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
       throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  /**
+   * Notify worker that the block has been cancelled
+   * 
+   * @param blockId The Id of the block to be cancelled
+   * @throws IOException
+   */
+  public synchronized void cancelBlock(long blockId) throws IOException {
+    mustConnect();
+
+    try {
+      mClient.cancelBlock(mMasterClient.getUserId(), blockId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -249,43 +266,6 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * @return The root local data folder of the worker
-   * @throws IOException
-   */
-  public synchronized String getDataFolder() throws IOException {
-    if (mDataFolder == null) {
-      mustConnect();
-
-      try {
-        mDataFolder = mClient.getDataFolder();
-      } catch (TException e) {
-        mDataFolder = null;
-        mConnected = false;
-        throw new IOException(e);
-      }
-    }
-
-    return mDataFolder;
-  }
-
-  /**
-   * Get the local user temporary folder of the specified user.
-   * 
-   * @return The local user temporary folder of the specified user
-   * @throws IOException
-   */
-  public synchronized String getUserTempFolder() throws IOException {
-    mustConnect();
-
-    try {
-      return mClient.getUserTempFolder(mMasterClient.getUserId());
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  /**
    * Get the user temporary folder in the under file system of the specified user.
    * 
    * @return The user temporary folder in the under file system
@@ -325,18 +305,20 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Lock the block, therefore, the worker will lock evict the block from the memory untill it is
+   * Lock the block, therefore, the worker will not evict the block from the memory until it is
    * unlocked.
    * 
    * @param blockId The id of the block
-   * @param userId The id of the user who wants to lock the block
+   * @return the path of the block file locked
    * @throws IOException
    */
-  public synchronized void lockBlock(long blockId, long userId) throws IOException {
+  public synchronized String lockBlock(long blockId) throws IOException {
     mustConnect();
 
     try {
-      mClient.lockBlock(blockId, userId);
+      return mClient.lockBlock(blockId, mMasterClient.getUserId());
+    } catch (FileDoesNotExistException e) {
+      return null;
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -359,18 +341,17 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Request space from the worker's memory
+   * Promote block back to the top StorageTier
    * 
-   * @param userId The id of the user who send the request
-   * @param requestBytes The requested space size, in bytes
+   * @param blockId The id of the block that will be promoted
    * @return true if succeed, false otherwise
    * @throws IOException
    */
-  public synchronized boolean requestSpace(long userId, long requestBytes) throws IOException {
+  public synchronized boolean promoteBlock(long blockId) throws IOException {
     mustConnect();
 
     try {
-      return mClient.requestSpace(userId, requestBytes);
+      return mClient.promoteBlock(blockId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -378,17 +359,46 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Return the space which has been requested
+   * Get temporary path for the block from the worker
    * 
-   * @param userId The id of the user who wants to return the space
-   * @param returnSpaceBytes The returned space size, in bytes
+   * @param blockId The id of the block
+   * @param initialBytes The initial size bytes allocated for the block
+   * @return the temporary path of the block
    * @throws IOException
    */
-  public synchronized void returnSpace(long userId, long returnSpaceBytes) throws IOException {
+  public synchronized String requestBlockLocation(long blockId, long initialBytes)
+      throws IOException {
     mustConnect();
 
     try {
-      mClient.returnSpace(userId, returnSpaceBytes);
+      return mClient.requestBlockLocation(mMasterClient.getUserId(), blockId, initialBytes);
+    } catch (OutOfSpaceException e) {
+      throw new IOException(e);
+    } catch (FileAlreadyExistException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  /**
+   * Request space for some block from worker
+   * 
+   * @param blockId The id of the block
+   * @param requestBytes The requested space size, in bytes
+   * @return true if success, false otherwise
+   * @throws IOException
+   */
+  public synchronized boolean requestSpace(long blockId, long requestBytes) throws IOException {
+    mustConnect();
+
+    try {
+      return mClient.requestSpace(mMasterClient.getUserId(), blockId, requestBytes);
+    } catch (OutOfSpaceException e) {
+      return false;
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -399,14 +409,14 @@ public class WorkerClient implements Closeable {
    * Unlock the block
    * 
    * @param blockId The id of the block
-   * @param userId The id of the user who wants to unlock the block
+   * @return true if success, false otherwise
    * @throws IOException
    */
-  public synchronized void unlockBlock(long blockId, long userId) throws IOException {
+  public synchronized boolean unlockBlock(long blockId) throws IOException {
     mustConnect();
 
     try {
-      mClient.unlockBlock(blockId, userId);
+      return mClient.unlockBlock(blockId, mMasterClient.getUserId());
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
