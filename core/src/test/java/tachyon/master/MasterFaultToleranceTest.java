@@ -43,7 +43,9 @@ public class MasterFaultToleranceTest {
 
   @After
   public final void after() throws Exception {
-    mLocalTachyonClusterMultiMaster.stop();
+    if (mLocalTachyonClusterMultiMaster != null) {
+      mLocalTachyonClusterMultiMaster.stop();
+    }
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.clearProperty("tachyon.user.default.block.size.byte");
     System.clearProperty("fs.hdfs.impl.disable.cache");
