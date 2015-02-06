@@ -197,6 +197,13 @@ public class BlockInfo {
     }
   }
 
+  /**
+   * Remove all in memory locations of the block
+   */
+  public synchronized void removeLocations() {
+    mLocations.clear();
+  }
+
   @Override
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("BlockInfo(mBlockIndex: ");

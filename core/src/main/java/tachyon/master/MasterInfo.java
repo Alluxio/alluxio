@@ -2191,6 +2191,7 @@ public class MasterInfo extends ImageWriter {
               }
             }
           }
+          ((InodeFile) freeInode).removeLocations();
         }
       }
     }
