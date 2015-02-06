@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -19,13 +19,13 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import tachyon.Constants;
-import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.NetAddress;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.TachyonWorker;
@@ -36,16 +36,20 @@ import tachyon.worker.TachyonWorker;
 public final class LocalTachyonCluster {
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100);
-    cluster.start();
-    CommonUtils.sleepMs(null, Constants.SECOND_MS);
-    cluster.stop();
-    CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    if (cluster != null) {
+      cluster.start();
+      CommonUtils.sleepMs(null, Constants.SECOND_MS);
+      cluster.stop();
+      CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    }
 
     cluster = new LocalTachyonCluster(100);
-    cluster.start();
-    CommonUtils.sleepMs(null, Constants.SECOND_MS);
-    cluster.stop();
-    CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    if (cluster != null) {
+      cluster.start();
+      CommonUtils.sleepMs(null, Constants.SECOND_MS);
+      cluster.stop();
+      CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    }
   }
 
   private TachyonWorker mWorker = null;
@@ -249,8 +253,12 @@ public final class LocalTachyonCluster {
    * @throws Exception
    */
   public void stopTFS() throws Exception {
-    mMaster.stop();
-    mWorker.stop();
+    if (mMaster != null) {
+      mMaster.stop();
+    }
+    if (mWorker != null) {
+      mWorker.stop();
+    }
 
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.master.hostname");
@@ -277,11 +285,17 @@ public final class LocalTachyonCluster {
    * @throws Exception
    */
   public void stopUFS() throws Exception {
-    mMaster.cleanupUnderfs();
+    if (mMaster != null) {
+      mMaster.cleanupUnderfs();
+    }
   }
 
   public void stopWorker() throws Exception {
-    mMaster.clearClients();
-    mWorker.stop();
+    if (mMaster != null) {
+      mMaster.clearClients();
+    }
+    if (mWorker != null) {
+      mWorker.stop();
+    }
   }
 }

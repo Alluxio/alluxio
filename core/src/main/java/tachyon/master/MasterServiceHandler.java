@@ -28,7 +28,6 @@ import java.util.Set;
 import org.apache.thrift.TException;
 
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
 import tachyon.conf.CommonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
@@ -48,6 +47,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**

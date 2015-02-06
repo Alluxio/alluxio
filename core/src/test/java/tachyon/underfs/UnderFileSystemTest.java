@@ -12,10 +12,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon;
+package tachyon.underfs;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
+
+import tachyon.Pair;
+import tachyon.TachyonURI;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * Unit tests for {@link UnderFileSystem}
@@ -59,8 +64,50 @@ public final class UnderFileSystemTest {
     result = UnderFileSystem.parse(new TachyonURI("s3n://localhost:19998/path"));
     Assert.assertEquals(result.getFirst(), "s3n://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
-    
+
     Assert.assertEquals(UnderFileSystem.parse(TachyonURI.EMPTY_URI), null);
     Assert.assertEquals(UnderFileSystem.parse(new TachyonURI("anythingElse")), null);
+  }
+
+  @Test
+  public void coreFactoryTest() {
+    // Supported in core
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/test/path");
+    Assert.assertNotNull("A UnderFileSystemFactory should exist for local file paths", factory);
+
+    factory = UnderFileSystemRegistry.find("file:///test/path");
+    Assert.assertNotNull("A UnderFileSystemFactory should exist for local file paths", factory);
+  }
+
+  @Test
+  public void externalFactoryTest() {
+    // As we are going to use some Maven trickery to re-use the test cases as is in the external
+    // modules this test needs to assume that only the core implementations are present as otherwise
+    // when we try and run it in the external modules it will fail
+    // In core there is only one under file system implementation, if there are any more we aren't
+    // running in core
+    Assume.assumeTrue(UnderFileSystemRegistry.available().size() == 1);
+
+    // Requires additional modules
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("hdfs://localhost/test/path");
+    Assert.assertNull(
+        "No UnderFileSystemFactory should exist for HDFS paths as it requires a separate module",
+        factory);
+
+    factory = UnderFileSystemRegistry.find("s3://localhost/test/path");
+    Assert.assertNull(
+        "No UnderFileSystemFactory should exist for S3 paths as it requires a separate module",
+        factory);
+
+    factory = UnderFileSystemRegistry.find("s3n://localhost/test/path");
+    Assert.assertNull(
+        "No UnderFileSystemFactory should exist for S3 paths as it requires a separate module",
+        factory);
+
+    factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path");
+    Assert
+        .assertNull(
+            "No UnderFileSystemFactory should exist for Gluster FS paths as it requires a separate module",
+            factory);
   }
 }

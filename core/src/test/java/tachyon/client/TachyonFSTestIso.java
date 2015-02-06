@@ -26,9 +26,9 @@ import org.junit.Test;
 
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
@@ -43,7 +43,9 @@ public class TachyonFSTestIso {
 
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.clearProperty("tachyon.max.columns");
   }

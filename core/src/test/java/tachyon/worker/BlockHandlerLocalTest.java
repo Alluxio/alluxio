@@ -38,7 +38,9 @@ public class BlockHandlerLocalTest {
 
   @AfterClass
   public static final void afterClass() throws Exception {
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 

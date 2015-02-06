@@ -38,7 +38,9 @@ public class DependencyTest {
   @After
   public final void after() throws Exception {
     DependencyVariables.VARIABLES.clear();
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
   }
 
   @Before
@@ -85,12 +87,16 @@ public class DependencyTest {
 
     // decode the written bytes
     ImageElement decoded = mapper.readValue(os.toByteArray(), ImageElement.class);
-    TypeReference<List<Integer>> intListRef = new TypeReference<List<Integer>>() {};
-    TypeReference<DependencyType> depTypeRef = new TypeReference<DependencyType>() {};
-    TypeReference<List<ByteBuffer>> byteListRef = new TypeReference<List<ByteBuffer>>() {};
+    TypeReference<List<Integer>> intListRef = new TypeReference<List<Integer>>() {
+    };
+    TypeReference<DependencyType> depTypeRef = new TypeReference<DependencyType>() {
+    };
+    TypeReference<List<ByteBuffer>> byteListRef = new TypeReference<List<ByteBuffer>>() {
+    };
 
     // test the decoded ImageElement
-    // can't use equals(decoded) because ImageElement doesn't have an equals method and can have variable fields
+    // can't use equals(decoded) because ImageElement doesn't have an equals method and can have
+    // variable fields
     Assert.assertEquals(0, decoded.getInt("depID").intValue());
     Assert.assertEquals(parents, decoded.get("parentFiles", intListRef));
     Assert.assertEquals(children, decoded.get("childrenFiles", intListRef));
@@ -102,6 +108,7 @@ public class DependencyTest {
     Assert.assertEquals("0.4", decoded.getString("frameworkVersion"));
     Assert.assertEquals(DependencyType.Narrow, decoded.get("depType", depTypeRef));
     Assert.assertEquals(0L, decoded.getLong("creationTimeMs").longValue());
-    Assert.assertEquals(dep.getUncheckpointedChildrenFiles(), decoded.get("unCheckpointedChildrenFiles", intListRef));
+    Assert.assertEquals(dep.getUncheckpointedChildrenFiles(),
+        decoded.get("unCheckpointedChildrenFiles", intListRef));
   }
 }

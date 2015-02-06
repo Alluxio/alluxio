@@ -43,7 +43,9 @@ public class RemoteBlockInStreamTest {
 
   @AfterClass
   public static final void afterClass() throws Exception {
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
   }
@@ -479,7 +481,7 @@ public class RemoteBlockInStreamTest {
     TachyonFile file = mTfs.getFile(fileId);
     InStream is = file.getInStream(ReadType.CACHE);
     Assert.assertTrue(is instanceof RemoteBlockInStream);
-    for (int i = 0; i < len; ++i) {
+    for (int i = 0; i < len; ++ i) {
       Assert.assertEquals(i, is.read());
     }
     is.close();

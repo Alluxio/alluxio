@@ -29,7 +29,6 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
@@ -38,6 +37,8 @@ import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.worker.hierarchy.StorageDir;
+import tachyon.underfs.UnderFileSystem;
+
 
 /**
  * Unit tests for tachyon.worker.WorkerStorage
@@ -58,7 +59,9 @@ public class WorkerStorageTest {
 
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
     mExecutorService.shutdown();
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }
@@ -80,7 +83,8 @@ public class WorkerStorageTest {
     int fid = TestUtils.createByteFile(mTfs, "/xyz", WriteType.MUST_CACHE, filesize);
     long bid = mTfs.getBlockId(fid, 0);
     mLocalTachyonCluster.stopWorker();
-    // If you call mTfs.delete(fid, true), this will throw a java.util.concurrent.RejectedExecutionException
+    // If you call mTfs.delete(fid, true), this will throw a
+    // java.util.concurrent.RejectedExecutionException
     // this is because stopWorker will close all clients
     // when a client is closed, you are no longer able to do any operations on it
     // so we need to get a fresh client to call delete
@@ -94,7 +98,8 @@ public class WorkerStorageTest {
       StorageDir storageDir = ws.getStorageDirByBlockId(bid);
       Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", storageDir != null);
       Assert.assertTrue("UFS hasn't the orphan block file ", ufs.exists(orpahnblock));
-      Assert.assertTrue("Orpahblock file size is changed", ufs.getFileSize(orpahnblock) == filesize);
+      Assert.assertTrue("Orpahblock file size is changed",
+          ufs.getFileSize(orpahnblock) == filesize);
     } finally {
       ws.stop();
     }

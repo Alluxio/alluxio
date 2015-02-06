@@ -50,7 +50,9 @@ public class TachyonFileTest {
 
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.clearProperty("tachyon.user.file.buffer.bytes");
   }
@@ -87,7 +89,8 @@ public class TachyonFileTest {
     Assert.assertTrue(file.recache());
     Assert.assertTrue(file.isInMemory());
 
-    fileId = TestUtils.createByteFile(mTfs, "/file4", WriteType.THROUGH, WORKER_CAPACITY_BYTES + 1);
+    fileId =
+        TestUtils.createByteFile(mTfs, "/file4", WriteType.THROUGH, WORKER_CAPACITY_BYTES + 1);
     file = mTfs.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
     Assert.assertFalse(file.recache());

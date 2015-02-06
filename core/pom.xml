@@ -51,7 +51,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.10</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -139,156 +139,32 @@
       <artifactId>jackson-databind</artifactId>
       <version>2.3.0</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <version>${hadoop.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>asm</groupId>
+          <artifactId>asm</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.netty</groupId>
+          <artifactId>netty</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <version>3.0.1</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
-
-  <profiles>
-    <profile>
-      <id>localTest</id>
-      <activation>
-        <property>
-          <name>test.profile</name>
-          <value>local</value>
-        </property>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <ufs />
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.2</version>
-            <executions>
-              <execution>
-                <id>default-testCompile</id>
-                <phase>test-compile</phase>
-                <configuration>
-                  <testExcludes>
-                    <exclude>**/LocalMiniDFSCluster.java</exclude>
-                  </testExcludes>
-                  <compilerArgs>
-                    <arg>-Xlint:-unchecked</arg>
-                  </compilerArgs>
-                </configuration>
-                <goals>
-                  <goal>testCompile</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-client</artifactId>
-          <version>${hadoop.version}</version>
-          <exclusions>
-            <exclusion>
-              <groupId>asm</groupId>
-              <artifactId>asm</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>com.google.guava</groupId>
-              <artifactId>guava</artifactId>
-            </exclusion>
-          </exclusions>
-        </dependency>
-        <dependency>
-          <groupId>commons-httpclient</groupId>
-          <artifactId>commons-httpclient</artifactId>
-          <version>3.0.1</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <profile>
-      <id>hdfsTest</id>
-      <activation>
-        <property>
-          <name>test.profile</name>
-          <value>hdfs</value>
-        </property>
-      </activation>
-      <properties>
-        <ufs>tachyon.LocalMiniDFSCluster</ufs>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-minicluster</artifactId>
-          <version>${hadoop.version}</version>
-          <exclusions>
-            <exclusion>
-              <groupId>asm</groupId>
-              <artifactId>asm</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-          </exclusions>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <profile>
-      <id>glusterfsTest</id>
-      <activation>
-        <property>
-          <name>test.profile</name>
-          <value>glusterfs</value>
-        </property>
-      </activation>
-      <properties>
-        <ufs>tachyon.GlusterfsCluster</ufs>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.gluster</groupId>
-          <artifactId>glusterfs-hadoop</artifactId>
-          <version>${glusterfs-hadoop.version}</version>
-          <type>jar</type>
-          <scope>compile</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-client</artifactId>
-          <version>${hadoop.version}</version>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.2</version>
-            <executions>
-              <execution>
-                <id>default-testCompile</id>
-                <phase>test-compile</phase>
-                <configuration>
-                  <testExcludes>
-                    <exclude>**/LocalMiniDFSCluster.java</exclude>
-                  </testExcludes>
-                </configuration>
-                <goals>
-                  <goal>testCompile</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
   <build>
     <resources>
@@ -381,7 +257,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.14</version>
         <configuration>
-          <argLine>-Dufs=${ufs} -Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
+          <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
           <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
         </configuration>
       </plugin>
@@ -412,7 +288,7 @@
         <artifactId>findbugs-maven-plugin</artifactId>
         <version>2.5.2</version>
         <configuration>
-          <excludeFilterFile>${project.basedir}/src/main/findbugs/findbugs-exclude.xml</excludeFilterFile>
+          <excludeFilterFile>${project.parent.basedir}/build/findbugs/findbugs-exclude.xml</excludeFilterFile>
           <findbugsXmlOutput>true</findbugsXmlOutput>
           <xmlOutput>true</xmlOutput>
           <effort>Max</effort>
@@ -423,12 +299,12 @@
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>2.13</version>
         <configuration>
-          <configLocation>${project.basedir}/src/main/resources/tachyon_checks.xml</configLocation>
+          <configLocation>${project.parent.basedir}/build/checkstyle/tachyon_checks.xml</configLocation>
           <!-- TODO: This is needed to excuse Tachyon Configuration members' name from being -->
           <!-- checked because the members are define using all upper case. -->
           <!-- Once the new configuration is implemented we wil remove this exception -->
           <suppressionsLocation>
-            ${project.basedir}/src/main/resources/tachyon_checkstyle_suppressions.xml
+            ${project.parent.basedir}/build/checkstyle/tachyon_checkstyle_suppressions.xml
           </suppressionsLocation>
           <excludes>**/tachyon/thrift/**</excludes>
           <encoding>UTF-8</encoding>
@@ -452,6 +328,42 @@
             <version>5.9</version>
           </dependency>
         </dependencies>
+      </plugin>
+
+      <!-- License Plugin -->
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.9</version>
+        <configuration>
+          <header>${project.parent.basedir}/build/license/HEADER.txt</header>
+          <failIfMissing>true</failIfMissing>
+          <aggregate>true</aggregate>
+          <excludes>
+            <exclude>src/main/resources/version.properties</exclude>
+            <exclude>src/main/java/tachyon/thrift/*</exclude>
+            <exclude>src/main/webapp/**/*</exclude>
+            <exclude>src/thrift/*</exclude>
+            <exclude>src/deb/**/*</exclude>
+            <exclude>src/test/resources/*</exclude>
+            <exclude>logs/*</exclude>
+            <exclude>**/package-info.java</exclude>
+            <exclude>pom.xml</exclude>
+          </excludes>
+          <mapping>
+            <java>SLASHSTAR_STYLE</java>
+          </mapping>
+          <useDefaultMapping>true</useDefaultMapping>
+          <strictCheck>true</strictCheck>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

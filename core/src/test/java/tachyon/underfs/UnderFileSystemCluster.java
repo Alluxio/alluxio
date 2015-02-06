@@ -12,12 +12,17 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon;
+package tachyon.underfs;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.base.Throwables;
 
+import tachyon.LocalFilesystemCluster;
+import tachyon.TachyonURI;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 public abstract class UnderFileSystemCluster {
@@ -66,18 +71,21 @@ public abstract class UnderFileSystemCluster {
   public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir) {
     mUfsClz = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
 
-    if (mUfsClz != null && !mUfsClz.equals("")) {
+    if (!StringUtils.isEmpty(mUfsClz)) {
       try {
         UnderFileSystemCluster ufsCluster =
             (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class)
                 .newInstance(baseDir);
+        System.out.println("Initialized under file system testing cluster of type "
+            + ufsCluster.getClass().getCanonicalName() + " for integration testing");
         return ufsCluster;
-      } catch (Exception e) {
-        System.out.println("Failed to initialize the ufsCluster of " + mUfsClz
+      } catch (Throwable e) {
+        System.err.println("Failed to initialize the ufsCluster of " + mUfsClz
             + " for integration test.");
         throw Throwables.propagate(e);
       }
     }
+    System.out.println("Using default LocalFilesystemCluster for integration testing");
     return new LocalFilesystemCluster(baseDir);
   }
 
@@ -91,7 +99,10 @@ public abstract class UnderFileSystemCluster {
    * @return
    */
   public static boolean isUFSHDFS() {
-    return (null != mUfsClz) && (mUfsClz.equals("tachyon.LocalMiniDFSCluster"));
+    // TODO This should be renamed to something technology agnostic
+    // e.g. doZeroLengthFileReadsReturnNegative()
+    // TODO Should be dynamically determined - may need additional method on UnderFileSystem
+    return (null != mUfsClz) && (mUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster"));
   }
 
   public UnderFileSystemCluster(String baseDir) {

@@ -53,8 +53,6 @@ import tachyon.HeartbeatThread;
 import tachyon.Pair;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystem.SpaceType;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.thrift.BlockInfoException;
@@ -74,6 +72,8 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.underfs.UnderFileSystem;
+import tachyon.underfs.UnderFileSystem.SpaceType;
 import tachyon.util.CommonUtils;
 
 /**

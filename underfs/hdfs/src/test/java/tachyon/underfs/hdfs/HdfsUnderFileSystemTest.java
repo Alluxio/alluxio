@@ -12,36 +12,26 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.hadoop;
 
-import java.io.IOException;
+package tachyon.underfs.hdfs;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.UnderFileSystem;
-import tachyon.conf.CommonConf;
+import tachyon.underfs.UnderFileSystemFactory;
+import tachyon.underfs.UnderFileSystemRegistry;
 
-/**
- * Unit tests for <code>tachyon.hadoop.GlusterFS</code>.
- */
-public class GlusterFSTest {
-  private UnderFileSystem mGfs = null;
-  private String mMount = null;
-  private String mVolume = null;
-
-  @Before
-  public final void before() throws IOException {
-    mMount = CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS;
-    mVolume = CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES;
-  }
+public class HdfsUnderFileSystemTest {
 
   @Test
-  public void createGlusterFS() throws Exception {
-    if (mMount != null && !mMount.equals("") && mVolume != null && !mVolume.equals("")) {
-      mGfs = UnderFileSystem.get("glusterfs:///");
-      Assert.assertTrue(mGfs.create("tachyon_test") != null);
-    }
+  public void factoryTest() {
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("hdfs://localhost/test/path");
+    Assert.assertNotNull("A UnderFileSystemFactory should exist for HDFS paths when using this module", factory);
+    
+    factory = UnderFileSystemRegistry.find("s3://localhost/test/path");
+    Assert.assertNotNull("A UnderFileSystemFactory should exist for S3 paths when using this module", factory);
+    
+    factory = UnderFileSystemRegistry.find("s3n://localhost/test/path");
+    Assert.assertNotNull("A UnderFileSystemFactory should exist for S3 paths when using this module", factory);
   }
 }

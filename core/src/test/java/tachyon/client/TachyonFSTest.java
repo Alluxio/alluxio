@@ -47,7 +47,9 @@ public class TachyonFSTest {
 
   @AfterClass
   public static final void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
+    if (sLocalTachyonCluster != null) {
+      sLocalTachyonCluster.stop();
+    }
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.clearProperty("tachyon.max.columns");
   }
@@ -287,7 +289,8 @@ public class TachyonFSTest {
 
   @Test
   public void getTestNormal3() throws IOException {
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort + "/ab/c.txt"));
+    TachyonFS tfs =
+        TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort + "/ab/c.txt"));
     getTestHelper(tfs);
   }
 
@@ -348,9 +351,10 @@ public class TachyonFSTest {
   public void toStringTest() throws IOException {
     TachyonFS tfs = null;
     String[] originUrls =
-        new String[] {"tachyon://127.0.0.1:19998", "tachyon-ft://127.0.0.1:19998",};
+        new String[] { "tachyon://127.0.0.1:19998", "tachyon-ft://127.0.0.1:19998", };
     String[] resultUrls =
-        new String[] {"tachyon://localhost/127.0.0.1:19998", "tachyon-ft://localhost/127.0.0.1:19998",};
+        new String[] { "tachyon://localhost/127.0.0.1:19998",
+            "tachyon-ft://localhost/127.0.0.1:19998", };
     for (int i = 0, n = originUrls.length; i < n; i ++) {
       String originUrl = originUrls[i];
       String resultUrl = resultUrls[i];

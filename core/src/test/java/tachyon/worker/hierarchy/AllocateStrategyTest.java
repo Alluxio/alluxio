@@ -23,12 +23,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.allocation.AllocateStrategies;
 import tachyon.worker.allocation.AllocateStrategy;
 import tachyon.worker.allocation.AllocateStrategyType;
 import tachyon.master.BlockInfo;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 public class AllocateStrategyTest {

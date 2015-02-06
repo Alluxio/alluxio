@@ -1,0 +1,204 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.tachyonproject</groupId>
+    <artifactId>tachyon-underfs</artifactId>
+    <version>0.6.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>tachyon-underfs-glusterfs</artifactId>
+  <name>Tachyon Under File System - Gluster FS</name>
+  <description>Tachyon Under File System implementation which adds Gluster FS as a Under File System</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-hdfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Test Dependencies -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon</artifactId>
+      <version>${project.version}</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Code Verifications -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>2.5.2</version>
+        <configuration>
+          <excludeFilterFile>${project.parent.basedir}/build/findbugs/findbugs-exclude.xml</excludeFilterFile>
+          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <xmlOutput>true</xmlOutput>
+          <effort>Max</effort>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.13</version>
+        <configuration>
+          <configLocation>${project.parent.parent.basedir}/build/checkstyle/tachyon_checks.xml</configLocation>
+          <!-- TODO: This is needed to excuse Tachyon Configuration members' name from being -->
+          <!-- checked because the members are define using all upper case. -->
+          <!-- Once the new configuration is implemented we wil remove this exception -->
+          <suppressionsLocation>
+            ${project.parent.parent.basedir}/build/checkstyle/tachyon_checkstyle_suppressions.xml
+          </suppressionsLocation>
+          <excludes>**/tachyon/thrift/**</excludes>
+          <encoding>UTF-8</encoding>
+          <consoleOutput>true</consoleOutput>
+          <failsOnError>true</failsOnError>
+          <linkXRef>false</linkXRef>
+        </configuration>
+        <executions>
+          <execution>
+            <id>checkstyle</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>5.9</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      
+      <!-- License Plugin -->
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.9</version>
+        <configuration>
+          <header>${project.parent.parent.basedir}/build/license/HEADER.txt</header>
+          <failIfMissing>true</failIfMissing>
+          <aggregate>true</aggregate>
+          <excludes>
+            <exclude>src/test/resources/*</exclude>
+            <exclude>logs/*</exclude>
+            <exclude>**/package-info.java</exclude>
+            <exclude>pom.xml</exclude>
+          </excludes>
+          <mapping>
+            <java>SLASHSTAR_STYLE</java>
+          </mapping>
+          <useDefaultMapping>true</useDefaultMapping>
+          <strictCheck>true</strictCheck>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>glusterfsTest</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.gluster</groupId>
+          <artifactId>glusterfs-hadoop</artifactId>
+          <version>${glusterfs-hadoop.version}</version>
+          <type>jar</type>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <version>${hadoop.version}</version>
+        </dependency>
+
+        <!-- Test Dependencies -->
+        <dependency>
+          <groupId>org.apache.thrift</groupId>
+          <artifactId>libthrift</artifactId>
+          <version>${libthrift.version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>org.slf4j</groupId>
+              <artifactId>slf4j-api</artifactId>
+            </exclusion>
+          </exclusions>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-test</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>test</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.javassist</groupId>
+              <artifactId>javassist</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.powermock</groupId>
+          <artifactId>powermock-module-junit4</artifactId>
+          <version>${powermock.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.powermock</groupId>
+          <artifactId>powermock-api-mockito</artifactId>
+          <version>${powermock.version}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.18.1</version>
+            <configuration>
+              <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
+              <dependenciesToScan>
+                <dependency>org.tachyonproject:tachyon</dependency>
+              </dependenciesToScan>
+              <systemPropertyVariables>
+                <ufs>tachyon.underfs.glusterfs.GlusterFSCluster</ufs>
+              </systemPropertyVariables>
+            </configuration>
+            <executions>
+              <execution>
+                <id>default-test</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

@@ -41,7 +41,9 @@ public class MasterClientTest {
 
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
     mExecutorService.shutdown();
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }

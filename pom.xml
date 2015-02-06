@@ -122,7 +122,6 @@
   </pluginRepositories>
 
   <properties>
-    <test.profile>local</test.profile>
     <test.output.redirect>true</test.output.redirect>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.6</java.version>
@@ -135,12 +134,14 @@
     <powermock.version>1.5.4</powermock.version>
     <log4j.version>1.2.17</log4j.version>
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
+    <junit.version>4.10</junit.version>
   </properties>
 
   <modules>
     <module>core</module>
     <module>client</module>
     <module>assembly</module>
+    <module>underfs</module>
   </modules>
 
   <build>
