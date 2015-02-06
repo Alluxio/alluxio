@@ -44,4 +44,3 @@ After the upgrade of Mac OS X Mavericks, Maven was removed and hence needs to be
     is in your `PATH` environment variable.
 7.  Run `mvn --version` to verify that it is correctly installed.
 
-
