@@ -5,14 +5,15 @@ title: Fault Tolerant Tachyon Cluster
 
 # Fault Tolerance
 
-Fault Tolerance in Tachyon is based upon a multi-master approach where multiple master processes are
-run.  One of these processes is elected the leader and is used by all workers and clients as the primary 
-point of contact.  The other masters act as a standby using the shared journal to ensure that they maintain the same
-state as the leader and can rapidly take over in the event of the leader failing.
+Fault Tolerance in Tachyon is based upon a multi-master approach where multiple master 
+processes are run.  One of these processes is elected the leader and is used by all workers 
+and clients as the primary point of contact.  The other masters act as standbys using the shared 
+journal to ensure that they maintain the same file system metadata as the leader and can 
+rapidly take over in the event of the leader failing.
 
 If the leader fails a new leader is automatically selected from the available standby masters
-and Tachyon proceeds as usual.  Note that while the switchover to a standby master happens clients may
-experience brief delays or transient errors.
+and Tachyon proceeds as usual.  Note that while the switchover to a standby master happens 
+clients may experience brief delays or transient errors.
 
 Note that there is currently no fault tolerance for recovering failed workers.
 
