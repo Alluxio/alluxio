@@ -1,1 +1,1 @@
-tachyon.underfs.local.SingleMachineLocalUnderFileSystemFactory
+tachyon.underfs.local.LocalUnderFileSystemFactory
