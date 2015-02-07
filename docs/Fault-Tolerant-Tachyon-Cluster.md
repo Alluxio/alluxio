@@ -5,17 +5,15 @@ title: Fault Tolerant Tachyon Cluster
 
 # Fault Tolerance
 
-Fault Tolerance in Tachyon is based upon a multi-master approach where multiple master 
-processes are run.  One of these processes is elected the leader and is used by all workers 
-and clients as the primary point of contact.  The other masters act as standbys using the shared 
-journal to ensure that they maintain the same file system metadata as the leader and can 
-rapidly take over in the event of the leader failing.
+Fault Tolerance in Tachyon is based upon a multi-master approach where multiple master processes
+are run. One of these processes is elected the leader and is used by all workers and clients as the
+primary point of contact. The other masters act as standbys using the shared journal to ensure that
+they maintain the same file system metadata as the leader and can rapidly take over in the event of
+the leader failing.
 
-If the leader fails a new leader is automatically selected from the available standby masters
-and Tachyon proceeds as usual.  Note that while the switchover to a standby master happens 
-clients may experience brief delays or transient errors.
-
-Note that there is currently no fault tolerance for recovering failed workers.
+If the leader fails a new leader is automatically selected from the available standby masters and
+Tachyon proceeds as usual. Note that while the switchover to a standby master happens clients may
+experience brief delays or transient errors.
 
 # Prerequisites
 
@@ -24,9 +22,9 @@ There are two prerequisites to set up a fault tolerant Tachyon cluster:
 * [ZooKeeper](Fault-Tolerant-Tachyon-Cluster#zookeeper)
 * A shared reliable under filesystem on which to place the journal
 
-Currently [HDFS](Fault-Tolerant-Tachyon-Cluster#hdfs) or S3 can be used 
-as under filesystem layers. Also, please see [Configuration Settings](Configuration-Settings.html)
-for a more succinct description of all the configuration options Tachyon has.
+Currently [HDFS](Fault-Tolerant-Tachyon-Cluster#hdfs), Amazon S3, or GlusterFS can be used as under
+filesystem layers. Also, please see [Configuration Settings](Configuration-Settings.html) for a more
+succinct description of all the configuration options Tachyon has.
 
 ## HDFS
 
