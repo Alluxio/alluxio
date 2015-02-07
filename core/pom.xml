@@ -11,6 +11,9 @@
   <description>Tachyon: A Reliable Memory Centric Distributed Storage System</description>
   <name>Tachyon Project Core</name>
 
+  <properties>
+    <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
+  </properties>
   <dependencies>
     <dependency>
       <!-- using older version to map dependency version from Hadoop -->
