@@ -88,6 +88,7 @@ line.
 * [Syncing the Underlayer Storage System](Syncing-the-Underlying-Filesystem.html): Make Tachyon
 understand an existing underlayer storage system.
 * [Tachyon Java API (Javadoc)](api/java/index.html)
+* [Hierarchical Storage (Alpha)](Hierarchy-Storage-on-Tachyon.html)
 
 **Tachyon Presentations:**
 

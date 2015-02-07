@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Hierarchical storage on Tachyon
+title: Hierarchical storage on Tachyon (Alpha)
 ---
 
 The hierarchical storage introduces more storage layers besides the existing memory layer. Each
