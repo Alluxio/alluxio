@@ -15,8 +15,8 @@
 
 package tachyon.underfs;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -83,7 +83,7 @@ public class UnderFileSystemRegistry {
     init();
   }
 
-  static synchronized void init() {
+  private static synchronized void init() {
     if (sInit) {
       return;
     }
@@ -91,9 +91,7 @@ public class UnderFileSystemRegistry {
     // Discover and register the available factories
     ServiceLoader<UnderFileSystemFactory> discoverableFactories =
         ServiceLoader.load(UnderFileSystemFactory.class);
-    Iterator<UnderFileSystemFactory> iter = discoverableFactories.iterator();
-    while (iter.hasNext()) {
-      UnderFileSystemFactory factory = iter.next();
+    for (UnderFileSystemFactory factory : discoverableFactories) {
       LOG.debug("Discovered Under File System Factory implementation {} - {}", factory.getClass(),
           factory.toString());
       FACTORIES.add(factory);
@@ -109,14 +107,11 @@ public class UnderFileSystemRegistry {
    * </p>
    */
   public static synchronized void reset() {
-    // Can't reset if we're not initialized
-    if (!sInit) {
-      return;
+    if (sInit) {
+      // Reset state
+      sInit = false;
+      FACTORIES.clear();
     }
-
-    // Reset state
-    sInit = false;
-    FACTORIES.clear();
 
     // Reinitialise
     init();
@@ -171,7 +166,7 @@ public class UnderFileSystemRegistry {
   }
 
   /**
-   * Tries to find a Under File System factory that supports the given path
+   * Finds the first Under File System factory that supports the given path
    * 
    * @param path
    *          Path
@@ -195,6 +190,33 @@ public class UnderFileSystemRegistry {
   }
 
   /**
+   * Finds all the Under File System factory that support the given path
+   * 
+   * @param path
+   *          Path
+   * @param conf
+   *          Tachyon Configuration
+   * @return List of factories that support the given path which may be an empty list
+   */
+  public static List<UnderFileSystemFactory> findAll(String path, TachyonConf conf) {
+    Preconditions.checkArgument(path != null, "path may not be null");
+
+    List<UnderFileSystemFactory> eligibleFactories = new ArrayList<UnderFileSystemFactory>();
+    for (UnderFileSystemFactory factory : FACTORIES) {
+      if (factory.supportsPath(path, conf)) {
+        LOG.debug("Selected Under File System Factory implementation {} for path {}",
+            factory.getClass(), path);
+        eligibleFactories.add(factory);
+      }
+    }
+
+    if (eligibleFactories.size() == 0) {
+      LOG.warn("No Under File System Factory implementation supports the path {}", path);
+    }
+    return eligibleFactories;
+  }
+
+  /**
    * Creates a client that can talk to the under file system
    * 
    * @param path
@@ -205,17 +227,53 @@ public class UnderFileSystemRegistry {
    *          Tachyon Configuration
    * @return Client for the under file system
    * @throws IllegalArgumentException
-   *           Thrown if there is no under file system for the given path
+   *           Thrown if there is no under file system for the given path or if no under file system
+   *           could successfully be created
    */
   public static UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
     // Try to obtain the appropriate factory
-    UnderFileSystemFactory factory = find(path, tachyonConf);
-    if (factory == null) {
-      throw new IllegalArgumentException(String.format(
-          "No known Under File System supports the given path %s", path));
+    List<UnderFileSystemFactory> factories = findAll(path, tachyonConf);
+    if (factories.size() == 0) {
+      throw new IllegalArgumentException("No known Under File System supports the given path "
+          + path);
     }
 
-    // Use the factory to create the actual client for the Under File System
-    return factory.create(path, tachyonConf, conf);
+    List<Throwable> errors = new ArrayList<Throwable>();
+    for (UnderFileSystemFactory factory : factories) {
+      try {
+        // Use the factory to create the actual client for the Under File System
+        return factory.create(path, tachyonConf, conf);
+      } catch (Throwable e) {
+        errors.add(e);
+      }
+    }
+
+    // If we reach here no factories were able to successfully create for this path likely due to
+    // missing configuration since if we reached here at least some factories claimed to support the
+    // path
+    // Need to appropriate collate the errors
+    switch (errors.size()) {
+      case 0:
+        // Can only occur if there were no factories and already have been handled but included for
+        // completeness
+        throw new IllegalArgumentException("No known Under File System supports the given path "
+            + path);
+      case 1:
+        // Return the single error directly
+        throw new IllegalArgumentException(
+            "All eligible Under File System were unable to create an instance for the given path "
+                + path, errors.get(0));
+      default:
+        // Collate up the errors
+        StringBuilder errorStr = new StringBuilder();
+        errorStr
+            .append("All eligible Under File System were unable to create an instance for the");
+        errorStr.append("given path ");
+        errorStr.append(path).append('\n');
+        for (Throwable e : errors) {
+          errorStr.append(e.getMessage()).append('\n');
+        }
+        throw new IllegalArgumentException(errorStr.toString());
+    }
   }
 }
