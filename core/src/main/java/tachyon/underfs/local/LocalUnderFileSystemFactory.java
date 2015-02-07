@@ -22,7 +22,11 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
 
-public class SingleMachineLocalUnderFileSystemFactory implements UnderFileSystemFactory {
+/**
+ * Factory for {@link LocalUnderFileSystem} instances
+ *
+ */
+public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path, TachyonConf conf) {
@@ -35,6 +39,6 @@ public class SingleMachineLocalUnderFileSystemFactory implements UnderFileSystem
   @Override
   public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
-    return new SingleMachineLocalUnderFileSystem(tachyonConf);
+    return new LocalUnderFileSystem(tachyonConf);
   }
 }
