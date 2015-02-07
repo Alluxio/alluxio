@@ -32,13 +32,16 @@ import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 
 /**
- * Single node UnderFilesystem implementation.
- * 
- * This only works for single machine. It is for local unit test and single machine mode.
+ * Local node UnderFilesystem implementation.
+ * <p>
+ * This is primarily intended for local unit test and single machine mode. In principal it can be
+ * used on a system where a shared file system (e.g. NFS) is mounted at the same path on every
+ * node but it is generally preferable to use a proper distributed file system for that scenario.
+ * </p>
  */
-public class SingleMachineLocalUnderFileSystem extends UnderFileSystem {
+public class LocalUnderFileSystem extends UnderFileSystem {
   
-  public SingleMachineLocalUnderFileSystem(TachyonConf conf) {
+  public LocalUnderFileSystem(TachyonConf conf) {
     super(conf);
   }
 
