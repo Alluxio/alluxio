@@ -15,6 +15,7 @@
   <description>Tachyon Project Assemblies</description>
 
   <properties>
+    <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
     <failIfNoTests>false</failIfNoTests>
   </properties>
 

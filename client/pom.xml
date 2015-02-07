@@ -13,6 +13,7 @@
   <name>Tachyon Project Client</name>
 
   <properties>
+    <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
     <failIfNoTests>false</failIfNoTests>
   </properties>
 
