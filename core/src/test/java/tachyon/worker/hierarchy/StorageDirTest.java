@@ -47,6 +47,22 @@ public class StorageDirTest {
   }
 
   @Test
+  public void cacheBlockCancelTest() throws  IOException {
+    long blockId = 100;
+    int blockSize = 500;
+
+    mSrcDir.requestSpace(USER_ID, blockSize);
+    mSrcDir.updateTempBlockAllocatedBytes(USER_ID, blockId, blockSize);
+    try {
+      // cacheBlock calls cancelBlock and throws IOException
+      mSrcDir.cacheBlock(USER_ID, blockId);
+    } catch (IOException e) {
+    }
+    Assert.assertEquals(CAPACITY, mSrcDir.getAvailableBytes());
+    Assert.assertEquals(0, mSrcDir.getUserOwnBytes(USER_ID));
+  }
+
+  @Test
   public void copyBlockTest() throws IOException {
     long blockId = 100;
     int blockSize = 500;
@@ -78,6 +94,22 @@ public class StorageDirTest {
       bhSrc.close();
     }
     dir.cacheBlock(USER_ID, blockId);
+  }
+
+  @Test
+  public void deleteLockedBlockTest() throws IOException{
+    long blockId = 100;
+    int blockSize = 500;
+
+    createBlockFile(mSrcDir, blockId, blockSize);
+    mSrcDir.lockBlock(blockId, USER_ID);
+    mSrcDir.deleteBlock(blockId);
+    Assert.assertFalse(mSrcDir.containsBlock(blockId));
+    Assert.assertEquals(CAPACITY - blockSize, mSrcDir.getAvailableBytes());
+    Assert.assertEquals(blockSize, mSrcDir.getLockedSizeBytes());
+    mSrcDir.unlockBlock(blockId, USER_ID);
+    Assert.assertEquals(CAPACITY, mSrcDir.getAvailableBytes());
+    Assert.assertEquals(0, mSrcDir.getLockedSizeBytes());
   }
 
   @Test
