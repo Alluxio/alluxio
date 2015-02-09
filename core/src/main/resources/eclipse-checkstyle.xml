@@ -1,0 +1,8 @@
+<fileset-config file-format-version="1.2.0" simple-config="true" sync-formatter="true">
+    <local-check-config name="tachyon.checkstyle" location=".tachyon_checks.xml" type="project" description="tachyon style">
+        <additional-data name="protect-config-file" value="false"/>
+    </local-check-config>
+    <fileset name="all" enabled="true" check-config-name="tachyon.checkstyle" local="true">
+        <file-match-pattern match-pattern="." include-pattern="true"/>
+    </fileset>
+</fileset-config>

@@ -10,4 +10,8 @@
 <suppressions>
   <suppress checks="MemberNameCheck"
             files=".*Conf.java"/>
+
+  <suppress checks="."  
+            files="tachyon[\\/]thrift[\\/]"/>
+
 </suppressions>

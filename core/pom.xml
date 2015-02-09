@@ -430,10 +430,7 @@
           <!-- TODO: This is needed to excuse Tachyon Configuration members' name from being -->
           <!-- checked because the members are define using all upper case. -->
           <!-- Once the new configuration is implemented we wil remove this exception -->
-          <suppressionsLocation>
-            ${project.basedir}/src/main/resources/tachyon_checkstyle_suppressions.xml
-          </suppressionsLocation>
-          <excludes>**/tachyon/thrift/**</excludes>
+          <propertyExpansion>basedir=${basedir}</propertyExpansion>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -456,6 +453,30 @@
           </dependency>
         </dependencies>
       </plugin>
+             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <configuration>
+                        <additionalBuildcommands>
+                                <buildcommand>net.sf.eclipsecs.core.CheckstyleBuilder</buildcommand>
+                        </additionalBuildcommands>
+                        <additionalProjectnatures>
+                                <projectnature>net.sf.eclipsecs.core.CheckstyleNature</projectnature>
+                        </additionalProjectnatures>
+                        <additionalConfig>
+                                <file>
+                                        <name>.checkstyle</name>
+                                        <location>src/main/resources/eclipse-checkstyle.xml</location>
+                                </file>
+                                <file>
+                                        <name>.tachyon_checks.xml</name>
+                                        <location>src/main/resources/tachyon_checks.xml</location>
+                                </file>
+                        </additionalConfig>
+                </configuration>
+
+        </plugin>
+
     </plugins>
   </build>
 </project>
