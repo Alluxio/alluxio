@@ -732,14 +732,14 @@ public final class MasterClient implements Closeable {
     return false;
   }
 
-  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes,
+  public synchronized void worker_cacheBlock(long workerId, long usedBytesOfAlias,
       long storageDirId, long blockId, long length) throws IOException, FileDoesNotExistException,
       SuspectedFileSizeException, BlockInfoException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        mClient.worker_cacheBlock(workerId, workerUsedBytes, storageDirId, blockId, length);
+        mClient.worker_cacheBlock(workerId, usedBytesOfAlias, storageDirId, blockId, length);
         return;
       } catch (FileDoesNotExistException e) {
         throw e;
@@ -781,14 +781,14 @@ public final class MasterClient implements Closeable {
     return new ArrayList<Integer>();
   }
 
-  public synchronized Command worker_heartbeat(long workerId, long usedBytes,
+  public synchronized Command worker_heartbeat(long workerId, List<Long> usedBytesByAlias,
       List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
       throws IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        return mClient.worker_heartbeat(workerId, usedBytes, removedBlockIds, addedBlockIds);
+        return mClient.worker_heartbeat(workerId, usedBytesByAlias, removedBlockIds, addedBlockIds);
       } catch (BlockInfoException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -803,22 +803,22 @@ public final class MasterClient implements Closeable {
    * Register the worker to the master.
    * 
    * @param workerNetAddress Worker's NetAddress
-   * @param totalBytes Worker's capacity
-   * @param usedBytes Worker's used storage
+   * @param totalBytesByAlias capacity of different storage alias in the work in bytes
+   * @param usedBytesByAlias the number of bytes of different storage alias in the work
    * @param currentBlockList Blocks in worker's space.
    * @return the worker id assigned by the master.
    * @throws BlockInfoException
    * @throws TException
    */
-  public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
-      long usedBytes, Map<Long, List<Long>> currentBlockList)
-      throws BlockInfoException, IOException {
+  public synchronized long worker_register(NetAddress workerNetAddress,
+      List<Long> totalBytesByAlias,List<Long> usedBytesByAlias,
+      Map<Long, List<Long>> currentBlockList) throws BlockInfoException, IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        long ret =
-            mClient.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList);
+        long ret = mClient.worker_register(workerNetAddress, totalBytesByAlias, usedBytesByAlias,
+            currentBlockList);
         LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress
             + " , got WorkerId " + ret);
         return ret;

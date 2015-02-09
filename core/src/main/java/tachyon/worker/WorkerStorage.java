@@ -294,6 +294,7 @@ public class WorkerStorage {
 
   private final ExecutorService mExecutorService;
   private long mCapacityBytes;
+  private List<Long> mCapacityBytesByAlias = new ArrayList<Long>();
   private ArrayList<StorageTier> mStorageTiers;
   private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
@@ -423,8 +424,9 @@ public class WorkerStorage {
       for (StorageDir curStorageDir : curStorageTier.getStorageDirs()) {
         for (Entry<Long, Long> blockSize : curStorageDir.getBlockSizes()) {
           try {
-            mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytes(),
-                curStorageDir.getStorageDirId(), blockSize.getKey(), blockSize.getValue());
+            mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytesByAlias().get(curStorageTier
+                .getAlias().getValue() - 1), curStorageDir.getStorageDirId(), blockSize.getKey(),
+                blockSize.getValue());
           } catch (FileDoesNotExistException e) {
             LOG.error("Block not exist in metadata! blockId:{}", blockSize.getKey());
             swapoutOrphanBlocks(curStorageDir, blockSize.getKey());
@@ -495,8 +497,9 @@ public class WorkerStorage {
     }
     if (result) {
       long blockSize = storageDir.getBlockSize(blockId);
-      mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytes(), storageDir.getStorageDirId(),
-          blockId, blockSize);
+      mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytesByAlias()
+          .get(StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId()) - 1),
+          storageDir.getStorageDirId(), blockId, blockSize);
     }
   }
 
@@ -600,14 +603,26 @@ public class WorkerStorage {
   }
 
   /**
-   * Get used bytes of current WorkerStorage
+   * Get used bytes of current WorkerStorage in the work.
    * 
-   * @return used bytes of current WorkerStorage
+   * @return used bytes of current WorkerStorage in the work
    */
   private long getUsedBytes() {
     long usedBytes = 0;
     for (StorageTier curTier : mStorageTiers) {
       usedBytes += curTier.getUsedBytes();
+    }
+    return usedBytes;
+  }
+  
+  private List<Long> getUsedBytesByAlias() {
+    List<Long> usedBytes = new ArrayList<Long>();
+    for (int i = 0; i < StorageLevelAlias.values().length; i++) {
+      usedBytes.add((long) 0);
+    }
+    for (StorageTier curTier : mStorageTiers) {
+      usedBytes.set(curTier.getAlias().getValue() - 1, usedBytes.get(curTier.getAlias()
+          .getValue() - 1) + curTier.getUsedBytes());
     }
     return usedBytes;
   }
@@ -651,7 +666,7 @@ public class WorkerStorage {
       }
     }
     return mMasterClient
-        .worker_heartbeat(mWorkerId, getUsedBytes(), removedBlockIds, addedBlockIds);
+        .worker_heartbeat(mWorkerId, getUsedBytesByAlias(), removedBlockIds, addedBlockIds);
   }
 
   /**
@@ -661,6 +676,9 @@ public class WorkerStorage {
    */
   public void initializeStorageTier() throws IOException {
     mStorageTiers = new ArrayList<StorageTier>(WorkerConf.get().STORAGE_LEVELS);
+    for (int k = 0; k < StorageLevelAlias.values().length; k ++) {
+      mCapacityBytesByAlias.add((long) 0);
+    }
     for (int k = 0; k < WorkerConf.get().STORAGE_LEVELS; k ++) {
       mStorageTiers.add(null);
     }
@@ -691,6 +709,8 @@ public class WorkerStorage {
               nextStorageTier, null); // TODO add conf for UFS
       curTier.initialize();
       mCapacityBytes += curTier.getCapacityBytes();
+      mCapacityBytesByAlias.set(curTier.getAlias().getValue() - 1, mCapacityBytesByAlias
+          .get(curTier.getAlias().getValue() - 1) + curTier.getCapacityBytes());
       mStorageTiers.set(level, curTier);
       nextStorageTier = curTier;
     }
@@ -768,7 +788,7 @@ public class WorkerStorage {
   public void register() {
     long id = 0;
     Map<Long, List<Long>> blockIdLists = new HashMap<Long, List<Long>>();
-
+    
     for (StorageTier curStorageTier : mStorageTiers) {
       for (StorageDir curStorageDir : curStorageTier.getStorageDirs()) {
         Set<Long> blockSet = curStorageDir.getBlockIds();
@@ -778,8 +798,8 @@ public class WorkerStorage {
     while (id == 0) {
       try {
         id =
-            mMasterClient.worker_register(mWorkerAddress, mCapacityBytes, getUsedBytes(),
-                blockIdLists);
+            mMasterClient.worker_register(mWorkerAddress, 
+                mCapacityBytesByAlias, getUsedBytesByAlias(), blockIdLists);
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
