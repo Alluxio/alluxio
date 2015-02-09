@@ -52,6 +52,8 @@ import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
 import tachyon.Pair;
 import tachyon.PrefixList;
+import tachyon.StorageDirId;
+import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystem.SpaceType;
@@ -897,7 +899,7 @@ public class MasterInfo extends ImageWriter {
    * A worker cache a block in its memory.
    * 
    * @param workerId
-   * @param workerUsedBytes
+   * @param usedBytesOfAlias
    * @param blockId
    * @param length
    * @return the dependency id of the file if it has not been checkpointed. -1 means the file either
@@ -906,15 +908,16 @@ public class MasterInfo extends ImageWriter {
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */
-  public int cacheBlock(long workerId, long workerUsedBytes, long storageDirId, long blockId,
+  public int cacheBlock(long workerId, long usedBytesOfAlias, long storageDirId, long blockId,
       long length)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
     LOG.debug("Cache block: {}",
-        CommonUtils.parametersToString(workerId, workerUsedBytes, blockId, length));
-
+        CommonUtils.parametersToString(workerId, usedBytesOfAlias, blockId, length));
+    
     MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
+    int storageLevelAliasValue = StorageDirId.getStorageLevelAliasValue(storageDirId);
     tWorkerInfo.updateBlock(true, blockId);
-    tWorkerInfo.updateUsedBytes(workerUsedBytes);
+    tWorkerInfo.updateUsedBytes(storageLevelAliasValue, usedBytesOfAlias);
     tWorkerInfo.updateLastUpdatedTimeMs();
 
     int fileId = BlockInfo.computeInodeId(blockId);
@@ -1373,6 +1376,42 @@ public class MasterInfo extends ImageWriter {
       }
     } else {
       ret.add(inode.generateClientFileInfo(path.toString()));
+    }
+    return ret;
+  }
+  
+  /**
+   * @return the capacities of different storage level alias in all workers in bytes.
+   */
+  public List<Long> getHierarchyTotalBytesByAlias() {
+    List<Long> ret = new ArrayList<Long>();
+    synchronized (mWorkers) {
+      for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
+        ret.add((long) 0);
+      }
+      for (MasterWorkerInfo worker : mWorkers.values()) {
+        for (int i = 0; i < worker.getTotalBytesByAlias().size(); i ++) {
+          ret.set(i, ret.get(i) + worker.getTotalBytesByAlias().get(i));
+        }
+      }
+    }
+    return ret;
+  }
+  
+  /**
+   * @return the number of bytes used of different storage level alias in all workers.
+   */
+  public List<Long> getHierarchyUsedBytesByAlias() {
+    List<Long> ret = new ArrayList<Long>();
+    synchronized (mWorkers) {
+      for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
+        ret.add((long) 0);
+      }
+      for (MasterWorkerInfo worker : mWorkers.values()) {
+        for (int i = 0; i < worker.getUsedBytesByAlias().size(); i ++) {
+          ret.set(i, ret.get(i) + worker.getUsedBytesByAlias().get(i));  
+        }
+      }
     }
     return ret;
   }
@@ -1987,15 +2026,17 @@ public class MasterInfo extends ImageWriter {
    * blocks.
    * 
    * @param workerNetAddress The address of the worker to register
-   * @param totalBytes The capacity of the worker in bytes
-   * @param usedBytes The number of bytes already used in the worker
+   * @param totalBytesByAlias The capacity of different storage alias in the worker in bytes
+   * @param usedBytesByAlias The number of bytes used of different storage alias in the worker
    * @param currentBlockIds Mapping from id of the StorageDir to id list of the blocks
    * @return the new id of the registered worker
    * @throws BlockInfoException
    */
-  public long registerWorker(NetAddress workerNetAddress, long totalBytes, long usedBytes,
-      Map<Long, List<Long>> currentBlockIds) throws BlockInfoException {
+  public long registerWorker(NetAddress workerNetAddress, List<Long> totalBytesByAlias,
+      List<Long> usedBytesByAlias, Map<Long, List<Long>> currentBlockIds)
+          throws BlockInfoException {
     long id = 0;
+    long capacityBytes = 0;
     NetAddress workerAddress = new NetAddress(workerNetAddress);
     LOG.info("registerWorker(): WorkerNetAddress: " + workerAddress);
 
@@ -2012,8 +2053,12 @@ public class MasterInfo extends ImageWriter {
         LOG.warn("The worker with id " + id + " has been removed.");
       }
       id = mStartTimeNSPrefix + mWorkerCounter.incrementAndGet();
-      MasterWorkerInfo tWorkerInfo = new MasterWorkerInfo(id, workerAddress, totalBytes);
-      tWorkerInfo.updateUsedBytes(usedBytes);
+      for (long b : totalBytesByAlias) {
+        capacityBytes += b;
+      }
+      MasterWorkerInfo tWorkerInfo =
+          new MasterWorkerInfo(id, workerAddress, totalBytesByAlias, capacityBytes);
+      tWorkerInfo.updateUsedBytes(usedBytesByAlias); 
       for (List<Long> blockIds : currentBlockIds.values()) {
         tWorkerInfo.updateBlocks(true, blockIds);
       }
@@ -2142,14 +2187,14 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
- /**
-  * Free the file/folder based on the files' ID
-  *
-  * @param fileId the file/folder to be freed.
-  * @param recursive whether free the folder recursively or not
-  * @return succeed or not
-  * @throws TachyonException
-  */
+  /**
+   * Free the file/folder based on the files' ID
+   *
+   * @param fileId the file/folder to be freed.
+   * @param recursive whether free the folder recursively or not
+   * @return succeed or not
+   * @throws TachyonException
+   */
   boolean freepath(int fileId, boolean recursive) throws TachyonException {
     LOG.info("free(" + fileId + ")");
     synchronized (mRootLock) {
@@ -2197,14 +2242,14 @@ public class MasterInfo extends ImageWriter {
     return true;
   }
 
- /**
-  * Frees files based on the path
-  *
-  * @param path The file to be freed.
-  * @param recursive whether delete the file recursively or not.
-  * @return succeed or not
-  * @throws TachyonException
-  */
+  /**
+   * Frees files based on the path
+   *
+   * @param path The file to be freed.
+   * @param recursive whether delete the file recursively or not.
+   * @return succeed or not
+   * @throws TachyonException
+   */
   public boolean freepath(TachyonURI path, boolean recursive) throws TachyonException {
     LOG.info("free(" + path + ")");
     synchronized (mRootLock) {
@@ -2324,15 +2369,14 @@ public class MasterInfo extends ImageWriter {
    * block id's.
    * 
    * @param workerId The id of the worker to deal with
-   * @param usedBytes The number of bytes used in the worker
+   * @param usedBytesByAlias The number of bytes used of different storage alias in the worker
    * @param removedBlockIds The list of removed block ids
    * @param addedBlockIds Mapping from id of the StorageDir and id list of blocks evicted in
    * @return a command specifying an action to take
    * @throws BlockInfoException
    */
-  public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds,
-      Map<Long, List<Long>> addedBlockIds)
-      throws BlockInfoException {
+  public Command workerHeartbeat(long workerId, List<Long> usedBytesByAlias,
+      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds) throws BlockInfoException {
     LOG.debug("WorkerId: {}", workerId);
     synchronized (mRootLock) {
       synchronized (mWorkers) {
@@ -2344,7 +2388,7 @@ public class MasterInfo extends ImageWriter {
           return new Command(CommandType.Register, new ArrayList<Long>());
         }
 
-        tWorkerInfo.updateUsedBytes(usedBytes);
+        tWorkerInfo.updateUsedBytes(usedBytesByAlias);
         tWorkerInfo.updateBlocks(false, removedBlockIds);
         tWorkerInfo.updateToRemovedBlocks(false, removedBlockIds);
         tWorkerInfo.updateLastUpdatedTimeMs();

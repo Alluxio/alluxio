@@ -16,6 +16,9 @@
 package tachyon.web;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import javax.servlet.ServletException;
@@ -24,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
+import tachyon.StorageLevelAlias;
 import tachyon.Version;
 import tachyon.master.DependencyVariables;
 import tachyon.master.MasterInfo;
@@ -33,6 +37,51 @@ import tachyon.util.CommonUtils;
  * Servlet that provides data for viewing the general status of the filesystem.
  */
 public class WebInterfaceGeneralServlet extends HttpServlet {
+  /**
+   * Class to make referencing hierarchy storage information more intuitive.
+   */
+  public static class HierarchyStorageInfo {
+    private final StorageLevelAlias mStorageLevelAlias;
+    private final long mCapacityBytes;
+    private final long mUsedBytes;
+    private final int mUsedPercent;
+    private final long mFreeBytes;
+    private final int mFreePercent;
+
+    private HierarchyStorageInfo(int storageLevelAliasValue, long capacityBytes, long usedBytes) {
+      mStorageLevelAlias = StorageLevelAlias.values()[storageLevelAliasValue - 1];
+      mCapacityBytes = capacityBytes;
+      mUsedBytes = usedBytes;
+      mFreeBytes = mCapacityBytes - mUsedBytes;
+      mUsedPercent = (int) (100L * mUsedBytes / mCapacityBytes);
+      mFreePercent = 100 - mUsedPercent;
+    }
+
+    public String getStorageLevelAlias() {
+      return mStorageLevelAlias.name();
+    }
+
+    public String getCapacity() {
+      return CommonUtils.getSizeFromBytes(mCapacityBytes);
+    }
+
+    public String getFreeCapacity() {
+      return CommonUtils.getSizeFromBytes(mFreeBytes);
+    }
+
+    public int getFreeSpacePercent() {
+      return mFreePercent;
+    }
+
+    public String getUsedCapacity() {
+      return CommonUtils.getSizeFromBytes(mUsedBytes);
+    }
+
+    public int getUsedSpacePercent() {
+      return mUsedPercent;
+    }
+  }
+
   private static final long serialVersionUID = 2335205655766736309L;
 
   private final transient MasterInfo mMasterInfo;
@@ -71,6 +120,28 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     }
     populateValues(request);
     getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
+  }
+
+  /**
+   * List the HierarchyStorageInfo objects of all different storage level alias.
+   * 
+   * @return the list of HierarchyStorageInfo objects.
+   */
+  private HierarchyStorageInfo[] generateOrderedHierarchyStorageInfo() {
+    List<HierarchyStorageInfo> infos = new ArrayList<HierarchyStorageInfo>();
+    List<Long> totalBytesByAlias = mMasterInfo.getHierarchyTotalBytesByAlias();
+    List<Long> usedBytesByAlias = mMasterInfo.getHierarchyUsedBytesByAlias();
+
+    for (int i = 0; i < totalBytesByAlias.size(); i ++) {
+      if (totalBytesByAlias.get(i) > 0) {
+        HierarchyStorageInfo info =
+            new HierarchyStorageInfo(i + 1, totalBytesByAlias.get(i), usedBytesByAlias.get(i));
+        infos.add(info);
+      }
+    }
+    HierarchyStorageInfo[] ret = infos.toArray(new HierarchyStorageInfo[infos.size()]);
+
+    return ret;
   }
 
   /**
@@ -127,5 +198,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     request.setAttribute("recomputeVariables", DependencyVariables.VARIABLES);
+
+    HierarchyStorageInfo[] infos = generateOrderedHierarchyStorageInfo();
+    request.setAttribute("hierarchyStorageInfos", infos);
   }
 }
