@@ -138,8 +138,9 @@ service MasterService {
    * is master started time. currentBlocks maps from id of storage directory to the blocks it
    * contains.
    */
-  i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes,
-      4: map<i64, list<i64>> currentBlocks)
+  i64 worker_register(1: NetAddress workerNetAddress, 2: list<i32> storageLevels,
+      3: list<i32> storageLevelAliasValues, 4: list<i64> totalBytes, 5: list<i64> usedBytes,
+      6: map<i64, list<i64>> currentBlocks)
     throws (1: BlockInfoException e)
 
   /**
@@ -148,7 +149,7 @@ service MasterService {
    * return the command from master to worker. addedBlockIds maps from id of storage directory
    * to the blocks added in it.
    */
-  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlockIds,
+  Command worker_heartbeat(1: i64 workerId, 2: list<i64> usedBytes, 3: list<i64> removedBlockIds,
       4: map<i64, list<i64>> addedBlockIds)
     throws (1: BlockInfoException e)
 
@@ -157,7 +158,7 @@ service MasterService {
    * bytes, the id of the storage directory in which the block is, the id of the block and the size
    * of the block in bytes.
    */
-  void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 storageDirId,
+  void worker_cacheBlock(1: i64 workerId, 2: i64 storageTierUsedBytes, 3: i64 storageDirId,
       4: i64 blockId, 5: i64 length)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
 
