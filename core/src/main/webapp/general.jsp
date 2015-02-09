@@ -1,4 +1,5 @@
 <%@ page import="java.util.*" %>
+<%@ page import="tachyon.web.*" %>
 
 <html>
 <head>
@@ -67,12 +68,12 @@
             <table class="table">
               <tbody>
                 <tr>
-                  <th>Memory Capacity:</th>
+                  <th>Workers Capacity:</th>
                   <!-- <th>${capacity}</th> -->
                   <th><%= request.getAttribute("capacity") %></th>
                 </tr>
                 <tr>
-                  <th>Memory Free / Used:</th>
+                  <th>Workers Free / Used:</th>
                   <!-- <th>${usedCapacity}</th> -->
                   <th><%= request.getAttribute("freeCapacity") %> / <%= request.getAttribute("usedCapacity") %></th>
                 </tr>
@@ -86,6 +87,54 @@
                   <!-- <th>${freeCapacity}</th> -->
                   <th><%= request.getAttribute("diskFreeCapacity") %> / <%= request.getAttribute("diskUsedCapacity") %></th>
                 </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row-fluid">
+    <div class="accordion span14" id="accordion3">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion3" href="#data3">
+            <h4>Hierarchy Usage Summary</h4>
+          </a>
+        </div>
+        <div id="data3" class="accordion-body collapse in">
+          <div class="accordion-inner">
+            <table class="table table-hover table-condensed">
+              <thead>
+                <th>Hierarchy Store Level</th>
+                <th>Hierarchy Store Alias</th>
+                <th>Space Capacity</th>
+                <th>Space Used</th>
+                <th>Space Usage</th>
+              </thead>
+              <tbody>
+                <% for (WebInterfaceGeneralServlet.StorageLevelInfo levelInfo : ((WebInterfaceGeneralServlet.StorageLevelInfo[]) request.getAttribute("storageLevelInfos"))) { %>
+                  <tr>
+                    <th><%= levelInfo.getStorageLevel() %></th>
+                    <th><%= levelInfo.getStorageLevelAlias() %></th>
+                    <th><%= levelInfo.getCapacity() %></th>
+                    <th><%= levelInfo.getUsedCapacity() %></th>
+                    <th>
+                      <div class="progress custom-progress">
+                          <div class="bar bar-success" style="width: <%= levelInfo.getFreeSpacePercent() %>%;">
+                            <% if (levelInfo.getFreeSpacePercent() >= levelInfo.getUsedSpacePercent()) { %>
+                              <%= levelInfo.getFreeSpacePercent() %>%Free
+                            <% } %>
+                          </div>
+                          <div class="bar bar-danger" style="width: <%= levelInfo.getUsedSpacePercent() %>%;">
+                            <% if (levelInfo.getFreeSpacePercent() < levelInfo.getUsedSpacePercent()) { %>
+                              <%= levelInfo.getUsedSpacePercent() %>%Used
+                            <% } %>
+                          </div>
+                      </div>
+                    </th>
+                  </tr>
+                <% } %>
               </tbody>
             </table>
           </div>

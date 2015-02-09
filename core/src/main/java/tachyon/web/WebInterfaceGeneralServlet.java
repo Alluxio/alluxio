@@ -16,6 +16,9 @@
 package tachyon.web;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import javax.servlet.ServletException;
@@ -23,7 +26,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.collect.Ordering;
+
 import tachyon.Constants;
+import tachyon.StorageLevelAlias;
 import tachyon.Version;
 import tachyon.master.DependencyVariables;
 import tachyon.master.MasterInfo;
@@ -33,6 +39,58 @@ import tachyon.util.CommonUtils;
  * Servlet that provides data for viewing the general status of the filesystem.
  */
 public class WebInterfaceGeneralServlet extends HttpServlet {
+  /**
+   * Class to make referencing storage level information more intuitive.
+   */
+  public static class StorageLevelInfo {
+    private final int mStorageLevel;
+    private final StorageLevelAlias mStorageLevelAlias;
+    private final long mCapacityBytes;
+    private final long mUsedBytes;
+    private final int mUsedPercent;
+    private final long mFreeBytes;
+    private final int mFreePercent;
+
+    private StorageLevelInfo(int storageLevel, int storageLevelAliasValue, long capacityBytes,
+        long usedBytes) {
+      mStorageLevel = storageLevel;
+      mStorageLevelAlias = StorageLevelAlias.values()[storageLevelAliasValue - 1];
+      mCapacityBytes = capacityBytes;
+      mUsedBytes = usedBytes;
+      mFreeBytes = mCapacityBytes - mUsedBytes;
+      mUsedPercent = (int) (100L * mUsedBytes / mCapacityBytes);
+      mFreePercent = 100 - mUsedPercent;
+    }
+
+    public String getStorageLevel() {
+      return Integer.toString(mStorageLevel);
+    }
+
+    public String getStorageLevelAlias() {
+      return mStorageLevelAlias.name();
+    }
+
+    public String getCapacity() {
+      return CommonUtils.getSizeFromBytes(mCapacityBytes);
+    }
+
+    public String getFreeCapacity() {
+      return CommonUtils.getSizeFromBytes(mFreeBytes);
+    }
+
+    public int getFreeSpacePercent() {
+      return mFreePercent;
+    }
+
+    public String getUsedCapacity() {
+      return CommonUtils.getSizeFromBytes(mUsedBytes);
+    }
+
+    public int getUsedSpacePercent() {
+      return mUsedPercent;
+    }
+  }
+
   private static final long serialVersionUID = 2335205655766736309L;
 
   private final transient MasterInfo mMasterInfo;
@@ -71,6 +129,29 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     }
     populateValues(request);
     getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
+  }
+
+  private StorageLevelInfo[] generateOrderedStorageLevelInfo() {
+    List<StorageLevelInfo> infos = new ArrayList<StorageLevelInfo>();
+    List<Integer> storageLevels = mMasterInfo.getHierarchyStorageLevels();
+    List<Integer> storageLevelAliasValues = mMasterInfo.getHierarchyStorageLevelAliasValues();
+    List<Long> totalBytes = mMasterInfo.getHierarchyCapacityBytes();
+    List<Long> usedBytes = mMasterInfo.getHierarchyUsedBytes();
+   
+    for (int i = 0; i < totalBytes.size(); i ++) {
+      StorageLevelInfo info = new StorageLevelInfo(storageLevels.get(i),
+          storageLevelAliasValues.get(i), totalBytes.get(i), usedBytes.get(i));
+      infos.add(info);
+    }
+    Collections.sort(infos, new Ordering<StorageLevelInfo>() {
+      @Override
+      public int compare(StorageLevelInfo info0, StorageLevelInfo info1) {
+        return info0.getStorageLevel().compareTo(info1.getStorageLevel());
+      }
+    });
+    StorageLevelInfo[] ret = infos.toArray(new StorageLevelInfo[infos.size()]);
+
+    return ret;
   }
 
   /**
@@ -127,5 +208,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     request.setAttribute("recomputeVariables", DependencyVariables.VARIABLES);
+
+    StorageLevelInfo[] infos = generateOrderedStorageLevelInfo();
+    request.setAttribute("storageLevelInfos", infos);
   }
 }

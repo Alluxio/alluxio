@@ -46,10 +46,22 @@ public class MasterWorkerInfo {
   private Set<Long> mBlocks;
   /** IDs of blocks the worker should remove **/
   private Set<Long> mToRemoveBlocks;
+  /** Levels of StorageTiers **/
+  private List<Integer> mStorageLevels;
+  /** Alias values of StorageTiers **/
+  private List<Integer> mStorageLevelAliasValues;
+  /** Total capacity bytes of StorageTiers **/
+  private List<Long> mTotalCapacityBytes;
+  /** Used bytes of StorageTiers **/
+  private List<Long> mUsedCapacityBytes;
 
-  public MasterWorkerInfo(long id, NetAddress address, long capacityBytes) {
+  public MasterWorkerInfo(long id, NetAddress address, List<Integer> levels,
+      List<Integer> aliasValues, List<Long> totalBytes, long capacityBytes) {
     mId = id;
     mWorkerAddress = address;
+    mStorageLevels = levels;
+    mStorageLevelAliasValues = aliasValues;
+    mTotalCapacityBytes = totalBytes;
     mCapacityBytes = capacityBytes;
     mStartTimeMs = System.currentTimeMillis();
 
@@ -129,6 +141,45 @@ public class MasterWorkerInfo {
    */
   public synchronized long getUsedBytes() {
     return mUsedBytes;
+  }
+
+  /**
+   * @return storage levels of the worker
+   */
+  public synchronized List<Integer> getStorageLevels() {
+    return mStorageLevels;
+  }
+
+  /**
+   * @return storage level alias values of the worker
+   */
+  public synchronized List<Integer> getStorageLevelAliasValues() {
+    return mStorageLevelAliasValues;
+  }
+
+  /**
+   * @return the total capacities of each level in bytes
+   */
+  public synchronized List<Long> getTotalCapacityBytes() {
+    return mTotalCapacityBytes;
+  }
+
+  /**
+   * @return the used space of each level in bytes
+   */
+  public synchronized List<Long> getUsedCapacityBytes() {
+    return mUsedCapacityBytes;
+  }
+
+  /**
+   * @return the free space of each level in bytes
+   */
+  public synchronized List<Long> getFreeCapacityBytes() {
+    List<Long> freeCapacityBytes = new ArrayList<Long>();
+    for (int i = 0; i < freeCapacityBytes.size(); i ++) {
+      freeCapacityBytes.add(mTotalCapacityBytes.get(i) - mUsedCapacityBytes.get(i));
+    }
+    return freeCapacityBytes;
   }
 
   @Override
@@ -214,9 +265,35 @@ public class MasterWorkerInfo {
   /**
    * Set the used space of the worker in bytes.
    * 
-   * @param usedBytes the used space in bytes
+   * @param usedBytes the used space of each storage level in bytes
    */
-  public synchronized void updateUsedBytes(long usedBytes) {
-    mUsedBytes = usedBytes;
+  public synchronized void updateUsedBytes(List<Long> usedBytes) {
+    mUsedBytes = 0;
+    mUsedCapacityBytes = usedBytes;
+    for (long t : mUsedCapacityBytes) {
+      mUsedBytes += t;
+    }
+  }
+
+  /**
+   * Set the used space of the worker in bytes.
+   * 
+   * @param level storage level on the worker.
+   * @param alias storage level alias value on the worker.
+   * @param usedBytes the used space of the storage level in bytes.
+   */
+  public synchronized void updateUsedBytes(int level, int aliasValue, long usedBytes) {
+    int index = -1;
+    for (int i = 0; i < mStorageLevels.size(); i++) {
+      if (mStorageLevels.get(i) == level && mStorageLevelAliasValues.get(i) == aliasValue) {
+        index = i;
+        break;
+      }
+    }
+    
+    if (index != -1) {
+      mUsedBytes += usedBytes - mUsedCapacityBytes.get(index);
+      mUsedCapacityBytes.set(index, usedBytes); 
+    }
   }
 }

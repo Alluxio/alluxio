@@ -732,14 +732,14 @@ public final class MasterClient implements Closeable {
     return false;
   }
 
-  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes,
+  public synchronized void worker_cacheBlock(long workerId, long storageTierUsedBytes,
       long storageDirId, long blockId, long length) throws IOException, FileDoesNotExistException,
       SuspectedFileSizeException, BlockInfoException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        mClient.worker_cacheBlock(workerId, workerUsedBytes, storageDirId, blockId, length);
+        mClient.worker_cacheBlock(workerId, storageTierUsedBytes, storageDirId, blockId, length);
         return;
       } catch (FileDoesNotExistException e) {
         throw e;
@@ -781,7 +781,7 @@ public final class MasterClient implements Closeable {
     return new ArrayList<Integer>();
   }
 
-  public synchronized Command worker_heartbeat(long workerId, long usedBytes,
+  public synchronized Command worker_heartbeat(long workerId, List<Long> usedBytes,
       List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
       throws IOException {
     while (!mIsShutdown) {
@@ -803,22 +803,26 @@ public final class MasterClient implements Closeable {
    * Register the worker to the master.
    * 
    * @param workerNetAddress Worker's NetAddress
-   * @param totalBytes Worker's capacity
-   * @param usedBytes Worker's used storage
+   * @param storage levels storage levels of workers
+   * @param storage level alias values of workers
+   * @param totalBytes capacity of each storage level in the work in bytes
+   * @param usedBytes the number of bytes of each storage level in the work
    * @param currentBlockList Blocks in worker's space.
    * @return the worker id assigned by the master.
    * @throws BlockInfoException
    * @throws TException
    */
-  public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
-      long usedBytes, Map<Long, List<Long>> currentBlockList)
+  public synchronized long worker_register(NetAddress workerNetAddress, 
+      List<Integer> storageLevels, List<Integer> storageLevelAliasValues, List<Long> totalBytes,
+      List<Long> usedBytes, Map<Long, List<Long>> currentBlockList)
       throws BlockInfoException, IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
         long ret =
-            mClient.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList);
+            mClient.worker_register(workerNetAddress, storageLevels, storageLevelAliasValues, 
+                totalBytes, usedBytes, currentBlockList);
         LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress
             + " , got WorkerId " + ret);
         return ret;
