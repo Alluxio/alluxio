@@ -157,7 +157,7 @@ service MasterService {
    * bytes, the id of the storage directory in which the block is, the id of the block and the size
    * of the block in bytes.
    */
-  void worker_cacheBlock(1: i64 workerId, 2: i64 UsedBytesOfAlias, 3: i64 storageDirId,
+  void worker_cacheBlock(1: i64 workerId, 2: i64 usedBytesOfAlias, 3: i64 storageDirId,
       4: i64 blockId, 5: i64 length)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
 
