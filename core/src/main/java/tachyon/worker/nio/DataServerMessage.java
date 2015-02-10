@@ -26,8 +26,6 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.client.TachyonByteBuffer;
-import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
 
 /**
  * The message type used to send data request and response for remote data.
