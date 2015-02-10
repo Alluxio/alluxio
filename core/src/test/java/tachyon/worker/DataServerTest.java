@@ -155,7 +155,8 @@ public class DataServerTest {
     DataServerMessage recvMsg2 = request(block2);
     assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
 
-    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf));
+    CommonUtils.sleepMs(null,
+        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
     ClientFileInfo fileInfo = mTFS.getFileStatus(-1, new TachyonURI("/readFile1"));
     Assert.assertEquals(0, fileInfo.inMemoryPercentage);
   }
