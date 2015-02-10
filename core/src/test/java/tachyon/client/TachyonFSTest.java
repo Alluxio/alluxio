@@ -176,7 +176,6 @@ public class TachyonFSTest {
     List<ClientWorkerInfo> workers = sTfs.getWorkersInfo();
     Assert.assertEquals(1, workers.size());
     Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
-    Assert.assertEquals(0, workers.get(0).getUsedBytes());
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
 
     // Delete non-existing files.
