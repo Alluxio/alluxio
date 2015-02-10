@@ -39,8 +39,8 @@ public class HierarchyStoreTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
   private static final int DISK_CAPACITY_BYTES = 10000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
-  private static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS
-      = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
+  private static final int SLEEP_MS
+      = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTFS = null;
@@ -86,7 +86,7 @@ public class HierarchyStoreTest {
     int fileId5 =
         TestUtils.createByteFile(mTFS, "/root/test5", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
 
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, SLEEP_MS);
     TachyonFile file4 = mTFS.getFile(fileId4);
     TachyonFile file5 = mTFS.getFile(fileId5);
 
@@ -106,7 +106,7 @@ public class HierarchyStoreTest {
     int fileId3 =
         TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
 
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, SLEEP_MS);
     TachyonFile file1 = mTFS.getFile(fileId1);
     TachyonFile file2 = mTFS.getFile(fileId2);
     TachyonFile file3 = mTFS.getFile(fileId3);
@@ -122,7 +122,7 @@ public class HierarchyStoreTest {
     int len = is.read(buf);
     is.close();
 
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, SLEEP_MS);
     Assert.assertEquals(MEM_CAPACITY_BYTES / 6, len);
     Assert.assertEquals(true, file1.isInMemory());
     Assert.assertEquals(false, file2.isInMemory());
