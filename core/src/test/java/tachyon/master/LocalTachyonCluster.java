@@ -158,9 +158,10 @@ public final class LocalTachyonCluster {
   }
 
   public void start() throws IOException {
+    int maxLevel = 1;
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
-    mWorkerDataFolder = mTachyonHome + "/ramdisk";
+    mWorkerDataFolder = "/datastore";
 
     mLocalhostName = NetworkUtils.getLocalHostName();
 
@@ -170,6 +171,12 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
     mMasterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
     mMasterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "64");
+
+    // Lower the number of threads that the cluster will spin off.
+    // default thread overhead is too much.
+    mMasterConf.set(Constants.MASTER_SELECTOR_THREADS, "1");
+    mMasterConf.set(Constants.MASTER_SERVER_THREADS, "2");
+    mMasterConf.set(Constants.MASTER_WEB_THREAD_COUNT, "1");
 
     // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
@@ -195,10 +202,26 @@ public final class LocalTachyonCluster {
     mWorkerConf.set(Constants.WORKER_SERVER_THREADS, Integer.toString(2));
     mWorkerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, Integer.toString(2));
 
+    // Setup conf for worker
+    mWorkerConf.set(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, Integer.toString(maxLevel));
+    mWorkerConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
+    mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
+    mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
+
+    for (int level = 1; level < maxLevel; level ++) {
+      String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
+      String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+      String newPath = "";
+      for (int i = 0; i < dirPaths.length; i ++) {
+        newPath += mTachyonHome + dirPaths[i] + ",";
+      }
+      mWorkerConf.set("tachyon.worker.hierarchystore.level" + level + ".dirs.path",
+          newPath.substring(0, newPath.length() - 1));
+    }
+
     mWorker =
         TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
-            mWorkerCapacityBytes, mWorkerConf);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
@@ -244,6 +267,7 @@ public final class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
     System.clearProperty("tachyon.worker.selector.threads");
     System.clearProperty("tachyon.worker.server.threads");
+    System.clearProperty("tachyon.worker.hierarchystore.level.max");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
   }
 

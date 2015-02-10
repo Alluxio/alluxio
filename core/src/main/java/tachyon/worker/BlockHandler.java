@@ -13,16 +13,17 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.worker;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
 
 import tachyon.TachyonURI;
 
 /**
- * Base class for handling block files. Block handlers for different under file systems can be
+ * Base class for handling block I/O. Block handlers for different under file systems can be
  * implemented by extending this class. It is not thread safe, the caller must guarantee thread
  * safe. This class is internal and subject to changes.
  */
@@ -31,8 +32,8 @@ public abstract class BlockHandler implements Closeable {
   /**
    * Create a block handler according to path scheme
    * 
-   * @param path block file path
-   * @return block handler of the block file
+   * @param path the block path
+   * @return the handler of the block
    * @throws IOException
    * @throws IllegalArgumentException
    */
@@ -44,13 +45,13 @@ public abstract class BlockHandler implements Closeable {
   }
 
   /**
-   * Append data to block file from byte array
+   * Append data to the block from a byte array
    * 
    * @param blockOffset starting position of the block file
-   * @param buf buffer that data is stored in
-   * @param offset offset of the buf
-   * @param length length of the data
-   * @return size of data that is written
+   * @param buf the data buffer
+   * @param offset the offset of the buffer
+   * @param length the length of the data
+   * @return the size of data that was written
    * @throws IOException
    */
   public int append(long blockOffset, byte[] buf, int offset, int length) throws IOException {
@@ -58,17 +59,17 @@ public abstract class BlockHandler implements Closeable {
   }
 
   /**
-   * Append data to block file from ByteBuffer
+   * Appends data to the block from a ByteBuffer
    * 
    * @param blockOffset starting position of the block file
    * @param srcBuf ByteBuffer that data is stored in
-   * @return size of data that is written
+   * @return the size of data that was written
    * @throws IOException
    */
   public abstract int append(long blockOffset, ByteBuffer srcBuf) throws IOException;
 
   /**
-   * Delete block file
+   * Deletes the block
    * 
    * @return true if success, otherwise false
    * @throws IOException
@@ -76,12 +77,27 @@ public abstract class BlockHandler implements Closeable {
   public abstract boolean delete() throws IOException;
 
   /**
-   * Read data from block file
+   * Gets channel used to access block
    * 
-   * @param blockOffset offset from starting of the block file
-   * @param length length of data to read, -1 represents reading the rest of the block file
-   * @return ByteBuffer storing data that is read
+   * @return the channel bounded with the block file
+   */
+  public abstract ByteChannel getChannel();
+
+  /**
+   * Gets the length of the block
+   * 
+   * @return the length of the block
    * @throws IOException
    */
-  public abstract ByteBuffer read(long blockOffset, int length) throws IOException;
+  public abstract long getLength() throws IOException;
+
+  /**
+   * Reads data from block
+   * 
+   * @param offset the offset from starting of the block file
+   * @param length the length of data to read, -1 represents reading the rest of the block
+   * @return ByteBuffer the data that was read
+   * @throws IOException
+   */
+  public abstract ByteBuffer read(long offset, int length) throws IOException;
 }

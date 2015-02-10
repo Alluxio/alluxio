@@ -36,6 +36,15 @@ public final class Pair<T1, T2> {
     mSecond = second;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof Pair<?, ?>) {
+      return ((Pair<?, ?>) o).getFirst().equals(mFirst)
+          && ((Pair<?, ?>) o).getSecond().equals(mSecond);
+    }
+    return false;
+  }
+
   /**
    * @return the first element of the pair.
    */
@@ -48,6 +57,11 @@ public final class Pair<T1, T2> {
    */
   public T2 getSecond() {
     return mSecond;
+  }
+
+  @Override
+  public int hashCode() {
+    return 31 * mFirst.hashCode() + mSecond.hashCode();
   }
 
   /**

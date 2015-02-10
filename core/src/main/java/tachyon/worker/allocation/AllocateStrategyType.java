@@ -13,37 +13,22 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.worker.allocation;
 
 /**
- * Different storage level alias for StorageTier.
+ * Different types of AllocationStrategy, which are used to allocate space among StorageDirs
  */
-public enum StorageLevelAlias {
+public enum AllocateStrategyType {
   /**
-   * Memory Layer
+   * Allocate space on StorageDir that has max free space
    */
-  MEM(1),
+  MAX_FREE,
   /**
-   * SSD Layer
+   * Allocate space on StorageDirs randomly
    */
-  SSD(2),
+  RANDOM,
   /**
-   * HDD Layer
+   * Allocate space on StorageDirs by round robin
    */
-  HDD(3);
-
-  private int mValue;
-
-  private StorageLevelAlias(int value) {
-    mValue = value;
-  }
-
-  /**
-   * Get value of the storage level alias
-   * 
-   * @return value of the storage level alias
-   */
-  public int getValue() {
-    return mValue;
-  }
+  ROUND_ROBIN;
 }

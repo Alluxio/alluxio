@@ -12,7 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.client;
+package tachyon.worker;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -25,8 +25,10 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
+import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
+import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.util.CommonUtils;
 
 /**
  * Unit tests for <code>tachyon.client.BlockHandlerLocal</code>.
@@ -54,8 +56,7 @@ public class BlockHandlerLocalTest {
 
     int fileId = mTfs.createFile(new TachyonURI(TestUtils.uniqPath()));
     long blockId = mTfs.getBlockId(fileId, 0);
-    String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
-    String filename = CommonUtils.concat(localFolder, blockId);
+    String filename = mTfs.getLocalBlockTemporaryPath(blockId, 100);
     BlockHandler handler = BlockHandler.get(filename);
     try {
       handler.append(0, buf);
@@ -72,8 +73,7 @@ public class BlockHandlerLocalTest {
   public void heapByteBufferwriteTest() throws IOException {
     int fileId = mTfs.createFile(new TachyonURI(TestUtils.uniqPath()));
     long blockId = mTfs.getBlockId(fileId, 0);
-    String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
-    String filename = CommonUtils.concat(localFolder, blockId);
+    String filename = mTfs.getLocalBlockTemporaryPath(blockId, 100);
     BlockHandler handler = BlockHandler.get(filename);
     byte[] buf = TestUtils.getIncreasingByteArray(100);
     try {
@@ -94,20 +94,20 @@ public class BlockHandlerLocalTest {
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);
     try {
-      IllegalArgumentException exception = null;
+      Exception exception = null;
       try {
         handler.read(101, 10);
-      } catch (IllegalArgumentException e) {
+      } catch (IOException e) {
         exception = e;
       }
-      Assert.assertEquals("blockOffset(101) is larger than file length(100)",
+      Assert.assertEquals("offset(101) is larger than file length(100)",
           exception.getMessage());
       try {
         handler.read(10, 100);
-      } catch (IllegalArgumentException e) {
+      } catch (IOException e) {
         exception = e;
       }
-      Assert.assertEquals("blockOffset(10) plus length(100) is larger than file length(100)",
+      Assert.assertEquals("offset(10) plus length(100) is larger than file length(100)",
           exception.getMessage());
     } finally {
       handler.close();

@@ -16,9 +16,7 @@
 package tachyon.worker.nio;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 
 import org.slf4j.Logger;
@@ -39,7 +37,7 @@ public class DataServerMessage {
   public static final short DATA_SERVER_RESPONSE_MESSAGE = 2;
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  
+
   private static final int HEADER_LENGTH = 26;
 
   /**
@@ -69,7 +67,7 @@ public class DataServerMessage {
    * Create a block request message specified by the block's id, the offset and the length. The
    * message is ready to be sent. If <code>len</code> is -1, it means request the data from offset
    * to the block's end.
-   * 
+   *
    * @param blockId The id of the block
    * @param offset The requested data's offset in the block
    * @param len The length of the requested data. If it's -1, it means request the data from offset
@@ -93,15 +91,15 @@ public class DataServerMessage {
   /**
    * Create a block response message specified by the block's id. If <code>toSend</code> is true, it
    * will prepare the data to be sent, otherwise the message is used to receive data.
-   * 
+   *
    * @param toSend If true the message is to send the data, otherwise it's used to receive data.
    * @param blockId The id of the block
-   * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to be used.
+   * @param data The data of the message
    * @return The created block response message
    */
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
-      TachyonConf tachyonConf) {
-    return createBlockResponseMessage(toSend, blockId, 0, -1, tachyonConf);
+      ByteBuffer data) {
+    return createBlockResponseMessage(toSend, blockId, 0, -1, data);
   }
 
   /**
@@ -109,74 +107,38 @@ public class DataServerMessage {
    * <code>toSend</code> is true, it will prepare the data to be sent, otherwise the message is used
    * to receive data. If <code>len</code> is -1, it means response the data from offset to the
    * block's end.
-   * 
+   *
    * @param toSend If true the message is to send the data, otherwise it's used to receive data
    * @param blockId The id of the block
    * @param offset The responded data's offset in the block
    * @param len The length of the responded data. If it's -1, it means respond the data from offset
    *        to the block's end.
-   * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to be used.
+   * @param data The data of the message
    * @return The created block response message
    */
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
-      long offset, long len, TachyonConf tachyonConf) {
+      long offset, long len, ByteBuffer data) {
     DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
 
     if (toSend) {
-      ret.mBlockId = blockId;
-
-      try {
-        if (offset < 0) {
-          throw new IOException("Offset can not be negative: " + offset);
-        }
-        if (len < 0 && len != -1) {
-          throw new IOException("Length can not be negative except -1: " + len);
-        }
-
-        String workerDataFolder = tachyonConf.get(Constants.WORKER_DATA_FOLDER, "/mnt/ramdisk");
-        String filePath = CommonUtils.concat(workerDataFolder, blockId);
-        LOG.info("Try to response remote request by reading from " + filePath);
-        RandomAccessFile file = new RandomAccessFile(filePath, "r");
-
-        long fileLength = file.length();
-        String error = null;
-        if (offset > fileLength) {
-          error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
-        }
-        if (error == null && len != -1 && offset + len > fileLength) {
-          error =
-              String.format("Offset(%d) plus length(%d) is larger than file length(%d)", offset,
-                  len, fileLength);
-        }
-        if (error != null) {
-          file.close();
-          throw new IOException(error);
-        }
-
-        if (len == -1) {
-          len = fileLength - offset;
-        }
-
+      if (data != null) {
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+        ret.mBlockId = blockId;
         ret.mOffset = offset;
         ret.mLength = len;
-        FileChannel channel = file.getChannel();
         ret.mTachyonData = null;
-        ret.mData = channel.map(FileChannel.MapMode.READ_ONLY, offset, len);
-        channel.close();
-        file.close();
+        ret.mData = data;
         ret.mIsMessageReady = true;
         ret.generateHeader();
-        LOG.info("Response remote request by reading from " + filePath + " preparation done.");
-      } catch (Exception e) {
+      } else {
         // TODO This is a trick for now. The data may have been removed before remote retrieving.
-        ret.mBlockId = -ret.mBlockId;
+        ret.mBlockId = -blockId;
         ret.mLength = 0;
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
         ret.mData = ByteBuffer.allocate(0);
         ret.mIsMessageReady = true;
         ret.generateHeader();
-        LOG.error("The file is not here : " + e.getMessage(), e);
+        LOG.error("The file is not here! blockId:{}", blockId);
       }
     } else {
       ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
@@ -191,6 +153,7 @@ public class DataServerMessage {
   private boolean mIsMessageReady;
 
   private ByteBuffer mHeader;
+
   private long mBlockId;
 
   private long mOffset;
@@ -359,8 +322,7 @@ public class DataServerMessage {
             mData = ByteBuffer.allocate((int) mLength);
           }
         }
-        LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)",
-            mBlockId, mOffset, mLength));
+        LOG.info("data {}, blockId:{} offset:{} dataLength:{}", mData, mBlockId, mOffset, mLength);
         if (mMessageType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
           mIsMessageReady = true;
         }

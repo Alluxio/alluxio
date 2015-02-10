@@ -13,37 +13,31 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.worker.allocation;
+
+import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * Different storage level alias for StorageTier.
+ * Allocate space on StorageDir that has max free space
  */
-public enum StorageLevelAlias {
-  /**
-   * Memory Layer
-   */
-  MEM(1),
-  /**
-   * SSD Layer
-   */
-  SSD(2),
-  /**
-   * HDD Layer
-   */
-  HDD(3);
+public class AllocateMaxFree extends AllocateStrategyBase {
 
-  private int mValue;
-
-  private StorageLevelAlias(int value) {
-    mValue = value;
-  }
-
-  /**
-   * Get value of the storage level alias
-   * 
-   * @return value of the storage level alias
-   */
-  public int getValue() {
-    return mValue;
+  @Override
+  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestSizeBytes) {
+    StorageDir availableDir = null;
+    long maxFree = 0;
+    while (true) {
+      for (StorageDir dir : storageDirs) {
+        if (dir.getAvailableBytes() >= maxFree && dir.getAvailableBytes() >= requestSizeBytes) {
+          maxFree = dir.getAvailableBytes();
+          availableDir = dir;
+        }
+      }
+      if (availableDir == null) {
+        return null;
+      } else if (availableDir.requestSpace(userId, requestSizeBytes)) {
+        return availableDir;
+      }
+    }
   }
 }

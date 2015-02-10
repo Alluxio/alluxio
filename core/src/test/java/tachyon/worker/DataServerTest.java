@@ -44,7 +44,7 @@ import tachyon.util.CommonUtils;
 import tachyon.worker.nio.DataServerMessage;
 
 /**
- * Unit tests for tachyon.DataServer.
+ * Unit tests for tachyon.worker.DataServer.
  */
 @RunWith(Parameterized.class)
 public class DataServerTest {
@@ -225,8 +225,7 @@ public class DataServerTest {
         sendMsg.send(socketChannel);
       }
       DataServerMessage recvMsg =
-          DataServerMessage.createBlockResponseMessage(false, block.blockId, offset, length,
-              mWorkerTachyonConf);
+          DataServerMessage.createBlockResponseMessage(false, block.blockId, offset, length, null);
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {

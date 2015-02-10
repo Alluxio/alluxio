@@ -472,7 +472,7 @@ public class MasterInfo extends ImageWriter {
   // TODO Make this API better.
   /**
    * Internal API.
-   *
+   * 
    * @param recursive If recursive is true and the filesystem tree is not filled in all the way to
    *        path yet, it fills in the missing components.
    * @param path The path to create
@@ -674,7 +674,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the raw table info associated with the given id.
-   *
+   * 
    * @param path The path of the table
    * @param inode The inode at the path
    * @return the table info
@@ -697,7 +697,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the names of the sub-directories at the given path.
-   *
+   * 
    * @param inode The inode to list
    * @param path The path of the given inode
    * @param recursive If true, recursively add the paths of the sub-directories
@@ -753,7 +753,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Rename a file to the given path, inner method.
-   *
+   * 
    * @param fileId The id of the file to rename
    * @param dstPath The new path of the file
    * @param opTimeMs The time of the rename operation, in milliseconds
@@ -918,7 +918,8 @@ public class MasterInfo extends ImageWriter {
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */
-  public int cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
+  public int cacheBlock(long workerId, long workerUsedBytes, long storageDirId, long blockId,
+      long length)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
     LOG.debug("Cache block: {}",
         CommonUtils.parametersToString(workerId, workerUsedBytes, blockId, length));
@@ -945,7 +946,7 @@ public class MasterInfo extends ImageWriter {
         addBlock(tFile, new BlockInfo(tFile, blockIndex, length), System.currentTimeMillis());
       }
 
-      tFile.addLocation(blockIndex, workerId, tWorkerInfo.mWorkerAddress);
+      tFile.addLocation(blockIndex, workerId, tWorkerInfo.mWorkerAddress, storageDirId);
 
       if (tFile.hasCheckpointed()) {
         return -1;
@@ -2002,12 +2003,12 @@ public class MasterInfo extends ImageWriter {
    * @param workerNetAddress The address of the worker to register
    * @param totalBytes The capacity of the worker in bytes
    * @param usedBytes The number of bytes already used in the worker
-   * @param currentBlockIds The id's of the blocks held by the worker
+   * @param currentBlockIds Mapping from id of the StorageDir to id list of the blocks
    * @return the new id of the registered worker
    * @throws BlockInfoException
    */
   public long registerWorker(NetAddress workerNetAddress, long totalBytes, long usedBytes,
-      List<Long> currentBlockIds) throws BlockInfoException {
+      Map<Long, List<Long>> currentBlockIds) throws BlockInfoException {
     long id = 0;
     NetAddress workerAddress = new NetAddress(workerNetAddress);
     LOG.info("registerWorker(): WorkerNetAddress: " + workerAddress);
@@ -2027,7 +2028,9 @@ public class MasterInfo extends ImageWriter {
       id = mStartTimeNSPrefix + mWorkerCounter.incrementAndGet();
       MasterWorkerInfo tWorkerInfo = new MasterWorkerInfo(id, workerAddress, totalBytes);
       tWorkerInfo.updateUsedBytes(usedBytes);
-      tWorkerInfo.updateBlocks(true, currentBlockIds);
+      for (List<Long> blockIds : currentBlockIds.values()) {
+        tWorkerInfo.updateBlocks(true, blockIds);
+      }
       tWorkerInfo.updateLastUpdatedTimeMs();
       mWorkers.put(id, tWorkerInfo);
       mWorkerAddressToId.put(workerAddress, id);
@@ -2035,14 +2038,17 @@ public class MasterInfo extends ImageWriter {
     }
 
     synchronized (mRootLock) {
-      for (long blockId : currentBlockIds) {
-        int fileId = BlockInfo.computeInodeId(blockId);
-        int blockIndex = BlockInfo.computeBlockIndex(blockId);
-        Inode inode = mFileIdToInodes.get(fileId);
-        if (inode != null && inode.isFile()) {
-          ((InodeFile) inode).addLocation(blockIndex, id, workerAddress);
-        } else {
-          LOG.warn("registerWorker failed to add fileId " + fileId + " blockIndex " + blockIndex);
+      for (Entry<Long, List<Long>> blockIds : currentBlockIds.entrySet()) {
+        long storageDirId = blockIds.getKey();
+        for (long blockId : blockIds.getValue()) {
+          int fileId = BlockInfo.computeInodeId(blockId);
+          int blockIndex = BlockInfo.computeBlockIndex(blockId);
+          Inode inode = mFileIdToInodes.get(fileId);
+          if (inode != null && inode.isFile()) {
+            ((InodeFile) inode).addLocation(blockIndex, id, workerAddress, storageDirId);
+          } else {
+            LOG.warn("registerWorker failed to add fileId " + fileId + " blockIndex " + blockIndex);
+          }
         }
       }
     }
@@ -2333,11 +2339,13 @@ public class MasterInfo extends ImageWriter {
    * 
    * @param workerId The id of the worker to deal with
    * @param usedBytes The number of bytes used in the worker
-   * @param removedBlockIds The id's of the blocks that have been removed
+   * @param removedBlockIds The list of removed block ids
+   * @param addedBlockIds Mapping from id of the StorageDir and id list of blocks evicted in
    * @return a command specifying an action to take
    * @throws BlockInfoException
    */
-  public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
+  public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds,
+      Map<Long, List<Long>> addedBlockIds)
       throws BlockInfoException {
     LOG.debug("WorkerId: {}", workerId);
     synchronized (mRootLock) {
@@ -2365,6 +2373,27 @@ public class MasterInfo extends ImageWriter {
             ((InodeFile) inode).removeLocation(blockIndex, workerId);
             LOG.debug("File {} with block {} was evicted from worker {} ", fileId, blockIndex,
                 workerId);
+          }
+        }
+
+        for (Entry<Long, List<Long>> addedBlocks : addedBlockIds.entrySet()) {
+          long storageDirId = addedBlocks.getKey();
+          for (long blockId : addedBlocks.getValue()) {
+            int fileId = BlockInfo.computeInodeId(blockId);
+            int blockIndex = BlockInfo.computeBlockIndex(blockId);
+            Inode inode = mFileIdToInodes.get(fileId);
+            if (inode == null) {
+              LOG.error("File " + fileId + " does not exist");
+            } else if (inode.isFile()) {
+              List<BlockInfo> blockInfoList = ((InodeFile) inode).getBlockList();
+              NetAddress workerAddress = mWorkers.get(workerId).getAddress();
+              if (blockInfoList.size() <= blockIndex) {
+                throw new BlockInfoException("BlockInfo not found! blockIndex:" + blockIndex);
+              } else {
+                BlockInfo blockInfo = blockInfoList.get(blockIndex);
+                blockInfo.addLocation(workerId, workerAddress, storageDirId);
+              }
+            }
           }
         }
 

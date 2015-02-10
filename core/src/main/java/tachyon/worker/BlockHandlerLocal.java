@@ -13,12 +13,13 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.worker;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
@@ -35,7 +36,6 @@ import tachyon.util.CommonUtils;
  * BlockHandler for files on LocalFS, such as RamDisk, SSD and HDD.
  */
 public final class BlockHandlerLocal extends BlockHandler {
-
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final RandomAccessFile mLocalFile;
@@ -47,18 +47,17 @@ public final class BlockHandlerLocal extends BlockHandler {
   BlockHandlerLocal(String filePath) throws IOException {
     mFilePath = Preconditions.checkNotNull(filePath);
     LOG.debug("{} is created", mFilePath);
-    mLocalFile = new RandomAccessFile(mFilePath, "rw");
-    mLocalFileChannel = mLocalFile.getChannel();
-    mCloser.register(mLocalFile);
-    mCloser.register(mLocalFileChannel);
+    mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
+    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
   }
 
   @Override
-  public int append(long blockOffset, ByteBuffer srcBuf) throws IOException {
+  public int append(long offset, ByteBuffer buf) throws IOException {
     checkPermission();
-    int bufLen = srcBuf.limit();
-    ByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, blockOffset, bufLen);
-    out.put(srcBuf);
+    int bufLen = buf.limit();
+    ByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, offset, bufLen);
+    out.put(buf);
+    CommonUtils.cleanDirectBuffer(out);
 
     return bufLen;
   }
@@ -84,25 +83,33 @@ public final class BlockHandlerLocal extends BlockHandler {
   }
 
   @Override
-  public ByteBuffer read(long blockOffset, int length) throws IOException {
+  public ByteChannel getChannel() {
+    return mLocalFileChannel;
+  }
+
+  @Override
+  public long getLength() throws IOException {
+    return mLocalFile.length();
+  }
+
+  @Override
+  public ByteBuffer read(long offset, int length) throws IOException {
     long fileLength = mLocalFile.length();
     String error = null;
-    if (blockOffset > fileLength) {
+    if (offset > fileLength) {
+      error = String.format("offset(%d) is larger than file length(%d)", offset, fileLength);
+    } else if (length != -1 && offset + length > fileLength) {
       error =
-          String.format("blockOffset(%d) is larger than file length(%d)", blockOffset, fileLength);
-    }
-    if (error == null && length != -1 && blockOffset + length > fileLength) {
-      error =
-          String.format("blockOffset(%d) plus length(%d) is larger than file length(%d)",
-              blockOffset, length, fileLength);
+          String.format("offset(%d) plus length(%d) is larger than file length(%d)", offset,
+              length, fileLength);
     }
     if (error != null) {
-      throw new IllegalArgumentException(error);
+      throw new IOException(error);
     }
     if (length == -1) {
-      length = (int) (fileLength - blockOffset);
+      length = (int) (fileLength - offset);
     }
-    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, blockOffset, length);
+    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
     return buf;
   }
 }

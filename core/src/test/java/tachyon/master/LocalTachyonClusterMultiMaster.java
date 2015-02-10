@@ -137,9 +137,11 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public void start() throws IOException {
+    int maxLevel = 1;
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
-    mWorkerDataFolder = mTachyonHome + "/ramdisk";
+    mWorkerDataFolder = "/datastore";
+
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
 
@@ -177,11 +179,27 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, mWorkerCapacityBytes + "");
     mWorkerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, 15 + "");
 
+    // Setup conf for worker
+    mWorkerConf.set(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, Integer.toString(maxLevel));
+    mWorkerConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
+    mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
+    mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
+
+    for (int level = 1; level < maxLevel; level ++) {
+      String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
+      String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+      String newPath = "";
+      for (int i = 0; i < dirPaths.length; i ++) {
+        newPath += mTachyonHome + dirPaths[i] + ",";
+      }
+      mWorkerConf.set("tachyon.worker.hierarchystore.level" + level + ".dirs.path",
+          newPath.substring(0, newPath.length() - 1));
+    }
+
     mWorker =
         TachyonWorker.createWorker(
             CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
-            mWorkerCapacityBytes, mWorkerConf);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {

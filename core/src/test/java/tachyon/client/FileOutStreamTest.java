@@ -51,13 +51,11 @@ public class FileOutStreamTest {
   @AfterClass
   public static final void afterClass() throws Exception {
     sLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
-    sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, 128);
+    sLocalTachyonCluster = new LocalTachyonCluster(10000, 128, 128);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
   }
@@ -79,6 +77,7 @@ public class FileOutStreamTest {
       byte[] res = new byte[(int) file.length()];
       Assert.assertEquals((int) file.length(), is.read(res));
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(increasingByteArrayLen, res));
+      is.close();
     }
 
     if (op.isThrough()) {
@@ -95,6 +94,7 @@ public class FileOutStreamTest {
         Assert.assertEquals((int) file.length(), is.read(res));
       }
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(increasingByteArrayLen, res));
+      is.close();
     }
   }
 
