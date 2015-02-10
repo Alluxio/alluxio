@@ -74,12 +74,12 @@ public class MasterService {
      * of the block in bytes.
      * 
      * @param workerId
-     * @param UsedBytesOfAlias
+     * @param usedBytesOfAlias
      * @param storageDirId
      * @param blockId
      * @param length
      */
-    public void worker_cacheBlock(long workerId, long UsedBytesOfAlias, long storageDirId, long blockId, long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException;
+    public void worker_cacheBlock(long workerId, long usedBytesOfAlias, long storageDirId, long blockId, long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException;
 
     public Set<Integer> worker_getPinIdList() throws org.apache.thrift.TException;
 
@@ -187,7 +187,7 @@ public class MasterService {
 
     public void worker_heartbeat(long workerId, List<Long> usedBytesByAlias, List<Long> removedBlockIds, Map<Long,List<Long>> addedBlockIds, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void worker_cacheBlock(long workerId, long UsedBytesOfAlias, long storageDirId, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void worker_cacheBlock(long workerId, long usedBytesOfAlias, long storageDirId, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void worker_getPinIdList(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -407,17 +407,17 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "worker_heartbeat failed: unknown result");
     }
 
-    public void worker_cacheBlock(long workerId, long UsedBytesOfAlias, long storageDirId, long blockId, long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException
+    public void worker_cacheBlock(long workerId, long usedBytesOfAlias, long storageDirId, long blockId, long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException
     {
-      send_worker_cacheBlock(workerId, UsedBytesOfAlias, storageDirId, blockId, length);
+      send_worker_cacheBlock(workerId, usedBytesOfAlias, storageDirId, blockId, length);
       recv_worker_cacheBlock();
     }
 
-    public void send_worker_cacheBlock(long workerId, long UsedBytesOfAlias, long storageDirId, long blockId, long length) throws org.apache.thrift.TException
+    public void send_worker_cacheBlock(long workerId, long usedBytesOfAlias, long storageDirId, long blockId, long length) throws org.apache.thrift.TException
     {
       worker_cacheBlock_args args = new worker_cacheBlock_args();
       args.setWorkerId(workerId);
-      args.setUsedBytesOfAlias(UsedBytesOfAlias);
+      args.setUsedBytesOfAlias(usedBytesOfAlias);
       args.setStorageDirId(storageDirId);
       args.setBlockId(blockId);
       args.setLength(length);
@@ -1364,23 +1364,23 @@ public class MasterService {
       }
     }
 
-    public void worker_cacheBlock(long workerId, long UsedBytesOfAlias, long storageDirId, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void worker_cacheBlock(long workerId, long usedBytesOfAlias, long storageDirId, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      worker_cacheBlock_call method_call = new worker_cacheBlock_call(workerId, UsedBytesOfAlias, storageDirId, blockId, length, resultHandler, this, ___protocolFactory, ___transport);
+      worker_cacheBlock_call method_call = new worker_cacheBlock_call(workerId, usedBytesOfAlias, storageDirId, blockId, length, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class worker_cacheBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long workerId;
-      private long UsedBytesOfAlias;
+      private long usedBytesOfAlias;
       private long storageDirId;
       private long blockId;
       private long length;
-      public worker_cacheBlock_call(long workerId, long UsedBytesOfAlias, long storageDirId, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public worker_cacheBlock_call(long workerId, long usedBytesOfAlias, long storageDirId, long blockId, long length, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.workerId = workerId;
-        this.UsedBytesOfAlias = UsedBytesOfAlias;
+        this.usedBytesOfAlias = usedBytesOfAlias;
         this.storageDirId = storageDirId;
         this.blockId = blockId;
         this.length = length;
@@ -1390,7 +1390,7 @@ public class MasterService {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("worker_cacheBlock", org.apache.thrift.protocol.TMessageType.CALL, 0));
         worker_cacheBlock_args args = new worker_cacheBlock_args();
         args.setWorkerId(workerId);
-        args.setUsedBytesOfAlias(UsedBytesOfAlias);
+        args.setUsedBytesOfAlias(usedBytesOfAlias);
         args.setStorageDirId(storageDirId);
         args.setBlockId(blockId);
         args.setLength(length);
@@ -2494,7 +2494,7 @@ public class MasterService {
       public worker_cacheBlock_result getResult(I iface, worker_cacheBlock_args args) throws org.apache.thrift.TException {
         worker_cacheBlock_result result = new worker_cacheBlock_result();
         try {
-          iface.worker_cacheBlock(args.workerId, args.UsedBytesOfAlias, args.storageDirId, args.blockId, args.length);
+          iface.worker_cacheBlock(args.workerId, args.usedBytesOfAlias, args.storageDirId, args.blockId, args.length);
         } catch (FileDoesNotExistException eP) {
           result.eP = eP;
         } catch (SuspectedFileSizeException eS) {
@@ -3565,7 +3565,7 @@ public class MasterService {
       }
 
       public void start(I iface, worker_cacheBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.worker_cacheBlock(args.workerId, args.UsedBytesOfAlias, args.storageDirId, args.blockId, args.length,resultHandler);
+        iface.worker_cacheBlock(args.workerId, args.usedBytesOfAlias, args.storageDirId, args.blockId, args.length,resultHandler);
       }
     }
 
@@ -10663,7 +10663,7 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("worker_cacheBlock_args");
 
     private static final org.apache.thrift.protocol.TField WORKER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("workerId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField USED_BYTES_OF_ALIAS_FIELD_DESC = new org.apache.thrift.protocol.TField("UsedBytesOfAlias", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField USED_BYTES_OF_ALIAS_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytesOfAlias", org.apache.thrift.protocol.TType.I64, (short)2);
     private static final org.apache.thrift.protocol.TField STORAGE_DIR_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("storageDirId", org.apache.thrift.protocol.TType.I64, (short)3);
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)4);
     private static final org.apache.thrift.protocol.TField LENGTH_FIELD_DESC = new org.apache.thrift.protocol.TField("length", org.apache.thrift.protocol.TType.I64, (short)5);
@@ -10675,7 +10675,7 @@ public class MasterService {
     }
 
     public long workerId; // required
-    public long UsedBytesOfAlias; // required
+    public long usedBytesOfAlias; // required
     public long storageDirId; // required
     public long blockId; // required
     public long length; // required
@@ -10683,7 +10683,7 @@ public class MasterService {
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       WORKER_ID((short)1, "workerId"),
-      USED_BYTES_OF_ALIAS((short)2, "UsedBytesOfAlias"),
+      USED_BYTES_OF_ALIAS((short)2, "usedBytesOfAlias"),
       STORAGE_DIR_ID((short)3, "storageDirId"),
       BLOCK_ID((short)4, "blockId"),
       LENGTH((short)5, "length");
@@ -10762,7 +10762,7 @@ public class MasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.WORKER_ID, new org.apache.thrift.meta_data.FieldMetaData("workerId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.USED_BYTES_OF_ALIAS, new org.apache.thrift.meta_data.FieldMetaData("UsedBytesOfAlias", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.USED_BYTES_OF_ALIAS, new org.apache.thrift.meta_data.FieldMetaData("usedBytesOfAlias", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.STORAGE_DIR_ID, new org.apache.thrift.meta_data.FieldMetaData("storageDirId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
@@ -10779,7 +10779,7 @@ public class MasterService {
 
     public worker_cacheBlock_args(
       long workerId,
-      long UsedBytesOfAlias,
+      long usedBytesOfAlias,
       long storageDirId,
       long blockId,
       long length)
@@ -10787,7 +10787,7 @@ public class MasterService {
       this();
       this.workerId = workerId;
       setWorkerIdIsSet(true);
-      this.UsedBytesOfAlias = UsedBytesOfAlias;
+      this.usedBytesOfAlias = usedBytesOfAlias;
       setUsedBytesOfAliasIsSet(true);
       this.storageDirId = storageDirId;
       setStorageDirIdIsSet(true);
@@ -10803,7 +10803,7 @@ public class MasterService {
     public worker_cacheBlock_args(worker_cacheBlock_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.workerId = other.workerId;
-      this.UsedBytesOfAlias = other.UsedBytesOfAlias;
+      this.usedBytesOfAlias = other.usedBytesOfAlias;
       this.storageDirId = other.storageDirId;
       this.blockId = other.blockId;
       this.length = other.length;
@@ -10818,7 +10818,7 @@ public class MasterService {
       setWorkerIdIsSet(false);
       this.workerId = 0;
       setUsedBytesOfAliasIsSet(false);
-      this.UsedBytesOfAlias = 0;
+      this.usedBytesOfAlias = 0;
       setStorageDirIdIsSet(false);
       this.storageDirId = 0;
       setBlockIdIsSet(false);
@@ -10851,11 +10851,11 @@ public class MasterService {
     }
 
     public long getUsedBytesOfAlias() {
-      return this.UsedBytesOfAlias;
+      return this.usedBytesOfAlias;
     }
 
-    public worker_cacheBlock_args setUsedBytesOfAlias(long UsedBytesOfAlias) {
-      this.UsedBytesOfAlias = UsedBytesOfAlias;
+    public worker_cacheBlock_args setUsedBytesOfAlias(long usedBytesOfAlias) {
+      this.usedBytesOfAlias = usedBytesOfAlias;
       setUsedBytesOfAliasIsSet(true);
       return this;
     }
@@ -10864,7 +10864,7 @@ public class MasterService {
       __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __USEDBYTESOFALIAS_ISSET_ID);
     }
 
-    /** Returns true if field UsedBytesOfAlias is set (has been assigned a value) and false otherwise */
+    /** Returns true if field usedBytesOfAlias is set (has been assigned a value) and false otherwise */
     public boolean isSetUsedBytesOfAlias() {
       return EncodingUtils.testBit(__isset_bitfield, __USEDBYTESOFALIAS_ISSET_ID);
     }
@@ -11051,12 +11051,12 @@ public class MasterService {
           return false;
       }
 
-      boolean this_present_UsedBytesOfAlias = true;
-      boolean that_present_UsedBytesOfAlias = true;
-      if (this_present_UsedBytesOfAlias || that_present_UsedBytesOfAlias) {
-        if (!(this_present_UsedBytesOfAlias && that_present_UsedBytesOfAlias))
+      boolean this_present_usedBytesOfAlias = true;
+      boolean that_present_usedBytesOfAlias = true;
+      if (this_present_usedBytesOfAlias || that_present_usedBytesOfAlias) {
+        if (!(this_present_usedBytesOfAlias && that_present_usedBytesOfAlias))
           return false;
-        if (this.UsedBytesOfAlias != that.UsedBytesOfAlias)
+        if (this.usedBytesOfAlias != that.usedBytesOfAlias)
           return false;
       }
 
@@ -11118,7 +11118,7 @@ public class MasterService {
         return lastComparison;
       }
       if (isSetUsedBytesOfAlias()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.UsedBytesOfAlias, other.UsedBytesOfAlias);
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.usedBytesOfAlias, other.usedBytesOfAlias);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -11177,8 +11177,8 @@ public class MasterService {
       sb.append(this.workerId);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("UsedBytesOfAlias:");
-      sb.append(this.UsedBytesOfAlias);
+      sb.append("usedBytesOfAlias:");
+      sb.append(this.usedBytesOfAlias);
       first = false;
       if (!first) sb.append(", ");
       sb.append("storageDirId:");
@@ -11247,7 +11247,7 @@ public class MasterService {
               break;
             case 2: // USED_BYTES_OF_ALIAS
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.UsedBytesOfAlias = iprot.readI64();
+                struct.usedBytesOfAlias = iprot.readI64();
                 struct.setUsedBytesOfAliasIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -11296,7 +11296,7 @@ public class MasterService {
         oprot.writeI64(struct.workerId);
         oprot.writeFieldEnd();
         oprot.writeFieldBegin(USED_BYTES_OF_ALIAS_FIELD_DESC);
-        oprot.writeI64(struct.UsedBytesOfAlias);
+        oprot.writeI64(struct.usedBytesOfAlias);
         oprot.writeFieldEnd();
         oprot.writeFieldBegin(STORAGE_DIR_ID_FIELD_DESC);
         oprot.writeI64(struct.storageDirId);
@@ -11345,7 +11345,7 @@ public class MasterService {
           oprot.writeI64(struct.workerId);
         }
         if (struct.isSetUsedBytesOfAlias()) {
-          oprot.writeI64(struct.UsedBytesOfAlias);
+          oprot.writeI64(struct.usedBytesOfAlias);
         }
         if (struct.isSetStorageDirId()) {
           oprot.writeI64(struct.storageDirId);
@@ -11367,7 +11367,7 @@ public class MasterService {
           struct.setWorkerIdIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.UsedBytesOfAlias = iprot.readI64();
+          struct.usedBytesOfAlias = iprot.readI64();
           struct.setUsedBytesOfAliasIsSet(true);
         }
         if (incoming.get(2)) {

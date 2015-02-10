@@ -119,16 +119,16 @@
                     <th><%= info.getUsedCapacity() %></th>
                     <th>
                       <div class="progress custom-progress">
-                          <div class="bar bar-success" style="width: <%= info.getFreeSpacePercent() %>%;">
-                            <% if (info.getFreeSpacePercent() >= info.getUsedSpacePercent()) { %>
-                              <%= info.getFreeSpacePercent() %>%Free
-                            <% } %>
-                          </div>
-                          <div class="bar bar-danger" style="width: <%= info.getUsedSpacePercent() %>%;">
-                            <% if (info.getFreeSpacePercent() < info.getUsedSpacePercent()) { %>
-                              <%= info.getUsedSpacePercent() %>%Used
-                            <% } %>
-                          </div>
+                        <div class="bar bar-success" style="width: <%= info.getFreeSpacePercent() %>%;">
+                          <% if (info.getFreeSpacePercent() >= info.getUsedSpacePercent()) { %>
+                          <%= info.getFreeSpacePercent() %>%Free
+                          <% } %>
+                        </div>
+                        <div class="bar bar-danger" style="width: <%= info.getUsedSpacePercent() %>%;">
+                          <% if (info.getFreeSpacePercent() < info.getUsedSpacePercent()) { %>
+                            <%= info.getUsedSpacePercent() %>%Used
+                          <% } %>
+                        </div>
                       </div>
                     </th>
                   </tr>

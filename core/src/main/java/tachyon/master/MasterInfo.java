@@ -1381,7 +1381,7 @@ public class MasterInfo extends ImageWriter {
   }
   
   /**
-   * @return the capacities of different storage level alias in all workers in bytes.
+   * @return the total bytes of each storage level(alias).
    */
   public List<Long> getHierarchyTotalBytesByAlias() {
     List<Long> ret = new ArrayList<Long>();
@@ -1399,7 +1399,7 @@ public class MasterInfo extends ImageWriter {
   }
   
   /**
-   * @return the number of bytes used of different storage level alias in all workers.
+   * @return the used bytes of each storage level(alias).
    */
   public List<Long> getHierarchyUsedBytesByAlias() {
     List<Long> ret = new ArrayList<Long>();
@@ -2026,8 +2026,8 @@ public class MasterInfo extends ImageWriter {
    * blocks.
    * 
    * @param workerNetAddress The address of the worker to register
-   * @param totalBytesByAlias The capacity of different storage alias in the worker in bytes
-   * @param usedBytesByAlias The number of bytes used of different storage alias in the worker
+   * @param totalBytesByAlias Total bytes of each storage level(alias)
+   * @param usedBytesByAlias Used Bytes of each storage level(alias)
    * @param currentBlockIds Mapping from id of the StorageDir to id list of the blocks
    * @return the new id of the registered worker
    * @throws BlockInfoException
@@ -2369,7 +2369,7 @@ public class MasterInfo extends ImageWriter {
    * block id's.
    * 
    * @param workerId The id of the worker to deal with
-   * @param usedBytesByAlias The number of bytes used of different storage alias in the worker
+   * @param usedBytesByAlias Used bytes of each storage level(alias)
    * @param removedBlockIds The list of removed block ids
    * @param addedBlockIds Mapping from id of the StorageDir and id list of blocks evicted in
    * @return a command specifying an action to take

@@ -803,15 +803,15 @@ public final class MasterClient implements Closeable {
    * Register the worker to the master.
    * 
    * @param workerNetAddress Worker's NetAddress
-   * @param totalBytesByAlias capacity of different storage alias in the work in bytes
-   * @param usedBytesByAlias the number of bytes of different storage alias in the work
+   * @param totalBytesByAlias Total bytes of each storage level(alias)
+   * @param usedBytesByAlias Used bytes of each storage level(alias)
    * @param currentBlockList Blocks in worker's space.
    * @return the worker id assigned by the master.
    * @throws BlockInfoException
    * @throws TException
    */
   public synchronized long worker_register(NetAddress workerNetAddress,
-      List<Long> totalBytesByAlias,List<Long> usedBytesByAlias,
+      List<Long> totalBytesByAlias, List<Long> usedBytesByAlias,
       Map<Long, List<Long>> currentBlockList) throws BlockInfoException, IOException {
     while (!mIsShutdown) {
       connect();

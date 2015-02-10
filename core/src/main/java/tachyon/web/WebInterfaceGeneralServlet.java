@@ -123,7 +123,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   }
 
   /**
-   * List the HierarchyStorageInfo objects of all different storage level alias.
+   * List the HierarchyStorageInfo objects of each storage level(alias).
    * 
    * @return the list of HierarchyStorageInfo objects.
    */
