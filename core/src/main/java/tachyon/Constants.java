@@ -63,5 +63,5 @@ public class Constants {
    * Version 2 [0.5.0] Starts to use JSON. <br>
    * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
    */
-  public static final int JOURNAL_VERSION = 2;
+  public static final int JOURNAL_VERSION = 3;
 }
