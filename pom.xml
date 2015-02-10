@@ -135,6 +135,9 @@
     <powermock.version>1.5.4</powermock.version>
     <log4j.version>1.2.17</log4j.version>
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
+    <license.header.path>build/license/</license.header.path>
+    <checkstyle.path>build/checkstyle/</checkstyle.path>
+    <findbugs.path>build/findbugs/</findbugs.path>
   </properties>
 
   <modules>
@@ -210,6 +213,108 @@
             <id>attach-javadoc</id>
             <goals>
               <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <!-- Find Bugs -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>2.5.2</version>
+        <configuration>
+          <excludeFilterFile>${findbugs.path}findbugs-exclude.xml</excludeFilterFile>
+          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <xmlOutput>true</xmlOutput>
+          <effort>Max</effort>
+        </configuration>
+      </plugin>
+      
+      <!-- Checkstyle -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.13</version>
+        <configuration>
+          <configLocation>${checkstyle.path}tachyon_checks.xml</configLocation>
+          <!-- TODO: This is needed to excuse Tachyon Configuration members' name from being -->
+          <!-- checked because the members are define using all upper case. -->
+          <!-- Once the new configuration is implemented we wil remove this exception -->
+          <suppressionsLocation>
+            ${checkstyle.path}tachyon_checkstyle_suppressions.xml
+          </suppressionsLocation>
+          <excludes>**/tachyon/thrift/**</excludes>
+          <encoding>UTF-8</encoding>
+          <consoleOutput>true</consoleOutput>
+          <failsOnError>true</failsOnError>
+          <linkXRef>false</linkXRef>
+        </configuration>
+        <executions>
+          <execution>
+            <id>checkstyle</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>5.9</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      
+      <!-- License Plugin -->
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.9</version>
+        <configuration>
+          <header>${license.header.path}HEADER.txt</header>
+          <failIfMissing>true</failIfMissing>
+          <aggregate>false</aggregate>
+          <excludes>
+            <!-- Code Exclusions -->
+            <exclude>**/src/main/resources/version.properties</exclude>
+            <exclude>**/src/main/java/tachyon/thrift/*</exclude>
+            <exclude>**/src/main/webapp/**/*</exclude>
+            <exclude>**/src/thrift/*</exclude>
+            <exclude>**/src/deb/**/*</exclude>
+            <exclude>**/src/test/resources/*</exclude>
+            <exclude>**/package-info.java</exclude>
+            
+            <!-- Build and Packaging Exclusions -->
+            <exclude>build/**/*</exclude>
+            <exclude>**/pom.xml</exclude>
+            <exclude>**/logs/*</exclude>
+            <exclude>**/deploy/**/*</exclude>
+            <exclude>**/bin/*</exclude>
+            <exclude>**/conf/*</exclude>
+            <exclude>**/libexec/*</exclude>
+            <exclude>**/src/main/findbugs/*</exclude>
+            <exclude>**/src/main/resources/tachyon_checks*</exclude>
+            <exclude>**/src/main/assembly/*</exclude>
+            
+            <!-- Documentation Exclusions -->
+            <exclude>**/docs/**/*</exclude>
+            <exclude>LICENSE</exclude>
+            <exclude>NOTICE</exclude>
+          </excludes>
+          <mapping>
+            <java>SLASHSTAR_STYLE</java>
+          </mapping>
+          <useDefaultMapping>true</useDefaultMapping>
+          <strictCheck>true</strictCheck>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
             </goals>
           </execution>
         </executions>
