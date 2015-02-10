@@ -603,9 +603,9 @@ public class WorkerStorage {
   }
 
   /**
-   * Get used bytes of current WorkerStorage in the work.
+   * Get used bytes of current WorkerStorage
    * 
-   * @return used bytes of current WorkerStorage in the work
+   * @return used bytes of current WorkerStorage
    */
   private long getUsedBytes() {
     long usedBytes = 0;
