@@ -38,14 +38,14 @@ import tachyon.conf.TachyonConf;
  * <h3>Registering New Factories</h3>
  * <p>
  * New factories can be registered either using the {@linkplain ServiceLoader} based automatic
- * discovery mechanism or manually using the static {@link #add(UnderFileSystemFactory)} method. The
- * down-side of the automatic discovery mechanism is that the discovery order is not controllable so
- * if your implementation is designed as a replacement for one of the standard implementations
- * depending on the order in which the JVM discovers the services your own implementation may not
- * take priority. You can enable {@code DEBUG} level logging for this class to see the order in
- * which factories are discovered and which is selected when obtaining a {@link UnderFileSystem}
- * instance for a path. If this shows that your implementation is not getting discovered or used
- * then you may wish to use the manual registration approach.
+ * discovery mechanism or manually using the static {@link #register(UnderFileSystemFactory)}
+ * method. The down-side of the automatic discovery mechanism is that the discovery order is not
+ * controllable so if your implementation is designed as a replacement for one of the standard
+ * implementations depending on the order in which the JVM discovers the services your own
+ * implementation may not take priority. You can enable {@code DEBUG} level logging for this class
+ * to see the order in which factories are discovered and which is selected when obtaining a
+ * {@link UnderFileSystem} instance for a path. If this shows that your implementation is not
+ * getting discovered or used then you may wish to use the manual registration approach.
  * <p/>
  * <h4>Automatic Discovery</h4>
  * <p>
@@ -65,7 +65,7 @@ import tachyon.conf.TachyonConf;
  * <h4>Manual Registration</h4>
  * <p>
  * To manually register a factory simply pass an instance of your factory to the
- * {@link #add(UnderFileSystemFactory)} method. This can be useful when your factory cannot be
+ * {@link #register(UnderFileSystemFactory)} method. This can be useful when your factory cannot be
  * instantiated without arguments or in cases where automatic discovery does not give your factory
  * priority. Factories registered this way will be registered at the start of the factories list so
  * will have the first opportunity to indicate whether they support a requested path.
@@ -118,9 +118,9 @@ public class UnderFileSystemRegistry {
   }
 
   /**
-   * Adds a new factory
+   * Registers a new factory
    * <p>
-   * Factories are added to the start of the factories list so they can override the existing
+   * Factories are registered at the start of the factories list so they can override the existing
    * automatically discovered factories. Generally if you use the ServiceLoader mechanism properly
    * it should be unnecessary to call this, however since ServiceLoader discovery order may be
    * susceptible to class loader behavioural differences there may be rare cases when you need to
@@ -128,25 +128,28 @@ public class UnderFileSystemRegistry {
    * <p>
    * 
    * @param factory
-   *          Factory to add
+   *          Factory to register
    */
-  public static void add(UnderFileSystemFactory factory) {
+  public static void register(UnderFileSystemFactory factory) {
     if (factory == null) {
       return;
     }
 
     LOG.debug("Registered Under File System Factory implementation {} - {}", factory.getClass(),
         factory.toString());
+
+    // Insert at start of list so it will take precedence over automatically discovered and
+    // previously registered factories
     FACTORIES.add(0, factory);
   }
 
   /**
-   * Removes an existing factory
+   * Unregisters an existing factory
    * 
    * @param factory
-   *          Factory to remove
+   *          Factory to unregister
    */
-  public static void remove(UnderFileSystemFactory factory) {
+  public static void unregister(UnderFileSystemFactory factory) {
     if (factory == null) {
       return;
     }
@@ -264,7 +267,7 @@ public class UnderFileSystemRegistry {
             "All eligible Under File System were unable to create an instance for the given path "
                 + path, errors.get(0));
       default:
-        // Collate up the errors
+        // Collate up the errors into a single error
         StringBuilder errorStr = new StringBuilder();
         errorStr
             .append("All eligible Under File System were unable to create an instance for the");
