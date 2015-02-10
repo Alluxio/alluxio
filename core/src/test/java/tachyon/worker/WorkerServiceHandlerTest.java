@@ -44,8 +44,8 @@ import tachyon.util.CommonUtils;
 public class WorkerServiceHandlerTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
-  private static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
-      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
+  private static final int SLEEP_MS = 
+      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
@@ -78,7 +78,7 @@ public class WorkerServiceHandlerTest {
     createBlockFile(filename, (int)(WORKER_CAPACITY_BYTES / 10L - 10L));
     mWorkerServiceHandler.cancelBlock(userId, blockId);
     Assert.assertFalse(new File(filename).exists());
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, SLEEP_MS);
     Assert.assertEquals(0, mMasterInfo.getUsedBytes());
   }
 
@@ -133,7 +133,7 @@ public class WorkerServiceHandlerTest {
     int fileId3 =
         TestUtils.createByteFile(mTfs, "/file3", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 2);
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, SLEEP_MS);
     fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
     fileInfo2 = mMasterInfo.getClientFileInfo(new TachyonURI("/file2"));
     ClientFileInfo fileInfo3 = mMasterInfo.getClientFileInfo(new TachyonURI("/file3"));

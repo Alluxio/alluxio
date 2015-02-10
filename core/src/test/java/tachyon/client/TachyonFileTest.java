@@ -37,8 +37,8 @@ public class TachyonFileTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
   private static final int FILE_BUFFER_BYTES = WORKER_CAPACITY_BYTES / 4;
-  private static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
-      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
+  private static final int SLEEP_MS =
+      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
   private static final int MAX_FILES = WORKER_CAPACITY_BYTES / USER_QUOTA_UNIT_BYTES;
 
   private static final int MIN_LEN = 0;
@@ -114,7 +114,7 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, SLEEP_MS);
     for (int k = 0; k < MAX_FILES; k ++) {
       TachyonFile file = mTfs.getFile(new TachyonURI("/file" + k));
       Assert.assertTrue(file.isInMemory());
@@ -127,7 +127,7 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, SLEEP_MS);
     TachyonFile file = mTfs.getFile(new TachyonURI("/file" + 0));
     Assert.assertFalse(file.isInMemory());
 
@@ -160,7 +160,7 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, SLEEP_MS);
 
     file = mTfs.getFile(new TachyonURI("/pin/file"));
     Assert.assertTrue(file.isInMemory());
