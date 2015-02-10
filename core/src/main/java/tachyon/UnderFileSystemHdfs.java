@@ -4,9 +4,7 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -17,10 +15,13 @@ package tachyon;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.base.Throwables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -34,10 +35,9 @@ import org.apache.hadoop.security.SecurityUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
-
 import tachyon.conf.CommonConf;
 import tachyon.hadoop.Utils;
+
 
 /**
  * HDFS UnderFilesystem implementation.
@@ -68,14 +68,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     } else {
       tConf = new Configuration();
     }
-    String glusterfsPrefix = "glusterfs:///";
-    if (fsDefaultName.startsWith(glusterfsPrefix)) {
-      tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
-      tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
-      tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
-      tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
-          CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
-    } else {
+
+    if (!fsDefaultName.startsWith("hdfs:")) {
       tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
 
       // To disable the instance cache for hdfs client, otherwise it causes the
@@ -277,7 +271,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       int i = 0;
       for (FileStatus status : files) {
         // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i ++] = status.getPath().toUri().toString().substring(path.length()); // mUfsPrefix
+        try {
+          rtn[i ++] = new URI(path).relativize(status.getPath().toUri()).getPath();
+        } catch (URISyntaxException e) {
+          throw new IOException("Problem with URIs:" + e);
+        }
       }
       return rtn;
     } else {
