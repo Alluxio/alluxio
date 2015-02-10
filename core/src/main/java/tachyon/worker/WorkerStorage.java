@@ -676,6 +676,9 @@ public class WorkerStorage {
     int maxStorageLevels = mTachyonConf.getInt(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, 1);
 
     mStorageTiers = new ArrayList<StorageTier>(maxStorageLevels);
+    for (int k = 0; k < maxStorageLevels; k ++) {
+      mStorageTiers.add(null);
+    }
     StorageTier nextStorageTier = null;
     for (int level = maxStorageLevels - 1; level >= 0; level --) {
 
