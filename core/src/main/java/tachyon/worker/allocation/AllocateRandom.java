@@ -13,37 +13,30 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.worker.allocation;
+
+import java.util.Random;
+
+import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * Different storage level alias for StorageTier.
+ * Allocate space on StorageDirs randomly
  */
-public enum StorageLevelAlias {
-  /**
-   * Memory Layer
-   */
-  MEM(1),
-  /**
-   * SSD Layer
-   */
-  SSD(2),
-  /**
-   * HDD Layer
-   */
-  HDD(3);
+public class AllocateRandom extends AllocateStrategyBase {
+  private Random mRandm = new Random(System.currentTimeMillis());
 
-  private int mValue;
-
-  private StorageLevelAlias(int value) {
-    mValue = value;
-  }
-
-  /**
-   * Get value of the storage level alias
-   * 
-   * @return value of the storage level alias
-   */
-  public int getValue() {
-    return mValue;
+  @Override
+  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestBytes) {
+    int i = mRandm.nextInt(storageDirs.length);
+    for (int j = 0; j < storageDirs.length; j ++, i ++) {
+      i = i % storageDirs.length;
+      StorageDir dir = storageDirs[i];
+      if (dir.getAvailableBytes() >= requestBytes) {
+        if (dir.requestSpace(userId, requestBytes)) {
+          return dir;
+        }
+      }
+    }
+    return null;
   }
 }

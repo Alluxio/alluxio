@@ -16,7 +16,7 @@
 package tachyon.worker.hierarchy;
 
 /**
- * Used for recording block information on worker side.
+ * Block information on worker side.
  */
 public final class BlockInfo {
   private final StorageDir mDir;
@@ -41,9 +41,9 @@ public final class BlockInfo {
   /**
    * Get size of the block
    * 
-   * @return size of the block
+   * @return size of the block in bytes
    */
-  public long getBlockSize() {
+  public long getSize() {
     return mBlockSize;
   }
 

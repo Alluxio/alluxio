@@ -20,6 +20,8 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.StorageDirId;
+import tachyon.StorageLevelAlias;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 
@@ -86,9 +88,10 @@ public class BlockInfoTest {
     BlockInfo tInfo =
         new BlockInfo(new InodeFile("t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE,
             System.currentTimeMillis()), 300, 800);
-    tInfo.addLocation(15, new NetAddress("abc", 1, 11));
-    tInfo.addLocation(22, new NetAddress("def", 2, 21));
-    tInfo.addLocation(29, new NetAddress("gh", 3, 31));
+    long storageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
+    tInfo.addLocation(15, new NetAddress("abc", 1, 11), storageDirId);
+    tInfo.addLocation(22, new NetAddress("def", 2, 21), storageDirId);
+    tInfo.addLocation(29, new NetAddress("gh", 3, 31), storageDirId);
     ClientBlockInfo clientBlockInfo = tInfo.generateClientBlockInfo(mTachyonConf);
     Assert.assertEquals((long) Constants.DEFAULT_BLOCK_SIZE_BYTE * 300, clientBlockInfo.offset);
     Assert.assertEquals(800, clientBlockInfo.length);
@@ -100,17 +103,18 @@ public class BlockInfoTest {
     BlockInfo tInfo =
         new BlockInfo(new InodeFile("t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE,
             System.currentTimeMillis()), 300, 800);
-    tInfo.addLocation(15, new NetAddress("abc", 1, 11));
+    long storageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
+    tInfo.addLocation(15, new NetAddress("abc", 1, 11), storageDirId);
     Assert.assertEquals(1, tInfo.getLocations(mTachyonConf).size());
-    tInfo.addLocation(22, new NetAddress("def", 2, 21));
+    tInfo.addLocation(22, new NetAddress("def", 2, 21), storageDirId);
     Assert.assertEquals(2, tInfo.getLocations(mTachyonConf).size());
-    tInfo.addLocation(29, new NetAddress("gh", 3, 31));
+    tInfo.addLocation(29, new NetAddress("gh", 3, 31), storageDirId);
     Assert.assertEquals(3, tInfo.getLocations(mTachyonConf).size());
-    tInfo.addLocation(15, new NetAddress("abc", 1, 11));
+    tInfo.addLocation(15, new NetAddress("abc", 1, 11), storageDirId);
     Assert.assertEquals(3, tInfo.getLocations(mTachyonConf).size());
-    tInfo.addLocation(22, new NetAddress("def", 2, 21));
+    tInfo.addLocation(22, new NetAddress("def", 2, 21), storageDirId);
     Assert.assertEquals(3, tInfo.getLocations(mTachyonConf).size());
-    tInfo.addLocation(29, new NetAddress("gh", 3, 31));
+    tInfo.addLocation(29, new NetAddress("gh", 3, 31), storageDirId);
     Assert.assertEquals(3, tInfo.getLocations(mTachyonConf).size());
     tInfo.removeLocation(15);
     Assert.assertEquals(2, tInfo.getLocations(mTachyonConf).size());

@@ -41,6 +41,9 @@ import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
 
+import sun.misc.Cleaner;
+import sun.nio.ch.DirectBuffer;
+
 /**
  * Common utilities shared by all components in Tachyon.
  */
@@ -108,6 +111,22 @@ public final class CommonUtils {
    */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
     changeLocalFilePermission(filePath, "777");
+  }
+
+  /**
+   * Force to unmap direct buffer if the buffer is no longer used. It is unsafe operation and
+   * currently a walk-around to avoid huge memory occupation caused by memory map.
+   * 
+   * @param buffer the byte buffer to be unmapped
+   */
+  public static void cleanDirectBuffer(ByteBuffer buffer) {
+    if (buffer == null) {
+      return;
+    }
+    if (buffer.isDirect()) {
+      Cleaner cleaner = ((DirectBuffer)buffer).cleaner();
+      cleaner.clean();
+    }
   }
 
   /**

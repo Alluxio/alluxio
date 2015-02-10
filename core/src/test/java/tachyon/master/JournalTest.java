@@ -144,7 +144,7 @@ public class JournalTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
-    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
+    mLocalTachyonCluster = new LocalTachyonCluster(10000, 100, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();

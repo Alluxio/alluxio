@@ -29,7 +29,6 @@ import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.nio.DataServerMessage;
 
@@ -138,7 +137,9 @@ public class RemoteBlockInStream extends BlockInStream {
   private void cancelRecache() throws IOException {
     if (mRecache) {
       mRecache = false;
-      mBlockOutStream.cancel();
+      if (mBlockOutStream != null) {
+        mBlockOutStream.cancel();
+      }
     }
   }
 
@@ -231,27 +232,26 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   public static ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, ClientBlockInfo blockInfo,
-      long offset, long len, TachyonConf conf) {
+      long offset, long len) {
     ByteBuffer buf = null;
 
     try {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
 
-      for (int k = 0; k < blockLocations.size(); k++) {
-        String host = blockLocations.get(k).mHost;
-        int port = blockLocations.get(k).mSecondaryPort;
+      for (NetAddress blockLocation : blockLocations) {
+        String host = blockLocation.mHost;
+        int port = blockLocation.mSecondaryPort;
 
-        // The data is not in remote machine's memory if port == -1
+        // The data is not in remote machine's memory if port == -1.
         if (port == -1) {
           continue;
         }
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())
             || host.equals(NetworkUtils.getLocalHostName())) {
-          String localFileName =
-              CommonUtils.concat(tachyonFS.getLocalDataFolder(), blockInfo.blockId);
-          LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
+          LOG.warn("Master thinks the local machine has data, But not! blockId:{}",
+              blockInfo.blockId);
         }
         LOG.info(host + ":" + port + " current host is " + NetworkUtils.getLocalHostName() + " "
             + NetworkUtils.getLocalIpAddress());
@@ -259,7 +259,7 @@ public class RemoteBlockInStream extends BlockInStream {
         try {
           buf =
               retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port),
-                  blockInfo.blockId, offset, len, conf);
+                  blockInfo.blockId, offset, len);
           if (buf != null) {
             break;
           }
@@ -279,7 +279,7 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   private static ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
-      long blockId, long offset, long length, TachyonConf conf) throws IOException {
+      long blockId, long offset, long length) throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     try {
       socketChannel.connect(address);
@@ -292,9 +292,8 @@ public class RemoteBlockInStream extends BlockInStream {
       }
 
       LOG.info("Data " + blockId + " to remote machine " + address + " sent");
-
-      DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId,
-          conf);
+      DataServerMessage recvMsg =
+          DataServerMessage.createBlockResponseMessage(false, blockId, null);
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {
@@ -409,8 +408,7 @@ public class RemoteBlockInStream extends BlockInStream {
         mBlockInfo.blockId, mBufferStartPos, length));
 
     for (int i = 0; i < MAX_REMOTE_READ_ATTEMPTS; i ++) {
-      mCurrentBuffer = readRemoteByteBuffer(mTachyonFS, mBlockInfo, mBufferStartPos, length,
-          mTachyonConf);
+      mCurrentBuffer = readRemoteByteBuffer(mTachyonFS, mBlockInfo, mBufferStartPos, length);
       if (mCurrentBuffer != null) {
         return true;
       }
