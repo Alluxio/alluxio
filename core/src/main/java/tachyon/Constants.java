@@ -63,7 +63,7 @@ public class Constants {
    * Version 2 [0.5.0] Starts to use JSON. <br>
    * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
    */
-  public static final int JOURNAL_VERSION = 2;
+  public static final int JOURNAL_VERSION = 3;
 
   // Configurations properties constants.
   // Please check and update Configuration-Settings.md file when you change or add Tachyon
@@ -168,5 +168,4 @@ public class Constants {
   public static final String USER_REMOTE_READ_BUFFER_SIZE_BYTE =
       "tachyon.user.remote.read.buffer.size.byte";
   public static final String USER_DEFAULT_WRITE_TYPE = "tachyon.user.file.writetype.default";
-
 }

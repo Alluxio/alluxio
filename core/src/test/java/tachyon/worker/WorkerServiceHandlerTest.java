@@ -80,7 +80,10 @@ public class WorkerServiceHandlerTest {
     createBlockFile(filename, (int)(WORKER_CAPACITY_BYTES / 10L - 10L));
     mWorkerServiceHandler.cancelBlock(userId, blockId);
     Assert.assertFalse(new File(filename).exists());
-    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf));
+
+    CommonUtils.sleepMs(null,
+        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+
     Assert.assertEquals(0, mMasterInfo.getUsedBytes());
   }
 
@@ -134,8 +137,10 @@ public class WorkerServiceHandlerTest {
     int fileId3 =
         TestUtils.createByteFile(mTfs, "/file3", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 2);
+
     CommonUtils.sleepMs(null,
-        TestUtils.getToMasterHeartBeatIntervalMs(mLocalTachyonCluster.getWorkerTachyonConf()));
+        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+
     fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
     fileInfo2 = mMasterInfo.getClientFileInfo(new TachyonURI("/file2"));
     ClientFileInfo fileInfo3 = mMasterInfo.getClientFileInfo(new TachyonURI("/file3"));

@@ -154,8 +154,8 @@ public class WorkerStorageTest {
    */
   @Test
   public void unknownBlockFilesTest() throws Exception {
-    TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
-    String dirPath = masterConf.get("tachyon.worker.hierarchystore.level0.dirs.path", null);
+    TachyonConf workerConf = mLocalTachyonCluster.getWorkerTachyonConf();
+    String dirPath = workerConf.get("tachyon.worker.hierarchystore.level0.dirs.path", null);
     String dataFolder = CommonUtils.concat(dirPath, mWorkerDataFolder);
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("Wrong file name: xyz");
