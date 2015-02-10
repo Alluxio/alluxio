@@ -18,6 +18,7 @@ package tachyon.underfs.hdfs;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemFactory;
 import tachyon.underfs.UnderFileSystemRegistry;
 
@@ -25,13 +26,15 @@ public class HdfsUnderFileSystemTest {
 
   @Test
   public void factoryTest() {
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("hdfs://localhost/test/path");
+    TachyonConf conf = new TachyonConf();
+    
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("hdfs://localhost/test/path", conf);
     Assert.assertNotNull("A UnderFileSystemFactory should exist for HDFS paths when using this module", factory);
     
-    factory = UnderFileSystemRegistry.find("s3://localhost/test/path");
+    factory = UnderFileSystemRegistry.find("s3://localhost/test/path", conf);
     Assert.assertNotNull("A UnderFileSystemFactory should exist for S3 paths when using this module", factory);
     
-    factory = UnderFileSystemRegistry.find("s3n://localhost/test/path");
+    factory = UnderFileSystemRegistry.find("s3n://localhost/test/path", conf);
     Assert.assertNotNull("A UnderFileSystemFactory should exist for S3 paths when using this module", factory);
   }
 }
