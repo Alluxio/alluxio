@@ -75,7 +75,6 @@ public class DataServerTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.worker.network.type");
   }
 
   /**
@@ -106,12 +105,12 @@ public class DataServerTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.worker.network.type", mType.toString());
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
+    mWorkerTachyonConf.set(Constants.WORKER_NETWORK_TYPE, mType.toString());
   }
 
   @Test

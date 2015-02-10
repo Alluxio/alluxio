@@ -83,11 +83,6 @@ public final class LocalTachyonMaster {
     UnderFileSystemsUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
     CommonUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(), tachyonConf);
 
-    System.setProperty("tachyon.underfs.address", mUnderFSFolder);
-
-    System.setProperty("tachyon.web.resources", System.getProperty("user.dir")
-        + "/src/main/webapp");
-
     tachyonConf.set(Constants.MASTER_HOSTNAME, mHostname);
     tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
     tachyonConf.set(Constants.UNDERFS_ADDRESS, mUnderFSFolder);
@@ -101,6 +96,7 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.MASTER_QUEUE_SIZE_PER_SELECTOR, "1");
     tachyonConf.set(Constants.MASTER_SERVER_THREADS, "1");
     tachyonConf.set(Constants.MASTER_WEB_THREAD_COUNT, "9");
+    tachyonConf.set(Constants.WEB_RESOURCES, System.getProperty("user.dir") + "/src/main/webapp");
 
     mTachyonMaster = new TachyonMaster(tachyonConf);
 

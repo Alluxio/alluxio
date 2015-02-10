@@ -35,6 +35,7 @@ import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -153,7 +154,8 @@ public class WorkerStorageTest {
    */
   @Test
   public void unknownBlockFilesTest() throws Exception {
-    String dirPath = System.getProperty("tachyon.worker.hierarchystore.level0.dirs.path");
+    TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
+    String dirPath = masterConf.get("tachyon.worker.hierarchystore.level0.dirs.path", null);
     String dataFolder = CommonUtils.concat(dirPath, mWorkerDataFolder);
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("Wrong file name: xyz");
