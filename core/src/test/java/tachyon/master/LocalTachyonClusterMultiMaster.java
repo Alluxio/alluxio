@@ -212,8 +212,9 @@ public class LocalTachyonClusterMultiMaster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
-    System.setProperty("tachyon.worker.port", mWorker.getMetaPort() + "");
-    System.setProperty("tachyon.worker.data.port", mWorker.getDataPort() + "");
+
+    mWorkerConf.set(Constants.WORKER_PORT, mWorker.getMetaPort() + "");
+    mWorkerConf.set(Constants.WORKER_DATA_PORT, mWorker.getDataPort() + "");
   }
 
   public void stop() throws Exception {

@@ -24,6 +24,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
@@ -54,9 +55,9 @@ public class UnderfsUtilsTest {
 
     mTfs = mLocalTachyonCluster.getClient();
 
-    mUnderfsAddress = System.getProperty("tachyon.underfs.address");
-    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR,
-        mLocalTachyonCluster.getMasterTachyonConf());
+    TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS, null);
+    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR, masterConf);
   }
 
   @Test

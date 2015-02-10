@@ -65,6 +65,10 @@ public final class BlockResponse {
     @Override
     protected void encode(final ChannelHandlerContext ctx, final BlockResponse msg,
         final List<Object> out) throws Exception {
+
+      // Add the header information to output
+      out.add(createHeader(ctx, msg));
+
       BlockHandler handler = msg.getHandler();
       if (handler != null) {
         FileTransferType type = mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE,

@@ -158,7 +158,6 @@ public final class LocalTachyonCluster {
   }
 
   public void start() throws IOException {
-    int maxLevel = 1;
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";
@@ -202,12 +201,11 @@ public final class LocalTachyonCluster {
     mWorkerConf.set(Constants.WORKER_SERVER_THREADS, Integer.toString(2));
     mWorkerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, Integer.toString(2));
 
-    // Setup conf for worker
-    mWorkerConf.set(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, Integer.toString(maxLevel));
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
 
+    int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, 1);
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
@@ -234,9 +232,6 @@ public final class LocalTachyonCluster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
-
-    System.setProperty("tachyon.worker.port", getWorkerPort() + "");
-    System.setProperty("tachyon.worker.data.port", getWorkerDataPort() + "");
   }
 
   /**

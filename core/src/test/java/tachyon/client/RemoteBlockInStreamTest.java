@@ -258,7 +258,8 @@ public class RemoteBlockInStreamTest {
       int fileId = TestUtils.createByteFile(mTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
       TachyonFile file = mTfs.getFile(fileId);
-      RemoteBlockInStream is = new RemoteBlockInStream(file, ReadType.NO_CACHE, 0, mMasterTachyonConf);
+      RemoteBlockInStream is = new RemoteBlockInStream(file, ReadType.NO_CACHE, 0,
+          mMasterTachyonConf);
       Assert.assertTrue(is instanceof RemoteBlockInStream);
       byte[] ret = new byte[k];
       int value = is.read();
