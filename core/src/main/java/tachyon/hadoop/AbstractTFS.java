@@ -240,6 +240,11 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   @Override
+  public long getDefaultBlockSize() {
+    return getConf().getLong("fs.local.block.size", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+  }
+
+  @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)
       throws IOException {
     if (file == null) {
