@@ -66,11 +66,12 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     mUfsPrefix = fsDefaultName;
     Configuration tConf;
     if (conf != null) {
-      tConf = (Configuration) conf;
+      tConf = new Configuration((Configuration) conf);
     } else {
       tConf = new Configuration();
     }
     String glusterfsPrefix = "glusterfs:///";
+    tConf.set("fs.defaultFS", fsDefaultName);
     if (fsDefaultName.startsWith(glusterfsPrefix)) {
       String gfsImpl = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_IMPL,
           "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
@@ -79,10 +80,16 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       String gfsVolumes = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null);
       String gfsMounts = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null);
 
-      tConf.set("fs.glusterfs.impl", gfsImpl);
-      tConf.set("mapred.system.dir", gfsMrDir);
-      tConf.set("fs.glusterfs.volumes", gfsVolumes);
-      tConf.set("fs.glusterfs.volume.fuse." + gfsVolumes, gfsMounts);
+      if (tConf.get("fs.glusterfs.impl") == null) {
+        tConf.set("fs.glusterfs.impl", gfsImpl);
+      }
+      if (tConf.get("mapred.system.dir") == null) {
+        tConf.set("mapred.system.dir", gfsMrDir);
+      }
+      if (tConf.get("fs.glusterfs.volumes") == null) {
+        tConf.set("fs.glusterfs.volumes", gfsVolumes);
+        tConf.set("fs.glusterfs.volume.fuse." + gfsVolumes, gfsMounts);
+      }
     } else {
       String ufsHdfsImpl = mTachyonConf.get(Constants.UNDERFS_HDFS_IMPL,
           "org.apache.hadoop.hdfs.DistributedFileSystem");
