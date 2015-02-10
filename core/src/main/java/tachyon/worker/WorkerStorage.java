@@ -615,6 +615,11 @@ public class WorkerStorage {
     return usedBytes;
   }
   
+  /**
+   * Get used bytes of each storage level(alias)
+   * 
+   * @return used bytes of each storage level(alias)
+   */
   private List<Long> getUsedBytesByAlias() {
     List<Long> usedBytes = new ArrayList<Long>();
     for (int i = 0; i < StorageLevelAlias.values().length; i++) {
