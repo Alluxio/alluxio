@@ -38,7 +38,8 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
   private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)1);
   private static final org.apache.thrift.protocol.TField OFFSET_FIELD_DESC = new org.apache.thrift.protocol.TField("offset", org.apache.thrift.protocol.TType.I64, (short)2);
   private static final org.apache.thrift.protocol.TField LENGTH_FIELD_DESC = new org.apache.thrift.protocol.TField("length", org.apache.thrift.protocol.TType.I64, (short)3);
-  private static final org.apache.thrift.protocol.TField LOCATIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("locations", org.apache.thrift.protocol.TType.LIST, (short)4);
+  private static final org.apache.thrift.protocol.TField WORKERS_FIELD_DESC = new org.apache.thrift.protocol.TField("workers", org.apache.thrift.protocol.TType.LIST, (short)4);
+  private static final org.apache.thrift.protocol.TField CHECKPOINTS_FIELD_DESC = new org.apache.thrift.protocol.TField("checkpoints", org.apache.thrift.protocol.TType.LIST, (short)5);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -49,14 +50,16 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
   public long blockId; // required
   public long offset; // required
   public long length; // required
-  public List<NetAddress> locations; // required
+  public List<WorkerInfo> workers; // required
+  public List<String> checkpoints; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     BLOCK_ID((short)1, "blockId"),
     OFFSET((short)2, "offset"),
     LENGTH((short)3, "length"),
-    LOCATIONS((short)4, "locations");
+    WORKERS((short)4, "workers"),
+    CHECKPOINTS((short)5, "checkpoints");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -77,8 +80,10 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
           return OFFSET;
         case 3: // LENGTH
           return LENGTH;
-        case 4: // LOCATIONS
-          return LOCATIONS;
+        case 4: // WORKERS
+          return WORKERS;
+        case 5: // CHECKPOINTS
+          return CHECKPOINTS;
         default:
           return null;
       }
@@ -132,9 +137,12 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.LENGTH, new org.apache.thrift.meta_data.FieldMetaData("length", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.LOCATIONS, new org.apache.thrift.meta_data.FieldMetaData("locations", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.WORKERS, new org.apache.thrift.meta_data.FieldMetaData("workers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NetAddress.class))));
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, WorkerInfo.class))));
+    tmpMap.put(_Fields.CHECKPOINTS, new org.apache.thrift.meta_data.FieldMetaData("checkpoints", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ClientBlockInfo.class, metaDataMap);
   }
@@ -146,7 +154,8 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     long blockId,
     long offset,
     long length,
-    List<NetAddress> locations)
+    List<WorkerInfo> workers,
+    List<String> checkpoints)
   {
     this();
     this.blockId = blockId;
@@ -155,7 +164,8 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     setOffsetIsSet(true);
     this.length = length;
     setLengthIsSet(true);
-    this.locations = locations;
+    this.workers = workers;
+    this.checkpoints = checkpoints;
   }
 
   /**
@@ -166,12 +176,16 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     this.blockId = other.blockId;
     this.offset = other.offset;
     this.length = other.length;
-    if (other.isSetLocations()) {
-      List<NetAddress> __this__locations = new ArrayList<NetAddress>(other.locations.size());
-      for (NetAddress other_element : other.locations) {
-        __this__locations.add(new NetAddress(other_element));
+    if (other.isSetWorkers()) {
+      List<WorkerInfo> __this__workers = new ArrayList<WorkerInfo>(other.workers.size());
+      for (WorkerInfo other_element : other.workers) {
+        __this__workers.add(new WorkerInfo(other_element));
       }
-      this.locations = __this__locations;
+      this.workers = __this__workers;
+    }
+    if (other.isSetCheckpoints()) {
+      List<String> __this__checkpoints = new ArrayList<String>(other.checkpoints);
+      this.checkpoints = __this__checkpoints;
     }
   }
 
@@ -187,7 +201,8 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     this.offset = 0;
     setLengthIsSet(false);
     this.length = 0;
-    this.locations = null;
+    this.workers = null;
+    this.checkpoints = null;
   }
 
   public long getBlockId() {
@@ -259,42 +274,81 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __LENGTH_ISSET_ID, value);
   }
 
-  public int getLocationsSize() {
-    return (this.locations == null) ? 0 : this.locations.size();
+  public int getWorkersSize() {
+    return (this.workers == null) ? 0 : this.workers.size();
   }
 
-  public java.util.Iterator<NetAddress> getLocationsIterator() {
-    return (this.locations == null) ? null : this.locations.iterator();
+  public java.util.Iterator<WorkerInfo> getWorkersIterator() {
+    return (this.workers == null) ? null : this.workers.iterator();
   }
 
-  public void addToLocations(NetAddress elem) {
-    if (this.locations == null) {
-      this.locations = new ArrayList<NetAddress>();
+  public void addToWorkers(WorkerInfo elem) {
+    if (this.workers == null) {
+      this.workers = new ArrayList<WorkerInfo>();
     }
-    this.locations.add(elem);
+    this.workers.add(elem);
   }
 
-  public List<NetAddress> getLocations() {
-    return this.locations;
+  public List<WorkerInfo> getWorkers() {
+    return this.workers;
   }
 
-  public ClientBlockInfo setLocations(List<NetAddress> locations) {
-    this.locations = locations;
+  public ClientBlockInfo setWorkers(List<WorkerInfo> workers) {
+    this.workers = workers;
     return this;
   }
 
-  public void unsetLocations() {
-    this.locations = null;
+  public void unsetWorkers() {
+    this.workers = null;
   }
 
-  /** Returns true if field locations is set (has been assigned a value) and false otherwise */
-  public boolean isSetLocations() {
-    return this.locations != null;
+  /** Returns true if field workers is set (has been assigned a value) and false otherwise */
+  public boolean isSetWorkers() {
+    return this.workers != null;
   }
 
-  public void setLocationsIsSet(boolean value) {
+  public void setWorkersIsSet(boolean value) {
     if (!value) {
-      this.locations = null;
+      this.workers = null;
+    }
+  }
+
+  public int getCheckpointsSize() {
+    return (this.checkpoints == null) ? 0 : this.checkpoints.size();
+  }
+
+  public java.util.Iterator<String> getCheckpointsIterator() {
+    return (this.checkpoints == null) ? null : this.checkpoints.iterator();
+  }
+
+  public void addToCheckpoints(String elem) {
+    if (this.checkpoints == null) {
+      this.checkpoints = new ArrayList<String>();
+    }
+    this.checkpoints.add(elem);
+  }
+
+  public List<String> getCheckpoints() {
+    return this.checkpoints;
+  }
+
+  public ClientBlockInfo setCheckpoints(List<String> checkpoints) {
+    this.checkpoints = checkpoints;
+    return this;
+  }
+
+  public void unsetCheckpoints() {
+    this.checkpoints = null;
+  }
+
+  /** Returns true if field checkpoints is set (has been assigned a value) and false otherwise */
+  public boolean isSetCheckpoints() {
+    return this.checkpoints != null;
+  }
+
+  public void setCheckpointsIsSet(boolean value) {
+    if (!value) {
+      this.checkpoints = null;
     }
   }
 
@@ -324,11 +378,19 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       }
       break;
 
-    case LOCATIONS:
+    case WORKERS:
       if (value == null) {
-        unsetLocations();
+        unsetWorkers();
       } else {
-        setLocations((List<NetAddress>)value);
+        setWorkers((List<WorkerInfo>)value);
+      }
+      break;
+
+    case CHECKPOINTS:
+      if (value == null) {
+        unsetCheckpoints();
+      } else {
+        setCheckpoints((List<String>)value);
       }
       break;
 
@@ -346,8 +408,11 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     case LENGTH:
       return Long.valueOf(getLength());
 
-    case LOCATIONS:
-      return getLocations();
+    case WORKERS:
+      return getWorkers();
+
+    case CHECKPOINTS:
+      return getCheckpoints();
 
     }
     throw new IllegalStateException();
@@ -366,8 +431,10 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       return isSetOffset();
     case LENGTH:
       return isSetLength();
-    case LOCATIONS:
-      return isSetLocations();
+    case WORKERS:
+      return isSetWorkers();
+    case CHECKPOINTS:
+      return isSetCheckpoints();
     }
     throw new IllegalStateException();
   }
@@ -412,12 +479,21 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
         return false;
     }
 
-    boolean this_present_locations = true && this.isSetLocations();
-    boolean that_present_locations = true && that.isSetLocations();
-    if (this_present_locations || that_present_locations) {
-      if (!(this_present_locations && that_present_locations))
+    boolean this_present_workers = true && this.isSetWorkers();
+    boolean that_present_workers = true && that.isSetWorkers();
+    if (this_present_workers || that_present_workers) {
+      if (!(this_present_workers && that_present_workers))
         return false;
-      if (!this.locations.equals(that.locations))
+      if (!this.workers.equals(that.workers))
+        return false;
+    }
+
+    boolean this_present_checkpoints = true && this.isSetCheckpoints();
+    boolean that_present_checkpoints = true && that.isSetCheckpoints();
+    if (this_present_checkpoints || that_present_checkpoints) {
+      if (!(this_present_checkpoints && that_present_checkpoints))
+        return false;
+      if (!this.checkpoints.equals(that.checkpoints))
         return false;
     }
 
@@ -467,12 +543,22 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetLocations()).compareTo(other.isSetLocations());
+    lastComparison = Boolean.valueOf(isSetWorkers()).compareTo(other.isSetWorkers());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetLocations()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.locations, other.locations);
+    if (isSetWorkers()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.workers, other.workers);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetCheckpoints()).compareTo(other.isSetCheckpoints());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCheckpoints()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.checkpoints, other.checkpoints);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -509,11 +595,19 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     sb.append(this.length);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("locations:");
-    if (this.locations == null) {
+    sb.append("workers:");
+    if (this.workers == null) {
       sb.append("null");
     } else {
-      sb.append(this.locations);
+      sb.append(this.workers);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("checkpoints:");
+    if (this.checkpoints == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.checkpoints);
     }
     first = false;
     sb.append(")");
@@ -585,21 +679,39 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // LOCATIONS
+          case 4: // WORKERS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
-                struct.locations = new ArrayList<NetAddress>(_list0.size);
-                for (int _i1 = 0; _i1 < _list0.size; ++_i1)
+                org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
+                struct.workers = new ArrayList<WorkerInfo>(_list8.size);
+                for (int _i9 = 0; _i9 < _list8.size; ++_i9)
                 {
-                  NetAddress _elem2;
-                  _elem2 = new NetAddress();
-                  _elem2.read(iprot);
-                  struct.locations.add(_elem2);
+                  WorkerInfo _elem10;
+                  _elem10 = new WorkerInfo();
+                  _elem10.read(iprot);
+                  struct.workers.add(_elem10);
                 }
                 iprot.readListEnd();
               }
-              struct.setLocationsIsSet(true);
+              struct.setWorkersIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 5: // CHECKPOINTS
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list11 = iprot.readListBegin();
+                struct.checkpoints = new ArrayList<String>(_list11.size);
+                for (int _i12 = 0; _i12 < _list11.size; ++_i12)
+                {
+                  String _elem13;
+                  _elem13 = iprot.readString();
+                  struct.checkpoints.add(_elem13);
+                }
+                iprot.readListEnd();
+              }
+              struct.setCheckpointsIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -628,13 +740,25 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       oprot.writeFieldBegin(LENGTH_FIELD_DESC);
       oprot.writeI64(struct.length);
       oprot.writeFieldEnd();
-      if (struct.locations != null) {
-        oprot.writeFieldBegin(LOCATIONS_FIELD_DESC);
+      if (struct.workers != null) {
+        oprot.writeFieldBegin(WORKERS_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.locations.size()));
-          for (NetAddress _iter3 : struct.locations)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.workers.size()));
+          for (WorkerInfo _iter14 : struct.workers)
           {
-            _iter3.write(oprot);
+            _iter14.write(oprot);
+          }
+          oprot.writeListEnd();
+        }
+        oprot.writeFieldEnd();
+      }
+      if (struct.checkpoints != null) {
+        oprot.writeFieldBegin(CHECKPOINTS_FIELD_DESC);
+        {
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.checkpoints.size()));
+          for (String _iter15 : struct.checkpoints)
+          {
+            oprot.writeString(_iter15);
           }
           oprot.writeListEnd();
         }
@@ -667,10 +791,13 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       if (struct.isSetLength()) {
         optionals.set(2);
       }
-      if (struct.isSetLocations()) {
+      if (struct.isSetWorkers()) {
         optionals.set(3);
       }
-      oprot.writeBitSet(optionals, 4);
+      if (struct.isSetCheckpoints()) {
+        optionals.set(4);
+      }
+      oprot.writeBitSet(optionals, 5);
       if (struct.isSetBlockId()) {
         oprot.writeI64(struct.blockId);
       }
@@ -680,12 +807,21 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       if (struct.isSetLength()) {
         oprot.writeI64(struct.length);
       }
-      if (struct.isSetLocations()) {
+      if (struct.isSetWorkers()) {
         {
-          oprot.writeI32(struct.locations.size());
-          for (NetAddress _iter4 : struct.locations)
+          oprot.writeI32(struct.workers.size());
+          for (WorkerInfo _iter16 : struct.workers)
           {
-            _iter4.write(oprot);
+            _iter16.write(oprot);
+          }
+        }
+      }
+      if (struct.isSetCheckpoints()) {
+        {
+          oprot.writeI32(struct.checkpoints.size());
+          for (String _iter17 : struct.checkpoints)
+          {
+            oprot.writeString(_iter17);
           }
         }
       }
@@ -694,7 +830,7 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ClientBlockInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(4);
+      BitSet incoming = iprot.readBitSet(5);
       if (incoming.get(0)) {
         struct.blockId = iprot.readI64();
         struct.setBlockIdIsSet(true);
@@ -709,17 +845,30 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       }
       if (incoming.get(3)) {
         {
-          org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.locations = new ArrayList<NetAddress>(_list5.size);
-          for (int _i6 = 0; _i6 < _list5.size; ++_i6)
+          org.apache.thrift.protocol.TList _list18 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.workers = new ArrayList<WorkerInfo>(_list18.size);
+          for (int _i19 = 0; _i19 < _list18.size; ++_i19)
           {
-            NetAddress _elem7;
-            _elem7 = new NetAddress();
-            _elem7.read(iprot);
-            struct.locations.add(_elem7);
+            WorkerInfo _elem20;
+            _elem20 = new WorkerInfo();
+            _elem20.read(iprot);
+            struct.workers.add(_elem20);
           }
         }
-        struct.setLocationsIsSet(true);
+        struct.setWorkersIsSet(true);
+      }
+      if (incoming.get(4)) {
+        {
+          org.apache.thrift.protocol.TList _list21 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.checkpoints = new ArrayList<String>(_list21.size);
+          for (int _i22 = 0; _i22 < _list21.size; ++_i22)
+          {
+            String _elem23;
+            _elem23 = iprot.readString();
+            struct.checkpoints.add(_elem23);
+          }
+        }
+        struct.setCheckpointsIsSet(true);
       }
     }
   }

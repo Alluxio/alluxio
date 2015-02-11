@@ -61,6 +61,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.util.CommonUtils;
+import tachyon.util.PageUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.hierarchy.StorageDir;
 import tachyon.worker.hierarchy.StorageTier;
@@ -320,7 +321,7 @@ public class WorkerStorage {
     mMasterAddress = masterAddress;
     mMasterClient = new MasterClient(mMasterAddress, mExecutorService);
 
-    mDataFolder = WorkerConf.get().DATA_FOLDER;
+    mDataFolder = PageUtils.getWorkerDataFolder();
     mUserFolder = CommonUtils.concat(mDataFolder, WorkerConf.USER_TEMP_RELATIVE_FOLDER);
   }
 

@@ -44,7 +44,7 @@ import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.UfsUtils;
 
@@ -263,9 +263,15 @@ abstract class AbstractTFS extends FileSystem {
       if ((offset >= start && offset <= start + len) || (end >= start && end <= start + len)) {
         ArrayList<String> names = new ArrayList<String>();
         ArrayList<String> hosts = new ArrayList<String>();
-        for (NetAddress addr : info.getLocations()) {
-          names.add(addr.mHost);
-          hosts.add(addr.mHost);
+        names.addAll(info.getCheckpoints());
+        hosts.addAll(names);
+        // This will probably be WRONG when partial-block is complete. Right now, any worker that
+        // has anything cached will have the entire block cached, so we can just add the names of
+        // all the workers, but later, workers will only have pages cached, so behavior will be
+        // different.
+        for (WorkerInfo worker : info.getWorkers()) {
+          names.add(worker.getAddress().mHost);
+          hosts.add(worker.getAddress().mHost);
         }
         blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names), CommonUtils
             .toStringArray(hosts), offset, info.getLength()));

@@ -14,6 +14,8 @@
  */
 package tachyon.master;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,6 +24,7 @@ import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.util.PageUtils;
 
 /**
  * Unit tests for tachyon.BlockInfo.
@@ -80,36 +83,73 @@ public class BlockInfoTest {
         new BlockInfo(new InodeFile("t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE,
             System.currentTimeMillis()), 300, 800);
     long storageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
-    tInfo.addLocation(15, new NetAddress("abc", 1, 11), storageDirId);
-    tInfo.addLocation(22, new NetAddress("def", 2, 21), storageDirId);
-    tInfo.addLocation(29, new NetAddress("gh", 3, 31), storageDirId);
+    List<Long> allPages = PageUtils.generateAllPages(tInfo.mLength);
+    tInfo.addLocation(15, new NetAddress("abc", 1, 11), storageDirId, allPages);
+    tInfo.addLocation(22, new NetAddress("def", 2, 21), storageDirId, allPages);
+    tInfo.addLocation(29, new NetAddress("gh", 3, 31), storageDirId, allPages);
     ClientBlockInfo clientBlockInfo = tInfo.generateClientBlockInfo();
     Assert.assertEquals((long) Constants.DEFAULT_BLOCK_SIZE_BYTE * 300, clientBlockInfo.offset);
     Assert.assertEquals(800, clientBlockInfo.length);
-    Assert.assertEquals(3, clientBlockInfo.locations.size());
+    Assert.assertEquals(3, clientBlockInfo.getWorkers().size());
   }
 
   @Test
-  public void localtionTest() {
+  public void locationTest() {
     BlockInfo tInfo =
         new BlockInfo(new InodeFile("t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE,
             System.currentTimeMillis()), 300, 800);
     long storageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
-    tInfo.addLocation(15, new NetAddress("abc", 1, 11), storageDirId);
-    Assert.assertEquals(1, tInfo.getLocations().size());
-    tInfo.addLocation(22, new NetAddress("def", 2, 21), storageDirId);
-    Assert.assertEquals(2, tInfo.getLocations().size());
-    tInfo.addLocation(29, new NetAddress("gh", 3, 31), storageDirId);
-    Assert.assertEquals(3, tInfo.getLocations().size());
-    tInfo.addLocation(15, new NetAddress("abc", 1, 11), storageDirId);
-    Assert.assertEquals(3, tInfo.getLocations().size());
-    tInfo.addLocation(22, new NetAddress("def", 2, 21), storageDirId);
-    Assert.assertEquals(3, tInfo.getLocations().size());
-    tInfo.addLocation(29, new NetAddress("gh", 3, 31), storageDirId);
-    Assert.assertEquals(3, tInfo.getLocations().size());
+    List<Long> allPages = PageUtils.generateAllPages(tInfo.mLength);
+    tInfo.addLocation(15, new NetAddress("abc", 1, 11), storageDirId, allPages);
+    Assert.assertEquals(1, tInfo.getWorkerAddresses().size());
+    tInfo.addLocation(22, new NetAddress("def", 2, 21), storageDirId, allPages);
+    Assert.assertEquals(2, tInfo.getWorkerAddresses().size());
+    tInfo.addLocation(29, new NetAddress("gh", 3, 31), storageDirId, allPages);
+    Assert.assertEquals(3, tInfo.getWorkerAddresses().size());
+    tInfo.addLocation(15, new NetAddress("abc", 1, 11), storageDirId, allPages);
+    Assert.assertEquals(3, tInfo.getWorkerAddresses().size());
+    tInfo.addLocation(22, new NetAddress("def", 2, 21), storageDirId, allPages);
+    Assert.assertEquals(3, tInfo.getWorkerAddresses().size());
+    tInfo.addLocation(29, new NetAddress("gh", 3, 31), storageDirId, allPages);
+    Assert.assertEquals(3, tInfo.getWorkerAddresses().size());
     tInfo.removeLocation(15);
-    Assert.assertEquals(2, tInfo.getLocations().size());
+    Assert.assertEquals(2, tInfo.getWorkerAddresses().size());
     tInfo.removeLocation(10);
-    Assert.assertEquals(2, tInfo.getLocations().size());
+    Assert.assertEquals(2, tInfo.getWorkerAddresses().size());
+  }
+  
+  @Test
+  public void isInMemoryTest1() {
+    // First add all the pages in SSD, and isInMemory should be false. Then add them in MEM, and it
+    // should return true
+    BlockInfo tInfo =
+        new BlockInfo(new InodeFile("t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE,
+            System.currentTimeMillis()), 300, Constants.MB * 10);
+    long memStorageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
+    long ssdStorageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.SSD.getValue(), 0);
+    // Add all the pages in SSD
+    List<Long> allPages = PageUtils.generateAllPages(tInfo.mLength);
+    tInfo.addLocation(1, new NetAddress("abc", 1, 1), ssdStorageDirId, allPages);
+    Assert.assertEquals(false, tInfo.isInMemory());
+    // Add all the pages in MEM
+    tInfo.addLocation(2, new NetAddress("def", 1, 1), memStorageDirId, allPages);
+    Assert.assertEquals(true, tInfo.isInMemory());
+  }
+  
+  @Test
+  public void isInMemoryTest2() {
+    // Add half the pages in MEM, and isInMemory should return false. Then add the other half, and
+    // it should return true
+    BlockInfo tInfo =
+        new BlockInfo(new InodeFile("t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE,
+            System.currentTimeMillis()), 300, Constants.MB * 10);
+    long memStorageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
+    List<Long> allPages = PageUtils.generateAllPages(tInfo.mLength);
+    tInfo.addLocation(1, new NetAddress("abc", 1, 1), memStorageDirId,
+        allPages.subList(0, allPages.size() / 2));
+    Assert.assertEquals(false, tInfo.isInMemory());
+    tInfo.addLocation(1, new NetAddress("abc", 1, 1), memStorageDirId,
+        allPages.subList(allPages.size() / 2, allPages.size()));
+    Assert.assertEquals(true, tInfo.isInMemory());
   }
 }

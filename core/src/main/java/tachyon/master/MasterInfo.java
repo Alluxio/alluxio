@@ -75,6 +75,7 @@ import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
 import tachyon.util.CommonUtils;
+import tachyon.util.PageUtils;
 
 /**
  * A global view of filesystem in master.
@@ -896,10 +897,11 @@ public class MasterInfo extends ImageWriter {
   /**
    * A worker cache a block in its memory.
    * 
-   * @param workerId
-   * @param workerUsedBytes
-   * @param blockId
-   * @param length
+   * @param workerId the id of the worker
+   * @param workerUsedBytes how many bytes are now used in the worker
+   * @param storageDirId the id of the storageDir where the block pages were cached
+   * @param blockId the id of the block being cached
+   * @param length the length of the block being cached
    * @return the dependency id of the file if it has not been checkpointed. -1 means the file either
    *         does not have dependency or has already been checkpointed.
    * @throws FileDoesNotExistException
@@ -934,7 +936,8 @@ public class MasterInfo extends ImageWriter {
         addBlock(tFile, new BlockInfo(tFile, blockIndex, length), System.currentTimeMillis());
       }
 
-      tFile.addLocation(blockIndex, workerId, tWorkerInfo.mWorkerAddress, storageDirId);
+      tFile.addLocation(blockIndex, workerId, tWorkerInfo.mWorkerAddress, storageDirId,
+          PageUtils.generateAllPages(length));
 
       if (tFile.hasCheckpointed()) {
         return -1;
@@ -2031,7 +2034,8 @@ public class MasterInfo extends ImageWriter {
           int blockIndex = BlockInfo.computeBlockIndex(blockId);
           Inode inode = mFileIdToInodes.get(fileId);
           if (inode != null && inode.isFile()) {
-            ((InodeFile) inode).addLocation(blockIndex, id, workerAddress, storageDirId);
+            ((InodeFile) inode).addLocation(blockIndex, id, workerAddress, storageDirId, PageUtils
+                .generateAllPages(((InodeFile) inode).getClientBlockInfo(blockIndex).length));
           } else {
             LOG.warn("registerWorker failed to add fileId " + fileId + " blockIndex " + blockIndex);
           }
@@ -2181,8 +2185,8 @@ public class MasterInfo extends ImageWriter {
         Inode freeInode = freeInodes.get(i);
 
         if (freeInode.isFile()) {
-          List<Pair<Long, Long>> blockIdWorkerIdList
-              = ((InodeFile) freeInode).getBlockIdWorkerIdPairs();
+          List<Pair<Long, Long>> blockIdWorkerIdList =
+              ((InodeFile) freeInode).getBlockIdWorkerIdPairs();
           synchronized (mWorkers) {
             for (Pair<Long, Long> blockIdWorkerId : blockIdWorkerIdList) {
               MasterWorkerInfo workerInfo = mWorkers.get(blockIdWorkerId.getSecond());
@@ -2377,7 +2381,8 @@ public class MasterInfo extends ImageWriter {
                 throw new BlockInfoException("BlockInfo not found! blockIndex:" + blockIndex);
               } else {
                 BlockInfo blockInfo = blockInfoList.get(blockIndex);
-                blockInfo.addLocation(workerId, workerAddress, storageDirId);
+                blockInfo.addLocation(workerId, workerAddress, storageDirId,
+                    PageUtils.generateAllPages(blockInfo.mLength));
               }
             }
           }

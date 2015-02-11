@@ -134,14 +134,15 @@ public class InodeFile extends Inode {
    * @param workerId The id of the worker
    * @param workerAddress The net address of the worker
    * @param storageDirId The id of the StorageDir which block is located in
+   * @param pages A list of pageIds that are stored on the given worker in the given storageId
    * @throws BlockInfoException
    */
   public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress,
-      long storageDirId) throws BlockInfoException {
+      long storageDirId, List<Long> pages) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
-    mBlocks.get(blockIndex).addLocation(workerId, workerAddress, storageDirId);
+    mBlocks.get(blockIndex).addLocation(workerId, workerAddress, storageDirId, pages);
   }
 
   @Override
@@ -226,7 +227,7 @@ public class InodeFile extends Inode {
       throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
     }
 
-    return mBlocks.get(blockIndex).getLocations();
+    return mBlocks.get(blockIndex).getWorkerAddresses();
   }
 
   /**
