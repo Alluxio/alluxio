@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,6 +29,7 @@ import org.junit.Test;
 import tachyon.Pair;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
+import tachyon.conf.WorkerConf;
 import tachyon.master.BlockInfo;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
@@ -42,12 +44,19 @@ public class EvictStrategyTest {
   private static final long USER_ID = 1;
   private static final long CAPACITY = 1000;
 
+  @After
+  public final void after() {
+    WorkerConf.clear();
+    System.clearProperty("tachyon.worker.evict.strategy");
+  }
+
   @Before
   public final void before() throws IOException {
     String tachyonHome =
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
     String workerDirFolder = tachyonHome + "/ramdisk";
     String[] dirPaths = "/dir1,/dir2,/dir3".split(",");
+    WorkerConf.clear();
     System.setProperty("tachyon.worker.evict.strategy", "LFU");
     for (int i = 0; i < 3; i ++) {
       mStorageDirs[i] =
