@@ -31,7 +31,9 @@ import tachyon.UnderFileSystem;
 import tachyon.master.BlockInfo;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
+import tachyon.worker.eviction.EvictLFU;
 import tachyon.worker.eviction.EvictLRU;
+import tachyon.worker.eviction.EvictPartialLFU;
 import tachyon.worker.eviction.EvictPartialLRU;
 import tachyon.worker.eviction.EvictStrategy;
 
@@ -46,7 +48,8 @@ public class EvictStrategyTest {
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
     String workerDirFolder = tachyonHome + "/ramdisk";
     String[] dirPaths = "/dir1,/dir2,/dir3".split(",");
-    for (int i = 0; i < 3; i++) {
+    System.setProperty("tachyon.worker.evict.strategy", "LFU");
+    for (int i = 0; i < 3; i ++) {
       mStorageDirs[i] =
           new StorageDir(i + 1, workerDirFolder + dirPaths[i], CAPACITY, "/data", "/user", null);
       initializeStorageDir(mStorageDirs[i], USER_ID);
@@ -66,6 +69,59 @@ public class EvictStrategyTest {
       bhSrc.close();
     }
     dir.cacheBlock(USER_ID, blockId);
+  }
+
+  @Test
+  public void EvictLFUTest() throws IOException {
+    createBlockFile(mStorageDirs[0], BlockInfo.computeBlockId(1, 0), 550);
+    createBlockFile(mStorageDirs[1], BlockInfo.computeBlockId(2, 0), 600);
+    createBlockFile(mStorageDirs[2], BlockInfo.computeBlockId(3, 0), 500);
+    createBlockFile(mStorageDirs[0], BlockInfo.computeBlockId(4, 0), 300);
+    createBlockFile(mStorageDirs[1], BlockInfo.computeBlockId(5, 0), 300);
+    createBlockFile(mStorageDirs[2], BlockInfo.computeBlockId(6, 0), 350);
+
+    mStorageDirs[1].accessBlock(BlockInfo.computeBlockId(2, 0));
+    mStorageDirs[2].accessBlock(BlockInfo.computeBlockId(3, 0));
+    mStorageDirs[0].accessBlock(BlockInfo.computeBlockId(4, 0));
+    mStorageDirs[1].accessBlock(BlockInfo.computeBlockId(5, 0));
+
+    Set<Integer> pinList = new HashSet<Integer>();
+    EvictStrategy eviction = new EvictLFU(true);
+
+    pinList.add(1);
+    Pair<StorageDir, List<tachyon.worker.hierarchy.BlockInfo>> lfuResult =
+        eviction.getDirCandidate(mStorageDirs, pinList, 500);
+    Assert.assertEquals(mStorageDirs[2], lfuResult.getFirst());
+    Assert.assertEquals(1, lfuResult.getSecond().size());
+    Assert.assertEquals(lfuResult.getSecond().get(0).getBlockId(), BlockInfo.computeBlockId(6, 0));
+
+    for (int i = 0; i < 6; i ++) {
+      mStorageDirs[1].accessBlock(BlockInfo.computeBlockId(5, 0));
+      mStorageDirs[2].accessBlock(BlockInfo.computeBlockId(6, 0));
+    }
+    mStorageDirs[0].attenuateBlockReferenceFrequency();
+    mStorageDirs[1].attenuateBlockReferenceFrequency();
+    mStorageDirs[2].attenuateBlockReferenceFrequency();
+    mStorageDirs[2].accessBlock(BlockInfo.computeBlockId(3, 0));
+
+    pinList.add(2);
+    lfuResult = eviction.getDirCandidate(mStorageDirs, pinList, 500);
+    Assert.assertEquals(mStorageDirs[2], lfuResult.getFirst());
+    Assert.assertEquals(2, lfuResult.getSecond().size());
+    Assert.assertEquals(lfuResult.getSecond().get(0).getBlockId(), BlockInfo.computeBlockId(4, 0));
+    Assert.assertEquals(lfuResult.getSecond().get(1).getBlockId(), BlockInfo.computeBlockId(3, 0));
+
+    mStorageDirs[1].accessBlock(BlockInfo.computeBlockId(2, 0));
+    mStorageDirs[0].accessBlock(BlockInfo.computeBlockId(4, 0));
+
+    eviction = new EvictLFU(false);
+    lfuResult = eviction.getDirCandidate(mStorageDirs, pinList, 500);
+    Assert.assertEquals(mStorageDirs[0], lfuResult.getFirst());
+    Assert.assertEquals(1, lfuResult.getSecond().size());
+    Assert.assertEquals(lfuResult.getSecond().get(0).getBlockId(), BlockInfo.computeBlockId(1, 0));
+
+    lfuResult = eviction.getDirCandidate(mStorageDirs, pinList, 1001);
+    Assert.assertEquals(null, lfuResult);
   }
 
   @Test
@@ -101,6 +157,55 @@ public class EvictStrategyTest {
 
     lruResult = eviction.getDirCandidate(mStorageDirs, pinList, 1001);
     Assert.assertEquals(null, lruResult);
+  }
+
+  @Test
+  public void EvictPartialLFUTest() throws IOException {
+    createBlockFile(mStorageDirs[0], BlockInfo.computeBlockId(1, 0), 450);
+    createBlockFile(mStorageDirs[1], BlockInfo.computeBlockId(2, 0), 600);
+    createBlockFile(mStorageDirs[2], BlockInfo.computeBlockId(3, 0), 500);
+    createBlockFile(mStorageDirs[0], BlockInfo.computeBlockId(4, 0), 350);
+    createBlockFile(mStorageDirs[1], BlockInfo.computeBlockId(5, 0), 300);
+    createBlockFile(mStorageDirs[2], BlockInfo.computeBlockId(6, 0), 350);
+
+    mStorageDirs[1].accessBlock(BlockInfo.computeBlockId(2, 0));
+    mStorageDirs[2].accessBlock(BlockInfo.computeBlockId(3, 0));
+    mStorageDirs[0].accessBlock(BlockInfo.computeBlockId(4, 0));
+    mStorageDirs[1].accessBlock(BlockInfo.computeBlockId(5, 0));
+
+    Set<Integer> pinList = new HashSet<Integer>();
+    EvictStrategy eviction = new EvictPartialLFU(true);
+
+    pinList.add(1);
+    Pair<StorageDir, List<tachyon.worker.hierarchy.BlockInfo>> lfuResult =
+        eviction.getDirCandidate(mStorageDirs, pinList, 300);
+    Assert.assertEquals(mStorageDirs[0], lfuResult.getFirst());
+    Assert.assertEquals(1, lfuResult.getSecond().size());
+    Assert.assertEquals(lfuResult.getSecond().get(0).getBlockId(), BlockInfo.computeBlockId(4, 0));
+
+    for (int i = 0; i < 8; i ++) {
+      mStorageDirs[0].accessBlock(BlockInfo.computeBlockId(4, 0));
+      mStorageDirs[2].accessBlock(BlockInfo.computeBlockId(6, 0));
+    }
+    mStorageDirs[0].attenuateBlockReferenceFrequency();
+    mStorageDirs[1].attenuateBlockReferenceFrequency();
+    mStorageDirs[2].attenuateBlockReferenceFrequency();
+    mStorageDirs[2].accessBlock(BlockInfo.computeBlockId(3, 0));
+
+    pinList.add(4);
+    lfuResult = eviction.getDirCandidate(mStorageDirs, pinList, 300);
+    Assert.assertEquals(mStorageDirs[2], lfuResult.getFirst());
+    Assert.assertEquals(1, lfuResult.getSecond().size());
+    Assert.assertEquals(lfuResult.getSecond().get(0).getBlockId(), BlockInfo.computeBlockId(3, 0));
+
+    eviction = new EvictPartialLFU(false);
+    lfuResult = eviction.getDirCandidate(mStorageDirs, pinList, 400);
+    Assert.assertEquals(mStorageDirs[0], lfuResult.getFirst());
+    Assert.assertEquals(1, lfuResult.getSecond().size());
+    Assert.assertEquals(lfuResult.getSecond().get(0).getBlockId(), BlockInfo.computeBlockId(1, 0));
+
+    lfuResult = eviction.getDirCandidate(mStorageDirs, pinList, 1001);
+    Assert.assertEquals(null, lfuResult);
   }
 
   @Test
