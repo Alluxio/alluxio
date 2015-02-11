@@ -80,6 +80,7 @@ public class WorkerConf extends Utils {
   public final Optional<Integer> NETTY_SEND_BUFFER;
   public final Optional<Integer> NETTY_RECIEVE_BUFFER;
 
+  public final long BLOCK_REFERENCE_PERIOD_MS;
   public final EvictStrategyType EVICT_STRATEGY_TYPE;
   public final AllocateStrategyType ALLOCATE_STRATEGY_TYPE;
 
@@ -136,6 +137,8 @@ public class WorkerConf extends Utils {
         Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.buffer.receive",
             null));
 
+    BLOCK_REFERENCE_PERIOD_MS =
+        getIntProperty("tachyon.worker.block.reference.period.ms", Constants.MINUTE_MS);
     EVICT_STRATEGY_TYPE = getEnumProperty("tachyon.worker.evict.strategy", EvictStrategyType.LRU);
     ALLOCATE_STRATEGY_TYPE =
         getEnumProperty("tachyon.worker.allocate.strategy", AllocateStrategyType.MAX_FREE);

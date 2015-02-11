@@ -304,6 +304,8 @@ public class WorkerStorage {
   private final Multimap<Long, Long> mUserIdToTempBlockIds = Multimaps
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
 
+  private long mLastAttenuateBlockReferenceMs;
+
   /**
    * Main logic behind the worker process.
    * 
@@ -322,6 +324,12 @@ public class WorkerStorage {
 
     mDataFolder = WorkerConf.get().DATA_FOLDER;
     mUserFolder = CommonUtils.concat(mDataFolder, WorkerConf.USER_TEMP_RELATIVE_FOLDER);
+
+    if (WorkerConf.get().EVICT_STRATEGY_TYPE.needReferenceFrequency()) {
+      mLastAttenuateBlockReferenceMs = 0;
+    } else {
+      mLastAttenuateBlockReferenceMs = -1;
+    }
   }
 
   public void initialize(final NetAddress address) {
@@ -538,6 +546,18 @@ public class WorkerStorage {
         }
       }
       mUsers.removeUser(userId);
+    }
+
+    if (mLastAttenuateBlockReferenceMs != -1) {
+      long diff = System.currentTimeMillis() - mLastAttenuateBlockReferenceMs;
+      if (diff > WorkerConf.get().BLOCK_REFERENCE_PERIOD_MS) {
+        for (StorageTier storageTier : mStorageTiers) {
+          for (StorageDir storageDir : storageTier.getStorageDirs()) {
+            storageDir.attenuateBlockReferenceFrequency();
+          }
+        }
+        mLastAttenuateBlockReferenceMs = System.currentTimeMillis();
+      }
     }
   }
 

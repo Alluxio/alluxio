@@ -20,11 +20,23 @@ package tachyon.worker.eviction;
  */
 public enum EvictStrategyType {
   /**
+   * Evict old blocks among several StorageDirs by LFU
+   */
+  LFU,
+  /**
    * Evict old blocks among several StorageDirs by LRU
    */
   LRU,
   /**
+   * Evict old blocks in certain StorageDir by LFU.
+   */
+  PARTIAL_LFU,
+  /**
    * Evict old blocks in certain StorageDir by LRU.
    */
   PARTIAL_LRU;
+
+  public boolean needReferenceFrequency() {
+    return this == LFU || this == PARTIAL_LFU;
+  }
 }

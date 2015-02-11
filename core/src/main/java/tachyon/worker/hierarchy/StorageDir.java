@@ -42,6 +42,7 @@ import tachyon.Pair;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.Users;
+import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.SpaceCounter;
@@ -56,6 +57,8 @@ public final class StorageDir {
   /** Mapping from blockId to its last access time in milliseconds */
   private final ConcurrentMap<Long, Long> mLastBlockAccessTimeMs =
       new ConcurrentHashMap<Long, Long>();
+  /** Mapping from blockId to its reference counting. Current used for LFU. */
+  private final ConcurrentMap<Long, Long> mBlockReferenceFrequency;
   /** List of added block Ids to be reported */
   private final BlockingQueue<Long> mAddedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
@@ -106,6 +109,11 @@ public final class StorageDir {
     mUserTempPath = mDirPath.join(userTempFolder);
     mConf = conf;
     mFs = UnderFileSystem.get(dirPath, conf);
+    if (WorkerConf.get().EVICT_STRATEGY_TYPE.needReferenceFrequency()) {
+      mBlockReferenceFrequency = new ConcurrentHashMap<Long, Long>();
+    } else {
+      mBlockReferenceFrequency = null;
+    }
   }
 
   /**
@@ -117,6 +125,7 @@ public final class StorageDir {
     synchronized (mLastBlockAccessTimeMs) {
       if (containsBlock(blockId)) {
         mLastBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
+        updateReferenceFrequency(blockId, -1);
       }
     }
   }
@@ -129,7 +138,7 @@ public final class StorageDir {
    * @param report need to be reported during heartbeat with master
    */
   private void addBlockId(long blockId, long sizeBytes, boolean report) {
-    addBlockId(blockId, sizeBytes, System.currentTimeMillis(), report);
+    addBlockId(blockId, sizeBytes, System.currentTimeMillis(), -1, report);
   }
 
   /**
@@ -138,17 +147,34 @@ public final class StorageDir {
    * @param blockId Id of the block
    * @param sizeBytes size of the block in bytes
    * @param accessTimeMs access time of the block in millisecond.
+   * @param referenceFrequency reference frequency of the block
    * @param report whether need to be reported During heart beat with master
    */
-  private void addBlockId(long blockId, long sizeBytes, long accessTimeMs, boolean report) {
+  private void addBlockId(long blockId, long sizeBytes, long accessTimeMs, long referenceFrequency,
+      boolean report) {
     synchronized (mLastBlockAccessTimeMs) {
       mLastBlockAccessTimeMs.put(blockId, accessTimeMs);
+      updateReferenceFrequency(blockId, referenceFrequency);
       if (mBlockSizes.containsKey(blockId)) {
         mSpaceCounter.returnUsedBytes(mBlockSizes.remove(blockId));
       }
       mBlockSizes.put(blockId, sizeBytes);
       if (report) {
         mAddedBlockIdList.add(blockId);
+      }
+    }
+  }
+
+  /**
+   * Attenuate the reference Frequency of each block by halving the value. This should be executed
+   * periodically.
+   */
+  public void attenuateBlockReferenceFrequency() {
+    if (mBlockReferenceFrequency != null) {
+      synchronized (mLastBlockAccessTimeMs) {
+        for (long blockId : mBlockReferenceFrequency.keySet()) {
+          mBlockReferenceFrequency.put(blockId, mBlockReferenceFrequency.get(blockId) / 2);
+        }
       }
     }
   }
@@ -268,7 +294,11 @@ public final class StorageDir {
       CommonUtils.cleanDirectBuffer(buffer);
     }
     if (copySuccess) {
-      dstDir.addBlockId(blockId, size, mLastBlockAccessTimeMs.get(blockId), true);
+      long refFreq = -1;
+      if (mBlockReferenceFrequency != null && mBlockReferenceFrequency.containsKey(blockId)) {
+        refFreq = mBlockReferenceFrequency.get(blockId);
+      }
+      dstDir.addBlockId(blockId, size, mLastBlockAccessTimeMs.get(blockId), refFreq, true);
     }
     return copySuccess;
   }
@@ -286,6 +316,9 @@ public final class StorageDir {
     if (accessTimeMs == null) {
       LOG.warn("Block does not exist in current StorageDir! blockId:{}", blockId);
       return false;
+    }
+    if (mBlockReferenceFrequency != null) {
+      mBlockReferenceFrequency.remove(blockId);
     }
     String blockfile = getBlockFilePath(blockId);
     // Should check lock status here 
@@ -310,6 +343,9 @@ public final class StorageDir {
   private void deleteBlockId(long blockId) {
     synchronized (mLastBlockAccessTimeMs) {
       mLastBlockAccessTimeMs.remove(blockId);
+      if (mBlockReferenceFrequency != null) {
+        mBlockReferenceFrequency.remove(blockId);
+      }
       mSpaceCounter.returnUsedBytes(mBlockSizes.remove(blockId));
       if (mAddedBlockIdList.contains(blockId)) {
         mAddedBlockIdList.remove(blockId);
@@ -390,6 +426,15 @@ public final class StorageDir {
    */
   public Set<Long> getBlockIds() {
     return mLastBlockAccessTimeMs.keySet();
+  }
+
+  /**
+   * Get reference frequency of blocks in current StorageDir
+   * 
+   * @return set of map entry mapping from block Id to its reference frequency
+   */
+  public Set<Entry<Long, Long>> getBlockReferenceFrequency() {
+    return mBlockReferenceFrequency.entrySet();
   }
 
   /**
@@ -699,6 +744,26 @@ public final class StorageDir {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Update the reference frequency of certain block. If referenceFrequency is -1, increment by 1,
+   * other wise set to the referenceFrequency.
+   * 
+   * @param blockId Id of the block
+   * @param referenceFrequency frequency value to be set
+   */
+  private void updateReferenceFrequency(long blockId, long referenceFrequency) {
+    if (mBlockReferenceFrequency != null) {
+      if (referenceFrequency == -1) {
+        if (mBlockReferenceFrequency.containsKey(blockId)) {
+          referenceFrequency = mBlockReferenceFrequency.get(blockId) + 1;
+        } else {
+          referenceFrequency = 1L;
+        }
+      }
+      mBlockReferenceFrequency.put(blockId, referenceFrequency);
+    }
   }
 
   /**
