@@ -40,7 +40,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Class to make referencing hierarchy storage information more intuitive.
    */
-  public static class HierarchyStorageInfo {
+  public static class StorageTierInfo {
     private final StorageLevelAlias mStorageLevelAlias;
     private final long mCapacityBytes;
     private final long mUsedBytes;
@@ -48,7 +48,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     private final long mFreeBytes;
     private final int mFreePercent;
 
-    private HierarchyStorageInfo(int storageLevelAliasValue, long capacityBytes, long usedBytes) {
+    private StorageTierInfo(int storageLevelAliasValue, long capacityBytes, long usedBytes) {
       mStorageLevelAlias = StorageLevelAlias.values()[storageLevelAliasValue - 1];
       mCapacityBytes = capacityBytes;
       mUsedBytes = usedBytes;
@@ -123,23 +123,23 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   }
 
   /**
-   * List the HierarchyStorageInfo objects of each storage level(alias).
+   * List the StorageTierInfo objects of each storage level(alias).
    * 
-   * @return the list of HierarchyStorageInfo objects.
+   * @return the list of StorageTierInfo objects.
    */
-  private HierarchyStorageInfo[] generateOrderedHierarchyStorageInfo() {
-    List<HierarchyStorageInfo> infos = new ArrayList<HierarchyStorageInfo>();
-    List<Long> totalBytesByAlias = mMasterInfo.getHierarchyTotalBytesByAlias();
-    List<Long> usedBytesByAlias = mMasterInfo.getHierarchyUsedBytesByAlias();
+  private StorageTierInfo[] generateOrderedStorageTierInfo() {
+    List<StorageTierInfo> infos = new ArrayList<StorageTierInfo>();
+    List<Long> totalBytesOnTiers = mMasterInfo.getTotalBytesOnTiers();
+    List<Long> usedBytesOnTiers = mMasterInfo.getUsedBytesOnTiers();
 
-    for (int i = 0; i < totalBytesByAlias.size(); i ++) {
-      if (totalBytesByAlias.get(i) > 0) {
-        HierarchyStorageInfo info =
-            new HierarchyStorageInfo(i + 1, totalBytesByAlias.get(i), usedBytesByAlias.get(i));
+    for (int i = 0; i < totalBytesOnTiers.size(); i ++) {
+      if (totalBytesOnTiers.get(i) > 0) {
+        StorageTierInfo info =
+            new StorageTierInfo(i + 1, totalBytesOnTiers.get(i), usedBytesOnTiers.get(i));
         infos.add(info);
       }
     }
-    HierarchyStorageInfo[] ret = infos.toArray(new HierarchyStorageInfo[infos.size()]);
+    StorageTierInfo[] ret = infos.toArray(new StorageTierInfo[infos.size()]);
 
     return ret;
   }
@@ -199,7 +199,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("recomputeVariables", DependencyVariables.VARIABLES);
 
-    HierarchyStorageInfo[] infos = generateOrderedHierarchyStorageInfo();
-    request.setAttribute("hierarchyStorageInfos", infos);
+    StorageTierInfo[] infos = generateOrderedStorageTierInfo();
+    request.setAttribute("storageTierInfos", infos);
   }
 }

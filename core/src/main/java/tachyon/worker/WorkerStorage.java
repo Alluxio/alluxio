@@ -294,7 +294,6 @@ public class WorkerStorage {
 
   private final ExecutorService mExecutorService;
   private long mCapacityBytes;
-  private List<Long> mCapacityBytesByAlias = new ArrayList<Long>();
   private ArrayList<StorageTier> mStorageTiers;
   private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
@@ -424,7 +423,7 @@ public class WorkerStorage {
       for (StorageDir curStorageDir : curStorageTier.getStorageDirs()) {
         for (Entry<Long, Long> blockSize : curStorageDir.getBlockSizes()) {
           try {
-            mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytesByAlias().get(curStorageTier
+            mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytesOnTiers().get(curStorageTier
                 .getAlias().getValue() - 1), curStorageDir.getStorageDirId(), blockSize.getKey(),
                 blockSize.getValue());
           } catch (FileDoesNotExistException e) {
@@ -497,7 +496,7 @@ public class WorkerStorage {
     }
     if (result) {
       long blockSize = storageDir.getBlockSize(blockId);
-      mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytesByAlias()
+      mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytesOnTiers()
           .get(StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId()) - 1),
           storageDir.getStorageDirId(), blockId, blockSize);
     }
@@ -616,13 +615,13 @@ public class WorkerStorage {
   }
   
   /**
-   * Get used bytes of each storage level(alias)
+   * Get used bytes on each storage tier
    * 
-   * @return used bytes of each storage level(alias)
+   * @return used bytes on each storage tier
    */
-  private List<Long> getUsedBytesByAlias() {
+  private List<Long> getUsedBytesOnTiers() {
     List<Long> usedBytes = new ArrayList<Long>();
-    for (int i = 0; i < StorageLevelAlias.values().length; i++) {
+    for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
       usedBytes.add((long) 0);
     }
     for (StorageTier curTier : mStorageTiers) {
@@ -671,7 +670,7 @@ public class WorkerStorage {
       }
     }
     return mMasterClient
-        .worker_heartbeat(mWorkerId, getUsedBytesByAlias(), removedBlockIds, addedBlockIds);
+        .worker_heartbeat(mWorkerId, getUsedBytesOnTiers(), removedBlockIds, addedBlockIds);
   }
 
   /**
@@ -681,9 +680,6 @@ public class WorkerStorage {
    */
   public void initializeStorageTier() throws IOException {
     mStorageTiers = new ArrayList<StorageTier>(WorkerConf.get().STORAGE_LEVELS);
-    for (int k = 0; k < StorageLevelAlias.values().length; k ++) {
-      mCapacityBytesByAlias.add((long) 0);
-    }
     for (int k = 0; k < WorkerConf.get().STORAGE_LEVELS; k ++) {
       mStorageTiers.add(null);
     }
@@ -714,8 +710,6 @@ public class WorkerStorage {
               nextStorageTier, null); // TODO add conf for UFS
       curTier.initialize();
       mCapacityBytes += curTier.getCapacityBytes();
-      mCapacityBytesByAlias.set(curTier.getAlias().getValue() - 1, mCapacityBytesByAlias
-          .get(curTier.getAlias().getValue() - 1) + curTier.getCapacityBytes());
       mStorageTiers.set(level, curTier);
       nextStorageTier = curTier;
     }
@@ -793,8 +787,14 @@ public class WorkerStorage {
   public void register() {
     long id = 0;
     Map<Long, List<Long>> blockIdLists = new HashMap<Long, List<Long>>();
+    List<Long> capacityBytesOnTiers = new ArrayList<Long>();
     
+    for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
+      capacityBytesOnTiers.add((long) 0);
+    }
     for (StorageTier curStorageTier : mStorageTiers) {
+      capacityBytesOnTiers.set(curStorageTier.getAlias().getValue() - 1, capacityBytesOnTiers
+          .get(curStorageTier.getAlias().getValue() - 1) + curStorageTier.getCapacityBytes());
       for (StorageDir curStorageDir : curStorageTier.getStorageDirs()) {
         Set<Long> blockSet = curStorageDir.getBlockIds();
         blockIdLists.put(curStorageDir.getStorageDirId(), new ArrayList<Long>(blockSet));
@@ -804,7 +804,7 @@ public class WorkerStorage {
       try {
         id =
             mMasterClient.worker_register(mWorkerAddress, 
-                mCapacityBytesByAlias, getUsedBytesByAlias(), blockIdLists);
+                capacityBytesOnTiers, getUsedBytesOnTiers(), blockIdLists);
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;

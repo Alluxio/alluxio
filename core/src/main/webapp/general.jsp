@@ -99,20 +99,20 @@
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion3" href="#data3">
-            <h4>Hierarchy Usage Summary</h4>
+            <h4>Storage Usage Summary</h4>
           </a>
         </div>
         <div id="data3" class="accordion-body collapse in">
           <div class="accordion-inner">
             <table class="table table-hover table-condensed">
               <thead>
-                <th>Hierarchy Store Alias</th>
+                <th>Storage Alias</th>
                 <th>Space Capacity</th>
                 <th>Space Used</th>
                 <th>Space Usage</th>
               </thead>
               <tbody>
-                <% for (WebInterfaceGeneralServlet.HierarchyStorageInfo info : ((WebInterfaceGeneralServlet.HierarchyStorageInfo[]) request.getAttribute("hierarchyStorageInfos"))) { %>
+                <% for (WebInterfaceGeneralServlet.StorageTierInfo info : ((WebInterfaceGeneralServlet.StorageTierInfo[]) request.getAttribute("storageTierInfos"))) { %>
                   <tr>
                     <th><%= info.getStorageLevelAlias() %></th>
                     <th><%= info.getCapacity() %></th>
@@ -121,7 +121,7 @@
                       <div class="progress custom-progress">
                         <div class="bar bar-success" style="width: <%= info.getFreeSpacePercent() %>%;">
                           <% if (info.getFreeSpacePercent() >= info.getUsedSpacePercent()) { %>
-                          <%= info.getFreeSpacePercent() %>%Free
+                            <%= info.getFreeSpacePercent() %>%Free
                           <% } %>
                         </div>
                         <div class="bar bar-danger" style="width: <%= info.getUsedSpacePercent() %>%;">
