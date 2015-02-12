@@ -44,7 +44,7 @@ public class Users {
   private final Map<Long, UserInfo> mUsers;
   private final TachyonConf mTachyonConf;
 
-  public Users( String userUfsFolder, TachyonConf tachyonConf) {
+  public Users(String userUfsFolder, TachyonConf tachyonConf) {
     mUserUnderFSFolder = userUfsFolder;
     mUsers = new HashMap<Long, UserInfo>();
     mTachyonConf = tachyonConf;
