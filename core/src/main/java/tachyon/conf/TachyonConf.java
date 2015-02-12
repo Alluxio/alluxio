@@ -178,7 +178,7 @@ public class TachyonConf {
       try {
         siteProps.load(siteInputStream);
       } catch (IOException e) {
-        LOG.info("Unable to load site Tachyon configuration file.", e);
+        LOG.warn("Unable to load site Tachyon configuration file.", e);
       }
     }
 
