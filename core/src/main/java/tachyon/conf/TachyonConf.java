@@ -156,8 +156,10 @@ public class TachyonConf {
       try {
         defaultProps.load(defaultInputStream);
       } catch (IOException e) {
-        throw new RuntimeException("Unable to load default Tachyon properties file.");
+        throw new RuntimeException("Unable to load default Tachyon properties file.", e);
       }
+    } else {
+      throw new RuntimeException("The default Tachyon properties file does not exist.");
     }
 
     // Update tachyon.master_address
