@@ -899,7 +899,7 @@ public class MasterInfo extends ImageWriter {
    * A worker cache a block in its memory.
    * 
    * @param workerId
-   * @param usedBytesOfAlias
+   * @param usedBytesOnTier
    * @param blockId
    * @param length
    * @return the dependency id of the file if it has not been checkpointed. -1 means the file either
@@ -908,16 +908,16 @@ public class MasterInfo extends ImageWriter {
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */
-  public int cacheBlock(long workerId, long usedBytesOfAlias, long storageDirId, long blockId,
+  public int cacheBlock(long workerId, long usedBytesOnTier, long storageDirId, long blockId,
       long length)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
     LOG.debug("Cache block: {}",
-        CommonUtils.parametersToString(workerId, usedBytesOfAlias, blockId, length));
+        CommonUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
     
     MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
     int storageLevelAliasValue = StorageDirId.getStorageLevelAliasValue(storageDirId);
     tWorkerInfo.updateBlock(true, blockId);
-    tWorkerInfo.updateUsedBytes(storageLevelAliasValue, usedBytesOfAlias);
+    tWorkerInfo.updateUsedBytes(storageLevelAliasValue, usedBytesOnTier);
     tWorkerInfo.updateLastUpdatedTimeMs();
 
     int fileId = BlockInfo.computeInodeId(blockId);
@@ -1381,17 +1381,17 @@ public class MasterInfo extends ImageWriter {
   }
   
   /**
-   * @return the total bytes of each storage level(alias).
+   * @return the total bytes on each storage tier.
    */
-  public List<Long> getHierarchyTotalBytesByAlias() {
+  public List<Long> getTotalBytesOnTiers() {
     List<Long> ret = new ArrayList<Long>();
     synchronized (mWorkers) {
       for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
         ret.add((long) 0);
       }
       for (MasterWorkerInfo worker : mWorkers.values()) {
-        for (int i = 0; i < worker.getTotalBytesByAlias().size(); i ++) {
-          ret.set(i, ret.get(i) + worker.getTotalBytesByAlias().get(i));
+        for (int i = 0; i < worker.getTotalBytesOnTiers().size(); i ++) {
+          ret.set(i, ret.get(i) + worker.getTotalBytesOnTiers().get(i));
         }
       }
     }
@@ -1399,17 +1399,17 @@ public class MasterInfo extends ImageWriter {
   }
   
   /**
-   * @return the used bytes of each storage level(alias).
+   * @return the used bytes on each storage tier.
    */
-  public List<Long> getHierarchyUsedBytesByAlias() {
+  public List<Long> getUsedBytesOnTiers() {
     List<Long> ret = new ArrayList<Long>();
     synchronized (mWorkers) {
       for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
         ret.add((long) 0);
       }
       for (MasterWorkerInfo worker : mWorkers.values()) {
-        for (int i = 0; i < worker.getUsedBytesByAlias().size(); i ++) {
-          ret.set(i, ret.get(i) + worker.getUsedBytesByAlias().get(i));  
+        for (int i = 0; i < worker.getUsedBytesOnTiers().size(); i ++) {
+          ret.set(i, ret.get(i) + worker.getUsedBytesOnTiers().get(i));  
         }
       }
     }
@@ -2026,14 +2026,14 @@ public class MasterInfo extends ImageWriter {
    * blocks.
    * 
    * @param workerNetAddress The address of the worker to register
-   * @param totalBytesByAlias Total bytes of each storage level(alias)
-   * @param usedBytesByAlias Used Bytes of each storage level(alias)
+   * @param totalBytesOnTiers Total bytes on each storage tier
+   * @param usedBytesOnTiers Used Bytes on each storage tier
    * @param currentBlockIds Mapping from id of the StorageDir to id list of the blocks
    * @return the new id of the registered worker
    * @throws BlockInfoException
    */
-  public long registerWorker(NetAddress workerNetAddress, List<Long> totalBytesByAlias,
-      List<Long> usedBytesByAlias, Map<Long, List<Long>> currentBlockIds)
+  public long registerWorker(NetAddress workerNetAddress, List<Long> totalBytesOnTiers,
+      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlockIds)
           throws BlockInfoException {
     long id = 0;
     long capacityBytes = 0;
@@ -2053,12 +2053,12 @@ public class MasterInfo extends ImageWriter {
         LOG.warn("The worker with id " + id + " has been removed.");
       }
       id = mStartTimeNSPrefix + mWorkerCounter.incrementAndGet();
-      for (long b : totalBytesByAlias) {
+      for (long b : totalBytesOnTiers) {
         capacityBytes += b;
       }
       MasterWorkerInfo tWorkerInfo =
-          new MasterWorkerInfo(id, workerAddress, totalBytesByAlias, capacityBytes);
-      tWorkerInfo.updateUsedBytes(usedBytesByAlias); 
+          new MasterWorkerInfo(id, workerAddress, totalBytesOnTiers, capacityBytes);
+      tWorkerInfo.updateUsedBytes(usedBytesOnTiers); 
       for (List<Long> blockIds : currentBlockIds.values()) {
         tWorkerInfo.updateBlocks(true, blockIds);
       }
@@ -2369,13 +2369,13 @@ public class MasterInfo extends ImageWriter {
    * block id's.
    * 
    * @param workerId The id of the worker to deal with
-   * @param usedBytesByAlias Used bytes of each storage level(alias)
+   * @param usedBytesOnTiers Used bytes on each storage tier
    * @param removedBlockIds The list of removed block ids
    * @param addedBlockIds Mapping from id of the StorageDir and id list of blocks evicted in
    * @return a command specifying an action to take
    * @throws BlockInfoException
    */
-  public Command workerHeartbeat(long workerId, List<Long> usedBytesByAlias,
+  public Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds) throws BlockInfoException {
     LOG.debug("WorkerId: {}", workerId);
     synchronized (mRootLock) {
@@ -2388,7 +2388,7 @@ public class MasterInfo extends ImageWriter {
           return new Command(CommandType.Register, new ArrayList<Long>());
         }
 
-        tWorkerInfo.updateUsedBytes(usedBytesByAlias);
+        tWorkerInfo.updateUsedBytes(usedBytesOnTiers);
         tWorkerInfo.updateBlocks(false, removedBlockIds);
         tWorkerInfo.updateToRemovedBlocks(false, removedBlockIds);
         tWorkerInfo.updateLastUpdatedTimeMs();
