@@ -52,6 +52,9 @@ import tachyon.worker.SpaceCounter;
  */
 public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  /** Update reference frequency with -1 means to increment it */
+  private static final long REFERENCE_FREQUENCY_INCREMENT = -1;
+
   /** Mapping from blockId to blockSize in bytes */
   private final ConcurrentMap<Long, Long> mBlockSizes = new ConcurrentHashMap<Long, Long>();
   /** Mapping from blockId to its last access time in milliseconds */
@@ -125,7 +128,7 @@ public final class StorageDir {
     synchronized (mLastBlockAccessTimeMs) {
       if (containsBlock(blockId)) {
         mLastBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
-        updateReferenceFrequency(blockId, -1);
+        updateReferenceFrequency(blockId, REFERENCE_FREQUENCY_INCREMENT);
       }
     }
   }
@@ -138,7 +141,8 @@ public final class StorageDir {
    * @param report need to be reported during heartbeat with master
    */
   private void addBlockId(long blockId, long sizeBytes, boolean report) {
-    addBlockId(blockId, sizeBytes, System.currentTimeMillis(), -1, report);
+    addBlockId(blockId, sizeBytes, System.currentTimeMillis(), REFERENCE_FREQUENCY_INCREMENT,
+        report);
   }
 
   /**
@@ -294,7 +298,7 @@ public final class StorageDir {
       CommonUtils.cleanDirectBuffer(buffer);
     }
     if (copySuccess) {
-      long refFreq = -1;
+      long refFreq = REFERENCE_FREQUENCY_INCREMENT;
       if (mBlockReferenceFrequency != null && mBlockReferenceFrequency.containsKey(blockId)) {
         refFreq = mBlockReferenceFrequency.get(blockId);
       }
@@ -747,15 +751,15 @@ public final class StorageDir {
   }
 
   /**
-   * Update the reference frequency of certain block. If referenceFrequency is -1, increment by 1,
-   * other wise set to the referenceFrequency.
+   * Update the reference frequency of certain block. If referenceFrequency is
+   * REFERENCE_FREQUENCY_INCREMENT, increment by 1, other wise set to the referenceFrequency.
    * 
    * @param blockId Id of the block
    * @param referenceFrequency frequency value to be set
    */
   private void updateReferenceFrequency(long blockId, long referenceFrequency) {
     if (mBlockReferenceFrequency != null) {
-      if (referenceFrequency == -1) {
+      if (referenceFrequency == REFERENCE_FREQUENCY_INCREMENT) {
         if (mBlockReferenceFrequency.containsKey(blockId)) {
           referenceFrequency = mBlockReferenceFrequency.get(blockId) + 1;
         } else {

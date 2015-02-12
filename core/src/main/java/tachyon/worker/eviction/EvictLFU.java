@@ -28,7 +28,10 @@ import tachyon.worker.hierarchy.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * Used to evict old blocks among several StorageDirs by LFU strategy.
+ * Used to evict old blocks among several StorageDirs by LFU strategy. LFU (Least Frequently Used)
+ * algorithm evicts blocks with the lowest reference frequency. @see <a
+ * href="http://en.wikipedia.org/wiki/Least_frequently_used"
+ * >http://en.wikipedia.org/wiki/Least_frequently_used</a>
  */
 public final class EvictLFU extends EvictLFUBase {
 
@@ -36,6 +39,17 @@ public final class EvictLFU extends EvictLFUBase {
     super(lastTier);
   }
 
+  /**
+   * Get StorageDir allocated and also get blocks to be evicted among StorageDir candidates. Since
+   * each StorageTier has only one EvictStrategy but may have more than one eviction event at one
+   * time so it needs to be synchronized.
+   * 
+   * @param storageDirs StorageDir candidates that the space will be allocated in
+   * @param pinList list of pinned file
+   * @param requestBytes requested space size in bytes
+   * @return Pair of StorageDir allocated and blockInfoList which contains information of blocks to
+   *         be evicted, null if no allocated directory is found
+   */
   @Override
   public synchronized Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
       Set<Integer> pinList, long requestBytes) {

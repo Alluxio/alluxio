@@ -304,7 +304,7 @@ public class WorkerStorage {
   private final Multimap<Long, Long> mUserIdToTempBlockIds = Multimaps
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
 
-  private long mLastAttenuateBlockReferenceMs;
+  private Long mLastAttenuateBlockReferenceMs;
 
   /**
    * Main logic behind the worker process.
@@ -326,9 +326,9 @@ public class WorkerStorage {
     mUserFolder = CommonUtils.concat(mDataFolder, WorkerConf.USER_TEMP_RELATIVE_FOLDER);
 
     if (WorkerConf.get().EVICT_STRATEGY_TYPE.needReferenceFrequency()) {
-      mLastAttenuateBlockReferenceMs = 0;
+      mLastAttenuateBlockReferenceMs = System.nanoTime() / 1000000L;
     } else {
-      mLastAttenuateBlockReferenceMs = -1;
+      mLastAttenuateBlockReferenceMs = null;
     }
   }
 
@@ -548,15 +548,17 @@ public class WorkerStorage {
       mUsers.removeUser(userId);
     }
 
-    if (mLastAttenuateBlockReferenceMs != -1) {
-      long diff = System.currentTimeMillis() - mLastAttenuateBlockReferenceMs;
+    // If block reference frequency is enabled (e.g. use LFU eviction policy), periodically
+    // attenuate the block reference frequency on each StorageDir.
+    if (mLastAttenuateBlockReferenceMs != null) {
+      long diff = System.nanoTime() / 1000000L - mLastAttenuateBlockReferenceMs;
       if (diff > WorkerConf.get().BLOCK_REFERENCE_PERIOD_MS) {
         for (StorageTier storageTier : mStorageTiers) {
           for (StorageDir storageDir : storageTier.getStorageDirs()) {
             storageDir.attenuateBlockReferenceFrequency();
           }
         }
-        mLastAttenuateBlockReferenceMs = System.currentTimeMillis();
+        mLastAttenuateBlockReferenceMs = System.nanoTime() / 1000000L;
       }
     }
   }

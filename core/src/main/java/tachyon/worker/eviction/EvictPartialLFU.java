@@ -25,7 +25,9 @@ import tachyon.worker.hierarchy.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * Used to evict blocks in certain StorageDir by LFU strategy.
+ * Used to evict blocks in certain StorageDir by LFU strategy. Different from EvictLFU, this
+ * PartialLFU first chooses a StorageDir with the max free space. Then it applies LFU algorithm in
+ * one StorageDir instead of the whole StorageTier.
  */
 public final class EvictPartialLFU extends EvictLFUBase {
 
@@ -33,8 +35,19 @@ public final class EvictPartialLFU extends EvictLFUBase {
     super(lastTier);
   }
 
+  /**
+   * Get StorageDir allocated and also get blocks to be evicted among StorageDir candidates. Since
+   * each StorageTier has only one EvictStrategy but may have more than one eviction event at one
+   * time so it needs to be synchronized.
+   * 
+   * @param storageDirs StorageDir candidates that the space will be allocated in
+   * @param pinList list of pinned file
+   * @param requestBytes requested space size in bytes
+   * @return Pair of StorageDir allocated and blockInfoList which contains information of blocks to
+   *         be evicted, null if no allocated directory is found
+   */
   @Override
-  public Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
+  public synchronized Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
       Set<Integer> pinList, long requestBytes) {
     /** blocks to be evicted */
     List<BlockInfo> blockInfoList = new ArrayList<BlockInfo>();
