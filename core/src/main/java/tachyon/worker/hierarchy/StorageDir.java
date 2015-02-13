@@ -52,8 +52,8 @@ import tachyon.worker.SpaceCounter;
  */
 public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** Update reference frequency with -1 means to increment it */
-  private static final long REFERENCE_FREQUENCY_INCREMENT = -1;
+  /** The initial value of block's reference frequency */
+  private static final long INITIAL_REFERENCE_FREQUENCY = 1;
 
   /** Mapping from blockId to blockSize in bytes */
   private final ConcurrentMap<Long, Long> mBlockSizes = new ConcurrentHashMap<Long, Long>();
@@ -128,7 +128,7 @@ public final class StorageDir {
     synchronized (mLastBlockAccessTimeMs) {
       if (containsBlock(blockId)) {
         mLastBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
-        updateReferenceFrequency(blockId, REFERENCE_FREQUENCY_INCREMENT);
+        incrementReferenceFrequency(blockId);
       }
     }
   }
@@ -141,7 +141,7 @@ public final class StorageDir {
    * @param report need to be reported during heartbeat with master
    */
   private void addBlockId(long blockId, long sizeBytes, boolean report) {
-    addBlockId(blockId, sizeBytes, System.currentTimeMillis(), REFERENCE_FREQUENCY_INCREMENT,
+    addBlockId(blockId, sizeBytes, System.currentTimeMillis(), INITIAL_REFERENCE_FREQUENCY,
         report);
   }
 
@@ -158,7 +158,7 @@ public final class StorageDir {
       boolean report) {
     synchronized (mLastBlockAccessTimeMs) {
       mLastBlockAccessTimeMs.put(blockId, accessTimeMs);
-      updateReferenceFrequency(blockId, referenceFrequency);
+      initializeReferenceFrequency(blockId, referenceFrequency);
       if (mBlockSizes.containsKey(blockId)) {
         mSpaceCounter.returnUsedBytes(mBlockSizes.remove(blockId));
       }
@@ -298,7 +298,7 @@ public final class StorageDir {
       CommonUtils.cleanDirectBuffer(buffer);
     }
     if (copySuccess) {
-      long refFreq = REFERENCE_FREQUENCY_INCREMENT;
+      long refFreq = INITIAL_REFERENCE_FREQUENCY;
       if (mBlockReferenceFrequency != null && mBlockReferenceFrequency.containsKey(blockId)) {
         refFreq = mBlockReferenceFrequency.get(blockId);
       }
@@ -597,6 +597,23 @@ public final class StorageDir {
   }
 
   /**
+   * Increment the reference frequency of certain block.
+   * 
+   * @param blockId Id of the block
+   */
+  private void incrementReferenceFrequency(long blockId) {
+    if (mBlockReferenceFrequency != null) {
+      long refFreq = INITIAL_REFERENCE_FREQUENCY;
+      if (mBlockReferenceFrequency.containsKey(blockId)) {
+        refFreq = mBlockReferenceFrequency.get(blockId) + 1;
+      } else {
+        LOG.warn("Block's reference frequency does not initialize! blockId:{}", blockId);
+      }
+      mBlockReferenceFrequency.put(blockId, refFreq);
+    }
+  }
+
+  /**
    * Initialize current StorageDir
    * 
    * @throws IOException
@@ -640,6 +657,18 @@ public final class StorageDir {
       }
     }
     return;
+  }
+
+  /**
+   * Initialize the reference frequency of certain block with the given frequency value.
+   * 
+   * @param blockId Id of the block
+   * @param referenceFrequency frequency value to be set
+   */
+  private void initializeReferenceFrequency(long blockId, long referenceFrequency) {
+    if (mBlockReferenceFrequency != null) {
+      mBlockReferenceFrequency.put(blockId, referenceFrequency);
+    }
   }
 
   /**
@@ -748,26 +777,6 @@ public final class StorageDir {
       return true;
     }
     return false;
-  }
-
-  /**
-   * Update the reference frequency of certain block. If referenceFrequency is
-   * REFERENCE_FREQUENCY_INCREMENT, increment by 1, other wise set to the referenceFrequency.
-   * 
-   * @param blockId Id of the block
-   * @param referenceFrequency frequency value to be set
-   */
-  private void updateReferenceFrequency(long blockId, long referenceFrequency) {
-    if (mBlockReferenceFrequency != null) {
-      if (referenceFrequency == REFERENCE_FREQUENCY_INCREMENT) {
-        if (mBlockReferenceFrequency.containsKey(blockId)) {
-          referenceFrequency = mBlockReferenceFrequency.get(blockId) + 1;
-        } else {
-          referenceFrequency = 1L;
-        }
-      }
-      mBlockReferenceFrequency.put(blockId, referenceFrequency);
-    }
   }
 
   /**
