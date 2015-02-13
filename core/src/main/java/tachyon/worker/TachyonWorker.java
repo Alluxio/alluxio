@@ -122,15 +122,15 @@ public class TachyonWorker implements Runnable {
     String resolvedWorkerHost = NetworkUtils.getLocalHostName();
     LOG.info("Resolved local TachyonWorker host to " + resolvedWorkerHost);
 
-    TachyonWorker worker =
-        TachyonWorker.createWorker(getMasterLocation(args), resolvedWorkerHost + ":" + wConf.PORT,
-            wConf.DATA_PORT, wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
-            wConf.SERVER_THREADS);
     try {
+      TachyonWorker worker =
+          TachyonWorker.createWorker(getMasterLocation(args), resolvedWorkerHost + ":" + wConf.PORT,
+              wConf.DATA_PORT, wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
+              wConf.SERVER_THREADS);
       worker.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating worker", e);
-      throw new RuntimeException(e);
+      System.exit(-1);
     }
   }
 
