@@ -138,7 +138,7 @@ public class WorkerConf extends Utils {
             null));
 
     BLOCK_REFERENCE_PERIOD_MS =
-        getIntProperty("tachyon.worker.block.reference.period.ms", Constants.MINUTE_MS);
+        getLongProperty("tachyon.worker.block.reference.period.ms", Constants.MINUTE_MS);
     EVICT_STRATEGY_TYPE = getEnumProperty("tachyon.worker.evict.strategy", EvictStrategyType.LRU);
     ALLOCATE_STRATEGY_TYPE =
         getEnumProperty("tachyon.worker.allocate.strategy", AllocateStrategyType.MAX_FREE);
