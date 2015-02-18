@@ -360,8 +360,6 @@ public class WorkerStorage {
       addFoundBlocks();
     } catch (IOException e) {
       throw Throwables.propagate(e);
-    } catch (SuspectedFileSizeException e) {
-      throw Throwables.propagate(e);
     } catch (BlockInfoException e) {
       throw Throwables.propagate(e);
     }
@@ -425,9 +423,8 @@ public class WorkerStorage {
    * 
    * @throws IOException
    * @throws BlockInfoException
-   * @throws SuspectedFileSizeException
    */
-  private void addFoundBlocks() throws IOException, SuspectedFileSizeException, BlockInfoException {
+  private void addFoundBlocks() throws IOException, BlockInfoException {
     mUfsOrphansFolder = mUfsWorkerFolder + "/orphans";
     if (!mUfs.exists(mUfsOrphansFolder)) {
       mUfs.mkdirs(mUfsOrphansFolder, true);
@@ -488,13 +485,11 @@ public class WorkerStorage {
    * @param userId The user id of the client who send the notification
    * @param blockId The id of the block
    * @throws FileDoesNotExistException
-   * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    * @throws IOException
    */
   public void cacheBlock(long userId, long blockId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
-      IOException {
+      throws FileDoesNotExistException, BlockInfoException, IOException {
     StorageDir storageDir = mTempBlockLocation.remove(new Pair<Long, Long>(userId, blockId));
     if (storageDir == null) {
       throw new FileDoesNotExistException("Block doesn't exist! blockId:" + blockId);

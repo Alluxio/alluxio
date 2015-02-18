@@ -149,13 +149,12 @@ public class TachyonWorker implements Runnable {
     LOG.info("Resolved local TachyonWorker host to " + resolvedWorkerHost);
 
     TachyonConf tachyonConf = new TachyonConf();
-
     TachyonWorker worker = TachyonWorker.createWorker(tachyonConf);
     try {
       worker.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating worker", e);
-      throw new RuntimeException(e);
+      System.exit(-1);
     }
   }
 
