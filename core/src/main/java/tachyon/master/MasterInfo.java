@@ -903,12 +903,11 @@ public class MasterInfo extends ImageWriter {
    * @return the dependency id of the file if it has not been checkpointed. -1 means the file either
    *         does not have dependency or has already been checkpointed.
    * @throws FileDoesNotExistException
-   * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */
   public int cacheBlock(long workerId, long workerUsedBytes, long storageDirId, long blockId,
       long length)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
+      throws FileDoesNotExistException, BlockInfoException {
     LOG.debug("Cache block: {}",
         CommonUtils.parametersToString(workerId, workerUsedBytes, blockId, length));
 

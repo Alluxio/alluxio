@@ -732,9 +732,8 @@ public final class MasterClient implements Closeable {
     return false;
   }
 
-  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes,
-      long storageDirId, long blockId, long length) throws IOException, FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException {
+  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long storageDirId,
+      long blockId, long length) throws IOException, FileDoesNotExistException, BlockInfoException {
     while (!mIsShutdown) {
       connect();
 
@@ -742,8 +741,6 @@ public final class MasterClient implements Closeable {
         mClient.worker_cacheBlock(workerId, workerUsedBytes, storageDirId, blockId, length);
         return;
       } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (SuspectedFileSizeException e) {
         throw e;
       } catch (BlockInfoException e) {
         throw e;
