@@ -69,7 +69,7 @@ public class UfsUtils {
    * @throws IOException
    */
   public static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath,
-      String excludePaths,  TachyonConf tachyonConf) throws IOException {
+      String excludePaths, TachyonConf tachyonConf) throws IOException {
     TachyonFS tfs = TachyonFS.get(tfsAddrRootPath, tachyonConf);
 
     PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");

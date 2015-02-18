@@ -56,14 +56,14 @@ public class TachyonFSTest {
   }
 
   @AfterClass
-  public static final void afterClass() throws Exception {
+  public static void afterClass() throws Exception {
     sLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.clearProperty("tachyon.max.columns");
   }
 
   @BeforeClass
-  public static final void beforeClass() throws IOException {
+  public static void beforeClass() throws IOException {
     sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     sLocalTachyonCluster.start();
@@ -299,7 +299,12 @@ public class TachyonFSTest {
 
   @Test
   public void getTestNormal4() throws IOException {
-    TachyonFS tfs = TachyonFS.get(sHost, sPort, false , mMasterTachyonConf);
+    TachyonConf copyConf = new TachyonConf(mMasterTachyonConf);
+    copyConf.set(Constants.MASTER_HOSTNAME, sHost);
+    copyConf.set(Constants.MASTER_PORT, Integer.toString(sPort));
+    copyConf.set(Constants.USE_ZOOKEEPER, "false");
+
+    TachyonFS tfs = TachyonFS.get(copyConf);
     getTestHelper(tfs);
   }
 
@@ -366,9 +371,16 @@ public class TachyonFSTest {
       Assert.assertEquals(resultUrl, tfs.toString());
     }
 
-    tfs = TachyonFS.get("localhost", 19998, false, mMasterTachyonConf);
+    TachyonConf copyConf = new TachyonConf(mMasterTachyonConf);
+    copyConf.set(Constants.MASTER_HOSTNAME, "localhost");
+    copyConf.set(Constants.MASTER_PORT, "19998");
+
+    copyConf.set(Constants.USE_ZOOKEEPER, "false");
+    tfs = TachyonFS.get(copyConf);
     Assert.assertEquals("tachyon://localhost/127.0.0.1:19998", tfs.toString());
-    tfs = TachyonFS.get("localhost", 19998, true, mMasterTachyonConf);
+
+    copyConf.set(Constants.USE_ZOOKEEPER, "true");
+    tfs = TachyonFS.get(copyConf);
     Assert.assertEquals("tachyon-ft://localhost/127.0.0.1:19998", tfs.toString());
   }
 }
