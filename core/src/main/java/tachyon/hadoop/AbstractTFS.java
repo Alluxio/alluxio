@@ -368,8 +368,11 @@ abstract class AbstractTFS extends FileSystem {
     if (siteConf != null) {
       mTachyonConf.merge(siteConf);
     }
+    mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
+    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
+    mTachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(isZookeeperMode()));
 
-    mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode(), mTachyonConf);
+    mTFS = TachyonFS.get(mTachyonConf);
 
     mUri = URI.create(mTachyonHeader);
     mUnderFSAddress = mTFS.getUfsAddress();

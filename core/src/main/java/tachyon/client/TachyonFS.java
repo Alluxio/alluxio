@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
@@ -46,6 +47,7 @@ import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerClient;
 
@@ -80,6 +82,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public static synchronized TachyonFS get(final TachyonURI tachyonURI, TachyonConf tachyonConf)
       throws IOException {
+    Preconditions.checkNotNull(tachyonConf, "Could not pass null TachyonConf instance.");
     if (tachyonURI == null) {
       throw new IOException("Tachyon Uri cannot be null. Use " + Constants.HEADER + "host:port/ ,"
           + Constants.HEADER_FT + "host:port/");
@@ -92,29 +95,43 @@ public class TachyonFS extends AbstractTachyonFS {
       }
 
       boolean useZookeeper = scheme.equals(Constants.SCHEME_FT);
-      return get(tachyonURI.getHost(), tachyonURI.getPort(), useZookeeper, tachyonConf);
+      tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(useZookeeper));
+      tachyonConf.set(Constants.MASTER_HOSTNAME, tachyonURI.getHost());
+      tachyonConf.set(Constants.MASTER_PORT, Integer.toString(tachyonURI.getPort()));
+
+      return get(tachyonConf);
     }
   }
 
   /**
    * Create a TachyonFS handler.
-   * 
+   *
    * @param masterHost master host details
    * @param masterPort port master listens on
-   * @param zookeeperMode use zookeeper
-   * @param tachyonConf The TachyonConf instance.
-   * 
+   * @param zkMode use zookeeper
    * @return the corresponding TachyonFS handler
    * @throws IOException
    */
-  public static synchronized TachyonFS get(String masterHost, int masterPort,
-      boolean zookeeperMode, TachyonConf tachyonConf) throws IOException {
-    if (tachyonConf != null) {
-      tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(zookeeperMode));
-      tachyonConf.set(Constants.MASTER_HOSTNAME, masterHost);
-      tachyonConf.set(Constants.MASTER_PORT, Integer.toString(masterPort));
-    }
-    return new TachyonFS(new InetSocketAddress(masterHost, masterPort), tachyonConf);
+  public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zkMode)
+      throws IOException {
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set(Constants.MASTER_HOSTNAME, masterHost);
+    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(masterPort));
+    tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(zkMode));
+    return get(tachyonConf);
+  }
+
+  /**
+   * Create a TachyonFS handler.
+   *
+   * @param tachyonConf The TachyonConf instance.
+   *
+   * @return the corresponding TachyonFS handler
+   * @throws IOException
+   */
+  public static synchronized TachyonFS get(TachyonConf tachyonConf) throws IOException {
+    Preconditions.checkArgument(tachyonConf != null, "Could not pass null TachyonConf instance.");
+    return new TachyonFS(tachyonConf);
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -151,15 +168,13 @@ public class TachyonFS extends AbstractTachyonFS {
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
 
-  private TachyonFS(TachyonURI tachyonURI, TachyonConf tachyonConf) throws IOException {
-    this(new InetSocketAddress(tachyonURI.getHost(), tachyonURI.getPort()), tachyonConf);
-  }
-
-  private TachyonFS(InetSocketAddress masterAddress, TachyonConf tachyonConf)
-      throws IOException {
+  private TachyonFS(TachyonConf tachyonConf) throws IOException {
     super(tachyonConf);
 
-    mMasterAddress = masterAddress;
+    String masterHost = tachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
+    int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+
+    mMasterAddress = new InetSocketAddress(masterHost, masterPort);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
     mAvailableSpaceBytes = 0L;
 
