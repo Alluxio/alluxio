@@ -326,7 +326,7 @@ public class WorkerStorage {
     mUserFolder = CommonUtils.concat(mDataFolder, WorkerConf.USER_TEMP_RELATIVE_FOLDER);
 
     if (WorkerConf.get().EVICT_STRATEGY_TYPE.needReferenceFrequency()) {
-      mLastAttenuateBlockReferenceMs = System.nanoTime() / 1000000L;
+      mLastAttenuateBlockReferenceMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
     } else {
       mLastAttenuateBlockReferenceMs = null;
     }
@@ -551,14 +551,15 @@ public class WorkerStorage {
     // If block reference frequency is enabled (e.g. use LFU eviction policy), periodically
     // attenuate the block reference frequency on each StorageDir.
     if (mLastAttenuateBlockReferenceMs != null) {
-      long diff = System.nanoTime() / 1000000L - mLastAttenuateBlockReferenceMs;
+      long diff = TimeUnit.NANOSECONDS.toMillis(System.nanoTime())
+          - mLastAttenuateBlockReferenceMs;
       if (diff > WorkerConf.get().BLOCK_REFERENCE_PERIOD_MS) {
         for (StorageTier storageTier : mStorageTiers) {
           for (StorageDir storageDir : storageTier.getStorageDirs()) {
             storageDir.attenuateBlockReferenceFrequency();
           }
         }
-        mLastAttenuateBlockReferenceMs = System.nanoTime() / 1000000L;
+        mLastAttenuateBlockReferenceMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
       }
     }
   }
