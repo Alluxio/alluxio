@@ -157,8 +157,6 @@ public class WorkerClient implements Closeable {
       throw new IOException(e);
     } catch (BlockInfoException e) {
       throw new IOException(e);
-    } catch (SuspectedFileSizeException e) {
-      throw new IOException(e);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
