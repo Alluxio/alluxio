@@ -431,8 +431,8 @@ public class MasterService {
       if (result.eP != null) {
         throw result.eP;
       }
-      if (result.eS != null) {
-        throw result.eS;
+      if (result.eB != null) {
+        throw result.eB;
       }
       return;
     }
@@ -2494,8 +2494,8 @@ public class MasterService {
           iface.worker_cacheBlock(args.workerId, args.workerUsedBytes, args.storageDirId, args.blockId, args.length);
         } catch (FileDoesNotExistException eP) {
           result.eP = eP;
-        } catch (BlockInfoException eS) {
-          result.eS = eS;
+        } catch (BlockInfoException eB) {
+          result.eB = eB;
         }
         return result;
       }
@@ -3530,8 +3530,8 @@ public class MasterService {
                         msg = result;
             }
             else             if (e instanceof BlockInfoException) {
-                        result.eS = (BlockInfoException) e;
-                        result.setESIsSet(true);
+                        result.eB = (BlockInfoException) e;
+                        result.setEBIsSet(true);
                         msg = result;
             }
              else 
@@ -11220,7 +11220,7 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("worker_cacheBlock_result");
 
     private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_S_FIELD_DESC = new org.apache.thrift.protocol.TField("eS", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_B_FIELD_DESC = new org.apache.thrift.protocol.TField("eB", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -11229,12 +11229,12 @@ public class MasterService {
     }
 
     public FileDoesNotExistException eP; // required
-    public BlockInfoException eS; // required
+    public BlockInfoException eB; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       E_P((short)1, "eP"),
-      E_S((short)2, "eS");
+      E_B((short)2, "eB");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -11251,8 +11251,8 @@ public class MasterService {
         switch(fieldId) {
           case 1: // E_P
             return E_P;
-          case 2: // E_S
-            return E_S;
+          case 2: // E_B
+            return E_B;
           default:
             return null;
         }
@@ -11298,7 +11298,7 @@ public class MasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_S, new org.apache.thrift.meta_data.FieldMetaData("eS", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E_B, new org.apache.thrift.meta_data.FieldMetaData("eB", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(worker_cacheBlock_result.class, metaDataMap);
@@ -11309,11 +11309,11 @@ public class MasterService {
 
     public worker_cacheBlock_result(
       FileDoesNotExistException eP,
-      BlockInfoException eS)
+      BlockInfoException eB)
     {
       this();
       this.eP = eP;
-      this.eS = eS;
+      this.eB = eB;
     }
 
     /**
@@ -11323,8 +11323,8 @@ public class MasterService {
       if (other.isSetEP()) {
         this.eP = new FileDoesNotExistException(other.eP);
       }
-      if (other.isSetES()) {
-        this.eS = new BlockInfoException(other.eS);
+      if (other.isSetEB()) {
+        this.eB = new BlockInfoException(other.eB);
       }
     }
 
@@ -11335,7 +11335,7 @@ public class MasterService {
     @Override
     public void clear() {
       this.eP = null;
-      this.eS = null;
+      this.eB = null;
     }
 
     public FileDoesNotExistException getEP() {
@@ -11362,27 +11362,27 @@ public class MasterService {
       }
     }
 
-    public BlockInfoException getES() {
-      return this.eS;
+    public BlockInfoException getEB() {
+      return this.eB;
     }
 
-    public worker_cacheBlock_result setES(BlockInfoException eS) {
-      this.eS = eS;
+    public worker_cacheBlock_result setEB(BlockInfoException eB) {
+      this.eB = eB;
       return this;
     }
 
-    public void unsetES() {
-      this.eS = null;
+    public void unsetEB() {
+      this.eB = null;
     }
 
-    /** Returns true if field eS is set (has been assigned a value) and false otherwise */
-    public boolean isSetES() {
-      return this.eS != null;
+    /** Returns true if field eB is set (has been assigned a value) and false otherwise */
+    public boolean isSetEB() {
+      return this.eB != null;
     }
 
-    public void setESIsSet(boolean value) {
+    public void setEBIsSet(boolean value) {
       if (!value) {
-        this.eS = null;
+        this.eB = null;
       }
     }
 
@@ -11396,11 +11396,11 @@ public class MasterService {
         }
         break;
 
-      case E_S:
+      case E_B:
         if (value == null) {
-          unsetES();
+          unsetEB();
         } else {
-          setES((BlockInfoException)value);
+          setEB((BlockInfoException)value);
         }
         break;
 
@@ -11412,8 +11412,8 @@ public class MasterService {
       case E_P:
         return getEP();
 
-      case E_S:
-        return getES();
+      case E_B:
+        return getEB();
 
       }
       throw new IllegalStateException();
@@ -11428,8 +11428,8 @@ public class MasterService {
       switch (field) {
       case E_P:
         return isSetEP();
-      case E_S:
-        return isSetES();
+      case E_B:
+        return isSetEB();
       }
       throw new IllegalStateException();
     }
@@ -11456,12 +11456,12 @@ public class MasterService {
           return false;
       }
 
-      boolean this_present_eS = true && this.isSetES();
-      boolean that_present_eS = true && that.isSetES();
-      if (this_present_eS || that_present_eS) {
-        if (!(this_present_eS && that_present_eS))
+      boolean this_present_eB = true && this.isSetEB();
+      boolean that_present_eB = true && that.isSetEB();
+      if (this_present_eB || that_present_eB) {
+        if (!(this_present_eB && that_present_eB))
           return false;
-        if (!this.eS.equals(that.eS))
+        if (!this.eB.equals(that.eB))
           return false;
       }
 
@@ -11491,12 +11491,12 @@ public class MasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetES()).compareTo(other.isSetES());
+      lastComparison = Boolean.valueOf(isSetEB()).compareTo(other.isSetEB());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetES()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eS, other.eS);
+      if (isSetEB()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eB, other.eB);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -11529,11 +11529,11 @@ public class MasterService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("eS:");
-      if (this.eS == null) {
+      sb.append("eB:");
+      if (this.eB == null) {
         sb.append("null");
       } else {
-        sb.append(this.eS);
+        sb.append(this.eB);
       }
       first = false;
       sb.append(")");
@@ -11588,11 +11588,11 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // E_S
+            case 2: // E_B
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eS = new BlockInfoException();
-                struct.eS.read(iprot);
-                struct.setESIsSet(true);
+                struct.eB = new BlockInfoException();
+                struct.eB.read(iprot);
+                struct.setEBIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -11617,9 +11617,9 @@ public class MasterService {
           struct.eP.write(oprot);
           oprot.writeFieldEnd();
         }
-        if (struct.eS != null) {
-          oprot.writeFieldBegin(E_S_FIELD_DESC);
-          struct.eS.write(oprot);
+        if (struct.eB != null) {
+          oprot.writeFieldBegin(E_B_FIELD_DESC);
+          struct.eB.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -11643,15 +11643,15 @@ public class MasterService {
         if (struct.isSetEP()) {
           optionals.set(0);
         }
-        if (struct.isSetES()) {
+        if (struct.isSetEB()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetEP()) {
           struct.eP.write(oprot);
         }
-        if (struct.isSetES()) {
-          struct.eS.write(oprot);
+        if (struct.isSetEB()) {
+          struct.eB.write(oprot);
         }
       }
 
@@ -11665,9 +11665,9 @@ public class MasterService {
           struct.setEPIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.eS = new BlockInfoException();
-          struct.eS.read(iprot);
-          struct.setESIsSet(true);
+          struct.eB = new BlockInfoException();
+          struct.eB.read(iprot);
+          struct.setEBIsSet(true);
         }
       }
     }
