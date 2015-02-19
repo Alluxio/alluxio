@@ -74,11 +74,11 @@ public class BlockOutStream extends OutStream {
    * @param file the file the block belongs to
    * @param opType the OutStream's write type
    * @param blockIndex the index of the block in the file
-   * @param initiallBytes the initial size bytes that will be allocated to the block
+   * @param initialBytes the initial size bytes that will be allocated to the block
    * @param tachyonConf the TachyonConf instance for this file output stream.
    * @throws IOException
    */
-  BlockOutStream(TachyonFile file, WriteType opType, int blockIndex, long initiallBytes,
+  BlockOutStream(TachyonFile file, WriteType opType, int blockIndex, long initialBytes,
       TachyonConf tachyonConf) throws IOException {
     super(file, opType, tachyonConf);
 
@@ -99,7 +99,7 @@ public class BlockOutStream extends OutStream {
       String msg = "The machine does not have any local worker.";
       throw new IOException(msg);
     }
-    mLocalFilePath = mTachyonFS.getLocalBlockTemporaryPath(mBlockId, initiallBytes);
+    mLocalFilePath = mTachyonFS.getLocalBlockTemporaryPath(mBlockId, initialBytes);
     mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
     // change the permission of the temporary file in order that the worker can move it.
@@ -107,7 +107,7 @@ public class BlockOutStream extends OutStream {
     // use the sticky bit, only the client and the worker can write to the block
     CommonUtils.setLocalFileStickyBit(mLocalFilePath);
     LOG.info(mLocalFilePath + " was created!");
-    mAvailableBytes += initiallBytes;
+    mAvailableBytes += initialBytes;
 
     long allocateBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES,
         Constants.MB) + 4L;
