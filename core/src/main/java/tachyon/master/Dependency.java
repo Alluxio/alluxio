@@ -31,7 +31,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import tachyon.Constants;
-import tachyon.conf.MasterConf;
+import tachyon.conf.TachyonConf;
 import tachyon.io.Utils;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.util.CommonUtils;
@@ -49,7 +49,7 @@ public class Dependency extends ImageWriter {
    * @return the loaded dependency
    * @throws IOException
    */
-  static Dependency loadImage(ImageElement ele) throws IOException {
+  static Dependency loadImage(ImageElement ele, TachyonConf tachyonConf) throws IOException {
     Dependency dep =
         new Dependency(ele.getInt("depID"), ele.get("parentFiles",
             new TypeReference<List<Integer>>() {}), ele.get("childrenFiles",
@@ -57,7 +57,7 @@ public class Dependency extends ImageWriter {
             ele.getByteBufferList("data"), ele.getString("comment"), ele.getString("framework"),
             ele.getString("frameworkVersion"), ele.get("dependencyType", DependencyType.class),
             ele.get("parentDeps", new TypeReference<List<Integer>>() {}),
-            ele.getLong("creationTimeMs"));
+            ele.getLong("creationTimeMs"), tachyonConf);
     dep.resetUncheckpointedChildrenFiles(ele.get("unCheckpointedChildrenFiles",
         new TypeReference<List<Integer>>() {}));
 
@@ -84,6 +84,8 @@ public class Dependency extends ImageWriter {
 
   private final Set<Integer> mLostFileIds;
 
+  private final TachyonConf mTachyonConf;
+
   /**
    * Create a new dependency
    * 
@@ -98,10 +100,12 @@ public class Dependency extends ImageWriter {
    * @param type The type of the dependency, DependencyType.Wide or DependencyType.Narrow
    * @param parentDependencies The id of the parents' dependencies
    * @param creationTimeMs The create time of the dependency, in milliseconds
+   * @param tachyonConf The TachyonConf instance.
    */
   public Dependency(int id, List<Integer> parents, List<Integer> children, String commandPrefix,
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
-      DependencyType type, Collection<Integer> parentDependencies, long creationTimeMs) {
+      DependencyType type, Collection<Integer> parentDependencies, long creationTimeMs,
+      TachyonConf tachyonConf) {
     mId = id;
     mCreationTimeMs = creationTimeMs;
 
@@ -124,6 +128,7 @@ public class Dependency extends ImageWriter {
     mParentDependencies.addAll(parentDependencies);
     mChildrenDependencies = new ArrayList<Integer>(0);
     mLostFileIds = new HashSet<Integer>(0);
+    mTachyonConf = tachyonConf;
   }
 
   /**
@@ -196,7 +201,7 @@ public class Dependency extends ImageWriter {
     // TODO We should support different types of command in the future.
     // For now, assume there is only one command model.
     StringBuilder sb = new StringBuilder(parseCommandPrefix());
-    sb.append(" ").append(MasterConf.get().MASTER_ADDRESS);
+    sb.append(" ").append(mTachyonConf.get(Constants.MASTER_ADDRESS, null));
     sb.append(" ").append(mId);
     for (int k = 0; k < mChildrenFiles.size(); k ++) {
       int id = mChildrenFiles.get(k);

@@ -26,6 +26,7 @@ import tachyon.Pair;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.UnderFileSystem;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.NetworkUtils;
@@ -107,13 +108,13 @@ public class BlockInfo {
    * 
    * @return the generated ClientBlockInfo
    */
-  public synchronized ClientBlockInfo generateClientBlockInfo() {
+  public synchronized ClientBlockInfo generateClientBlockInfo(TachyonConf tachyonConf) {
     ClientBlockInfo ret = new ClientBlockInfo();
 
     ret.blockId = mBlockId;
     ret.offset = mOffset;
     ret.length = mLength;
-    ret.locations = getLocations();
+    ret.locations = getLocations(tachyonConf);
 
     return ret;
   }
@@ -147,11 +148,11 @@ public class BlockInfo {
    * 
    * @return the net addresses of the locations
    */
-  public synchronized List<NetAddress> getLocations() {
+  public synchronized List<NetAddress> getLocations(TachyonConf tachyonConf) {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
     ret.addAll(mLocations.values());
     if (ret.isEmpty() && mInodeFile.hasCheckpointed()) {
-      UnderFileSystem ufs = UnderFileSystem.get(mInodeFile.getUfsPath());
+      UnderFileSystem ufs = UnderFileSystem.get(mInodeFile.getUfsPath(), tachyonConf);
       List<String> locs = null;
       try {
         locs = ufs.getFileLocations(mInodeFile.getUfsPath(), mOffset);

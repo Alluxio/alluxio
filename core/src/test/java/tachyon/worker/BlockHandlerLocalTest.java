@@ -22,6 +22,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
@@ -39,13 +40,11 @@ public class BlockHandlerLocalTest {
   @AfterClass
   public static final void afterClass() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(10000);
+    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
   }
@@ -68,7 +67,6 @@ public class BlockHandlerLocalTest {
     } finally {
       handler.close();
     }
-    return;
   }
 
   @Test
@@ -87,7 +85,6 @@ public class BlockHandlerLocalTest {
     } finally {
       handler.close();
     }
-    return;
   }
 
   @Test
@@ -115,7 +112,6 @@ public class BlockHandlerLocalTest {
     } finally {
       handler.close();
     }
-    return;
   }
 
   @Test
@@ -132,6 +128,5 @@ public class BlockHandlerLocalTest {
     } finally {
       handler.close();
     }
-    return;
   }
 }

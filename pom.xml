@@ -287,7 +287,8 @@
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/*</exclude>
             <exclude>**/package-info.java</exclude>
-            
+            <exclude>**/src/main/resources/tachyon-default.properties</exclude>
+
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
             <exclude>**/pom.xml</exclude>
@@ -304,6 +305,11 @@
             <exclude>**/docs/**/*</exclude>
             <exclude>LICENSE</exclude>
             <exclude>NOTICE</exclude>
+
+            <!-- Default local file Exclusions -->
+            <exclude>**/underfs/**</exclude>
+            <exclude>**/journal/**</exclude>
+
           </excludes>
           <mapping>
             <java>SLASHSTAR_STYLE</java>

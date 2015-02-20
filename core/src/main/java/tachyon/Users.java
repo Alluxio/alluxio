@@ -25,7 +25,7 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -42,11 +42,12 @@ public class Users {
   private final String mUserUnderFSFolder;
   /** Map from UserId to {@link tachyon.UserInfo} object **/
   private final Map<Long, UserInfo> mUsers;
+  private final TachyonConf mTachyonConf;
 
-  public Users(final String userUfsFolder) {
-
+  public Users(String userUfsFolder, TachyonConf tachyonConf) {
     mUserUnderFSFolder = userUfsFolder;
     mUsers = new HashMap<Long, UserInfo>();
+    mTachyonConf = tachyonConf;
   }
 
   /**
@@ -96,7 +97,8 @@ public class Users {
       String folder = getUserUfsTempFolder(userId);
       sb.append(" Remove users underfs folder ").append(folder);
       try {
-        UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
+        String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underfs");
+        UnderFileSystem.get(ufsAddress, mTachyonConf).delete(folder, true);
       } catch (IOException e) {
         LOG.warn(e.getMessage(), e);
       }
@@ -115,7 +117,9 @@ public class Users {
       if (mUsers.containsKey(userId)) {
         mUsers.get(userId).heartbeat();
       } else {
-        mUsers.put(userId, new UserInfo(userId));
+        int userTimeoutMs = mTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS,
+            10 * Constants.SECOND_MS);
+        mUsers.put(userId, new UserInfo(userId, userTimeoutMs));
       }
     }
   }

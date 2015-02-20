@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import com.google.common.base.Joiner;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.master.LocalTachyonCluster;
 
@@ -36,15 +37,14 @@ public final class TachyonFileUpdateTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
 
   private static final int USER_QUOTA_UNIT_BYTES = 100;
-  private static final String USER_QUOTA_UNIT_BYTES_STR = Integer.toString(USER_QUOTA_UNIT_BYTES);
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES_STR);
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
   }
@@ -52,7 +52,6 @@ public final class TachyonFileUpdateTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @Test

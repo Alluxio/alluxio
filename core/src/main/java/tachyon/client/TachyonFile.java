@@ -32,7 +32,7 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
@@ -45,19 +45,22 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   final TachyonFS mTachyonFS;
   final int mFileId;
-  private final UserConf mUserConf = UserConf.get();
 
   private Object mUFSConf = null;
+
+  private final TachyonConf mTachyonConf;
 
   /**
    * A Tachyon File handler, based file id
    * 
    * @param tfs the Tachyon file system client handler
    * @param fid the file id
+   * @param tachyonConf the TachyonConf for this file.
    */
-  TachyonFile(TachyonFS tfs, int fid) {
+  TachyonFile(TachyonFS tfs, int fid, TachyonConf tachyonConf) {
     mTachyonFS = tfs;
     mFileId = fid;
+    mTachyonConf = tachyonConf;
   }
 
   private ClientFileInfo getCachedFileStatus() throws IOException {
@@ -163,12 +166,12 @@ public class TachyonFile implements Comparable<TachyonFile> {
     List<Long> blocks = getUnCachedFileStatus().getBlockIds();
 
     if (blocks.size() == 0) {
-      return new EmptyBlockInStream(this, readType);
+      return new EmptyBlockInStream(this, readType, mTachyonConf);
     } else if (blocks.size() == 1) {
-      return BlockInStream.get(this, readType, 0, mUFSConf);
+      return BlockInStream.get(this, readType, 0, mUFSConf, mTachyonConf);
     }
 
-    return new FileInStream(this, readType, mUFSConf);
+    return new FileInStream(this, readType, mUFSConf, mTachyonConf);
   }
 
   /**
@@ -238,7 +241,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("WriteType can not be null.");
     }
 
-    return new FileOutStream(this, writeType, mUFSConf);
+    return new FileOutStream(this, writeType, mUFSConf, mTachyonConf);
   }
 
   /**
@@ -474,14 +477,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Re-cache the block into memory
-   * 
+   *
    * @param blockIndex The block index of the current file.
    * @return true if succeed, false otherwise
    * @throws IOException
    */
   boolean recache(int blockIndex) throws IOException {
     String path = getUfsPath();
-    UnderFileSystem underFsClient = UnderFileSystem.get(path);
+    UnderFileSystem underFsClient = UnderFileSystem.get(path, mTachyonConf);
 
     InputStream inputStream = null;
     BlockOutStream bos = null;
@@ -492,8 +495,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
       long offset = blockIndex * length;
       inputStream.skip(offset);
 
-      byte[] buffer = new byte[mUserConf.FILE_BUFFER_BYTES * 4];
-      bos = new BlockOutStream(this, WriteType.TRY_CACHE, blockIndex);
+      int bufferBytes = mTachyonConf.getInt(Constants.USER_FILE_BUFFER_BYTES, Constants.MB) * 4;
+      byte[] buffer = new byte[bufferBytes];
+      bos = new BlockOutStream(this, WriteType.TRY_CACHE, blockIndex, mTachyonConf);
       int limit;
       while (length > 0 && ((limit = inputStream.read(buffer)) >= 0)) {
         if (limit != 0) {

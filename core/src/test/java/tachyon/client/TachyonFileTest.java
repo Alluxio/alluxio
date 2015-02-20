@@ -23,9 +23,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
@@ -36,11 +37,7 @@ import tachyon.util.CommonUtils;
 public class TachyonFileTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
-  private static final int FILE_BUFFER_BYTES = WORKER_CAPACITY_BYTES / 4;
-  private static final int SLEEP_MS =
-      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
   private static final int MAX_FILES = WORKER_CAPACITY_BYTES / USER_QUOTA_UNIT_BYTES;
-
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
@@ -48,20 +45,24 @@ public class TachyonFileTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
+  private TachyonConf mWorkerTachyonConf;
+
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.file.buffer.bytes");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-    System.setProperty("tachyon.user.file.buffer.bytes", FILE_BUFFER_BYTES + "");
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
+    mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
+
+    TachyonConf masterConf =  mLocalTachyonCluster.getMasterTachyonConf();
+    int userCapacityBytes = WORKER_CAPACITY_BYTES / 4;
+    masterConf.set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(userCapacityBytes));
   }
 
   /**
@@ -114,7 +115,9 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, SLEEP_MS);
+    CommonUtils.sleepMs(null,
+        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+
     for (int k = 0; k < MAX_FILES; k ++) {
       TachyonFile file = mTfs.getFile(new TachyonURI("/file" + k));
       Assert.assertTrue(file.isInMemory());
@@ -127,7 +130,8 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, SLEEP_MS);
+    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+
     TachyonFile file = mTfs.getFile(new TachyonURI("/file" + 0));
     Assert.assertFalse(file.isInMemory());
 
@@ -160,7 +164,8 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, SLEEP_MS);
+    CommonUtils.sleepMs(null,
+        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
 
     file = mTfs.getFile(new TachyonURI("/pin/file"));
     Assert.assertTrue(file.isInMemory());

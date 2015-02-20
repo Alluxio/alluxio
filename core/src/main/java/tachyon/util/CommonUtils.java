@@ -38,6 +38,7 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
 
 import sun.misc.Cleaner;
@@ -492,8 +493,8 @@ public final class CommonUtils {
    *
    * @throws IOException
    */
-  public static void touch(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+  public static void touch(String path, TachyonConf tachyonConf) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
     OutputStream os = ufs.create(path);
     os.close();
   }

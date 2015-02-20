@@ -3,21 +3,25 @@ layout: global
 title: Configuration Settings
 ---
 
-Tachyon configuration parameters fall into four categories: Master, Worker, Common (Master and
-Worker), and User configurations. The environment configuration file responsible for setting system
-properties is under `conf/tachyon-env.sh`. These variables should be set as variables under the
-`TACHYON_JAVA_OPTS` definition. A template is provided with the zip: `conf/tachyon-env.sh.template`.
+There are two types of configuration parameters for Tachyon:
 
-Additional Java VM options can be added to `TACHYON_MASTER_JAVA_OPTS` for Master and
-`TACHYON_WORKER_JAVA_OPTS` for Worker configuration. In the template file, `TACHYON_JAVA_OPTS` is
-included in both `TACHYON_MASTER_JAVA_OPTS` and `TACHYON_WORKER_JAVA_OPTS`.
+1. Configuration properties, which is used to configure the runtime setting of Tachyon
+2. System environment properties, which controls the Tachyon Java VM options
 
-For example if you would like to enable Java remote debugging at port 7001 in the Master you can modify
-`TACHYON_MASTER_JAVA_OPTS` like this:
+# Configuration properties
 
-`export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"`
+Tachyon introduces default and site specific configuration properties files to set the configuration properties.
 
-# Common Configuration
+Each site deployment and application client can override the default via tachyon.site.properties file.
+This file has to be located in the classpath of the Java VM where Tachyon is running.
+
+The easiest way is to put the site properties file in a directory specified by `$TACHYON_CONF_DIR`, which is by default is
+set to `$TACHYON_HOME/conf`.
+
+The Tachyon configuration properties fall into four categories: Master, Worker, Common (Master and
+Worker), and User configurations.
+
+## Common Configuration
 
 The common configuration contains constants which specify paths and the log appender name.
 
@@ -115,7 +119,7 @@ The common configuration contains constants which specify paths and the log appe
 </tr>
 </table>
 
-# Master Configuration
+## Master Configuration
 
 The master configuration specifies information regarding the master node, such as address and port
 number.
@@ -164,7 +168,7 @@ number.
 </tr>
 </table>
 
-# Worker Configuration
+## Worker Configuration
 
 The worker configuration specifies information regarding the worker nodes, such as address and port
 number.
@@ -283,7 +287,7 @@ number.
 </tr>
 </table>
 
-# User Configuration
+## User Configuration
 
 The user configuration specifies values regarding file system access.
 
@@ -325,3 +329,36 @@ The user configuration specifies values regarding file system access.
   <td>How many threads to use to process block requests.</td>
 </tr>
 </table>
+
+## Working with Apache Hadoop MapReduce Configuration
+
+In certain deployments there could be situation where client needs to send configuration property
+override to Hadoop MapReduce (MR) for Tachyon Hadoop compatible file system (TFS) when the
+tachyon-site.properties file is not available in nodes where the MR is running.
+
+To support this, the MR application client needs to do these steps:
+
+1. Get the TachyonConf instance from call to TachyonConf.get().
+2. Store the encoded TachyonConf object into Hadoop MR job’s Configuration using `ConfUtils.storeToHadoopConfiguration` call.
+3. During initialization of the TFS, it will check if the key exists from the job’s Configuration
+and if it does it will merge the override properties to the current TachyonConf instance via `ConfUtil.loadFromHadoopConfiguration`.
+
+# System environment properties
+
+The system environment variables is configured using the configuration file, which responsible for
+setting system properties, is located under `conf/tachyon-env.sh`.
+
+The location of the `tachyon-env.sh` can be set by environment variable `TACHYON_CONF_DIR`.
+
+These variables should be set as variables under the `TACHYON_JAVA_OPTS` definition.
+
+A template is provided with the zip: `conf/tachyon-env.sh.template`.
+
+Additional Java VM options can be added to `TACHYON_MASTER_JAVA_OPTS` for Master and
+`TACHYON_WORKER_JAVA_OPTS` for Worker configuration. In the template file, `TACHYON_JAVA_OPTS` is
+included in both `TACHYON_MASTER_JAVA_OPTS` and `TACHYON_WORKER_JAVA_OPTS`.
+
+For example if you would like to enable Java remote debugging at port 7001 in the Master you can modify
+`TACHYON_MASTER_JAVA_OPTS` like this:
+
+`export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"`
