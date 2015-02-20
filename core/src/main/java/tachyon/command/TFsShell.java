@@ -36,7 +36,7 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -52,7 +52,7 @@ public class TFsShell implements Closeable {
    * @param argv [] Array of arguments given by the user's input from the terminal
    */
   public static void main(String[] argv) throws IOException {
-    TFsShell shell = new TFsShell();
+    TFsShell shell = new TFsShell(new TachyonConf());
     int ret;
     try {
       ret = shell.run(argv);
@@ -62,7 +62,13 @@ public class TFsShell implements Closeable {
     System.exit(ret);
   }
 
-  private final Closer mCloser = Closer.create();
+  private final Closer mCloser;
+  private final TachyonConf mTachyonConf;
+
+  public TFsShell(TachyonConf tachyonConf) {
+    mTachyonConf = tachyonConf;
+    mCloser = Closer.create();
+  }
 
   @Override
   public void close() throws IOException {
@@ -150,7 +156,9 @@ public class TFsShell implements Closeable {
       tFile = tachyonClient.getFile(fileId);
       Closer closer = Closer.create();
       try {
-        OutStream os = closer.register(tFile.getOutStream(UserConf.get().DEFAULT_WRITE_TYPE));
+        WriteType writeType =
+            mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.CACHE_THROUGH);
+        OutStream os = closer.register(tFile.getOutStream(writeType));
         FileInputStream in = closer.register(new FileInputStream(src));
         FileChannel channel = closer.register(in.getChannel());
         ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);
@@ -746,7 +754,8 @@ public class TFsShell implements Closeable {
    * Creates a new TachyonFS and registers it with {@link #mCloser}
    */
   private TachyonFS createFS(final TachyonURI path) throws IOException {
-    String qualifiedPath = Utils.validatePath(path.toString());
-    return mCloser.register(TachyonFS.get(new TachyonURI(qualifiedPath)));
+    String qualifiedPath = Utils.validatePath(path.toString(), mTachyonConf);
+    TachyonFS tachyonFS = TachyonFS.get(new TachyonURI(qualifiedPath), mTachyonConf);
+    return mCloser.register(tachyonFS);
   }
 }

@@ -30,10 +30,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
-import tachyon.conf.UserConf;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.TachyonWorker;
@@ -45,13 +42,13 @@ public class LocalTachyonClusterMultiMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public static void main(String[] args) throws Exception {
-    LocalTachyonCluster cluster = new LocalTachyonCluster(100);
+    LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
     cluster.stop();
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
 
-    cluster = new LocalTachyonCluster(100);
+    cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
     cluster.stop();
@@ -61,7 +58,8 @@ public class LocalTachyonClusterMultiMaster {
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
   private TachyonWorker mWorker = null;
-  private final long mWorkerCapacityBytes;
+  private long mWorkerCapacityBytes;
+  private int mUserBlockSize;
 
   private String mTachyonHome;
   private String mWorkerDataFolder;
@@ -80,9 +78,14 @@ public class LocalTachyonClusterMultiMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSuppliers);
 
-  public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters) {
+  private TachyonConf mMasterConf;
+
+  private TachyonConf mWorkerConf;
+
+  public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters, int userBlockSize) {
     mNumOfMasters = masters;
     mWorkerCapacityBytes = workerCapacityBytes;
+    mUserBlockSize = userBlockSize;
 
     try {
       mCuratorServer = new TestingServer();
@@ -92,7 +95,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public synchronized TachyonFS getClient() throws IOException {
-    return mClientPool.getClient();
+    return mClientPool.getClient(mMasterConf);
   }
 
   public String getUri() {
@@ -115,7 +118,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path, mMasterConf);
 
     if (ufs.exists(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
@@ -123,7 +126,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   private void mkdir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path, mMasterConf);
 
     if (ufs.exists(path)) {
       ufs.delete(path, true);
@@ -142,65 +145,61 @@ public class LocalTachyonClusterMultiMaster {
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
 
+    mLocalhostName = NetworkUtils.getLocalHostName();
+
+    mMasterConf = new TachyonConf();
+    mMasterConf.set(Constants.IN_TEST_MODE, "true");
+    mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
+    mMasterConf.set(Constants.USE_ZOOKEEPER, "true");
+    mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
+    mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
+    mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
+    mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, "10000");
+    mMasterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
+
     // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
     mkdir(mTachyonHome);
     mkdir(masterDataFolder);
     mkdir(masterLogFolder);
 
-    mLocalhostName = NetworkUtils.getLocalHostName();
-
-    System.setProperty("tachyon.test.mode", "true");
-    System.setProperty("tachyon.home", mTachyonHome);
-    System.setProperty("tachyon.usezookeeper", "true");
-    System.setProperty("tachyon.zookeeper.address", mCuratorServer.getConnectString());
-    System.setProperty("tachyon.zookeeper.election.path", "/election");
-    System.setProperty("tachyon.zookeeper.leader.path", "/leader");
-    System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
-    if (System.getProperty("tachyon.worker.hierarchystore.level.max") == null) {
-      System.setProperty("tachyon.worker.hierarchystore.level.max", 1 + "");
-    }
-    System.setProperty("tachyon.worker.hierarchystore.level0.alias", "MEM");
-
-    System.setProperty("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
-    System
-        .setProperty("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
-    for (int level = 1; level < maxLevel; level ++) {
-      String path =
-          System.getProperty("tachyon.worker.hierarchystore.level" + level + ".dirs.path");
-      if (path == null) {
-        throw new IOException("Paths for StorageDirs are not set! Level:" + level);
-      }
-      String[] dirPaths = path.split(",");
-      String newPath = "";
-      for (int i = 0; i < dirPaths.length; i ++) {
-        newPath += mTachyonHome + dirPaths[i] + ",";
-      }
-      System.setProperty("tachyon.worker.hierarchystore.level" + level + ".dirs.path",
-          newPath.substring(0, newPath.length() - 1));
-    }
-    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
-
-    CommonConf.clear();
-    MasterConf.clear();
-    WorkerConf.clear();
-    UserConf.clear();
-
-    mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
-    mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
+    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
+    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
 
     for (int k = 0; k < mNumOfMasters; k ++) {
-      final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome);
+      final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
       master.start();
       mMasters.add(master);
     }
 
     CommonUtils.sleepMs(null, 10);
 
+    mWorkerConf = new TachyonConf(mMasterConf);
+    mWorkerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
+    mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, mWorkerCapacityBytes + "");
+    mWorkerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, 15 + "");
+
+    // Setup conf for worker
+    mWorkerConf.set(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, Integer.toString(maxLevel));
+    mWorkerConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
+    mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
+    mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
+
+    for (int level = 1; level < maxLevel; level ++) {
+      String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
+      String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+      String newPath = "";
+      for (int i = 0; i < dirPaths.length; i ++) {
+        newPath += mTachyonHome + dirPaths[i] + ",";
+      }
+      mWorkerConf.set("tachyon.worker.hierarchystore.level" + level + ".dirs.path",
+          newPath.substring(0, newPath.length() - 1));
+    }
+
     mWorker =
         TachyonWorker.createWorker(
             CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
@@ -213,8 +212,9 @@ public class LocalTachyonClusterMultiMaster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
-    System.setProperty("tachyon.worker.port", mWorker.getMetaPort() + "");
-    System.setProperty("tachyon.worker.data.port", mWorker.getDataPort() + "");
+
+    mWorkerConf.set(Constants.WORKER_PORT, mWorker.getMetaPort() + "");
+    mWorkerConf.set(Constants.WORKER_DATA_PORT, mWorker.getDataPort() + "");
   }
 
   public void stop() throws Exception {
@@ -236,9 +236,6 @@ public class LocalTachyonClusterMultiMaster {
     System.clearProperty("tachyon.zookeeper.address");
     System.clearProperty("tachyon.zookeeper.election.path");
     System.clearProperty("tachyon.zookeeper.leader.path");
-    System.clearProperty("tachyon.master.hostname");
-    System.clearProperty("tachyon.master.port");
-    System.clearProperty("tachyon.master.web.port");
     System.clearProperty("tachyon.worker.port");
     System.clearProperty("tachyon.worker.data.port");
     System.clearProperty("tachyon.worker.data.folder");

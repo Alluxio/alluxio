@@ -18,7 +18,7 @@ package tachyon.client;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 
 /**
  * <code>OutStream</code> is the base output stream class for TachyonFile streaming output methods.
@@ -26,19 +26,20 @@ import tachyon.conf.UserConf;
  * not be initialized by the client code.
  */
 public abstract class OutStream extends OutputStream {
-  protected final UserConf mUserConf = UserConf.get();
   protected final TachyonFile mFile;
   protected final TachyonFS mTachyonFS;
   protected final WriteType mWriteType;
+  protected final TachyonConf mTachyonConf;
 
   /**
    * @param file the output file of the OutStream
    * @param writeType the OutStream's write type
    */
-  OutStream(TachyonFile file, WriteType writeType) {
+  OutStream(TachyonFile file, WriteType writeType, TachyonConf tachyonConf) {
     mFile = file;
     mTachyonFS = mFile.mTachyonFS;
     mWriteType = writeType;
+    mTachyonConf = tachyonConf;
   }
 
   /**

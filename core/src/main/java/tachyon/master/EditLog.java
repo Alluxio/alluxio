@@ -35,6 +35,7 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
+import tachyon.conf.TachyonConf;
 import tachyon.io.Utils;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -64,7 +65,7 @@ public final class EditLog {
    * @throws IOException
    */
   public static long load(MasterInfo info, String path, int currentLogFileNum) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path, info.getTachyonConf());
     if (!ufs.exists(path)) {
       LOG.info("Edit Log " + path + " does not exist.");
       return 0;
@@ -100,7 +101,7 @@ public final class EditLog {
    * @throws IOException
    */
   public static void loadSingleLog(MasterInfo info, String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path, info.getTachyonConf());
 
     DataInputStream is = new DataInputStream(ufs.open(path));
     JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(is);
@@ -201,9 +202,10 @@ public final class EditLog {
    * Make the edit log up-to-date, It will delete all editlogs since sBackUpLogStartNum.
    * 
    * @param path The path of the edit logs
+   * @param info The Master Info
    */
-  public static void markUpToDate(String path) {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+  public static void markUpToDate(String path, MasterInfo info) {
+    UnderFileSystem ufs = UnderFileSystem.get(path, info.getTachyonConf());
     String folder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     try {
       // delete all loaded editlogs since mBackupLogStartNum.
@@ -245,6 +247,8 @@ public final class EditLog {
 
   private int mMaxLogSize = 5 * Constants.MB;
 
+  private final TachyonConf mTachyonConf;
+
   /**
    * Create a new EditLog
    * 
@@ -253,16 +257,17 @@ public final class EditLog {
    * @param transactionId The beginning transactionId of the edit log
    * @throws IOException
    */
-  public EditLog(String path, boolean inactive, long transactionId) throws IOException {
+  public EditLog(String path, boolean inactive, long transactionId, TachyonConf tachyonConf)
+      throws IOException {
     mInactive = inactive;
-
+    mTachyonConf = tachyonConf;
     if (!mInactive) {
       LOG.info("Creating edit log file " + path);
       mPath = path;
-      mUfs = UnderFileSystem.get(path);
+      mUfs = UnderFileSystem.get(path, mTachyonConf);
       if (sBackUpLogStartNum != -1) {
         LOG.info("Deleting completed editlogs that are part of the image.");
-        deleteCompletedLogs(path, sBackUpLogStartNum);
+        deleteCompletedLogs(path, sBackUpLogStartNum, tachyonConf);
         LOG.info("Backing up logs from " + sBackUpLogStartNum + " since image is not updated.");
         String folder =
             path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "/completed";
@@ -498,9 +503,10 @@ public final class EditLog {
    * 
    * @param path The path of the logs
    * @param upTo The logs in the path from 0 to upTo-1 are completed and to be deleted
+   * @param conf The {@link tachyon.conf.TachyonConf} instance
    */
-  public void deleteCompletedLogs(String path, int upTo) {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+  public void deleteCompletedLogs(String path, int upTo, TachyonConf conf) {
+    UnderFileSystem ufs = UnderFileSystem.get(path, conf);
     String folder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     try {
       for (int i = 0; i < upTo; i ++) {

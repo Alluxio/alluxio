@@ -18,6 +18,8 @@ package tachyon.client;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import tachyon.conf.TachyonConf;
+
 /**
  * BlockInStream for local block.
  */
@@ -30,11 +32,12 @@ public class LocalBlockInStream extends BlockInStream {
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the file
    * @param buf the buffer of the whole block in local memory
+   * @param tachyonConf the TachyonConf instance for this stream.
    * @throws IOException
    */
-  LocalBlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonByteBuffer buf)
-      throws IOException {
-    super(file, readType, blockIndex);
+  LocalBlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonByteBuffer buf,
+      TachyonConf tachyonConf) throws IOException {
+    super(file, readType, blockIndex, tachyonConf);
 
     mTachyonBuffer = buf;
     mBuffer = mTachyonBuffer.mData;

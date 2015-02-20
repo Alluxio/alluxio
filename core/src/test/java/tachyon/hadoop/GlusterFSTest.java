@@ -20,8 +20,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.UnderFileSystem;
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 
 /**
  * Unit tests for <code>tachyon.hadoop.GlusterFS</code>.
@@ -30,17 +31,20 @@ public class GlusterFSTest {
   private UnderFileSystem mGfs = null;
   private String mMount = null;
   private String mVolume = null;
+  private TachyonConf mTachyonConf;
 
   @Before
   public final void before() throws IOException {
-    mMount = CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS;
-    mVolume = CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES;
+    mTachyonConf = new TachyonConf();
+    mMount =  mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR,
+        "glusterfs:///mapred/system");
+    mVolume = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null);
   }
 
   @Test
   public void createGlusterFS() throws Exception {
     if (mMount != null && !mMount.equals("") && mVolume != null && !mVolume.equals("")) {
-      mGfs = UnderFileSystem.get("glusterfs:///");
+      mGfs = UnderFileSystem.get("glusterfs:///", mTachyonConf);
       Assert.assertTrue(mGfs.create("tachyon_test") != null);
     }
   }

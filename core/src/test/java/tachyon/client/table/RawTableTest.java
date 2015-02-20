@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.OutStream;
@@ -30,7 +31,7 @@ import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -39,24 +40,24 @@ import tachyon.master.LocalTachyonCluster;
 public class RawTableTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+  private int mMaxCols = 1000;
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(10000);
+    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
+    mMaxCols =  mLocalTachyonCluster.getMasterTachyonConf().getInt(Constants.MAX_COLUMNS, 1000);
   }
 
   @Test
   public void getColumnsTest() throws IOException {
-    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
+    for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/table" + k);
       int fileId = mTfs.createRawTable(uri, k);
       RawTable table = mTfs.getRawTable(fileId);
@@ -75,7 +76,7 @@ public class RawTableTest {
 
   @Test
   public void getIdTest() throws IOException {
-    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
+    for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/table" + k);
       int fileId = mTfs.createRawTable(uri, 1);
       RawTable table = mTfs.getRawTable(fileId);
@@ -94,7 +95,7 @@ public class RawTableTest {
 
   @Test
   public void getMetadataTest() throws IOException {
-    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
+    for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/x/table" + k);
       int fileId = mTfs.createRawTable(uri, 1);
       RawTable table = mTfs.getRawTable(fileId);
@@ -116,7 +117,7 @@ public class RawTableTest {
 
   @Test
   public void getNameTest() throws IOException {
-    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
+    for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/x/table" + k);
       int fileId = mTfs.createRawTable(uri, 1);
       RawTable table = mTfs.getRawTable(fileId);
@@ -135,7 +136,7 @@ public class RawTableTest {
 
   @Test
   public void getPathTest() throws IOException {
-    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
+    for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/x/table" + k);
       int fileId = mTfs.createRawTable(uri, 1);
       RawTable table = mTfs.getRawTable(fileId);
@@ -192,7 +193,7 @@ public class RawTableTest {
 
   @Test
   public void updateMetadataTest() throws IOException {
-    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
+    for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/x/table" + k);
       int fileId = mTfs.createRawTable(uri, 1);
       RawTable table = mTfs.getRawTable(fileId);

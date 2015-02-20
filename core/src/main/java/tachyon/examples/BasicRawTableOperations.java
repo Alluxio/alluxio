@@ -33,6 +33,7 @@ import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
+import tachyon.conf.TachyonConf;
 
 public class BasicRawTableOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -55,7 +56,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    TachyonFS tachyonClient = TachyonFS.get(mMasterAddress);
+    TachyonFS tachyonClient = TachyonFS.get(mMasterAddress, new TachyonConf());
     createRawTable(tachyonClient);
     write(tachyonClient);
     return read(tachyonClient);

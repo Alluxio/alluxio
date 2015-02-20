@@ -24,6 +24,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -39,19 +40,21 @@ public class EditLogProcessor implements Runnable {
   private int mCurrentLogFileNum = 0;
   private int mLastImageFileNum = 0;
   private long mLoadedImageModTime = 0L;
+  private final TachyonConf mTachyonConf;
   private volatile boolean mIsStandby = true;
 
   /**
    * Create a new EditLogProcessor.
-   * 
    * @param journal The journal of the Master
    * @param path The path of the edit logs
    * @param info The Master Info
+   * @param tachyonConf The TachyonConf instance.
    */
-  public EditLogProcessor(Journal journal, String path, MasterInfo info) {
+  public EditLogProcessor(Journal journal, String path, MasterInfo info, TachyonConf tachyonConf) {
     mJournal = journal;
     mPath = path;
     mMasterInfo = info;
+    mTachyonConf = tachyonConf;
     try {
       mLoadedImageModTime = mJournal.getImageModTimeMs();
     } catch (IOException e) {
@@ -63,7 +66,7 @@ public class EditLogProcessor implements Runnable {
   @Override
   public void run() {
     LOG.info("Edit log processor with path " + mPath + " started.");
-    UnderFileSystem ufs = UnderFileSystem.get(mPath);
+    UnderFileSystem ufs = UnderFileSystem.get(mPath, mTachyonConf);
     while (mIsStandby) {
       try {
         synchronized (mJournal) {

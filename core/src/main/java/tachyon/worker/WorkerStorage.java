@@ -48,8 +48,7 @@ import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.UnderFileSystem;
 import tachyon.Users;
-import tachyon.conf.CommonConf;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientFileInfo;
@@ -189,12 +188,13 @@ public class WorkerStorage {
           // TODO checkpoint process. In future, move from midPath to dstPath should be done by
           // master
           String midPath = CommonUtils.concat(mUfsWorkerDataFolder, fileId);
-          String dstPath = CommonUtils.concat(CommonConf.get().UNDERFS_DATA_FOLDER, fileId);
-          LOG.info("Thread {} is checkpointing file {}. midPath: {} dsPath: {}", mId, fileId,
-              midPath, dstPath);
+          String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data");
+          String dstPath = CommonUtils.concat(ufsDataFolder, fileId);
+          LOG.info("Thread " + mId + " is checkpointing file " + fileId + " from " + mDataFolder
+              + " to " + midPath + " to " + dstPath);
 
           if (mCheckpointUfs == null) {
-            mCheckpointUfs = UnderFileSystem.get(midPath);
+            mCheckpointUfs = UnderFileSystem.get(midPath, mTachyonConf);
           }
 
           final long startCopyTimeMs = System.currentTimeMillis();
@@ -245,8 +245,9 @@ public class WorkerStorage {
             LOG.error("Failed to rename from " + midPath + " to " + dstPath);
           }
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
-          long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB
-              / WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
+          int capMbSec = mTachyonConf.getInt(Constants.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC,
+              Constants.SECOND_MS);
+          long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB / capMbSec);
           long currentTimeMs = System.currentTimeMillis();
           if (startCopyTimeMs + shouldTakeMs > currentTimeMs) {
             long shouldSleepMs = startCopyTimeMs + shouldTakeMs - currentTimeMs;
@@ -264,7 +265,6 @@ public class WorkerStorage {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final CommonConf mCommonConf;
   private volatile MasterClient mMasterClient;
   private final InetSocketAddress mMasterAddress;
   private NetAddress mWorkerAddress;
@@ -288,9 +288,7 @@ public class WorkerStorage {
 
   private List<Integer> mPriorityDependencies = new ArrayList<Integer>();
 
-  private final ExecutorService mCheckpointExecutor = Executors.newFixedThreadPool(
-      WorkerConf.get().WORKER_CHECKPOINT_THREADS,
-      ThreadFactoryUtils.build("checkpoint-%d"));
+  private final ExecutorService mCheckpointExecutor;
 
   private final ExecutorService mExecutorService;
   private long mCapacityBytes;
@@ -304,6 +302,8 @@ public class WorkerStorage {
   private final Multimap<Long, Long> mUserIdToTempBlockIds = Multimaps
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
 
+  private final TachyonConf mTachyonConf;
+
   /**
    * Main logic behind the worker process.
    * 
@@ -312,16 +312,23 @@ public class WorkerStorage {
    * 
    * @param masterAddress The TachyonMaster's address
    * @param executorService
+   * @param tachyonConf The instance of TachyonConf to be used. If null the instantiate new one.
    */
-  public WorkerStorage(InetSocketAddress masterAddress, ExecutorService executorService) {
+  public WorkerStorage(InetSocketAddress masterAddress, ExecutorService executorService,
+      TachyonConf tachyonConf) {
     mExecutorService = executorService;
-    mCommonConf = CommonConf.get();
-
+    mTachyonConf = tachyonConf;
     mMasterAddress = masterAddress;
-    mMasterClient = new MasterClient(mMasterAddress, mExecutorService);
+    mMasterClient = new MasterClient(mMasterAddress, mExecutorService, mTachyonConf);
 
-    mDataFolder = WorkerConf.get().DATA_FOLDER;
-    mUserFolder = CommonUtils.concat(mDataFolder, WorkerConf.USER_TEMP_RELATIVE_FOLDER);
+    mDataFolder = mTachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+
+    String userTmpFolder = mTachyonConf.get(Constants.WORKER_USER_TEMP_RELATIVE_FOLDER, "users");
+    mUserFolder = CommonUtils.concat(mDataFolder, userTmpFolder);
+
+    int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
+    mCheckpointExecutor = Executors.newFixedThreadPool(checkpointThreads,
+        ThreadFactoryUtils.build("checkpoint-%d"));
   }
 
   public void initialize(final NetAddress address) {
@@ -335,12 +342,17 @@ public class WorkerStorage {
 
     register();
 
-    mUfsWorkerFolder = CommonUtils.concat(mCommonConf.UNDERFS_WORKERS_FOLDER, mWorkerId);
+    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underfs");
+    String ufsWorkerFolder = mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER,
+        ufsAddress + "/tachyon/workers");
+    mUfsWorkerFolder = CommonUtils.concat(ufsWorkerFolder, mWorkerId);
     mUfsWorkerDataFolder = mUfsWorkerFolder + "/data";
-    mUfs = UnderFileSystem.get(mCommonConf.UNDERFS_ADDRESS);
-    mUsers = new Users(mUfsWorkerFolder);
+    mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
+    mUsers = new Users(mUfsWorkerFolder, mTachyonConf);
 
-    for (int k = 0; k < WorkerConf.get().WORKER_CHECKPOINT_THREADS; k ++) {
+    int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
+    for (int k = 0; k < checkpointThreads; k ++) {
       mCheckpointExecutor.submit(new CheckpointThread(k));
     }
 
@@ -388,7 +400,8 @@ public class WorkerStorage {
       SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, IOException {
     // TODO This part need to be changed.
     String srcPath = CommonUtils.concat(getUserUfsTempFolder(userId), fileId);
-    String dstPath = CommonUtils.concat(mCommonConf.UNDERFS_DATA_FOLDER, fileId);
+    String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data");
+    String dstPath = CommonUtils.concat(ufsDataFolder, fileId);
     try {
       if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
@@ -655,24 +668,38 @@ public class WorkerStorage {
    * @throws IOException
    */
   public void initializeStorageTier() throws IOException {
-    mStorageTiers = new ArrayList<StorageTier>(WorkerConf.get().STORAGE_LEVELS);
-    for (int k = 0; k < WorkerConf.get().STORAGE_LEVELS; k ++) {
+    int maxStorageLevels = mTachyonConf.getInt(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, 1);
+
+    mStorageTiers = new ArrayList<StorageTier>(maxStorageLevels);
+    for (int k = 0; k < maxStorageLevels; k ++) {
       mStorageTiers.add(null);
     }
     StorageTier nextStorageTier = null;
-    for (int level = WorkerConf.get().STORAGE_LEVELS - 1; level >= 0; level --) {
-      if (WorkerConf.get().STORAGE_TIER_DIRS[level] == null) {
-        throw new IOException("No directory path is set for layer " + level);
+    for (int level = maxStorageLevels - 1; level >= 0; level --) {
+
+      String tierLevelAliasProp = "tachyon.worker.hierarchystore.level" + level + ".alias";
+      String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
+      String tierDirsQuotaProp = "tachyon.worker.hierarchystore.level" + level + ".dirs.quota";
+      int index = level;
+      if (index >= Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length) {
+        index = level - 1;
       }
-      if (WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level] == null) {
-        throw new IOException("No directory quota is set for layer " + level);
-      }
-      String[] dirPaths = WorkerConf.get().STORAGE_TIER_DIRS[level].split(",");
+
+      StorageLevelAlias storageLevelAlias = mTachyonConf.getEnum(tierLevelAliasProp,
+          StorageLevelAlias.MEM);
+
+      String[] dirPaths = mTachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
       for (int i = 0; i < dirPaths.length; i ++) {
         dirPaths[i] = dirPaths[i].trim();
       }
-      StorageLevelAlias alias = WorkerConf.get().STORAGE_LEVEL_ALIAS[level];
-      String[] dirCapacityStrings = WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level].split(",");
+
+      String tierDirsQuota = mTachyonConf.get(tierDirsQuotaProp,
+          Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[index]);
+
+      for (int i = 0; i < dirPaths.length; i ++) {
+        dirPaths[i] = dirPaths[i].trim();
+      }
+      String[] dirCapacityStrings = tierDirsQuota.split(",");
       long[] dirCapacities = new long[dirPaths.length];
       for (int i = 0, j = 0; i < dirPaths.length; i ++) {
         // The storage directory quota for each storage directory
@@ -681,9 +708,8 @@ public class WorkerStorage {
           j ++;
         }
       }
-      StorageTier curTier =
-          new StorageTier(level, alias, dirPaths, dirCapacities, mDataFolder, mUserFolder,
-              nextStorageTier, null); // TODO add conf for UFS
+      StorageTier curTier = new StorageTier(level, storageLevelAlias, dirPaths, dirCapacities,
+          mDataFolder, mUserFolder, nextStorageTier, null, mTachyonConf); // TODO add conf for UFS
       curTier.initialize();
       mCapacityBytes += curTier.getCapacityBytes();
       mStorageTiers.set(level, curTier);
@@ -889,7 +915,7 @@ public class WorkerStorage {
    * Set a new MasterClient and connect to it.
    */
   public void resetMasterClient() {
-    MasterClient tMasterClient = new MasterClient(mMasterAddress, mExecutorService);
+    MasterClient tMasterClient = new MasterClient(mMasterAddress, mExecutorService, mTachyonConf);
     mMasterClient = tMasterClient;
   }
 

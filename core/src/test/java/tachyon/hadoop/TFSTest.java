@@ -14,9 +14,7 @@
  */
 package tachyon.hadoop;
 
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -44,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
+import tachyon.conf.TachyonConf;
 
 /**
  * Unit tests for TFS
@@ -52,6 +51,8 @@ import tachyon.client.TachyonFS;
 @PrepareForTest({TachyonFS.class, UserGroupInformation.class})
 public class TFSTest {
   private static final Logger LOG = LoggerFactory.getLogger(TFSTest.class.getName());
+
+  private TachyonConf mTachyonConf;
 
   private ClassLoader getClassLoader(Class<?> clazz) {
     // Power Mock makes this hard, so try to hack it
@@ -92,12 +93,18 @@ public class TFSTest {
 
     // when
     final URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
+
+    mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
+    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
+    mTachyonConf.set(Constants.USE_ZOOKEEPER, "true");
+    mockTachyonFSGet();
+
     final FileSystem fs = FileSystem.get(uri, conf);
 
     Assert.assertTrue(fs instanceof TFSFT);
 
     PowerMockito.verifyStatic();
-    TachyonFS.get("localhost", 19998, true);
+    TachyonFS.get(mTachyonConf);
   }
 
   @Test
@@ -109,12 +116,18 @@ public class TFSTest {
 
     // when
     final URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
+
+    mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
+    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
+    mTachyonConf.set(Constants.USE_ZOOKEEPER, "false");
+    mockTachyonFSGet();
+
     final FileSystem fs = FileSystem.get(uri, conf);
 
     Assert.assertTrue(fs instanceof TFS);
 
     PowerMockito.verifyStatic();
-    TachyonFS.get("localhost", 19998, false);
+    TachyonFS.get(mTachyonConf);
   }
 
   private boolean isHadoop1x() {
@@ -128,7 +141,7 @@ public class TFSTest {
   private void mockTachyonFSGet() throws IOException {
     mockStatic(TachyonFS.class);
     TachyonFS tachyonFS = mock(TachyonFS.class);
-    when(TachyonFS.get(anyString(), anyInt(), anyBoolean())).thenReturn(tachyonFS);
+    when(TachyonFS.get(eq(mTachyonConf))).thenReturn(tachyonFS);
   }
 
   private void mockUserGroupInformation() throws IOException {
@@ -140,8 +153,8 @@ public class TFSTest {
 
   @Before
   public void setup() throws Exception {
+    mTachyonConf = new TachyonConf();
     mockUserGroupInformation();
-    mockTachyonFSGet();
 
     if (isHadoop1x()) {
       LOG.debug("Running TFS tests against hadoop 1x");

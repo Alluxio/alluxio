@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
@@ -66,17 +66,20 @@ public class WorkerClient implements Closeable {
   private final ExecutorService mExecutorService;
   private Future<?> mHeartbeat;
 
+  private final TachyonConf mTachyonConf;
+
   /**
    * Create a WorkerClient, with a given MasterClient.
-   * 
+   *
    * @param masterClient
    * @param executorService
    * @throws IOException
    */
-  public WorkerClient(MasterClient masterClient, ExecutorService executorService)
+  public WorkerClient(MasterClient masterClient, ExecutorService executorService, TachyonConf conf)
       throws IOException {
     mMasterClient = masterClient;
     mExecutorService = executorService;
+    mTachyonConf = conf;
   }
 
   /**
@@ -240,9 +243,10 @@ public class WorkerClient implements Closeable {
       HeartbeatExecutor heartBeater =
           new WorkerClientHeartbeatExecutor(this, mMasterClient.getUserId());
       String threadName = "worker-heartbeat-" + mWorkerAddress;
+      int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
+          Constants.SECOND_MS);
       mHeartbeat =
-          mExecutorService.submit(new HeartbeatThread(threadName, heartBeater,
-              UserConf.get().HEARTBEAT_INTERVAL_MS));
+          mExecutorService.submit(new HeartbeatThread(threadName, heartBeater, interval));
 
       try {
         mProtocol.getTransport().open();

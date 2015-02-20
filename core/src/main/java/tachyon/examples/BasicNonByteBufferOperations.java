@@ -26,6 +26,7 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.conf.TachyonConf;
 
 /**
  * Basic example of using the TachyonFS and TachyonFile for writing to and reading from files.
@@ -58,7 +59,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    TachyonFS client = TachyonFS.get(mMasterLocation);
+    TachyonFS client = TachyonFS.get(mMasterLocation, new TachyonConf());
 
     write(client, mFilePath, mWriteType, mDeleteIfExists, mLength);
     return read(client, mFilePath, mReadType);

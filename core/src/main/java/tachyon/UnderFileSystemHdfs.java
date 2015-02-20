@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.hadoop.Utils;
 
 /**
@@ -52,15 +52,17 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   private static final FsPermission PERMISSION = new FsPermission((short) 0777)
       .applyUMask(FsPermission.createImmutable((short) 0000));
 
-  public static UnderFileSystemHdfs getClient(String path) {
-    return new UnderFileSystemHdfs(path, null);
+  public static UnderFileSystemHdfs getClient(String path, TachyonConf tachyonConf) {
+    return new UnderFileSystemHdfs(path, null, tachyonConf);
   }
 
-  public static UnderFileSystemHdfs getClient(String path, Object conf) {
-    return new UnderFileSystemHdfs(path, conf);
+  public static UnderFileSystemHdfs getClient(String path, Object conf, TachyonConf tachyonConf) {
+    return new UnderFileSystemHdfs(path, conf, tachyonConf);
   }
 
-  private UnderFileSystemHdfs(String fsDefaultName, Object conf) {
+  private UnderFileSystemHdfs(String fsDefaultName, Object conf, TachyonConf tachyonConf) {
+    super(tachyonConf);
+
     mUfsPrefix = fsDefaultName;
     Configuration tConf;
     if (conf != null) {
@@ -71,19 +73,27 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     String glusterfsPrefix = "glusterfs:///";
     tConf.set("fs.defaultFS", fsDefaultName);
     if (fsDefaultName.startsWith(glusterfsPrefix)) {
+      String gfsImpl = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_IMPL,
+          "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
+      String gfsMrDir = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR,
+          "glusterfs:///mapred/system");
+      String gfsVolumes = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null);
+      String gfsMounts = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null);
+
       if (tConf.get("fs.glusterfs.impl") == null) {
-        tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
+        tConf.set("fs.glusterfs.impl", gfsImpl);
       }
       if (tConf.get("mapred.system.dir") == null) {
-        tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
+        tConf.set("mapred.system.dir", gfsMrDir);
       }
       if (tConf.get("fs.glusterfs.volumes") == null) {
-        tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
-        tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
-                  CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
+        tConf.set("fs.glusterfs.volumes", gfsVolumes);
+        tConf.set("fs.glusterfs.volume.fuse." + gfsVolumes, gfsMounts);
       }
     } else {
-      tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
+      String ufsHdfsImpl = mTachyonConf.get(Constants.UNDERFS_HDFS_IMPL,
+          "org.apache.hadoop.hdfs.DistributedFileSystem");
+      tConf.set("fs.hdfs.impl", ufsHdfsImpl);
 
       // To disable the instance cache for hdfs client, otherwise it causes the
       // FileSystem closed exception. Being configurable for unit/integration

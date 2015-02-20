@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
@@ -39,8 +40,11 @@ public class StorageDirTest {
     String tachyonHome =
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
     String workerDirFolder = tachyonHome + "/ramdisk";
-    mSrcDir = new StorageDir(1, workerDirFolder + "/src", CAPACITY, "/data", "/user", null);
-    mDstDir = new StorageDir(2, workerDirFolder + "/dst", CAPACITY, "/data", "/user", null);
+    TachyonConf tachyonConf = new TachyonConf();
+    mSrcDir = new StorageDir(1, workerDirFolder + "/src", CAPACITY, "/data", "/user", null,
+        tachyonConf);
+    mDstDir = new StorageDir(2, workerDirFolder + "/dst", CAPACITY, "/data", "/user", null,
+        tachyonConf);
 
     initializeStorageDir(mSrcDir, USER_ID);
     initializeStorageDir(mDstDir, USER_ID);

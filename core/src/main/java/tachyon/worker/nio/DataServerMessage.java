@@ -65,7 +65,7 @@ public class DataServerMessage {
    * Create a block request message specified by the block's id, the offset and the length. The
    * message is ready to be sent. If <code>len</code> is -1, it means request the data from offset
    * to the block's end.
-   * 
+   *
    * @param blockId The id of the block
    * @param offset The requested data's offset in the block
    * @param len The length of the requested data. If it's -1, it means request the data from offset
@@ -89,7 +89,7 @@ public class DataServerMessage {
   /**
    * Create a block response message specified by the block's id. If <code>toSend</code> is true, it
    * will prepare the data to be sent, otherwise the message is used to receive data.
-   * 
+   *
    * @param toSend If true the message is to send the data, otherwise it's used to receive data.
    * @param blockId The id of the block
    * @param data The data of the message
@@ -105,7 +105,7 @@ public class DataServerMessage {
    * <code>toSend</code> is true, it will prepare the data to be sent, otherwise the message is used
    * to receive data. If <code>len</code> is -1, it means response the data from offset to the
    * block's end.
-   * 
+   *
    * @param toSend If true the message is to send the data, otherwise it's used to receive data
    * @param blockId The id of the block
    * @param offset The responded data's offset in the block
