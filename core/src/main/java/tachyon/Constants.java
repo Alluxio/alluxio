@@ -109,11 +109,9 @@ public class Constants {
   public static final String MASTER_WEB_THREAD_COUNT = "tachyon.master.web.threads";
   public static final String MASTER_TEMPORARY_FOLDER = "tachyon.master.temporary.folder";
   public static final String MASTER_HEARTBEAT_INTERVAL_MS = "tachyon.master.heartbeat.interval.ms";
-
   public static final String MASTER_MAX_WORKER_THREADS = "tachyon.master.maxworker.threads";
   public static final String MASTER_MIN_WORKER_THREADS = "tachyon.master.minworker.threads";
-
-
+  public static final String MASTER_WORKER_TIMEOUT_MS = "tachyon.master.worker.timeout.ms";
   public static final String MASTER_WHITELIST = "tachyon.master.whitelist";
   public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
   public static final String MASTER_PRINCIPAL_KEY = "tachyon.master.principal";
