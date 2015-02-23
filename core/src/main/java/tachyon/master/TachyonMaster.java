@@ -103,7 +103,8 @@ public class TachyonMaster {
 
     mIsStarted = false;
     mWebPort = webPort;
-    mMinWorkerThread = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS, 2 * Runtime.getRuntime().availableProcessors());
+    mMinWorkerThread = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS,
+        2 * Runtime.getRuntime().availableProcessors());
     mMaxWorkerThread = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS, Integer.MAX_VALUE);
 
     try {

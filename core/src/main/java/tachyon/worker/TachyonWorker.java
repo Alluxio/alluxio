@@ -91,7 +91,8 @@ public class TachyonWorker implements Runnable {
     InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
     address = workerAddress.split(":");
     InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
-    return new TachyonWorker(master, worker, dataPort, minWorkerThreads, maxWorkerThreads, tachyonConf);
+    return new TachyonWorker(master, worker, dataPort, minWorkerThreads, maxWorkerThreads,
+        tachyonConf);
   }
 
   /**
@@ -107,8 +108,10 @@ public class TachyonWorker implements Runnable {
     int workerPort = tachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
     int dataPort = tachyonConf.getInt(Constants.WORKER_DATA_PORT,
         Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
-    int minWorkerThreads = tachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS, Runtime.getRuntime().availableProcessors());
-    int maxWorkerThreads = tachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS, Integer.MAX_VALUE);
+    int minWorkerThreads = tachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS,
+        Runtime.getRuntime().availableProcessors());
+    int maxWorkerThreads = tachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS,
+        Integer.MAX_VALUE);
 
     return new TachyonWorker(new InetSocketAddress(masterHostname, masterPort),
         new InetSocketAddress(workerHostName, workerPort), dataPort, minWorkerThreads,
