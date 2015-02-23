@@ -1,2 +1,32 @@
 Tachyon
 Copyright 2012-2014 University of California, Berkeley
+
+------------
+
+This product bundles Bootstrap 2 which is under the Apache License 2.0
+
+http://getbootstrap.com
+
+------------
+
+This product bundles Cookies.js which is in the public domain
+
+https://github.com/ScottHamper/Cookies/
+
+------------
+
+This product bundles jQuery which is under the MIT License
+
+http://jquery.com
+
+------------
+
+This product bundles Modernizr which is licensed under the MIT License
+
+http://modernizr.com
+
+------------
+
+This products bundles portions of Pygments which is licensed under the BSD 2-clause License
+
+http://pygments.org
