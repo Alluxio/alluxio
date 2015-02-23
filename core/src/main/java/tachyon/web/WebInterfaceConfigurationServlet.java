@@ -110,15 +110,14 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
         + mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT, 29));
     request.setAttribute("tachyon.master.heartbeat.interval.ms", ""
         + mTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS, -1));
-    request.setAttribute("tachyon.master.selector.threads", ""
-        + mTachyonConf.getInt(Constants.MASTER_SELECTOR_THREADS, -1));
-    request.setAttribute("tachyon.master.queue.size.per.selector", ""
-        + mTachyonConf.getInt(Constants.MASTER_QUEUE_SIZE_PER_SELECTOR, -1));
-    request.setAttribute("tachyon.master.server.threads", ""
-        + mTachyonConf.getInt(Constants.MASTER_SERVER_THREADS, -1));
+    request.setAttribute("tachyon.master.minworker.threads", ""
+        + mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS, -1));
+    request.setAttribute("tachyon.master.maxworker.threads", ""
+        + mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS, -1));
     request.setAttribute("tachyon.master.worker.timeout.ms", ""
         + mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS, -1));
 
     getServletContext().getRequestDispatcher("/configuration.jsp").forward(request, response);
   }
 }
+

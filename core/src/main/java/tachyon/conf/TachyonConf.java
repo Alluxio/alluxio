@@ -145,9 +145,9 @@ public class TachyonConf {
     defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
     defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
         ChannelType.defaultType().toString());
-    defaultProps.setProperty(Constants.WORKER_SERVER_THREADS,
+    defaultProps.setProperty(Constants.WORKER_MIN_WORKER_THREADS,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
-    defaultProps.setProperty(Constants.MASTER_SERVER_THREADS,
+    defaultProps.setProperty(Constants.MASTER_MIN_WORKER_THREADS,
         String.valueOf(2 * Runtime.getRuntime().availableProcessors()));
 
     InputStream defaultInputStream =
