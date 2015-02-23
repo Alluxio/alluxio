@@ -53,6 +53,13 @@ export TACHYON_UNDERFS_ADDRESS=$TACHYON_HOME/underfs
 export TACHYON_WORKER_MEMORY_SIZE=1GB
 export TACHYON_UNDERFS_HDFS_IMPL=org.apache.hadoop.hdfs.DistributedFileSystem
 
+# The default max threads in both master and worker are unlimited and thus provides no protection against
+# clients overwhelming the server. Users need to set this number according to their production environment
+# These two settings represents the maximum number of client requests that a master/worker server may execute concurrently.
+export TACHYON_WORKER_MAX_THREADS=2048
+export TACHYON_MASTER_MAX_THREADS=2048
+
+
 CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export TACHYON_JAVA_OPTS+="
@@ -71,6 +78,8 @@ export TACHYON_JAVA_OPTS+="
   -Dtachyon.master.worker.timeout.ms=60000
   -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
   -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
+  -Dtachyon.master.maxworker.threads=$TACHYON_MASTER_MAX_THREADS
+  -Dtachyon.worker.maxworker.threads=$TACHYON_WORKER_MAX_THREADS
   -Dorg.apache.jasper.compiler.disablejsr199=true
   -Djava.net.preferIPv4Stack=true
 "

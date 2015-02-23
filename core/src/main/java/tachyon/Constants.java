@@ -109,10 +109,8 @@ public class Constants {
   public static final String MASTER_WEB_THREAD_COUNT = "tachyon.master.web.threads";
   public static final String MASTER_TEMPORARY_FOLDER = "tachyon.master.temporary.folder";
   public static final String MASTER_HEARTBEAT_INTERVAL_MS = "tachyon.master.heartbeat.interval.ms";
-  public static final String MASTER_SELECTOR_THREADS = "tachyon.master.selector.threads";
-  public static final String MASTER_QUEUE_SIZE_PER_SELECTOR =
-      "tachyon.master.queue.size.per.selector";
-  public static final String MASTER_SERVER_THREADS = "tachyon.master.server.threads";
+  public static final String MASTER_MAX_WORKER_THREADS = "tachyon.master.maxworker.threads";
+  public static final String MASTER_MIN_WORKER_THREADS = "tachyon.master.minworker.threads";
   public static final String MASTER_WORKER_TIMEOUT_MS = "tachyon.master.worker.timeout.ms";
   public static final String MASTER_WHITELIST = "tachyon.master.whitelist";
   public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
@@ -126,11 +124,11 @@ public class Constants {
   public static final String WORKER_HEARTBEAT_TIMEOUT_MS = "tachyon.worker.heartbeat.timeout.ms";
   public static final String WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
       "tachyon.worker.to.master.heartbeat.interval.ms";
-  public static final String WORKER_SELECTOR_THREADS = "tachyon.worker.selector.threads";
-  public static final String WORKER_QUEUE_SIZE_PER_SELECTOR =
-      "tachyon.worker.queue.size.per.selector";
-  public static final String WORKER_SERVER_THREADS = "tachyon.worker.server.threads";
   public static final String WORKER_USER_TIMEOUT_MS = "tachyon.worker.user.timeout.ms";
+  public static final String WORKER_MAX_WORKER_THREADS = "tachyon.worker.maxworker.threads";
+  public static final String WORKER_MIN_WORKER_THREADS = "tachyon.worker.minworker.threads";
+
+
 
   public static final String WORKER_CHECKPOINT_THREADS = "tachyon.worker.checkpoint.threads";
   public static final String WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
