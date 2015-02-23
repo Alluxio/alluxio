@@ -110,7 +110,7 @@ public class TachyonWorker implements Runnable {
         Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
     int minWorkerThreads = tachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS,
         Runtime.getRuntime().availableProcessors());
-    
+
     //Set max thread to max integer by default
     //An property will be set/added in tachyon-env for users to specify a number that make sense in
     //their production environment
