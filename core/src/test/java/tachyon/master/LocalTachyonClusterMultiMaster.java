@@ -199,7 +199,7 @@ public class LocalTachyonClusterMultiMaster {
     mWorker =
         TachyonWorker.createWorker(
             CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerConf);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 100, mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
