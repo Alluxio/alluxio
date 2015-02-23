@@ -90,11 +90,9 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.MASTER_PORT, "0");
     tachyonConf.set(Constants.MASTER_WEB_PORT, "0");
 
-    // Lower the number of threads that the cluster will spin off.
-    // default thread overhead is too much.
-    tachyonConf.set(Constants.MASTER_SELECTOR_THREADS, "1");
-    tachyonConf.set(Constants.MASTER_QUEUE_SIZE_PER_SELECTOR, "1");
-    tachyonConf.set(Constants.MASTER_SERVER_THREADS, "1");
+    tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
+    tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
+
     tachyonConf.set(Constants.MASTER_WEB_THREAD_COUNT, "9");
     tachyonConf.set(Constants.WEB_RESOURCES, System.getProperty("user.dir") + "/src/main/webapp");
 
