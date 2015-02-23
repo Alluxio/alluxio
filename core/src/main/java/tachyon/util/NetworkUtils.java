@@ -26,6 +26,7 @@ import java.net.UnknownHostException;
 import java.util.Enumeration;
 
 import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TServerSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,12 +147,12 @@ public final class NetworkUtils {
 
   /**
    * Gets the port for the underline socket. This function calls
-   * {@link #getSocket(org.apache.thrift.transport.TNonblockingServerSocket)}, so reflection will be
+   * {@link #getSocket(org.apache.thrift.transport.TServerSocket)}, so reflection will be
    * used to get the port.
    * 
-   * @see #getSocket(org.apache.thrift.transport.TNonblockingServerSocket)
+   * @see #getSocket(org.apache.thrift.transport.TServerSocket)
    */
-  public static int getPort(TNonblockingServerSocket thriftSocket) {
+  public static int getPort(TServerSocket thriftSocket) {
     return getSocket(thriftSocket).getLocalPort();
   }
 
@@ -161,9 +162,9 @@ public final class NetworkUtils {
    * 
    * @throws java.lang.RuntimeException if reflection calls fail
    */
-  public static ServerSocket getSocket(final TNonblockingServerSocket thriftSocket) {
+  public static ServerSocket getSocket(final TServerSocket thriftSocket) {
     try {
-      Field field = TNonblockingServerSocket.class.getDeclaredField("serverSocket_");
+      Field field = TServerSocket.class.getDeclaredField("serverSocket_");
       field.setAccessible(true);
       return (ServerSocket) field.get(thriftSocket);
     } catch (NoSuchFieldException e) {
