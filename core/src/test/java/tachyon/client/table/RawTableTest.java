@@ -17,9 +17,8 @@ package tachyon.client.table;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import junit.framework.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,7 +30,6 @@ import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
-import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
