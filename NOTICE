@@ -15,7 +15,7 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ----------
 
-This product bundles various Apache Commons libraries which are subject to the
+This product depends on various Apache Commons libraries which are subject to the
 following NOTICEs:
 
 src/test/org/apache/commons/codec/language/DoubleMetaphoneTest.java
@@ -40,7 +40,7 @@ http://issues.apache.org/jira/browse/EL-8
 
 ----------
 
-This products bundles Netty which is subject to the following NOTICEs:
+This products depends on Netty which is subject to the following NOTICEs:
 
 This product contains the extensions to Java Collections Framework which has
 been derived from the works by JSR-166 EG, Doug Lea, and Jason T. Greene:
