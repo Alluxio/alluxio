@@ -148,7 +148,7 @@ public class TachyonConf {
     defaultProps.setProperty(Constants.WORKER_MIN_WORKER_THREADS,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
     defaultProps.setProperty(Constants.MASTER_MIN_WORKER_THREADS,
-        String.valueOf(2 * Runtime.getRuntime().availableProcessors()));
+        String.valueOf(Runtime.getRuntime().availableProcessors()));
 
     InputStream defaultInputStream =
         TachyonConf.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTIES);
