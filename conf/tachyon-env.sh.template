@@ -78,14 +78,12 @@ export TACHYON_JAVA_OPTS+="
   -Dtachyon.master.worker.timeout.ms=60000
   -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
   -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
-  -Dtachyon.master.maxworker.threads=$TACHYON_MASTER_MAX_THREADS
-  -Dtachyon.worker.maxworker.threads=$TACHYON_WORKER_MAX_THREADS
   -Dorg.apache.jasper.compiler.disablejsr199=true
   -Djava.net.preferIPv4Stack=true
 "
 
 # Master specific parameters. Default to TACHYON_JAVA_OPTS.
-export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS"
+export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -Dtachyon.master.maxworker.threads=$TACHYON_MASTER_MAX_THREADS"
 
 # Worker specific parameters that will be shared to all workers. Default to TACHYON_JAVA_OPTS.
-export TACHYON_WORKER_JAVA_OPTS="$TACHYON_JAVA_OPTS"
+export TACHYON_WORKER_JAVA_OPTS="$TACHYON_JAVA_OPTS -Dtachyon.worker.maxworker.threads=$TACHYON_WORKER_MAX_THREADS"
