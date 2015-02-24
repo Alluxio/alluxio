@@ -15,7 +15,6 @@
 
 package tachyon.worker.netty;
 
-
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
@@ -27,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.hierarchy.StorageDir;

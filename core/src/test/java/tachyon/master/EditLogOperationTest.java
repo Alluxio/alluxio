@@ -18,9 +18,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.apache.commons.codec.binary.Base64;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;

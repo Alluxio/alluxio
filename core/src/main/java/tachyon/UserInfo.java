@@ -17,8 +17,6 @@ package tachyon;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.conf.TachyonConf;
-
 /**
  * Represent one user in the worker daemon.
  */
