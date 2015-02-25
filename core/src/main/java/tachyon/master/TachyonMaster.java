@@ -242,7 +242,7 @@ public class TachyonMaster {
         .minWorkerThreads(mMinWorkerThreads)
         .processor(masterServiceProcessor)
         .transportFactory(new TFramedTransport.Factory())
-        .protocolFactory(new TBinaryProtocol.Factory()));
+        .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     mIsStarted = true;
   }

@@ -226,7 +226,7 @@ public class TachyonWorker implements Runnable {
       mServer = new TThreadPoolServer(new TThreadPoolServer.Args(mServerTServerSocket)
           .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads)
           .processor(processor).transportFactory(new TFramedTransport.Factory())
-          .protocolFactory(new TBinaryProtocol.Factory()));
+          .protocolFactory(new TBinaryProtocol.Factory(true, true)));
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
