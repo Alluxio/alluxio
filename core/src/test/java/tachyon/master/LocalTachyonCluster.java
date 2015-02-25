@@ -264,6 +264,7 @@ public final class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.server.threads");
     System.clearProperty("tachyon.worker.hierarchystore.level.max");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
+    System.clearProperty("tachyon.worker.min.worker.threads");
   }
 
   /**
