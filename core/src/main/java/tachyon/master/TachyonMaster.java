@@ -73,8 +73,8 @@ public class TachyonMaster {
   private EditLogProcessor mEditLogProcessor;
   private int mWebPort;
 
-  private int mMaxWorkerThread;
-  private int mMinWorkerThread;
+  private int mMaxWorkerThreads;
+  private int mMinWorkerThreads;
   private boolean mZookeeperMode = false;
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2,
       ThreadFactoryUtils.daemon("heartbeat-master-%d"));
@@ -101,13 +101,13 @@ public class TachyonMaster {
 
     mIsStarted = false;
     mWebPort = webPort;
-    mMinWorkerThread = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS,
+    mMinWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS,
         Runtime.getRuntime().availableProcessors());
 
     //Set max thread to max integer by default
     //An property will be set/added in tachyon-env for users to specify a number that make sense in
     //their production environment
-    mMaxWorkerThread = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS, Integer.MAX_VALUE);
+    mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS, Integer.MAX_VALUE);
 
     try {
       // Extract the port from the generated socket.
@@ -238,8 +238,8 @@ public class TachyonMaster {
 
     mMasterServiceServer = new TThreadPoolServer( new TThreadPoolServer.Args(
         mServerTServerSocket)
-        .maxWorkerThreads(mMaxWorkerThread)
-        .minWorkerThreads(mMinWorkerThread)
+        .maxWorkerThreads(mMaxWorkerThreads)
+        .minWorkerThreads(mMinWorkerThreads)
         .processor(masterServiceProcessor)
         .transportFactory(new TFramedTransport.Factory())
         .protocolFactory(new TBinaryProtocol.Factory()));
