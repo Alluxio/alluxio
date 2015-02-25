@@ -168,6 +168,8 @@ public final class LocalTachyonMaster {
     mTachyonMaster.stop();
 
     System.clearProperty("tachyon.web.resources");
+    System.clearProperty("tachyon.master.min.worker.threads");
+
   }
 
   public void clearClients() throws IOException {
