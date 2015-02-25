@@ -61,6 +61,7 @@ import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.worker.eviction.EvictStrategyType;
 import tachyon.worker.hierarchy.StorageDir;
 import tachyon.worker.hierarchy.StorageTier;
 
@@ -304,6 +305,8 @@ public class WorkerStorage {
 
   private final TachyonConf mTachyonConf;
 
+  private Long mLastAttenuateBlockReferenceMs;
+
   /**
    * Main logic behind the worker process.
    * 
@@ -350,6 +353,13 @@ public class WorkerStorage {
     mUfsWorkerDataFolder = mUfsWorkerFolder + "/data";
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
     mUsers = new Users(mUfsWorkerFolder, mTachyonConf);
+
+    if (mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictStrategyType.LRU)
+        .needReferenceFrequency()) {
+      mLastAttenuateBlockReferenceMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+    } else {
+      mLastAttenuateBlockReferenceMs = null;
+    }
 
     int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
     for (int k = 0; k < checkpointThreads; k ++) {
@@ -553,7 +563,9 @@ public class WorkerStorage {
     if (mLastAttenuateBlockReferenceMs != null) {
       long diff = TimeUnit.NANOSECONDS.toMillis(System.nanoTime())
           - mLastAttenuateBlockReferenceMs;
-      if (diff > WorkerConf.get().BLOCK_REFERENCE_PERIOD_MS) {
+      long period = mTachyonConf.getLong(Constants.WORKER_BLOCK_REFERENCE_PERIOD_MS,
+          Constants.MINUTE_MS);
+      if (diff > period) {
         for (StorageTier storageTier : mStorageTiers) {
           for (StorageDir storageDir : storageTier.getStorageDirs()) {
             storageDir.attenuateBlockReferenceFrequency();

@@ -46,7 +46,6 @@ public class EvictStrategyTest {
 
   @After
   public final void after() {
-    WorkerConf.clear();
     System.clearProperty("tachyon.worker.evict.strategy");
   }
 
@@ -56,7 +55,6 @@ public class EvictStrategyTest {
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
     String workerDirFolder = tachyonHome + "/ramdisk";
     String[] dirPaths = "/dir1,/dir2,/dir3".split(",");
-    WorkerConf.clear();
     System.setProperty("tachyon.worker.evict.strategy", "LFU");
     for (int i = 0; i < 3; i ++) {
       mStorageDirs[i] =

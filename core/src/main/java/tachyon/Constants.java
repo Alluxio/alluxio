@@ -151,6 +151,8 @@ public class Constants {
   public static final String WORKER_NETTY_SEND_BUFFER = "tachyon.worker.network.netty.buffer.send";
   public static final String WORKER_NETTY_RECEIVE_BUFFER =
       "tachyon.worker.network.netty.buffer.receive";
+  public static final String WORKER_BLOCK_REFERENCE_PERIOD_MS =
+      "tachyon.worker.block.reference.period.ms";
   public static final String WORKER_EVICT_STRATEGY_TYPE = "tachyon.worker.evict.strategy";
   public static final String WORKER_ALLOCATE_STRATEGY_TYPE = "tachyon.worker.allocate.strategy";
   public static final String WORKER_MAX_HIERARCHY_STORAGE_LEVEL =

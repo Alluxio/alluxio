@@ -43,10 +43,10 @@ import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.Users;
-import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.SpaceCounter;
+import tachyon.worker.eviction.EvictStrategyType;
 
 /**
  * Stores and manages block files in storage's directory in different storage systems.
@@ -117,6 +117,12 @@ public final class StorageDir {
     mUserTempPath = mDirPath.join(userTempFolder);
     mConf = conf;
     mFs = UnderFileSystem.get(dirPath, conf, mTachyonConf);
+    if (mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictStrategyType.LRU)
+        .needReferenceFrequency()) {
+      mBlockReferenceFrequency = new ConcurrentHashMap<Long, Long>();
+    } else {
+      mBlockReferenceFrequency = null;
+    }
   }
 
   /**
