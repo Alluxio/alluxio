@@ -23,7 +23,10 @@ import java.util.List;
 import java.util.Map;
 
 import tachyon.Pair;
+import tachyon.StorageDirId;
+import tachyon.StorageLevelAlias;
 import tachyon.UnderFileSystem;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.NetworkUtils;
@@ -72,7 +75,8 @@ public class BlockInfo {
   public final long mOffset;
   public final long mLength;
 
-  private Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>(5);
+  private final Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>(5);
+  private final Map<NetAddress, Long> mStorageDirIds = new HashMap<NetAddress, Long>(5);
 
   /**
    * @param inodeFile
@@ -92,9 +96,11 @@ public class BlockInfo {
    * 
    * @param workerId The id of the worker
    * @param workerAddress The net address of the worker
+   * @param storageDirId The id of the StorageDir which block is located in
    */
-  public synchronized void addLocation(long workerId, NetAddress workerAddress) {
+  public synchronized void addLocation(long workerId, NetAddress workerAddress, long storageDirId) {
     mLocations.put(workerId, workerAddress);
+    mStorageDirIds.put(workerAddress, storageDirId);
   }
 
   /**
@@ -102,13 +108,13 @@ public class BlockInfo {
    * 
    * @return the generated ClientBlockInfo
    */
-  public synchronized ClientBlockInfo generateClientBlockInfo() {
+  public synchronized ClientBlockInfo generateClientBlockInfo(TachyonConf tachyonConf) {
     ClientBlockInfo ret = new ClientBlockInfo();
 
     ret.blockId = mBlockId;
     ret.offset = mOffset;
     ret.length = mLength;
-    ret.locations = getLocations();
+    ret.locations = getLocations(tachyonConf);
 
     return ret;
   }
@@ -142,11 +148,11 @@ public class BlockInfo {
    * 
    * @return the net addresses of the locations
    */
-  public synchronized List<NetAddress> getLocations() {
+  public synchronized List<NetAddress> getLocations(TachyonConf tachyonConf) {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
     ret.addAll(mLocations.values());
     if (ret.isEmpty() && mInodeFile.hasCheckpointed()) {
-      UnderFileSystem ufs = UnderFileSystem.get(mInodeFile.getUfsPath());
+      UnderFileSystem ufs = UnderFileSystem.get(mInodeFile.getUfsPath(), tachyonConf);
       List<String> locs = null;
       try {
         locs = ufs.getFileLocations(mInodeFile.getUfsPath(), mOffset);
@@ -172,7 +178,13 @@ public class BlockInfo {
    * @return true if the block is in some worker's memory, false otherwise
    */
   public synchronized boolean isInMemory() {
-    return mLocations.size() > 0;
+    for (long storageDirId : mStorageDirIds.values()) {
+      int storageLevelValue = StorageDirId.getStorageLevelAliasValue(storageDirId);
+      if (storageLevelValue == StorageLevelAlias.MEM.getValue()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -181,7 +193,9 @@ public class BlockInfo {
    * @param workerId The id of the removed worker
    */
   public synchronized void removeLocation(long workerId) {
-    mLocations.remove(workerId);
+    if (mLocations.containsKey(workerId)) {
+      mStorageDirIds.remove(mLocations.remove(workerId));
+    }
   }
 
   @Override

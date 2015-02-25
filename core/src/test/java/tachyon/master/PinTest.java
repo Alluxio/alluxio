@@ -14,9 +14,9 @@
  */
 package tachyon.master;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import com.google.common.collect.Sets;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 
@@ -36,8 +37,7 @@ public class PinTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(1000);
+    mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
@@ -46,7 +46,6 @@ public class PinTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @Test

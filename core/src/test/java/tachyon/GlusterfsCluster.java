@@ -16,10 +16,12 @@ package tachyon;
 
 import java.io.IOException;
 
+import tachyon.conf.TachyonConf;
+
 public class GlusterfsCluster extends UnderFileSystemCluster {
 
-  public GlusterfsCluster(String baseDir) {
-    super(baseDir);
+  public GlusterfsCluster(String baseDir, TachyonConf tachyonConf) {
+    super(baseDir, tachyonConf);
   }
 
   @Override

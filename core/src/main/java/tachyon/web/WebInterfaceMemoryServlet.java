@@ -46,6 +46,8 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
    * 
    * @param request The HttpServletRequest object
    * @param response The HttpServletReponse object
+   * @throws ServletException
+   * @throws IOException
    */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)

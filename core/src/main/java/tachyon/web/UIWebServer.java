@@ -18,11 +18,13 @@ package tachyon.web;
 import java.io.File;
 import java.net.InetSocketAddress;
 
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -33,8 +35,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.MasterInfo;
 
 /**
@@ -46,6 +47,7 @@ public class UIWebServer {
   private Server mServer;
   private String mServerName;
   private InetSocketAddress mAddress;
+  private final TachyonConf mTachyonConf;
 
   /**
    * Constructor that pairs urls with servlets and sets the webapp folder.
@@ -57,16 +59,26 @@ public class UIWebServer {
   public UIWebServer(String serverName, InetSocketAddress address, MasterInfo masterInfo) {
     mAddress = address;
     mServerName = serverName;
-    mServer = new Server(mAddress);
+    mTachyonConf = new TachyonConf();
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    threadPool.setMaxThreads(MasterConf.get().WEB_THREAD_COUNT);
+    int webThreadCount = mTachyonConf.getInt(Constants.MASTER_WEB_THREAD_COUNT, 9);
+
+    mServer = new Server();
+    SelectChannelConnector connector = new SelectChannelConnector();
+    connector.setPort(address.getPort());
+    connector.setAcceptors(webThreadCount);
+    mServer.setConnectors(new Connector[] { connector });
+
+    // Jetty needs at least (1 + selectors + acceptors) threads.
+    threadPool.setMinThreads(webThreadCount * 2 + 1);
+    threadPool.setMaxThreads(webThreadCount * 2 + 100);
     mServer.setThreadPool(threadPool);
 
     WebAppContext webappcontext = new WebAppContext();
 
     webappcontext.setContextPath(TachyonURI.SEPARATOR);
-    File warPath = new File(CommonConf.get().WEB_RESOURCES);
+    File warPath = new File(mTachyonConf.get(Constants.WEB_RESOURCES, "/core/src/main/webapp"));
     webappcontext.setWar(warPath.getAbsolutePath());
     webappcontext
         .addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)), "/home");

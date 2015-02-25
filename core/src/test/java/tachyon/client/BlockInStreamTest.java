@@ -16,11 +16,12 @@ package tachyon.client;
 
 import java.io.IOException;
 
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
 
@@ -33,21 +34,20 @@ public class BlockInStreamTest {
   private static final int MEAN = (MIN_LEN + MAX_LEN) / 2;
   private static final int DELTA = 33;
 
-  private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTfs = null;
+  private static LocalTachyonCluster sLocalTachyonCluster = null;
+  private static TachyonFS sTfs = null;
 
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+  @AfterClass
+  public static final void afterClass() throws Exception {
+    sLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
-  @Before
-  public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(10000);
-    mLocalTachyonCluster.start();
-    mTfs = mLocalTachyonCluster.getClient();
+  @BeforeClass
+  public static final void beforeClass() throws IOException {
+    sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
+    sLocalTachyonCluster.start();
+    sTfs = sLocalTachyonCluster.getClient();
   }
 
   /**
@@ -55,11 +55,12 @@ public class BlockInStreamTest {
    */
   @Test
   public void readTest1() throws IOException {
+    String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
-        TachyonFile file = mTfs.getFile(fileId);
+        TachyonFile file = sTfs.getFile(fileId);
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         if (k == 0) {
@@ -107,11 +108,12 @@ public class BlockInStreamTest {
    */
   @Test
   public void readTest2() throws IOException {
+    String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
-        TachyonFile file = mTfs.getFile(fileId);
+        TachyonFile file = sTfs.getFile(fileId);
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         if (k == 0) {
@@ -143,11 +145,12 @@ public class BlockInStreamTest {
    */
   @Test
   public void readTest3() throws IOException {
+    String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
-        TachyonFile file = mTfs.getFile(fileId);
+        TachyonFile file = sTfs.getFile(fileId);
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         if (k == 0) {
@@ -179,11 +182,12 @@ public class BlockInStreamTest {
    */
   @Test
   public void skipTest() throws IOException {
+    String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
-        TachyonFile file = mTfs.getFile(fileId);
+        TachyonFile file = sTfs.getFile(fileId);
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof BlockInStream);

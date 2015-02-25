@@ -22,13 +22,14 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.thrift.TException;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
-import tachyon.conf.CommonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -127,7 +128,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
       SuspectedFileSizeException, TachyonException, TException {
     if (!ufsPath.isEmpty()) {
-      UnderFileSystem underfs = UnderFileSystem.get(ufsPath);
+      UnderFileSystem underfs = UnderFileSystem.get(ufsPath, mMasterInfo.getTachyonConf());
       try {
         long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
         long fileSizeByte = underfs.getFileSize(ufsPath);
@@ -174,13 +175,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public ClientBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException,
       BlockInfoException, TException {
-    ClientBlockInfo ret = null;
-    try {
-      ret = mMasterInfo.getClientBlockInfo(blockId);
-    } catch (IOException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    }
-    return ret;
+    return mMasterInfo.getClientBlockInfo(blockId);
   }
 
   @Override
@@ -203,14 +198,10 @@ public class MasterServiceHandler implements MasterService.Iface {
   public List<ClientBlockInfo> user_getFileBlocks(int fileId, String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
     List<ClientBlockInfo> ret = null;
-    try {
-      if (fileId != -1) {
-        ret = mMasterInfo.getFileBlocks(fileId);
-      } else {
-        ret = mMasterInfo.getFileBlocks(new TachyonURI(path));
-      }
-    } catch (IOException e) {
-      throw new FileDoesNotExistException(e.getMessage());
+    if (fileId != -1) {
+      ret = mMasterInfo.getFileBlocks(fileId);
+    } else {
+      ret = mMasterInfo.getFileBlocks(new TachyonURI(path));
     }
     return ret;
   }
@@ -222,7 +213,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public String user_getUfsAddress() throws TException {
-    return CommonConf.get().UNDERFS_ADDRESS;
+    return mMasterInfo.getTachyonConf().get(Constants.UNDERFS_ADDRESS, "/underfs");
   }
 
   @Override
@@ -289,6 +280,15 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public boolean user_freepath(int fileId, String path, boolean recursive) throws TachyonException,
+      TException {
+    if (fileId != -1) {
+      return mMasterInfo.freepath(fileId, recursive);
+    }
+    return mMasterInfo.freepath(new TachyonURI(path), recursive);
+  }
+
+  @Override
   public void user_updateRawTableMetadata(int tableId, ByteBuffer metadata)
       throws TableDoesNotExistException, TachyonException, TException {
     mMasterInfo.updateRawTableMetadata(tableId,
@@ -296,9 +296,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
-    mMasterInfo.cacheBlock(workerId, workerUsedBytes, blockId, length);
+  public void worker_cacheBlock(long workerId, long workerUsedBytes, long storageDirId,
+      long blockId, long length) throws FileDoesNotExistException, BlockInfoException, TException {
+    mMasterInfo.cacheBlock(workerId, workerUsedBytes, storageDirId, blockId, length);
   }
 
   @Override
@@ -313,14 +313,15 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public Command worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
+  public Command worker_heartbeat(long workerId, long usedBytes,
+      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
       throws BlockInfoException, TException {
-    return mMasterInfo.workerHeartbeat(workerId, usedBytes, removedBlockIds);
+    return mMasterInfo.workerHeartbeat(workerId, usedBytes, removedBlockIds, addedBlockIds);
   }
 
   @Override
   public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes,
-      List<Long> currentBlockIds) throws BlockInfoException, TException {
+      Map<Long, List<Long>> currentBlockIds) throws BlockInfoException, TException {
     return mMasterInfo.registerWorker(workerNetAddress, totalBytes, usedBytes, currentBlockIds);
   }
 }

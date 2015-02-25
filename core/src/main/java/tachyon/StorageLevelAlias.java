@@ -19,24 +19,23 @@ package tachyon;
  * Different storage level alias for StorageTier.
  */
 public enum StorageLevelAlias {
-
   /**
-   * Data is stored in memory
+   * Memory Layer
    */
   MEM(1),
   /**
-   * Data is stored on SSD
+   * SSD Layer
    */
   SSD(2),
   /**
-   * Data is stored on HDD
+   * HDD Layer
    */
   HDD(3);
 
   private int mValue;
 
   private StorageLevelAlias(int value) {
-    this.mValue = value;
+    mValue = value;
   }
 
   /**

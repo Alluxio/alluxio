@@ -30,12 +30,13 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.security.SecurityUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.hadoop.Utils;
 
 /**
@@ -51,31 +52,48 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   private static final FsPermission PERMISSION = new FsPermission((short) 0777)
       .applyUMask(FsPermission.createImmutable((short) 0000));
 
-  public static UnderFileSystemHdfs getClient(String path) {
-    return new UnderFileSystemHdfs(path, null);
+  public static UnderFileSystemHdfs getClient(String path, TachyonConf tachyonConf) {
+    return new UnderFileSystemHdfs(path, null, tachyonConf);
   }
 
-  public static UnderFileSystemHdfs getClient(String path, Object conf) {
-    return new UnderFileSystemHdfs(path, conf);
+  public static UnderFileSystemHdfs getClient(String path, Object conf, TachyonConf tachyonConf) {
+    return new UnderFileSystemHdfs(path, conf, tachyonConf);
   }
 
-  private UnderFileSystemHdfs(String fsDefaultName, Object conf) {
+  private UnderFileSystemHdfs(String fsDefaultName, Object conf, TachyonConf tachyonConf) {
+    super(tachyonConf);
+
     mUfsPrefix = fsDefaultName;
     Configuration tConf;
     if (conf != null) {
-      tConf = (Configuration) conf;
+      tConf = new Configuration((Configuration) conf);
     } else {
       tConf = new Configuration();
     }
     String glusterfsPrefix = "glusterfs:///";
+    tConf.set("fs.defaultFS", fsDefaultName);
     if (fsDefaultName.startsWith(glusterfsPrefix)) {
-      tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
-      tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
-      tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
-      tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
-          CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
+      String gfsImpl = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_IMPL,
+          "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
+      String gfsMrDir = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR,
+          "glusterfs:///mapred/system");
+      String gfsVolumes = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null);
+      String gfsMounts = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null);
+
+      if (tConf.get("fs.glusterfs.impl") == null) {
+        tConf.set("fs.glusterfs.impl", gfsImpl);
+      }
+      if (tConf.get("mapred.system.dir") == null) {
+        tConf.set("mapred.system.dir", gfsMrDir);
+      }
+      if (tConf.get("fs.glusterfs.volumes") == null) {
+        tConf.set("fs.glusterfs.volumes", gfsVolumes);
+        tConf.set("fs.glusterfs.volume.fuse." + gfsVolumes, gfsMounts);
+      }
     } else {
-      tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
+      String ufsHdfsImpl = mTachyonConf.get(Constants.UNDERFS_HDFS_IMPL,
+          "org.apache.hadoop.hdfs.DistributedFileSystem");
+      tConf.set("fs.hdfs.impl", ufsHdfsImpl);
 
       // To disable the instance cache for hdfs client, otherwise it causes the
       // FileSystem closed exception. Being configurable for unit/integration
@@ -284,6 +302,14 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
   }
 
+  public void login(String keytabFileKey, String keytabFile, String principalKey, String principal,
+      String hostname) throws IOException {
+    Configuration conf = new Configuration();
+    conf.set(keytabFileKey, keytabFile);
+    conf.set(principalKey, principal);
+    SecurityUtil.login(conf, keytabFileKey, principalKey, hostname);
+  }
+
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     IOException te = null;
@@ -325,10 +351,12 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     LOG.debug("Renaming from {} to {}", src, dst);
     if (!exists(src)) {
       LOG.error("File " + src + " does not exist. Therefore rename to " + dst + " failed.");
+      return false;
     }
 
     if (exists(dst)) {
       LOG.error("File " + dst + " does exist. Therefore rename from " + src + " failed.");
+      return false;
     }
 
     int cnt = 0;

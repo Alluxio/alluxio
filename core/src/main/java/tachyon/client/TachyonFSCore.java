@@ -96,4 +96,16 @@ interface TachyonFSCore extends Closeable {
    * @throws IOException
    */
   boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
+
+ /**
+  * Memory free of a file or folder
+  * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+  *        Otherwise, the method uses the path parameter.
+  * @param path The path of the file / folder. It could be empty iff id is not -1.
+  * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
+  *        or not
+  * @return true if in-memory free successfully, false otherwise.
+  * @throws IOException
+  */
+  boolean freepath(int fileId, TachyonURI path, boolean recursive) throws IOException;
 }

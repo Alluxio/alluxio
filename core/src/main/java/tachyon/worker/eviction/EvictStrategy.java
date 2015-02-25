@@ -35,10 +35,10 @@ public interface EvictStrategy {
    *
    * @param storageDirs StorageDir candidates that the space will be allocated in
    * @param pinList list of pinned file
-   * @param requestSize size to request
+   * @param requestBytes requested space size in bytes
    * @return Pair of StorageDir allocated and blockInfoList which contains information of blocks to
    *         be evicted, null if no allocated directory is found
    */
   public Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
-      Set<Integer> pinList, long requestSize);
+      Set<Integer> pinList, long requestBytes);
 }

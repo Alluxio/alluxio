@@ -19,12 +19,18 @@ import java.io.IOException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 
 /**
  * Abstract implementation of {@link tachyon.client.TachyonFSCore} APIs.
  */
 abstract class AbstractTachyonFS implements TachyonFSCore {
+  protected final TachyonConf mTachyonConf;
+
+  protected AbstractTachyonFS(TachyonConf tachyonConf) {
+    mTachyonConf = tachyonConf;
+  }
+
   /**
    * Creates a file with the default block size (1GB) in the system. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
@@ -34,7 +40,9 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @throws IOException If file already exists, or path is invalid.
    */
   public synchronized int createFile(TachyonURI path) throws IOException {
-    return createFile(path, UserConf.get().DEFAULT_BLOCK_SIZE_BYTE);
+    long defaultBlockSize = mTachyonConf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE,
+        Constants.GB);
+    return createFile(path, defaultBlockSize);
   }
 
   /**
@@ -127,5 +135,18 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    */
   public synchronized boolean rename(TachyonURI srcPath, TachyonURI dstPath) throws IOException {
     return rename(-1, srcPath, dstPath);
+  }
+
+ /**
+  * Frees the in-memory blocks of file/folder denoted by the path
+  *
+  * @param path the file/folder path
+  * @param recursive if free the path recursively
+  * @return true if the memory free succeed (including the case that the path does not exist in the
+  *         first place), false otherwise.
+  * @throws IOException
+  */
+  public synchronized boolean freepath(TachyonURI path, boolean recursive) throws IOException {
+    return freepath(-1, path, recursive);
   }
 }

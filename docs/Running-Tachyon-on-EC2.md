@@ -21,11 +21,11 @@ The `ec2` directory contains the scripts to set up a cluster. Detailed instructi
 the [Spark EC2 guide](https://github.com/mesos/spark/wiki/EC2-Scripts). In a nutshell, you will need
 to do:
 
-    $ spark-0.6.0/ec2/spark-ec2 -a ami-691d9100 -k <keypair-name> -i <key-file> -s <num-slaves> launch <cluster-name>
+    $ spark-0.6.0/ec2/spark-ec2 -a ami-691d9100 -k <keypair-name> -i <key-file> -s <num-workers> launch <cluster-name>
 
 Where `<keypair>` is the name of your EC2 key pair (that you gave it
 when you created it), `<key-file>` is the private key file for your key
-pair, `<num-slaves>` is the number of slave nodes to launch (try 1 at
+pair, `<num-workers>` is the number of worker nodes to launch (try 1 at
 first), and `<cluster-name>` is the name to give to your cluster. This
 creates a cluster on EC2 using a pre-built machine image that has
 Tachyon, Spark, and Shark.
@@ -41,7 +41,7 @@ Then, config Tachyon in `tachyon` folder
 
 Add the line `TACHYON_HDFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_PORT` to the `tachyon-env.sh` file.
 
-Add each of the slaves' IP addresses to the `slaves` file and sync the configuration to all nodes.
+Add each of the worker nodes' IP addresses to the `workers` file and sync the configuration to all nodes.
 
     $ cd /root/tachyon/conf
     $ /root/mesos-ec2/copy-dir .

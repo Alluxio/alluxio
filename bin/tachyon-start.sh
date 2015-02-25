@@ -1,17 +1,23 @@
 #!/usr/bin/env bash
 
+LAUNCHER=
+# If debugging is enabled propagate that through to sub-shells
+if [[ "$-" == *x* ]]; then
+  LAUNCHER="bash -x"
+fi
+
 #start up tachyon
 
 Usage="Usage: tachyon-start.sh [-h] WHAT [MOPT] [-f]
 Where WHAT is one of:
-  all MOPT\t\tStart master and all slaves.
-  local\t\t\tStart a master and slave locally
+  all MOPT\t\tStart master and all workers.
+  local\t\t\tStart a master and worker locally
   master\t\tStart the master on this node
   safe\t\t\tScript will run continuously and start the master if it's not running
   worker MOPT\t\tStart a worker on this node
-  workers MOPT\t\tStart workers on slaves
+  workers MOPT\t\tStart workers on worker nodes
   restart_worker\tRestart a failed worker on this node
-  restart_workers\tRestart any failed workers on slaves
+  restart_workers\tRestart any failed workers on worker nodes
 
 MOPT is one of:
   Mount\t\t\tMount the configured RamFS
@@ -58,11 +64,11 @@ do_mount() {
   MOUNT_FAILED=0
   case "${1}" in
     Mount)
-      $bin/tachyon-mount.sh $1
+      $LAUNCHER $bin/tachyon-mount.sh $1
       MOUNT_FAILED=$?
       ;;
     SudoMount)
-      $bin/tachyon-mount.sh $1
+      $LAUNCHER $bin/tachyon-mount.sh $1
       MOUNT_FAILED=$?
       ;;
     NoMount)
@@ -90,7 +96,7 @@ start_master() {
   fi
 
   if [ "${1}" == "-f" ] ; then
-    $bin/tachyon format
+    $LAUNCHER $bin/tachyon format
   fi
 
   echo "Starting master @ $MASTER_ADDRESS"
@@ -172,12 +178,12 @@ case "${WHAT}" in
     stop $bin
     start_master $3
     sleep 2
-    $bin/tachyon-slaves.sh $bin/tachyon-start.sh worker $2
+    $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon-start.sh worker $2
     ;;
   local)
     stop $bin
     sleep 1
-    $bin/tachyon-mount.sh SudoMount
+    $LAUNCHER $bin/tachyon-mount.sh SudoMount
     stat=$?
     if [ $stat -ne 0 ] ; then
       echo "Mount failed, not starting"
@@ -199,13 +205,13 @@ case "${WHAT}" in
     ;;
   workers)
     check_mount_mode $2
-    $bin/tachyon-slaves.sh $bin/tachyon-start.sh worker $2 $TACHYON_MASTER_ADDRESS
+    $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon-start.sh worker $2 $TACHYON_MASTER_ADDRESS
     ;;
   restart_worker)
     restart_worker
     ;;
   restart_workers)
-    $bin/tachyon-slaves.sh $bin/tachyon-start.sh restart_worker
+    $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon-start.sh restart_worker
     ;;
   *)
     echo "Error: Invalid WHAT: $WHAT"

@@ -27,36 +27,32 @@ import tachyon.worker.hierarchy.StorageDir;
  * Base class for evicting blocks by LRU strategy.
  */
 public abstract class EvictLRUBase implements EvictStrategy {
-
   private final boolean mLastTier;
 
-  EvictLRUBase(boolean lastTier) {
+  protected EvictLRUBase(boolean lastTier) {
     mLastTier = lastTier;
   }
 
   /**
    * Check if current block can be evicted
    * 
-   * @param blockId Id of the block
-   * @param pinList list of pinned files
+   * @param blockId the Id of the block
+   * @param pinList the list of the pinned files
    * @return true if the block can be evicted, false otherwise
    */
-  boolean blockEvictable(long blockId, Set<Integer> pinList) {
-    if (mLastTier && pinList.contains(BlockInfo.computeInodeId(blockId))) {
-      return false;
-    }
-    return true;
+  protected boolean blockEvictable(long blockId, Set<Integer> pinList) {
+    return !mLastTier || !pinList.contains(BlockInfo.computeInodeId(blockId));
   }
 
   /**
    * Get the oldest access information of certain StorageDir
    * 
    * @param curDir current StorageDir
-   * @param toEvictBlockIds Ids of blocks that have been selected to be evicted
+   * @param toEvictBlockIds the Ids of blocks that have been selected to be evicted
    * @param pinList list of pinned files
    * @return the oldest access information of current StorageDir
    */
-  Pair<Long, Long> getLRUBlock(StorageDir curDir, Collection<Long> toEvictBlockIds,
+  protected Pair<Long, Long> getLRUBlock(StorageDir curDir, Collection<Long> toEvictBlockIds,
       Set<Integer> pinList) {
     long blockId = -1;
     long oldestTime = Long.MAX_VALUE;
