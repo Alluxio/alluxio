@@ -27,7 +27,6 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TestUtils;
-import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
