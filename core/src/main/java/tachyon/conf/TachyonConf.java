@@ -323,7 +323,7 @@ public class TachyonConf {
 
   public Map<String, String> toMap() {
     Map<String, String> copy = new HashMap<String, String>();
-    for (Enumeration names = mProperties.propertyNames(); names.hasMoreElements();) {
+    for (Enumeration<?> names = mProperties.propertyNames(); names.hasMoreElements();) {
       Object key = names.nextElement();
       copy.put(key.toString(), mProperties.get(key).toString());
     }
