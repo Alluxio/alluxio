@@ -223,14 +223,10 @@ public class TachyonWorker implements Runnable {
       mServerTServerSocket = new TServerSocket(workerAddress);
       mPort = NetworkUtils.getPort(mServerTServerSocket);
 
-      mServer = new TThreadPoolServer( new TThreadPoolServer.Args(
-          mServerTServerSocket)
-          .minWorkerThreads(minWorkerThreads)
-          .maxWorkerThreads(maxWorkerThreads)
-          .processor(processor)
-          .transportFactory(new TFramedTransport.Factory())
+      mServer = new TThreadPoolServer(new TThreadPoolServer.Args(mServerTServerSocket)
+          .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads)
+          .processor(processor).transportFactory(new TFramedTransport.Factory())
           .protocolFactory(new TBinaryProtocol.Factory()));
-
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);

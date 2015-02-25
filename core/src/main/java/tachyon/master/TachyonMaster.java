@@ -236,7 +236,7 @@ public class TachyonMaster {
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
-    mMasterServiceServer = new TThreadPoolServer( new TThreadPoolServer.Args(
+    mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(
         mServerTServerSocket)
         .maxWorkerThreads(mMaxWorkerThreads)
         .minWorkerThreads(mMinWorkerThreads)
