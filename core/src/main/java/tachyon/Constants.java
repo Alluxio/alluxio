@@ -127,9 +127,6 @@ public class Constants {
   public static final String WORKER_USER_TIMEOUT_MS = "tachyon.worker.user.timeout.ms";
   public static final String WORKER_MAX_WORKER_THREADS = "tachyon.worker.maxworker.threads";
   public static final String WORKER_MIN_WORKER_THREADS = "tachyon.worker.minworker.threads";
-
-
-
   public static final String WORKER_CHECKPOINT_THREADS = "tachyon.worker.checkpoint.threads";
   public static final String WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
       "tachyon.worker.per.thread.checkpoint.cap.mb.sec";
