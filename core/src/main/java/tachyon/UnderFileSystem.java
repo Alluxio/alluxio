@@ -20,13 +20,17 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-import tachyon.conf.CommonConf;
+import com.google.common.base.Preconditions;
+
+import tachyon.conf.TachyonConf;
 
 /**
  * Tachyon stores data into an under layer file system. Any file system implementing this interface
  * can be a valid under layer file system
  */
 public abstract class UnderFileSystem {
+  protected final TachyonConf mTachyonConf;
+
   public enum SpaceType {
     SPACE_TOTAL(0), SPACE_FREE(1), SPACE_USED(2);
 
@@ -48,10 +52,12 @@ public abstract class UnderFileSystem {
    * Get the UnderFileSystem instance according to its schema.
    * 
    * @param path file path storing over the ufs.
-   * @return null for any unknown scheme.
+   * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance.
+   * @throws IllegalArgumentException for unknown scheme
+   * @return instance of the under layer file system
    */
-  public static UnderFileSystem get(String path) {
-    return get(path, null);
+  public static UnderFileSystem get(String path, TachyonConf tachyonConf) {
+    return get(path, null, tachyonConf);
   }
 
   /**
@@ -59,13 +65,17 @@ public abstract class UnderFileSystem {
    * 
    * @param path file path storing over the ufs
    * @param conf the configuration object for ufs only
-   * @return null for any unknown scheme.
+   * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance.
+   * @throws IllegalArgumentException for unknown scheme
+   * @return instance of the under layer file system
    */
-  public static UnderFileSystem get(String path, Object conf) {
-    if (isHadoopUnderFS(path)) {
-      return UnderFileSystemHdfs.getClient(path, conf);
+  public static UnderFileSystem get(String path, Object conf, TachyonConf tachyonConf) {
+    Preconditions.checkArgument(path != null, "path may not be null");
+
+    if (isHadoopUnderFS(path, tachyonConf)) {
+      return UnderFileSystemHdfs.getClient(path, conf, tachyonConf);
     } else if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
-      return UnderFileSystemSingleLocal.getClient();
+      return UnderFileSystemSingleLocal.getClient(tachyonConf);
     }
     throw new IllegalArgumentException("Unknown under file system scheme " + path);
   }
@@ -76,8 +86,9 @@ public abstract class UnderFileSystem {
    * The logic to say if a path should use the hadoop implementation is by checking if
    * {@link String#startsWith(String)} to see if the configured schemas are found.
    */
-  private static boolean isHadoopUnderFS(final String path) {
-    for (final String prefix : CommonConf.get().HADOOP_UFS_PREFIXES) {
+  private static boolean isHadoopUnderFS(final String path, TachyonConf tachyonConf) {
+
+    for (final String prefix : tachyonConf.getList(Constants.UNDERFS_HADOOP_PREFIXS, ",", null)) {
       if (path.startsWith(prefix)) {
         return true;
       }
@@ -96,16 +107,14 @@ public abstract class UnderFileSystem {
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
    *         address is "/" and the path starts with "/".
    */
-  public static Pair<String, String> parse(TachyonURI path) {
-    if (path == null) {
-      return null;
-    }
+  public static Pair<String, String> parse(TachyonURI path, TachyonConf tachyonConf) {
+    Preconditions.checkArgument(path != null, "path may not be null");
 
     if (path.hasScheme()) {
       String header = path.getScheme() + "://";
       String authority = (path.hasAuthority()) ? path.getAuthority() : "";
       if (header.equals(Constants.HEADER) || header.equals(Constants.HEADER_FT)
-          || isHadoopUnderFS(header)) {
+          || isHadoopUnderFS(header, tachyonConf)) {
         if (path.getPath().isEmpty()) {
           return new Pair<String, String>(header + authority, TachyonURI.SEPARATOR);
         } else {
@@ -119,6 +128,10 @@ public abstract class UnderFileSystem {
     }
 
     return null;
+  }
+
+  protected UnderFileSystem(TachyonConf tachyonConf) {
+    mTachyonConf = tachyonConf;
   }
 
   public abstract void close() throws IOException;

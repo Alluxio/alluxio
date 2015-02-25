@@ -22,6 +22,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -43,8 +44,7 @@ import tachyon.HeartbeatThread;
 import tachyon.LeaderInquireClient;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.conf.CommonConf;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.thrift.BlockInfoException;
@@ -78,9 +78,8 @@ import tachyon.util.NetworkUtils;
 // so all exceptions are handled poorly. This logic needs to be redone and be consistent.
 public final class MasterClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final int MAX_CONNECT_TRY = 5;
 
-  private boolean mUseZookeeper;
+  private final boolean mUseZookeeper;
   private MasterService.Client mClient = null;
   private InetSocketAddress mMasterAddress = null;
   private TProtocol mProtocol = null;
@@ -89,14 +88,12 @@ public final class MasterClient implements Closeable {
   private volatile long mUserId = -1;
   private final ExecutorService mExecutorService;
   private Future<?> mHeartbeat;
+  private final TachyonConf mTachyonConf;
 
-  public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService) {
-    this(masterAddress, CommonConf.get().USE_ZOOKEEPER, executorService);
-  }
-
-  public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper,
-      ExecutorService executorService) {
-    mUseZookeeper = useZookeeper;
+  public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
+      TachyonConf tachyonConf) {
+    mTachyonConf = tachyonConf;
+    mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
     if (!mUseZookeeper) {
       mMasterAddress = masterAddress;
     }
@@ -172,7 +169,8 @@ public final class MasterClient implements Closeable {
     }
 
     Exception lastException = null;
-    RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, MAX_CONNECT_TRY);
+    int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT, 29);
+    RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, maxConnectsTry);
     do {
       mMasterAddress = getMasterAddress();
 
@@ -189,9 +187,11 @@ public final class MasterClient implements Closeable {
         HeartbeatExecutor heartBeater = new MasterClientHeartbeatExecutor(this);
 
         String threadName = "master-heartbeat-" + mMasterAddress;
+        int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
+            Constants.SECOND_MS);
         mHeartbeat =
             mExecutorService.submit(new HeartbeatThread(threadName, heartBeater,
-                UserConf.get().HEARTBEAT_INTERVAL_MS / 2));
+                interval / 2));
       } catch (TTransportException e) {
         lastException = e;
         LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress 
@@ -249,7 +249,7 @@ public final class MasterClient implements Closeable {
 
       try {
         return mClient.getFileStatus(fileId, path);
-      } catch (FileDoesNotExistException e) {
+      } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -265,8 +265,8 @@ public final class MasterClient implements Closeable {
     }
 
     LeaderInquireClient leaderInquireClient =
-        LeaderInquireClient.getClient(CommonConf.get().ZOOKEEPER_ADDRESS,
-            CommonConf.get().ZOOKEEPER_LEADER_PATH);
+        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS, null),
+            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, null));
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return CommonUtils.parseInetSocketAddress(temp);
@@ -715,18 +715,31 @@ public final class MasterClient implements Closeable {
     }
   }
 
-  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId,
-      long length) throws IOException, FileDoesNotExistException, SuspectedFileSizeException,
-      BlockInfoException {
+  public synchronized boolean user_freepath(int fileId, String path, boolean recursive)
+      throws IOException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_freepath(fileId, path, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return false;
+  }
+
+  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long storageDirId,
+      long blockId, long length) throws IOException, FileDoesNotExistException, BlockInfoException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
+        mClient.worker_cacheBlock(workerId, workerUsedBytes, storageDirId, blockId, length);
         return;
       } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (SuspectedFileSizeException e) {
         throw e;
       } catch (BlockInfoException e) {
         throw e;
@@ -765,12 +778,13 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      List<Long> removedPartitionList) throws BlockInfoException, IOException {
+      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
+      throws IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
+        return mClient.worker_heartbeat(workerId, usedBytes, removedBlockIds, addedBlockIds);
       } catch (BlockInfoException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -784,20 +798,17 @@ public final class MasterClient implements Closeable {
   /**
    * Register the worker to the master.
    * 
-   * @param workerNetAddress
-   *          Worker's NetAddress
-   * @param totalBytes
-   *          Worker's capacity
-   * @param usedBytes
-   *          Worker's used storage
-   * @param currentBlockList
-   *          Blocks in worker's space.
+   * @param workerNetAddress Worker's NetAddress
+   * @param totalBytes Worker's capacity
+   * @param usedBytes Worker's used storage
+   * @param currentBlockList Blocks in worker's space.
    * @return the worker id assigned by the master.
    * @throws BlockInfoException
    * @throws TException
    */
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
-      long usedBytes, List<Long> currentBlockList) throws BlockInfoException, IOException {
+      long usedBytes, Map<Long, List<Long>> currentBlockList)
+      throws BlockInfoException, IOException {
     while (!mIsShutdown) {
       connect();
 

@@ -10,11 +10,13 @@
   </parent>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-assemblies</artifactId>
-  <version>0.6.0-SNAPSHOT</version>
   <name>Tachyon Project Assemblies</name>
   <description>Tachyon Project Assemblies</description>
 
   <properties>
+    <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
     <failIfNoTests>false</failIfNoTests>
   </properties>
 
@@ -22,7 +24,7 @@
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon</artifactId>
-      <version>0.6.0-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

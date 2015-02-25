@@ -28,25 +28,26 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
-import tachyon.conf.CommonConf;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerClient;
 
@@ -61,13 +62,13 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param tachyonPath a Tachyon path contains master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
-   * @return the corresponding TachyonFS hanlder
+   * @return the corresponding TachyonFS handler
    * @throws IOException
-   * @see #get(tachyon.TachyonURI)
+   * @see #get(tachyon.TachyonURI, tachyon.conf.TachyonConf)
    */
   @Deprecated
   public static synchronized TachyonFS get(String tachyonPath) throws IOException {
-    return get(new TachyonURI(tachyonPath));
+    return get(new TachyonURI(tachyonPath), new TachyonConf());
   }
 
   /**
@@ -75,10 +76,13 @@ public class TachyonFS extends AbstractTachyonFS {
    * 
    * @param tachyonURI a Tachyon URI contains master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
+   * @param tachyonConf The TachyonConf instance.
    * @return the corresponding TachyonFS handler
    * @throws IOException
    */
-  public static synchronized TachyonFS get(final TachyonURI tachyonURI) throws IOException {
+  public static synchronized TachyonFS get(final TachyonURI tachyonURI, TachyonConf tachyonConf)
+      throws IOException {
+    Preconditions.checkNotNull(tachyonConf, "Could not pass null TachyonConf instance.");
     if (tachyonURI == null) {
       throw new IOException("Tachyon Uri cannot be null. Use " + Constants.HEADER + "host:port/ ,"
           + Constants.HEADER_FT + "host:port/");
@@ -89,28 +93,49 @@ public class TachyonFS extends AbstractTachyonFS {
         throw new IOException("Invalid Tachyon URI: " + tachyonURI + ". Use " + Constants.HEADER
             + "host:port/ ," + Constants.HEADER_FT + "host:port/");
       }
-      return new TachyonFS(tachyonURI);
+
+      boolean useZookeeper = scheme.equals(Constants.SCHEME_FT);
+      tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(useZookeeper));
+      tachyonConf.set(Constants.MASTER_HOSTNAME, tachyonURI.getHost());
+      tachyonConf.set(Constants.MASTER_PORT, Integer.toString(tachyonURI.getPort()));
+
+      return get(tachyonConf);
     }
   }
 
   /**
    * Create a TachyonFS handler.
-   * 
+   *
    * @param masterHost master host details
    * @param masterPort port master listens on
-   * @param zookeeperMode use zookeeper
-   * 
-   * @return the corresponding TachyonFS hanlder
+   * @param zkMode use zookeeper
+   * @return the corresponding TachyonFS handler
    * @throws IOException
    */
-  public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zookeeperMode)
+  public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zkMode)
       throws IOException {
-    return new TachyonFS(new InetSocketAddress(masterHost, masterPort), zookeeperMode);
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set(Constants.MASTER_HOSTNAME, masterHost);
+    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(masterPort));
+    tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(zkMode));
+    return get(tachyonConf);
+  }
+
+  /**
+   * Create a TachyonFS handler.
+   *
+   * @param tachyonConf The TachyonConf instance.
+   *
+   * @return the corresponding TachyonFS handler
+   * @throws IOException
+   */
+  public static synchronized TachyonFS get(TachyonConf tachyonConf) throws IOException {
+    Preconditions.checkArgument(tachyonConf != null, "Could not pass null TachyonConf instance.");
+    return new TachyonFS(tachyonConf);
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final long mUserQuotaUnitBytes = UserConf.get().QUOTA_UNIT_BYTES;
-  private final int mUserFailedSpaceRequestLimits = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
+  private final int mUserFailedSpaceRequestLimits;
   private final ExecutorService mExecutorService;
 
   // The RPC client talks to the system master.
@@ -132,29 +157,41 @@ public class TachyonFS extends AbstractTachyonFS {
 
   // All Blocks has been locked.
   private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
+  // Mapping from block id to path of the block locked
+  private final Map<Long, String> mLockedBlockIdToPath = new HashMap<Long, String>();
 
   // Each user facing block has a unique block lock id.
   private final AtomicInteger mBlockLockId = new AtomicInteger(0);
 
+  private TachyonURI mRootUri = null;
+
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
 
-  private TachyonFS(TachyonURI tachyonURI) throws IOException {
-    this(new InetSocketAddress(tachyonURI.getHost(), tachyonURI.getPort()), tachyonURI.getScheme()
-        .equals(Constants.SCHEME_FT));
-  }
+  private TachyonFS(TachyonConf tachyonConf) throws IOException {
+    super(tachyonConf);
 
-  private TachyonFS(InetSocketAddress masterAddress, boolean zookeeperMode) throws IOException {
-    mMasterAddress = masterAddress;
-    mZookeeperMode = zookeeperMode;
+    String masterHost = tachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
+    int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+
+    mMasterAddress = new InetSocketAddress(masterHost, masterPort);
+    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
     mAvailableSpaceBytes = 0L;
 
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.daemon("client-heartbeat-%d"));
 
     mMasterClient =
-        mCloser.register(new MasterClient(mMasterAddress, mZookeeperMode, mExecutorService));
-    mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService));
+        mCloser.register(new MasterClient(mMasterAddress, mExecutorService, mTachyonConf));
+    mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService,
+        mTachyonConf));
+
+    mUserFailedSpaceRequestLimits =
+        mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 0);
+
+    String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
+    String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
+    mRootUri = new TachyonURI(scheme, authority, TachyonURI.SEPARATOR);
   }
 
   /**
@@ -176,7 +213,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   synchronized void addCheckpoint(int fid) throws IOException {
-    mWorkerClient.addCheckpoint(mMasterClient.getUserId(), fid);
+    mWorkerClient.addCheckpoint(fid);
   }
 
   /**
@@ -201,15 +238,22 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
+   * Notify the worker the block is canceled.
+   * 
+   * @param blockId the block id
+   * @throws IOException
+   */
+  public synchronized void cancelBlock(long blockId) throws IOException {
+    mWorkerClient.cancelBlock(blockId);
+  }
+
+  /**
    * Close the client. Close the connections to both to master and worker
    * 
    * @throws IOException
    */
   @Override
   public synchronized void close() throws IOException {
-    if (mWorkerClient.isConnected()) {
-      mWorkerClient.returnSpace(mMasterClient.getUserId(), mAvailableSpaceBytes);
-    }
     try {
       mCloser.close();
     } finally {
@@ -228,47 +272,20 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Create a user local temporary folder and return it
-   * 
-   * @return the local temporary folder for the user or null if unable to allocate one.
-   * @throws IOException
-   */
-  synchronized File createAndGetUserLocalTempFolder() throws IOException {
-    String userTempFolder = mWorkerClient.getUserTempFolder();
-
-    if (StringUtils.isBlank(userTempFolder)) {
-      LOG.error("Unable to get local temporary folder \"{}\" for user.", userTempFolder);
-      return null;
-    }
-
-    File ret = new File(userTempFolder);
-    if (!ret.exists()) {
-      if (ret.mkdir()) {
-        CommonUtils.changeLocalFileToFullPermission(ret.getAbsolutePath());
-        LOG.info("Folder " + ret + " was created!");
-      } else {
-        LOG.error("Failed to create folder " + ret);
-        return null;
-      }
-    }
-
-    return ret;
-  }
-
-  /**
    * Create a user UnderFileSystem temporary folder and return it
    * 
+   * @param ufsConf the configuration of UnderFileSystem
    * @return the UnderFileSystem temporary folder
    * @throws IOException
    */
-  synchronized String createAndGetUserUfsTempFolder() throws IOException {
+  synchronized String createAndGetUserUfsTempFolder(Object ufsConf) throws IOException {
     String tmpFolder = mWorkerClient.getUserUfsTempFolder();
     if (tmpFolder == null) {
       return null;
     }
 
     if (mUnderFileSystem == null) {
-      mUnderFileSystem = UnderFileSystem.get(tmpFolder);
+      mUnderFileSystem = UnderFileSystem.get(tmpFolder, ufsConf, mTachyonConf);
     }
 
     mUnderFileSystem.mkdirs(tmpFolder, true);
@@ -319,7 +336,7 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Create a file with the default block size (1GB) in the system. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
-   *
+   * 
    * @param path the path of the file
    * @return The unique file id. It returns -1 if the creation failed.
    * @throws IOException If file already exists, or path is invalid.
@@ -353,9 +370,10 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized int createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws IOException {
     validateUri(path);
-    if (columns < 1 || columns > CommonConf.get().MAX_COLUMNS) {
+    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
+    if (columns < 1 || columns > maxColumns) {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
-          + CommonConf.get().MAX_COLUMNS);
+          + maxColumns);
     }
 
     return mMasterClient.user_createRawTable(path.getPath(), columns, metadata);
@@ -363,7 +381,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Deletes a file or folder
-   *
+   * 
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the path parameter.
    * @param path The path of the file / folder. It could be empty iff id is not -1.
@@ -381,7 +399,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Delete the file denoted by the path.
-   *
+   * 
    * @param path the file path
    * @param recursive if delete the path recursively.
    * @return true if the deletion succeed (including the case that the path does not exist in the
@@ -477,14 +495,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return TachyonFile of the file id, or null if the file does not exist.
    */
   public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
-    if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
-      ClientFileInfo clientFileInfo = getFileStatus(fid, TachyonURI.EMPTY_URI);
-      if (clientFileInfo == null) {
-        return null;
-      }
-      mIdToClientFileInfo.put(fid, clientFileInfo);
+    ClientFileInfo clientFileInfo = getFileStatus(fid, TachyonURI.EMPTY_URI, useCachedMetadata);
+    if (clientFileInfo == null) {
+      return null;
     }
-    return new TachyonFile(this, fid);
+    return new TachyonFile(this, fid, mTachyonConf);
   }
 
   /**
@@ -501,7 +516,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Get <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
-   *
+   * 
    * @param path file path.
    * @return TachyonFile of the path, or null if the file does not exist.
    * @throws IOException
@@ -532,7 +547,7 @@ public class TachyonFS extends AbstractTachyonFS {
     if (clientFileInfo == null) {
       return null;
     }
-    return new TachyonFile(this, clientFileInfo.getId());
+    return new TachyonFile(this, clientFileInfo.getId(), mTachyonConf);
   }
 
   /**
@@ -552,13 +567,72 @@ public class TachyonFS extends AbstractTachyonFS {
    * 
    * @param path the path in Tachyon file system
    * @return the file id if exists, -1 otherwise
-   * @throws IOException
    */
-  public synchronized int getFileId(TachyonURI path) throws IOException {
+  public synchronized int getFileId(TachyonURI path) {
     try {
-      return getFileStatus(-1, path, false).getId();
+      ClientFileInfo fileInfo = getFileStatus(-1, path, false);
+      return fileInfo == null ? -1 : fileInfo.getId();
     } catch (IOException e) {
       return -1;
+    }
+  }
+
+  /**
+   * Gets file status.
+   * 
+   * @param cache ClientFileInfo cache.
+   * @param key the key in the cache.
+   * @param fileId the id of the queried file. If it is -1, uses path.
+   * @param path the path of the queried file. If fielId is not -1, this parameter is ignored.
+   * @param useCachedMetaData whether to use the cached data or not.
+   * @return the clientFileInfo.
+   * @throws IOException
+   */
+  private synchronized <K> ClientFileInfo getFileStatus(Map<K, ClientFileInfo> cache, K key,
+      int fileId, String path, boolean useCachedMetaData) throws IOException {
+    ClientFileInfo info = null;
+    if (useCachedMetaData) {
+      info = cache.get(key);
+      if (info != null) {
+        return info;
+      }
+    }
+
+    info = mMasterClient.getFileStatus(fileId, path);
+    fileId = info.getId();
+    if (fileId == -1) {
+      cache.remove(key);
+      return null;
+    }
+    path = info.getPath();
+
+    // TODO: LRU
+    mIdToClientFileInfo.put(fileId, info);
+    mPathToClientFileInfo.put(path, info);
+
+    return info;
+  }
+
+  /**
+   * Advanced API.
+   * 
+   * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
+   * 
+   * @param fileId the file id of the file or folder.
+   * @param path the path of the file or folder. valid iff fileId is -1.
+   * @param useCachedMetadata if true use the local cached meta data
+   * @return the ClientFileInfo of the file. null if the file does not exist.
+   * @throws IOException
+   */
+  public synchronized ClientFileInfo getFileStatus(int fileId, TachyonURI path,
+      boolean useCachedMetadata) throws IOException {
+    if (fileId != -1) {
+      return getFileStatus(mIdToClientFileInfo, Integer.valueOf(fileId), fileId,
+          TachyonURI.EMPTY_URI.getPath(), useCachedMetadata);
+    } else {
+      validateUri(path);
+      String p = path.getPath();
+      return getFileStatus(mPathToClientFileInfo, p, fileId, p, useCachedMetadata);
     }
   }
 
@@ -581,58 +655,34 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Advanced API.
+   * Get block's temporary path from worker with initial space allocated.
    * 
-   * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
-   * 
-   * @param fileId the file id of the file or folder.
-   * @param path the path of the file or folder. valid iff fileId is -1.
-   * @param useCachedMetadata if true use the local cached meta data
-   * @return the ClientFileInfo of the file. null if the file does not exist.
+   * @param blockId the id of the block
+   * @param initialBytes the initial bytes allocated for the block file
+   * @return the temporary path of the block file
    * @throws IOException
    */
-  public synchronized ClientFileInfo getFileStatus(int fileId, TachyonURI path,
-      boolean useCachedMetadata) throws IOException {
-    ClientFileInfo info = null;
-    boolean updated = false;
+  public synchronized String getLocalBlockTemporaryPath(long blockId, long initialBytes)
+      throws IOException {
+    String blockPath = mWorkerClient.requestBlockLocation(blockId, initialBytes);
 
-    validateUri(path);
-
-    if (fileId != -1) {
-      info = mIdToClientFileInfo.get(fileId);
-      if (!useCachedMetadata || info == null) {
-        info = mMasterClient.getFileStatus(fileId, TachyonURI.EMPTY_URI.getPath());
-        updated = true;
-      }
-
-      if (info.getId() == -1) {
-        mIdToClientFileInfo.remove(fileId);
-        return null;
-      }
-
-      path = new TachyonURI(info.getPath());
-    } else {
-      info = mPathToClientFileInfo.get(path.getPath());
-      if (!useCachedMetadata || info == null) {
-        info = mMasterClient.getFileStatus(-1, path.getPath());
-        updated = true;
-      }
-
-      if (info.getId() == -1) {
-        mPathToClientFileInfo.remove(path.getPath());
-        return null;
-      }
-
-      fileId = info.getId();
+    File localTempFolder;
+    try {
+      localTempFolder = new File(CommonUtils.getParent(blockPath));
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
     }
 
-    if (updated) {
-      // TODO LRU on this Map.
-      mIdToClientFileInfo.put(fileId, info);
-      mPathToClientFileInfo.put(path.getPath(), info);
+    if (!localTempFolder.exists()) {
+      if (localTempFolder.mkdirs()) {
+        CommonUtils.changeLocalFileToFullPermission(localTempFolder.getAbsolutePath());
+        LOG.info("Folder {} was created!", localTempFolder);
+      } else {
+        throw new IOException("Failed to create folder " + localTempFolder);
+      }
     }
 
-    return info;
+    return blockPath;
   }
 
   /**
@@ -662,14 +712,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * @return the local root data folder
-   * @throws IOException
-   */
-  synchronized String getLocalDataFolder() throws IOException {
-    return mWorkerClient.getDataFolder();
-  }
-
-  /**
    * @return the address of the UnderFileSystem
    * @throws IOException
    */
@@ -682,11 +724,9 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   @Override
   public synchronized TachyonURI getUri() {
-    String scheme = CommonConf.get().USE_ZOOKEEPER ? Constants.SCHEME_FT : Constants.SCHEME;
-    String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
-    return new TachyonURI(scheme, authority, TachyonURI.SEPARATOR);
+    return mRootUri;
   }
-  
+
   /**
    * Returns the userId of the master client. This is only used for testing.
    * 
@@ -748,27 +788,32 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockId The id of the block to lock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
    *        non-negative.
-   * @return true if successfully lock the block, false otherwise (or invalid parameter).
+   * @return the path of the block file locked
+   * @throws IOException
    */
-  synchronized boolean lockBlock(long blockId, int blockLockId) throws IOException {
+  synchronized String lockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
-      return false;
+      return null;
     }
 
     if (mLockedBlockIds.containsKey(blockId)) {
       mLockedBlockIds.get(blockId).add(blockLockId);
-      return true;
+      return mLockedBlockIdToPath.get(blockId);
     }
 
     if (!mWorkerClient.isLocal()) {
-      return false;
+      return null;
     }
-    mWorkerClient.lockBlock(blockId, mMasterClient.getUserId());
+    String blockPath = mWorkerClient.lockBlock(blockId);
 
-    Set<Integer> lockIds = new HashSet<Integer>(4);
-    lockIds.add(blockLockId);
-    mLockedBlockIds.put(blockId, lockIds);
-    return true;
+    if (blockPath != null) {
+      Set<Integer> lockIds = new HashSet<Integer>(4);
+      lockIds.add(blockLockId);
+      mLockedBlockIds.put(blockId, lockIds);
+      mLockedBlockIdToPath.put(blockId, blockPath);
+      return blockPath;
+    }
+    return null;
   }
 
   /**
@@ -790,8 +835,36 @@ public class TachyonFS extends AbstractTachyonFS {
     setPinned(fid, true);
   }
 
-  public synchronized void releaseSpace(long releaseSpaceBytes) {
-    mAvailableSpaceBytes += releaseSpaceBytes;
+  /**
+   * Frees in memory file or folder
+   *
+   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+   *        Otherwise, the method uses the path parameter.
+   * @param path The path of the file / folder. It could be empty iff id is not -1.
+   * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
+   *        or not
+   * @return true if in-memory free successfully, false otherwise.
+   * @throws IOException
+   */
+  @Override
+  public synchronized boolean freepath(int fileId, TachyonURI path, boolean recursive)
+      throws IOException {
+    validateUri(path);
+    return mMasterClient.user_freepath(fileId, path.getPath(), recursive);
+  }
+
+  /**
+   * Promote block file back to the top StorageTier, after the block file is accessed.
+   * 
+   * @param blockId the id of the block
+   * @return true if success, false otherwise
+   * @throws IOException
+   */
+  public synchronized boolean promoteBlock(long blockId) throws IOException {
+    if (mWorkerClient.isLocal()) {
+      return mWorkerClient.promoteBlock(blockId);
+    }
+    return false;
   }
 
   /**
@@ -833,38 +906,30 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Try to request space from worker. Only works when a local worker exists.
+   * Try to request space for certain block. Only works when a local worker exists.
    * 
-   * @param requestSpaceBytes the space size in bytes
-   * @return true if succeed, false otherwise
+   * @param blockId the id of the block that space will be allocated for
+   * @param requestSpaceBytes size to request in bytes
+   * @return the size bytes that allocated to the block, -1 if no local worker exists
    * @throws IOException
    */
-  public synchronized boolean requestSpace(long requestSpaceBytes) throws IOException {
-    if (!mWorkerClient.isLocal()) {
-      return false;
+  public synchronized long requestSpace(long blockId, long requestSpaceBytes)
+      throws IOException {
+
+    if (!hasLocalWorker()) {
+      return -1;
     }
-    int failedTimes = 0;
-    while (mAvailableSpaceBytes < requestSpaceBytes) {
-      long toRequestSpaceBytes =
-          Math.max(requestSpaceBytes - mAvailableSpaceBytes, mUserQuotaUnitBytes);
-      if (mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes)) {
-        mAvailableSpaceBytes += toRequestSpaceBytes;
-      } else {
-        LOG.info("Failed to request " + toRequestSpaceBytes + " bytes local space. " + "Time "
-            + (failedTimes ++));
-        if (failedTimes == mUserFailedSpaceRequestLimits) {
-          return false;
-        }
+
+    long userQuotaUnitBytes = mTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES,
+        8 * Constants.MB);
+
+    long toRequestSpaceBytes = Math.max(requestSpaceBytes, userQuotaUnitBytes);
+    for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
+      if (mWorkerClient.requestSpace(blockId, toRequestSpaceBytes)) {
+        return toRequestSpaceBytes;
       }
     }
-
-    if (mAvailableSpaceBytes < requestSpaceBytes) {
-      return false;
-    }
-
-    mAvailableSpaceBytes -= requestSpaceBytes;
-
-    return true;
+    return 0;
   }
 
   /**
@@ -894,8 +959,6 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
    *        non-negative.
-   * @return true if successfully unlock the block with <code>blockLockId</code>, false otherwise
-   *         (or invalid parameter).
    */
   synchronized boolean unlockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
@@ -915,10 +978,9 @@ public class TachyonFS extends AbstractTachyonFS {
       return false;
     }
 
-    mWorkerClient.unlockBlock(blockId, mMasterClient.getUserId());
+    mLockedBlockIdToPath.remove(blockId);
     mLockedBlockIds.remove(blockId);
-
-    return true;
+    return mWorkerClient.unlockBlock(blockId);
   }
 
   /** Alias for setPinned(fid, false). */
@@ -943,10 +1005,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param uri The uri to validate
    */
   private void validateUri(TachyonURI uri) throws IOException {
-    TachyonURI thisFs = getUri();
     if (uri == null || (!uri.isPathAbsolute() && !TachyonURI.EMPTY_URI.equals(uri))
-        || (uri.hasScheme() && !thisFs.getScheme().equals(uri.getScheme()))
-        || (uri.hasAuthority() && !thisFs.getAuthority().equals(uri.getAuthority()))) {
+        || (uri.hasScheme() && !mRootUri.getScheme().equals(uri.getScheme()))
+        || (uri.hasAuthority() && !mRootUri.getAuthority().equals(uri.getAuthority()))) {
       throw new IOException("Uri " + uri + " is invalid.");
     }
   }

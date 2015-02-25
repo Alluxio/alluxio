@@ -1,7 +1,7 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one or more contributor license
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional information regarding
- * copyright ownership. The ASF licenses this file to you under the Apache License, Version 2.0 (the
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
  * 
@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URI;
 import java.util.Date;
+import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
 
@@ -36,6 +37,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
+import org.apache.hadoop.io.DefaultStringifier;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
@@ -58,8 +60,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.hadoop.TFS;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.util.ConfUtils;
 
 /**
  * Distributed i/o benchmark.
@@ -206,15 +210,18 @@ public class TestDFSIO implements Tool {
     bench.getConf().setBoolean("dfs.support.append", true);
 
     // Start local Tachyon cluster
-    System.setProperty("tachyon.user.quota.unit.bytes", "100000");
-    System.setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
-    mLocalTachyonCluster = new LocalTachyonCluster(500000);
+    mLocalTachyonCluster = new LocalTachyonCluster(500000, 100000, BLOCK_SIZE);
     mLocalTachyonCluster.start();
 
     mLocalTachyonClusterUri = URI.create(mLocalTachyonCluster.getMasterUri());
     bench.getConf().set("fs.defaultFS", mLocalTachyonClusterUri.toString());
     bench.getConf().set("fs.default.name", mLocalTachyonClusterUri.toString());
     bench.getConf().set("fs." + Constants.SCHEME + ".impl", TFS.class.getName());
+
+    // Store TachyonConf in Hadoop Configuration
+    TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    ConfUtils.storeToHadoopConfiguration(tachyonConf, bench.getConf());
+
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     bench.createControlFile(fs, DEFAULT_NR_BYTES, DEFAULT_NR_FILES);
 
@@ -233,8 +240,6 @@ public class TestDFSIO implements Tool {
 
     // Stop local Tachyon cluster
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   public static void testWrite() throws Exception {

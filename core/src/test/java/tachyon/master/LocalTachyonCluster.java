@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -21,10 +21,7 @@ import java.net.InetSocketAddress;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
-import tachyon.conf.UserConf;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -35,13 +32,13 @@ import tachyon.worker.TachyonWorker;
  */
 public final class LocalTachyonCluster {
   public static void main(String[] args) throws Exception {
-    LocalTachyonCluster cluster = new LocalTachyonCluster(100);
+    LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
     cluster.stop();
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
 
-    cluster = new LocalTachyonCluster(100);
+    cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
     cluster.stop();
@@ -51,6 +48,9 @@ public final class LocalTachyonCluster {
   private TachyonWorker mWorker = null;
 
   private long mWorkerCapacityBytes;
+  private int mUserBlockSize;
+  private int mQuotaUnitBytes;
+
   private String mTachyonHome;
 
   private String mWorkerDataFolder;
@@ -60,8 +60,14 @@ public final class LocalTachyonCluster {
 
   private LocalTachyonMaster mMaster;
 
-  public LocalTachyonCluster(long workerCapacityBytes) {
+  private TachyonConf mMasterConf;
+
+  private TachyonConf mWorkerConf;
+
+  public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
+    mQuotaUnitBytes = quotaUnitBytes;
+    mUserBlockSize = userBlockSize;
   }
 
   public TachyonFS getClient() throws IOException {
@@ -74,6 +80,10 @@ public final class LocalTachyonCluster {
 
   public String getImagePath() {
     return mMaster.getImagePath();
+  }
+
+  public TachyonConf getMasterTachyonConf() {
+    return mMasterConf;
   }
 
   public InetSocketAddress getMasterAddress() {
@@ -101,11 +111,15 @@ public final class LocalTachyonCluster {
   }
 
   public String getTempFolderInUnderFs() {
-    return CommonConf.get().UNDERFS_ADDRESS;
+    return mMasterConf.get(Constants.UNDERFS_ADDRESS, "/underfs");
   }
 
   public TachyonWorker getWorker() {
     return mWorker;
+  }
+
+  public TachyonConf getWorkerTachyonConf() {
+    return mWorkerConf;
   }
 
   public NetAddress getWorkerAddress() {
@@ -125,7 +139,7 @@ public final class LocalTachyonCluster {
   }
 
   private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path, getMasterTachyonConf());
 
     if (ufs.exists(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
@@ -133,7 +147,7 @@ public final class LocalTachyonCluster {
   }
 
   private void mkdir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path, getMasterTachyonConf());
 
     if (ufs.exists(path)) {
       ufs.delete(path, true);
@@ -145,53 +159,67 @@ public final class LocalTachyonCluster {
 
   public void start() throws IOException {
     mTachyonHome =
-        File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
-    mWorkerDataFolder = mTachyonHome + "/ramdisk";
-
-    deleteDir(mTachyonHome);
-    mkdir(mTachyonHome);
+        File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
+    mWorkerDataFolder = "/datastore";
 
     mLocalhostName = NetworkUtils.getLocalHostName();
 
-    System.setProperty("tachyon.test.mode", "true");
-    System.setProperty("tachyon.home", mTachyonHome);
-    System.setProperty("tachyon.master.port", 0 + "");
-    System.setProperty("tachyon.master.web.port", 0 + "");
-    System.setProperty("tachyon.worker.port", 0 + "");
-    System.setProperty("tachyon.worker.data.port", 0 + "");
-    System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
-    System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
-    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
-    System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
+    mMasterConf = new TachyonConf();
+    mMasterConf.set(Constants.IN_TEST_MODE, "true");
+    mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
+    mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
+    mMasterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
+    mMasterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "64");
+
     // Lower the number of threads that the cluster will spin off.
     // default thread overhead is too much.
-    System.setProperty("tachyon.master.selector.threads", Integer.toString(1));
-    System.setProperty("tachyon.master.server.threads", Integer.toString(2));
-    System.setProperty("tachyon.worker.selector.threads", Integer.toString(1));
-    System.setProperty("tachyon.worker.server.threads", Integer.toString(2));
-    System.setProperty("tachyon.worker.network.netty.worker.threads", Integer.toString(2));
-    System.setProperty("tachyon.master.web.threads", Integer.toString(9));
+    mMasterConf.set(Constants.MASTER_SELECTOR_THREADS, "1");
+    mMasterConf.set(Constants.MASTER_SERVER_THREADS, "2");
+    mMasterConf.set(Constants.MASTER_WEB_THREAD_COUNT, "1");
 
-    CommonConf.clear();
-    MasterConf.clear();
-    WorkerConf.clear();
-    UserConf.clear();
+    // re-build the dir to set permission to 777
+    deleteDir(mTachyonHome);
+    mkdir(mTachyonHome);
 
-    mMaster = LocalTachyonMaster.create(mTachyonHome);
+    mMaster = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
     mMaster.start();
 
-    mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
-    mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
+    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
+    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
 
     CommonUtils.sleepMs(null, 10);
 
-    System.setProperty("tachyon.master.port", getMasterPort() + "");
-    System.setProperty("tachyon.master.web.port", (getMasterPort() + 1) + "");
+    mWorkerConf = new TachyonConf(mMasterConf);
+    mWorkerConf.set(Constants.MASTER_PORT, getMasterPort() + "");
+    mWorkerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
+    mWorkerConf.set(Constants.WORKER_PORT, "0");
+    mWorkerConf.set(Constants.WORKER_DATA_PORT, "0");
+    mWorkerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
+    mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
+    mWorkerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, "15");
+    mWorkerConf.set(Constants.WORKER_SELECTOR_THREADS, Integer.toString(1));
+    mWorkerConf.set(Constants.WORKER_SERVER_THREADS, Integer.toString(2));
+    mWorkerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, Integer.toString(2));
+
+    mWorkerConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
+    mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
+    mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
+
+    int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, 1);
+    for (int level = 1; level < maxLevel; level ++) {
+      String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
+      String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+      String newPath = "";
+      for (int i = 0; i < dirPaths.length; i ++) {
+        newPath += mTachyonHome + dirPaths[i] + ",";
+      }
+      mWorkerConf.set("tachyon.worker.hierarchystore.level" + level + ".dirs.path",
+          newPath.substring(0, newPath.length() - 1));
+    }
 
     mWorker =
         TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
-            mWorkerCapacityBytes);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
@@ -204,14 +232,11 @@ public final class LocalTachyonCluster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
-
-    System.setProperty("tachyon.worker.port", getWorkerPort() + "");
-    System.setProperty("tachyon.worker.data.port", getWorkerDataPort() + "");
   }
 
   /**
    * Stop both of the tachyon and underfs service threads.
-   * 
+   *
    * @throws Exception
    */
   public void stop() throws Exception {
@@ -221,7 +246,7 @@ public final class LocalTachyonCluster {
 
   /**
    * Stop the tachyon filesystem's service thread only
-   * 
+   *
    * @throws Exception
    */
   public void stopTFS() throws Exception {
@@ -229,26 +254,21 @@ public final class LocalTachyonCluster {
     mWorker.stop();
 
     System.clearProperty("tachyon.home");
-    System.clearProperty("tachyon.master.hostname");
-    System.clearProperty("tachyon.master.port");
-    System.clearProperty("tachyon.master.web.port");
     System.clearProperty("tachyon.worker.port");
     System.clearProperty("tachyon.worker.data.port");
     System.clearProperty("tachyon.worker.data.folder");
     System.clearProperty("tachyon.worker.memory.size");
     System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
-    System.clearProperty("tachyon.master.selector.threads");
-    System.clearProperty("tachyon.master.server.threads");
     System.clearProperty("tachyon.worker.selector.threads");
     System.clearProperty("tachyon.worker.server.threads");
+    System.clearProperty("tachyon.worker.hierarchystore.level.max");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
-    System.clearProperty("tachyon.master.web.threads");
   }
 
   /**
    * Cleanup the underfs cluster test folder only
-   * 
+   *
    * @throws Exception
    */
   public void stopUFS() throws Exception {

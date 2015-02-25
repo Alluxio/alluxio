@@ -1,5 +1,4 @@
 <%@ page import="java.util.*" %>
-<%@ page import="tachyon.web.*" %>
 
 <html>
 <head>
@@ -98,6 +97,18 @@
                   <th>tachyon.max.table.metadata.byte</th>
                   <th><%= request.getAttribute("tachyon.max.table.metadata.byte") %></th>
                 </tr>
+                <tr>
+                  <th>tachyon.underfs.hadoop.prefixes</th>
+                  <th><%= request.getAttribute("tachyon.underfs.hadoop.prefixes") %></th>
+                </tr>
+                <tr>
+                  <th>tachyon.test.mode</th>
+                  <th><%= request.getAttribute("tachyon.test.mode") %></th>
+                </tr>
+                <tr>
+                  <th>tachyon.master.retry</th>
+                  <th><%= request.getAttribute("tachyon.master.retry") %></th>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -142,6 +153,10 @@
                   <th><%= request.getAttribute("tachyon.master.web.port") %></th>
                 </tr>
                 <tr>
+                  <th>tachyon.master.web.threads</th>
+                  <th><%= request.getAttribute("tachyon.master.web.threads") %></th>
+                </tr>
+                <tr>
                   <th>tachyon.master.temporary.folder</th>
                   <th><%= request.getAttribute("tachyon.master.temporary.folder") %></th>
                 </tr>
@@ -164,6 +179,14 @@
                 <tr>
                   <th>tachyon.master.worker.timeout.ms</th>
                   <th><%= request.getAttribute("tachyon.master.worker.timeout.ms") %></th>
+                </tr>
+                <tr>
+                  <th>tachyon.master.keytab.file</th>
+                  <th><%= request.getAttribute("tachyon.master.keytab.file") %></th>
+                </tr>
+                <tr>
+                  <th>tachyon.master.principal</th>
+                  <th><%= request.getAttribute("tachyon.master.principal") %></th>
                 </tr>
               </tbody>
             </table>

@@ -31,6 +31,7 @@ import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 public class BasicOperations implements Callable<Boolean> {
@@ -49,7 +50,7 @@ public class BasicOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    TachyonFS tachyonClient = TachyonFS.get(mMasterLocation);
+    TachyonFS tachyonClient = TachyonFS.get(mMasterLocation, new TachyonConf());
     createFile(tachyonClient);
     writeFile(tachyonClient);
     return readFile(tachyonClient);

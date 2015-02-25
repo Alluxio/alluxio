@@ -15,7 +15,6 @@
 
 package tachyon;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,13 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
-
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -38,36 +34,20 @@ import tachyon.util.CommonUtils;
 public class Users {
   public static final int DATASERVER_USER_ID = -1;
   public static final int CHECKPOINT_USER_ID = -2;
+  public static final int MIGRATE_DATA_USER_ID = -3;
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** User's temporary data folder in the worker **/
-  private final String mUserFolder;
   /** User's temporary data folder in the under filesystem **/
   private final String mUserUnderFSFolder;
   /** Map from UserId to {@link tachyon.UserInfo} object **/
   private final Map<Long, UserInfo> mUsers;
+  private final TachyonConf mTachyonConf;
 
-  public Users(final String userfolder, final String userUfsFolder) {
-    mUserFolder = userfolder;
+  public Users(String userUfsFolder, TachyonConf tachyonConf) {
     mUserUnderFSFolder = userUfsFolder;
     mUsers = new HashMap<Long, UserInfo>();
-  }
-
-  /**
-   * Adds user's own bytes and updates the user's heartbeat.
-   *
-   * @param userId id of the user.
-   * @param newBytes delta bytes the user owns.
-   */
-  public void addOwnBytes(long userId, long newBytes) {
-    UserInfo tUser = null;
-    synchronized (mUsers) {
-      userHeartbeat(userId);
-      tUser = mUsers.get(userId);
-    }
-
-    tUser.addOwnBytes(newBytes);
+    mTachyonConf = tachyonConf;
   }
 
   /**
@@ -89,16 +69,6 @@ public class Users {
   }
 
   /**
-   * Returns the user's temporary data folder in the worker's machine.
-   *
-   * @param userId The queried user.
-   * @return String contains user's temporary data folder in the worker's machine..
-   */
-  public String getUserTempFolder(long userId) {
-    return CommonUtils.concat(mUserFolder, userId);
-  }
-
-  /**
    * Returns the user's temporary data folder in the under filesystem.
    *
    * @param userId The queried user.
@@ -109,25 +79,11 @@ public class Users {
   }
 
   /**
-   * Get how much space quote does a user own.
-   *
-   * @param userId The queried user.
-   * @return Bytes the user owns.
-   */
-  public long ownBytes(long userId) {
-    synchronized (mUsers) {
-      UserInfo tUser = mUsers.get(userId);
-      return tUser == null ? 0 : tUser.getOwnBytes();
-    }
-  }
-
-  /**
    * Remove <code> userId </code> from user pool.
    *
    * @param userId The user to be removed.
-   * @return The space quote the removed user occupied in bytes.
    */
-  public synchronized long removeUser(long userId) {
+  public synchronized void removeUser(long userId) {
     StringBuilder sb = new StringBuilder("Trying to cleanup user " + userId + " : ");
     UserInfo tUser = null;
     synchronized (mUsers) {
@@ -135,32 +91,20 @@ public class Users {
       mUsers.remove(userId);
     }
 
-    long returnedBytes = 0;
     if (tUser == null) {
-      returnedBytes = 0;
       sb.append(" The user does not exist in the worker's current user pool.");
     } else {
-      returnedBytes = tUser.getOwnBytes();
-      String folder = getUserTempFolder(userId);
-      sb.append(" The user returns ").append(returnedBytes).append(" bytes.");
-      sb.append(" Remove the user's folder ").append(folder).append(" ;");
+      String folder = getUserUfsTempFolder(userId);
+      sb.append(" Remove users underfs folder ").append(folder);
       try {
-        FileUtils.deleteDirectory(new File(folder));
-      } catch (IOException e) {
-        throw Throwables.propagate(e);
-      }
-
-      folder = getUserUfsTempFolder(userId);
-      sb.append(" Also remove users underfs folder ").append(folder);
-      try {
-        UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
+        String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underfs");
+        UnderFileSystem.get(ufsAddress, mTachyonConf).delete(folder, true);
       } catch (IOException e) {
         LOG.warn(e.getMessage(), e);
       }
     }
 
     LOG.info(sb.toString());
-    return returnedBytes;
   }
 
   /**
@@ -173,7 +117,9 @@ public class Users {
       if (mUsers.containsKey(userId)) {
         mUsers.get(userId).heartbeat();
       } else {
-        mUsers.put(userId, new UserInfo(userId));
+        int userTimeoutMs = mTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS,
+            10 * Constants.SECOND_MS);
+        mUsers.put(userId, new UserInfo(userId, userTimeoutMs));
       }
     }
   }

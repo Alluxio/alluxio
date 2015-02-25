@@ -17,19 +17,17 @@ package tachyon.client;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import junit.framework.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 
 /**
@@ -38,10 +36,7 @@ import tachyon.util.CommonUtils;
 public class TachyonFileTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
-  private static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
-      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
   private static final int MAX_FILES = WORKER_CAPACITY_BYTES / USER_QUOTA_UNIT_BYTES;
-
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
@@ -49,29 +44,33 @@ public class TachyonFileTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
+  private TachyonConf mWorkerTachyonConf;
+
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
+    mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
+
+    TachyonConf masterConf =  mLocalTachyonCluster.getMasterTachyonConf();
+    int userCapacityBytes = WORKER_CAPACITY_BYTES / 4;
+    masterConf.set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(userCapacityBytes));
   }
 
   /**
    * Basic isInMemory Test.
    * 
-   * @throws InvalidPathException
-   * @throws FileAlreadyExistException
    * @throws IOException
    */
   @Test
-  public void isInMemoryTest() throws InvalidPathException, FileAlreadyExistException, IOException {
+  public void isInMemoryTest() throws IOException {
     int fileId =
         TestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
     TachyonFile file = mTfs.getFile(fileId);
@@ -104,12 +103,10 @@ public class TachyonFileTest {
   /**
    * Test LRU Cache Eviction.
    * 
-   * @throws InvalidPathException
-   * @throws FileAlreadyExistException
    * @throws IOException
    */
   @Test
-  public void isInMemoryTest2() throws InvalidPathException, FileAlreadyExistException, IOException {
+  public void isInMemoryTest2() throws IOException {
     for (int k = 0; k < MAX_FILES; k ++) {
       int fileId =
           TestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
@@ -117,7 +114,9 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null,
+        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+
     for (int k = 0; k < MAX_FILES; k ++) {
       TachyonFile file = mTfs.getFile(new TachyonURI("/file" + k));
       Assert.assertTrue(file.isInMemory());
@@ -130,7 +129,8 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+
     TachyonFile file = mTfs.getFile(new TachyonURI("/file" + 0));
     Assert.assertFalse(file.isInMemory());
 
@@ -143,12 +143,10 @@ public class TachyonFileTest {
   /**
    * Test LRU Cache Eviction + PIN.
    * 
-   * @throws InvalidPathException
-   * @throws FileAlreadyExistException
    * @throws IOException
    */
   @Test
-  public void isInMemoryTest3() throws InvalidPathException, FileAlreadyExistException, IOException {
+  public void isInMemoryTest3() throws IOException {
     TachyonURI pin = new TachyonURI("/pin");
     mTfs.mkdir(pin);
     mTfs.pinFile(mTfs.getFileId(pin));
@@ -165,7 +163,8 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    CommonUtils.sleepMs(null,
+        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
 
     file = mTfs.getFile(new TachyonURI("/pin/file"));
     Assert.assertTrue(file.isInMemory());

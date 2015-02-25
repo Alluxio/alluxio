@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 
@@ -35,8 +36,12 @@ import tachyon.util.NetworkUtils;
  */
 public class UnderFileSystemSingleLocal extends UnderFileSystem {
 
-  public static UnderFileSystem getClient() {
-    return new UnderFileSystemSingleLocal();
+  protected UnderFileSystemSingleLocal(TachyonConf tachyonConf) {
+    super(tachyonConf);
+  }
+
+  public static UnderFileSystem getClient(TachyonConf tachyonConf) {
+    return new UnderFileSystemSingleLocal(tachyonConf);
   }
 
   @Override

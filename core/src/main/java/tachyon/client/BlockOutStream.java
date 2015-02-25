@@ -15,7 +15,6 @@
 
 package tachyon.client;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -23,10 +22,15 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
+
+import com.google.common.primitives.Ints;
+import com.google.common.io.Closer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -40,28 +44,43 @@ public class BlockOutStream extends OutStream {
   private final long mBlockId;
   private final long mBlockOffset;
   private final boolean mPin;
+  private final Closer mCloser = Closer.create(); 
+  private final String mLocalFilePath;
+  private final RandomAccessFile mLocalFile;
+  private final FileChannel mLocalFileChannel;
+  private final ByteBuffer mBuffer;
 
+  private long mAvailableBytes = 0;
   private long mInFileBytes = 0;
   private long mWrittenBytes = 0;
 
-  private String mLocalFilePath = null;
-  private RandomAccessFile mLocalFile = null;
-  private FileChannel mLocalFileChannel = null;
-
-  private ByteBuffer mBuffer = ByteBuffer.allocate(0);
-
   private boolean mCanWrite = false;
   private boolean mClosed = false;
-  private boolean mCancel = false;
 
   /**
    * @param file the file the block belongs to
    * @param opType the OutStream's write type
    * @param blockIndex the index of the block in the file
+   * @param tachyonConf the TachyonConf instance for this file output stream.
    * @throws IOException
    */
-  BlockOutStream(TachyonFile file, WriteType opType, int blockIndex) throws IOException {
-    super(file, opType);
+  BlockOutStream(TachyonFile file, WriteType opType, int blockIndex, TachyonConf tachyonConf)
+      throws IOException {
+    this(file, opType, blockIndex,
+        tachyonConf.getLong(Constants.USER_QUOTA_UNIT_BYTES, 8 * Constants.MB), tachyonConf);
+  }
+
+  /**
+   * @param file the file the block belongs to
+   * @param opType the OutStream's write type
+   * @param blockIndex the index of the block in the file
+   * @param initialBytes the initial size bytes that will be allocated to the block
+   * @param tachyonConf the TachyonConf instance for this file output stream.
+   * @throws IOException
+   */
+  BlockOutStream(TachyonFile file, WriteType opType, int blockIndex, long initialBytes,
+      TachyonConf tachyonConf) throws IOException {
+    super(file, opType, tachyonConf);
 
     if (!opType.isCache()) {
       throw new IOException("BlockOutStream only support WriteType.CACHE");
@@ -80,47 +99,49 @@ public class BlockOutStream extends OutStream {
       String msg = "The machine does not have any local worker.";
       throw new IOException(msg);
     }
-
-    File localFolder = mTachyonFS.createAndGetUserLocalTempFolder();
-    if (localFolder == null) {
-      mCanWrite = false;
-      String msg = "Failed to create temp user folder for tachyon client.";
-      throw new IOException(msg);
-    }
-
-    mLocalFilePath = CommonUtils.concat(localFolder.getPath(), mBlockId);
-    mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
-    mLocalFileChannel = mLocalFile.getChannel();
+    mLocalFilePath = mTachyonFS.getLocalBlockTemporaryPath(mBlockId, initialBytes);
+    mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
+    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
     // change the permission of the temporary file in order that the worker can move it.
     CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
     // use the sticky bit, only the client and the worker can write to the block
     CommonUtils.setLocalFileStickyBit(mLocalFilePath);
     LOG.info(mLocalFilePath + " was created!");
+    mAvailableBytes += initialBytes;
 
-    mBuffer = ByteBuffer.allocate(mUserConf.FILE_BUFFER_BYTES + 4);
+    long allocateBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES,
+        Constants.MB) + 4L;
+    mBuffer = ByteBuffer.allocate(Ints.checkedCast(allocateBytes));
   }
 
   private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
       throws IOException {
-    if (!mTachyonFS.requestSpace(length)) {
-      mCanWrite = false;
-
-      String msg =
-          "Local tachyon worker does not have enough " + "space (" + length + ") or no worker for "
-              + mFile.mFileId + " " + mBlockId;
-
-      throw new IOException(msg);
+    if (mAvailableBytes < length) {
+      long bytesRequested = mTachyonFS.requestSpace(mBlockId, length - mAvailableBytes);
+      if (bytesRequested + mAvailableBytes >= length) {
+        mAvailableBytes += bytesRequested;
+      } else {
+        mCanWrite = false;
+        throw new IOException(String.format("No enough space on local worker: fileId(%d)"
+            + " blockId(%d) requestSize(%d)", mFile.mFileId, mBlockId, length - mAvailableBytes));
+      }
     }
 
     MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, mInFileBytes, length);
     out.put(buf, offset, length);
     mInFileBytes += length;
+    mAvailableBytes -= length;
   }
 
   @Override
   public void cancel() throws IOException {
-    mCancel = true;
-    close();
+    if (!mClosed) {
+      mCloser.close();
+      mClosed = true;
+      mTachyonFS.cancelBlock(mBlockId);
+      LOG.info(String.format("Canceled output of block. blockId(%d) path(%s)", mBlockId,
+          mLocalFilePath));
+    }
   }
 
   /**
@@ -133,24 +154,13 @@ public class BlockOutStream extends OutStream {
   @Override
   public void close() throws IOException {
     if (!mClosed) {
-      if (!mCancel && mBuffer.position() > 0) {
+      if (mBuffer.position() > 0) {
         appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       }
-
-      if (mLocalFileChannel != null) {
-        mLocalFileChannel.close();
-        mLocalFile.close();
-      }
-
-      if (mCancel) {
-        mTachyonFS.releaseSpace(mWrittenBytes - mBuffer.position());
-        new File(mLocalFilePath).delete();
-        LOG.info("Canceled output of block " + mBlockId + ", deleted local file " + mLocalFilePath);
-      } else {
-        mTachyonFS.cacheBlock(mBlockId);
-      }
+      mCloser.close();
+      mTachyonFS.cacheBlock(mBlockId);
+      mClosed = true;
     }
-    mClosed = true;
   }
 
   @Override
@@ -194,22 +204,22 @@ public class BlockOutStream extends OutStream {
           b.length, off, len));
     }
 
-    if (!mCanWrite) {
+    if (!canWrite()) {
       throw new IOException("Can not write cache.");
     }
     if (mWrittenBytes + len > mBlockCapacityByte) {
       throw new IOException("Out of capacity.");
     }
 
-    if (mBuffer.position() + len >= mUserConf.FILE_BUFFER_BYTES) {
-      if (mBuffer.position() > 0) {
-        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-        mBuffer.clear();
-      }
+    long userFileBufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES,
+        Constants.MB);
+    if (mBuffer.position() + len >= userFileBufferBytes && mBuffer.position() > 0) {
+      appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
+      mBuffer.clear();
+    }
 
-      if (len > 0) {
-        appendCurrentBuffer(b, off, len);
-      }
+    if (len >= userFileBufferBytes) {
+      appendCurrentBuffer(b, off, len);
     } else {
       mBuffer.put(b, off, len);
     }
@@ -219,14 +229,15 @@ public class BlockOutStream extends OutStream {
 
   @Override
   public void write(int b) throws IOException {
-    if (!mCanWrite) {
+    if (!canWrite()) {
       throw new IOException("Can not write cache.");
     }
     if (mWrittenBytes + 1 > mBlockCapacityByte) {
       throw new IOException("Out of capacity.");
     }
 
-    if (mBuffer.position() >= mUserConf.FILE_BUFFER_BYTES) {
+    if (mBuffer.position() >= mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES,
+        Constants.MB)) {
       appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       mBuffer.clear();
     }

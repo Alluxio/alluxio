@@ -14,8 +14,7 @@
  */
 package tachyon;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -340,6 +339,14 @@ public class TachyonURITest {
         new TachyonURI("tachyon:/a/c.txt").join(new TachyonURI("/../b.txt")));
     Assert.assertEquals(new TachyonURI("C:\\\\a\\b"),
         new TachyonURI("C:\\\\a").join(new TachyonURI("\\b")));
+
+    final String pathWithSpecialChar = "����,��b����$o\u0005����[\u000F| \u009E=B����";
+    Assert.assertEquals(new TachyonURI("/" + pathWithSpecialChar),
+            new TachyonURI("/").join(pathWithSpecialChar));
+
+    final String pathWithSpecialCharAndColon = "����,��b����$o\u0005����[\u000F| \u009E=B��:��";
+    Assert.assertEquals(new TachyonURI("/" + pathWithSpecialCharAndColon),
+            new TachyonURI("/").join(pathWithSpecialCharAndColon));
   }
 
   @Test

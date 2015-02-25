@@ -17,30 +17,21 @@ package tachyon;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.conf.WorkerConf;
-
 /**
  * Represent one user in the worker daemon.
  */
 public class UserInfo {
   private final long mUserId;
 
-  private long mOwnBytes;
   private long mLastHeartbeatMs;
+  private int mUserTimeoutMs;
 
-  public UserInfo(long userId) {
+  public UserInfo(long userId, int userTimeoutMs) {
     Preconditions.checkArgument(userId > 0, "Invalid user id " + userId);
+    Preconditions.checkArgument(userTimeoutMs > 0, "Invalid user timeout");
     mUserId = userId;
-    mOwnBytes = 0;
     mLastHeartbeatMs = System.currentTimeMillis();
-  }
-
-  public synchronized void addOwnBytes(long addOwnBytes) {
-    mOwnBytes += addOwnBytes;
-  }
-
-  public synchronized long getOwnBytes() {
-    return mOwnBytes;
+    mUserTimeoutMs = userTimeoutMs;
   }
 
   public long getUserId() {
@@ -52,14 +43,13 @@ public class UserInfo {
   }
 
   public synchronized boolean timeout() {
-    return (System.currentTimeMillis() - mLastHeartbeatMs > WorkerConf.get().USER_TIMEOUT_MS);
+    return (System.currentTimeMillis() - mLastHeartbeatMs > mUserTimeoutMs);
   }
 
   @Override
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("UserInfo(");
     sb.append(" mUserId: ").append(mUserId);
-    sb.append(", mOwnBytes: ").append(mOwnBytes);
     sb.append(", mLastHeartbeatMs: ").append(mLastHeartbeatMs);
     sb.append(")");
     return sb.toString();
