@@ -20,14 +20,15 @@ import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.table.RawTable;
-import tachyon.conf.CommonConf;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -39,24 +40,32 @@ import tachyon.util.CommonUtils;
 public class TachyonFSTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
-  private static final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
   private static String sHost = null;
   private static int sPort = -1;
   private static TachyonFS sTfs = null;
+  private TachyonConf mMasterTachyonConf;
+  private TachyonConf mWorkerTachyonConf;
+
+
+  @Before
+  public final void before() throws IOException {
+    mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
+    mMasterTachyonConf.set(Constants.MAX_COLUMNS, "257");
+    mWorkerTachyonConf = sLocalTachyonCluster.getWorkerTachyonConf();
+  }
 
   @AfterClass
-  public static final void afterClass() throws Exception {
+  public static void afterClass() throws Exception {
     sLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.clearProperty("tachyon.max.columns");
   }
 
   @BeforeClass
-  public static final void beforeClass() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-    System.setProperty("tachyon.max.columns", "257");
-    sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
+  public static void beforeClass() throws IOException {
+    sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
     sHost = sLocalTachyonCluster.getMasterHostname();
@@ -147,10 +156,8 @@ public class TachyonFSTest {
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest1() throws IOException {
-    String maxColumnsProp = System.getProperty("tachyon.max.columns");
-
-    Assert.assertEquals(Integer.parseInt(maxColumnsProp), CommonConf.get().MAX_COLUMNS);
-    sTfs.createRawTable(new TachyonURI(TestUtils.uniqPath()), CommonConf.get().MAX_COLUMNS);
+    int maxColumns = mMasterTachyonConf.getInt(Constants.MAX_COLUMNS, 257);
+    sTfs.createRawTable(new TachyonURI("/table"), maxColumns);
   }
 
   @Test(expected = IOException.class)
@@ -165,9 +172,8 @@ public class TachyonFSTest {
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest4() throws IOException {
-    int column = CommonConf.get().MAX_COLUMNS + 1;
-    Assert.assertTrue(column > CommonConf.get().MAX_COLUMNS);
-    sTfs.createRawTable(new TachyonURI(TestUtils.uniqPath()), column);
+    int maxColumns = mMasterTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
+    sTfs.createRawTable(new TachyonURI(TestUtils.uniqPath()), maxColumns);
   }
 
   @Test
@@ -199,8 +205,8 @@ public class TachyonFSTest {
       int fileId = sTfs.getFileId(fileURI);
       sTfs.delete(fileId, true);
       Assert.assertFalse(sTfs.exist(fileURI));
-
-      CommonUtils.sleepMs(null, SLEEP_MS);
+      int timeOutMs = TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10;
+      CommonUtils.sleepMs(null, timeOutMs);
       workers = sTfs.getWorkersInfo();
       Assert.assertEquals(1, workers.size());
       Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
@@ -239,28 +245,28 @@ public class TachyonFSTest {
 
   @Test(expected = IOException.class)
   public void getTestAbnormal1() throws IOException {
-    TachyonFS.get(new TachyonURI("/" + sHost + ":" + sPort));
+    TachyonFS.get(new TachyonURI("/" + sHost + ":" + sPort), mMasterTachyonConf);
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal2() throws IOException {
-    TachyonFS.get(new TachyonURI("/" + sHost + sPort));
+    TachyonFS.get(new TachyonURI("/" + sHost + sPort), mMasterTachyonConf);
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal3() throws IOException {
-    TachyonFS.get(new TachyonURI("/" + sHost + ":" + (sPort - 1)));
+    TachyonFS.get(new TachyonURI("/" + sHost + ":" + (sPort - 1)), mMasterTachyonConf);
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal4() throws IOException {
-    TachyonFS.get(new TachyonURI("/" + sHost + ":" + sPort + "/ab/c.txt"));
+    TachyonFS.get(new TachyonURI("/" + sHost + ":" + sPort + "/ab/c.txt"), mMasterTachyonConf);
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal5() throws IOException {
     // API user may have this typo: tacyon
-    TachyonFS.get(new TachyonURI("tacyon://" + sHost + ":" + sPort));
+    TachyonFS.get(new TachyonURI("tacyon://" + sHost + ":" + sPort), mMasterTachyonConf);
   }
 
   private void getTestHelper(TachyonFS tfs) throws IOException {
@@ -272,25 +278,33 @@ public class TachyonFSTest {
 
   @Test
   public void getTestNormal1() throws IOException {
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort));
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort),
+        mMasterTachyonConf);
     getTestHelper(tfs);
   }
 
   @Test
   public void getTestNormal2() throws IOException {
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort + "/"));
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort + "/"),
+        mMasterTachyonConf);
     getTestHelper(tfs);
   }
 
   @Test
   public void getTestNormal3() throws IOException {
-    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort + "/ab/c.txt"));
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort + "/ab/c.txt"),
+        mMasterTachyonConf);
     getTestHelper(tfs);
   }
 
   @Test
   public void getTestNormal4() throws IOException {
-    TachyonFS tfs = TachyonFS.get(sHost, sPort, false);
+    TachyonConf copyConf = new TachyonConf(mMasterTachyonConf);
+    copyConf.set(Constants.MASTER_HOSTNAME, sHost);
+    copyConf.set(Constants.MASTER_PORT, Integer.toString(sPort));
+    copyConf.set(Constants.USE_ZOOKEEPER, "false");
+
+    TachyonFS tfs = TachyonFS.get(copyConf);
     getTestHelper(tfs);
   }
 
@@ -351,15 +365,22 @@ public class TachyonFSTest {
     for (int i = 0, n = originUrls.length; i < n; i ++) {
       String originUrl = originUrls[i];
       String resultUrl = resultUrls[i];
-      tfs = TachyonFS.get(new TachyonURI(originUrl));
+      tfs = TachyonFS.get(new TachyonURI(originUrl), mMasterTachyonConf);
       Assert.assertEquals(resultUrl, tfs.toString());
-      tfs = TachyonFS.get(new TachyonURI(originUrl + "/a/b"));
+      tfs = TachyonFS.get(new TachyonURI(originUrl + "/a/b"), mMasterTachyonConf);
       Assert.assertEquals(resultUrl, tfs.toString());
     }
 
-    tfs = TachyonFS.get("localhost", 19998, false);
+    TachyonConf copyConf = new TachyonConf(mMasterTachyonConf);
+    copyConf.set(Constants.MASTER_HOSTNAME, "localhost");
+    copyConf.set(Constants.MASTER_PORT, "19998");
+
+    copyConf.set(Constants.USE_ZOOKEEPER, "false");
+    tfs = TachyonFS.get(copyConf);
     Assert.assertEquals("tachyon://localhost/127.0.0.1:19998", tfs.toString());
-    tfs = TachyonFS.get("localhost", 19998, true);
+
+    copyConf.set(Constants.USE_ZOOKEEPER, "true");
+    tfs = TachyonFS.get(copyConf);
     Assert.assertEquals("tachyon-ft://localhost/127.0.0.1:19998", tfs.toString());
   }
 }

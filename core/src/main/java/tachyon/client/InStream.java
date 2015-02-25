@@ -18,6 +18,8 @@ package tachyon.client;
 import java.io.InputStream;
 import java.io.IOException;
 
+import tachyon.conf.TachyonConf;
+
 /**
  * <code>InStream</code> is the base input stream class for TachyonFile streaming input methods. It
  * can only be gotten by calling the methods in <code>tachyon.client.TachyonFile</code>, but can not
@@ -27,15 +29,18 @@ public abstract class InStream extends InputStream {
   protected final TachyonFile mFile;
   protected final TachyonFS mTachyonFS;
   protected final ReadType mReadType;
+  protected final TachyonConf mTachyonConf;
 
   /**
    * @param file the input file of the InStream
    * @param readType the InStream's read type
+   * @param tachyonConf the TachyonConf instance for this stream.
    */
-  InStream(TachyonFile file, ReadType readType) {
+  InStream(TachyonFile file, ReadType readType, TachyonConf tachyonConf) {
     mFile = file;
     mTachyonFS = mFile.mTachyonFS;
     mReadType = readType;
+    mTachyonConf = tachyonConf;
   }
 
   @Override

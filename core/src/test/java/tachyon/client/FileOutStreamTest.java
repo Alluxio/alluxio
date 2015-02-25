@@ -19,14 +19,16 @@ import java.io.InputStream;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -39,18 +41,21 @@ public class FileOutStreamTest {
   private static LocalTachyonCluster sLocalTachyonCluster = null;
   private static TachyonFS sTfs = null;
 
+  private TachyonConf mMasterTachyonConf;
+
+  @Before
+  public final void before() throws IOException {
+    mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
+  }
+
   @AfterClass
   public static final void afterClass() throws Exception {
     sLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "128");
-    System.setProperty("tachyon.user.default.block.size.byte", "128");
-    sLocalTachyonCluster = new LocalTachyonCluster(10000);
+    sLocalTachyonCluster = new LocalTachyonCluster(10000, 128, 128);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
   }
@@ -59,7 +64,8 @@ public class FileOutStreamTest {
    * Checks that we wrote the file correctly by reading it every possible way
    * 
    * @param filePath
-   * @param byteArrayLimit
+   * @param op
+   * @param fileLen
    * @throws IOException
    */
   private void checkWrite(TachyonURI filePath, WriteType op, int fileLen, int increasingByteArrayLen)
@@ -77,7 +83,7 @@ public class FileOutStreamTest {
     if (op.isThrough()) {
       TachyonFile file = sTfs.getFile(filePath);
       String checkpointPath = file.getUfsPath();
-      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
+      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mMasterTachyonConf);
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) file.length()];
@@ -182,7 +188,8 @@ public class FileOutStreamTest {
     OutStream os = file.getOutStream(WriteType.THROUGH);
     Assert.assertTrue(os instanceof FileOutStream);
     os.write((byte) 0);
-    Thread.sleep(UserConf.get().HEARTBEAT_INTERVAL_MS * 2);
+    Thread.sleep(mMasterTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
+        Constants.SECOND_MS) * 2);
     Assert.assertEquals(origId, sTfs.getUserId());
     os.write((byte) 1);
     os.close();

@@ -47,7 +47,7 @@ public class Image {
     String tPath = path + ".tmp";
     String parentFolder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR));
     LOG.info("Creating the image file: " + tPath);
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path, info.getTachyonConf());
     if (!ufs.exists(parentFolder)) {
       LOG.info("Creating parent folder " + parentFolder);
       ufs.mkdirs(parentFolder, true);
@@ -77,7 +77,7 @@ public class Image {
    * @throws IOException
    */
   public static void load(MasterInfo info, String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path, info.getTachyonConf());
     if (!ufs.exists(path)) {
       LOG.info("Image " + path + " does not exist.");
       return;
@@ -96,10 +96,11 @@ public class Image {
    * 
    * @param src The src image path
    * @param dst The dst image path
+   * @param info The MasterInfo used to rename the image
    * @throws IOException
    */
-  public static void rename(String src, String dst) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(src);
+  public static void rename(String src, String dst, MasterInfo info) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(src, info.getTachyonConf());
     ufs.rename(src, dst);
     LOG.info("Renamed " + src + " to " + dst);
   }

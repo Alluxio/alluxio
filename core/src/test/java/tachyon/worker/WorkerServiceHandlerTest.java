@@ -23,16 +23,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfSpaceException;
@@ -44,28 +44,29 @@ import tachyon.util.CommonUtils;
 public class WorkerServiceHandlerTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
-  private static final int SLEEP_MS = 
-      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
   private WorkerServiceHandler mWorkerServiceHandler = null;
   private TachyonFS mTfs = null;
+  private TachyonConf mMasterTachyonConf;
+  private TachyonConf mWorkerTachyonConf;
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
     mLocalTachyonCluster.start();
     mWorkerServiceHandler = mLocalTachyonCluster.getWorker().getWorkerServiceHandler();
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
     mTfs = mLocalTachyonCluster.getClient();
+    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
   }
 
   @Test
@@ -78,7 +79,10 @@ public class WorkerServiceHandlerTest {
     createBlockFile(filename, (int)(WORKER_CAPACITY_BYTES / 10L - 10L));
     mWorkerServiceHandler.cancelBlock(userId, blockId);
     Assert.assertFalse(new File(filename).exists());
-    CommonUtils.sleepMs(null, SLEEP_MS);
+
+    CommonUtils.sleepMs(null,
+        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+
     Assert.assertEquals(0, mMasterInfo.getUsedBytes());
   }
 
@@ -107,15 +111,14 @@ public class WorkerServiceHandlerTest {
 
   private void createBlockFile(String filename, int fileLen)
       throws IOException, InvalidPathException {
-    UnderFileSystem.get(filename).mkdirs(CommonUtils.getParent(filename), true);
+    UnderFileSystem.get(filename, mMasterTachyonConf).mkdirs(CommonUtils.getParent(filename), true);
     BlockHandler handler = BlockHandler.get(filename);
     handler.append(0, TestUtils.getIncreasingByteArray(fileLen), 0, fileLen);
     handler.close();
   }
 
   @Test
-  public void evictionTest() throws InvalidPathException, FileAlreadyExistException, IOException,
-      FileDoesNotExistException, TException {
+  public void evictionTest() throws IOException, TException {
     int fileId1 =
         TestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 3);
@@ -133,7 +136,10 @@ public class WorkerServiceHandlerTest {
     int fileId3 =
         TestUtils.createByteFile(mTfs, "/file3", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 2);
-    CommonUtils.sleepMs(null, SLEEP_MS);
+
+    CommonUtils.sleepMs(null,
+        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+
     fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
     fileInfo2 = mMasterInfo.getClientFileInfo(new TachyonURI("/file2"));
     ClientFileInfo fileInfo3 = mMasterInfo.getClientFileInfo(new TachyonURI("/file3"));

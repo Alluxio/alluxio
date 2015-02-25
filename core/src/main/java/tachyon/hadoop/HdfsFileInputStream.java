@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
 
+import com.google.common.primitives.Ints;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -33,7 +34,7 @@ import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -52,12 +53,17 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   private int mBufferLimit = 0;
   private int mBufferPosition = 0;
-  private byte[] mBuffer = new byte[UserConf.get().FILE_BUFFER_BYTES * 4];
+  private byte[] mBuffer;
+
+  private final TachyonConf mTachyonConf;
 
   public HdfsFileInputStream(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
-      int bufferSize) throws IOException {
+      int bufferSize, TachyonConf tachyonConf) throws IOException {
     LOG.debug("PartitionInputStreamHdfs({}, {}, {}, {}, {})", tfs, fileId, hdfsPath, conf,
         bufferSize);
+    mTachyonConf = tachyonConf;
+    long bufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, 0);
+    mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
     mTFS = tfs;
     mFileId = fileId;

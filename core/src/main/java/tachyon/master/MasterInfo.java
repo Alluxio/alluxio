@@ -55,8 +55,7 @@ import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystem.SpaceType;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -93,8 +92,10 @@ public class MasterInfo extends ImageWriter {
 
       synchronized (mWorkers) {
         for (Entry<Long, MasterWorkerInfo> worker : mWorkers.entrySet()) {
+          int masterWorkerTimeoutMs = mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS,
+              10 * Constants.SECOND_MS);
           if (CommonUtils.getCurrentMs()
-              - worker.getValue().getLastUpdatedTimeMs() > mMasterConf.WORKER_TIMEOUT_MS) {
+              - worker.getValue().getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
             LOG.error("The worker " + worker.getValue() + " got timed out!");
             mLostWorkers.add(worker.getValue());
             lostWorkers.add(worker.getKey());
@@ -123,7 +124,8 @@ public class MasterInfo extends ImageWriter {
                 if (tFile != null) {
                   int blockIndex = BlockInfo.computeBlockIndex(blockId);
                   tFile.removeLocation(blockIndex, worker.getId());
-                  if (!tFile.hasCheckpointed() && tFile.getBlockLocations(blockIndex).size() == 0) {
+                  if (!tFile.hasCheckpointed()
+                      && tFile.getBlockLocations(blockIndex, mTachyonConf).size() == 0) {
                     LOG.info("Block " + blockId + " got lost from worker " + worker.getId() + " .");
                     int depId = tFile.getDependencyId();
                     if (depId == -1) {
@@ -134,7 +136,8 @@ public class MasterInfo extends ImageWriter {
                       dep.addLostFile(tFile.getId());
                       LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
                           + " . Trying to recompute it using dependency " + dep.mId);
-                      if (!getPath(tFile).toString().startsWith(mMasterConf.TEMPORARY_FOLDER)) {
+                      String tmp = mTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER, "/tmp");
+                      if (!getPath(tFile).toString().startsWith(tmp)) {
                         mMustRecomputedDpendencies.add(depId);
                       }
                     }
@@ -154,8 +157,9 @@ public class MasterInfo extends ImageWriter {
       if (hadFailedWorker) {
         LOG.warn("Restarting failed workers.");
         try {
+          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
           java.lang.Runtime.getRuntime().exec(
-              CommonConf.get().TACHYON_HOME + "/bin/tachyon-start.sh restart_workers");
+              tachyonHome + "/bin/tachyon-start.sh restart_workers");
         } catch (IOException e) {
           LOG.error(e.getMessage());
         }
@@ -214,9 +218,9 @@ public class MasterInfo extends ImageWriter {
         }
 
         for (String cmd : cmds) {
-          String filePath =
-              CommonConf.get().TACHYON_HOME + "/logs/rerun-" + mRerunCounter.incrementAndGet();
-          // TODO use bounded threads (ExecutorService)
+          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+          String filePath = tachyonHome + "/logs/rerun-" + mRerunCounter.incrementAndGet();
+          //TODO use bounded threads (ExecutorService)
           Thread thread = new Thread(new RecomputeCommand(cmd, filePath));
           thread.setName("recompute-command-" + cmd);
           thread.start();
@@ -239,7 +243,6 @@ public class MasterInfo extends ImageWriter {
   private final InetSocketAddress mMasterAddress;
   private final long mStartTimeNSPrefix;
   private final long mStartTimeMs;
-  private final MasterConf mMasterConf;
   private final Counters mCheckpointInfo = new Counters(0, 0, 0);
 
   private final AtomicInteger mInodeCounter = new AtomicInteger(0);
@@ -256,7 +259,7 @@ public class MasterInfo extends ImageWriter {
   // A map from file ID's to Inodes. All operations on it are currently synchronized on mRootLock.
   private final Map<Integer, Inode> mFileIdToInodes = new HashMap<Integer, Inode>();
   private final Map<Integer, Dependency> mFileIdToDependency = new HashMap<Integer, Dependency>();
-  private final RawTables mRawTables = new RawTables();
+  private final RawTables mRawTables;
 
   // TODO add initialization part for master failover or restart. All operations on these members
   // are synchronized on mFileIdToDependency.
@@ -284,10 +287,17 @@ public class MasterInfo extends ImageWriter {
   private Future<?> mHeartbeat;
   private Future<?> mRecompute;
 
-  public MasterInfo(InetSocketAddress address, Journal journal, ExecutorService mExecutorService)
-      throws IOException {
-    this.mExecutorService = mExecutorService;
-    mMasterConf = MasterConf.get();
+  private final TachyonConf mTachyonConf;
+  private final String mUFSDataFolder;
+
+  public MasterInfo(InetSocketAddress address, Journal journal, ExecutorService executorService,
+      TachyonConf tachyonConf) throws IOException {
+    mExecutorService = executorService;
+    mTachyonConf = tachyonConf;
+    mUFSDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER,
+        Constants.DEFAULT_DATA_FOLDER);
+
+    mRawTables = new RawTables(mTachyonConf);
 
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1, System.currentTimeMillis());
     mFileIdToInodes.put(mRoot.getId(), mRoot);
@@ -298,7 +308,8 @@ public class MasterInfo extends ImageWriter {
     mStartTimeNSPrefix = mStartTimeMs - (mStartTimeMs % 1000000);
     mJournal = journal;
 
-    mWhitelist = new PrefixList(mMasterConf.WHITELIST);
+    mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ",",
+        new LinkedList<String>()));
     mPinnedInodeFileIds = Collections.synchronizedSet(new HashSet<Integer>());
 
     mJournal.loadImage(this);
@@ -424,7 +435,8 @@ public class MasterInfo extends ImageWriter {
 
       dep =
           new Dependency(dependencyId, parentsIds, childrenIds, commandPrefix, data, comment,
-              framework, frameworkVersion, dependencyType, parentDependencyIds, creationTimeMs);
+              framework, frameworkVersion, dependencyType, parentDependencyIds, creationTimeMs,
+              mTachyonConf);
 
       List<Inode> childrenInodes = new ArrayList<Inode>();
       for (int k = 0; k < childrenIds.size(); k ++) {
@@ -618,7 +630,7 @@ public class MasterInfo extends ImageWriter {
         if (delInode.isFile()) {
           String checkpointPath = ((InodeFile) delInode).getUfsPath();
           if (!checkpointPath.equals("")) {
-            UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
+            UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mTachyonConf);
             try {
               if (!ufs.exists(checkpointPath)) {
                 LOG.warn("File does not exist the underfs: " + checkpointPath);
@@ -903,12 +915,11 @@ public class MasterInfo extends ImageWriter {
    * @return the dependency id of the file if it has not been checkpointed. -1 means the file either
    *         does not have dependency or has already been checkpointed.
    * @throws FileDoesNotExistException
-   * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */
   public int cacheBlock(long workerId, long workerUsedBytes, long storageDirId, long blockId,
       long length)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
+      throws FileDoesNotExistException, BlockInfoException {
     LOG.debug("Cache block: {}",
         CommonUtils.parametersToString(workerId, workerUsedBytes, blockId, length));
 
@@ -1046,9 +1057,10 @@ public class MasterInfo extends ImageWriter {
       TachyonException {
     LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
 
-    if (columns <= 0 || columns >= CommonConf.get().MAX_COLUMNS) {
+    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
+    if (columns <= 0 || columns >= maxColumns) {
       throw new TableColumnException("Column " + columns + " should between 0 to "
-          + CommonConf.get().MAX_COLUMNS);
+          + maxColumns);
     }
 
     int id;
@@ -1175,7 +1187,8 @@ public class MasterInfo extends ImageWriter {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
       ClientBlockInfo ret =
-          ((InodeFile) inode).getClientBlockInfo(BlockInfo.computeBlockIndex(blockId));
+          ((InodeFile) inode).getClientBlockInfo(BlockInfo.computeBlockIndex(blockId),
+              mTachyonConf);
       LOG.debug("getClientBlockInfo: {} : {}", blockId, ret);
       return ret;
     }
@@ -1304,7 +1317,7 @@ public class MasterInfo extends ImageWriter {
       if (inode == null || inode.isDirectory()) {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
-      List<ClientBlockInfo> ret = ((InodeFile) inode).getClientBlockInfos();
+      List<ClientBlockInfo> ret = ((InodeFile) inode).getClientBlockInfos(mTachyonConf);
       LOG.debug("getFileLocations: {} {}", fileId, ret);
       return ret;
     }
@@ -1623,8 +1636,8 @@ public class MasterInfo extends ImageWriter {
    * @throws IOException
    */
   public long getUnderFsCapacityBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
-    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_TOTAL);
+    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, mTachyonConf);
+    return ufs.getSpace(mUFSDataFolder, SpaceType.SPACE_TOTAL);
   }
 
   /**
@@ -1634,8 +1647,8 @@ public class MasterInfo extends ImageWriter {
    * @throws IOException
    */
   public long getUnderFsFreeBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
-    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_FREE);
+    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, mTachyonConf);
+    return ufs.getSpace(mUFSDataFolder, SpaceType.SPACE_FREE);
   }
 
   /**
@@ -1645,8 +1658,8 @@ public class MasterInfo extends ImageWriter {
    * @throws IOException
    */
   public long getUnderFsUsedBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
-    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_USED);
+    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, mTachyonConf);
+    return ufs.getSpace(mUFSDataFolder, SpaceType.SPACE_USED);
   }
 
   /**
@@ -1779,10 +1792,10 @@ public class MasterInfo extends ImageWriter {
 
     mJournal.createImage(this);
     mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
-
     mHeartbeat =
         mExecutorService.submit(new HeartbeatThread("Master Heartbeat",
-            new MasterInfoHeartbeatExecutor(), mMasterConf.HEARTBEAT_INTERVAL_MS));
+            new MasterInfoHeartbeatExecutor(),
+            mTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS)));
 
     mRecompute = mExecutorService.submit(new RecomputationScheduler());
   }
@@ -1867,7 +1880,7 @@ public class MasterInfo extends ImageWriter {
           break;
         }
         case Dependency: {
-          Dependency dep = Dependency.loadImage(ele);
+          Dependency dep = Dependency.loadImage(ele, mTachyonConf);
 
           mFileIdToDependency.put(dep.mId, dep);
           if (!dep.hasCheckpointed()) {
@@ -2425,5 +2438,14 @@ public class MasterInfo extends ImageWriter {
 
       writeElement(objWriter, dos, ele);
     }
+  }
+
+  /**
+   * Used by internal classes when trying to create new instance based on this MasterInfo
+   *
+   * @return TachyonConf used by this MasterInfo.
+   */
+  TachyonConf getTachyonConf() {
+    return mTachyonConf;
   }
 }

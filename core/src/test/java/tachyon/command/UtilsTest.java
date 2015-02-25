@@ -16,11 +16,11 @@ package tachyon.command;
 
 import java.io.IOException;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 
 /**
  * Unit tests on tachyon.command.Utils.
@@ -37,7 +37,7 @@ public class UtilsTest {
             Constants.HEADER_FT + "localhost:19998/dir", "/dir", "dir"};
     String expected = "/dir";
     for (String path : paths) {
-      String result = Utils.getFilePath(path);
+      String result = Utils.getFilePath(path, new TachyonConf());
       Assert.assertEquals(result, expected);
     }
   }

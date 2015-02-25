@@ -159,7 +159,7 @@ service MasterService {
    */
   void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 storageDirId,
       4: i64 blockId, 5: i64 length)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
+    throws (1: FileDoesNotExistException eP, 2: BlockInfoException eB)
 
   set<i32> worker_getPinIdList()
 
@@ -281,8 +281,7 @@ service WorkerService {
    * information to master. 
    */
   void cacheBlock(1: i64 userId, 2: i64 blockId)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
-      3: BlockInfoException eB)
+    throws (1: FileDoesNotExistException eP, 2: BlockInfoException eB)
 
   /**
    * Used to cancel a block which is being written. worker will delete the temporary block file and

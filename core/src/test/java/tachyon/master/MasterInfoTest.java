@@ -37,8 +37,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
@@ -233,6 +232,8 @@ public class MasterInfoTest {
 
   private ExecutorService mExecutorService = null;
 
+  private TachyonConf mMasterTachyonConf;
+
   @Test
   public void addCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,
       FileAlreadyExistException, InvalidPathException, BlockInfoException, FileNotFoundException,
@@ -253,16 +254,15 @@ public class MasterInfoTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     mExecutorService.shutdown();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(1000);
+    mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mExecutorService = Executors.newFixedThreadPool(2);
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
+    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
   @Test
@@ -303,8 +303,12 @@ public class MasterInfoTest {
       ConcurrentCreator concurrentCreator =
           new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
       concurrentCreator.call();
-      Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
-      MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+
+      String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+          Constants.DEFAULT_JOURNAL_FOLDER);
+      Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
+      MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+          mMasterTachyonConf);
       info.init();
       for (TachyonURI path : mMasterInfo.ls(new TachyonURI("/"), true)) {
         Assert.assertEquals(mMasterInfo.getFileId(path), info.getFileId(path));
@@ -668,15 +672,18 @@ public class MasterInfoTest {
   @Test(expected = TableColumnException.class)
   public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistException,
       TableColumnException, TachyonException {
-    mMasterInfo.createRawTable(new TachyonURI("/testTable"), CommonConf.get().MAX_COLUMNS + 1,
-        (ByteBuffer) null);
+    int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS, 1000);
+    mMasterInfo.createRawTable(new TachyonURI("/testTable"), maxColumns + 1, (ByteBuffer) null);
   }
 
   @Test
   public void writeImageTest() throws IOException {
     // initialize the MasterInfo
-    Journal journal = new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data");
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService);
+    Journal journal =
+        new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data",
+            mMasterTachyonConf);
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
+        mMasterTachyonConf);
 
     // create the output streams
     ByteArrayOutputStream os = new ByteArrayOutputStream();

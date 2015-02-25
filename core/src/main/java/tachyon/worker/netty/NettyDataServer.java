@@ -32,7 +32,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import com.google.common.base.Throwables;
 
-import tachyon.conf.WorkerConf;
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
@@ -44,9 +45,12 @@ public final class NettyDataServer implements DataServer {
   private final ServerBootstrap mBootstrap;
 
   private final ChannelFuture mChannelFuture;
+  private final TachyonConf mTachyonConf;
 
-  public NettyDataServer(final SocketAddress address, final BlocksLocker locker) {
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(locker));
+  public NettyDataServer(final SocketAddress address, final BlocksLocker locker,
+      final TachyonConf tachyonConf) {
+    mTachyonConf = tachyonConf;
+    mBootstrap = createBootstrap().childHandler(new PipelineHandler(locker, mTachyonConf));
 
     try {
       mChannelFuture = mBootstrap.bind(address).sync();
@@ -63,9 +67,9 @@ public final class NettyDataServer implements DataServer {
   }
 
   private ServerBootstrap createBootstrap() {
-    final WorkerConf conf = WorkerConf.get();
     ServerBootstrap boot = new ServerBootstrap();
-    boot = setupGroups(boot, conf.NETTY_CHANNEL_TYPE);
+    boot = setupGroups(boot, mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL,
+        ChannelType.defaultType()));
 
     // use pooled buffers
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -73,18 +77,23 @@ public final class NettyDataServer implements DataServer {
 
     // set write buffer
     // this is the default, but its recommended to set it in case of change in future netty.
-    boot.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, conf.NETTY_HIGH_WATER_MARK);
-    boot.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, conf.NETTY_LOW_WATER_MARK);
+    boot.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK,
+        mTachyonConf.getInt(Constants.WORKER_NETTY_WATERMARK_HIGH, 32 * 1024));
+    boot.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK,
+        mTachyonConf.getInt(Constants.WORKER_NETTY_WATERMARK_LOW, 8 * 1024));
 
     // more buffer settings
-    if (conf.NETTY_BACKLOG.isPresent()) {
-      boot.option(ChannelOption.SO_BACKLOG, conf.NETTY_BACKLOG.get());
+    int optBacklog = mTachyonConf.getInt(Constants.WORKER_NETTY_BACKLOG, -1);
+    if (optBacklog > 0) {
+      boot.option(ChannelOption.SO_BACKLOG, optBacklog);
     }
-    if (conf.NETTY_SEND_BUFFER.isPresent()) {
-      boot.option(ChannelOption.SO_SNDBUF, conf.NETTY_SEND_BUFFER.get());
+    int optSendBuffer = mTachyonConf.getInt(Constants.WORKER_NETTY_SEND_BUFFER, -1);
+    if (optSendBuffer > 0) {
+      boot.option(ChannelOption.SO_SNDBUF, optSendBuffer);
     }
-    if (conf.NETTY_RECIEVE_BUFFER.isPresent()) {
-      boot.option(ChannelOption.SO_RCVBUF, conf.NETTY_RECIEVE_BUFFER.get());
+    int optReceiveBuffer = mTachyonConf.getInt(Constants.WORKER_NETTY_RECEIVE_BUFFER, -1);
+    if (optReceiveBuffer > 0) {
+      boot.option(ChannelOption.SO_RCVBUF, optReceiveBuffer);
     }
     return boot;
   }
@@ -112,8 +121,8 @@ public final class NettyDataServer implements DataServer {
     ThreadFactory workerThreadFactory = ThreadFactoryUtils.build("data-server-worker-%d");
     EventLoopGroup bossGroup;
     EventLoopGroup workerGroup;
-    int bossThreadCount = WorkerConf.get().NETTY_BOSS_THREADS;
-    int workerThreadCount = WorkerConf.get().NETTY_WORKER_THREADS;
+    int bossThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS, 1);
+    int workerThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 0);
     switch (type) {
       case EPOLL:
         bossGroup = new EpollEventLoopGroup(bossThreadCount, bossThreadFactory);

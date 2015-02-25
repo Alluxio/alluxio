@@ -44,8 +44,7 @@ import tachyon.HeartbeatThread;
 import tachyon.LeaderInquireClient;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.conf.CommonConf;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.thrift.BlockInfoException;
@@ -79,7 +78,6 @@ import tachyon.util.NetworkUtils;
 // so all exceptions are handled poorly. This logic needs to be redone and be consistent.
 public final class MasterClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final int MAX_CONNECT_TRY = CommonConf.get().MASTER_RETRY_COUNT;
 
   private final boolean mUseZookeeper;
   private MasterService.Client mClient = null;
@@ -90,14 +88,12 @@ public final class MasterClient implements Closeable {
   private volatile long mUserId = -1;
   private final ExecutorService mExecutorService;
   private Future<?> mHeartbeat;
+  private final TachyonConf mTachyonConf;
 
-  public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService) {
-    this(masterAddress, CommonConf.get().USE_ZOOKEEPER, executorService);
-  }
-
-  public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper,
-      ExecutorService executorService) {
-    mUseZookeeper = useZookeeper;
+  public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
+      TachyonConf tachyonConf) {
+    mTachyonConf = tachyonConf;
+    mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
     if (!mUseZookeeper) {
       mMasterAddress = masterAddress;
     }
@@ -173,7 +169,8 @@ public final class MasterClient implements Closeable {
     }
 
     Exception lastException = null;
-    RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, MAX_CONNECT_TRY);
+    int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT, 29);
+    RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, maxConnectsTry);
     do {
       mMasterAddress = getMasterAddress();
 
@@ -190,9 +187,11 @@ public final class MasterClient implements Closeable {
         HeartbeatExecutor heartBeater = new MasterClientHeartbeatExecutor(this);
 
         String threadName = "master-heartbeat-" + mMasterAddress;
+        int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
+            Constants.SECOND_MS);
         mHeartbeat =
             mExecutorService.submit(new HeartbeatThread(threadName, heartBeater,
-                UserConf.get().HEARTBEAT_INTERVAL_MS / 2));
+                interval / 2));
       } catch (TTransportException e) {
         lastException = e;
         LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress 
@@ -266,8 +265,8 @@ public final class MasterClient implements Closeable {
     }
 
     LeaderInquireClient leaderInquireClient =
-        LeaderInquireClient.getClient(CommonConf.get().ZOOKEEPER_ADDRESS,
-            CommonConf.get().ZOOKEEPER_LEADER_PATH);
+        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS, null),
+            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, null));
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return CommonUtils.parseInetSocketAddress(temp);
@@ -732,9 +731,8 @@ public final class MasterClient implements Closeable {
     return false;
   }
 
-  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes,
-      long storageDirId, long blockId, long length) throws IOException, FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException {
+  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long storageDirId,
+      long blockId, long length) throws IOException, FileDoesNotExistException, BlockInfoException {
     while (!mIsShutdown) {
       connect();
 
@@ -742,8 +740,6 @@ public final class MasterClient implements Closeable {
         mClient.worker_cacheBlock(workerId, workerUsedBytes, storageDirId, blockId, length);
         return;
       } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (SuspectedFileSizeException e) {
         throw e;
       } catch (BlockInfoException e) {
         throw e;

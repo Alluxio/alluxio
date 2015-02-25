@@ -17,8 +17,6 @@ package tachyon;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.conf.WorkerConf;
-
 /**
  * Represent one user in the worker daemon.
  */
@@ -26,11 +24,14 @@ public class UserInfo {
   private final long mUserId;
 
   private long mLastHeartbeatMs;
+  private int mUserTimeoutMs;
 
-  public UserInfo(long userId) {
+  public UserInfo(long userId, int userTimeoutMs) {
     Preconditions.checkArgument(userId > 0, "Invalid user id " + userId);
+    Preconditions.checkArgument(userTimeoutMs > 0, "Invalid user timeout");
     mUserId = userId;
     mLastHeartbeatMs = System.currentTimeMillis();
+    mUserTimeoutMs = userTimeoutMs;
   }
 
   public long getUserId() {
@@ -42,7 +43,7 @@ public class UserInfo {
   }
 
   public synchronized boolean timeout() {
-    return (System.currentTimeMillis() - mLastHeartbeatMs > WorkerConf.get().USER_TIMEOUT_MS);
+    return (System.currentTimeMillis() - mLastHeartbeatMs > mUserTimeoutMs);
   }
 
   @Override
