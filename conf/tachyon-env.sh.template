@@ -56,8 +56,8 @@ export TACHYON_UNDERFS_HDFS_IMPL=org.apache.hadoop.hdfs.DistributedFileSystem
 # The default max threads in both master and worker are unlimited and thus provides no protection against
 # clients overwhelming the server. Users need to set this number according to their production environment
 # These two settings represents the maximum number of client requests that a master/worker server may execute concurrently.
-export TACHYON_WORKER_MAX_THREADS=2048
-export TACHYON_MASTER_MAX_THREADS=2048
+export TACHYON_WORKER_MAX_WORKER_THREADS=2048
+export TACHYON_MASTER_MAX_WORKER_THREADS=2048
 
 CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
