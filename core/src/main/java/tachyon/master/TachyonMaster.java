@@ -20,9 +20,11 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.TThreadedSelectorServer;
-import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.server.TThreadPoolServer;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,16 +66,15 @@ public class TachyonMaster {
   private MasterInfo mMasterInfo;
   private InetSocketAddress mMasterAddress;
   private UIWebServer mWebServer;
-  private TNonblockingServerSocket mServerTNonblockingServerSocket;
+  private TServerSocket mServerTServerSocket;
   private TServer mMasterServiceServer;
   private MasterServiceHandler mMasterServiceHandler;
   private Journal mJournal;
   private EditLogProcessor mEditLogProcessor;
   private int mWebPort;
 
-  private int mSelectorThreads;
-  private int mAcceptQueueSizePerThread;
-  private int mWorkerThreads;
+  private int mMaxWorkerThreads;
+  private int mMinWorkerThreads;
   private boolean mZookeeperMode = false;
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2,
       ThreadFactoryUtils.daemon("heartbeat-master-%d"));
@@ -92,11 +93,6 @@ public class TachyonMaster {
     int port = mTachyonConf.getInt(Constants.MASTER_PORT, 0);
     InetSocketAddress address = new InetSocketAddress(hostName, port);
     int webPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT, 0);
-    int selectorThreads = mTachyonConf.getInt(Constants.MASTER_SELECTOR_THREADS, 3);
-    int acceptQueueSizePerThreads = mTachyonConf.getInt(Constants.MASTER_QUEUE_SIZE_PER_SELECTOR,
-        3000);
-    int workerThreads = mTachyonConf.getInt(Constants.MASTER_SERVER_THREADS,
-        2 * Runtime.getRuntime().availableProcessors());
 
     TachyonConf.assertValidPort(address, mTachyonConf);
     TachyonConf.assertValidPort(webPort, mTachyonConf);
@@ -105,9 +101,13 @@ public class TachyonMaster {
 
     mIsStarted = false;
     mWebPort = webPort;
-    mSelectorThreads = selectorThreads;
-    mAcceptQueueSizePerThread = acceptQueueSizePerThreads;
-    mWorkerThreads = workerThreads;
+    mMinWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS,
+        Runtime.getRuntime().availableProcessors());
+
+    //Set max thread to max integer by default
+    //An property will be set/added in tachyon-env for users to specify a number that make sense in
+    //their production environment
+    mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS, Integer.MAX_VALUE);
 
     try {
       // Extract the port from the generated socket.
@@ -115,8 +115,8 @@ public class TachyonMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      mServerTNonblockingServerSocket = new TNonblockingServerSocket(address);
-      mPort = NetworkUtils.getPort(mServerTNonblockingServerSocket);
+      mServerTServerSocket = new TServerSocket(address);
+      mPort = NetworkUtils.getPort(mServerTServerSocket);
 
       mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(address), mPort);
       String journalFolder = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, "/journal/");
@@ -236,11 +236,13 @@ public class TachyonMaster {
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
-    mMasterServiceServer =
-        new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
-            mServerTNonblockingServerSocket).processor(masterServiceProcessor)
-            .selectorThreads(mSelectorThreads).acceptQueueSizePerThread(mAcceptQueueSizePerThread)
-            .workerThreads(mWorkerThreads));
+    mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(
+        mServerTServerSocket)
+        .maxWorkerThreads(mMaxWorkerThreads)
+        .minWorkerThreads(mMinWorkerThreads)
+        .processor(masterServiceProcessor)
+        .transportFactory(new TFramedTransport.Factory())
+        .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     mIsStarted = true;
   }
@@ -308,7 +310,7 @@ public class TachyonMaster {
       mWebServer.shutdownWebServer();
       mMasterInfo.stop();
       mMasterServiceServer.stop();
-      mServerTNonblockingServerSocket.close();
+      mServerTServerSocket.close();
       mExecutorService.shutdown();
       mIsStarted = false;
     }

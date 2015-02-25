@@ -173,8 +173,8 @@ public final class LocalTachyonCluster {
 
     // Lower the number of threads that the cluster will spin off.
     // default thread overhead is too much.
-    mMasterConf.set(Constants.MASTER_SELECTOR_THREADS, "1");
-    mMasterConf.set(Constants.MASTER_SERVER_THREADS, "2");
+    mMasterConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
+    mMasterConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
     mMasterConf.set(Constants.MASTER_WEB_THREAD_COUNT, "1");
 
     // re-build the dir to set permission to 777
@@ -197,8 +197,8 @@ public final class LocalTachyonCluster {
     mWorkerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
     mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
     mWorkerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, "15");
-    mWorkerConf.set(Constants.WORKER_SELECTOR_THREADS, Integer.toString(1));
-    mWorkerConf.set(Constants.WORKER_SERVER_THREADS, Integer.toString(2));
+    mWorkerConf.set(Constants.WORKER_MIN_WORKER_THREADS, Integer.toString(1));
+    mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, Integer.toString(100));
     mWorkerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, Integer.toString(2));
 
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
@@ -219,7 +219,7 @@ public final class LocalTachyonCluster {
 
     mWorker =
         TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerConf);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 100, mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
@@ -264,6 +264,7 @@ public final class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.server.threads");
     System.clearProperty("tachyon.worker.hierarchystore.level.max");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
+    System.clearProperty("tachyon.worker.min.worker.threads");
   }
 
   /**

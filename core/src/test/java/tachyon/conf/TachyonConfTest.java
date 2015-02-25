@@ -137,8 +137,8 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS, 0);
     Assert.assertTrue(intValue == Constants.SECOND_MS);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_SELECTOR_THREADS, 0);
-    Assert.assertTrue(intValue == 3);
+    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS, 0);
+    Assert.assertTrue(intValue == Runtime.getRuntime().availableProcessors());
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS, 0);
     Assert.assertTrue(intValue == 10 * Constants.SECOND_MS);
@@ -178,13 +178,7 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, 0);
     Assert.assertTrue(intValue == Constants.SECOND_MS);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_SELECTOR_THREADS, 0);
-    Assert.assertTrue(intValue == 3);
-
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_QUEUE_SIZE_PER_SELECTOR, 0);
-    Assert.assertTrue(intValue == 3000);
-
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_SERVER_THREADS, -1);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS, 0);
     Assert.assertTrue(intValue == Runtime.getRuntime().availableProcessors());
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS, 0);
