@@ -27,6 +27,12 @@
           <div class="accordion-inner">
             <table class = "table">
               <tbody>
+                <% for (Map.Entry<String, String> entry : (SortedSet<Map.Entry<String, String>>) request.getAttribute("configuration")) { %>
+                  <tr>
+                    <th><%= entry.getKey() %></th>
+                    <th><%= entry.getValue() %></th>
+                  </tr>
+                <% } %>
                 <tr>
                   <th>tachyon.home</th>
                   <th><%= request.getAttribute("tachyon.home") %></th>
