@@ -20,7 +20,7 @@
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion8" href="#data8">
-            <h4>Common Configuration</h4>
+            <h4>Tachyon Configuration</h4>
           </a>
         </div>
         <div id="data8" class="accordion-body collapse in">
