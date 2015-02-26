@@ -152,8 +152,7 @@ public class TachyonConfTest {
     Assert.assertTrue(("/mnt/ramdisk").equals(value));
 
     Class<? extends DataServer> dataServer =
-        sDefaultTachyonConf.getClass(Constants.WORKER_DATA_SEVRER,
-            Constants.WORKER_DATA_SERVER_CLASS);
+        sDefaultTachyonConf.getClass(Constants.WORKER_DATA_SEVRER, null);
     Assert.assertTrue(dataServer != null);
     Assert.assertTrue(dataServer.equals(Constants.WORKER_DATA_SERVER_CLASS));
 
@@ -225,8 +224,7 @@ public class TachyonConfTest {
     Assert.assertTrue(longValue == Constants.MB);
 
     Class<? extends RemoteBlockReader> reader =
-        sDefaultTachyonConf.getClass(Constants.USER_REMOTE_BLOCK_READER,
-            Constants.USER_REMOTE_BLOCK_READER_CLASS);
+        sDefaultTachyonConf.getClass(Constants.USER_REMOTE_BLOCK_READER, null);
     Assert.assertTrue(reader != null);
     Assert.assertTrue(reader.equals(Constants.USER_REMOTE_BLOCK_READER_CLASS));
   }
