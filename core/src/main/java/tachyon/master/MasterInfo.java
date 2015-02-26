@@ -924,7 +924,7 @@ public class MasterInfo extends ImageWriter {
       throws FileDoesNotExistException, BlockInfoException {
     LOG.debug("Cache block: {}",
         CommonUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
-    
+
     MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
     int storageLevelAliasValue = StorageDirId.getStorageLevelAliasValue(storageDirId);
     tWorkerInfo.updateBlock(true, blockId);
@@ -1397,7 +1397,7 @@ public class MasterInfo extends ImageWriter {
    * @return the total bytes on each storage tier.
    */
   public List<Long> getTotalBytesOnTiers() {
-    List<Long> ret = new ArrayList<Long>();
+    List<Long> ret = new ArrayList<Long>(StorageLevelAlias.values().length);
     synchronized (mWorkers) {
       for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
         ret.add((long) 0);
@@ -1415,7 +1415,7 @@ public class MasterInfo extends ImageWriter {
    * @return the used bytes on each storage tier.
    */
   public List<Long> getUsedBytesOnTiers() {
-    List<Long> ret = new ArrayList<Long>();
+    List<Long> ret = new ArrayList<Long>(StorageLevelAlias.values().length);
     synchronized (mWorkers) {
       for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
         ret.add((long) 0);
