@@ -321,6 +321,21 @@ public class TachyonConf {
     }
   }
 
+  public <T> Class<T> getClass(String key, Class<T> defaultValue) {
+    if (mProperties.containsKey(key)) {
+      String rawValue = mProperties.getProperty(key);
+      try {
+        return (Class<T>) Class.forName(rawValue);
+      } catch (Exception e) {
+        String msg = "requested class could not be loaded";
+        LOG.error("{} : {} , {}", msg, rawValue, e);
+        return defaultValue;
+      }
+    } else {
+      return defaultValue;
+    }
+  }
+  
   public Map<String, String> toMap() {
     Map<String, String> copy = new HashMap<String, String>();
     for (Enumeration<?> names = mProperties.propertyNames(); names.hasMoreElements();) {

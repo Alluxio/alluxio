@@ -55,21 +55,20 @@ public class DataServerTest {
   public static Collection<Object[]> data() {
     // creates a new instance of DataServerTest for each network type
     List<Object[]> list = new ArrayList<Object[]>();
-    for (final NetworkType type : NetworkType.values()) {
-      list.add(new Object[] {type});
-    }
+    list.add(new Object[] { "tachyon.worker.netty.NettyDataServer" });
+    list.add(new Object[] { "tachyon.worker.nio.NIODataServer" });
     return list;
   }
 
-  private final NetworkType mType;
+  private final String mDataServerClass;
   private LocalTachyonCluster mLocalTachyonCluster = null;
 
   private TachyonFS mTFS = null;
 
   private TachyonConf mWorkerTachyonConf;
 
-  public DataServerTest(NetworkType type) {
-    mType = type;
+  public DataServerTest(String className) {
+    mDataServerClass = className;
   }
 
   @After
@@ -105,12 +104,12 @@ public class DataServerTest {
 
   @Before
   public final void before() throws IOException {
+    System.setProperty(Constants.WORKER_DATA_SEVRER, mDataServerClass);
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     mLocalTachyonCluster.start();
-    mTFS = mLocalTachyonCluster.getClient();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
-    mWorkerTachyonConf.set(Constants.WORKER_NETWORK_TYPE, mType.toString());
+    mTFS = mLocalTachyonCluster.getClient();
   }
 
   @Test
