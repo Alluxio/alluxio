@@ -36,6 +36,7 @@ import tachyon.master.MasterInfo;
  */
 public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
+  private static final String TACHYON_CONF_PREFIX = "tachyon";
 
   private final transient MasterInfo mMasterInfo;
   private final TachyonConf mTachyonConf;
@@ -130,8 +131,10 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private SortedSet<ImmutablePair<String, String>> getSortedProperties() {
     TreeSet<ImmutablePair<String, String>> rtn = new TreeSet<ImmutablePair<String, String>>();
     for (Map.Entry<Object, Object> entry : mTachyonConf.getInternalProperties().entrySet()) {
-      rtn.add(new ImmutablePair<String, String>(entry.getKey().toString(), entry.getValue()
-          .toString()));
+      String key = entry.getKey().toString();
+      if (key.startsWith(TACHYON_CONF_PREFIX)) {
+        rtn.add(new ImmutablePair<String, String>(key, entry.getValue().toString()));
+      }
     }
     return rtn;
   }
