@@ -165,16 +165,12 @@
                   <th><%= request.getAttribute("tachyon.master.heartbeat.interval.ms") %></th>
                 </tr>
                 <tr>
-                  <th>tachyon.master.selector.threads</th>
-                  <th><%= request.getAttribute("tachyon.master.selector.threads") %></th>
+                  <th>tachyon.master.max.worker.threads</th>
+                  <th><%= request.getAttribute("tachyon.master.max.worker.threads") %></th>
                 </tr>
                 <tr>
-                  <th>tachyon.master.queue.size.per.selector</th>
-                  <th><%= request.getAttribute("tachyon.master.queue.size.per.selector") %></th>
-                </tr>
-                <tr>
-                  <th>tachyon.master.server.threads</th>
-                  <th><%= request.getAttribute("tachyon.master.server.threads") %></th>
+                  <th>tachyon.master.min.worker.threads</th>
+                  <th><%= request.getAttribute("tachyon.master.min.worker.threads") %></th>
                 </tr>
                 <tr>
                   <th>tachyon.master.worker.timeout.ms</th>

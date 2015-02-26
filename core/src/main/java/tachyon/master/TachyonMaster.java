@@ -101,13 +101,11 @@ public class TachyonMaster {
 
     mIsStarted = false;
     mWebPort = webPort;
-    mMinWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS,
-        Runtime.getRuntime().availableProcessors());
+    mMinWorkerThreads =
+        mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS, Runtime.getRuntime()
+            .availableProcessors());
 
-    //Set max thread to max integer by default
-    //An property will be set/added in tachyon-env for users to specify a number that make sense in
-    //their production environment
-    mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS, Integer.MAX_VALUE);
+    mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS, 2048);
 
     try {
       // Extract the port from the generated socket.
@@ -120,8 +118,8 @@ public class TachyonMaster {
 
       mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(address), mPort);
       String journalFolder = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, "/journal/");
-      String formatFilePrefix = mTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX,
-          Constants.FORMAT_FILE_PREFIX);
+      String formatFilePrefix =
+          mTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX, Constants.FORMAT_FILE_PREFIX);
       Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
           "Tachyon was not formatted! The journal folder is " + journalFolder);
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
@@ -135,8 +133,8 @@ public class TachyonMaster {
         String zkLeaderPath = mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
         mLeaderSelectorClient =
             new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
-        mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo,
-            mTachyonConf);
+        mEditLogProcessor =
+            new EditLogProcessor(mJournal, journalFolder, mMasterInfo, mTachyonConf);
         // TODO move this to executor service when the shared thread patch goes in
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();
@@ -213,8 +211,8 @@ public class TachyonMaster {
     if (masterKeytab == null || masterPrincipal == null) {
       return;
     }
-    UnderFileSystem ufs = UnderFileSystem.get(mTachyonConf.get(Constants.UNDERFS_ADDRESS, null),
-        mTachyonConf);
+    UnderFileSystem ufs =
+        UnderFileSystem.get(mTachyonConf.get(Constants.UNDERFS_ADDRESS, null), mTachyonConf);
     if (ufs instanceof UnderFileSystemHdfs) {
       ((UnderFileSystemHdfs) ufs).login(masterKeytab, masterKeytab, masterPrincipal,
           masterPrincipal, NetworkUtils.getFqdnHost(mMasterAddress));
@@ -236,13 +234,11 @@ public class TachyonMaster {
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
-    mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(
-        mServerTServerSocket)
-        .maxWorkerThreads(mMaxWorkerThreads)
-        .minWorkerThreads(mMinWorkerThreads)
-        .processor(masterServiceProcessor)
-        .transportFactory(new TFramedTransport.Factory())
-        .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+    mMasterServiceServer =
+        new TThreadPoolServer(new TThreadPoolServer.Args(mServerTServerSocket)
+            .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
+            .processor(masterServiceProcessor).transportFactory(new TFramedTransport.Factory())
+            .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     mIsStarted = true;
   }
