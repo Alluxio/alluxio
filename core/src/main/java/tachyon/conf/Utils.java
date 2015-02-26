@@ -97,5 +97,4 @@ class Utils {
     LOG.debug("{} {} : {}", property, msg, ret);
     return ret;
   }
-
 }
