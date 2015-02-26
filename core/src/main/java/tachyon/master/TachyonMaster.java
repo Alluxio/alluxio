@@ -104,10 +104,7 @@ public class TachyonMaster {
     mMinWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS,
         Runtime.getRuntime().availableProcessors());
 
-    //Set max thread to max integer by default
-    //An property will be set/added in tachyon-env for users to specify a number that make sense in
-    //their production environment
-    mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS, Integer.MAX_VALUE);
+    mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS, 2048);
 
     try {
       // Extract the port from the generated socket.
