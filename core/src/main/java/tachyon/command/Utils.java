@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.CommonConf;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -31,11 +31,12 @@ public class Utils {
    * leaving only the local file path.
    * 
    * @param path The path to obtain the local path from
+   * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to be used.
    * @return The local path in string format
    * @throws IOException
    */
-  public static String getFilePath(String path) throws IOException {
-    path = validatePath(path);
+  public static String getFilePath(String path, TachyonConf tachyonConf) throws IOException {
+    path = validatePath(path, tachyonConf);
     if (path.startsWith(Constants.HEADER)) {
       path = path.substring(Constants.HEADER.length());
     } else if (path.startsWith(Constants.HEADER_FT)) {
@@ -50,12 +51,13 @@ public class Utils {
    * <code>Constants.HEADER_FT</code> and a hostname:port specified.
    * 
    * @param path The path to be verified.
+   * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to be used.
    * @return the verified path in a form like tachyon://host:port/dir. If only the "/dir" or "dir"
    *         part is provided, the host and port are retrieved from property,
    *         tachyon.master.hostname and tachyon.master.port, respectively.
    * @throws IOException if the given path is not valid.
    */
-  public static String validatePath(String path) throws IOException {
+  public static String validatePath(String path, TachyonConf tachyonConf) throws IOException {
     if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {
       if (!path.contains(":")) {
         throw new IOException("Invalid Path: " + path + ". Use " + Constants.HEADER
@@ -64,9 +66,9 @@ public class Utils {
         return path;
       }
     } else {
-      String hostname = System.getProperty("tachyon.master.hostname", "localhost");
-      String port = System.getProperty("tachyon.master.port", "" + Constants.DEFAULT_MASTER_PORT);
-      if (CommonConf.get().USE_ZOOKEEPER) {
+      String hostname = tachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
+      int port =  tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+      if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false)) {
         return CommonUtils.concat(Constants.HEADER_FT + hostname + ":" + port, path);
       }
       return CommonUtils.concat(Constants.HEADER + hostname + ":" + port, path);

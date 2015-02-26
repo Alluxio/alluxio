@@ -24,12 +24,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -44,21 +46,18 @@ public class UnderfsUtilsTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    System.setProperty("tachyon.user.default.block.size.byte", "128");
-    mLocalTachyonCluster = new LocalTachyonCluster(10000);
+    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, 128);
     mLocalTachyonCluster.start();
 
     mTfs = mLocalTachyonCluster.getClient();
 
-    mUnderfsAddress = System.getProperty("tachyon.underfs.address");
-    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR);
+    TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS, null);
+    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR, masterConf);
   }
 
   @Test
@@ -79,11 +78,13 @@ public class UnderfsUtilsTest {
       if (!mUfs.exists(inclusion)) {
         mUfs.mkdirs(inclusion, true);
       }
-      CommonUtils.touch(mUnderfsAddress + inclusion + "/1");
+      CommonUtils.touch(mUnderfsAddress + inclusion + "/1",
+          mLocalTachyonCluster.getMasterTachyonConf());
     }
 
     UfsUtils.loadUnderFs(mTfs, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(mUnderfsAddress
-        + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"));
+        + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"),
+        mLocalTachyonCluster.getMasterTachyonConf());
 
     List<String> paths = null;
     for (String exclusion : exclusions) {

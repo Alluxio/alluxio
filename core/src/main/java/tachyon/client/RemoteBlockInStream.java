@@ -4,7 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -26,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
-import tachyon.conf.UserConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.NetworkUtils;
@@ -36,8 +38,6 @@ import tachyon.worker.nio.DataServerMessage;
  * BlockInStream for remote block.
  */
 public class RemoteBlockInStream extends BlockInStream {
-  /** The number of bytes to read remotely every time we need to do a remote read */
-  private static final int BUFFER_SIZE = UserConf.get().REMOTE_READ_BUFFER_SIZE_BYTE;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The block info of the block we are reading */
@@ -98,10 +98,12 @@ public class RemoteBlockInStream extends BlockInStream {
    * @param file the file the block belongs to
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the file
+   * @param tachyonConf the TachyonConf instance for this file output stream.
    * @throws IOException
    */
-  RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
-    this(file, readType, blockIndex, null);
+  RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonConf tachyonConf)
+      throws IOException {
+    this(file, readType, blockIndex, null, tachyonConf);
   }
 
   /**
@@ -111,9 +113,9 @@ public class RemoteBlockInStream extends BlockInStream {
    * @param ufsConf the under file system configuration
    * @throws IOException
    */
-  RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf)
-      throws IOException {
-    super(file, readType, blockIndex);
+  RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf,
+      TachyonConf tachyonConf) throws IOException {
+    super(file, readType, blockIndex, tachyonConf);
 
     if (!mFile.isComplete()) {
       throw new IOException("File " + mFile.getPath() + " is not ready to read");
@@ -123,7 +125,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
     mRecache = readType.isCache();
     if (mRecache) {
-      mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
+      mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex, tachyonConf);
     }
 
     mUFSConf = ufsConf;
@@ -292,7 +294,6 @@ public class RemoteBlockInStream extends BlockInStream {
       }
 
       LOG.info("Data " + blockId + " to remote machine " + address + " sent");
-
       DataServerMessage recvMsg =
           DataServerMessage.createBlockResponseMessage(false, blockId, null);
       while (!recvMsg.isMessageReady()) {
@@ -336,7 +337,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
   /**
    * Sets up the underfs stream to read at mBlockPos
-   * 
+   *
    * @return true if the input stream is set to read at mBlockPos, false otherwise
    **/
   private boolean setupStreamFromUnderFs() throws IOException {
@@ -348,7 +349,7 @@ public class RemoteBlockInStream extends BlockInStream {
       if (checkpointPath.equals("")) {
         return false;
       }
-      UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath, mUFSConf);
+      UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath, mUFSConf, mTachyonConf);
       mCheckpointInputStream = underfsClient.open(checkpointPath);
       // We skip to the offset of the block in the file, so we're at the beginning of the block.
       if (mCheckpointInputStream.skip(mBlockInfo.offset) != mBlockInfo.offset) {
@@ -386,14 +387,16 @@ public class RemoteBlockInStream extends BlockInStream {
    * nothing. Otherwise, we set mBufferStartPos accordingly and try to read the correct range of
    * bytes remotely. If we fail to read remotely, mCurrentBuffer will be null at the end of the
    * function
-   * 
+   *
    * @return true if mCurrentBuffer was successfully set to read at mBlockPos, or false if the
    *         remote read failed.
    * @throws IOException
    */
   private boolean updateCurrentBuffer() throws IOException {
+    long bufferSize = mTachyonConf.getInt(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE,
+        Constants.MB);
     if (mCurrentBuffer != null && mBufferStartPos <= mBlockPos
-        && mBlockPos < Math.min(mBufferStartPos + BUFFER_SIZE, mBlockInfo.length)) {
+        && mBlockPos < Math.min(mBufferStartPos + bufferSize, mBlockInfo.length)) {
       // We move the buffer to read at mBlockPos
       mCurrentBuffer.position((int) (mBlockPos - mBufferStartPos));
       return true;
@@ -402,9 +405,9 @@ public class RemoteBlockInStream extends BlockInStream {
     // We must read in a new block. By starting at mBlockPos, we ensure that the next byte read will
     // be the one at mBlockPos
     mBufferStartPos = mBlockPos;
-    long length = Math.min(BUFFER_SIZE, mBlockInfo.length - mBufferStartPos);
-    LOG.info("Try to find remote worker and read block {} from {}, with len {}",
-        mBlockInfo.blockId, mBufferStartPos, length);
+    long length = Math.min(bufferSize, mBlockInfo.length - mBufferStartPos);
+    LOG.info(String.format("Try to find remote worker and read block %d from %d, with len %d",
+        mBlockInfo.blockId, mBufferStartPos, length));
 
     for (int i = 0; i < MAX_REMOTE_READ_ATTEMPTS; i ++) {
       mCurrentBuffer = readRemoteByteBuffer(mTachyonFS, mBlockInfo, mBufferStartPos, length);

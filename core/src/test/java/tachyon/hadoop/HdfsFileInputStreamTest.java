@@ -1,18 +1,32 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package tachyon.hadoop;
 
 import java.io.IOException;
 import java.util.Arrays;
 
-import junit.framework.Assert;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
@@ -39,8 +53,8 @@ public class HdfsFileInputStreamTest {
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes",  USER_QUOTA_UNIT_BYTES + "");
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     TestUtils.createByteFile(mTfs, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
@@ -57,11 +71,13 @@ public class HdfsFileInputStreamTest {
   public final void before() throws IOException {
     ClientFileInfo fileInfo = mTfs.getFileStatus(-1, new TachyonURI("/testFile1"));
     mInMemInputStream = new HdfsFileInputStream(mTfs, fileInfo.getId(),
-        new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE);
+        new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE,
+        mLocalTachyonCluster.getMasterTachyonConf());
 
     fileInfo = mTfs.getFileStatus(-1, new TachyonURI("/testFile2"));
     mUfsInputStream = new HdfsFileInputStream(mTfs, fileInfo.getId(),
-        new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE);
+        new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE,
+        mLocalTachyonCluster.getMasterTachyonConf());
   }
 
   /**

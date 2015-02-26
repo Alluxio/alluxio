@@ -24,10 +24,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
 
@@ -37,30 +38,32 @@ import tachyon.util.CommonUtils;
 public class TachyonFSTestIso {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
-  private static final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+  private TachyonConf mMasterTachyonConf;
+  private TachyonConf mWorkerTachyonConf;
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.max.columns");
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-    System.setProperty("tachyon.max.columns", "257");
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
+    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
+    mWorkerTachyonConf.set(Constants.MAX_COLUMNS, "257");
   }
+
 
   @Test
   public void createFileWithUfsFileTest() throws IOException {
     String tempFolder = mLocalTachyonCluster.getTempFolderInUnderFs();
-    UnderFileSystem underFs = UnderFileSystem.get(tempFolder);
+    UnderFileSystem underFs = UnderFileSystem.get(tempFolder, mMasterTachyonConf);
     OutputStream os = underFs.create(tempFolder + "/temp", 100);
     os.close();
     TachyonURI uri = new TachyonURI("/abc");
@@ -86,7 +89,7 @@ public class TachyonFSTestIso {
     fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + numOfFiles, WriteType.CACHE_THROUGH,
         fileSize));
 
-    CommonUtils.sleepMs(null, SLEEP_MS);
+    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf));
     tFile = mTfs.getFile(fileIds.get(0));
     Assert.assertFalse(tFile.isInMemory());
     for (int k = 1; k <= numOfFiles; k ++) {
@@ -117,7 +120,7 @@ public class TachyonFSTestIso {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
     }
-    CommonUtils.sleepMs(null, SLEEP_MS);
+    CommonUtils.sleepMs(null, getSleepMs());
     tFile = mTfs.getFile(fileIds.get(numOfFiles));
     Assert.assertFalse(tFile.isInMemory());
   }
@@ -147,7 +150,7 @@ public class TachyonFSTestIso {
       if (k != numOfFiles - 1) {
         Assert.assertTrue(tFile.isInMemory());
       } else {
-        CommonUtils.sleepMs(null, SLEEP_MS);
+        CommonUtils.sleepMs(null, getSleepMs());
         Assert.assertFalse(tFile.isInMemory());
       }
     }
@@ -165,7 +168,7 @@ public class TachyonFSTestIso {
     }
     for (int k = 0; k <= numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
-      CommonUtils.sleepMs(null, SLEEP_MS);
+      CommonUtils.sleepMs(null, getSleepMs());
       Assert.assertFalse(tFile.isInMemory());
       if (k < numOfFiles) {
         Assert.assertNull(tFile.readByteBuffer(0));
@@ -199,7 +202,7 @@ public class TachyonFSTestIso {
     fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + numOfFiles, WriteType.CACHE_THROUGH,
         fileSize));
 
-    CommonUtils.sleepMs(null, SLEEP_MS);
+    CommonUtils.sleepMs(null, getSleepMs());
     tFile = mTfs.getFile(fileIds.get(0));
     Assert.assertFalse(tFile.isInMemory());
     for (int k = 1; k <= numOfFiles; k ++) {
@@ -234,7 +237,7 @@ public class TachyonFSTestIso {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
     }
-    CommonUtils.sleepMs(null, SLEEP_MS);
+    CommonUtils.sleepMs(null, getSleepMs());
     tFile = mTfs.getFile(fileIds.get(numOfFiles));
     Assert.assertFalse(tFile.isInMemory());
   }
@@ -262,12 +265,16 @@ public class TachyonFSTestIso {
     fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + numOfFiles, WriteType.CACHE_THROUGH,
         fileSize));
 
-    CommonUtils.sleepMs(null, SLEEP_MS);
+    CommonUtils.sleepMs(null, getSleepMs());
     tFile = mTfs.getFile(fileIds.get(0));
     Assert.assertFalse(tFile.isInMemory());
     for (int k = 1; k <= numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
     }
+  }
+
+  private long getSleepMs() {
+    return (TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
   }
 }

@@ -19,17 +19,19 @@ import java.io.IOException;
 
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
+import tachyon.conf.TachyonConf;
 
 /**
  * The Journal manages Tachyon image and journal log.
  */
 public class Journal {
-  private EditLog mEditLog = new EditLog(null, true, 0);
+  private EditLog mEditLog;
 
   private int mCurrentLogFileNum = 0;
   private String mImagePath = null;
   private String mStandbyImagePath = null;
   private String mEditLogPath = null;
+  private final TachyonConf mTachyonConf;
 
   /**
    * Create a Journal manager.
@@ -39,12 +41,15 @@ public class Journal {
    * @param editLogFileName edit file name
    * @throws IOException
    */
-  public Journal(String folder, String imageFileName, String editLogFileName) throws IOException {
+  public Journal(String folder, String imageFileName, String editLogFileName, TachyonConf conf)
+      throws IOException {
+    mTachyonConf = conf;
     if (!folder.endsWith(TachyonURI.SEPARATOR)) {
       folder += TachyonURI.SEPARATOR;
     }
     mImagePath = folder + imageFileName;
     mEditLogPath = folder + editLogFileName;
+    mEditLog = new EditLog(null, true, 0, mTachyonConf);
   }
 
   /**
@@ -63,7 +68,7 @@ public class Journal {
    * @throws IOException
    */
   public void createEditLog(long startingTransactionId) throws IOException {
-    mEditLog = new EditLog(mEditLogPath, false, startingTransactionId);
+    mEditLog = new EditLog(mEditLogPath, false, startingTransactionId, mTachyonConf);
   }
 
   /**
@@ -76,9 +81,9 @@ public class Journal {
   public void createImage(MasterInfo info) throws IOException {
     if (mStandbyImagePath == null) {
       Image.create(info, mImagePath);
-      EditLog.markUpToDate(mEditLogPath);
+      EditLog.markUpToDate(mEditLogPath, info);
     } else {
-      Image.rename(mStandbyImagePath, mImagePath);
+      Image.rename(mStandbyImagePath, mImagePath, info);
     }
   }
 
@@ -105,7 +110,7 @@ public class Journal {
    * @throws IOException
    */
   public long getImageModTimeMs() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mImagePath);
+    UnderFileSystem ufs = UnderFileSystem.get(mImagePath, mTachyonConf);
     if (!ufs.exists(mImagePath)) {
       return -1;
     }

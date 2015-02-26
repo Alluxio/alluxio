@@ -17,6 +17,8 @@ package tachyon.client;
 
 import java.io.IOException;
 
+import tachyon.conf.TachyonConf;
+
 /**
  * <code>InputStream</code> interface implementation of TachyonFile. It can only be gotten by
  * calling the methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by the
@@ -30,12 +32,13 @@ public abstract class BlockInStream extends InStream {
    * @param tachyonFile the file the block belongs to
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the tachyonFile
+   * @param tachyonConf the TachyonConf instance for this file output stream.
    * @return A new LocalBlockInStream or RemoteBlockInStream
    * @throws IOException
    */
-  public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex)
-      throws IOException {
-    return get(tachyonFile, readType, blockIndex, tachyonFile.getUFSConf());
+  public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex,
+      TachyonConf tachyonConf) throws IOException {
+    return get(tachyonFile, readType, blockIndex, tachyonFile.getUFSConf(), tachyonConf);
   }
 
   /**
@@ -50,16 +53,16 @@ public abstract class BlockInStream extends InStream {
    * @throws IOException
    */
   public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex,
-      Object ufsConf) throws IOException {
+      Object ufsConf, TachyonConf tachyonConf) throws IOException {
     TachyonByteBuffer buf = tachyonFile.readLocalByteBuffer(blockIndex);
     if (buf != null) {
       if (readType.isPromote()) {
         tachyonFile.promoteBlock(blockIndex);
       }
-      return new LocalBlockInStream(tachyonFile, readType, blockIndex, buf);
+      return new LocalBlockInStream(tachyonFile, readType, blockIndex, buf, tachyonConf);
     }
 
-    return new RemoteBlockInStream(tachyonFile, readType, blockIndex, ufsConf);
+    return new RemoteBlockInStream(tachyonFile, readType, blockIndex, ufsConf, tachyonConf);
   }
 
   protected final int mBlockIndex;
@@ -70,10 +73,12 @@ public abstract class BlockInStream extends InStream {
    * @param file
    * @param readType
    * @param blockIndex
+   * @param tachyonConf the TachyonConf instance for this file output stream.
    * @throws IOException
    */
-  BlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
-    super(file, readType);
+  BlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonConf tachyonConf)
+      throws IOException {
+    super(file, readType, tachyonConf);
     mBlockIndex = blockIndex;
   }
 }

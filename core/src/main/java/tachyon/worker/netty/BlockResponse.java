@@ -28,7 +28,8 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 
-import tachyon.conf.WorkerConf;
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.nio.DataServerMessage;
 
@@ -44,6 +45,14 @@ public final class BlockResponse {
   public static final class Encoder extends MessageToMessageEncoder<BlockResponse> {
     private static final int MESSAGE_LENGTH = Shorts.BYTES + Longs.BYTES * 3;
 
+    private final TachyonConf mTachyonConf;
+
+    public Encoder(TachyonConf tachyonConf) {
+      super();
+
+      mTachyonConf = tachyonConf;
+    }
+
     private ByteBuf createHeader(final ChannelHandlerContext ctx, final BlockResponse msg) {
       ByteBuf header = ctx.alloc().buffer(MESSAGE_LENGTH);
       header.writeShort(DataServerMessage.DATA_SERVER_RESPONSE_MESSAGE);
@@ -56,16 +65,21 @@ public final class BlockResponse {
     @Override
     protected void encode(final ChannelHandlerContext ctx, final BlockResponse msg,
         final List<Object> out) throws Exception {
+
+      // Add the header information to output
       out.add(createHeader(ctx, msg));
+
       BlockHandler handler = msg.getHandler();
       if (handler != null) {
-        switch (WorkerConf.get().NETTY_FILE_TRANSFER_TYPE) {
+        FileTransferType type = mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE,
+            FileTransferType.TRANSFER);
+        switch (type) {
           case MAPPED:
             ByteBuffer data = handler.read(msg.getOffset(), (int) msg.getLength());
             out.add(Unpooled.wrappedBuffer(data));
             handler.close();
             break;
-          case TRANSFER:
+          default: // TRANSFER
             if (handler.getChannel() instanceof FileChannel) {
               out.add(new DefaultFileRegion((FileChannel) handler.getChannel(), msg.getOffset(),
                   msg.getLength()));
@@ -74,9 +88,6 @@ public final class BlockResponse {
               throw new Exception("Only FileChannel is supported!");
             }
             break;
-          default:
-            throw new AssertionError("Unknown file transfer type: "
-                + WorkerConf.get().NETTY_FILE_TRANSFER_TYPE);
         }
       }
     }

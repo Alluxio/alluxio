@@ -19,3 +19,4 @@ journal/
 logs/
 script/
 target/
+**/tachyon-site.properties

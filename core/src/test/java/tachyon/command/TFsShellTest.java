@@ -41,7 +41,7 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
@@ -63,17 +63,15 @@ public class TFsShellTest {
   public final void after() throws Exception {
     mFsShell.close();
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
     System.setOut(mOldOutput);
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(SIZE_BYTES);
+    mLocalTachyonCluster = new LocalTachyonCluster(SIZE_BYTES, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
-    mFsShell = new TFsShell();
+    mFsShell = new TFsShell(mLocalTachyonCluster.getMasterTachyonConf());
     mOutput = new ByteArrayOutputStream();
     mNewOutput = new PrintStream(mOutput);
     mOldOutput = System.out;
@@ -584,7 +582,8 @@ public class TFsShellTest {
   public void freeTest() throws IOException {
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.free(new String[]{"free", "/testFile"});
-    CommonUtils.sleepMs(null, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS *2);;
-    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory()); ;
+    TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(tachyonConf) * 2 + 10);
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
   }
 }
