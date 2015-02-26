@@ -93,7 +93,7 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
     tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
 
-    tachyonConf.set(Constants.MASTER_WEB_THREAD_COUNT, "9");
+    tachyonConf.set(Constants.MASTER_WEB_THREAD_COUNT, "1");
     tachyonConf.set(Constants.WEB_RESOURCES, System.getProperty("user.dir") + "/src/main/webapp");
 
     mTachyonMaster = new TachyonMaster(tachyonConf);
