@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-parent</artifactId>
-  <version>0.6.1-SNAPSHOT</version>
+  <version>0.7.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <description>Tachyon Project Parent</description>
   <name>Tachyon Project Parent</name>
@@ -217,7 +217,7 @@
           </execution>
         </executions>
       </plugin>
-      
+
       <!-- Find Bugs -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -230,7 +230,7 @@
           <effort>Max</effort>
         </configuration>
       </plugin>
-      
+
       <!-- Checkstyle -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -267,7 +267,7 @@
           </dependency>
         </dependencies>
       </plugin>
-      
+
       <!-- License Plugin -->
       <plugin>
         <groupId>com.mycila</groupId>
@@ -299,7 +299,7 @@
             <exclude>**/src/main/findbugs/*</exclude>
             <exclude>**/src/main/resources/tachyon_checks*</exclude>
             <exclude>**/src/main/assembly/*</exclude>
-            
+
             <!-- Documentation Exclusions -->
             <exclude>**/docs/**/*</exclude>
             <exclude>LICENSE</exclude>
@@ -340,7 +340,7 @@
       </plugin>
     </plugins>
   </reporting>
-  
+
   <profiles>
     <profile>
       <!-- Turn of doclint for java8 and later -->
