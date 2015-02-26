@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
 
@@ -44,8 +45,7 @@ public class BlockInStreamTest {
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    sLocalTachyonCluster = new LocalTachyonCluster(10000);
+    sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
   }

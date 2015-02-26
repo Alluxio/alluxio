@@ -18,6 +18,7 @@ import java.io.IOException;
 
 import com.google.common.base.Throwables;
 
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 public abstract class UnderFileSystemCluster {
@@ -50,9 +51,10 @@ public abstract class UnderFileSystemCluster {
    * @throws IOException
    * @throws InterruptedException
    */
-  public static synchronized UnderFileSystemCluster get(String baseDir) throws IOException {
+  public static synchronized UnderFileSystemCluster get(String baseDir, TachyonConf tachyonConf)
+      throws IOException {
     if (null == mUnderFSCluster) {
-      mUnderFSCluster = getUnderFilesystemCluster(baseDir);
+      mUnderFSCluster = getUnderFilesystemCluster(baseDir, tachyonConf);
     }
 
     if (!mUnderFSCluster.isStarted()) {
@@ -63,14 +65,15 @@ public abstract class UnderFileSystemCluster {
     return mUnderFSCluster;
   }
 
-  public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir) {
+  public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir,
+      TachyonConf tachyonConf) {
     mUfsClz = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
 
     if (mUfsClz != null && !mUfsClz.equals("")) {
       try {
         UnderFileSystemCluster ufsCluster =
-            (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class)
-                .newInstance(baseDir);
+            (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class,
+                TachyonConf.class).newInstance(baseDir, tachyonConf);
         return ufsCluster;
       } catch (Exception e) {
         System.out.println("Failed to initialize the ufsCluster of " + mUfsClz
@@ -78,12 +81,14 @@ public abstract class UnderFileSystemCluster {
         throw Throwables.propagate(e);
       }
     }
-    return new LocalFilesystemCluster(baseDir);
+    return new LocalFilesystemCluster(baseDir, tachyonConf);
   }
 
   protected String mBaseDir;
 
   private static UnderFileSystemCluster mUnderFSCluster = null;
+
+  protected final TachyonConf mTachyonConf;
 
   /**
    * This method is only for unit-test {@link tachyon.client.FileOutStreamTest} temporally
@@ -94,8 +99,9 @@ public abstract class UnderFileSystemCluster {
     return (null != mUfsClz) && (mUfsClz.equals("tachyon.LocalMiniDFSCluster"));
   }
 
-  public UnderFileSystemCluster(String baseDir) {
+  public UnderFileSystemCluster(String baseDir, TachyonConf tachyonConf) {
     mBaseDir = baseDir;
+    mTachyonConf = tachyonConf;
   }
 
   /**
@@ -109,7 +115,7 @@ public abstract class UnderFileSystemCluster {
   public void cleanup() throws IOException {
     if (isStarted()) {
       String path = getUnderFilesystemAddress() + TachyonURI.SEPARATOR;
-      UnderFileSystem ufs = UnderFileSystem.get(path);
+      UnderFileSystem ufs = UnderFileSystem.get(path, mTachyonConf);
       for (String p : ufs.list(path)) {
         ufs.delete(CommonUtils.concat(path, p), true);
       }

@@ -15,7 +15,6 @@
 
 package tachyon.worker.netty;
 
-
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
@@ -26,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.hierarchy.StorageDir;
@@ -39,9 +39,11 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final BlocksLocker mLocker;
+  private final TachyonConf mTachyonConf;
 
-  public DataServerHandler(BlocksLocker locker) {
+  public DataServerHandler(BlocksLocker locker, TachyonConf tachyonConf) {
     mLocker = locker;
+    mTachyonConf = tachyonConf;
   }
 
   @Override

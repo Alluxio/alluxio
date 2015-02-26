@@ -13,7 +13,7 @@ Tachyon is Hadoop compatible. Existing Spark and MapReduce programs can run on t
 any code change. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
 multiple companies. It has more than
-[50 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 20 institutions,
+[60 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 20 institutions,
 including Yahoo, Intel, and Redhat. The project is the storage layer of the Berkeley Data Analytics
 Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
@@ -73,10 +73,13 @@ system or to create a new one.
 
 **Frameworks on Tachyon:**
 
-* [Running Spark on Tachyon](Running-Spark-on-Tachyon.html): Get Spark running on Tachyon
+* [Running Apache Spark on Tachyon](Running-Spark-on-Tachyon.html): Get Apache Spark running on
+Tachyon
 * [Running Shark on Tachyon](Running-Shark-on-Tachyon.html): Get Shark running on Tachyon
-* [Running Hadoop MapReduce on Tachyon](Running-Hadoop-MapReduce-on-Tachyon.html): Get Hadoop
-MapReduce running on Tachyon
+* [Running Apache Hadoop MapReduce on Tachyon](Running-Hadoop-MapReduce-on-Tachyon.html): Get Apache
+Hadoop MapReduce running on Tachyon
+* [Running Apache Flink on Tachyon](Running-Flink-on-Tachyon.html): Get Apache Flink running on
+Tachyon
 
 **Others:**
 
@@ -85,6 +88,7 @@ line.
 * [Syncing the Underlayer Storage System](Syncing-the-Underlying-Filesystem.html): Make Tachyon
 understand an existing underlayer storage system.
 * [Tachyon Java API (Javadoc)](api/java/index.html)
+* [Hierarchical Storage (Alpha)](Hierarchy-Storage-on-Tachyon.html)
 
 **Tachyon Presentations:**
 
@@ -118,11 +122,12 @@ contact [Haoyuan](mailto:haoyuan@cs.berkeley.edu).
 # Acknowledgement
 
 Tachyon is an open source project started in the
-[UC Berkeley AMP Lab](http://amplab.cs.berkeley.edu). This research and development is supported in
-part by NSF CISE Expeditions award CCF-1139158 and DARPA XData Award FA8750-12-2-0331, and gifts
-from Amazon Web Services, Google, SAP, Apple, Inc., Cisco, Clearstory Data, Cloudera, Ericsson,
-Facebook, GameOnTalis, General Electric, Hortonworks, Huawei, Intel, Microsoft, NetApp, Oracle,
-Samsung, Splunk, VMware, WANdisco and Yahoo!.
+[UC Berkeley AMP Lab](http://amplab.cs.berkeley.edu).
+This research is supported in part by NSF CISE Expeditions Award CCF-1139158, LBNL Award 7076018,
+and DARPA XData Award FA8750-12-2-0331, and gifts from Amazon Web Services, Google, SAP, The Thomas
+and Stacey Siebel Foundation, Adatao, Adobe, Apple, Inc., Blue Goji, Bosch, C3Energy, Cisco, Cray,
+Cloudera, EMC, Ericsson, Facebook, Guavus, Huawei, Informatica, Intel, Microsoft, NetApp, Pivotal,
+Samsung, Splunk, Virdata, VMware, and Yahoo!.
 
 We would also like to thank to our project
 [contributors](https://github.com/amplab/tachyon/graphs/contributors).

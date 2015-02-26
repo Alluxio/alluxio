@@ -18,8 +18,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 public class WriterReaderTest {
@@ -47,14 +46,14 @@ public class WriterReaderTest {
     Assert.assertEquals('\uffff', reader.getChar());
     Assert.assertEquals('A', reader.getChar());
     Assert.assertEquals('a', reader.getChar());
-    Assert.assertEquals(1.552, reader.getDouble());
-    Assert.assertEquals(-1.552, reader.getDouble());
-    Assert.assertEquals(5555000.5, reader.getDouble());
-    Assert.assertEquals(-5555000.5, reader.getDouble());
-    Assert.assertEquals((float) 1.552, reader.getFloat());
-    Assert.assertEquals((float) -1.552, reader.getFloat());
-    Assert.assertEquals((float) 5555.5, reader.getFloat());
-    Assert.assertEquals((float) -5555.5, reader.getFloat());
+    Assert.assertEquals(1.552, reader.getDouble(), 1e-6);
+    Assert.assertEquals(-1.552, reader.getDouble(), 1e-6);
+    Assert.assertEquals(5555000.5, reader.getDouble(), 1e-6);
+    Assert.assertEquals(-5555000.5, reader.getDouble(), 1e-6);
+    Assert.assertEquals((float) 1.552, reader.getFloat(), 1e-6);
+    Assert.assertEquals((float) -1.552, reader.getFloat(), 1e-6);
+    Assert.assertEquals((float) 5555.5, reader.getFloat(), 1e-6);
+    Assert.assertEquals((float) -5555.5, reader.getFloat(), 1e-6);
     Assert.assertEquals(9999, reader.getInt());
     Assert.assertEquals(-9999, reader.getInt());
     Assert.assertEquals(2147483647, reader.getInt());

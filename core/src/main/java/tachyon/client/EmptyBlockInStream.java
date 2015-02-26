@@ -17,6 +17,8 @@ package tachyon.client;
 
 import java.io.IOException;
 
+import tachyon.conf.TachyonConf;
+
 /**
  * <code> EmptyBlockInStream </code> is a <code> InStream </code> can not read anything.
  */
@@ -24,9 +26,10 @@ public class EmptyBlockInStream extends InStream {
   /**
    * @param file the file the block belongs to
    * @param readType the InStream's read type
+   * @param tachyonConf the TachyonConf instance for this stream.
    */
-  EmptyBlockInStream(TachyonFile file, ReadType readType) {
-    super(file, readType);
+  EmptyBlockInStream(TachyonFile file, ReadType readType, TachyonConf tachyonConf) {
+    super(file, readType, tachyonConf);
   }
 
   @Override

@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.TachyonException;
 
 /**
@@ -36,7 +37,7 @@ public class RawTablesTest {
   @Test
   public void writeImageTest() throws IOException, TachyonException {
     // crate the RawTables, byte buffers, and output streams
-    RawTables rt = new RawTables();
+    RawTables rt = new RawTables(new TachyonConf());
     ByteBuffer bb1 = ByteBuffer.allocate(1);
     ByteBuffer bb2 = ByteBuffer.allocate(1);
     ByteBuffer bb3 = ByteBuffer.allocate(1);

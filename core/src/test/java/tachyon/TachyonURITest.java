@@ -14,8 +14,7 @@
  */
 package tachyon;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -341,11 +340,11 @@ public class TachyonURITest {
     Assert.assertEquals(new TachyonURI("C:\\\\a\\b"),
         new TachyonURI("C:\\\\a").join(new TachyonURI("\\b")));
 
-    final String pathWithSpecialChar = "×ö,ßbÁ»$o\u0005ÉÆ[\u000F| \u009E=BÕ½";
+    final String pathWithSpecialChar = "����,��b����$o\u0005����[\u000F| \u009E=B����";
     Assert.assertEquals(new TachyonURI("/" + pathWithSpecialChar),
             new TachyonURI("/").join(pathWithSpecialChar));
 
-    final String pathWithSpecialCharAndColon = "×ö,ßbÁ»$o\u0005ÉÆ[\u000F| \u009E=BÕ:½";
+    final String pathWithSpecialCharAndColon = "����,��b����$o\u0005����[\u000F| \u009E=B��:��";
     Assert.assertEquals(new TachyonURI("/" + pathWithSpecialCharAndColon),
             new TachyonURI("/").join(pathWithSpecialCharAndColon));
   }

@@ -21,16 +21,15 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import junit.framework.Assert;
-
-import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
-import tachyon.conf.WorkerConf;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
@@ -41,43 +40,46 @@ public class StorageTierTest {
 
   private StorageTier[] mStorageTiers;
 
-  @After
-  public final void after() throws Exception {
-    System.clearProperty("tachyon.worker.hierarchystore.level.max");
-    System.clearProperty("tachyon.worker.hierarchystore.level0.alias");
-    System.clearProperty("tachyon.worker.hierarchystore.level0.dirs.path");
-    System.clearProperty("tachyon.worker.hierarchystore.level0.dirs.quota");
-    System.clearProperty("tachyon.worker.hierarchystore.level1.alias");
-    System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.path");
-    System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.quota");
-    WorkerConf.clear();
-  }
-
   @Before
   public final void before() throws IOException, InvalidPathException {
     String tachyonHome =
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
-    System.setProperty("tachyon.worker.hierarchystore.level.max", 2 + "");
-    System.setProperty("tachyon.worker.hierarchystore.level0.alias", "MEM");
-    System.setProperty("tachyon.worker.hierarchystore.level0.dirs.path", tachyonHome + "/ramdisk");
-    System.setProperty("tachyon.worker.hierarchystore.level0.dirs.quota", 1000 + "");
-    System.setProperty("tachyon.worker.hierarchystore.level1.alias", "HDD");
-    System.setProperty("tachyon.worker.hierarchystore.level1.dirs.path", tachyonHome + "/disk1,"
-        + tachyonHome + "/disk2");
-    System.setProperty("tachyon.worker.hierarchystore.level1.dirs.quota", 4000 + "," + 4000);
 
-    // Clear worker configurations which are set by other tests
-    WorkerConf.clear();
-    final int maxLevel = WorkerConf.get().STORAGE_LEVELS;
+    final int maxLevel = 2;
+
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set(Constants.TACHYON_HOME, tachyonHome);
+
+    // Setup conf for worker
+    tachyonConf.set(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, Integer.toString(maxLevel));
+    tachyonConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
+    tachyonConf.set("tachyon.worker.hierarchystore.level0.dirs.path", tachyonHome + "/ramdisk");
+    tachyonConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", 1000 + "");
+    tachyonConf.set("tachyon.worker.hierarchystore.level1.alias", "HDD");
+    tachyonConf.set("tachyon.worker.hierarchystore.level1.dirs.path", tachyonHome + "/disk1,"
+        + tachyonHome + "/disk2");
+    tachyonConf.set("tachyon.worker.hierarchystore.level1.dirs.quota", 4000 + "," + 4000);
+
     mStorageTiers = new StorageTier[maxLevel];
     StorageTier nextTier = null;
     for (int level = maxLevel - 1; level >= 0; level --) {
-      String[] dirPaths = WorkerConf.get().STORAGE_TIER_DIRS[level].split(",");
+      String tierLevelAliasProp = "tachyon.worker.hierarchystore.level" + level + ".alias";
+      String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
+      StorageLevelAlias storageLevelAlias = tachyonConf.getEnum(tierLevelAliasProp,
+          StorageLevelAlias.MEM);
+      String tierDirsCapacityProp = "tachyon.worker.hierarchystore.level" + level + ".dirs.quota";
+      int index = level;
+      if (index >= Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length) {
+        index = level - 1;
+      }
+      String tierDirsCapacity = tachyonConf.get(tierDirsCapacityProp,
+          Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[index]);
+
+      String[] dirPaths = tachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
       for (int i = 0; i < dirPaths.length; i ++) {
         dirPaths[i] = dirPaths[i].trim();
       }
-      StorageLevelAlias storageLevelAlias = WorkerConf.get().STORAGE_LEVEL_ALIAS[level];
-      String[] strDirCapacities = WorkerConf.get().STORAGE_TIER_DIR_QUOTA[level].split(",");
+      String[] strDirCapacities = tierDirsCapacity.split(",");
       long[] dirCapacities = new long[dirPaths.length];
       for (int i = 0, j = 0; i < dirPaths.length; i ++) {
         // The storage directory quota for each storage directory
@@ -88,7 +90,7 @@ public class StorageTierTest {
       }
       StorageTier curTier =
           new StorageTier(level, storageLevelAlias, dirPaths, dirCapacities, "/data", "/user",
-              nextTier, null);
+              nextTier, null, tachyonConf);
       mStorageTiers[level] = curTier;
       curTier.initialize();
       for (StorageDir dir : curTier.getStorageDirs()) {

@@ -45,15 +45,11 @@ public class FileInStreamTest {
   @AfterClass
   public static final void afterClass() throws Exception {
     sLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    System.setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
-    sLocalTachyonCluster = new LocalTachyonCluster(10000);
+    sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, BLOCK_SIZE);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
   }

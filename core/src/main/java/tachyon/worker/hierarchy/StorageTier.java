@@ -26,13 +26,14 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
+import tachyon.conf.TachyonConf;
 import tachyon.Users;
-import tachyon.conf.UserConf;
-import tachyon.conf.WorkerConf;
 import tachyon.worker.allocation.AllocateStrategies;
 import tachyon.worker.allocation.AllocateStrategy;
+import tachyon.worker.allocation.AllocateStrategyType;
 import tachyon.worker.eviction.EvictStrategies;
 import tachyon.worker.eviction.EvictStrategy;
+import tachyon.worker.eviction.EvictStrategyType;
 
 /**
  * StorageTier manages StorageDirs, requests space for new coming blocks, and evicts old blocks to
@@ -56,8 +57,8 @@ public class StorageTier {
   private final EvictStrategy mBlockEvictor;
   /** Capacity of current StorageTier in bytes */
   private final long mCapacityBytes;
-  /** Max retry times when requesting space from current StorageTier */
-  private static final int FAILED_SPACE_REQUEST_LIMITS = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
+  /** The TachyonConf configuration properties */
+  private final TachyonConf mTachyonConf;
 
   /**
    * Creates a new StorageTier
@@ -74,24 +75,27 @@ public class StorageTier {
    */
   public StorageTier(int storageLevel, StorageLevelAlias storageLevelAlias, String[] dirPaths,
       long[] dirCapacityBytes, String dataFolder, String userTempFolder, StorageTier nextTier,
-      Object conf) throws IOException {
+      Object conf, TachyonConf tachyonConf) throws IOException {
+    mTachyonConf = tachyonConf;
     mLevel = storageLevel;
+    int storageDirNum = dirPaths.length;
     mAlias = storageLevelAlias;
-    mDirs = new StorageDir[dirPaths.length];
+    mDirs = new StorageDir[storageDirNum];
+
     long quotaBytes = 0;
     for (int i = 0; i < dirPaths.length; i++) {
       long storageDirId = StorageDirId.getStorageDirId(storageLevel, mAlias.getValue(), i);
       mDirs[i] =
           new StorageDir(storageDirId, dirPaths[i], dirCapacityBytes[i], dataFolder,
-              userTempFolder, conf);
+              userTempFolder, conf, mTachyonConf);
       quotaBytes += dirCapacityBytes[i];
     }
     mCapacityBytes = quotaBytes;
     mNextTier = nextTier;
-    mSpaceAllocator =
-        AllocateStrategies.getAllocateStrategy(WorkerConf.get().ALLOCATE_STRATEGY_TYPE);
-    mBlockEvictor =
-        EvictStrategies.getEvictStrategy(WorkerConf.get().EVICT_STRATEGY_TYPE, isLastTier());
+    mSpaceAllocator = AllocateStrategies.getAllocateStrategy(mTachyonConf.getEnum(
+        Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocateStrategyType.MAX_FREE));
+    mBlockEvictor = EvictStrategies.getEvictStrategy(mTachyonConf.getEnum(
+        Constants.WORKER_EVICT_STRATEGY_TYPE, EvictStrategyType.LRU), isLastTier());
   }
 
   /**
@@ -267,7 +271,11 @@ public class StorageTier {
     }
 
     if (mSpaceAllocator.fitInPossible(dirs, requestSizeBytes)) {
-      for (int attempt = 0; attempt < FAILED_SPACE_REQUEST_LIMITS; attempt ++) {
+
+      // Max retry times when requesting space from current StorageTier
+      int failedSpaceRequestsLimit =
+          mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 3);
+      for (int attempt = 0; attempt < failedSpaceRequestsLimit; attempt ++) {
         Pair<StorageDir, List<BlockInfo>> evictInfo =
             mBlockEvictor.getDirCandidate(dirs, pinList, requestSizeBytes);
         if (evictInfo == null) {
