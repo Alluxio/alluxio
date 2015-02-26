@@ -16,7 +16,10 @@
 package tachyon.web;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -37,6 +40,8 @@ import tachyon.master.MasterInfo;
 public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
   private static final String TACHYON_CONF_PREFIX = "tachyon";
+  private static final Set<String> TACHYON_CONF_EXCLUDES = new HashSet<String>(
+      Arrays.asList(Constants.MASTER_WHITELIST));
 
   private final transient MasterInfo mMasterInfo;
   private final TachyonConf mTachyonConf;
@@ -67,7 +72,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
     TreeSet<ImmutablePair<String, String>> rtn = new TreeSet<ImmutablePair<String, String>>();
     for (Map.Entry<Object, Object> entry : mTachyonConf.getInternalProperties().entrySet()) {
       String key = entry.getKey().toString();
-      if (key.startsWith(TACHYON_CONF_PREFIX)) {
+      if (key.startsWith(TACHYON_CONF_PREFIX) && !TACHYON_CONF_EXCLUDES.contains(key)) {
         rtn.add(new ImmutablePair<String, String>(key, entry.getValue().toString()));
       }
     }
