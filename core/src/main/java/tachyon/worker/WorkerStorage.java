@@ -433,8 +433,9 @@ public class WorkerStorage {
       for (StorageDir curStorageDir : curStorageTier.getStorageDirs()) {
         for (Entry<Long, Long> blockSize : curStorageDir.getBlockSizes()) {
           try {
-            mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytes(),
-                curStorageDir.getStorageDirId(), blockSize.getKey(), blockSize.getValue());
+            mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytesOnTiers().get(curStorageTier
+                .getAlias().getValue() - 1), curStorageDir.getStorageDirId(), blockSize.getKey(),
+                blockSize.getValue());
           } catch (FileDoesNotExistException e) {
             LOG.error("Block not exist in metadata! blockId:{}", blockSize.getKey());
             swapoutOrphanBlocks(curStorageDir, blockSize.getKey());
@@ -503,8 +504,9 @@ public class WorkerStorage {
     }
     if (result) {
       long blockSize = storageDir.getBlockSize(blockId);
-      mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytes(), storageDir.getStorageDirId(),
-          blockId, blockSize);
+      mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytesOnTiers()
+          .get(StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId()) - 1),
+          storageDir.getStorageDirId(), blockId, blockSize);
     }
   }
 
@@ -619,6 +621,23 @@ public class WorkerStorage {
     }
     return usedBytes;
   }
+  
+  /**
+   * Get used bytes on each storage tier
+   * 
+   * @return used bytes on each storage tier
+   */
+  private List<Long> getUsedBytesOnTiers() {
+    List<Long> usedBytes = new ArrayList<Long>(StorageLevelAlias.values().length);
+    for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
+      usedBytes.add((long) 0);
+    }
+    for (StorageTier curTier : mStorageTiers) {
+      usedBytes.set(curTier.getAlias().getValue() - 1, usedBytes.get(curTier.getAlias()
+          .getValue() - 1) + curTier.getUsedBytes());
+    }
+    return usedBytes;
+  }
 
   /**
    * Get the user temporary folder in the under file system of the specified user.
@@ -659,7 +678,7 @@ public class WorkerStorage {
       }
     }
     return mMasterClient
-        .worker_heartbeat(mWorkerId, getUsedBytes(), removedBlockIds, addedBlockIds);
+        .worker_heartbeat(mWorkerId, getUsedBytesOnTiers(), removedBlockIds, addedBlockIds);
   }
 
   /**
@@ -789,8 +808,14 @@ public class WorkerStorage {
   public void register() {
     long id = 0;
     Map<Long, List<Long>> blockIdLists = new HashMap<Long, List<Long>>();
-
+    List<Long> capacityBytesOnTiers = new ArrayList<Long>(StorageLevelAlias.values().length);
+    
+    for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
+      capacityBytesOnTiers.add((long) 0);
+    }
     for (StorageTier curStorageTier : mStorageTiers) {
+      capacityBytesOnTiers.set(curStorageTier.getAlias().getValue() - 1, capacityBytesOnTiers
+          .get(curStorageTier.getAlias().getValue() - 1) + curStorageTier.getCapacityBytes());
       for (StorageDir curStorageDir : curStorageTier.getStorageDirs()) {
         Set<Long> blockSet = curStorageDir.getBlockIds();
         blockIdLists.put(curStorageDir.getStorageDirId(), new ArrayList<Long>(blockSet));
@@ -799,8 +824,8 @@ public class WorkerStorage {
     while (id == 0) {
       try {
         id =
-            mMasterClient.worker_register(mWorkerAddress, mCapacityBytes, getUsedBytes(),
-                blockIdLists);
+            mMasterClient.worker_register(mWorkerAddress, 
+                capacityBytesOnTiers, getUsedBytesOnTiers(), blockIdLists);
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;

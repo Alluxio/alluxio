@@ -296,9 +296,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void worker_cacheBlock(long workerId, long workerUsedBytes, long storageDirId,
+  public void worker_cacheBlock(long workerId, long usedBytesOnTier, long storageDirId,
       long blockId, long length) throws FileDoesNotExistException, BlockInfoException, TException {
-    mMasterInfo.cacheBlock(workerId, workerUsedBytes, storageDirId, blockId, length);
+    mMasterInfo.cacheBlock(workerId, usedBytesOnTier, storageDirId, blockId, length);
   }
 
   @Override
@@ -313,15 +313,17 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public Command worker_heartbeat(long workerId, long usedBytes,
+  public Command worker_heartbeat(long workerId, List<Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
       throws BlockInfoException, TException {
-    return mMasterInfo.workerHeartbeat(workerId, usedBytes, removedBlockIds, addedBlockIds);
+    return mMasterInfo.workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds, addedBlockIds);
   }
 
   @Override
-  public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes,
-      Map<Long, List<Long>> currentBlockIds) throws BlockInfoException, TException {
-    return mMasterInfo.registerWorker(workerNetAddress, totalBytes, usedBytes, currentBlockIds);
+  public long worker_register(NetAddress workerNetAddress, List<Long> totalBytesOnTiers,
+      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlockIds)
+          throws BlockInfoException, TException {
+    return mMasterInfo.registerWorker(workerNetAddress, totalBytesOnTiers, usedBytesOnTiers,
+        currentBlockIds);
   }
 }
