@@ -46,10 +46,16 @@ public class MasterWorkerInfo {
   private Set<Long> mBlocks;
   /** IDs of blocks the worker should remove **/
   private Set<Long> mToRemoveBlocks;
+  /** Total bytes on each storage tier **/
+  private List<Long> mTotalBytesOnTiers;
+  /** Used bytes on each storage tier **/
+  private List<Long> mUsedBytesOnTiers;
 
-  public MasterWorkerInfo(long id, NetAddress address, long capacityBytes) {
+  public MasterWorkerInfo(long id, NetAddress address, List<Long> totalBytesOnTiers,
+      long capacityBytes) {
     mId = id;
     mWorkerAddress = address;
+    mTotalBytesOnTiers = totalBytesOnTiers;
     mCapacityBytes = capacityBytes;
     mStartTimeMs = System.currentTimeMillis();
 
@@ -129,6 +135,31 @@ public class MasterWorkerInfo {
    */
   public synchronized long getUsedBytes() {
     return mUsedBytes;
+  }
+
+  /**
+   * @return the total bytes on each storage tier
+   */
+  public synchronized List<Long> getTotalBytesOnTiers() {
+    return mTotalBytesOnTiers;
+  }
+
+  /**
+   * @return the used bytes on each storage tier
+   */
+  public synchronized List<Long> getUsedBytesOnTiers() {
+    return mUsedBytesOnTiers;
+  }
+
+  /**
+   * @return the free bytes on each storage tier
+   */
+  public synchronized List<Long> getFreeBytesOnTiers() {
+    List<Long> freeCapacityBytes = new ArrayList<Long>();
+    for (int i = 0; i < mTotalBytesOnTiers.size(); i ++) {
+      freeCapacityBytes.add(mTotalBytesOnTiers.get(i) - mUsedBytesOnTiers.get(i));
+    }
+    return freeCapacityBytes;
   }
 
   @Override
@@ -214,9 +245,24 @@ public class MasterWorkerInfo {
   /**
    * Set the used space of the worker in bytes.
    * 
-   * @param usedBytes the used space in bytes
+   * @param usedBytesOnTiers used bytes on each storage tier
    */
-  public synchronized void updateUsedBytes(long usedBytes) {
-    mUsedBytes = usedBytes;
+  public synchronized void updateUsedBytes(List<Long> usedBytesOnTiers) {
+    mUsedBytes = 0;
+    mUsedBytesOnTiers = usedBytesOnTiers;
+    for (long t : mUsedBytesOnTiers) {
+      mUsedBytes += t;
+    }
+  }
+
+  /**
+   * Set the used space of the worker in bytes.
+   * 
+   * @param aliasValue value of StorageLevelAlias
+   * @param usedBytesOnTier used bytes on certain storage tier.
+   */
+  public synchronized void updateUsedBytes(int aliasValue, long usedBytesOnTier) {
+    mUsedBytes += usedBytesOnTier - mUsedBytesOnTiers.get(aliasValue - 1);
+    mUsedBytesOnTiers.set(aliasValue - 1, usedBytesOnTier);
   }
 }
