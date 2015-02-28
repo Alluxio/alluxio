@@ -28,7 +28,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   private int mId;
   private String mName;
   private int mParentId;
-  private Acl acl;
+  private Acl mAcl;
 
   /**
    * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
@@ -212,7 +212,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
    *
    */
   public synchronized Acl getAcl() {
-    return acl;
+    return mAcl;
   }
 
   /**
@@ -221,6 +221,6 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
    * @param acl
    */
   public synchronized void setAcl(Acl acl) {
-    this.acl = acl;
+    this.mAcl = acl;
   }
 }
