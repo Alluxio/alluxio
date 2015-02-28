@@ -28,8 +28,12 @@ public class EvictStrategies {
    */
   public static EvictStrategy getEvictStrategy(EvictStrategyType strategyType, boolean isLastTier) {
     switch (strategyType) {
+      case LFU:
+        return new EvictLFU(isLastTier);
       case LRU:
         return new EvictLRU(isLastTier);
+      case PARTIAL_LFU:
+        return new EvictPartialLFU(isLastTier);
       case PARTIAL_LRU:
         return new EvictPartialLRU(isLastTier);
       default:
