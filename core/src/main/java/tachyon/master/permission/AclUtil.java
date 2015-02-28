@@ -62,7 +62,7 @@ public class AclUtil {
   public static AclPermission getPermission(String s) {
     AclPermission[] v = ACL_PERMISSIONS;
     for (AclPermission aclPermission : v) {
-      if (aclPermission.SYMBOL.equals(s)) {
+      if (aclPermission.mValue.equals(s)) {
         return aclPermission;
       }
     }
@@ -76,7 +76,7 @@ public class AclUtil {
    */
   public static short getUMask(Configuration conf) {
     int umask = DEFAULT_UMASK;
-    if(conf != null) {
+    if (conf != null) {
       umask = conf.getInt(UMASK_KEY, DEFAULT_UMASK);
     }
 

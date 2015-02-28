@@ -12,7 +12,10 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.master.permission;
+
+import com.google.common.base.Objects;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,18 +23,15 @@ import org.apache.hadoop.conf.Configuration;
 
 import tachyon.master.permission.AclEntry.AclPermission;
 
-import com.google.common.base.Objects;
-
-
 /**
- * This class contains three {@link AclEntry}: userEncry, groupEntry, and otherEntry.
+ * This class contains three {@link AclEntry}: mUserEntry, mGroupEntry, and mOtherEntry.
  */
 public class Acl {
 
   //POSIX aclEntry
-  private AclEntry userEncry;
-  private AclEntry groupEntry;
-  private AclEntry otherEntry;
+  private AclEntry mUserEntry;
+  private AclEntry mGroupEntry;
+  private AclEntry mOtherEntry;
 
   private static final Log LOG = LogFactory.getLog(Acl.class);
 
@@ -42,9 +42,9 @@ public class Acl {
    * @param o, other aclEntry
    */
   private Acl(AclEntry u, AclEntry g, AclEntry o) {
-    this.userEncry = u;
-    this.groupEntry = g;
-    this.otherEntry = o;
+    this.mUserEntry = u;
+    this.mGroupEntry = g;
+    this.mOtherEntry = o;
   }
 
   /**
@@ -53,9 +53,9 @@ public class Acl {
    * @param other, other permission
    */
   public Acl(Acl other) {
-    this.userEncry = other.userEncry;
-    this.groupEntry = other.groupEntry;
-    this.otherEntry = other.otherEntry;
+    this.mUserEntry = other.mUserEntry;
+    this.mGroupEntry = other.mGroupEntry;
+    this.mOtherEntry = other.mOtherEntry;
   }
 
   @Override
@@ -67,35 +67,35 @@ public class Acl {
       return false;
     }
     Acl other = (Acl)o;
-    return Objects.equal(userEncry, other.userEncry) &&
-      Objects.equal(groupEntry, other.groupEntry) &&
-      Objects.equal(otherEntry, other.otherEntry);
+    return Objects.equal(mUserEntry, other.mUserEntry)
+        && Objects.equal(mGroupEntry, other.mGroupEntry)
+        && Objects.equal(mOtherEntry, other.mOtherEntry);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(userEncry, groupEntry, otherEntry);
+    return Objects.hashCode(mUserEntry, mGroupEntry, mOtherEntry);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append('{');
-    if (userEncry != null) {
+    if (mUserEntry != null) {
       sb.append('[')
-        .append(userEncry.toString())
+        .append(mUserEntry.toString())
         .append(']');
     }
     sb.append(',');
-    if (groupEntry != null) {
+    if (mGroupEntry != null) {
       sb.append('[')
-        .append(groupEntry.toString())
+        .append(mGroupEntry.toString())
         .append(']');
     }
     sb.append(',');
-    if (otherEntry != null) {
+    if (mOtherEntry != null) {
       sb.append('[')
-        .append(otherEntry.toString())
+        .append(mOtherEntry.toString())
         .append(']');
     }
     sb.append('}');
@@ -106,31 +106,31 @@ public class Acl {
    * Retrun short of this ACL permission
    */
   public short toShort() {
-    int s = (getUserPermission().ordinal() << 6)  |
-            (getGroupPermission().ordinal() << 3) |
-            getOtherPermission().ordinal();
+    int s = (getUserPermission().ordinal() << 6)
+        | (getGroupPermission().ordinal() << 3)
+        | getOtherPermission().ordinal();
     return (short)s;
   }
 
 
   public AclPermission getUserPermission() {
-    return userEncry.getPermission();
+    return mUserEntry.getPermission();
   }
 
   public AclPermission getGroupPermission() {
-    return groupEntry.getPermission();
+    return mGroupEntry.getPermission();
   }
 
   public AclPermission getOtherPermission() {
-    return otherEntry.getPermission();
+    return mOtherEntry.getPermission();
   }
 
   public String getUserName() {
-    return userEncry.getName();
+    return mUserEntry.getName();
   }
 
   public String getGroupName() {
-    return groupEntry.getName();
+    return mGroupEntry.getName();
   }
 
   public void umask(Acl umask) {
@@ -177,56 +177,56 @@ public class Acl {
   }
 
   private void setPermission(AclPermission u, AclPermission g, AclPermission o) {
-    userEncry.setPermission(u);
-    groupEntry.setPermission(g);
-    otherEntry.setPermission(o);
+    mUserEntry.setPermission(u);
+    mGroupEntry.setPermission(g);
+    mOtherEntry.setPermission(o);
   }
 
   /**
    * Set user's owner from a given name
-   * User for chown
+   * Used for chown
    *
    * @param name, new owner name
    */
   public void setUserOwner(String name) {
-    userEncry.setName(name);
+    mUserEntry.setName(name);
   }
 
   /**
    * Set group's owner from a given name
-   * User for chown
+   * Used for chown
    *
    * @param name, new owner name
    */
   public void setGroupOwner(String name) {
-    groupEntry.setName(name);
+    mGroupEntry.setName(name);
   }
 
   /**
    * Builder for creating new ACL instances.
    */
   public static class Builder {
-    private AclEntry userEntry;
-    private AclEntry groupEntry;
-    private AclEntry otherEntry;
+    private AclEntry mUserEntry;
+    private AclEntry mGroupEntry;
+    private AclEntry mOtherEntry;
 
     public Builder setUserEntry(AclEntry u) {
-      this.userEntry = u;
+      this.mUserEntry = u;
       return this;
     }
 
     public Builder setGroupEntry(AclEntry g) {
-      this.groupEntry = g;
+      this.mGroupEntry = g;
       return this;
     }
 
     public Builder setOtherEntry(AclEntry o) {
-      this.otherEntry = o;
+      this.mOtherEntry = o;
       return this;
     }
 
     public Acl build() {
-      return new Acl(userEntry, groupEntry, otherEntry);
+      return new Acl(mUserEntry, mGroupEntry, mOtherEntry);
     }
   }
 }

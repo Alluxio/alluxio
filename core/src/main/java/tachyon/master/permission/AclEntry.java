@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.master.permission;
 
 import com.google.common.base.Objects;
@@ -48,12 +49,12 @@ public class AclEntry implements Comparable<AclEntry> {
     READ_WRITE("rw-"),
     ALL("rwx");
 
-    private final static AclPermission[] vals = values();
+    private static final AclPermission[] VALS = values();
 
-    public final String SYMBOL;
+    public final String mValue;
 
     private AclPermission(String s) {
-      SYMBOL = s;
+      mValue = s;
     }
 
     /**
@@ -69,49 +70,49 @@ public class AclEntry implements Comparable<AclEntry> {
 
     /** AND operation. */
     public AclPermission and(AclPermission that) {
-      return vals[ordinal() & that.ordinal()];
+      return VALS[ordinal() & that.ordinal()];
     }
 
     /** OR operation. */
     public AclPermission or(AclPermission that) {
-      return vals[ordinal() | that.ordinal()];
+      return VALS[ordinal() | that.ordinal()];
     }
 
     /** NOT operation. */
     public AclPermission not() {
-      return vals[7 - ordinal()];
+      return VALS[7 - ordinal()];
     }
 
   }
 
-  private final AclType type;
-  private String name;
-  private AclPermission permission;
+  private final AclType mType;
+  private String mName;
+  private AclPermission mPermission;
 
   private AclEntry(AclType type, String name, AclPermission permission) {
-    this.type = type;
-    this.name = name;
-    this.permission = permission;
+    this.mType = type;
+    this.mName = name;
+    this.mPermission = permission;
   }
 
   public AclType getType() {
-    return type;
+    return mType;
   }
 
   public String getName() {
-    return name;
+    return mName;
   }
 
   public void setName(String name) {
-    this.name = name;
+    this.mName = name;
   }
 
   public AclPermission getPermission() {
-    return permission;
+    return mPermission;
   }
 
   public void setPermission(AclPermission permission) {
-    this.permission = permission;
+    this.mPermission = permission;
   }
 
   @Override
@@ -123,29 +124,29 @@ public class AclEntry implements Comparable<AclEntry> {
       return false;
     }
     AclEntry other = (AclEntry)o;
-    return Objects.equal(type, other.type) &&
-      Objects.equal(name, other.name) &&
-      Objects.equal(permission, other.permission);
+    return Objects.equal(mType, other.mType)
+        && Objects.equal(mName, other.mName)
+        && Objects.equal(mPermission, other.mPermission);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(type, name, permission);
+    return Objects.hashCode(mType, mName, mPermission);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    if (type != null) {
-      sb.append(type.toString().toLowerCase());
+    if (mType != null) {
+      sb.append(mType.toString().toLowerCase());
     }
     sb.append(':');
-    if (name != null) {
-      sb.append(name);
+    if (mName != null) {
+      sb.append(mName);
     }
     sb.append(':');
-    if (permission != null) {
-      sb.append(permission.toString());
+    if (mPermission != null) {
+      sb.append(mPermission.toString());
     }
     return sb.toString();
   }
@@ -153,7 +154,7 @@ public class AclEntry implements Comparable<AclEntry> {
   @Override
   public int compareTo(AclEntry other) {
     return ComparisonChain.start()
-        .compare(type, other.type, Ordering.explicit(AclType.USER, AclType.GROUP, AclType.OTHER))
+        .compare(mType, other.mType, Ordering.explicit(AclType.USER, AclType.GROUP, AclType.OTHER))
         .result();
   }
 
@@ -161,27 +162,27 @@ public class AclEntry implements Comparable<AclEntry> {
    * Builder for creating new AclEntry instances.
    */
   public static class Builder {
-    private AclType type;
-    private String name;
-    private AclPermission permission;
+    private AclType mType;
+    private String mName;
+    private AclPermission mPermission;
 
     public Builder setType(AclType type) {
-      this.type = type;
+      this.mType = type;
       return this;
     }
 
     public Builder setName(String name) {
-      this.name = name;
+      this.mName = name;
       return this;
     }
 
     public Builder setPermission(AclPermission permission) {
-      this.permission = permission;
+      this.mPermission = permission;
       return this;
     }
 
     public AclEntry build() {
-      return new AclEntry(type, name, permission);
+      return new AclEntry(mType, mName, mPermission);
     }
   }
 }
