@@ -96,7 +96,8 @@ public class MasterInfo extends ImageWriter {
         for (Entry<Long, MasterWorkerInfo> worker : mWorkers.entrySet()) {
           int masterWorkerTimeoutMs =
               mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS, 10 * Constants.SECOND_MS);
-          if (CommonUtils.getCurrentMs() - worker.getValue().getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
+          if (CommonUtils.getCurrentMs()
+              - worker.getValue().getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
             LOG.error("The worker " + worker.getValue() + " got timed out!");
             mLostWorkers.add(worker.getValue());
             lostWorkers.add(worker.getKey());
@@ -810,7 +811,8 @@ public class MasterInfo extends ImageWriter {
       if (srcInode == null) {
         return false;
       }
-      if (((InodeFolder) dstParentInode).getChild(dstComponents[dstComponents.length - 1]) != null) {
+      if (((InodeFolder) dstParentInode)
+          .getChild(dstComponents[dstComponents.length - 1]) != null) {
         return false;
       }
 
@@ -1634,7 +1636,8 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    * @throws TableDoesNotExistException
    */
-  public int getRawTableId(TachyonURI path) throws InvalidPathException, TableDoesNotExistException {
+  public int getRawTableId(TachyonURI path) throws InvalidPathException,
+      TableDoesNotExistException {
     Inode inode = getInode(path);
     if (inode == null) {
       throw new TableDoesNotExistException(path.toString());
@@ -2035,7 +2038,8 @@ public class MasterInfo extends ImageWriter {
    * @throws BlockInfoException
    */
   public long registerWorker(NetAddress workerNetAddress, List<Long> totalBytesOnTiers,
-      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlockIds) throws BlockInfoException {
+      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlockIds)
+      throws BlockInfoException {
     long id = 0;
     long capacityBytes = 0;
     NetAddress workerAddress = new NetAddress(workerNetAddress);
@@ -2281,7 +2285,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Returns whether the traversal was successful or not.
-   * 
+   *
    * @return true if the traversal was successful, or false otherwise.
    */
   private boolean traversalSucceeded(Pair<Inode, Integer> inodeTraversal) {
@@ -2290,7 +2294,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Traverse to the inode at the given path.
-   * 
+   *
    * @param pathNames The path to search for, broken into components
    * @return the inode of the file at the given path. If it was not able to traverse down the entire
    *         path, it will set the second field to the first path component it didn't find. It never
@@ -2343,7 +2347,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Update the metadata of a table.
-   * 
+   *
    * @param tableId The id of the table to update
    * @param metadata The new metadata to update the table with
    * @throws TableDoesNotExistException
@@ -2368,7 +2372,7 @@ public class MasterInfo extends ImageWriter {
   /**
    * The heartbeat of the worker. It updates the information of the worker and removes the given
    * block id's.
-   * 
+   *
    * @param workerId The id of the worker to deal with
    * @param usedBytesOnTiers Used bytes on each storage tier
    * @param removedBlockIds The list of removed block ids
@@ -2440,7 +2444,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Create an image of the dependencies and filesystem tree.
-   * 
+   *
    * @param objWriter The used object writer
    * @param dos The target data output stream
    * @throws IOException
