@@ -267,64 +267,6 @@
           </dependency>
         </dependencies>
       </plugin>
-
-      <!-- License Plugin -->
-      <plugin>
-        <groupId>com.mycila</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <version>2.9</version>
-        <configuration>
-          <header>${license.header.path}HEADER.txt</header>
-          <failIfMissing>true</failIfMissing>
-          <aggregate>false</aggregate>
-          <excludes>
-            <!-- Code Exclusions -->
-            <exclude>**/src/main/resources/version.properties</exclude>
-            <exclude>**/src/main/java/tachyon/thrift/*</exclude>
-            <exclude>**/src/main/webapp/**/*</exclude>
-            <exclude>**/src/thrift/*</exclude>
-            <exclude>**/src/deb/**/*</exclude>
-            <exclude>**/src/test/resources/*</exclude>
-            <exclude>**/package-info.java</exclude>
-            <exclude>**/src/main/resources/tachyon-default.properties</exclude>
-
-            <!-- Build and Packaging Exclusions -->
-            <exclude>build/**/*</exclude>
-            <exclude>**/pom.xml</exclude>
-            <exclude>**/logs/*</exclude>
-            <exclude>**/deploy/**/*</exclude>
-            <exclude>**/bin/*</exclude>
-            <exclude>**/conf/*</exclude>
-            <exclude>**/libexec/*</exclude>
-            <exclude>**/src/main/findbugs/*</exclude>
-            <exclude>**/src/main/resources/tachyon_checks*</exclude>
-            <exclude>**/src/main/assembly/*</exclude>
-
-            <!-- Documentation Exclusions -->
-            <exclude>**/docs/**/*</exclude>
-            <exclude>LICENSE</exclude>
-            <exclude>NOTICE</exclude>
-
-            <!-- Default local file Exclusions -->
-            <exclude>**/underfs/**</exclude>
-            <exclude>**/journal/**</exclude>
-
-          </excludes>
-          <mapping>
-            <java>SLASHSTAR_STYLE</java>
-          </mapping>
-          <useDefaultMapping>true</useDefaultMapping>
-          <strictCheck>true</strictCheck>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>validate</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
