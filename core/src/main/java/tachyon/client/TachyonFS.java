@@ -165,9 +165,6 @@ public class TachyonFS extends AbstractTachyonFS {
 
   private TachyonURI mRootUri = null;
 
-  // Available memory space for this client.
-  private Long mAvailableSpaceBytes;
-
   private TachyonFS(TachyonConf tachyonConf) throws IOException {
     super(tachyonConf);
 
@@ -176,7 +173,6 @@ public class TachyonFS extends AbstractTachyonFS {
 
     mMasterAddress = new InetSocketAddress(masterHost, masterPort);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
-    mAvailableSpaceBytes = 0L;
 
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.daemon("client-heartbeat-%d"));
