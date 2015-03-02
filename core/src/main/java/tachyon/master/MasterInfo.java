@@ -94,10 +94,9 @@ public class MasterInfo extends ImageWriter {
 
       synchronized (mWorkers) {
         for (Entry<Long, MasterWorkerInfo> worker : mWorkers.entrySet()) {
-          int masterWorkerTimeoutMs = mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS,
-              10 * Constants.SECOND_MS);
-          if (CommonUtils.getCurrentMs()
-              - worker.getValue().getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
+          int masterWorkerTimeoutMs =
+              mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS, 10 * Constants.SECOND_MS);
+          if (CommonUtils.getCurrentMs() - worker.getValue().getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
             LOG.error("The worker " + worker.getValue() + " got timed out!");
             mLostWorkers.add(worker.getValue());
             lostWorkers.add(worker.getKey());
@@ -160,8 +159,8 @@ public class MasterInfo extends ImageWriter {
         LOG.warn("Restarting failed workers.");
         try {
           String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
-          java.lang.Runtime.getRuntime().exec(
-              tachyonHome + "/bin/tachyon-start.sh restart_workers");
+          java.lang.Runtime.getRuntime()
+              .exec(tachyonHome + "/bin/tachyon-start.sh restart_workers");
         } catch (IOException e) {
           LOG.error(e.getMessage());
         }
@@ -222,7 +221,7 @@ public class MasterInfo extends ImageWriter {
         for (String cmd : cmds) {
           String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
           String filePath = tachyonHome + "/logs/rerun-" + mRerunCounter.incrementAndGet();
-          //TODO use bounded threads (ExecutorService)
+          // TODO use bounded threads (ExecutorService)
           Thread thread = new Thread(new RecomputeCommand(cmd, filePath));
           thread.setName("recompute-command-" + cmd);
           thread.start();
@@ -296,8 +295,7 @@ public class MasterInfo extends ImageWriter {
       TachyonConf tachyonConf) throws IOException {
     mExecutorService = executorService;
     mTachyonConf = tachyonConf;
-    mUFSDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER,
-        Constants.DEFAULT_DATA_FOLDER);
+    mUFSDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
 
     mRawTables = new RawTables(mTachyonConf);
 
@@ -310,8 +308,9 @@ public class MasterInfo extends ImageWriter {
     mStartTimeNSPrefix = mStartTimeMs - (mStartTimeMs % 1000000);
     mJournal = journal;
 
-    mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ",",
-        new LinkedList<String>()));
+    mWhitelist =
+        new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ",",
+            new LinkedList<String>()));
     mPinnedInodeFileIds = Collections.synchronizedSet(new HashSet<Integer>());
 
     mJournal.loadImage(this);
@@ -811,8 +810,7 @@ public class MasterInfo extends ImageWriter {
       if (srcInode == null) {
         return false;
       }
-      if (((InodeFolder) dstParentInode)
-          .getChild(dstComponents[dstComponents.length - 1]) != null) {
+      if (((InodeFolder) dstParentInode).getChild(dstComponents[dstComponents.length - 1]) != null) {
         return false;
       }
 
@@ -920,8 +918,7 @@ public class MasterInfo extends ImageWriter {
    * @throws BlockInfoException
    */
   public int cacheBlock(long workerId, long usedBytesOnTier, long storageDirId, long blockId,
-      long length)
-      throws FileDoesNotExistException, BlockInfoException {
+      long length) throws FileDoesNotExistException, BlockInfoException {
     LOG.debug("Cache block: {}",
         CommonUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
 
@@ -975,8 +972,8 @@ public class MasterInfo extends ImageWriter {
 
   public int createDependency(List<TachyonURI> parents, List<TachyonURI> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, DependencyType dependencyType)
-      throws InvalidPathException, FileDoesNotExistException {
+      String frameworkVersion, DependencyType dependencyType) throws InvalidPathException,
+      FileDoesNotExistException {
     synchronized (mRootLock) {
       LOG.info("ParentList: " + CommonUtils.listToString(parents));
       List<Integer> parentsIdList = getFilesIds(parents);
@@ -1062,8 +1059,7 @@ public class MasterInfo extends ImageWriter {
 
     int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
     if (columns <= 0 || columns >= maxColumns) {
-      throw new TableColumnException("Column " + columns + " should between 0 to "
-          + maxColumns);
+      throw new TableColumnException("Column " + columns + " should between 0 to " + maxColumns);
     }
 
     int id;
@@ -1190,8 +1186,8 @@ public class MasterInfo extends ImageWriter {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
       ClientBlockInfo ret =
-          ((InodeFile) inode).getClientBlockInfo(BlockInfo.computeBlockIndex(blockId),
-              mTachyonConf);
+          ((InodeFile) inode)
+              .getClientBlockInfo(BlockInfo.computeBlockIndex(blockId), mTachyonConf);
       LOG.debug("getClientBlockInfo: {} : {}", blockId, ret);
       return ret;
     }
@@ -1435,8 +1431,8 @@ public class MasterInfo extends ImageWriter {
         new LinkedList<Pair<InodeFolder, TachyonURI>>();
     synchronized (mRootLock) {
       // TODO: Verify we want to use absolute path.
-      nodesQueue.add(
-          new Pair<InodeFolder, TachyonURI>(mRoot, new TachyonURI(TachyonURI.SEPARATOR)));
+      nodesQueue
+          .add(new Pair<InodeFolder, TachyonURI>(mRoot, new TachyonURI(TachyonURI.SEPARATOR)));
       while (!nodesQueue.isEmpty()) {
         Pair<InodeFolder, TachyonURI> tPair = nodesQueue.poll();
         InodeFolder tFolder = tPair.getFirst();
@@ -1534,8 +1530,8 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    * @throws FileDoesNotExistException
    */
-  public int getNumberOfFiles(TachyonURI path)
-      throws InvalidPathException, FileDoesNotExistException {
+  public int getNumberOfFiles(TachyonURI path) throws InvalidPathException,
+      FileDoesNotExistException {
     Inode inode = getInode(path);
     if (inode == null) {
       throw new FileDoesNotExistException(path.toString());
@@ -1638,8 +1634,7 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    * @throws TableDoesNotExistException
    */
-  public int getRawTableId(TachyonURI path)
-      throws InvalidPathException, TableDoesNotExistException {
+  public int getRawTableId(TachyonURI path) throws InvalidPathException, TableDoesNotExistException {
     Inode inode = getInode(path);
     if (inode == null) {
       throw new TableDoesNotExistException(path.toString());
@@ -1827,8 +1822,8 @@ public class MasterInfo extends ImageWriter {
     mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
     mHeartbeat =
         mExecutorService.submit(new HeartbeatThread("Master Heartbeat",
-            new MasterInfoHeartbeatExecutor(),
-            mTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS)));
+            new MasterInfoHeartbeatExecutor(), mTachyonConf.getInt(
+                Constants.MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS)));
 
     mRecompute = mExecutorService.submit(new RecomputationScheduler());
   }
@@ -2040,8 +2035,7 @@ public class MasterInfo extends ImageWriter {
    * @throws BlockInfoException
    */
   public long registerWorker(NetAddress workerNetAddress, List<Long> totalBytesOnTiers,
-      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlockIds)
-          throws BlockInfoException {
+      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlockIds) throws BlockInfoException {
     long id = 0;
     long capacityBytes = 0;
     NetAddress workerAddress = new NetAddress(workerNetAddress);
@@ -2233,8 +2227,8 @@ public class MasterInfo extends ImageWriter {
         Inode freeInode = freeInodes.get(i);
 
         if (freeInode.isFile()) {
-          List<Pair<Long, Long>> blockIdWorkerIdList
-              = ((InodeFile) freeInode).getBlockIdWorkerIdPairs();
+          List<Pair<Long, Long>> blockIdWorkerIdList =
+              ((InodeFile) freeInode).getBlockIdWorkerIdPairs();
           synchronized (mWorkers) {
             for (Pair<Long, Long> blockIdWorkerId : blockIdWorkerIdList) {
               MasterWorkerInfo workerInfo = mWorkers.get(blockIdWorkerId.getSecond());
