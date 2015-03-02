@@ -1397,8 +1397,7 @@ public class MasterInfo extends ImageWriter {
    * @return the total bytes on each storage tier.
    */
   public List<Long> getTotalBytesOnTiers() {
-    List<Long> ret = new ArrayList<Long>(StorageLevelAlias.SIZE);
-    Collections.fill(ret, 0L);
+    List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers.values()) {
         for (int i = 0; i < worker.getTotalBytesOnTiers().size(); i ++) {
@@ -1413,12 +1412,11 @@ public class MasterInfo extends ImageWriter {
    * @return the used bytes on each storage tier.
    */
   public List<Long> getUsedBytesOnTiers() {
-    List<Long> ret = new ArrayList<Long>(StorageLevelAlias.SIZE);
-    Collections.fill(ret, 0L);
+    List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers.values()) {
-        for (int i = 0; i < worker.getTotalBytesOnTiers().size(); i ++) {
-          ret.set(i, ret.get(i) + worker.getTotalBytesOnTiers().get(i));
+        for (int i = 0; i < worker.getUsedBytesOnTiers().size(); i ++) {
+          ret.set(i, ret.get(i) + worker.getUsedBytesOnTiers().get(i));
         }
       }
     }

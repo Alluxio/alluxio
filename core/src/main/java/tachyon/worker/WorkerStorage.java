@@ -628,8 +628,7 @@ public class WorkerStorage {
    * @return used bytes on each storage tier
    */
   private List<Long> getUsedBytesOnTiers() {
-    List<Long> usedBytes = new ArrayList<Long>(StorageLevelAlias.SIZE);
-    Collections.fill(usedBytes, 0L);
+    List<Long> usedBytes = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
     for (StorageTier curTier : mStorageTiers) {
       int tier = curTier.getAlias().getValue() - 1;
       usedBytes.set(tier, usedBytes.get(tier) + curTier.getUsedBytes());
@@ -806,8 +805,8 @@ public class WorkerStorage {
   public void register() {
     long id = 0;
     Map<Long, List<Long>> blockIdLists = new HashMap<Long, List<Long>>();
-    List<Long> capacityBytesOnTiers = new ArrayList<Long>(StorageLevelAlias.SIZE);
-    Collections.fill(capacityBytesOnTiers, 0L);
+    List<Long> capacityBytesOnTiers =
+        new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
     for (StorageTier curStorageTier : mStorageTiers) {
       int tier = curStorageTier.getAlias().getValue() - 1;
       capacityBytesOnTiers.set(tier,
