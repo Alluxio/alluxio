@@ -299,9 +299,6 @@
             <exclude>**/src/main/findbugs/*</exclude>
             <exclude>**/src/main/resources/tachyon_checks*</exclude>
             <exclude>**/src/main/assembly/*</exclude>
-            
-            <!-- Snapshot Builds insist on creating a local Maven repo in the working copy -->
-            <exclude>**/local-m2-repo/**/*</exclude>
 
             <!-- Documentation Exclusions -->
             <exclude>**/docs/**/*</exclude>
