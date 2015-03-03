@@ -228,7 +228,7 @@ public class TachyonMaster {
 
     mWebServer =
         new UIWebServer("Tachyon Master Server", new InetSocketAddress(
-            NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo);
+            NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo, mTachyonConf);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =

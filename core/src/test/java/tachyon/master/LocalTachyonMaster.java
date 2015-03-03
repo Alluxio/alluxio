@@ -92,6 +92,9 @@ public final class LocalTachyonMaster {
 
     tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
     tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
+    
+    // If tests fail to connect they should fail early rather than using the default ridiculously high retries
+    tachyonConf.set(Constants.MASTER_RETRY_COUNT, "3");
 
     tachyonConf.set(Constants.MASTER_WEB_THREAD_COUNT, "1");
     tachyonConf.set(Constants.WEB_RESOURCES, System.getProperty("user.dir") + "/src/main/webapp");
