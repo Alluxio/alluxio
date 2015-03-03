@@ -106,7 +106,7 @@ function killAll {
     done
     count=`expr $count + 1`
   done
-  echo "Killed $count processes"
+  echo "Killed $count processes on `hostname`"
 }
 
 function copyDir {

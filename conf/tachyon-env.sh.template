@@ -55,6 +55,9 @@ export TACHYON_UNDERFS_HDFS_IMPL=org.apache.hadoop.hdfs.DistributedFileSystem
 export TACHYON_WORKER_MAX_WORKER_THREADS=2048
 export TACHYON_MASTER_MAX_WORKER_THREADS=2048
 
+export TACHYON_SSH_FOREGROUND="yes"
+export TACHYON_WORKER_SLEEP="0.02"
+
 CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export TACHYON_JAVA_OPTS+="
