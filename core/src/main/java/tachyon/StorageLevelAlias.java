@@ -46,4 +46,6 @@ public enum StorageLevelAlias {
   public int getValue() {
     return mValue;
   }
+
+  public static final int SIZE = StorageLevelAlias.values().length;
 }

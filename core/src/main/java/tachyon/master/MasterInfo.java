@@ -94,8 +94,8 @@ public class MasterInfo extends ImageWriter {
 
       synchronized (mWorkers) {
         for (Entry<Long, MasterWorkerInfo> worker : mWorkers.entrySet()) {
-          int masterWorkerTimeoutMs = mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS,
-              10 * Constants.SECOND_MS);
+          int masterWorkerTimeoutMs =
+              mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS, 10 * Constants.SECOND_MS);
           if (CommonUtils.getCurrentMs()
               - worker.getValue().getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
             LOG.error("The worker " + worker.getValue() + " got timed out!");
@@ -160,8 +160,8 @@ public class MasterInfo extends ImageWriter {
         LOG.warn("Restarting failed workers.");
         try {
           String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
-          java.lang.Runtime.getRuntime().exec(
-              tachyonHome + "/bin/tachyon-start.sh restart_workers");
+          java.lang.Runtime.getRuntime()
+              .exec(tachyonHome + "/bin/tachyon-start.sh restart_workers");
         } catch (IOException e) {
           LOG.error(e.getMessage());
         }
@@ -222,7 +222,7 @@ public class MasterInfo extends ImageWriter {
         for (String cmd : cmds) {
           String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
           String filePath = tachyonHome + "/logs/rerun-" + mRerunCounter.incrementAndGet();
-          //TODO use bounded threads (ExecutorService)
+          // TODO use bounded threads (ExecutorService)
           Thread thread = new Thread(new RecomputeCommand(cmd, filePath));
           thread.setName("recompute-command-" + cmd);
           thread.start();
@@ -296,8 +296,7 @@ public class MasterInfo extends ImageWriter {
       TachyonConf tachyonConf) throws IOException {
     mExecutorService = executorService;
     mTachyonConf = tachyonConf;
-    mUFSDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER,
-        Constants.DEFAULT_DATA_FOLDER);
+    mUFSDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
 
     mRawTables = new RawTables(mTachyonConf);
 
@@ -310,8 +309,9 @@ public class MasterInfo extends ImageWriter {
     mStartTimeNSPrefix = mStartTimeMs - (mStartTimeMs % 1000000);
     mJournal = journal;
 
-    mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ",",
-        new LinkedList<String>()));
+    mWhitelist =
+        new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ",",
+            new LinkedList<String>()));
     mPinnedInodeFileIds = Collections.synchronizedSet(new HashSet<Integer>());
 
     mJournal.loadImage(this);
@@ -319,7 +319,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Add a checkpoint to a file, inner method.
-   * 
+   *
    * @param workerId The worker which submitted the request. -1 if the request is not from a worker.
    * @param fileId The file to add the checkpoint.
    * @param length The length of the checkpoint.
@@ -391,7 +391,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Completes the checkpointing of a file, inner method.
-   * 
+   *
    * @param fileId The id of the file
    * @param opTimeMs The time of the complete file operation, in milliseconds
    * @throws FileDoesNotExistException
@@ -474,7 +474,7 @@ public class MasterInfo extends ImageWriter {
   // TODO Make this API better.
   /**
    * Internal API.
-   * 
+   *
    * @param recursive If recursive is true and the filesystem tree is not filled in all the way to
    *        path yet, it fills in the missing components.
    * @param path The path to create
@@ -593,7 +593,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Inner delete function. Return true if the file does not exist in the first place.
-   * 
+   *
    * @param fileId The inode to delete
    * @param recursive True if the file and it's subdirectories should be deleted
    * @param opTimeMs The time of the delete operation, in milliseconds
@@ -676,7 +676,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the raw table info associated with the given id.
-   * 
+   *
    * @param path The path of the table
    * @param inode The inode at the path
    * @return the table info
@@ -699,7 +699,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the names of the sub-directories at the given path.
-   * 
+   *
    * @param inode The inode to list
    * @param path The path of the given inode
    * @param recursive If true, recursively add the paths of the sub-directories
@@ -728,7 +728,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Inner method of recomputePinnedFiles. Also directly called by EditLog.
-   * 
+   *
    * @param inode The inode to start traversal from
    * @param setPinState An optional parameter indicating whether we should also set the "pinned"
    *        flag on each inode we traverse. If absent, the "isPinned" flag is unchanged.
@@ -755,7 +755,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Rename a file to the given path, inner method.
-   * 
+   *
    * @param fileId The id of the file to rename
    * @param dstPath The new path of the file
    * @param opTimeMs The time of the rename operation, in milliseconds
@@ -851,7 +851,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Add a checkpoint to a file.
-   * 
+   *
    * @param workerId The worker which submitted the request. -1 if the request is not from a worker.
    * @param fileId The file to add the checkpoint.
    * @param length The length of the checkpoint.
@@ -877,7 +877,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Removes a checkpointed file from the set of lost or being-recomputed files if it's there
-   * 
+   *
    * @param fileId The file to examine
    */
   private void addFile(int fileId, int dependencyId) {
@@ -893,7 +893,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * While loading an image, addToInodeMap will map the various ids to their inodes.
-   * 
+   *
    * @param inode The inode to add
    * @param map The map to add the inodes to
    */
@@ -909,7 +909,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * A worker cache a block in its memory.
-   * 
+   *
    * @param workerId
    * @param usedBytesOnTier
    * @param blockId
@@ -920,8 +920,7 @@ public class MasterInfo extends ImageWriter {
    * @throws BlockInfoException
    */
   public int cacheBlock(long workerId, long usedBytesOnTier, long storageDirId, long blockId,
-      long length)
-      throws FileDoesNotExistException, BlockInfoException {
+      long length) throws FileDoesNotExistException, BlockInfoException {
     LOG.debug("Cache block: {}",
         CommonUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
 
@@ -960,7 +959,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Completes the checkpointing of a file.
-   * 
+   *
    * @param fileId The id of the file
    * @throws FileDoesNotExistException
    */
@@ -975,8 +974,8 @@ public class MasterInfo extends ImageWriter {
 
   public int createDependency(List<TachyonURI> parents, List<TachyonURI> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, DependencyType dependencyType)
-      throws InvalidPathException, FileDoesNotExistException {
+      String frameworkVersion, DependencyType dependencyType) throws InvalidPathException,
+      FileDoesNotExistException {
     synchronized (mRootLock) {
       LOG.info("ParentList: " + CommonUtils.listToString(parents));
       List<Integer> parentsIdList = getFilesIds(parents);
@@ -994,7 +993,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Create a file. // TODO Make this API better.
-   * 
+   *
    * @throws FileAlreadyExistException
    * @throws InvalidPathException
    * @throws BlockInfoException
@@ -1023,7 +1022,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Creates a new block for the given file.
-   * 
+   *
    * @param fileId The id of the file
    * @return the block id.
    * @throws FileDoesNotExistException
@@ -1045,7 +1044,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Creates a raw table.
-   * 
+   *
    * @param path The path to place the table at
    * @param columns The number of columns in the table
    * @param metadata Additional metadata about the table
@@ -1062,8 +1061,7 @@ public class MasterInfo extends ImageWriter {
 
     int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
     if (columns <= 0 || columns >= maxColumns) {
-      throw new TableColumnException("Column " + columns + " should between 0 to "
-          + maxColumns);
+      throw new TableColumnException("Column " + columns + " should between 0 to " + maxColumns);
     }
 
     int id;
@@ -1083,7 +1081,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Delete a file based on the file's ID.
-   * 
+   *
    * @param fileId the file to be deleted.
    * @param recursive whether delete the file recursively or not.
    * @return succeed or not
@@ -1101,7 +1099,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Delete files based on the path.
-   * 
+   *
    * @param path The file to be deleted.
    * @param recursive whether delete the file recursively or not.
    * @return succeed or not
@@ -1139,7 +1137,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the list of blocks of an InodeFile determined by path.
-   * 
+   *
    * @param path The file.
    * @return The list of the blocks of the file.
    * @throws InvalidPathException
@@ -1160,7 +1158,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the capacity of the whole system.
-   * 
+   *
    * @return the system's capacity in bytes.
    */
   public long getCapacityBytes() {
@@ -1175,7 +1173,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the block info associated with the given id.
-   * 
+   *
    * @param blockId The id of the block return
    * @return the block info
    * @throws FileDoesNotExistException
@@ -1190,8 +1188,8 @@ public class MasterInfo extends ImageWriter {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
       ClientBlockInfo ret =
-          ((InodeFile) inode).getClientBlockInfo(BlockInfo.computeBlockIndex(blockId),
-              mTachyonConf);
+          ((InodeFile) inode)
+              .getClientBlockInfo(BlockInfo.computeBlockIndex(blockId), mTachyonConf);
       LOG.debug("getClientBlockInfo: {} : {}", blockId, ret);
       return ret;
     }
@@ -1199,7 +1197,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the dependency info associated with the given id.
-   * 
+   *
    * @param dependencyId The id of the dependency
    * @return the dependency info
    * @throws DependencyDoesNotExistException
@@ -1218,7 +1216,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the file info associated with the given id.
-   * 
+   *
    * @param fid The id of the file
    * @return the file info
    */
@@ -1236,7 +1234,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the file info for the file at the given path
-   * 
+   *
    * @param path The path of the file
    * @return the file info
    * @throws InvalidPathException
@@ -1255,7 +1253,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the raw table info associated with the given id.
-   * 
+   *
    * @param id The id of the table
    * @return the table info
    * @throws TableDoesNotExistException
@@ -1272,7 +1270,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the raw table info for the table at the given path
-   * 
+   *
    * @param path The path of the table
    * @return the table info
    * @throws TableDoesNotExistException
@@ -1291,7 +1289,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the file id of the file.
-   * 
+   *
    * @param path The path of the file
    * @return The file id of the file. -1 if the file does not exist.
    * @throws InvalidPathException
@@ -1309,7 +1307,7 @@ public class MasterInfo extends ImageWriter {
   /**
    * Get the block infos of a file with the given id. Throws an exception if the id names a
    * directory.
-   * 
+   *
    * @param fileId The id of the file to look up
    * @return the block infos of the file
    * @throws FileDoesNotExistException
@@ -1329,7 +1327,7 @@ public class MasterInfo extends ImageWriter {
   /**
    * Get the block infos of a file with the given path. Throws an exception if the path names a
    * directory.
-   * 
+   *
    * @param path The path of the file to look up
    * @return the block infos of the file
    * @throws FileDoesNotExistException
@@ -1350,7 +1348,7 @@ public class MasterInfo extends ImageWriter {
   /**
    * Get the file id's of the given paths. It recursively scans directories for the file id's inside
    * of them.
-   * 
+   *
    * @param pathList The list of paths to look at
    * @return the file id's of the files.
    * @throws InvalidPathException
@@ -1368,7 +1366,7 @@ public class MasterInfo extends ImageWriter {
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
    * <code>path</code> is a file, return its ClientFileInfo.
-   * 
+   *
    * @param path the target directory/file path
    * @return A list of ClientFileInfo
    * @throws FileDoesNotExistException
@@ -1392,16 +1390,13 @@ public class MasterInfo extends ImageWriter {
     }
     return ret;
   }
-  
+
   /**
    * @return the total bytes on each storage tier.
    */
   public List<Long> getTotalBytesOnTiers() {
-    List<Long> ret = new ArrayList<Long>(StorageLevelAlias.values().length);
+    List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
     synchronized (mWorkers) {
-      for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
-        ret.add((long) 0);
-      }
       for (MasterWorkerInfo worker : mWorkers.values()) {
         for (int i = 0; i < worker.getTotalBytesOnTiers().size(); i ++) {
           ret.set(i, ret.get(i) + worker.getTotalBytesOnTiers().get(i));
@@ -1410,19 +1405,16 @@ public class MasterInfo extends ImageWriter {
     }
     return ret;
   }
-  
+
   /**
    * @return the used bytes on each storage tier.
    */
   public List<Long> getUsedBytesOnTiers() {
-    List<Long> ret = new ArrayList<Long>(StorageLevelAlias.values().length);
+    List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
     synchronized (mWorkers) {
-      for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
-        ret.add((long) 0);
-      }
       for (MasterWorkerInfo worker : mWorkers.values()) {
         for (int i = 0; i < worker.getUsedBytesOnTiers().size(); i ++) {
-          ret.set(i, ret.get(i) + worker.getUsedBytesOnTiers().get(i));  
+          ret.set(i, ret.get(i) + worker.getUsedBytesOnTiers().get(i));
         }
       }
     }
@@ -1431,7 +1423,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get absolute paths of all in memory files.
-   * 
+   *
    * @return absolute paths of all in memory files.
    */
   public List<TachyonURI> getInMemoryFiles() {
@@ -1441,8 +1433,8 @@ public class MasterInfo extends ImageWriter {
         new LinkedList<Pair<InodeFolder, TachyonURI>>();
     synchronized (mRootLock) {
       // TODO: Verify we want to use absolute path.
-      nodesQueue.add(
-          new Pair<InodeFolder, TachyonURI>(mRoot, new TachyonURI(TachyonURI.SEPARATOR)));
+      nodesQueue
+          .add(new Pair<InodeFolder, TachyonURI>(mRoot, new TachyonURI(TachyonURI.SEPARATOR)));
       while (!nodesQueue.isEmpty()) {
         Pair<InodeFolder, TachyonURI> tPair = nodesQueue.poll();
         InodeFolder tFolder = tPair.getFirst();
@@ -1471,7 +1463,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the inode of the file at the given path.
-   * 
+   *
    * @param pathNames The path components of the path to search for
    * @return the inode of the file at the given path, or null if the file does not exist
    * @throws InvalidPathException
@@ -1487,7 +1479,7 @@ public class MasterInfo extends ImageWriter {
   /**
    * Returns a list of the given folder's children, recursively scanning subdirectories. It adds the
    * parent of a node before adding its children.
-   * 
+   *
    * @param inodeFolder The folder to start looking at
    * @return a list of the children inodes.
    */
@@ -1506,7 +1498,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get Journal instance for MasterInfo for Unit test only
-   * 
+   *
    * @return Journal instance
    */
   public Journal getJournal() {
@@ -1515,7 +1507,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the master address.
-   * 
+   *
    * @return the master address
    */
   public InetSocketAddress getMasterAddress() {
@@ -1524,7 +1516,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get a new user id
-   * 
+   *
    * @return a new user id
    */
   public long getNewUserId() {
@@ -1533,15 +1525,15 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the number of files at a given path.
-   * 
+   *
    * @param path The path to look at
    * @return The number of files at the path. Returns 1 if the path specifies a file. If it's a
    *         directory, returns the number of items in the directory.
    * @throws InvalidPathException
    * @throws FileDoesNotExistException
    */
-  public int getNumberOfFiles(TachyonURI path)
-      throws InvalidPathException, FileDoesNotExistException {
+  public int getNumberOfFiles(TachyonURI path) throws InvalidPathException,
+      FileDoesNotExistException {
     Inode inode = getInode(path);
     if (inode == null) {
       throw new FileDoesNotExistException(path.toString());
@@ -1554,7 +1546,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the path specified by a given inode.
-   * 
+   *
    * @param inode The inode
    * @return the path of the inode
    */
@@ -1572,7 +1564,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the path of a file with the given id
-   * 
+   *
    * @param fileId The id of the file to look up
    * @return the path of the file
    * @throws FileDoesNotExistException raise if the file does not exist.
@@ -1589,7 +1581,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get a list of the pin id's.
-   * 
+   *
    * @return a list of pin id's
    */
   public List<Integer> getPinIdList() {
@@ -1600,7 +1592,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Creates a list of high priority dependencies, which don't yet have checkpoints.
-   * 
+   *
    * @return the list of dependency ids
    */
   public List<Integer> getPriorityDependencyList() {
@@ -1638,14 +1630,14 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the id of the table at the given path.
-   * 
+   *
    * @param path The path of the table
    * @return the id of the table
    * @throws InvalidPathException
    * @throws TableDoesNotExistException
    */
-  public int getRawTableId(TachyonURI path)
-      throws InvalidPathException, TableDoesNotExistException {
+  public int getRawTableId(TachyonURI path) throws InvalidPathException,
+      TableDoesNotExistException {
     Inode inode = getInode(path);
     if (inode == null) {
       throw new TableDoesNotExistException(path.toString());
@@ -1661,7 +1653,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the master start time in milliseconds.
-   * 
+   *
    * @return the master start time in milliseconds
    */
   public long getStarttimeMs() {
@@ -1670,7 +1662,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the capacity of the under file system.
-   * 
+   *
    * @return the capacity in bytes
    * @throws IOException
    */
@@ -1681,7 +1673,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the amount of free space in the under file system.
-   * 
+   *
    * @return the free space in bytes
    * @throws IOException
    */
@@ -1692,7 +1684,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the amount of space used in the under file system.
-   * 
+   *
    * @return the space used in bytes
    * @throws IOException
    */
@@ -1703,7 +1695,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the amount of space used by the workers.
-   * 
+   *
    * @return the amount of space used in bytes
    */
   public long getUsedBytes() {
@@ -1718,7 +1710,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the white list.
-   * 
+   *
    * @return the white list
    */
   public List<String> getWhiteList() {
@@ -1727,7 +1719,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the address of a worker.
-   * 
+   *
    * @param random If true, select a random worker
    * @param host If <code>random</code> is false, select a worker on this host
    * @return the address of the selected worker, or null if no address could be found
@@ -1767,7 +1759,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the number of workers.
-   * 
+   *
    * @return the number of workers
    */
   public int getWorkerCount() {
@@ -1778,7 +1770,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get info about a worker.
-   * 
+   *
    * @param workerId The id of the worker to look at
    * @return the info about the worker
    */
@@ -1796,7 +1788,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get info about all the workers.
-   * 
+   *
    * @return a list of worker infos
    */
   public List<ClientWorkerInfo> getWorkersInfo() {
@@ -1813,7 +1805,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get info about the lost workers
-   * 
+   *
    * @return a list of worker info
    */
   public List<ClientWorkerInfo> getLostWorkersInfo() {
@@ -1833,15 +1825,15 @@ public class MasterInfo extends ImageWriter {
     mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
     mHeartbeat =
         mExecutorService.submit(new HeartbeatThread("Master Heartbeat",
-            new MasterInfoHeartbeatExecutor(),
-            mTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS)));
+            new MasterInfoHeartbeatExecutor(), mTachyonConf.getInt(
+                Constants.MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS)));
 
     mRecompute = mExecutorService.submit(new RecomputationScheduler());
   }
 
   /**
    * Get the id of the file at the given path. If recursive, it scans the subdirectories as well.
-   * 
+   *
    * @param path The path to start looking at
    * @param recursive If true, recursively scan the subdirectories at the given path as well
    * @return the list of the inode id's at the path
@@ -1884,7 +1876,7 @@ public class MasterInfo extends ImageWriter {
   /**
    * Load the image from <code>parser</code>, which is created based on the <code>path</code>.
    * Assume this blocks the whole MasterInfo.
-   * 
+   *
    * @param parser the JsonParser to load the image
    * @param path the file to load the image
    * @throws IOException
@@ -1958,7 +1950,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the names of the sub-directories at the given path.
-   * 
+   *
    * @param path The path to look at
    * @param recursive If true, recursively add the paths of the sub-directories
    * @return the list of paths
@@ -1978,7 +1970,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Create a directory at the given path.
-   * 
+   *
    * @param path The path to create a directory at
    * @return true if and only if the directory was created; false otherwise
    * @throws FileAlreadyExistException
@@ -1996,7 +1988,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Called by edit log only.
-   * 
+   *
    * @param fileId
    * @param blockIndex
    * @param blockLength
@@ -2024,7 +2016,7 @@ public class MasterInfo extends ImageWriter {
   /**
    * Recomputes mFileIdPinList at the given Inode, recursively recomputing for children. Optionally
    * will set the "pinned" flag as we go.
-   * 
+   *
    * @param inode The inode to start traversal from
    * @param setPinState An optional parameter indicating whether we should also set the "pinned"
    *        flag on each inode we traverse. If absent, the "isPinned" flag is unchanged.
@@ -2037,7 +2029,7 @@ public class MasterInfo extends ImageWriter {
   /**
    * Register a worker at the given address, setting it up and associating it with a given list of
    * blocks.
-   * 
+   *
    * @param workerNetAddress The address of the worker to register
    * @param totalBytesOnTiers Total bytes on each storage tier
    * @param usedBytesOnTiers Used Bytes on each storage tier
@@ -2047,7 +2039,7 @@ public class MasterInfo extends ImageWriter {
    */
   public long registerWorker(NetAddress workerNetAddress, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlockIds)
-          throws BlockInfoException {
+      throws BlockInfoException {
     long id = 0;
     long capacityBytes = 0;
     NetAddress workerAddress = new NetAddress(workerNetAddress);
@@ -2071,7 +2063,7 @@ public class MasterInfo extends ImageWriter {
       }
       MasterWorkerInfo tWorkerInfo =
           new MasterWorkerInfo(id, workerAddress, totalBytesOnTiers, capacityBytes);
-      tWorkerInfo.updateUsedBytes(usedBytesOnTiers); 
+      tWorkerInfo.updateUsedBytes(usedBytesOnTiers);
       for (List<Long> blockIds : currentBlockIds.values()) {
         tWorkerInfo.updateBlocks(true, blockIds);
       }
@@ -2102,7 +2094,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Rename a file to the given path.
-   * 
+   *
    * @param fileId The id of the file to rename
    * @param dstPath The new path of the file
    * @return true if the rename succeeded, false otherwise
@@ -2122,7 +2114,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Rename a file to the given path.
-   * 
+   *
    * @param srcPath The path of the file to rename
    * @param dstPath The new path of the file
    * @return true if the rename succeeded, false otherwise
@@ -2142,7 +2134,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Logs a lost file and sets it to be recovered.
-   * 
+   *
    * @param fileId The id of the file to be recovered
    */
   public void reportLostFile(int fileId) {
@@ -2173,7 +2165,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Request that the files for the given dependency be recomputed.
-   * 
+   *
    * @param depId The dependency whose files are to be recomputed
    */
   public void requestFilesInDependency(int depId) {
@@ -2239,8 +2231,8 @@ public class MasterInfo extends ImageWriter {
         Inode freeInode = freeInodes.get(i);
 
         if (freeInode.isFile()) {
-          List<Pair<Long, Long>> blockIdWorkerIdList
-              = ((InodeFile) freeInode).getBlockIdWorkerIdPairs();
+          List<Pair<Long, Long>> blockIdWorkerIdList =
+              ((InodeFile) freeInode).getBlockIdWorkerIdPairs();
           synchronized (mWorkers) {
             for (Pair<Long, Long> blockIdWorkerId : blockIdWorkerIdList) {
               MasterWorkerInfo workerInfo = mWorkers.get(blockIdWorkerId.getSecond());
@@ -2293,7 +2285,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Returns whether the traversal was successful or not.
-   * 
+   *
    * @return true if the traversal was successful, or false otherwise.
    */
   private boolean traversalSucceeded(Pair<Inode, Integer> inodeTraversal) {
@@ -2302,7 +2294,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Traverse to the inode at the given path.
-   * 
+   *
    * @param pathNames The path to search for, broken into components
    * @return the inode of the file at the given path. If it was not able to traverse down the entire
    *         path, it will set the second field to the first path component it didn't find. It never
@@ -2355,7 +2347,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Update the metadata of a table.
-   * 
+   *
    * @param tableId The id of the table to update
    * @param metadata The new metadata to update the table with
    * @throws TableDoesNotExistException
@@ -2380,7 +2372,7 @@ public class MasterInfo extends ImageWriter {
   /**
    * The heartbeat of the worker. It updates the information of the worker and removes the given
    * block id's.
-   * 
+   *
    * @param workerId The id of the worker to deal with
    * @param usedBytesOnTiers Used bytes on each storage tier
    * @param removedBlockIds The list of removed block ids
@@ -2452,7 +2444,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Create an image of the dependencies and filesystem tree.
-   * 
+   *
    * @param objWriter The used object writer
    * @param dos The target data output stream
    * @throws IOException

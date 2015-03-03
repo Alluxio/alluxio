@@ -245,8 +245,9 @@ public class WorkerStorage {
             LOG.error("Failed to rename from " + midPath + " to " + dstPath);
           }
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
-          int capMbSec = mTachyonConf.getInt(Constants.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC,
-              Constants.SECOND_MS);
+          int capMbSec =
+              mTachyonConf.getInt(Constants.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC,
+                  Constants.SECOND_MS);
           long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB / capMbSec);
           long currentTimeMs = System.currentTimeMillis();
           if (startCopyTimeMs + shouldTakeMs > currentTimeMs) {
@@ -306,10 +307,10 @@ public class WorkerStorage {
 
   /**
    * Main logic behind the worker process.
-   * 
+   *
    * This object is lazily initialized. Before an object of this call should be used,
    * {@link #initialize} must be called.
-   * 
+   *
    * @param masterAddress The TachyonMaster's address
    * @param executorService
    * @param tachyonConf The instance of TachyonConf to be used. If null the instantiate new one.
@@ -327,8 +328,8 @@ public class WorkerStorage {
     mUserFolder = CommonUtils.concat(mDataFolder, userTmpFolder);
 
     int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
-    mCheckpointExecutor = Executors.newFixedThreadPool(checkpointThreads,
-        ThreadFactoryUtils.build("checkpoint-%d"));
+    mCheckpointExecutor =
+        Executors.newFixedThreadPool(checkpointThreads, ThreadFactoryUtils.build("checkpoint-%d"));
   }
 
   public void initialize(final NetAddress address) {
@@ -344,8 +345,8 @@ public class WorkerStorage {
 
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
     String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underfs");
-    String ufsWorkerFolder = mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER,
-        ufsAddress + "/tachyon/workers");
+    String ufsWorkerFolder =
+        mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, ufsAddress + "/tachyon/workers");
     mUfsWorkerFolder = CommonUtils.concat(ufsWorkerFolder, mWorkerId);
     mUfsWorkerDataFolder = mUfsWorkerFolder + "/data";
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
@@ -370,7 +371,7 @@ public class WorkerStorage {
 
   /**
    * Update the latest block access time on the worker.
-   * 
+   *
    * @param blockId The id of the block
    */
   void accessBlock(long blockId) {
@@ -382,13 +383,13 @@ public class WorkerStorage {
 
   /**
    * Add the checkpoint information of a file. The information is from the user <code>userId</code>.
-   * 
+   *
    * This method is normally triggered from {@link tachyon.client.FileOutStream#close()} if and only
    * if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
    * checkpointing is that through {@link tachyon.client.WriteType} operations write to
    * {@link tachyon.UnderFileSystem} on the client's write path, but under a user temp directory
    * (temp directory is defined in the worker as {@link #getUserUfsTempFolder(long)}).
-   * 
+   *
    * @param userId The user id of the client who send the notification
    * @param fileId The id of the checkpointed file
    * @throws FileDoesNotExistException
@@ -420,7 +421,7 @@ public class WorkerStorage {
 
   /**
    * Report blocks on the worker when initializing worker storage
-   * 
+   *
    * @throws IOException
    * @throws BlockInfoException
    */
@@ -433,9 +434,9 @@ public class WorkerStorage {
       for (StorageDir curStorageDir : curStorageTier.getStorageDirs()) {
         for (Entry<Long, Long> blockSize : curStorageDir.getBlockSizes()) {
           try {
-            mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytesOnTiers().get(curStorageTier
-                .getAlias().getValue() - 1), curStorageDir.getStorageDirId(), blockSize.getKey(),
-                blockSize.getValue());
+            mMasterClient.worker_cacheBlock(mWorkerId,
+                getUsedBytesOnTiers().get(curStorageTier.getAlias().getValue() - 1),
+                curStorageDir.getStorageDirId(), blockSize.getKey(), blockSize.getValue());
           } catch (FileDoesNotExistException e) {
             LOG.error("Block not exist in metadata! blockId:{}", blockSize.getKey());
             swapoutOrphanBlocks(curStorageDir, blockSize.getKey());
@@ -448,7 +449,7 @@ public class WorkerStorage {
 
   /**
    * Notify the worker to checkpoint the file asynchronously.
-   * 
+   *
    * @param fileId The id of the file
    * @return true if succeed, false otherwise
    * @throws IOException
@@ -472,25 +473,25 @@ public class WorkerStorage {
 
   /**
    * Notify the worker the block is cached.
-   * 
+   *
    * This call is called remotely from {@link tachyon.client.TachyonFS#cacheBlock(long)} which is
    * only ever called from {@link tachyon.client.BlockOutStream#close()} (though its a public api so
    * anyone could call it). There are a few interesting preconditions for this to work.
-   * 
+   *
    * 1) Client process writes to files locally under a tachyon defined temp directory. 2) Worker
    * process is on the same node as the client 3) Client is talking to the local worker directly
-   * 
+   *
    * If all conditions are true, then and only then can this method ever be called; all operations
    * work on local files.
-   * 
+   *
    * @param userId The user id of the client who send the notification
    * @param blockId The id of the block
    * @throws FileDoesNotExistException
    * @throws BlockInfoException
    * @throws IOException
    */
-  public void cacheBlock(long userId, long blockId)
-      throws FileDoesNotExistException, BlockInfoException, IOException {
+  public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
+      BlockInfoException, IOException {
     StorageDir storageDir = mTempBlockLocation.remove(new Pair<Long, Long>(userId, blockId));
     if (storageDir == null) {
       throw new FileDoesNotExistException("Block doesn't exist! blockId:" + blockId);
@@ -504,21 +505,23 @@ public class WorkerStorage {
     }
     if (result) {
       long blockSize = storageDir.getBlockSize(blockId);
-      mMasterClient.worker_cacheBlock(mWorkerId, getUsedBytesOnTiers()
-          .get(StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId()) - 1),
+      mMasterClient.worker_cacheBlock(
+          mWorkerId,
+          getUsedBytesOnTiers().get(
+              StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId()) - 1),
           storageDir.getStorageDirId(), blockId, blockSize);
     }
   }
 
   /**
    * Cancel the block which is being written by some user
-   * 
+   *
    * @param userId The id of the user who wants to cancel the block
    * @param blockId The id of the block that is cancelled
    */
   public void cancelBlock(long userId, long blockId) {
     StorageDir storageDir = mTempBlockLocation.remove(new Pair<Long, Long>(userId, blockId));
-    
+
     if (storageDir != null) {
       mUserIdToTempBlockIds.remove(userId, blockId);
       try {
@@ -553,7 +556,7 @@ public class WorkerStorage {
 
   /**
    * Remove a block from Tachyon cache space.
-   * 
+   *
    * @param blockId The block to be removed.
    */
   private void freeBlock(long blockId) {
@@ -573,10 +576,10 @@ public class WorkerStorage {
 
   /**
    * Remove blocks from Tachyon cache space.
-   * 
+   *
    * This is triggered when the worker heartbeats to the master, which sends a
    * {@link tachyon.thrift.Command} with type {@link tachyon.thrift.CommandType#Free}
-   * 
+   *
    * @param blockIds The id list of blocks to be removed.
    */
   public void freeBlocks(List<Long> blockIds) {
@@ -587,7 +590,7 @@ public class WorkerStorage {
 
   /**
    * Get StorageDir which contains specified block
-   * 
+   *
    * @param blockId the id of the block
    * @return StorageDir which contains the block
    */
@@ -611,7 +614,7 @@ public class WorkerStorage {
 
   /**
    * Get used bytes of current WorkerStorage
-   * 
+   *
    * @return used bytes of current WorkerStorage
    */
   private long getUsedBytes() {
@@ -621,35 +624,32 @@ public class WorkerStorage {
     }
     return usedBytes;
   }
-  
+
   /**
    * Get used bytes on each storage tier
-   * 
+   *
    * @return used bytes on each storage tier
    */
   private List<Long> getUsedBytesOnTiers() {
-    List<Long> usedBytes = new ArrayList<Long>(StorageLevelAlias.values().length);
-    for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
-      usedBytes.add((long) 0);
-    }
+    List<Long> usedBytes = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
     for (StorageTier curTier : mStorageTiers) {
-      usedBytes.set(curTier.getAlias().getValue() - 1, usedBytes.get(curTier.getAlias()
-          .getValue() - 1) + curTier.getUsedBytes());
+      int tier = curTier.getAlias().getValue() - 1;
+      usedBytes.set(tier, usedBytes.get(tier) + curTier.getUsedBytes());
     }
     return usedBytes;
   }
 
   /**
    * Get the user temporary folder in the under file system of the specified user.
-   * 
+   *
    * This method is a wrapper around {@link tachyon.Users#getUserUfsTempFolder(long)}, and as such
    * should be referentially transparent with {@link Users#getUserUfsTempFolder(long)}. In the
    * context of {@code this}, this call will output the result of path concat of
    * {@link #mUfsWorkerFolder} with the provided {@literal userId}.
-   * 
+   *
    * This temp folder generated lives inside the {@link tachyon.UnderFileSystem}, and as such, will
    * be stored remotely, most likely on disk.
-   * 
+   *
    * @param userId The id of the user
    * @return The user temporary folder in the under file system
    */
@@ -662,7 +662,7 @@ public class WorkerStorage {
   /**
    * Heartbeat with the TachyonMaster. Send the removed block list and added block list to the
    * Master.
-   * 
+   *
    * @return The Command received from the Master
    * @throws IOException
    */
@@ -677,13 +677,13 @@ public class WorkerStorage {
         addedBlockIds.put(storageDir.getStorageDirId(), storageDir.getAddedBlockIdList());
       }
     }
-    return mMasterClient
-        .worker_heartbeat(mWorkerId, getUsedBytesOnTiers(), removedBlockIds, addedBlockIds);
+    return mMasterClient.worker_heartbeat(mWorkerId, getUsedBytesOnTiers(), removedBlockIds,
+        addedBlockIds);
   }
 
   /**
    * Initialize StorageTiers on current WorkerStorage
-   * 
+   *
    * @throws IOException
    */
   public void initializeStorageTier() throws IOException {
@@ -704,16 +704,16 @@ public class WorkerStorage {
         index = level - 1;
       }
 
-      StorageLevelAlias storageLevelAlias = mTachyonConf.getEnum(tierLevelAliasProp,
-          StorageLevelAlias.MEM);
+      StorageLevelAlias storageLevelAlias =
+          mTachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
 
       String[] dirPaths = mTachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
       for (int i = 0; i < dirPaths.length; i ++) {
         dirPaths[i] = dirPaths[i].trim();
       }
 
-      String tierDirsQuota = mTachyonConf.get(tierDirsQuotaProp,
-          Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[index]);
+      String tierDirsQuota =
+          mTachyonConf.get(tierDirsQuotaProp, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[index]);
 
       for (int i = 0; i < dirPaths.length; i ++) {
         dirPaths[i] = dirPaths[i].trim();
@@ -727,8 +727,9 @@ public class WorkerStorage {
           j ++;
         }
       }
-      StorageTier curTier = new StorageTier(level, storageLevelAlias, dirPaths, dirCapacities,
-          mDataFolder, mUserFolder, nextStorageTier, null, mTachyonConf); // TODO add conf for UFS
+      StorageTier curTier =
+          new StorageTier(level, storageLevelAlias, dirPaths, dirCapacities, mDataFolder,
+              mUserFolder, nextStorageTier, null, mTachyonConf); // TODO add conf for UFS
       curTier.initialize();
       mCapacityBytes += curTier.getCapacityBytes();
       mStorageTiers.set(level, curTier);
@@ -738,13 +739,13 @@ public class WorkerStorage {
 
   /**
    * Lock the block by some user
-   * 
+   *
    * Used internally to make sure blocks are unmodified, but also used in
    * {@link tachyon.client.TachyonFS} for caching blocks locally for users. When a user tries to
    * read a block ({@link tachyon.client.TachyonFile#readByteBuffer(int)} ()}), the client will
    * attempt to cache the block on the local users's node, while the user is reading from the local
    * block, the given block is locked and unlocked once read.
-   * 
+   *
    * @param blockId The id of the block
    * @param userId The id of the user who locks the block
    * @return the StorageDir in which the block is locked
@@ -763,7 +764,7 @@ public class WorkerStorage {
 
   /**
    * If the block is not on top StorageTier, promote block to top StorageTier
-   * 
+   *
    * @param blockId the id of the block
    * @return true if success, false otherwise
    */
@@ -772,8 +773,8 @@ public class WorkerStorage {
     StorageDir storageDir = lockBlock(blockId, userId);
     if (storageDir == null) {
       return false;
-    } else if (StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId())
-        != mStorageTiers.get(0).getAlias().getValue()) {
+    } else if (StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId()) != mStorageTiers
+        .get(0).getAlias().getValue()) {
       long blockSize = storageDir.getBlockSize(blockId);
       StorageDir dstStorageDir = requestSpace(null, userId, blockSize);
       if (dstStorageDir == null) {
@@ -808,14 +809,12 @@ public class WorkerStorage {
   public void register() {
     long id = 0;
     Map<Long, List<Long>> blockIdLists = new HashMap<Long, List<Long>>();
-    List<Long> capacityBytesOnTiers = new ArrayList<Long>(StorageLevelAlias.values().length);
-    
-    for (int i = 0; i < StorageLevelAlias.values().length; i ++) {
-      capacityBytesOnTiers.add((long) 0);
-    }
+    List<Long> capacityBytesOnTiers =
+        new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
     for (StorageTier curStorageTier : mStorageTiers) {
-      capacityBytesOnTiers.set(curStorageTier.getAlias().getValue() - 1, capacityBytesOnTiers
-          .get(curStorageTier.getAlias().getValue() - 1) + curStorageTier.getCapacityBytes());
+      int tier = curStorageTier.getAlias().getValue() - 1;
+      capacityBytesOnTiers.set(tier,
+          capacityBytesOnTiers.get(tier) + curStorageTier.getCapacityBytes());
       for (StorageDir curStorageDir : curStorageTier.getStorageDirs()) {
         Set<Long> blockSet = curStorageDir.getBlockIds();
         blockIdLists.put(curStorageDir.getStorageDirId(), new ArrayList<Long>(blockSet));
@@ -824,8 +823,8 @@ public class WorkerStorage {
     while (id == 0) {
       try {
         id =
-            mMasterClient.worker_register(mWorkerAddress, 
-                capacityBytesOnTiers, getUsedBytesOnTiers(), blockIdLists);
+            mMasterClient.worker_register(mWorkerAddress, capacityBytesOnTiers,
+                getUsedBytesOnTiers(), blockIdLists);
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
@@ -841,14 +840,14 @@ public class WorkerStorage {
 
   /**
    * Get temporary file path for some block, it is used to choose appropriate StorageDir for some
-   * block file with specified initial size. 
-   * 
+   * block file with specified initial size.
+   *
    * @param userId the id of the user who wants to write the file
    * @param blockId the id of the block
-   * @param initialBytes the initial size allocated for the block 
+   * @param initialBytes the initial size allocated for the block
    * @return the temporary path of the block file
    * @throws OutOfSpaceException
-   * @throws FileAlreadyExistException 
+   * @throws FileAlreadyExistException
    */
   public String requestBlockLocation(long userId, long blockId, long initialBytes)
       throws OutOfSpaceException, FileAlreadyExistException {
@@ -870,9 +869,9 @@ public class WorkerStorage {
   }
 
   /**
-   * Request space from the worker, and expecting worker return the appropriate StorageDir which
-   * has enough space for the requested space size
-   * 
+   * Request space from the worker, and expecting worker return the appropriate StorageDir which has
+   * enough space for the requested space size
+   *
    * @param dirCandidate The StorageDir in which the space will be allocated.
    * @param userId The id of the user who send the request
    * @param requestBytes The requested space size, in bytes
@@ -914,12 +913,12 @@ public class WorkerStorage {
   /**
    * Request space from the specified StorageDir, it is used for requesting space for the block
    * which is partially written in some StorageDir
-   * 
+   *
    * @param userId The id of the user who send the request
    * @param blockId The id of the block that the space is allocated for
    * @param requestBytes The requested space size, in bytes
    * @return true if succeed, false otherwise
-   * @throws FileDoesNotExistException 
+   * @throws FileDoesNotExistException
    */
   public boolean requestSpace(long userId, long blockId, long requestBytes)
       throws FileDoesNotExistException {
