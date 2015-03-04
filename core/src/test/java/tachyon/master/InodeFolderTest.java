@@ -191,6 +191,11 @@ public class InodeFolderTest {
           new InodeFile(String.format("testFile%d", i + 1), i + 2, 1, 1, System.currentTimeMillis());
       inodeFolder.addChild(inodes[i]);
     }
+
+    Runtime runtime = Runtime.getRuntime();
+    System.out.println(String.format("Used Memory = %dB when number of files = %d",
+        runtime.totalMemory() - runtime.freeMemory(), nFiles));
+
     long start = System.currentTimeMillis();
     for (int i = 0; i < nFiles; i ++) {
       Assert.assertEquals(inodes[i], inodeFolder.getChild(i + 2));
