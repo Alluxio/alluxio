@@ -221,6 +221,6 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
    * @param acl
    */
   public synchronized void setAcl(Acl acl) {
-    this.mAcl = acl;
+    mAcl = acl;
   }
 }

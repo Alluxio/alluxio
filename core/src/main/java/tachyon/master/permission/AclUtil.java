@@ -21,8 +21,20 @@ import tachyon.master.permission.AclEntry.AclPermission;
 
 public class AclUtil {
   private static final AclPermission[] ACL_PERMISSIONS = AclPermission.values();
+  // ACL enable key, the default value of this key is true
+  public static final String ACL_ENABLE_KEY = "tfs.permission.enable";
+
+  // umask key
   public static final String UMASK_KEY = "tfs.permission.umask";
+
+  // Default value of umask
   public static final int DEFAULT_UMASK = 0022;
+
+  // Default permission of directory
+  public static final short DEFAULT_DIR_PERMISSION = 0777;
+
+  // Default permission of file
+  public static final short DEFAULT_FILE_PERMISSION = 0666;
 
   /**
    * Get user permission from a short
