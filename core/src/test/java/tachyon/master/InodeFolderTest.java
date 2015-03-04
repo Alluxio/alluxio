@@ -20,11 +20,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * Unit tests for tachyon.InodeFolder
@@ -174,7 +175,35 @@ public class InodeFolderTest {
     Assert.assertEquals(1, decoded.getInt("id").intValue());
     Assert.assertEquals("test1", decoded.getString("name"));
     Assert.assertEquals(0, decoded.getInt("parentId").intValue());
-    Assert.assertEquals(new ArrayList<Integer>(), decoded.get("childrenIds", new TypeReference<List<Integer>>() {}));
+    Assert.assertEquals(new ArrayList<Integer>(),
+        decoded.get("childrenIds", new TypeReference<List<Integer>>() {}));
     Assert.assertEquals(creationTime, decoded.getLong("lastModificationTimeMs").longValue());
+  }
+
+  @Test
+  public void getChildTest() {
+    // large number of small files
+    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0, System.currentTimeMillis());
+    int nFiles = (int) 1E5;
+    Inode[] inodes = new Inode[nFiles];
+    for (int i = 0; i < nFiles; i ++) {
+      inodes[i] =
+          new InodeFile(String.format("testFile%d", i + 1), i + 2, 1, 1, System.currentTimeMillis());
+      inodeFolder.addChild(inodes[i]);
+    }
+    long start = System.currentTimeMillis();
+    for (int i = 0; i < nFiles; i ++) {
+      Assert.assertEquals(inodes[i], inodeFolder.getChild(i + 2));
+    }
+    System.out.println(String.format("getChild(int fid) called sequentially %d times, cost %d ms",
+        nFiles, System.currentTimeMillis() - start));
+
+    start = System.currentTimeMillis();
+    for (int i = 0; i < nFiles; i ++) {
+      Assert.assertEquals(inodes[i], inodeFolder.getChild(String.format("testFile%d", i + 1)));
+    }
+    System.out.println(String.format(
+        "getChild(String name) called sequentially %d times, cost %d ms", nFiles,
+        System.currentTimeMillis() - start));
   }
 }
