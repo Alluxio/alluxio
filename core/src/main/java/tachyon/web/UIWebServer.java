@@ -60,7 +60,10 @@ public class UIWebServer {
    */
   public UIWebServer(String serverName, InetSocketAddress address, MasterInfo masterInfo, 
       TachyonConf conf) {
+    Preconditions.checkNotNull(serverName, "Server name cannot be null");
+    Preconditions.checkNotNull(address, "Server address cannot be null");
     Preconditions.checkNotNull(conf, "Configuration cannot be null");
+    
     mAddress = address;
     mServerName = serverName;
     mTachyonConf = conf;
