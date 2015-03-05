@@ -474,10 +474,17 @@ public final class CommonUtils {
   }
 
   public static void sleepMs(Logger logger, long timeMs) {
+    sleepMs(logger, timeMs, false);
+  }
+
+  public static void sleepMs(Logger logger, long timeMs, boolean shouldInterrupt) {
     try {
       Thread.sleep(timeMs);
     } catch (InterruptedException e) {
       logger.warn(e.getMessage(), e);
+      if (shouldInterrupt) {
+        Thread.currentThread().interrupt();
+      }
     }
   }
 
