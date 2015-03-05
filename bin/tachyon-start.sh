@@ -8,7 +8,7 @@ fi
 
 #start up tachyon
 
-Usage="Usage: tachyon-start.sh [-h] WHAT [MOPT] [-f]
+Usage="Usage: tachyon-start.sh [-hN] WHAT [MOPT] [-f]
 Where WHAT is one of:
   all MOPT\t\tStart master and all workers.
   local\t\t\tStart a master and worker locally
@@ -25,6 +25,8 @@ MOPT is one of:
   NoMount\t\tDo not mount the configured RamFS
 
 -f  format Journal, UnderFS Data and Workers Folder on master
+
+-N  Do not try to kill prior running masters and/or workers in all or local
 
 -h  display this help."
 
@@ -143,11 +145,14 @@ run_safe() {
   done
 }
 
-while getopts "h" o; do
+while getopts "hN" o; do
   case "${o}" in
     h)
       echo -e "$Usage"
       exit 0
+      ;;
+    N)
+      killonstart="no"
       ;;
     *)
       echo -e "$Usage"
@@ -175,14 +180,18 @@ ensure_dirs
 case "${WHAT}" in
   all)
     check_mount_mode $2
-    stop $bin
+    if [ "${killonstart}" != "no" ]; then
+      stop $bin
+    fi
     start_master $3
     sleep 2
     $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon-start.sh worker $2
     ;;
   local)
-    stop $bin
-    sleep 1
+    if [ "${killonstart}" != "no" ]; then
+      stop $bin
+      sleep 1
+    fi
     $LAUNCHER $bin/tachyon-mount.sh SudoMount
     stat=$?
     if [ $stat -ne 0 ] ; then

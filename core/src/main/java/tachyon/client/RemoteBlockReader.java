@@ -13,11 +13,31 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.client;
 
-/**
- * Enum over the different networking implementations.
- */
-public enum NetworkType {
-  NIO, NETTY
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import com.google.common.base.Throwables;
+
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.util.CommonUtils;
+
+public interface RemoteBlockReader {
+
+  class Factory {
+    public static RemoteBlockReader createRemoteBlockReader(TachyonConf conf) {
+      try {
+        return CommonUtils.createNewClassInstance(conf.getClass(
+            Constants.USER_REMOTE_BLOCK_READER, Constants.USER_REMOTE_BLOCK_READER_CLASS), null,
+            null);
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
+    }
+  }
+
+  public abstract ByteBuffer readRemoteBlock(String host, int port, long blockId, long offset,
+      long length) throws IOException;
 }

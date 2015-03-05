@@ -31,6 +31,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -55,14 +56,21 @@ public class UIWebServer {
    * @param serverName Name of the server
    * @param address Address of the server
    * @param masterInfo MasterInfo for the tachyon filesystem this UIWebServer supports
+   * @param conf Tachyon configuration
    */
-  public UIWebServer(String serverName, InetSocketAddress address, MasterInfo masterInfo) {
+  public UIWebServer(String serverName, InetSocketAddress address, MasterInfo masterInfo, 
+      TachyonConf conf) {
+    Preconditions.checkNotNull(serverName, "Server name cannot be null");
+    Preconditions.checkNotNull(address, "Server address cannot be null");
+    Preconditions.checkNotNull(masterInfo, "Master information cannot be null");
+    Preconditions.checkNotNull(conf, "Configuration cannot be null");
+    
     mAddress = address;
     mServerName = serverName;
-    mTachyonConf = new TachyonConf();
+    mTachyonConf = conf;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = mTachyonConf.getInt(Constants.MASTER_WEB_THREAD_COUNT, 9);
+    int webThreadCount = mTachyonConf.getInt(Constants.MASTER_WEB_THREAD_COUNT, 1);
 
     mServer = new Server();
     SelectChannelConnector connector = new SelectChannelConnector();
@@ -111,6 +119,10 @@ public class UIWebServer {
   public void startWebServer() {
     try {
       mServer.start();
+      if (mAddress.getPort() == 0) {
+        mAddress = new InetSocketAddress(mAddress.getHostName(), 
+            mServer.getConnectors()[0].getLocalPort());
+      }
       LOG.info(mServerName + " started @ " + mAddress);
     } catch (Exception e) {
       throw Throwables.propagate(e);

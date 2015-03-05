@@ -30,9 +30,9 @@
                 <% } %>
                 <th>Last Heartbeat</th>
                 <th>State</th>
-                <th>Memory Capacity</th>
-                <th>Used Memory</th>
-                <th>Memory Usage</th>
+                <th>Workers Capacity</th>
+                <th>Space Used</th>
+                <th>Space Usage</th>
               </thead>  
               <tbody>
                 <% for (WebInterfaceWorkersServlet.NodeInfo nodeInfo : ((WebInterfaceWorkersServlet.NodeInfo[]) request.getAttribute("normalNodeInfos"))) { %>
@@ -85,7 +85,7 @@
                   <th>[D]Uptime</th>
                 <% } %>
                 <th>Last Heartbeat</th>
-                <th>Memory Capacity</th>
+                <th>Workers Capacity</th>
               </thead>  
               <tbody>
                 <% if (request.getAttribute("failedNodeInfos") != null) {
