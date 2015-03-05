@@ -7,7 +7,7 @@ A general performance test framework for [Tachyon](http://tachyon-project.org/).
 The following steps show how to run a Tachyon-Perf test. 
 
 1. Copy `perf/conf/tachyon-perf-env.sh.template` to `perf/conf/tachyon-perf-env.sh` and configure it as prompted.
-2. Edit `perf/conf/slaves` to add testing slave nodes. It's recommended to be the same as `{tachyon.home}/conf/slaves`. By the way, duplicate slave name is allowed which implies start multi-processes tests on one slave node.
+2. Edit `perf/conf/slaves` to add testing slave nodes. It's recommended to be the same as `{tachyon.home}/conf/workers`. By the way, duplicate slave name is allowed which implies start multi-processes tests on one slave node.
 3. The running test command is `perf/bin/tachyon-perf <TestCase>`
  * The parameter is the name of test case, and now it should be `Metadata`, `SimpleWrite`, `SimpleRead` or `SkipRead`.
  * The test's configurations are in `conf/testSuite/<TestCase>.xml`, and you can modify it as your wish.
