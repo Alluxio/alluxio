@@ -246,7 +246,7 @@
           <suppressionsLocation>
             ${checkstyle.path}tachyon_checkstyle_suppressions.xml
           </suppressionsLocation>
-          <excludes>**/tachyon/thrift/**</excludes>
+          <excludes>**/tachyon/thrift/**,**/tachyon/perf/thrift/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -283,6 +283,7 @@
             <!-- Code Exclusions -->
             <exclude>**/src/main/resources/version.properties</exclude>
             <exclude>**/src/main/java/tachyon/thrift/*</exclude>
+            <exclude>**/src/main/java/tachyon/perf/thrift/*</exclude>
             <exclude>**/src/main/webapp/**/*</exclude>
             <exclude>**/src/thrift/*</exclude>
             <exclude>**/src/deb/**/*</exclude>
@@ -297,6 +298,7 @@
             <exclude>**/deploy/**/*</exclude>
             <exclude>**/bin/*</exclude>
             <exclude>**/conf/*</exclude>
+            <exclude>**/conf/testsuite/*</exclude>
             <exclude>**/libexec/*</exclude>
             <exclude>**/src/main/findbugs/*</exclude>
             <exclude>**/src/main/resources/tachyon_checks*</exclude>
