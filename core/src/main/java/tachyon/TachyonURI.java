@@ -63,8 +63,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     }
 
     // parse uri authority, if any
-    if (pathStr.startsWith("//", start) && (pathStr.length() - start > 2)
-        && pathStr.substring(start).indexOf(":") != -1) { // has authority
+    if (pathStr.startsWith("//", start) && (pathStr.length() - start > 2)) { // has authority
       int nextSlash = pathStr.indexOf('/', start + 2);
       int authEnd = nextSlash > 0 ? nextSlash : pathStr.length();
       authority = pathStr.substring(start + 2, authEnd);
