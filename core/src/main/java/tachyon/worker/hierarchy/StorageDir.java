@@ -557,7 +557,7 @@ public final class StorageDir {
    * 
    * @throws IOException
    */
-  public void initailize() throws IOException {
+  public void initialize() throws IOException {
     String dataPath = mDataPath.toString();
     if (!mFs.exists(dataPath)) {
       LOG.info("Data folder {} does not exist. Creating a new one.", mDataPath);

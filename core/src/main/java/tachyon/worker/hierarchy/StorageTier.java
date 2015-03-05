@@ -202,7 +202,7 @@ public class StorageTier {
    */
   public void initialize() throws IOException {
     for (StorageDir dir : mDirs) {
-      dir.initailize();
+      dir.initialize();
     }
   }
 
