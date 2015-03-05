@@ -135,7 +135,7 @@ public class StorageDirTest {
   }
 
   private void initializeStorageDir(StorageDir dir, long userId) throws IOException {
-    dir.initailize();
+    dir.initialize();
     UnderFileSystem ufs = dir.getUfs();
     ufs.mkdirs(dir.getUserTempPath(userId), true);
     CommonUtils.changeLocalFileToFullPermission(dir.getUserTempPath(userId));
