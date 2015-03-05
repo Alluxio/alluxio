@@ -43,7 +43,6 @@ public class SimpleTaskContext extends PerfTaskContext {
   public void initialSet(int id, String nodeName, String testCase, TaskConfiguration taskConf) {
     super.initialSet(id, nodeName, testCase, taskConf);
     mConf = taskConf.getAllProperties();
-    mConf.put("tachyon.master.address", System.getProperty(tachyon.Constants.MASTER_ADDRESS));
   }
 
   public Map<String, List<Double>> getAdditiveStatistics() {
