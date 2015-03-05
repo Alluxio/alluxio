@@ -181,7 +181,7 @@ public class WorkerStorage {
 
           if (fileId == -1) {
             LOG.debug("Thread {} has nothing to checkpoint. Sleep for 1 sec.", mId);
-            CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
+            CommonUtils.sleepMs(LOG, Constants.SECOND_MS, true);
             continue;
           }
 
@@ -255,7 +255,7 @@ public class WorkerStorage {
             LOG.info("Checkpointed last file " + fileId + " took "
                 + (currentTimeMs - startCopyTimeMs) + " ms. Need to sleep " + shouldSleepMs
                 + " ms.");
-            CommonUtils.sleepMs(LOG, shouldSleepMs);
+            CommonUtils.sleepMs(LOG, shouldSleepMs, true);
           }
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
