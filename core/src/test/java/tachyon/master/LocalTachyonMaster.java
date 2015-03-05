@@ -90,12 +90,13 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.MASTER_PORT, "0");
     tachyonConf.set(Constants.MASTER_WEB_PORT, "0");
 
-    // Lower the number of threads that the cluster will spin off.
-    // default thread overhead is too much.
-    tachyonConf.set(Constants.MASTER_SELECTOR_THREADS, "1");
-    tachyonConf.set(Constants.MASTER_QUEUE_SIZE_PER_SELECTOR, "1");
-    tachyonConf.set(Constants.MASTER_SERVER_THREADS, "1");
-    tachyonConf.set(Constants.MASTER_WEB_THREAD_COUNT, "9");
+    tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
+    tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
+    
+    // If tests fail to connect they should fail early rather than using the default ridiculously high retries
+    tachyonConf.set(Constants.MASTER_RETRY_COUNT, "3");
+
+    tachyonConf.set(Constants.MASTER_WEB_THREAD_COUNT, "1");
     tachyonConf.set(Constants.WEB_RESOURCES, System.getProperty("user.dir") + "/src/main/webapp");
 
     mTachyonMaster = new TachyonMaster(tachyonConf);
@@ -170,6 +171,8 @@ public final class LocalTachyonMaster {
     mTachyonMaster.stop();
 
     System.clearProperty("tachyon.web.resources");
+    System.clearProperty("tachyon.master.min.worker.threads");
+
   }
 
   public void clearClients() throws IOException {
