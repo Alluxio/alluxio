@@ -16,12 +16,34 @@
 package tachyon.worker;
 
 import java.io.Closeable;
+import java.net.InetSocketAddress;
+
+import com.google.common.base.Throwables;
+
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.util.CommonUtils;
 
 /**
  * Defines how to interact with a server running the data protocol.
  */
 public interface DataServer extends Closeable {
-  int getPort();
 
-  boolean isClosed();
+  class Factory {
+    public static DataServer createDataServer(final InetSocketAddress dataAddress,
+        final BlocksLocker blockLocker, TachyonConf conf) {
+      try {
+        return CommonUtils.createNewClassInstance(
+            conf.getClass(Constants.WORKER_DATA_SEVRER, Constants.WORKER_DATA_SERVER_CLASS),
+            new Class[] { InetSocketAddress.class, BlocksLocker.class, TachyonConf.class },
+            new Object[] { dataAddress, blockLocker, conf });
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
+    }
+  }
+
+  public abstract int getPort();
+
+  public abstract boolean isClosed();
 }

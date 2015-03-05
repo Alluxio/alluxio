@@ -145,10 +145,10 @@ public class TachyonConf {
     defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
     defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
         ChannelType.defaultType().toString());
-    defaultProps.setProperty(Constants.WORKER_SERVER_THREADS,
+    defaultProps.setProperty(Constants.WORKER_MIN_WORKER_THREADS,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
-    defaultProps.setProperty(Constants.MASTER_SERVER_THREADS,
-        String.valueOf(2 * Runtime.getRuntime().availableProcessors()));
+    defaultProps.setProperty(Constants.MASTER_MIN_WORKER_THREADS,
+        String.valueOf(Runtime.getRuntime().availableProcessors()));
 
     InputStream defaultInputStream =
         TachyonConf.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTIES);
@@ -321,6 +321,21 @@ public class TachyonConf {
     }
   }
 
+  public <T> Class<T> getClass(String key, Class<T> defaultValue) {
+    if (mProperties.containsKey(key)) {
+      String rawValue = mProperties.getProperty(key);
+      try {
+        return (Class<T>) Class.forName(rawValue);
+      } catch (Exception e) {
+        String msg = "requested class could not be loaded";
+        LOG.error("{} : {} , {}", msg, rawValue, e);
+        return defaultValue;
+      }
+    } else {
+      return defaultValue;
+    }
+  }
+  
   public Map<String, String> toMap() {
     Map<String, String> copy = new HashMap<String, String>();
     for (Enumeration<?> names = mProperties.propertyNames(); names.hasMoreElements();) {

@@ -9,9 +9,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.client.RemoteBlockReader;
 import tachyon.client.WriteType;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.NetworkType;
+import tachyon.worker.DataServer;
 import tachyon.worker.netty.ChannelType;
 import tachyon.worker.netty.FileTransferType;
 
@@ -132,13 +133,13 @@ public class TachyonConfTest {
     Assert.assertTrue(intValue == 19999);
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WEB_THREAD_COUNT, 0);
-    Assert.assertTrue(intValue == 9);
+    Assert.assertTrue(intValue == 1);
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS, 0);
     Assert.assertTrue(intValue == Constants.SECOND_MS);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_SELECTOR_THREADS, 0);
-    Assert.assertTrue(intValue == 3);
+    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS, 0);
+    Assert.assertTrue(intValue == Runtime.getRuntime().availableProcessors());
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS, 0);
     Assert.assertTrue(intValue == 10 * Constants.SECOND_MS);
@@ -150,10 +151,10 @@ public class TachyonConfTest {
     Assert.assertTrue(value != null);
     Assert.assertTrue(("/mnt/ramdisk").equals(value));
 
-    NetworkType networkType = sDefaultTachyonConf.getEnum(Constants.WORKER_NETWORK_TYPE,
-        NetworkType.NETTY);
-    Assert.assertTrue(networkType != null);
-    Assert.assertTrue(networkType == NetworkType.NETTY);
+    Class<? extends DataServer> dataServer =
+        sDefaultTachyonConf.getClass(Constants.WORKER_DATA_SEVRER, null);
+    Assert.assertTrue(dataServer != null);
+    Assert.assertTrue(dataServer.equals(Constants.WORKER_DATA_SERVER_CLASS));
 
     ChannelType channelType =
         sDefaultTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.NIO);
@@ -178,13 +179,7 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, 0);
     Assert.assertTrue(intValue == Constants.SECOND_MS);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_SELECTOR_THREADS, 0);
-    Assert.assertTrue(intValue == 3);
-
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_QUEUE_SIZE_PER_SELECTOR, 0);
-    Assert.assertTrue(intValue == 3000);
-
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_SERVER_THREADS, -1);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS, 0);
     Assert.assertTrue(intValue == Runtime.getRuntime().availableProcessors());
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS, 0);
@@ -208,8 +203,8 @@ public class TachyonConfTest {
 
   @Test
   public void testUserDefault() {
-    WriteType writeType = sDefaultTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE,
-        WriteType.CACHE_THROUGH);
+    WriteType writeType =
+        sDefaultTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.CACHE_THROUGH);
     Assert.assertTrue(writeType != null);
     Assert.assertTrue(writeType == WriteType.CACHE_THROUGH);
 
@@ -227,6 +222,11 @@ public class TachyonConfTest {
 
     longValue = sDefaultTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, 0);
     Assert.assertTrue(longValue == Constants.MB);
+
+    Class<? extends RemoteBlockReader> reader =
+        sDefaultTachyonConf.getClass(Constants.USER_REMOTE_BLOCK_READER, null);
+    Assert.assertTrue(reader != null);
+    Assert.assertTrue(reader.equals(Constants.USER_REMOTE_BLOCK_READER_CLASS));
   }
 
   @Test
