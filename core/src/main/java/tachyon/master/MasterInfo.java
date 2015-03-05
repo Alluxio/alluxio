@@ -232,7 +232,7 @@ public class MasterInfo extends ImageWriter {
           if (hasLostFiles) {
             LOG.info("HasLostFiles, but no job can be launched.");
           }
-          CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
+          CommonUtils.sleepMs(LOG, Constants.SECOND_MS, true);
         }
       }
     }
