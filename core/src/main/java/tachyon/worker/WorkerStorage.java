@@ -299,7 +299,7 @@ public class WorkerStorage {
   /** Mapping from temporary block Information to StorageDir in which the block is */
   private final Map<Pair<Long, Long>, StorageDir> mTempBlockLocation = Collections
       .synchronizedMap(new HashMap<Pair<Long, Long>, StorageDir>());
-  /** Mapping from user id to ids of temporary blocks which are being written by the user */
+  /** Mapping from user id to id list of temporary blocks which are being written by the user */
   private final Multimap<Long, Long> mUserIdToTempBlockIds = Multimaps
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
 
@@ -613,19 +613,6 @@ public class WorkerStorage {
   }
 
   /**
-   * Get used bytes of current WorkerStorage
-   *
-   * @return used bytes of current WorkerStorage
-   */
-  private long getUsedBytes() {
-    long usedBytes = 0;
-    for (StorageTier curTier : mStorageTiers) {
-      usedBytes += curTier.getUsedBytes();
-    }
-    return usedBytes;
-  }
-
-  /**
    * Get used bytes on each storage tier
    *
    * @return used bytes on each storage tier
@@ -695,7 +682,6 @@ public class WorkerStorage {
     }
     StorageTier nextStorageTier = null;
     for (int level = maxStorageLevels - 1; level >= 0; level --) {
-
       String tierLevelAliasProp = "tachyon.worker.hierarchystore.level" + level + ".alias";
       String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
       String tierDirsQuotaProp = "tachyon.worker.hierarchystore.level" + level + ".dirs.quota";
@@ -985,7 +971,7 @@ public class WorkerStorage {
    * Unlock the block
    * 
    * Used internally to make sure blocks are unmodified, but also used in
-   * {@link tachyon.client.TachyonFS} for cacheing blocks locally for users. When a user tries to
+   * {@link tachyon.client.TachyonFS} for caching blocks locally for users. When a user tries to
    * read a block ({@link tachyon.client.TachyonFile#readByteBuffer(int)}), the client will attempt
    * to cache the block on the local users's node, while the user is reading from the local block,
    * the given block is locked and unlocked once read.
