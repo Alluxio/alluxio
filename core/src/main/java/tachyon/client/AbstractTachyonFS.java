@@ -41,7 +41,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    */
   public synchronized int createFile(TachyonURI path) throws IOException {
     long defaultBlockSize = mTachyonConf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE,
-        Constants.GB);
+        Constants.DEFAULT_BLOCK_SIZE_BYTE);
     return createFile(path, defaultBlockSize);
   }
 
