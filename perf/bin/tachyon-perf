@@ -32,11 +32,13 @@ for slave in $UNIQ_SLAVES; do
 done
 wait
 
-for slave in $SLAVES; do
+for slave in $UNIQ_SLAVES; do
+  slavenum=`echo $SLAVES | grep -o "$slave" | wc -l`
+  lasttaskid=`expr $taskid + $slavenum - 1`
   echo -n "Connect to $slave... "
-  ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t $slave $bin/tachyon-perf-start.sh $slave $taskid $1 2>&1
+  ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t $slave $bin/tachyon-perf-start.sh $slave $taskid $lasttaskid $1 2>&1
   sleep 0.02
-  taskid=`expr $taskid + 1`
+  taskid=`expr $lasttaskid + 1`
 done
 wait
 
