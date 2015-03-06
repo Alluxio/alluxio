@@ -1,34 +1,33 @@
 ---
 layout: global
-title: Startup Tasks for New Contributors
+title: Contributing to Tachyon
 ---
 
-Thank you for contributing to Tachyon! We greatly appreciate any additions or bug fixes. Here are
-few things that everyone should do before developing on Tachyon.
+Thank you for your interest in Tachyon! We greatly appreciate any new features or fixes.
 
-1.  [Running Tachyon Locally](Running-Tachyon-Locally.html)
+* [Submitting Code](#submitting-code)
+  * [Testing](#testing)
+  * [Coding Style](#coding-style)
+  * [FindBugs](#findbugs)
+* [Startup Tasks for New Contributors](#startup-tasks-for-new-contributors)
+* [IDE](#ide)
+* [Presentations](#presentations)
+* [Readings](#readings)
 
-2.  [Running Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html)
-    (Optional)
+### Submitting Code
 
-3.  Read
-    [Configuration-Settings](Configuration-Settings.html)
-    (Optional) and
-    [Command-Line Interface](Command-Line-Interface.html)
-    (Optional)
+-   We encourage you to break your work into small, single-purpose patches if possible. It’s much
+    harder to merge in a large change with a lot of disjoint features.
 
-4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/core/src/main/java/tachyon/examples/BasicOperations.java).
+-   We track issues and features in our JIRA(https://tachyon.atlassian.net/). If you haven't registered an account, please do so!
 
-5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
+-   Open a ticket in JIRA(https://tachyon.atlassian.net/) detailing the proposed change and what purpose it serves.
 
-6.  Fork the repository, add unit tests or javadoc for one or two files in the
-following list, and then submit a pull request. You are also welcome to address
-issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
-Here are a list of
-[tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner%20AND%20status%20%3D%20OPEN)
-for beginners. For a tutorial, see the GitHub guides on
-[forking a repo](https://help.github.com/articles/fork-a-repo) and
-[sending a pull request](https://help.github.com/articles/using-pull-requests).
+-   Submit the patch as a GitHub pull request. For a tutorial, see the GitHub guides on
+    [forking a repo](https://help.github.com/articles/fork-a-repo) and
+    [sending a pull request](https://help.github.com/articles/using-pull-requests).
+
+-   In your pull request title, make sure to reference the JIRA ticket, for example ``TACHYON-100 Awesome New Feature``. This will connect the ticket to the proposed code changes.
 
 ### Testing
 
@@ -101,6 +100,34 @@ Before submitting the pull-request, run the latest code against
 
     mvn compile findbugs:findbugs findbugs:gui
 
+### Startup Tasks for New Contributors
+
+Here are a few things that everyone should do before developing on Tachyon.
+
+1.  [Running Tachyon Locally](Running-Tachyon-Locally.html)
+
+2.  [Running Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html)
+    (Optional)
+
+3.  Read
+    [Configuration-Settings](Configuration-Settings.html)
+    (Optional) and
+    [Command-Line Interface](Command-Line-Interface.html)
+    (Optional)
+
+4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/core/src/main/java/tachyon/examples/BasicOperations.java).
+
+5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
+
+6.  Fork the repository, add unit tests or javadoc for one or two files in the
+following list, and then submit a pull request. You are also welcome to address
+issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
+Here are a list of
+[tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner%20AND%20status%20%3D%20OPEN)
+for beginners. For a tutorial, see the GitHub guides on
+[forking a repo](https://help.github.com/articles/fork-a-repo) and
+[sending a pull request](https://help.github.com/articles/using-pull-requests).
+
 ### IDE
 
 You can generate an Eclipse configuration file by running:
@@ -112,19 +139,6 @@ Then import the folder into Eclipse.
 You may also have to add the classpath variable M2_REPO by running:
 
     mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
-
-### Submitting Code
-
--   We encourage you to break your work into small, single-purpose patches if possible. It’s much
-    harder to merge in a large change with a lot of disjoint features.
-
--   Make sure that any methods you add maintain the alphabetical ordering of method names in each file.
-
--   Submit the patch as a GitHub pull request. For a tutorial, see the GitHub guides on
-    [forking a repo](https://help.github.com/articles/fork-a-repo) and
-    [sending a pull request](https://help.github.com/articles/using-pull-requests).
-
--   Make sure that your code passes all unit tests: ``mvn test`` and ``mvn -Dintegration test``
 
 ### Presentations:
 
