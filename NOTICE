@@ -3,8 +3,10 @@ Copyright 2012-2015 University of California, Berkeley
 
 ==========
 
-Tachyon project contains subcomponents with separate copyright notices and license terms. 
-Your use of the source code for the these subcomponents is subject to the terms and conditions of their respective licenses.
+Tachyon project contains subcomponents with separate copyright notices and license terms.
+
+Your use of the source code for the these subcomponents is subject to the terms and conditions of
+their respective licenses.
 
 See the LICENSE file for a list of subcomponents and dependencies and their respective licenses.
 
@@ -59,7 +61,7 @@ Base64 Encoder and Decoder, which can be obtained at:
   * HOMEPAGE:
     * http://iharder.sourceforge.net/current/java/base64/
 
-This product contains a modified portion of 'Webbit', an event based  
+This product contains a modified portion of 'Webbit', an event based
 WebSocket and HTTP server, which can be obtained at:
 
   * LICENSE:
