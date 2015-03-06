@@ -17,6 +17,7 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -144,13 +145,26 @@ public class BlockInfo {
 
   /**
    * Get the locations of the block, which are the workers' net address who has the data of the
-   * block in memory.
+   * block in its hierarchy store. The list is sorted by the storage level alias(MEM, SSD, HDD).
+   * That is, the worker who has the data of the block in its memory is in the top of the list.
    * 
    * @return the net addresses of the locations
    */
   public synchronized List<NetAddress> getLocations(TachyonConf tachyonConf) {
-    List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
-    ret.addAll(mLocations.values());
+    NetAddress[] addresses = new NetAddress[mLocations.size()];
+    int[] index = new int[StorageLevelAlias.SIZE];
+    for (long storageDirId : mStorageDirIds.values()) {
+      int storageLevelValue = StorageDirId.getStorageLevelAliasValue(storageDirId);
+      index[storageLevelValue - 1] ++;
+    }
+    for (int i = 1; i < StorageLevelAlias.SIZE; i ++) {
+      index[i] += index[i - 1];
+    }
+    for (Map.Entry<NetAddress, Long> entry : mStorageDirIds.entrySet()) {
+      int storageLevelValue = StorageDirId.getStorageLevelAliasValue(entry.getValue());
+      addresses[-- index[storageLevelValue - 1]] = entry.getKey();
+    }
+    List<NetAddress> ret = new ArrayList<NetAddress>(Arrays.asList(addresses));
     if (ret.isEmpty() && mInodeFile.hasCheckpointed()) {
       UnderFileSystem ufs = UnderFileSystem.get(mInodeFile.getUfsPath(), tachyonConf);
       List<String> locs = null;
