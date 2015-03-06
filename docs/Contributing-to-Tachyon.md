@@ -19,15 +19,22 @@ Thank you for your interest in Tachyon! We greatly appreciate any new features o
 -   We encourage you to break your work into small, single-purpose patches if possible. It’s much
     harder to merge in a large change with a lot of disjoint features.
 
--   We track issues and features in our JIRA(https://tachyon.atlassian.net/). If you haven't registered an account, please do so!
+-   We track issues and features in our [JIRA](https://tachyon.atlassian.net/). If you haven't registered an account, please do so!
 
--   Open a ticket in JIRA(https://tachyon.atlassian.net/) detailing the proposed change and what purpose it serves.
+-   Open a ticket in [JIRA](https://tachyon.atlassian.net/) detailing the proposed change and what purpose it serves.
 
 -   Submit the patch as a GitHub pull request. For a tutorial, see the GitHub guides on
     [forking a repo](https://help.github.com/articles/fork-a-repo) and
     [sending a pull request](https://help.github.com/articles/using-pull-requests).
 
--   In your pull request title, make sure to reference the JIRA ticket, for example ``TACHYON-100 Awesome New Feature``. This will connect the ticket to the proposed code changes.
+-   In your pull request title, make sure to reference the JIRA ticket, for example:
+
+~~~~~
+TACHYON-100 Awesome New Feature
+[TACHYON-100] Awesome New Feature
+~~~~~
+
+This will connect the ticket to the proposed code changes.
 
 ### Testing
 
