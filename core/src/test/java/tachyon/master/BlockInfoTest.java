@@ -108,11 +108,11 @@ public class BlockInfoTest {
     long memStorageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
     long ssdStorageDirId = StorageDirId.getStorageDirId(1, StorageLevelAlias.SSD.getValue(), 0);
     long hddStorageDirId = StorageDirId.getStorageDirId(2, StorageLevelAlias.HDD.getValue(), 0);
+    Assert.assertEquals(0, tInfo.getLocations(mTachyonConf).size());
     tInfo.addLocation(15, new NetAddress("abc", 1, 11), hddStorageDirId);
-    List<NetAddress> locations = tInfo.getLocations(mTachyonConf);
-    Assert.assertEquals(1, locations.size());
+    Assert.assertEquals(1, tInfo.getLocations(mTachyonConf).size());
     tInfo.addLocation(22, new NetAddress("def", 2, 21), memStorageDirId);
-    locations = tInfo.getLocations(mTachyonConf);
+    List<NetAddress> locations = tInfo.getLocations(mTachyonConf);
     Assert.assertEquals(2, locations.size());
     Assert.assertEquals("def", locations.get(0).getMHost());
     Assert.assertEquals("abc", locations.get(1).getMHost());
