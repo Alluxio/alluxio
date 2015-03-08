@@ -19,9 +19,11 @@ Thank you for your interest in Tachyon! We greatly appreciate any new features o
 -   We encourage you to break your work into small, single-purpose patches if possible. It’s much
     harder to merge in a large change with a lot of disjoint features.
 
--   We track issues and features in our [JIRA](https://tachyon.atlassian.net/). If you haven't registered an account, please do so!
+-   We track issues and features in our [JIRA](https://tachyon.atlassian.net/). If you haven't
+registered an account, please do so!
 
--   Open a ticket in [JIRA](https://tachyon.atlassian.net/) detailing the proposed change and what purpose it serves.
+-   Open a ticket in [JIRA](https://tachyon.atlassian.net/) detailing the proposed change and what
+purpose it serves.
 
 -   Submit the patch as a GitHub pull request. For a tutorial, see the GitHub guides on
     [forking a repo](https://help.github.com/articles/fork-a-repo) and
@@ -38,9 +40,9 @@ This will connect the ticket to the proposed code changes.
 
 ### Testing
 
--   Run all unit tests with ``mvn test`` (will use the local filesystem as the
-under filesystem) and ``mvn -Dtest.profile=hdfs -Dhadoop.version=2.4.0 test``
-(will use HDFS 2.4.0 as the under filesystem)
+-   Run all unit tests with ``mvn test`` (will use the local filesystem as the under filesystem) and
+``mvn -Dtest.profile=hdfs -Dhadoop.version=2.4.0 test`` (will use HDFS 2.4.0 as the under
+filesystem)
 
 -   In GlusterFS environment, also run GlusterFS unit tests: ``mvn
 -Dhadoop.version=2.3.0 -Dtest.profile=glusterfs
