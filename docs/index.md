@@ -98,7 +98,7 @@ understand an existing underlayer storage system.
 
 # Developer Documentation
 
-[Startup Tasks for New Contributors](Startup-Tasks-for-New-Contributors.html)
+[Contributing to Tachyon](Contributing-to-Tachyon.html)
 
 [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
 
