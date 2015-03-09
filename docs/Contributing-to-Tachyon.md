@@ -32,7 +32,6 @@ purpose it serves.
 -   In your pull request title, make sure to reference the JIRA ticket, for example:
 
 ~~~~~
-TACHYON-100 Awesome New Feature
 [TACHYON-100] Awesome New Feature
 ~~~~~
 
