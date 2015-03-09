@@ -156,14 +156,14 @@ public class BlockInfo {
       int[] index = new int[StorageLevelAlias.SIZE];
       for (long storageDirId : mStorageDirIds.values()) {
         int storageLevelValue = StorageDirId.getStorageLevelAliasValue(storageDirId);
-        index[storageLevelValue - 1]++;
+        index[storageLevelValue - 1] ++;
       }
-      for (int i = 1; i < StorageLevelAlias.SIZE; i++) {
+      for (int i = 1; i < StorageLevelAlias.SIZE; i ++) {
         index[i] += index[i - 1];
       }
       for (Map.Entry<NetAddress, Long> entry : mStorageDirIds.entrySet()) {
         int storageLevelValue = StorageDirId.getStorageLevelAliasValue(entry.getValue());
-        addresses[--index[storageLevelValue - 1]] = entry.getKey();
+        addresses[-- index[storageLevelValue - 1]] = entry.getKey();
       }
     }
     List<NetAddress> ret = new ArrayList<NetAddress>(Arrays.asList(addresses));
