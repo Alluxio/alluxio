@@ -89,16 +89,12 @@ public class UfsUtils {
   public static void loadUnderFs(TachyonFS tfs, TachyonURI tachyonPath, TachyonURI ufsAddrRootPath,
       PrefixList excludePathPrefix) throws IOException {
     LOG.info("Loading to " + tachyonPath + " " + ufsAddrRootPath + " " + excludePathPrefix);
-
     try {
-      // resolve and replace hostname embedded in the given ufsAddress
-      TachyonURI oldPath = ufsAddrRootPath;
+      // resolve and replace hostname embedded in the given ufsAddress/tachyonAddress
       ufsAddrRootPath = NetworkUtils.replaceHostName(ufsAddrRootPath);
-      if (!ufsAddrRootPath.getHost().equalsIgnoreCase(oldPath.getHost())) {
-        System.out.println("UnderFS hostname resolved: " + ufsAddrRootPath);
-      }
+      tachyonPath = NetworkUtils.replaceHostName(tachyonPath);
     } catch (UnknownHostException e) {
-      LOG.info("hostname cannot be resolved in given UFS path: " + ufsAddrRootPath);
+      LOG.error("Failed to resolve hostname", e);
       throw new IOException(e);
     }
 
