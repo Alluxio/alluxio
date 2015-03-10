@@ -151,7 +151,9 @@ public class BlockOutStream extends OutStream {
         appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       }
       mCloser.close();
-      mTachyonFS.cacheBlock(mBlockId);
+      if (mLocalFile != null) {
+        mTachyonFS.cacheBlock(mBlockId);
+      }
       mClosed = true;
     }
   }
@@ -182,22 +184,17 @@ public class BlockOutStream extends OutStream {
     return mBlockCapacityByte - mWrittenBytes;
   }
 
-  private synchronized void initializeLocalFile() {
+  private synchronized void initializeLocalFile() throws IOException {
     if (!mInitializationAttempted) {
-      try {
-        mLocalFilePath = mTachyonFS.getLocalBlockTemporaryPath(mBlockId, mInitialBytes);
-        mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
-        mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
-        // change the permission of the temporary file in order that the worker can move it.
-        CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
-        // use the sticky bit, only the client and the worker can write to the block
-        CommonUtils.setLocalFileStickyBit(mLocalFilePath);
-        LOG.info(mLocalFilePath + " was created!");
-      } catch (IOException e) {
-        LOG.error("Failed to get a local path to cache file.", e);
-      } finally {
-        mInitializationAttempted = true;
-      }
+      mInitializationAttempted = true;
+      mLocalFilePath = mTachyonFS.getLocalBlockTemporaryPath(mBlockId, mInitialBytes);
+      mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
+      mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
+      // change the permission of the temporary file in order that the worker can move it.
+      CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
+      // use the sticky bit, only the client and the worker can write to the block
+      CommonUtils.setLocalFileStickyBit(mLocalFilePath);
+      LOG.info(mLocalFilePath + " was created!");
     }
   }
 
