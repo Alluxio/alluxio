@@ -64,6 +64,7 @@ to interact with Tachyon, e.g. copy data in and out of the file system.
 * [OpenStack Compute](Running-Tachyon-on-OpenStack.html)
 * [Linux Container](Running-Tachyon-on-Container.html)
 * [VirtualBox](Running-Tachyon-on-VirtualBox.html)
+* [FAQ](FAQ.html)
 
 **Configuration:**
 
