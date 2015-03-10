@@ -41,11 +41,9 @@ public class BlockOutStream extends OutStream {
   private final long mBlockCapacityByte;
   private final long mBlockId;
   private final long mBlockOffset;
+  private final long mInitialBytes;
   private final boolean mPin;
-  private final Closer mCloser = Closer.create(); 
-  private final String mLocalFilePath;
-  private final RandomAccessFile mLocalFile;
-  private final FileChannel mLocalFileChannel;
+  private final Closer mCloser = Closer.create();
   private final ByteBuffer mBuffer;
 
   private long mAvailableBytes = 0;
@@ -54,6 +52,11 @@ public class BlockOutStream extends OutStream {
 
   private boolean mCanWrite = false;
   private boolean mClosed = false;
+  private boolean mInitializationAttempted = false;
+
+  private String mLocalFilePath;
+  private RandomAccessFile mLocalFile;
+  private FileChannel mLocalFileChannel;
 
   /**
    * @param file the file the block belongs to
@@ -84,6 +87,7 @@ public class BlockOutStream extends OutStream {
     mBlockCapacityByte = mFile.getBlockSizeByte();
     mBlockId = mFile.getBlockId(mBlockIndex);
     mBlockOffset = mBlockCapacityByte * blockIndex;
+    mInitialBytes = initialBytes;
     mPin = mFile.needPin();
 
     mCanWrite = true;
@@ -93,14 +97,6 @@ public class BlockOutStream extends OutStream {
       String msg = "The machine does not have any local worker.";
       throw new IOException(msg);
     }
-    mLocalFilePath = mTachyonFS.getLocalBlockTemporaryPath(mBlockId, initialBytes);
-    mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
-    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
-    // change the permission of the temporary file in order that the worker can move it.
-    CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
-    // use the sticky bit, only the client and the worker can write to the block
-    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
-    LOG.info(mLocalFilePath + " was created!");
     mAvailableBytes += initialBytes;
 
     mBuffer = ByteBuffer.allocate(mUserConf.FILE_BUFFER_BYTES + 4);
@@ -108,21 +104,24 @@ public class BlockOutStream extends OutStream {
 
   private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
       throws IOException {
-    if (mAvailableBytes < length) {
-      long bytesRequested = mTachyonFS.requestSpace(mBlockId, length - mAvailableBytes);
-      if (bytesRequested + mAvailableBytes >= length) {
-        mAvailableBytes += bytesRequested;
-      } else {
-        mCanWrite = false;
-        throw new IOException(String.format("No enough space on local worker: fileId(%d)"
-            + " blockId(%d) requestSize(%d)", mFile.mFileId, mBlockId, length - mAvailableBytes));
+    initializeLocalFile();
+    if (mLocalFile != null) {
+      if (mAvailableBytes < length) {
+        long bytesRequested = mTachyonFS.requestSpace(mBlockId, length - mAvailableBytes);
+        if (bytesRequested + mAvailableBytes >= length) {
+          mAvailableBytes += bytesRequested;
+        } else {
+          mCanWrite = false;
+          throw new IOException(String.format("No enough space on local worker: fileId(%d)"
+              + " blockId(%d) requestSize(%d)", mFile.mFileId, mBlockId, length - mAvailableBytes));
+        }
       }
-    }
 
-    MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, mInFileBytes, length);
-    out.put(buf, offset, length);
-    mInFileBytes += length;
-    mAvailableBytes -= length;
+      MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, mInFileBytes, length);
+      out.put(buf, offset, length);
+      mInFileBytes += length;
+      mAvailableBytes -= length;
+    }
   }
 
   @Override
@@ -130,9 +129,11 @@ public class BlockOutStream extends OutStream {
     if (!mClosed) {
       mCloser.close();
       mClosed = true;
-      mTachyonFS.cancelBlock(mBlockId);
-      LOG.info(String.format("Canceled output of block. blockId(%d) path(%s)", mBlockId,
-          mLocalFilePath));
+      if (mLocalFile != null) {
+        mTachyonFS.cancelBlock(mBlockId);
+        LOG.info(String.format("Canceled output of block. blockId(%d) path(%s)", mBlockId,
+            mLocalFilePath));
+      }
     }
   }
 
@@ -179,6 +180,25 @@ public class BlockOutStream extends OutStream {
    */
   public long getRemainingSpaceByte() {
     return mBlockCapacityByte - mWrittenBytes;
+  }
+
+  private synchronized void initializeLocalFile() {
+    if (!mInitializationAttempted) {
+      try {
+        mLocalFilePath = mTachyonFS.getLocalBlockTemporaryPath(mBlockId, mInitialBytes);
+        mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
+        mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
+        // change the permission of the temporary file in order that the worker can move it.
+        CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
+        // use the sticky bit, only the client and the worker can write to the block
+        CommonUtils.setLocalFileStickyBit(mLocalFilePath);
+        LOG.info(mLocalFilePath + " was created!");
+      } catch (IOException e) {
+        LOG.error("Failed to get a local path to cache file.", e);
+      } finally {
+        mInitializationAttempted = true;
+      }
+    }
   }
 
   @Override
