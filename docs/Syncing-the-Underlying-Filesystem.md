@@ -20,7 +20,8 @@ Would load the meta-data for all the files in the local hdfs, except for the tac
 
 Would load the metadata for all local files under the /Users/tom/logs directory (except for tachyon
 and spark) to the address tachyon://127.0.0.1:19998/tomlogs. If /Users/tom/logs itself is a file,
-only that file is loaded as /tomlogs/logs in the TFS. The prefix "file://" can be safely omitted for a local file system.
+only that file is loaded as /tomlogs/logs in the TFS. The prefix "file://" can be safely omitted for
+a local file system.
 
 Note that the optional EXCLUDE_PATHS are prefixes relative to the given local file path. Moreover,
 only files matching the given prefixes relative to the path will be excluded. Hence, in the above
