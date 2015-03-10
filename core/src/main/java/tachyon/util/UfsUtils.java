@@ -90,15 +90,11 @@ public class UfsUtils {
       PrefixList excludePathPrefix) throws IOException {
     LOG.info("Loading to " + tachyonPath + " " + ufsAddrRootPath + " " + excludePathPrefix);
     try {
-      // resolve and replace hostname embedded in the given ufsAddress
-      TachyonURI oldPath = ufsAddrRootPath;
+      // resolve and replace hostname embedded in the given ufsAddress/tachyonAddress
       ufsAddrRootPath = NetworkUtils.replaceHostName(ufsAddrRootPath);
-      String host = ufsAddrRootPath.getHost();
-      if (host != null && !host.equalsIgnoreCase(oldPath.getHost())) {
-        LOG.info("UnderFS hostname resolved: " + ufsAddrRootPath);
-      }
+      tachyonPath = NetworkUtils.replaceHostName(tachyonPath);
     } catch (UnknownHostException e) {
-      LOG.info("hostname cannot be resolved in given UFS path: " + ufsAddrRootPath);
+      LOG.error("Failed to resolve hostname", e);
       throw new IOException(e);
     }
 
@@ -200,9 +196,9 @@ public class UfsUtils {
 
     System.out.println("Usage: " + cmd + "<TachyonPath> <UfsPath> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");
-    System.out.println("Example: " + cmd + "tachyon://localhost:19998/a hdfs://localhost:9000/b c");
-    System.out.println("Example: " + cmd + "tachyon://localhost:19998/a file:///b c");
-    System.out.println("Example: " + cmd + "tachyon://localhost:19998/a /b c");
+    System.out.println("Example: " + cmd + "tachyon://127.0.0.1:19998/a hdfs://localhost:9000/b c");
+    System.out.println("Example: " + cmd + "tachyon://127.0.0.1:19998/a file:///b c");
+    System.out.println("Example: " + cmd + "tachyon://127.0.0.1:19998/a /b c");
     System.out.print("In the TFS, all files under local FS /b will be registered under /a, ");
     System.out.println("except for those with prefix c");
   }
