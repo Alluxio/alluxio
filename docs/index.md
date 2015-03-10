@@ -64,7 +64,6 @@ to interact with Tachyon, e.g. copy data in and out of the file system.
 * [OpenStack Compute](Running-Tachyon-on-OpenStack.html)
 * [Linux Container](Running-Tachyon-on-Container.html)
 * [VirtualBox](Running-Tachyon-on-VirtualBox.html)
-* [FAQ](FAQ.html)
 
 **Configuration:**
 
@@ -88,6 +87,7 @@ Tachyon
 line.
 * [Syncing the Underlayer Storage System](Syncing-the-Underlying-Filesystem.html): Make Tachyon
 understand an existing underlayer storage system.
+* [FAQ](FAQ.html)
 * [Tachyon Java API (Javadoc)](api/java/index.html)
 * [Hierarchical Storage (Alpha)](Hierarchy-Storage-on-Tachyon.html)
 
