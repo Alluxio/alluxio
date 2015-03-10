@@ -70,28 +70,26 @@ public final class BlockResponse {
       out.add(createHeader(ctx, msg));
 
       final BlockHandler handler = msg.getHandler();
-      if (handler == null) {
-        return;
-      }
-      final FileTransferType type =
-          mTachyonConf
-              .getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.TRANSFER);
-      switch (type) {
-        case MAPPED:
-          ByteBuffer data = handler.read(msg.getOffset(), (int) msg.getLength());
-          out.add(Unpooled.wrappedBuffer(data));
-          handler.close();
-          break;
-        case TRANSFER: // intend to fall through as TRANSFER is the default type.
-        default:
-          if (handler.getChannel() instanceof FileChannel) {
-            out.add(new DefaultFileRegion((FileChannel) handler.getChannel(), msg.getOffset(),
-                msg.getLength()));
-          } else {
+      if (handler != null) {
+        final FileTransferType type =
+            mTachyonConf
+                .getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.TRANSFER);
+        switch (type) {
+          case MAPPED:
+            ByteBuffer buffer = ByteBuffer.allocate((int)msg.getLength());
+            try {
+              handler.position(msg.getOffset()).read(buffer);
+            } finally {
+              handler.close();
+            }
+            buffer.flip();
+            out.add(Unpooled.wrappedBuffer(buffer));
+            break;
+          default: // TRANSFER
+            out.add(handler.getFileRegion(msg.getOffset(), (int)msg.getLength()));
             handler.close();
-            throw new Exception("Only FileChannel is supported!");
-          }
-          break;
+            break;
+        }
       }
     }
   }

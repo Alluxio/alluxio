@@ -263,16 +263,13 @@ public final class StorageDir {
     }
     boolean copySuccess = false;
     Closer closer = Closer.create();
-    ByteBuffer buffer = null;
-    BlockHandler bhDst = null;
+    BlockHandler dstBH = null;
     try {
-      BlockHandler bhSrc = closer.register(getBlockHandler(blockId));
-      bhDst = closer.register(dstDir.getBlockHandler(blockId));
-      buffer = bhSrc.read(0, (int) size);
-      copySuccess = (bhDst.append(0, buffer) == size);
+      BlockHandler srcBH = closer.register(getBlockHandler(blockId));
+      dstBH = closer.register(dstDir.getBlockHandler(blockId));
+      copySuccess = srcBH.transferTo(0L, size, dstBH) > -1;
     } finally {
       closer.close();
-      CommonUtils.cleanDirectBuffer(buffer);
     }
     if (copySuccess) {
       Long accessTimeMs = mLastBlockAccessTimeMs.get(blockId);
@@ -283,7 +280,7 @@ public final class StorageDir {
         // actual block file is not deleted but the blockId is deleted from mLastBlockAccessTimeMs.
         // So we delete the copied block and return the space. We still think copyBlock is
         // successful and return true as nothing needed to be copied.
-        bhDst.delete();
+        dstBH.delete();
         dstDir.returnSpace(Users.MIGRATE_DATA_USER_ID, size);
       }
     }
@@ -354,10 +351,65 @@ public final class StorageDir {
     return mSpaceCounter.getAvailableBytes();
   }
 
+  private int checkBound(long fileLength, long offset, int length) throws IOException {
+    String error = null;
+    if (offset > fileLength) {
+      error = String.format("offset(%d) is larger than file length(%d)", offset, fileLength);
+    } else if (length != -1 && offset + length > fileLength) {
+      error =
+          String.format("offset(%d) plus length(%d) is larger than file length(%d)", offset,
+              length, fileLength);
+    }
+    if (error != null) {
+      throw new IOException(error);
+    }
+    if (length == -1) {
+      return (int)(fileLength - offset);
+    } else {
+      return length;
+    }
+  }
+
   /**
    * Read data into ByteBuffer from some block file, caller must ensure that the block is locked
    * during reading
    *
+   * @param blockId Id of the block
+   * @param offset starting position of the block file
+   * @param length length of data to read, -1 means from the offset to the end of block
+   * @param direct whether put data into a direct buffer
+   * @return ByteBuffer which contains data of the block
+   * @throws IOException
+   */
+  public ByteBuffer getBlockData(long blockId, long offset, int length, boolean direct)
+      throws IOException {
+    long fileLength = getBlockSize(blockId);
+    if (fileLength == -1) {
+      throw new IOException("Block file doesn't exist! blockId:" + blockId);
+    }
+
+    length = checkBound(fileLength, offset, length);
+    ByteBuffer buffer;
+    if (direct) {
+      buffer = ByteBuffer.allocateDirect(length);
+    } else {
+      buffer = ByteBuffer.allocate(length);
+    }
+    BlockHandler handler = getBlockHandler(blockId);
+    try {
+      handler.position(offset).read(buffer);
+      accessBlock(blockId);
+      buffer.flip();
+      return buffer;
+    } finally {
+      handler.close();
+    }
+  }
+
+  /**
+   * Read data into ByteBuffer from some block file, caller needs to make sure the block is locked
+   * during reading
+   * 
    * @param blockId Id of the block
    * @param offset starting position of the block file
    * @param length length of data to read
@@ -365,13 +417,7 @@ public final class StorageDir {
    * @throws IOException
    */
   public ByteBuffer getBlockData(long blockId, long offset, int length) throws IOException {
-    BlockHandler bh = getBlockHandler(blockId);
-    try {
-      return bh.read(offset, length);
-    } finally {
-      bh.close();
-      accessBlock(blockId);
-    }
+    return getBlockData(blockId, offset, length, false);
   }
 
   /**
@@ -394,7 +440,7 @@ public final class StorageDir {
   public BlockHandler getBlockHandler(long blockId) throws IOException {
     String filePath = getBlockFilePath(blockId);
     try {
-      return BlockHandler.get(filePath);
+      return BlockHandler.Factory.get(filePath);
     } catch (IllegalArgumentException e) {
       throw new IOException(e.getMessage());
     }
@@ -505,11 +551,11 @@ public final class StorageDir {
   }
 
   /**
-   * Get current StorageDir's under file system
-   *
+   * Get current StorageDir's file system
+   * 
    * @return StorageDir's under file system
    */
-  public UnderFileSystem getUfs() {
+  public UnderFileSystem getFs() {
     return mFs;
   }
 
@@ -518,7 +564,7 @@ public final class StorageDir {
    *
    * @return configuration of the under file system
    */
-  public Object getUfsConf() {
+  public Object getFsConf() {
     return mConf;
   }
 
