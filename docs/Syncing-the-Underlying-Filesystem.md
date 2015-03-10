@@ -12,16 +12,15 @@ Use the tachyon shell command loadufs to sync the filesystems.
 
 For example:
 
-    $ ./bin/tachyon loadufs tachyon://127.0.0.1:19998 hdfs://localhost:9000 tachyon
+    $ ./bin/tachyon loadufs tachyon://localhost:19998/ hdfs://localhost:9000/ tachyon
 
 Would load the meta-data for all the files in the local hdfs, except for the tachyon folder.
 
-    $ ./bin/tachyon loadufs tachyon://127.0.0.1:19998/tomlogs file:///Users/tom/logs "tachyon;spark"
+    $ ./bin/tachyon loadufs tachyon://localhost:19998/tomlogs /Users/tom/logs "tachyon;spark"
 
 Would load the metadata for all local files under the /Users/tom/logs directory (except for tachyon
 and spark) to the address tachyon://127.0.0.1:19998/tomlogs. If /Users/tom/logs itself is a file,
-only that file is loaded as /tomlogs/logs in the TFS. The prefix "file://" can be safely omitted for
-a local file system.
+only that file is loaded as /tomlogs/logs in the TFS. The prefix "file://" can be safely omitted for a local file system.
 
 Note that the optional EXCLUDE_PATHS are prefixes relative to the given local file path. Moreover,
 only files matching the given prefixes relative to the path will be excluded. Hence, in the above
