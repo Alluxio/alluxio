@@ -20,10 +20,12 @@ import java.lang.reflect.Field;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
+import java.util.List;
 
 import org.apache.thrift.transport.TServerSocket;
 import org.slf4j.Logger;
@@ -40,15 +42,26 @@ import tachyon.thrift.NetAddress;
  */
 public final class NetworkUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  
+  private static String sLocalHost;
+  private static String sLocalIP;
 
   private NetworkUtils() {}
 
   /**
+   * Gets a local host name for the host this JVM is running on
+   * 
+   * @param timeout Timeout in milliseconds to use for checking that the local IP is reachable 
    * @return the local host name, which is not based on a loopback ip address.
    */
-  public static String getLocalHostName() {
+  public static String getLocalHostName(int timeout) {
+    if (sLocalHost != null) {
+      return sLocalHost;
+    }
+    
     try {
-      return InetAddress.getByName(getLocalIpAddress()).getCanonicalHostName();
+      sLocalHost = InetAddress.getByName(getLocalIpAddress(timeout)).getCanonicalHostName();
+      return sLocalHost;
     } catch (UnknownHostException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -56,34 +69,50 @@ public final class NetworkUtils {
   }
 
   /**
-   * @return the local ip address, which is not a loopback address.
+   * Gets a local IP address for the host this JVM is running on
+   * 
+   * @param timeout Timeout in milliseconds to use for checking that the local IP is reachable
+   * @return the local ip address, which is not a loopback address and is reachable
    */
-  public static String getLocalIpAddress() {
+  public static String getLocalIpAddress(int timeout) {
+    if (sLocalIP != null) {
+      return sLocalIP;
+    }
+    
     try {
       InetAddress address = InetAddress.getLocalHost();
       LOG.debug("address: {} isLoopbackAddress: {}, with host {} {}", address,
           address.isLoopbackAddress(), address.getHostAddress(), address.getHostName());
-      if (address.isLoopbackAddress()) {
+      
+      // Make sure that the address is actually reachable since in some network configurations
+      // it is possible for the InetAddress.getLocalHost() call to return a non-reachable 
+      // address e.g. a broadcast address
+      if (address.isLoopbackAddress() || !address.isReachable(timeout)) {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
         while (networkInterfaces.hasMoreElements()) {
           NetworkInterface ni = networkInterfaces.nextElement();
-          Enumeration<InetAddress> addresses = ni.getInetAddresses();
-          while (addresses.hasMoreElements()) {
-            address = addresses.nextElement();
+          List<InterfaceAddress> addresses = ni.getInterfaceAddresses();
+          for (InterfaceAddress inAddress : addresses) {
+            address = inAddress.getAddress();
 
+            // Address must not be link local or loopback
+            // AND it must be reachable
             if (!address.isLinkLocalAddress() && !address.isLoopbackAddress()
-                && (address instanceof Inet4Address)) {
-              return address.getHostAddress();
+                && (address instanceof Inet4Address) 
+                && address.isReachable(timeout)) {
+              sLocalIP = address.getHostAddress();
+              return sLocalIP;
             }
           }
         }
 
         LOG.warn("Your hostname, " + InetAddress.getLocalHost().getHostName() + " resolves to"
-            + " a loopback address: " + address.getHostAddress() + ", but we couldn't find any"
-            + " external IP address!");
+            + " a loopback/non-reachable address: " + address.getHostAddress()
+            + ", but we couldn't find any external IP address!");
       }
 
-      return address.getHostAddress();
+      sLocalIP = address.getHostAddress();
+      return sLocalIP;
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);

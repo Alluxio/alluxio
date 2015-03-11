@@ -97,10 +97,13 @@ public class TachyonWorker implements Runnable {
    * @return The new TachyonWorker
    */
   public static synchronized TachyonWorker createWorker(TachyonConf tachyonConf) {
+    int hostResolutionTimeout = tachyonConf.getInt(Constants.HOST_RESOLUTION_TIMEOUT, 
+        Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT);
     String masterHostname =
-        tachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
+        tachyonConf.get(Constants.MASTER_HOSTNAME, 
+            NetworkUtils.getLocalHostName(hostResolutionTimeout));
     int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    String workerHostName = NetworkUtils.getLocalHostName();
+    String workerHostName = NetworkUtils.getLocalHostName(hostResolutionTimeout);
     int workerPort = tachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
     int dataPort =
         tachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
@@ -117,7 +120,10 @@ public class TachyonWorker implements Runnable {
   }
 
   private static String getMasterLocation(String[] args, TachyonConf conf) {
-    String masterHostname = conf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
+    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT, 
+        Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT);
+    String masterHostname = conf.get(Constants.MASTER_HOSTNAME, 
+        NetworkUtils.getLocalHostName(hostResolutionTimeout));
     int masterPort = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     String confFileMasterLoc = masterHostname + ":" + masterPort;
     String masterLocation;
@@ -142,11 +148,14 @@ public class TachyonWorker implements Runnable {
           + "tachyon.Worker [<MasterHost:Port>]");
       System.exit(-1);
     }
-
-    String resolvedWorkerHost = NetworkUtils.getLocalHostName();
+    
+    TachyonConf tachyonConf = new TachyonConf();
+    
+    int hostResolutionTimeout = tachyonConf.getInt(Constants.HOST_RESOLUTION_TIMEOUT,
+        Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT);
+    String resolvedWorkerHost = NetworkUtils.getLocalHostName(hostResolutionTimeout);
     LOG.info("Resolved local TachyonWorker host to " + resolvedWorkerHost);
 
-    TachyonConf tachyonConf = new TachyonConf();
     TachyonWorker worker = TachyonWorker.createWorker(tachyonConf);
     try {
       worker.start();

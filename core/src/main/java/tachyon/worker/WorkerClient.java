@@ -210,7 +210,9 @@ public class WorkerClient implements Closeable {
     if (!mConnected) {
       NetAddress workerNetAddress = null;
       try {
-        String localHostName = NetworkUtils.getLocalHostName();
+        int hostResolutionTimeout = mTachyonConf.getInt(Constants.HOST_RESOLUTION_TIMEOUT, 
+            Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT);
+        String localHostName = NetworkUtils.getLocalHostName(hostResolutionTimeout);
         LOG.info("Trying to get local worker host : " + localHostName);
         workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
         mIsLocal = true;
