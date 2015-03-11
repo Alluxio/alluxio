@@ -28,9 +28,9 @@ Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 
 # Current Features
 
-* **Java-like File API**: Tachyon's native API is similar to that of the java.io.File class,
+* **Java-like File API**: Tachyon's native API is similar to that of the ``java.io.File`` class,
 providing InputStream and OutputStream interfaces and efficient support for memory-mapped I/O. We
-recommend using this API to get the best performance from Tachyon
+recommend using this API to get the best performance from Tachyon.
 
 * **Compatibility**: Tachyon implements the Hadoop FileSystem interface. Therefore, Hadoop MapReduce
 and Spark can run with Tachyon without modification. However, close integration is required to fully
