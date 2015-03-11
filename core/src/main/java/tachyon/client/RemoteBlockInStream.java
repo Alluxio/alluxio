@@ -80,6 +80,12 @@ public class RemoteBlockInStream extends BlockInStream {
   private boolean mRecache;
 
   /**
+   * True initially, will be false after a cache miss, meaning no worker had this block in memory.
+   * Afterward, all reads will go directly to the under filesystem.
+   */
+  private boolean mAttemptReadFromWorkers = true;
+
+  /**
    * If we are re-caching the file, we write it to a block out stream as we read it.
    */
   private BlockOutStream mBlockOutStream = null;
@@ -196,7 +202,7 @@ public class RemoteBlockInStream extends BlockInStream {
     int bytesLeft = len;
     // While we still have bytes to read, make sure the buffer is set to read the byte at mBlockPos.
     // If we fail to set mCurrentBuffer, we stream the rest from the underfs
-    while (bytesLeft > 0 && updateCurrentBuffer()) {
+    while (bytesLeft > 0 && mAttemptReadFromWorkers && updateCurrentBuffer()) {
       int bytesToRead = (int) Math.min(bytesLeft, mCurrentBuffer.remaining());
       mCurrentBuffer.get(b, off, bytesToRead);
       if (mRecache) {
@@ -206,7 +212,10 @@ public class RemoteBlockInStream extends BlockInStream {
       bytesLeft -= bytesToRead;
       mBlockPos += bytesToRead;
     }
+
     if (bytesLeft > 0) {
+      // Unable to read from worker memory, reading this block from underfs in the future.
+      mAttemptReadFromWorkers = false;
       // We failed to read everything from mCurrentBuffer, so we need to stream the rest from the
       // underfs
       if (!setupStreamFromUnderFs()) {
