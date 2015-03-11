@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import tachyon.Pair;
 import tachyon.StorageDirId;
@@ -147,6 +148,7 @@ public class BlockInfo {
    * Get the locations of the block, which are the workers' net address who has the data of the
    * block in its hierarchy store. The list is sorted by the storage level alias(MEM, SSD, HDD).
    * That is, the worker who has the data of the block in its memory is in the top of the list.
+   * The highest tier locations are shuffled to spread the load.
    * 
    * @return the net addresses of the locations
    */
@@ -158,13 +160,18 @@ public class BlockInfo {
         int storageLevelValue = StorageDirId.getStorageLevelAliasValue(storageDirId);
         index[storageLevelValue - 1] ++;
       }
+      int highestTierLocNum = index[0];
       for (int i = 1; i < StorageLevelAlias.SIZE; i ++) {
+        if (highestTierLocNum == 0) {
+          highestTierLocNum = index[i];
+        }
         index[i] += index[i - 1];
       }
       for (Map.Entry<NetAddress, Long> entry : mStorageDirIds.entrySet()) {
         int storageLevelValue = StorageDirId.getStorageLevelAliasValue(entry.getValue());
         addresses[-- index[storageLevelValue - 1]] = entry.getKey();
       }
+      shuffleLocations(addresses, highestTierLocNum);
     }
     List<NetAddress> ret = new ArrayList<NetAddress>(Arrays.asList(addresses));
     if (ret.isEmpty() && mInodeFile.hasCheckpointed()) {
@@ -211,6 +218,24 @@ public class BlockInfo {
   public synchronized void removeLocation(long workerId) {
     if (mLocations.containsKey(workerId)) {
       mStorageDirIds.remove(mLocations.remove(workerId));
+    }
+  }
+
+  /**
+   * Shuffle the first len addresses using an algorithm similar to Collections.shuffle
+   *
+   * @param addresses the array of the locations
+   * @param len the first len elements to shuffle
+   */
+  private void shuffleLocations(NetAddress[] addresses, int len) {
+    if (len > 1 && len <= addresses.length) {
+      Random random = new Random();
+      for (int i = len; i > 1; i --) {
+        int index = random.nextInt(i);
+        NetAddress temp = addresses[i - 1];
+        addresses[i - 1] = addresses[index];
+        addresses[index] = temp;
+      }
     }
   }
 
