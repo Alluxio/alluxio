@@ -79,6 +79,15 @@ function runTest {
   esac
   $LAUNCHER $bin/tachyon tfs rmr "$file"
   $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS "$class" tachyon://$MASTER_ADDRESS:19998 "$file" "$args"
+
+  # If test process received a signal abort early
+  # Exit Codes for signals terminating a JVM are 128 + signal
+  RET=$?
+  if [ $RET -gt 128 ]; then
+    echo "Test process was terminated due to signal"
+    exit $RET
+  fi
+  return $RET
 }
 
 function killAll {
@@ -212,6 +221,14 @@ elif [ "$COMMAND" == "runTests" ]; then
       echo $LAUNCHER $bin/tachyon runTest $example $op
       $LAUNCHER $bin/tachyon runTest $example $op
       st=$?
+
+      # If test process received a signal abort early
+      # Exit Codes for signals terminating a JVM are 128 + signal
+      if [ $st -gt 128 ]; then
+        # Received some kind of signal
+        echo "Test process was terminated due to signal"
+        exit $st
+      fi
       failed=$(( $failed + $st ))
     done
   done
