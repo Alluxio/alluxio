@@ -145,7 +145,7 @@ public class LocalTachyonClusterMultiMaster {
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
 
-    mLocalhostName = NetworkUtils.getLocalHostName();
+    mLocalhostName = NetworkUtils.getLocalHostName(100);
 
     mMasterConf = new TachyonConf();
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
@@ -156,6 +156,10 @@ public class LocalTachyonClusterMultiMaster {
     mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
     mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, "10000");
     mMasterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
+    
+    // Since tests are always running on a single host keep the resolution timeout low as otherwise people
+    // running with strange network configurations will see very slow tests
+    mMasterConf.set(Constants.HOST_RESOLUTION_TIMEOUT, "100");
 
     // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
@@ -184,6 +188,10 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
+    
+    // Since tests are always running on a single host keep the resolution timeout low as otherwise people
+    // running with strange network configurations will see very slow tests
+    mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT, "100");
 
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";

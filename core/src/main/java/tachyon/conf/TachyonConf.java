@@ -142,7 +142,8 @@ public class TachyonConf {
     Properties defaultProps = new Properties();
 
     // Override runtime default
-    defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
+    defaultProps.setProperty(Constants.MASTER_HOSTNAME, 
+        NetworkUtils.getLocalHostName(100));
     defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
         ChannelType.defaultType().toString());
     defaultProps.setProperty(Constants.WORKER_MIN_WORKER_THREADS,

@@ -36,8 +36,15 @@ import tachyon.util.NetworkUtils;
  */
 public class UnderFileSystemSingleLocal extends UnderFileSystem {
 
+  private final String mLocalhost;
+
   protected UnderFileSystemSingleLocal(TachyonConf tachyonConf) {
     super(tachyonConf);
+    
+    // Cache local host address to avoid having to determine it every time we want file locations
+    mLocalhost =
+        NetworkUtils.getLocalHostName(tachyonConf.getInt(Constants.HOST_RESOLUTION_TIMEOUT,
+            Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT));
   }
 
   public static UnderFileSystem getClient(TachyonConf tachyonConf) {
@@ -45,7 +52,8 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void close() throws IOException {}
+  public void close() throws IOException {
+  }
 
   @Override
   public OutputStream create(String path) throws IOException {
@@ -111,7 +119,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
-    ret.add(NetworkUtils.getLocalHostName());
+    ret.add(mLocalhost);
     return ret;
   }
 
@@ -190,7 +198,8 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void setConf(Object conf) {}
+  public void setConf(Object conf) {
+  }
 
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {

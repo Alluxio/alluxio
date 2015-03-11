@@ -420,8 +420,9 @@ public class TFsShellTest {
   @Test
   public void mkdirTest() throws IOException {
     String qualifiedPath =
-        "tachyon://" + NetworkUtils.getLocalHostName() + ":" + mLocalTachyonCluster.getMasterPort()
-            + "/root/testFile1";
+        "tachyon://" + NetworkUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT)
+        + ":" + mLocalTachyonCluster.getMasterPort()
+        + "/root/testFile1";
     mFsShell.mkdir(new String[] {"mkdir", qualifiedPath});
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/root/testFile1"));
     Assert.assertNotNull(tFile);
