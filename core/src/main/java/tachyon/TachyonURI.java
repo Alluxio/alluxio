@@ -386,10 +386,12 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     StringBuffer sb = new StringBuffer();
     if (mUri.getScheme() != null) {
       sb.append(mUri.getScheme());
-      sb.append(":");
+      sb.append("://");
     }
     if (mUri.getAuthority() != null) {
-      sb.append("//");
+      if (mUri.getScheme() == null) {
+        sb.append("//");
+      }
       sb.append(mUri.getAuthority());
     }
     if (mUri.getPath() != null) {
