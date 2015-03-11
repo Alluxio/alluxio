@@ -67,7 +67,7 @@ public class BlockOutStream extends OutStream {
   BlockOutStream(TachyonFile file, WriteType opType, int blockIndex, TachyonConf tachyonConf)
       throws IOException {
     this(file, opType, blockIndex,
-        tachyonConf.getLong(Constants.USER_QUOTA_UNIT_BYTES, 8 * Constants.MB), tachyonConf);
+        tachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES, 8 * Constants.MB), tachyonConf);
   }
 
   /**
