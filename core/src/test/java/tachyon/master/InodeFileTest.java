@@ -83,7 +83,6 @@ public class InodeFileTest {
     Assert.assertEquals(2, inodeFile.getBlockLocations(0, mTachyonConf).size());
     inodeFile.addLocation(0, 3, testAddresses.get(2), storageDirId);
     Assert.assertEquals(3, inodeFile.getBlockLocations(0, mTachyonConf).size());
-    Assert.assertEquals(testAddresses, inodeFile.getBlockLocations(0, mTachyonConf));
   }
 
   @Test(expected = BlockInfoException.class)
