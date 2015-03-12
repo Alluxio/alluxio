@@ -9,6 +9,8 @@ By default, Spark 1.0.x is bundled with Tachyon 0.4.1. If you run a different ve
 please recompile Spark with the right version of Tachyon, by changing the Tachyon version in
 spark/core/pom.xml.
 
+Spark1.1.x and Spark1.2.x is bundled with Tachyon 0.5.0.
+
 ## Input/Output data with Tachyon
 
 The additional prerequisite for this part is [Spark](http://spark-project.org/docs/latest/) (0.6 or
