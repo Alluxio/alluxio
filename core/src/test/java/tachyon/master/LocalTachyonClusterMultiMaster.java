@@ -159,7 +159,7 @@ public class LocalTachyonClusterMultiMaster {
     
     // Since tests are always running on a single host keep the resolution timeout low as otherwise people
     // running with strange network configurations will see very slow tests
-    mMasterConf.set(Constants.HOST_RESOLUTION_TIMEOUT, "100");
+    mMasterConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
@@ -191,7 +191,7 @@ public class LocalTachyonClusterMultiMaster {
     
     // Since tests are always running on a single host keep the resolution timeout low as otherwise people
     // running with strange network configurations will see very slow tests
-    mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT, "100");
+    mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";

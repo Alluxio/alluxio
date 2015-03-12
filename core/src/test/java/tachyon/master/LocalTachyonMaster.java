@@ -98,7 +98,7 @@ public final class LocalTachyonMaster {
     
     // Since tests are always running on a single host keep the resolution timeout low as otherwise people
     // running with strange network configurations will see very slow tests
-    tachyonConf.set(Constants.HOST_RESOLUTION_TIMEOUT, "100");
+    tachyonConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "100");
 
     tachyonConf.set(Constants.MASTER_WEB_THREAD_COUNT, "1");
     tachyonConf.set(Constants.WEB_RESOURCES, System.getProperty("user.dir") + "/src/main/webapp");

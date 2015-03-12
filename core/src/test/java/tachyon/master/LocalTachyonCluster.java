@@ -175,7 +175,7 @@ public final class LocalTachyonCluster {
     
     // Since tests are always running on a single host keep the resolution timeout low as otherwise people
     // running with strange network configurations will see very slow tests
-    mMasterConf.set(Constants.HOST_RESOLUTION_TIMEOUT, "100");
+    mMasterConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     // Lower the number of threads that the cluster will spin off.
     // default thread overhead is too much.
@@ -209,7 +209,7 @@ public final class LocalTachyonCluster {
     
     // Since tests are always running on a single host keep the resolution timeout low as otherwise people
     // running with strange network configurations will see very slow tests
-    mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT, "100");
+    mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
