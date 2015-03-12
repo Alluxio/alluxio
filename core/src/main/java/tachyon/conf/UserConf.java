@@ -56,7 +56,7 @@ public class UserConf extends Utils {
     DEFAULT_BLOCK_SIZE_BYTE = getLongProperty("tachyon.user.default.block.size.byte",
         Constants.DEFAULT_BLOCK_SIZE_BYTE);
     REMOTE_READ_BUFFER_SIZE_BYTE =
-        getIntProperty("tachyon.user.remote.read.buffer.size.byte", Constants.MB);
+        getIntProperty("tachyon.user.remote.read.buffer.size.byte", 8 * Constants.MB);
     DEFAULT_WRITE_TYPE =
         getEnumProperty("tachyon.user.file.writetype.default", WriteType.CACHE_THROUGH);
   }
