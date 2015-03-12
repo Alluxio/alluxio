@@ -108,7 +108,9 @@ public class TachyonWorker implements Runnable {
         tachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS, Runtime.getRuntime()
             .availableProcessors());
 
-    int maxWorkerThreads = tachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS, 2048);
+    int maxWorkerThreads =
+        tachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS,
+            Constants.DEFAULT_WORKER_MAX_WORKER_THREADS);
 
     return new TachyonWorker(new InetSocketAddress(masterHostname, masterPort),
         new InetSocketAddress(workerHostName, workerPort), dataPort, minWorkerThreads,
