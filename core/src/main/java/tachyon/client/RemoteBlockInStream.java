@@ -124,9 +124,6 @@ public class RemoteBlockInStream extends BlockInStream {
     mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
 
     mRecache = readType.isCache();
-    if (mRecache) {
-      mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
-    }
 
     mUFSConf = ufsConf;
   }
@@ -145,12 +142,30 @@ public class RemoteBlockInStream extends BlockInStream {
     }
   }
 
+  /**
+   * Attempts to cache the file, if an exception occurs, it is likely the file is already in the
+   * process of being cached. Further attempts to recache the file will not be made by this stream.
+   *
+   * @param b   Bytes to write
+   * @param off Offset to start writing from
+   * @param len Length to write
+   * @throws IOException
+   */
+  private void writeToOutStream(byte[] b, int off, int len) throws IOException {
+    try {
+      mBlockOutStream.write(b, off, len);
+    } catch (IOException ioe) {
+      LOG.warn("Recache attempt failed.", ioe);
+      cancelRecache();
+    }
+  }
+
   @Override
   public void close() throws IOException {
     if (mClosed) {
       return;
     }
-    if (mRecache) {
+    if (mRecache && mBlockOutStream != null) {
       // We only finish re-caching if we've gotten to the end of the file
       if (mBlockPos == mBlockInfo.length) {
         mBlockOutStream.close();
@@ -194,13 +209,19 @@ public class RemoteBlockInStream extends BlockInStream {
     // read up to the end of the file
     len = (int) Math.min(len, mBlockInfo.length - mBlockPos);
     int bytesLeft = len;
+    // Lazy initialization of the out stream for caching to avoid collisions with other caching
+    // attempts that are invalidated later due to seek/skips
+    if (bytesLeft > 0 && mBlockOutStream == null && mRecache) {
+      mBlockOutStream = new BlockOutStream(mFile, WriteType.TRY_CACHE, mBlockIndex);
+    }
+
     // While we still have bytes to read, make sure the buffer is set to read the byte at mBlockPos.
     // If we fail to set mCurrentBuffer, we stream the rest from the underfs
     while (bytesLeft > 0 && updateCurrentBuffer()) {
       int bytesToRead = (int) Math.min(bytesLeft, mCurrentBuffer.remaining());
       mCurrentBuffer.get(b, off, bytesToRead);
       if (mRecache) {
-        mBlockOutStream.write(b, off, bytesToRead);
+        writeToOutStream(b, off, bytesToRead);
       }
       off += bytesToRead;
       bytesLeft -= bytesToRead;
@@ -222,7 +243,7 @@ public class RemoteBlockInStream extends BlockInStream {
           return len - bytesLeft;
         }
         if (mRecache) {
-          mBlockOutStream.write(b, off, readBytes);
+          writeToOutStream(b, off, readBytes);
         }
         off += readBytes;
         bytesLeft -= readBytes;
