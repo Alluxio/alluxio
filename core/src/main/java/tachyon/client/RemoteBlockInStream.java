@@ -199,8 +199,12 @@ public class RemoteBlockInStream extends BlockInStream {
     while (bytesLeft > 0 && updateCurrentBuffer()) {
       int bytesToRead = (int) Math.min(bytesLeft, mCurrentBuffer.remaining());
       mCurrentBuffer.get(b, off, bytesToRead);
-      if (mRecache) {
-        mBlockOutStream.write(b, off, bytesToRead);
+      try {
+        if (mRecache) {
+          mBlockOutStream.write(b, off, bytesToRead);
+        }
+      } catch (IOException e) {
+        cancelRecache();
       }
       off += bytesToRead;
       bytesLeft -= bytesToRead;
@@ -221,8 +225,12 @@ public class RemoteBlockInStream extends BlockInStream {
           LOG.error("Checkpoint stream read 0 bytes, which shouldn't ever happen");
           return len - bytesLeft;
         }
-        if (mRecache) {
-          mBlockOutStream.write(b, off, readBytes);
+        try {
+          if (mRecache) {
+            mBlockOutStream.write(b, off, readBytes);
+          }
+        } catch (IOException e) {
+          cancelRecache();
         }
         off += readBytes;
         bytesLeft -= readBytes;
