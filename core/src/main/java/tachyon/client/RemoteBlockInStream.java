@@ -247,9 +247,7 @@ public class RemoteBlockInStream extends BlockInStream {
     try {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
-      int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT, 
-          Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT);
-      String localhost = NetworkUtils.getLocalHostName(hostResolutionTimeout);
+      String localhost = NetworkUtils.getLocalHostName(conf);
 
       for (NetAddress blockLocation : blockLocations) {
         String host = blockLocation.mHost;
@@ -267,7 +265,7 @@ public class RemoteBlockInStream extends BlockInStream {
               blockInfo.blockId);
         }
         LOG.info(host + ":" + port + " current host is " + localhost + " "
-            + NetworkUtils.getLocalIpAddress(hostResolutionTimeout));
+            + NetworkUtils.getLocalIpAddress(conf));
 
         try {
           buf =

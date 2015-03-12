@@ -58,7 +58,7 @@ public class Constants {
 
   public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
   
-  public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT = 5000;
+  public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
   public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
   public static final boolean DEBUG = Boolean.valueOf(System.getProperty("tachyon.debug", "false"));
@@ -92,7 +92,7 @@ public class Constants {
   public static final String ASYNC_ENABLED = "tachyon.async.enabled";
   public static final String MAX_COLUMNS = "tachyon.max.columns";
   public static final String IN_TEST_MODE = "tachyon.test.mode";
-  public static final String HOST_RESOLUTION_TIMEOUT = "tachyon.host.resolution.timeout.ms";
+  public static final String HOST_RESOLUTION_TIMEOUT_MS = "tachyon.host.resolution.timeout.ms";
   public static final String UNDERFS_GLUSTERFS_IMPL = "tachyon.underfs.glusterfs.impl";
   public static final String UNDERFS_GLUSTERFS_VOLUMES = "tachyon.underfs.glusterfs.volumes";
   public static final String UNDERFS_GLUSTERFS_MOUNTS = "tachyon.underfs.glusterfs.mounts";

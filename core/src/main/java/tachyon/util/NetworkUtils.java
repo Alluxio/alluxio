@@ -20,12 +20,10 @@ import java.lang.reflect.Field;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
-import java.util.List;
 
 import org.apache.thrift.transport.TServerSocket;
 import org.slf4j.Logger;
@@ -35,6 +33,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 
 /**
@@ -47,11 +46,27 @@ public final class NetworkUtils {
   private static String sLocalIP;
 
   private NetworkUtils() {}
+  
+  /**
+   * Gets a local host name for the host this JVM is running on
+   * 
+   * @param conf Tachyon configuration used to look up the host resolution timeout 
+   * @return the local host name, which is not based on a loopback ip address.
+   */
+  public static String getLocalHostName(TachyonConf conf) {
+    if (sLocalHost != null) {
+      return sLocalHost;
+    }
+    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS, 
+        Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
+    return NetworkUtils.getLocalHostName(hostResolutionTimeout);
+  }
 
   /**
    * Gets a local host name for the host this JVM is running on
    * 
-   * @param timeout Timeout in milliseconds to use for checking that the local IP is reachable 
+   * @param timeout Timeout in milliseconds to use for checking that a possible local 
+   *                host is reachable 
    * @return the local host name, which is not based on a loopback ip address.
    */
   public static String getLocalHostName(int timeout) {
@@ -67,11 +82,28 @@ public final class NetworkUtils {
       throw Throwables.propagate(e);
     }
   }
+  
+  /**
+   * Gets a local IP address for the host this JVM is running on
+   * 
+   * @param timeout Timeout in milliseconds to use for checking that a possible local 
+   *                IP is reachable
+   * @return the local ip address, which is not a loopback address and is reachable
+   */
+  public static String getLocalIpAddress(TachyonConf conf) {
+    if (sLocalIP != null) {
+      return sLocalIP;
+    }
+    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS, 
+        Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
+    return NetworkUtils.getLocalIpAddress(hostResolutionTimeout);
+  }
 
   /**
    * Gets a local IP address for the host this JVM is running on
    * 
-   * @param timeout Timeout in milliseconds to use for checking that the local IP is reachable
+   * @param timeout Timeout in milliseconds to use for checking that a possible local 
+   *                IP is reachable
    * @return the local ip address, which is not a loopback address and is reachable
    */
   public static String getLocalIpAddress(int timeout) {
@@ -91,9 +123,9 @@ public final class NetworkUtils {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
         while (networkInterfaces.hasMoreElements()) {
           NetworkInterface ni = networkInterfaces.nextElement();
-          List<InterfaceAddress> addresses = ni.getInterfaceAddresses();
-          for (InterfaceAddress inAddress : addresses) {
-            address = inAddress.getAddress();
+          Enumeration<InetAddress> addresses = ni.getInetAddresses();
+          while (addresses.hasMoreElements()) {
+            address = addresses.nextElement();
 
             // Address must not be link local or loopback
             // AND it must be reachable

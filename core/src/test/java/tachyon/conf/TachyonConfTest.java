@@ -97,8 +97,8 @@ public class TachyonConfTest {
     int intValue = sDefaultTachyonConf.getInt(Constants.MAX_COLUMNS, 0);
     Assert.assertTrue(intValue == 1000);
     
-    intValue = sDefaultTachyonConf.getInt(Constants.HOST_RESOLUTION_TIMEOUT, 0);
-    Assert.assertEquals(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT, intValue);
+    intValue = sDefaultTachyonConf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS, 0);
+    Assert.assertEquals(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS, intValue);
 
     long longBytesValue = sDefaultTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE, 0L);
     Assert.assertTrue(longBytesValue == Constants.MB * 5);
