@@ -90,9 +90,10 @@ public class TachyonMaster {
     mTachyonConf = tachyonConf;
 
     String hostName = mTachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
-    int port = mTachyonConf.getInt(Constants.MASTER_PORT, 0);
+    int port = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     InetSocketAddress address = new InetSocketAddress(hostName, port);
-    int webPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT, 0);
+    int webPort =
+        mTachyonConf.getInt(Constants.MASTER_WEB_PORT, Constants.DEFAULT_MASTER_WEB_PORT);
 
     TachyonConf.assertValidPort(address, mTachyonConf);
     TachyonConf.assertValidPort(webPort, mTachyonConf);
@@ -105,7 +106,9 @@ public class TachyonMaster {
         mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS, Runtime.getRuntime()
             .availableProcessors());
 
-    mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS, 2048);
+    mMaxWorkerThreads =
+        mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS,
+            Constants.DEFAULT_MASTER_MAX_WORKER_THREADS);
 
     try {
       // Extract the port from the generated socket.
