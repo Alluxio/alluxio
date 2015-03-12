@@ -221,7 +221,7 @@ public class TachyonConfTest {
     Assert.assertTrue(longValue == Constants.MB);
 
     longValue = sDefaultTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, 0);
-    Assert.assertTrue(longValue == Constants.MB);
+    Assert.assertTrue(longValue == 8 * Constants.MB);
 
     Class<? extends RemoteBlockReader> reader =
         sDefaultTachyonConf.getClass(Constants.USER_REMOTE_BLOCK_READER, null);
