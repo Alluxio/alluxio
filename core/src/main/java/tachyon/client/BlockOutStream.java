@@ -97,7 +97,6 @@ public class BlockOutStream extends OutStream {
       String msg = "The machine does not have any local worker.";
       throw new IOException(msg);
     }
-    mAvailableBytes += initialBytes;
 
     mBuffer = ByteBuffer.allocate(mUserConf.FILE_BUFFER_BYTES + 4);
   }
@@ -195,6 +194,7 @@ public class BlockOutStream extends OutStream {
       // use the sticky bit, only the client and the worker can write to the block
       CommonUtils.setLocalFileStickyBit(mLocalFilePath);
       LOG.info(mLocalFilePath + " was created!");
+      mAvailableBytes += mInitialBytes;
     }
   }
 
