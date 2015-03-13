@@ -97,10 +97,9 @@ public class TachyonWorker implements Runnable {
    * @return The new TachyonWorker
    */
   public static synchronized TachyonWorker createWorker(TachyonConf tachyonConf) {
-    String masterHostname =
-        tachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
+    String masterHostname = NetworkUtils.getLocalHostName(tachyonConf);
     int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    String workerHostName = NetworkUtils.getLocalHostName();
+    String workerHostName = NetworkUtils.getLocalHostName(tachyonConf);
     int workerPort = tachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
     int dataPort =
         tachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
@@ -119,7 +118,7 @@ public class TachyonWorker implements Runnable {
   }
 
   private static String getMasterLocation(String[] args, TachyonConf conf) {
-    String masterHostname = conf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
+    String masterHostname = NetworkUtils.getLocalHostName(conf);
     int masterPort = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     String confFileMasterLoc = masterHostname + ":" + masterPort;
     String masterLocation;
@@ -144,11 +143,12 @@ public class TachyonWorker implements Runnable {
           + "tachyon.Worker [<MasterHost:Port>]");
       System.exit(-1);
     }
-
-    String resolvedWorkerHost = NetworkUtils.getLocalHostName();
+    
+    TachyonConf tachyonConf = new TachyonConf();
+    
+    String resolvedWorkerHost = NetworkUtils.getLocalHostName(tachyonConf);
     LOG.info("Resolved local TachyonWorker host to " + resolvedWorkerHost);
 
-    TachyonConf tachyonConf = new TachyonConf();
     TachyonWorker worker = TachyonWorker.createWorker(tachyonConf);
     try {
       worker.start();
