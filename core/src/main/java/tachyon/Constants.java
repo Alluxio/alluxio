@@ -59,6 +59,8 @@ public class Constants {
 
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
 
+  public static final int DEFAULT_CHECKPOINT_CAP_MB_SEC = 1000;
+
   public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
 
   public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
