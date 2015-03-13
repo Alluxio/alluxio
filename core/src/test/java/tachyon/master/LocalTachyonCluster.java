@@ -164,7 +164,7 @@ public final class LocalTachyonCluster {
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";
 
-    mLocalhostName = NetworkUtils.getLocalHostName();
+    mLocalhostName = NetworkUtils.getLocalHostName(100);
 
     mMasterConf = new TachyonConf();
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
@@ -172,6 +172,10 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
     mMasterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
     mMasterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "64");
+    
+    // Since tests are always running on a single host keep the resolution timeout low as otherwise people
+    // running with strange network configurations will see very slow tests
+    mMasterConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     // Lower the number of threads that the cluster will spin off.
     // default thread overhead is too much.
@@ -202,6 +206,10 @@ public final class LocalTachyonCluster {
     mWorkerConf.set(Constants.WORKER_MIN_WORKER_THREADS, Integer.toString(1));
     mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, Integer.toString(100));
     mWorkerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, Integer.toString(2));
+    
+    // Since tests are always running on a single host keep the resolution timeout low as otherwise people
+    // running with strange network configurations will see very slow tests
+    mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");

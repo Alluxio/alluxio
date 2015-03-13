@@ -255,6 +255,7 @@ public class RemoteBlockInStream extends BlockInStream {
     try {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
+      String localhost = NetworkUtils.getLocalHostName(conf);
 
       for (NetAddress blockLocation : blockLocations) {
         String host = blockLocation.mHost;
@@ -264,14 +265,15 @@ public class RemoteBlockInStream extends BlockInStream {
         if (port == -1) {
           continue;
         }
+        
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())
-            || host.equals(NetworkUtils.getLocalHostName())) {
+            || host.equals(localhost)) {
           LOG.warn("Master thinks the local machine has data, But not! blockId:{}",
               blockInfo.blockId);
         }
-        LOG.info(host + ":" + port + " current host is " + NetworkUtils.getLocalHostName() + " "
-            + NetworkUtils.getLocalIpAddress());
+        LOG.info(host + ":" + port + " current host is " + localhost + " "
+            + NetworkUtils.getLocalIpAddress(conf));
 
         try {
           buf =
