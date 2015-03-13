@@ -22,7 +22,7 @@ import com.google.common.base.Throwables;
 import tachyon.HeartbeatExecutor;
 
 /**
- * User client sends periodical heartbeats to the worker it is talking to. It is fails to do so, the
+ * User client sends periodical heartbeats to the worker it is talking to. If it fails to do so, the
  * worker may withdraw the space granted to the particular user.
  */
 class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
