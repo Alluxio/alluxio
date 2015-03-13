@@ -130,9 +130,6 @@ public class RemoteBlockInStream extends BlockInStream {
     mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
 
     mRecache = readType.isCache();
-    if (mRecache) {
-      mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
-    }
 
     mUFSConf = ufsConf;
   }
@@ -156,7 +153,7 @@ public class RemoteBlockInStream extends BlockInStream {
     if (mClosed) {
       return;
     }
-    if (mRecache) {
+    if (mRecache && mBlockOutStream != null) {
       // We only finish re-caching if we've gotten to the end of the file
       if (mBlockPos == mBlockInfo.length) {
         mBlockOutStream.close();
@@ -200,6 +197,17 @@ public class RemoteBlockInStream extends BlockInStream {
     // read up to the end of the file
     len = (int) Math.min(len, mBlockInfo.length - mBlockPos);
     int bytesLeft = len;
+    // Lazy initialization of the out stream for caching to avoid collisions with other caching
+    // attempts that are invalidated later due to seek/skips
+    if (bytesLeft > 0 && mBlockOutStream == null && mRecache) {
+      try {
+        mBlockOutStream = new BlockOutStream(mFile, WriteType.TRY_CACHE, mBlockIndex);
+      } catch (IOException ioe) {
+        LOG.warn("Recache attempt failed.", ioe);
+        cancelRecache();
+      }
+    }
+
     // While we still have bytes to read, make sure the buffer is set to read the byte at mBlockPos.
     // If we fail to set mCurrentBuffer, we stream the rest from the underfs
     while (bytesLeft > 0 && mAttemptReadFromWorkers && updateCurrentBuffer()) {
