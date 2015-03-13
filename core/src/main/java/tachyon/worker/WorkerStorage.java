@@ -247,7 +247,7 @@ public class WorkerStorage {
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
           int capMbSec =
               mTachyonConf.getInt(Constants.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC,
-                  Constants.SECOND_MS);
+                  Constants.DEFAULT_CHECKPOINT_CAP_MB_SEC);
           long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB / capMbSec);
           long currentTimeMs = System.currentTimeMillis();
           if (startCopyTimeMs + shouldTakeMs > currentTimeMs) {
