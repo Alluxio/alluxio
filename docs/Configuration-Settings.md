@@ -157,6 +157,11 @@ number.
   <td>How many threads to use for the web server.</td>
 </tr>
 <tr>
+  <td>tachyon.master.worker.timeout.ms</td>
+  <td>10000</td>
+  <td>Timeout between master and worker indicating a lost worker.  Specified in milliseconds</td>
+</tr>
+<tr>
   <td>tachyon.master.keytab.file</td>
   <td></td>
   <td>Kerberos keytab file for Tachyon master.</td>
@@ -284,6 +289,11 @@ number.
   <td>tachyon.worker.principal</td>
   <td></td>
   <td>Kerberos principal for Tachyon worker.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.user.timeout.ms</td>
+  <td>10000</td>
+  <td>Timeout between worker and user connection indicating a lost user connection.  Specified in milliseconds</td>
 </tr>
 </table>
 
