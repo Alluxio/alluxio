@@ -30,10 +30,8 @@ import tachyon.StorageLevelAlias;
 import tachyon.UnderFileSystem;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.PageLocation;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.NetworkUtils;
-import tachyon.util.PageUtils;
 
 /**
  * Block info on the master side.
@@ -84,12 +82,11 @@ public class BlockInfo {
    * block
    */
   private final Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>(5);
+
   /**
-   * Maps workerIds to the pageId and storageId they have cached. Since each page can only be cached
-   * in one storage dir per worker, for each worker, we store a map of pageIds to their associated
-   * storageId.
+   * Maps workerIds to the storageIds they have pages cached in.
    */
-  private final Map<Long, Map<Long, Long>> mCachedPages = new HashMap<Long, Map<Long, Long>>();
+  private final Map<Long, Set<Long>> mWorkerDirs = new HashMap<Long, Set<Long>>();
 
   /**
    * @param inodeFile
@@ -111,22 +108,15 @@ public class BlockInfo {
    * @param workerId The id of the worker
    * @param workerAddress The net address of the worker
    * @param storageDirId The id of the StorageDir which block is located in
-   * @param pages A list of pageIds that are stored on the given worker in the given storageId
    */
-  public synchronized void addLocation(long workerId, NetAddress workerAddress, long storageDirId,
-      List<Long> pages) {
+  public synchronized void addLocation(long workerId, NetAddress workerAddress, long storageDirId) {
     mLocations.put(workerId, workerAddress);
-    Map<Long, Long> existingPages = mCachedPages.get(workerId);
-    if (existingPages == null) {
-      existingPages = new HashMap<Long, Long>();
-      mCachedPages.put(workerId, existingPages);
+    Set<Long> existingDirs = mWorkerDirs.get(workerId);
+    if (existingDirs == null) {
+      existingDirs = new HashSet<Long>();
+      mWorkerDirs.put(workerId, existingDirs);
     }
-    // This will overwrite any existing storageDir for pages that are already in the map. This is
-    // intentional, since when we evict a page to a new storageDir, it is only reported as adding
-    // the page to the new storageDir 
-    for (Long page : pages) {
-      existingPages.put(page, storageDirId);
-    }
+    existingDirs.add(storageDirId);
   }
 
   /**
@@ -142,11 +132,9 @@ public class BlockInfo {
     ret.length = mLength;
     ret.workers = new ArrayList<WorkerInfo>();
     for (Map.Entry<Long, NetAddress> entry : mLocations.entrySet()) {
-      List<PageLocation> pages = new ArrayList<PageLocation>();
-      for (Map.Entry<Long, Long> pageEntry : mCachedPages.get(entry.getKey()).entrySet()) {
-        pages.add(new PageLocation(pageEntry.getKey(), pageEntry.getValue()));
-      }
-      ret.workers.add(new WorkerInfo(entry.getValue(), pages));
+      List<Long> storageDirIds = new ArrayList<Long>();
+      storageDirIds.addAll(mWorkerDirs.get(entry.getKey()));
+      ret.workers.add(new WorkerInfo(entry.getValue(), storageDirIds));
     }
     ret.checkpoints = getCheckpoints();
     return ret;
@@ -217,32 +205,45 @@ public class BlockInfo {
   }
 
   /**
-   * @return true if the block is in some worker's memory, false otherwise
+   * @return true if ANY PART of the block is in some worker's memory, false otherwise
    */
   public synchronized boolean isInMemory() {
-    // Every page must be cached in memory, so we first create a set of the pages that are cached in
-    // memory
-    Set<Long> cachedPages = new HashSet<Long>();
-    for (Map<Long, Long> pages : mCachedPages.values()) {
-      for (Map.Entry<Long, Long> entry : pages.entrySet()) {
-        if (StorageDirId.getStorageLevelAliasValue(entry.getValue()) == StorageLevelAlias.MEM
+    for (Set<Long> storageDirIdSet : mWorkerDirs.values()) {
+      for (long storageDirId : storageDirIdSet) {
+        if (StorageDirId.getStorageLevelAliasValue(storageDirId) == StorageLevelAlias.MEM
             .getValue()) {
-          cachedPages.add(entry.getKey());
+          return true;
         }
       }
     }
-    // We only return true if the size of the pages set equals the number of pages in the block
-    return cachedPages.size() == PageUtils.getNumPages(mLength);
+    return false;
   }
 
   /**
-   * Remove the worker from the block's locations
+   * Remove the storage dir from the set of directories associated with the given worker
    * 
-   * @param workerId The id of the removed worker
+   * @param workerId The id of the worker to remove from
+   * @param storageDirId The id of the storage dir that the block was removed from
    */
-  public synchronized void removeLocation(long workerId) {
+  public synchronized void removeLocation(long workerId, long storageDirId) {
+    Set<Long> dirSet = mWorkerDirs.get(workerId);
+    if (dirSet != null) {
+      dirSet.remove(storageDirId);
+      if (dirSet.isEmpty()) {
+        mWorkerDirs.remove(workerId);
+        mLocations.remove(workerId);
+      }
+    }
+  }
+
+  /**
+   * Remove all storage directories associated with the given worker
+   * 
+   * @param workerId The id of the worker to remove
+   */
+  public synchronized void removeLocationEntirely(long workerId) {
+    mWorkerDirs.remove(workerId);
     mLocations.remove(workerId);
-    mCachedPages.remove(workerId);
   }
 
   @Override
@@ -253,7 +254,7 @@ public class BlockInfo {
     sb.append(", mOffset: ").append(mOffset);
     sb.append(", mLength: ").append(mLength);
     sb.append(", mLocations: ").append(mLocations);
-    sb.append(", mCachedPages: ").append(mCachedPages).append(")");
+    sb.append(", mCachedPages: ").append(mWorkerDirs).append(")");
     return sb.toString();
   }
 }

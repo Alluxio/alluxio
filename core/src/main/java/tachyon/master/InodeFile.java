@@ -134,15 +134,14 @@ public class InodeFile extends Inode {
    * @param workerId The id of the worker
    * @param workerAddress The net address of the worker
    * @param storageDirId The id of the StorageDir which block is located in
-   * @param pages A list of pageIds that are stored on the given worker in the given storageId
    * @throws BlockInfoException
    */
   public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress,
-      long storageDirId, List<Long> pages) throws BlockInfoException {
+      long storageDirId) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
-    mBlocks.get(blockIndex).addLocation(workerId, workerAddress, storageDirId, pages);
+    mBlocks.get(blockIndex).addLocation(workerId, workerAddress, storageDirId);
   }
 
   @Override
@@ -374,13 +373,30 @@ public class InodeFile extends Inode {
    * 
    * @param blockIndex The index of the block in the file
    * @param workerId The id of the removed location worker
+   * @param storageDirId The storage directory id to remove from the worker
    * @throws BlockInfoException
    */
-  public synchronized void removeLocation(int blockIndex, long workerId) throws BlockInfoException {
+  public synchronized void removeLocation(int blockIndex, long workerId, long storageDirId)
+      throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
-    mBlocks.get(blockIndex).removeLocation(workerId);
+    mBlocks.get(blockIndex).removeLocation(workerId, storageDirId);
+  }
+
+  /**
+   * Remove a worker entirely from a block
+   * 
+   * @param blockIndex the index of the block in the file
+   * @param workerId The id of the worker to remove
+   * @throws BlockInfoException
+   */
+  public synchronized void removeLocationEntirely(int blockIndex, long workerId)
+      throws BlockInfoException {
+    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
+      throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
+    }
+    mBlocks.get(blockIndex).removeLocationEntirely(workerId);
   }
 
   /**

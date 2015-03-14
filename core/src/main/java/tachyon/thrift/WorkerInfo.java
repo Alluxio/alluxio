@@ -36,7 +36,7 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("WorkerInfo");
 
   private static final org.apache.thrift.protocol.TField ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("address", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-  private static final org.apache.thrift.protocol.TField PAGES_FIELD_DESC = new org.apache.thrift.protocol.TField("pages", org.apache.thrift.protocol.TType.LIST, (short)2);
+  private static final org.apache.thrift.protocol.TField STORAGE_DIR_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("storageDirIds", org.apache.thrift.protocol.TType.LIST, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -45,12 +45,12 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
   }
 
   public NetAddress address; // required
-  public List<PageLocation> pages; // required
+  public List<Long> storageDirIds; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     ADDRESS((short)1, "address"),
-    PAGES((short)2, "pages");
+    STORAGE_DIR_IDS((short)2, "storageDirIds");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -67,8 +67,8 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       switch(fieldId) {
         case 1: // ADDRESS
           return ADDRESS;
-        case 2: // PAGES
-          return PAGES;
+        case 2: // STORAGE_DIR_IDS
+          return STORAGE_DIR_IDS;
         default:
           return null;
       }
@@ -114,9 +114,9 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("address", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NetAddress.class)));
-    tmpMap.put(_Fields.PAGES, new org.apache.thrift.meta_data.FieldMetaData("pages", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.STORAGE_DIR_IDS, new org.apache.thrift.meta_data.FieldMetaData("storageDirIds", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PageLocation.class))));
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(WorkerInfo.class, metaDataMap);
   }
@@ -126,11 +126,11 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
 
   public WorkerInfo(
     NetAddress address,
-    List<PageLocation> pages)
+    List<Long> storageDirIds)
   {
     this();
     this.address = address;
-    this.pages = pages;
+    this.storageDirIds = storageDirIds;
   }
 
   /**
@@ -140,12 +140,9 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     if (other.isSetAddress()) {
       this.address = new NetAddress(other.address);
     }
-    if (other.isSetPages()) {
-      List<PageLocation> __this__pages = new ArrayList<PageLocation>(other.pages.size());
-      for (PageLocation other_element : other.pages) {
-        __this__pages.add(new PageLocation(other_element));
-      }
-      this.pages = __this__pages;
+    if (other.isSetStorageDirIds()) {
+      List<Long> __this__storageDirIds = new ArrayList<Long>(other.storageDirIds);
+      this.storageDirIds = __this__storageDirIds;
     }
   }
 
@@ -156,7 +153,7 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
   @Override
   public void clear() {
     this.address = null;
-    this.pages = null;
+    this.storageDirIds = null;
   }
 
   public NetAddress getAddress() {
@@ -183,42 +180,42 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     }
   }
 
-  public int getPagesSize() {
-    return (this.pages == null) ? 0 : this.pages.size();
+  public int getStorageDirIdsSize() {
+    return (this.storageDirIds == null) ? 0 : this.storageDirIds.size();
   }
 
-  public java.util.Iterator<PageLocation> getPagesIterator() {
-    return (this.pages == null) ? null : this.pages.iterator();
+  public java.util.Iterator<Long> getStorageDirIdsIterator() {
+    return (this.storageDirIds == null) ? null : this.storageDirIds.iterator();
   }
 
-  public void addToPages(PageLocation elem) {
-    if (this.pages == null) {
-      this.pages = new ArrayList<PageLocation>();
+  public void addToStorageDirIds(long elem) {
+    if (this.storageDirIds == null) {
+      this.storageDirIds = new ArrayList<Long>();
     }
-    this.pages.add(elem);
+    this.storageDirIds.add(elem);
   }
 
-  public List<PageLocation> getPages() {
-    return this.pages;
+  public List<Long> getStorageDirIds() {
+    return this.storageDirIds;
   }
 
-  public WorkerInfo setPages(List<PageLocation> pages) {
-    this.pages = pages;
+  public WorkerInfo setStorageDirIds(List<Long> storageDirIds) {
+    this.storageDirIds = storageDirIds;
     return this;
   }
 
-  public void unsetPages() {
-    this.pages = null;
+  public void unsetStorageDirIds() {
+    this.storageDirIds = null;
   }
 
-  /** Returns true if field pages is set (has been assigned a value) and false otherwise */
-  public boolean isSetPages() {
-    return this.pages != null;
+  /** Returns true if field storageDirIds is set (has been assigned a value) and false otherwise */
+  public boolean isSetStorageDirIds() {
+    return this.storageDirIds != null;
   }
 
-  public void setPagesIsSet(boolean value) {
+  public void setStorageDirIdsIsSet(boolean value) {
     if (!value) {
-      this.pages = null;
+      this.storageDirIds = null;
     }
   }
 
@@ -232,11 +229,11 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       }
       break;
 
-    case PAGES:
+    case STORAGE_DIR_IDS:
       if (value == null) {
-        unsetPages();
+        unsetStorageDirIds();
       } else {
-        setPages((List<PageLocation>)value);
+        setStorageDirIds((List<Long>)value);
       }
       break;
 
@@ -248,8 +245,8 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     case ADDRESS:
       return getAddress();
 
-    case PAGES:
-      return getPages();
+    case STORAGE_DIR_IDS:
+      return getStorageDirIds();
 
     }
     throw new IllegalStateException();
@@ -264,8 +261,8 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     switch (field) {
     case ADDRESS:
       return isSetAddress();
-    case PAGES:
-      return isSetPages();
+    case STORAGE_DIR_IDS:
+      return isSetStorageDirIds();
     }
     throw new IllegalStateException();
   }
@@ -292,12 +289,12 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         return false;
     }
 
-    boolean this_present_pages = true && this.isSetPages();
-    boolean that_present_pages = true && that.isSetPages();
-    if (this_present_pages || that_present_pages) {
-      if (!(this_present_pages && that_present_pages))
+    boolean this_present_storageDirIds = true && this.isSetStorageDirIds();
+    boolean that_present_storageDirIds = true && that.isSetStorageDirIds();
+    if (this_present_storageDirIds || that_present_storageDirIds) {
+      if (!(this_present_storageDirIds && that_present_storageDirIds))
         return false;
-      if (!this.pages.equals(that.pages))
+      if (!this.storageDirIds.equals(that.storageDirIds))
         return false;
     }
 
@@ -327,12 +324,12 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetPages()).compareTo(other.isSetPages());
+    lastComparison = Boolean.valueOf(isSetStorageDirIds()).compareTo(other.isSetStorageDirIds());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetPages()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.pages, other.pages);
+    if (isSetStorageDirIds()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.storageDirIds, other.storageDirIds);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -365,11 +362,11 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("pages:");
-    if (this.pages == null) {
+    sb.append("storageDirIds:");
+    if (this.storageDirIds == null) {
       sb.append("null");
     } else {
-      sb.append(this.pages);
+      sb.append(this.storageDirIds);
     }
     first = false;
     sb.append(")");
@@ -427,21 +424,20 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // PAGES
+          case 2: // STORAGE_DIR_IDS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
-                struct.pages = new ArrayList<PageLocation>(_list0.size);
+                struct.storageDirIds = new ArrayList<Long>(_list0.size);
                 for (int _i1 = 0; _i1 < _list0.size; ++_i1)
                 {
-                  PageLocation _elem2;
-                  _elem2 = new PageLocation();
-                  _elem2.read(iprot);
-                  struct.pages.add(_elem2);
+                  long _elem2;
+                  _elem2 = iprot.readI64();
+                  struct.storageDirIds.add(_elem2);
                 }
                 iprot.readListEnd();
               }
-              struct.setPagesIsSet(true);
+              struct.setStorageDirIdsIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -466,13 +462,13 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         struct.address.write(oprot);
         oprot.writeFieldEnd();
       }
-      if (struct.pages != null) {
-        oprot.writeFieldBegin(PAGES_FIELD_DESC);
+      if (struct.storageDirIds != null) {
+        oprot.writeFieldBegin(STORAGE_DIR_IDS_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.pages.size()));
-          for (PageLocation _iter3 : struct.pages)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.storageDirIds.size()));
+          for (long _iter3 : struct.storageDirIds)
           {
-            _iter3.write(oprot);
+            oprot.writeI64(_iter3);
           }
           oprot.writeListEnd();
         }
@@ -499,19 +495,19 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       if (struct.isSetAddress()) {
         optionals.set(0);
       }
-      if (struct.isSetPages()) {
+      if (struct.isSetStorageDirIds()) {
         optionals.set(1);
       }
       oprot.writeBitSet(optionals, 2);
       if (struct.isSetAddress()) {
         struct.address.write(oprot);
       }
-      if (struct.isSetPages()) {
+      if (struct.isSetStorageDirIds()) {
         {
-          oprot.writeI32(struct.pages.size());
-          for (PageLocation _iter4 : struct.pages)
+          oprot.writeI32(struct.storageDirIds.size());
+          for (long _iter4 : struct.storageDirIds)
           {
-            _iter4.write(oprot);
+            oprot.writeI64(_iter4);
           }
         }
       }
@@ -528,17 +524,16 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       }
       if (incoming.get(1)) {
         {
-          org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.pages = new ArrayList<PageLocation>(_list5.size);
+          org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.storageDirIds = new ArrayList<Long>(_list5.size);
           for (int _i6 = 0; _i6 < _list5.size; ++_i6)
           {
-            PageLocation _elem7;
-            _elem7 = new PageLocation();
-            _elem7.read(iprot);
-            struct.pages.add(_elem7);
+            long _elem7;
+            _elem7 = iprot.readI64();
+            struct.storageDirIds.add(_elem7);
           }
         }
-        struct.setPagesIsSet(true);
+        struct.setStorageDirIdsIsSet(true);
       }
     }
   }

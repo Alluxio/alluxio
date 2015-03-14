@@ -66,16 +66,15 @@ public class InodeFileTest {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
     List<NetAddress> testAddresses = new ArrayList<NetAddress>(3);
     long storageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
-    List<Long> allPages = PageUtils.generateAllPages(inodeFile.getBlockSizeByte());
     testAddresses.add(new NetAddress("testhost1", 1000, 1001));
     testAddresses.add(new NetAddress("testhost2", 2000, 2001));
     testAddresses.add(new NetAddress("testhost3", 3000, 3001));
     inodeFile.addBlock(new BlockInfo(inodeFile, 0, 5));
-    inodeFile.addLocation(0, 1, testAddresses.get(0), storageDirId, allPages);
+    inodeFile.addLocation(0, 1, testAddresses.get(0), storageDirId);
     Assert.assertEquals(1, inodeFile.getBlockLocations(0).size());
-    inodeFile.addLocation(0, 2, testAddresses.get(1), storageDirId, allPages);
+    inodeFile.addLocation(0, 2, testAddresses.get(1), storageDirId);
     Assert.assertEquals(2, inodeFile.getBlockLocations(0).size());
-    inodeFile.addLocation(0, 3, testAddresses.get(2), storageDirId, allPages);
+    inodeFile.addLocation(0, 3, testAddresses.get(2), storageDirId);
     Assert.assertEquals(3, inodeFile.getBlockLocations(0).size());
     Assert.assertEquals(testAddresses, inodeFile.getBlockLocations(0));
   }
@@ -84,8 +83,7 @@ public class InodeFileTest {
   public void inMemoryLocationsTestWithBlockInfoException() throws IOException, BlockInfoException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
     long storageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId,
-        PageUtils.generateAllPages(inodeFile.getBlockSizeByte()));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
   }
 
   @Test
@@ -93,21 +91,20 @@ public class InodeFileTest {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
     inodeFile.addBlock(new BlockInfo(inodeFile, 0, 5));
     long storageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
-    List<Long> allPages = PageUtils.generateAllPages(inodeFile.getBlockSizeByte());
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId, allPages);
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
     Assert.assertTrue(inodeFile.isFullyInMemory());
-    inodeFile.removeLocation(0, 1);
+    inodeFile.removeLocation(0, 1, storageDirId);
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId, allPages);
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId, allPages);
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
     Assert.assertTrue(inodeFile.isFullyInMemory());
-    inodeFile.removeLocation(0, 1);
+    inodeFile.removeLocation(0, 1, storageDirId);
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId, allPages);
-    inodeFile.addLocation(0, 2, new NetAddress("testhost1", 1001, 1002), storageDirId, allPages);
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001), storageDirId);
+    inodeFile.addLocation(0, 2, new NetAddress("testhost1", 1001, 1002), storageDirId);
     Assert.assertTrue(inodeFile.isFullyInMemory());
-    inodeFile.removeLocation(0, 1);
+    inodeFile.removeLocation(0, 1, storageDirId);
     Assert.assertTrue(inodeFile.isFullyInMemory());
   }
 

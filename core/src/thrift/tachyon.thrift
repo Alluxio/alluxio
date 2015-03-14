@@ -10,24 +10,18 @@ struct NetAddress {
   3: i32 mSecondaryPort
 }
 
-struct PageLocation {
-  1: i64 pageId
-  2: i64 storageId
-}
-
 struct WorkerInfo {
   1: NetAddress address
-  2: list<PageLocation> pages
+  2: list<i64> storageDirIds
 }
 
 struct ClientBlockInfo {
   1: i64 blockId
   2: i64 offset
   3: i64 length
-  4: list<WorkerInfo> workers;
-  5: list<string> checkpoints;
+  4: list<WorkerInfo> workers
+  5: list<string> checkpoints
 }
-
 struct ClientWorkerInfo {
   1: i64 id
   2: NetAddress address
@@ -159,8 +153,8 @@ service MasterService {
    * return the command from master to worker. addedBlockIds maps from id of storage directory
    * to the blocks added in it.
    */
-  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlockIds,
-      4: map<i64, list<i64>> addedBlockIds)
+  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes,
+      3: map<i64, list<i64>> removedBlockIds, 4: map<i64, list<i64>> addedBlockIds)
     throws (1: BlockInfoException e)
 
   /**

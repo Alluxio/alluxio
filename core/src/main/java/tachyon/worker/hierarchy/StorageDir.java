@@ -59,6 +59,9 @@ public final class StorageDir {
   /** List of added block Ids to be reported */
   private final BlockingQueue<Long> mAddedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
+  /** List of removed block Ids to be reported */
+  private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
+      Constants.WORKER_BLOCKS_QUEUE_SIZE);
   /** List of to be removed block Ids */
   private final Set<Long> mToRemoveBlockIdSet = Collections.synchronizedSet(new HashSet<Long>());
   /** Space counter of the StorageDir */
@@ -295,6 +298,9 @@ public final class StorageDir {
       }
       deleteBlockId(blockId);
     } else {
+      if (mRemovedBlockIdList.contains(blockId)) {
+        mRemovedBlockIdList.remove(blockId);
+      }
       mToRemoveBlockIdSet.add(blockId);
       LOG.debug("Add block file {} to remove list!", blockfile);
     }
@@ -313,6 +319,7 @@ public final class StorageDir {
       if (mAddedBlockIdList.contains(blockId)) {
         mAddedBlockIdList.remove(blockId);
       }
+      mRemovedBlockIdList.add(blockId);
     }
   }
 
@@ -325,6 +332,17 @@ public final class StorageDir {
     List<Long> addedBlockIdList = new ArrayList<Long>();
     mAddedBlockIdList.drainTo(addedBlockIdList);
     return addedBlockIdList;
+  }
+  
+  /**
+   * Get ids of removed blocks
+   * 
+   * @return a list of removed block ids 
+   */
+  public List<Long> getRemovedBlockIdList() {
+    List<Long> removedBlockIdList = new ArrayList<Long>();
+    mRemovedBlockIdList.drainTo(removedBlockIdList);
+    return removedBlockIdList;
   }
 
   /**

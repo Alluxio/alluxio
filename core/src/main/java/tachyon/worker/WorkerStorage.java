@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -246,8 +244,9 @@ public class WorkerStorage {
             LOG.error("Failed to rename from " + midPath + " to " + dstPath);
           }
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
-          long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB
-              / WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
+          long shouldTakeMs =
+              (long) (1000.0 * fileSizeByte / Constants.MB
+                  / WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
           long currentTimeMs = System.currentTimeMillis();
           if (startCopyTimeMs + shouldTakeMs > currentTimeMs) {
             long shouldSleepMs = startCopyTimeMs + shouldTakeMs - currentTimeMs;
@@ -290,14 +289,11 @@ public class WorkerStorage {
   private List<Integer> mPriorityDependencies = new ArrayList<Integer>();
 
   private final ExecutorService mCheckpointExecutor = Executors.newFixedThreadPool(
-      WorkerConf.get().WORKER_CHECKPOINT_THREADS,
-      ThreadFactoryUtils.build("checkpoint-%d"));
+      WorkerConf.get().WORKER_CHECKPOINT_THREADS, ThreadFactoryUtils.build("checkpoint-%d"));
 
   private final ExecutorService mExecutorService;
   private long mCapacityBytes;
   private ArrayList<StorageTier> mStorageTiers;
-  private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
-      Constants.WORKER_BLOCKS_QUEUE_SIZE);
   /** Mapping from temporary block Information to StorageDir in which the block is */
   private final Map<Pair<Long, Long>, StorageDir> mTempBlockLocation = Collections
       .synchronizedMap(new HashMap<Pair<Long, Long>, StorageDir>());
@@ -480,9 +476,8 @@ public class WorkerStorage {
    * @throws BlockInfoException
    * @throws IOException
    */
-  public void cacheBlock(long userId, long blockId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
-      IOException {
+  public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
+      SuspectedFileSizeException, BlockInfoException, IOException {
     StorageDir storageDir = mTempBlockLocation.remove(new Pair<Long, Long>(userId, blockId));
     if (storageDir == null) {
       throw new FileDoesNotExistException("Block doesn't exist! blockId:" + blockId);
@@ -509,7 +504,7 @@ public class WorkerStorage {
    */
   public void cancelBlock(long userId, long blockId) {
     StorageDir storageDir = mTempBlockLocation.remove(new Pair<Long, Long>(userId, blockId));
-    
+
     if (storageDir != null) {
       mUserIdToTempBlockIds.remove(userId, blockId);
       try {
@@ -559,7 +554,6 @@ public class WorkerStorage {
         }
       }
     }
-    mRemovedBlockIdList.add(blockId);
   }
 
   /**
@@ -641,14 +635,13 @@ public class WorkerStorage {
    * @throws IOException
    */
   public Command heartbeat() throws IOException {
-    List<Long> removedBlockIds = new ArrayList<Long>();
     Map<Long, List<Long>> addedBlockIds = new HashMap<Long, List<Long>>();
-
-    mRemovedBlockIdList.drainTo(removedBlockIds);
+    Map<Long, List<Long>> removedBlockIds = new HashMap<Long, List<Long>>();
 
     for (StorageTier storageTier : mStorageTiers) {
       for (StorageDir storageDir : storageTier.getStorageDirs()) {
         addedBlockIds.put(storageDir.getStorageDirId(), storageDir.getAddedBlockIdList());
+        removedBlockIds.put(storageDir.getStorageDirId(), storageDir.getRemovedBlockIdList());
       }
     }
     return mMasterClient
@@ -733,8 +726,8 @@ public class WorkerStorage {
     StorageDir storageDir = lockBlock(blockId, userId);
     if (storageDir == null) {
       return false;
-    } else if (StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId())
-        != mStorageTiers.get(0).getAlias().getValue()) {
+    } else if (StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId()) != mStorageTiers
+        .get(0).getAlias().getValue()) {
       long blockSize = storageDir.getBlockSize(blockId);
       StorageDir dstStorageDir = requestSpace(null, userId, blockSize);
       if (dstStorageDir == null) {
@@ -796,14 +789,14 @@ public class WorkerStorage {
 
   /**
    * Get temporary file path for some block, it is used to choose appropriate StorageDir for some
-   * block file with specified initial size. 
+   * block file with specified initial size.
    * 
    * @param userId the id of the user who wants to write the file
    * @param blockId the id of the block
-   * @param initialBytes the initial size allocated for the block 
+   * @param initialBytes the initial size allocated for the block
    * @return the temporary path of the block file
    * @throws OutOfSpaceException
-   * @throws FileAlreadyExistException 
+   * @throws FileAlreadyExistException
    */
   public String requestBlockLocation(long userId, long blockId, long initialBytes)
       throws OutOfSpaceException, FileAlreadyExistException {
@@ -825,8 +818,8 @@ public class WorkerStorage {
   }
 
   /**
-   * Request space from the worker, and expecting worker return the appropriate StorageDir which
-   * has enough space for the requested space size
+   * Request space from the worker, and expecting worker return the appropriate StorageDir which has
+   * enough space for the requested space size
    * 
    * @param dirCandidate The StorageDir in which the space will be allocated.
    * @param userId The id of the user who send the request
@@ -844,23 +837,17 @@ public class WorkerStorage {
     }
 
     StorageDir dir = null;
-    List<Long> removedBlockIds = new ArrayList<Long>();
     try {
       if (dirCandidate == null) {
         // if StorageDir candidate is not set, request space from all available StorageDirs
-        dir = mStorageTiers.get(0).requestSpace(userId, requestBytes, pinList, removedBlockIds);
+        dir = mStorageTiers.get(0).requestSpace(userId, requestBytes, pinList);
       } else { // request space from the StorageDir specified
-        if (mStorageTiers.get(0).requestSpace(dirCandidate, userId, requestBytes, pinList,
-            removedBlockIds)) {
+        if (mStorageTiers.get(0).requestSpace(dirCandidate, userId, requestBytes, pinList)) {
           dir = dirCandidate;
         }
       }
     } catch (IOException e) {
       LOG.error(e.getMessage());
-    } finally {
-      if (removedBlockIds.size() > 0) {
-        mRemovedBlockIdList.addAll(removedBlockIds);
-      }
     }
 
     return dir;
@@ -874,7 +861,7 @@ public class WorkerStorage {
    * @param blockId The id of the block that the space is allocated for
    * @param requestBytes The requested space size, in bytes
    * @return true if succeed, false otherwise
-   * @throws FileDoesNotExistException 
+   * @throws FileDoesNotExistException
    */
   public boolean requestSpace(long userId, long blockId, long requestBytes)
       throws FileDoesNotExistException {

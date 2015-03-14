@@ -19,12 +19,15 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.StorageDirId;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
@@ -43,6 +46,46 @@ public class RemoteBlockInStream extends BlockInStream {
 
   /** The block info of the block we are reading */
   private ClientBlockInfo mBlockInfo;
+
+  /**
+   * For each worker that stores the block, we also have a list of storage directories that pages of
+   * the block are in. While reading, we want to consider the workers in order of storage tier, from
+   * lowest to highest, so we build a sorted list of NetAddress, storageDirId pairs.
+   */
+  private static class WorkerInfoPair implements Comparable<WorkerInfoPair> {
+    public WorkerInfoPair(NetAddress mAddress, long mStorageDirId) {
+      super();
+      this.mAddress = mAddress;
+      this.mStorageDirId = mStorageDirId;
+    }
+
+    private NetAddress mAddress;
+    private long mStorageDirId;
+
+    public NetAddress getAddress() {
+      return mAddress;
+    }
+
+    public void setAddress(NetAddress address) {
+      this.mAddress = address;
+    }
+
+    public long getStorageDirId() {
+      return mStorageDirId;
+    }
+
+    public void setStorageDirId(long storageDirId) {
+      this.mStorageDirId = storageDirId;
+    }
+
+    @Override
+    public int compareTo(WorkerInfoPair o) {
+      return StorageDirId.compareStorageLevel(mStorageDirId, o.getStorageDirId());
+    }
+  }
+
+  List<WorkerInfoPair> mSortedWorkers;
+
   /**
    * An input stream for the checkpointed copy of the block. If we are ever unable to read part of
    * the block from the workers, we use this checkpoint stream
@@ -58,8 +101,8 @@ public class RemoteBlockInStream extends BlockInStream {
   private long mCheckpointPos = -1;
 
   /**
-   * The position in the block we are currently at, relative to the block. The
-   * position relative to the file would be mBlockInfo.offset + mBlockPos.
+   * The position in the block we are currently at, relative to the block. The position relative to
+   * the file would be mBlockInfo.offset + mBlockPos.
    */
   private long mBlockPos = 0;
 
@@ -121,6 +164,8 @@ public class RemoteBlockInStream extends BlockInStream {
     }
 
     mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
+    mSortedWorkers = buildSortedWorkers(mBlockInfo);
+
 
     mRecache = readType.isCache();
     if (mRecache) {
@@ -128,6 +173,23 @@ public class RemoteBlockInStream extends BlockInStream {
     }
 
     mUFSConf = ufsConf;
+  }
+
+  /**
+   * Builds a sorted list of WorkerInfoPairs from the given client block info.
+   *
+   * @param blockInfo the metadata to create a sorted worker list out of
+   * @return a list of WorkerInfoPairs sorted by storage tier level
+   */
+  private static List<WorkerInfoPair> buildSortedWorkers(ClientBlockInfo blockInfo) {
+    List<WorkerInfoPair> ret = new ArrayList<WorkerInfoPair>();
+    for (WorkerInfo worker : blockInfo.getWorkers()) {
+      for (Long storageDirId : worker.getStorageDirIds()) {
+        ret.add(new WorkerInfoPair(worker.getAddress(), storageDirId));
+      }
+    }
+    Collections.sort(ret);
+    return ret;
   }
 
   /**
@@ -234,17 +296,22 @@ public class RemoteBlockInStream extends BlockInStream {
 
   public static ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, ClientBlockInfo blockInfo,
       long offset, long len) {
+    return readRemoteByteBuffer(tachyonFS, blockInfo, buildSortedWorkers(blockInfo), offset, len);
+  }
+
+
+  private static ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, ClientBlockInfo blockInfo,
+      List<WorkerInfoPair> sortedWorkers, long offset, long len) {
     ByteBuffer buf = null;
 
     try {
-      // This will be WRONG when partial-block is completed. Right now, only entire blocks are
-      // cached, so all of the worker addresses contain the entire block.
       List<WorkerInfo> workers = blockInfo.getWorkers();
       LOG.info("Block locations:" + workers);
-
-      for (WorkerInfo worker : workers) {
-        String host = worker.getAddress().mHost;
-        int port = worker.getAddress().mSecondaryPort;
+      // We are given a list of Workers sorted by the storage tier they are in (so workers with the
+      // pages in memory come before workers in ssd, etc).
+      for (WorkerInfoPair workerPair : sortedWorkers) {
+        String host = workerPair.getAddress().mHost;
+        int port = workerPair.getAddress().mSecondaryPort;
 
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())
@@ -263,9 +330,8 @@ public class RemoteBlockInStream extends BlockInStream {
             break;
           }
         } catch (IOException e) {
-          LOG.error("Fail to retrieve byte buffer for block " + blockInfo.blockId
-              + " from remote " + host + ":" + port + " with offset " + offset + " and length "
-              + len, e);
+          LOG.error("Fail to retrieve byte buffer for block " + blockInfo.blockId + " from remote "
+              + host + ":" + port + " with offset " + offset + " and length " + len, e);
           buf = null;
         }
       }
@@ -381,10 +447,9 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   /**
-   * Makes sure mCurrentBuffer is set to read at mBlockPos. If it is already, we do
-   * nothing. Otherwise, we set mBufferStartPos accordingly and try to read the correct range of
-   * bytes remotely. If we fail to read remotely, mCurrentBuffer will be null at the end of the
-   * function
+   * Makes sure mCurrentBuffer is set to read at mBlockPos. If it is already, we do nothing.
+   * Otherwise, we set mBufferStartPos accordingly and try to read the correct range of bytes
+   * remotely. If we fail to read remotely, mCurrentBuffer will be null at the end of the function
    * 
    * @return true if mCurrentBuffer was successfully set to read at mBlockPos, or false if the
    *         remote read failed.
