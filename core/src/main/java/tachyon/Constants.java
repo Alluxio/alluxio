@@ -57,6 +57,8 @@ public class Constants {
   public static final int DEFAULT_MASTER_MAX_WORKER_THREADS = 2048;
   public static final int DEFAULT_WORKER_MAX_WORKER_THREADS = 2048;
 
+  public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 4;
+
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
 
   public static final int DEFAULT_CHECKPOINT_CAP_MB_SEC = 1000;
