@@ -97,7 +97,8 @@ public class TachyonWorker implements Runnable {
    * @return The new TachyonWorker
    */
   public static synchronized TachyonWorker createWorker(TachyonConf tachyonConf) {
-    String masterHostname = NetworkUtils.getLocalHostName(tachyonConf);
+    String masterHostname = tachyonConf.get(Constants.MASTER_HOSTNAME,
+        NetworkUtils.getLocalHostName(tachyonConf));
     int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     String workerHostName = NetworkUtils.getLocalHostName(tachyonConf);
     int workerPort = tachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);

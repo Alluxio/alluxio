@@ -168,7 +168,8 @@ public class TachyonFS extends AbstractTachyonFS {
   private TachyonFS(TachyonConf tachyonConf) throws IOException {
     super(tachyonConf);
 
-    String masterHost = NetworkUtils.getLocalHostName(tachyonConf);
+    String masterHost = tachyonConf.get(Constants.MASTER_HOSTNAME,
+        NetworkUtils.getLocalHostName(tachyonConf));
     int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
 
     mMasterAddress = new InetSocketAddress(masterHost, masterPort);
