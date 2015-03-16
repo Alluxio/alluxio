@@ -183,7 +183,8 @@ public class TachyonFS extends AbstractTachyonFS {
         mTachyonConf));
 
     mUserFailedSpaceRequestLimits =
-        mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 0);
+        mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS,
+            Constants.DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS);
 
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
     String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
