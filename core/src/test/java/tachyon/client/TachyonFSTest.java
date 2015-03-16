@@ -364,7 +364,7 @@ public class TachyonFSTest {
     String localhost = NetworkUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
     String localIP = NetworkUtils.getLocalIpAddress(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
     String[] resultUrls =
-        new String[] {"tachyon://" + localhost + "/" + localIP + ":19998", "tachyon-ft://" + localhost + "/" + localIP + ":19998",};
+        new String[] {"tachyon://localhost/127.0.0.1:19998", "tachyon-ft://localhost/127.0.0.1:19998",};
     for (int i = 0, n = originUrls.length; i < n; i ++) {
       String originUrl = originUrls[i];
       String resultUrl = resultUrls[i];
@@ -380,10 +380,10 @@ public class TachyonFSTest {
 
     copyConf.set(Constants.USE_ZOOKEEPER, "false");
     tfs = TachyonFS.get(copyConf);
-    Assert.assertEquals("tachyon://" + localhost + "/" + localIP + ":19998", tfs.toString());
+    Assert.assertEquals("tachyon://localhost/127.0.0.1:19998", tfs.toString());
 
     copyConf.set(Constants.USE_ZOOKEEPER, "true");
     tfs = TachyonFS.get(copyConf);
-    Assert.assertEquals("tachyon-ft://" + localhost + "/" + localIP + ":19998", tfs.toString());
+    Assert.assertEquals("tachyon-ft://localhost/127.0.0.1:19998", tfs.toString());
   }
 }
