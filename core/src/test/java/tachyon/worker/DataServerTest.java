@@ -73,7 +73,11 @@ public class DataServerTest {
 
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.worker.network.type");
   }
 
   /**
@@ -97,8 +101,8 @@ public class DataServerTest {
   /**
    * Asserts that the message back matches the block response protocols.
    */
-  private void assertValid(final DataServerMessage msg, final int expectedSize, final long blockId,
-      final long offset, final long length) {
+  private void assertValid(final DataServerMessage msg, final int expectedSize,
+      final long blockId, final long offset, final long length) {
     assertValid(msg, TestUtils.getIncreasingByteBuffer(expectedSize), blockId, offset, length);
   }
 

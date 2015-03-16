@@ -121,7 +121,6 @@
   </pluginRepositories>
 
   <properties>
-    <test.profile>local</test.profile>
     <test.output.redirect>true</test.output.redirect>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.6</java.version>
@@ -138,12 +137,14 @@
     <license.header.path>build/license/</license.header.path>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
     <findbugs.path>build/findbugs/</findbugs.path>
+    <junit.version>4.10</junit.version>
   </properties>
 
   <modules>
     <module>core</module>
     <module>client</module>
     <module>assembly</module>
+    <module>underfs</module>
   </modules>
 
   <build>

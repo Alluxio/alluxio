@@ -21,11 +21,12 @@ this="$config_bin/$script"
 # This will set the default installation for a tarball installation while os distributors can create
 # their own tachyon-layout.sh file to set system installation locations.
 if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
+  VERSION=0.7.0-SNAPSHOT
   export TACHYON_PREFIX=`dirname "$this"`/..
   export TACHYON_HOME=${TACHYON_PREFIX}
   export TACHYON_CONF_DIR="$TACHYON_HOME/conf"
   export TACHYON_LOGS_DIR="$TACHYON_HOME/logs"
-  export TACHYON_JAR=$TACHYON_HOME/core/target/tachyon-0.7.0-SNAPSHOT-jar-with-dependencies.jar
+  export TACHYON_JARS="$TACHYON_HOME/core/target/tachyon-${VERSION}-jar-with-dependencies.jar:$TACHYON_HOME/underfs/hdfs/target/tachyon-underfs-hdfs-${VERSION}.jar:$TACHYON_HOME/underfs/glusterfs/target/tachyon-underfs-glusterfs-${VERSION}.jar"
   export JAVA="$JAVA_HOME/bin/java"
 fi
 
@@ -34,4 +35,4 @@ if [ -e $TACHYON_CONF_DIR/tachyon-env.sh ] ; then
   . $TACHYON_CONF_DIR/tachyon-env.sh
 fi
 
-export CLASSPATH="$TACHYON_CONF_DIR/:$TACHYON_JAR:$TACHYON_CLASSPATH"
+export CLASSPATH="$TACHYON_CONF_DIR/:$TACHYON_JARS:$TACHYON_CLASSPATH"

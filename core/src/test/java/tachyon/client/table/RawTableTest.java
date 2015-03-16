@@ -42,7 +42,10 @@ public class RawTableTest {
 
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
+    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @Before

@@ -12,31 +12,54 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon;
+package tachyon.underfs.glusterfs;
 
 import java.io.IOException;
 
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
-public class GlusterfsCluster extends UnderFileSystemCluster {
+import org.apache.commons.lang3.StringUtils;
 
-  public GlusterfsCluster(String baseDir, TachyonConf tachyonConf) {
+import tachyon.underfs.UnderFileSystemCluster;
+
+public class GlusterFSCluster extends UnderFileSystemCluster {
+
+  public GlusterFSCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
+    checkGlusterConfigured(tachyonConf);
+  }
+
+  private void checkGlusterConfigured(TachyonConf conf) {
+    if (conf == null) throw new NullPointerException("Null Tachyon Configuration provided");
+    
+    if (StringUtils.isEmpty(conf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null))) {
+      throw new IllegalArgumentException("Gluster FS Mounts are undefined");
+    }
+    if (StringUtils.isEmpty(conf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null))) {
+      throw new IllegalArgumentException("Gluster FS Volumes are undefined");
+    }
   }
 
   @Override
   public String getUnderFilesystemAddress() {
+    checkGlusterConfigured(mTachyonConf);
+
     return "glusterfs:///tachyon_test";
   }
 
   @Override
   public boolean isStarted() {
+    checkGlusterConfigured(mTachyonConf);
     return true;
   }
 
   @Override
-  public void shutdown() throws IOException {}
+  public void shutdown() throws IOException {
+  }
 
   @Override
-  public void start() throws IOException {}
+  public void start() throws IOException {
+    checkGlusterConfigured(mTachyonConf);
+  }
 }

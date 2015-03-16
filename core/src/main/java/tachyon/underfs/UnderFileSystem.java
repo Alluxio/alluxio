@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.underfs;
 
 import java.io.InputStream;
 import java.io.IOException;
@@ -23,6 +23,9 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
+import tachyon.Constants;
+import tachyon.Pair;
+import tachyon.TachyonURI;
 
 /**
  * Tachyon stores data into an under layer file system. Any file system implementing this interface
@@ -51,9 +54,12 @@ public abstract class UnderFileSystem {
   /**
    * Get the UnderFileSystem instance according to its schema.
    * 
-   * @param path file path storing over the ufs.
-   * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance.
-   * @throws IllegalArgumentException for unknown scheme
+   * @param path
+   *          file path storing over the ufs.
+   * @param tachyonConf
+   *          the {@link tachyon.conf.TachyonConf} instance.
+   * @throws IllegalArgumentException
+   *           for unknown scheme
    * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, TachyonConf tachyonConf) {
@@ -63,31 +69,35 @@ public abstract class UnderFileSystem {
   /**
    * Get the UnderFileSystem instance according to its scheme and configuration.
    * 
-   * @param path file path storing over the ufs
-   * @param conf the configuration object for ufs only
-   * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance.
-   * @throws IllegalArgumentException for unknown scheme
+   * @param path
+   *          file path storing over the ufs
+   * @param conf
+   *          the configuration object for ufs only
+   * @param tachyonConf
+   *          the {@link tachyon.conf.TachyonConf} instance.
+   * @throws IllegalArgumentException
+   *           for unknown scheme
    * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, Object conf, TachyonConf tachyonConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    if (isHadoopUnderFS(path, tachyonConf)) {
-      return UnderFileSystemHdfs.getClient(path, conf, tachyonConf);
-    } else if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
-      return UnderFileSystemSingleLocal.getClient(tachyonConf);
-    }
-    throw new IllegalArgumentException("Unknown under file system scheme " + path);
+    // Use the registry to determine the factory to use to create the client
+    return UnderFileSystemRegistry.create(path, tachyonConf, conf);
   }
 
   /**
-   * Determines if the Hadoop implementation of {@link tachyon.UnderFileSystem} should be used.
+   * Determines if given path is on a Hadoop under file system
    * 
    * The logic to say if a path should use the hadoop implementation is by checking if
    * {@link String#startsWith(String)} to see if the configured schemas are found.
    */
-  private static boolean isHadoopUnderFS(final String path, TachyonConf tachyonConf) {
-
+  public static boolean isHadoopUnderFS(final String path, TachyonConf tachyonConf) {
+    // TODO In Hadoop 2.x this can be replaced with the simpler call to
+    // FileSystem.getFileSystemClass() without any need for having users explicitly declare the file
+    // system schemes to treat as being HDFS
+    // However as long as pre 2.x versions of Hadoop are supported this is not an option and we have
+    // to continue to use this method
     for (final String prefix : tachyonConf.getList(Constants.UNDERFS_HADOOP_PREFIXS, ",", null)) {
       if (path.startsWith(prefix)) {
         return true;
@@ -101,7 +111,8 @@ public abstract class UnderFileSystem {
    * pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
    * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
    * 
-   * @param path the input path string
+   * @param path
+   *          the input path string
    * @return null if path does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,
    *         file://, /. Or a pair of strings denoting the under FS address and the relative path
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
@@ -134,6 +145,38 @@ public abstract class UnderFileSystem {
     mTachyonConf = tachyonConf;
   }
 
+  /**
+   * Takes any necessary actions required to establish a connection to the under file system from
+   * the given master host e.g. logging in
+   * <p>
+   * Depending on the implementation this may be a no-op
+   * </p>
+   * 
+   * @param conf
+   *          Tachyon configuration
+   * 
+   * @param hostname
+   *          The host that wants to connect to the under file system
+   * @throws IOException
+   */
+  public abstract void connectFromMaster(TachyonConf conf, String hostname) throws IOException;
+
+  /**
+   * Takes any necessary actions required to establish a connection to the under file system from
+   * the given worker host e.g. logging in
+   * <p>
+   * Depending on the implementation this may be a no-op
+   * </p>
+   * 
+   * @param conf
+   *          Tachyon configuration
+   * 
+   * @param hostname
+   *          The host that wants to connect to the under file system
+   * @throws IOException
+   */
+  public abstract void connectFromWorker(TachyonConf conf, String hostname) throws IOException;
+  
   public abstract void close() throws IOException;
 
   public abstract OutputStream create(String path) throws IOException;
@@ -182,7 +225,8 @@ public abstract class UnderFileSystem {
    * There is no guarantee that the name strings in the resulting array will appear in any specific
    * order; they are not, in particular, guaranteed to appear in alphabetical order.
    * 
-   * @param path the path to list.
+   * @param path
+   *          the path to list.
    * @return An array of strings naming the files and directories in the directory denoted by this
    *         abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory, or if an I/O error
@@ -195,9 +239,11 @@ public abstract class UnderFileSystem {
    * Creates the directory named by this abstract pathname. If the folder already exists, the method
    * returns false.
    * 
-   * @param path the folder to create
-   * @param createParent If true, the method creates any necessary but nonexistent parent
-   *        directories. Otherwise, the method does not create nonexistent parent directories.
+   * @param path
+   *          the folder to create
+   * @param createParent
+   *          If true, the method creates any necessary but nonexistent parent
+   *          directories. Otherwise, the method does not create nonexistent parent directories.
    * @return <code>true</code> if and only if the directory was created; <code>false</code>
    *         otherwise
    * @throws IOException
@@ -212,15 +258,18 @@ public abstract class UnderFileSystem {
    * To set the configuration object for UnderFileSystem. The conf object is understood by the
    * concrete underfs's implementation.
    * 
-   * @param conf The configuration object accepted by ufs.
+   * @param conf
+   *          The configuration object accepted by ufs.
    */
   public abstract void setConf(Object conf);
 
   /**
    * Change posix file permission
    * 
-   * @param path path of the file
-   * @param posixPerm standard posix permission like "777", "775", etc.
+   * @param path
+   *          path of the file
+   * @param posixPerm
+   *          standard posix permission like "777", "775", etc.
    * @throws IOException
    */
   public abstract void setPermission(String path, String posixPerm) throws IOException;
