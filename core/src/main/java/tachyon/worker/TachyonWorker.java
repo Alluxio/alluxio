@@ -118,14 +118,44 @@ public class TachyonWorker implements Runnable {
 
   }
 
+  private static String setMasterLocation(String masterUrl, TachyonConf conf) {
+    String masterHostnameConf = conf.get(Constants.MASTER_HOSTNAME,
+        NetworkUtils.getLocalHostName(conf));
+    String masterPortConf = conf.get(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT + "");
+    if (masterUrl == null) {
+      return masterHostnameConf + ":" + masterPortConf;
+    } else {
+      String[] address = masterUrl.split(":");
+      String masterHostname = address[0];
+      if (!masterHostnameConf.equals(masterHostname)) {
+        LOG.warn("Master host in configuration ({}) is different from the command line ({}).",
+            masterHostnameConf, masterHostname);
+        conf.set(Constants.MASTER_HOSTNAME, masterHostname);
+      }
+      String masterPort = masterPortConf;
+      if (address.length > 1) {
+        masterPort = address[1];
+        if (!masterPortConf.equals(masterPort)) {
+          LOG.warn("Master port in configuration ({}) is different from the command line ({}).",
+              masterPortConf, masterPort);
+          conf.set(Constants.MASTER_PORT, masterPort);
+        }
+      }
+      return masterHostname + ":" + masterPort;
+    }
+  }
+
   public static void main(String[] args) throws UnknownHostException {
     if (args.length > 1) {
       LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
           + "tachyon.Worker [<MasterHost:Port>]");
       System.exit(-1);
     }
-    
+
     TachyonConf tachyonConf = new TachyonConf();
+    if (args.length == 1) {
+      setMasterLocation(args[0], tachyonConf);
+    }
     
     String resolvedWorkerHost = NetworkUtils.getLocalHostName(tachyonConf);
     LOG.info("Resolved local TachyonWorker host to " + resolvedWorkerHost);
