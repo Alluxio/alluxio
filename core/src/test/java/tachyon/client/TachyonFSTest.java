@@ -364,7 +364,7 @@ public class TachyonFSTest {
     String localhost = NetworkUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
     String localIP = NetworkUtils.getLocalIpAddress(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
     String[] resultUrls =
-        new String[] {"tachyon://127.0.0.1:19998", "tachyon-ft://127.0.0.1:19998",};
+        new String[] {"tachyon://localhost/127.0.0.1:19998", "tachyon-ft://localhost/127.0.0.1:19998",};
     for (int i = 0, n = originUrls.length; i < n; i ++) {
       String originUrl = originUrls[i];
       String resultUrl = resultUrls[i];
