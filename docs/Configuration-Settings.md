@@ -117,6 +117,11 @@ The common configuration contains constants which specify paths and the log appe
   <td>29</td>
   <td>How many times to try to reconnect with master.</td>
 </tr>
+<tr>
+  <td>tachyon.host.resolution.timeout.ms</td>
+  <td>5000</td>
+  <td>During startup of Master and Worker processes Tachyon needs to ensure that they are listening on externally visible and reachable host names.  To do this Tachyon will automatically attempt to select an appropriate host name if one was not explicitly specified.  This represents the maximum amount of time spent waiting to determine if a candidate host name is resolvable over the network.</td>
+</tr>
 </table>
 
 ## Master Configuration
