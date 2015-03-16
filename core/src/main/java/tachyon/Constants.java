@@ -57,14 +57,14 @@ public class Constants {
   public static final int DEFAULT_MASTER_MAX_WORKER_THREADS = 2048;
   public static final int DEFAULT_WORKER_MAX_WORKER_THREADS = 2048;
 
-  public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 4;
+  public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
 
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
 
   public static final int DEFAULT_CHECKPOINT_CAP_MB_SEC = 1000;
 
   public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
-  
+
   public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
   public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
@@ -181,5 +181,5 @@ public class Constants {
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
   public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
       tachyon.client.tcp.TCPRemoteBlockReader.class;
-  
+
 }
