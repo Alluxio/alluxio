@@ -44,6 +44,7 @@ import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.web.UIWebServer;
 
 /**
  * Entry point for a worker daemon.
@@ -170,6 +171,8 @@ public class TachyonWorker implements Runnable {
 
   private final InetSocketAddress mMasterAddress;
   private final NetAddress mWorkerAddress;
+  private final UIWebServer mWebServer;
+  private final int mWebPort;
   private TServer mServer;
 
   private TServerSocket mServerTServerSocket;
@@ -211,6 +214,8 @@ public class TachyonWorker implements Runnable {
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
+    mWebPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
+
     // Extract the port from the generated socket.
     // When running tests, its great to use port '0' so the system will figure out what port to use
     // (any random free port).
@@ -242,6 +247,12 @@ public class TachyonWorker implements Runnable {
     mWorkerAddress =
         new NetAddress(workerAddress.getAddress().getCanonicalHostName(), mPort, mDataPort);
     mWorkerStorage.initialize(mWorkerAddress);
+
+    mWebServer =
+        new UIWebServer("Tachyon Worker", new InetSocketAddress(workerAddress.getHostName(),
+            mWebPort), mTachyonConf);
+    mWebServer.setupWorkerWebServer(mWorkerStorage);
+
   }
 
   /**
@@ -357,6 +368,7 @@ public class TachyonWorker implements Runnable {
     login();
 
     mHeartbeatThread.start();
+    mWebServer.startWebServer();
 
     LOG.info("The worker server started @ " + mWorkerAddress);
     mServer.serve();

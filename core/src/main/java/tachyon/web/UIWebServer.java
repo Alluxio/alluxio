@@ -38,6 +38,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterInfo;
+import tachyon.worker.WorkerStorage;
 
 /**
  * Class that bootstraps and starts the web server for the web interface.
@@ -48,6 +49,7 @@ public class UIWebServer {
   private Server mServer;
   private String mServerName;
   private InetSocketAddress mAddress;
+  private WebAppContext mWebAppContext;
   private final TachyonConf mTachyonConf;
 
   /**
@@ -55,14 +57,12 @@ public class UIWebServer {
    *
    * @param serverName Name of the server
    * @param address Address of the server
-   * @param masterInfo MasterInfo for the tachyon filesystem this UIWebServer supports
    * @param conf Tachyon configuration
    */
-  public UIWebServer(String serverName, InetSocketAddress address, MasterInfo masterInfo, 
+  public UIWebServer(String serverName, InetSocketAddress address,
       TachyonConf conf) {
     Preconditions.checkNotNull(serverName, "Server name cannot be null");
     Preconditions.checkNotNull(address, "Server address cannot be null");
-    Preconditions.checkNotNull(masterInfo, "Master information cannot be null");
     Preconditions.checkNotNull(conf, "Configuration cannot be null");
     
     mAddress = address;
@@ -83,30 +83,55 @@ public class UIWebServer {
     threadPool.setMaxThreads(webThreadCount * 2 + 100);
     mServer.setThreadPool(threadPool);
 
-    WebAppContext webappcontext = new WebAppContext();
-
-    webappcontext.setContextPath(TachyonURI.SEPARATOR);
+    mWebAppContext = new WebAppContext();
+    mWebAppContext.setContextPath(TachyonURI.SEPARATOR);
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
     File warPath =
         new File(mTachyonConf.get(Constants.WEB_RESOURCES, tachyonHome + "/core/src/main/webapp"));
-    webappcontext.setWar(warPath.getAbsolutePath());
-    webappcontext
-        .addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)), "/home");
-    webappcontext.addServlet(new ServletHolder(new WebInterfaceWorkersServlet(masterInfo)),
+    mWebAppContext.setWar(warPath.getAbsolutePath());
+  }
+
+  /**
+   * Setup the servlets for the master web server.
+   *
+   * @param masterInfo The MasterInfo instance in the master
+   */
+  public void setupMasterWebServer(MasterInfo masterInfo) {
+    Preconditions.checkNotNull(masterInfo, "Master information cannot be null");
+
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)),
+            "/home");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkersServlet(masterInfo)),
         "/workers");
-    webappcontext.addServlet(new ServletHolder(new WebInterfaceConfigurationServlet(masterInfo)),
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceConfigurationServlet(masterInfo)),
         "/configuration");
-    webappcontext.addServlet(new ServletHolder(new WebInterfaceBrowseServlet(masterInfo)),
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseServlet(masterInfo)),
         "/browse");
-    webappcontext.addServlet(new ServletHolder(new WebInterfaceMemoryServlet(masterInfo)),
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMemoryServlet(masterInfo)),
         "/memory");
-    webappcontext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(masterInfo)),
-        "/dependency");
-    webappcontext.addServlet(new ServletHolder(new WebInterfaceDownloadServlet(masterInfo)),
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(masterInfo)),
+            "/dependency");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadServlet(masterInfo)),
         "/download");
 
     HandlerList handlers = new HandlerList();
-    handlers.setHandlers(new Handler[] {webappcontext, new DefaultHandler()});
+    handlers.setHandlers(new Handler[] { mWebAppContext, new DefaultHandler() });
+    mServer.setHandler(handlers);
+  }
+
+  /**
+   * Setup the servlets for the worker web server.
+   *
+   * @param workerStorage The WorkerStorage instance in the worker
+   */
+  public void setupWorkerWebServer(WorkerStorage workerStorage) {
+    Preconditions.checkNotNull(workerStorage, "WorkerStorage cannot be null");
+
+    mWebAppContext.addServlet(
+            new ServletHolder(new WebInterfaceWorkerGeneralServlet(workerStorage)), "/home");
+
+    HandlerList handlers = new HandlerList();
+    handlers.setHandlers(new Handler[] { mWebAppContext, new DefaultHandler() });
     mServer.setHandler(handlers);
   }
 
@@ -122,8 +147,9 @@ public class UIWebServer {
     try {
       mServer.start();
       if (mAddress.getPort() == 0) {
-        mAddress = new InetSocketAddress(mAddress.getHostName(), 
-            mServer.getConnectors()[0].getLocalPort());
+        mAddress =
+            new InetSocketAddress(mAddress.getHostName(),
+                mServer.getConnectors()[0].getLocalPort());
       }
       LOG.info(mServerName + " started @ " + mAddress);
     } catch (Exception e) {
