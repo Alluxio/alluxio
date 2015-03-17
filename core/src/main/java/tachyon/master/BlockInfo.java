@@ -17,12 +17,11 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import tachyon.Pair;
 import tachyon.StorageDirId;
@@ -153,27 +152,19 @@ public class BlockInfo {
    * @return the net addresses of the locations
    */
   public synchronized List<NetAddress> getLocations(TachyonConf tachyonConf) {
-    NetAddress[] addresses = new NetAddress[mLocations.size()];
-    if (mLocations.size() > 0) {
-      int[] index = new int[StorageLevelAlias.SIZE];
-      for (long storageDirId : mStorageDirIds.values()) {
-        int storageLevelValue = StorageDirId.getStorageLevelAliasValue(storageDirId);
-        index[storageLevelValue - 1] ++;
-      }
-      int highestTierLocNum = index[0];
-      for (int i = 1; i < StorageLevelAlias.SIZE; i ++) {
-        if (highestTierLocNum == 0) {
-          highestTierLocNum = index[i];
-        }
-        index[i] += index[i - 1];
-      }
+    List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
+    boolean shuffled = false;
+    for (StorageLevelAlias alias : StorageLevelAlias.values()) {
       for (Map.Entry<NetAddress, Long> entry : mStorageDirIds.entrySet()) {
-        int storageLevelValue = StorageDirId.getStorageLevelAliasValue(entry.getValue());
-        addresses[-- index[storageLevelValue - 1]] = entry.getKey();
+        if (alias.getValue() == StorageDirId.getStorageLevelAliasValue(entry.getValue())) {
+          ret.add(entry.getKey());
+        }
       }
-      shuffleLocations(addresses, highestTierLocNum);
+      if (!shuffled && ret.size() > 0) {
+        Collections.shuffle(ret);
+        shuffled = true;
+      }
     }
-    List<NetAddress> ret = new ArrayList<NetAddress>(Arrays.asList(addresses));
     if (ret.isEmpty() && mInodeFile.hasCheckpointed()) {
       UnderFileSystem ufs = UnderFileSystem.get(mInodeFile.getUfsPath(), tachyonConf);
       List<String> locs = null;
@@ -218,24 +209,6 @@ public class BlockInfo {
   public synchronized void removeLocation(long workerId) {
     if (mLocations.containsKey(workerId)) {
       mStorageDirIds.remove(mLocations.remove(workerId));
-    }
-  }
-
-  /**
-   * Shuffle the first len addresses using an algorithm similar to Collections.shuffle
-   *
-   * @param addresses the array of the locations
-   * @param len the first len elements to shuffle
-   */
-  private void shuffleLocations(NetAddress[] addresses, int len) {
-    if (len > 1 && len <= addresses.length) {
-      Random random = new Random();
-      for (int i = len; i > 1; i --) {
-        int index = random.nextInt(i);
-        NetAddress temp = addresses[i - 1];
-        addresses[i - 1] = addresses[index];
-        addresses[index] = temp;
-      }
     }
   }
 
