@@ -53,6 +53,7 @@ public class Constants {
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;
   public static final int DEFAULT_WORKER_DATA_SERVER_PORT = DEFAULT_WORKER_PORT + 1;
+  public static final int DEFAULT_WORKER_WEB_PORT = DEFAULT_WORKER_PORT + 2;
 
   public static final int DEFAULT_MASTER_MAX_WORKER_THREADS = 2048;
   public static final int DEFAULT_WORKER_MAX_WORKER_THREADS = 2048;
@@ -133,6 +134,7 @@ public class Constants {
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_PORT = "tachyon.worker.port";
   public static final String WORKER_DATA_PORT = "tachyon.worker.data.port";
+  public static final String WORKER_WEB_PORT = "tachyon.worker.web.port";
   public static final String WORKER_DATA_FOLDER = "tachyon.worker.data.folder";
   public static final String WORKER_HEARTBEAT_TIMEOUT_MS = "tachyon.worker.heartbeat.timeout.ms";
   public static final String WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
