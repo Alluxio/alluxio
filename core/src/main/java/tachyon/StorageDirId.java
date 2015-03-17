@@ -67,6 +67,16 @@ public class StorageDirId {
   }
 
   /**
+   * Get StorageLevelAlias from StorageDirId
+   *
+   * @param storageDirId Id of the StorageDir
+   * @return the StorageLevelAlias
+   */
+  public static StorageLevelAlias getStorageLevelAlias(long storageDirId) {
+    return StorageLevelAlias.values()[getStorageLevelAliasValue(storageDirId) - 1];
+  }
+
+  /**
    * Get StorageLevelAlias value from StorageDirId
    *
    * @param storageDirId Id of the StorageDir
