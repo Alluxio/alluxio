@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -268,6 +269,7 @@ public class WorkerStorage {
 
   private volatile MasterClient mMasterClient;
   private final InetSocketAddress mMasterAddress;
+  private final long mStartTimeMs;
   private NetAddress mWorkerAddress;
 
   private long mWorkerId;
@@ -320,6 +322,7 @@ public class WorkerStorage {
     mExecutorService = executorService;
     mTachyonConf = tachyonConf;
     mMasterAddress = masterAddress;
+    mStartTimeMs = System.currentTimeMillis();
     mMasterClient = new MasterClient(mMasterAddress, mExecutorService, mTachyonConf);
 
     mDataFolder = mTachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
@@ -589,6 +592,53 @@ public class WorkerStorage {
   }
 
   /**
+   * Get the capacity of the worker.
+   *
+   * @return the worker's capacity in bytes.
+   */
+  public long getCapacityBytes() {
+    return mCapacityBytes;
+  }
+
+  /**
+   * Get the capacity of the MEM/SSH/HDD tier.
+   *
+   * @param alias The alias of the storage tier
+   * @return the capacity in bytes
+   */
+  public long getCapacityBytes(StorageLevelAlias alias) {
+    long ret = 0;
+    for (StorageTier tier : mStorageTiers) {
+      if (tier.getAlias() == alias) {
+        ret += tier.getCapacityBytes();
+      }
+    }
+    return ret;
+  }
+
+  /**
+   * Get the worker start time in milliseconds.
+   *
+   * @return the worker start time in milliseconds
+   */
+  public long getStarttimeMs() {
+    return mStartTimeMs;
+  }
+
+  /**
+   * Get all storageDirs in the worker.
+   *
+   * @return the storageDir array
+   */
+  public StorageDir[] getStorageDirs() {
+    List<StorageDir> storageDirs = new ArrayList<StorageDir>();
+    for (StorageTier tier : mStorageTiers) {
+      storageDirs.addAll(Arrays.asList(tier.getStorageDirs()));
+    }
+    return storageDirs.toArray(new StorageDir[storageDirs.size()]);
+  }
+
+  /**
    * Get StorageDir which contains specified block
    *
    * @param blockId the id of the block
@@ -610,6 +660,35 @@ public class WorkerStorage {
    */
   public String getUfsOrphansFolder() {
     return mUfsOrphansFolder;
+  }
+
+  /**
+   * Get the total used bytes of the worker.
+   *
+   * @return the worker's total used bytes.
+   */
+  public long getUsedBytes() {
+    long ret = 0;
+    for (StorageTier tier : mStorageTiers) {
+      ret += tier.getUsedBytes();
+    }
+    return ret;
+  }
+
+  /**
+   * Get the used bytes of the MEM/SSH/HDD tier.
+   *
+   * @param alias The alias of the storage tier
+   * @return the used bytes
+   */
+  public long getUsedBytes(StorageLevelAlias alias) {
+    long ret = 0;
+    for (StorageTier tier : mStorageTiers) {
+      if (tier.getAlias() == alias) {
+        ret += tier.getUsedBytes();
+      }
+    }
+    return ret;
   }
 
   /**
@@ -644,6 +723,15 @@ public class WorkerStorage {
     String ret = mUsers.getUserUfsTempFolder(userId);
     LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;
+  }
+
+  /**
+   * Get the worker address
+   *
+   * @return the worker address
+   */
+  public InetSocketAddress getWorkerAddress() {
+    return new InetSocketAddress(mWorkerAddress.getMHost(), mWorkerAddress.getMPort());
   }
 
   /**
