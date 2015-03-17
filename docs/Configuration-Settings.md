@@ -196,6 +196,11 @@ number.
   <td>The port Tachyon's worker's data server runs on.</td>
 </tr>
 <tr>
+  <td>tachyon.worker.data.port</td>
+  <td>30000</td>
+  <td>The port Tachyon's worker's web server runs on.</td>
+</tr>
+<tr>
   <td>tachyon.worker.data.folder</td>
   <td>/tachyonworker/</td>
   <td>The relative path in each storage directory as the data folder for Tachyon's worker nodes.</td>
