@@ -228,7 +228,11 @@ abstract class AbstractTFS extends FileSystem {
   private void fromHdfsToTachyon(TachyonURI path) throws IOException {
     if (!mTFS.exist(path)) {
       Path hdfsPath = Utils.getHDFSPath(path, mUnderFSAddress);
-      FileSystem fs = hdfsPath.getFileSystem(getConf());
+      Configuration conf = new Configuration(getConf());
+      if (conf.get("fs.defaultFS") == null) {
+        conf.set("fs.defaultFS", mUnderFSAddress);
+      }
+      FileSystem fs = hdfsPath.getFileSystem(conf);
       if (fs.exists(hdfsPath)) {
         TachyonURI ufsUri = new TachyonURI(mUnderFSAddress);
         TachyonURI ufsAddrPath = new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(),
@@ -237,6 +241,11 @@ abstract class AbstractTFS extends FileSystem {
         UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
       }
     }
+  }
+
+  @Override
+  public long getDefaultBlockSize() {
+    return getConf().getLong("fs.local.block.size", Constants.DEFAULT_BLOCK_SIZE_BYTE);
   }
 
   @Override

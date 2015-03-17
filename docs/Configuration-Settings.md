@@ -316,7 +316,7 @@ The user configuration specifies values regarding file system access.
 </tr>
 <tr>
   <td>tachyon.user.remote.read.buffer.size.byte</td>
-  <td>1 MB</td>
+  <td>8 MB</td>
   <td>The size of the file buffer to read data from remote Tachyon worker.</td>
 </tr>
 <tr>

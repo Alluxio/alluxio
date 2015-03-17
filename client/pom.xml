@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-parent</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>0.6.1-SNAPSHOT</version>
   </parent>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-client</artifactId>
@@ -13,6 +13,8 @@
 
   <properties>
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
     <failIfNoTests>false</failIfNoTests>
   </properties>
 
@@ -99,7 +101,7 @@
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>
               <filters>
                 <filter>
