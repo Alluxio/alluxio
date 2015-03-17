@@ -118,7 +118,7 @@ public class TachyonWorker implements Runnable {
 
   }
 
-  private static String setMasterLocation(String masterUrl, TachyonConf conf) {
+  private static String getMasterLocation(String masterUrl, TachyonConf conf) {
     String masterHostnameConf = conf.get(Constants.MASTER_HOSTNAME,
         NetworkUtils.getLocalHostName(conf));
     String masterPortConf = conf.get(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT + "");
@@ -154,7 +154,7 @@ public class TachyonWorker implements Runnable {
 
     TachyonConf tachyonConf = new TachyonConf();
     if (args.length == 1) {
-      setMasterLocation(args[0], tachyonConf);
+      getMasterLocation(args[0], tachyonConf);
     }
     
     String resolvedWorkerHost = NetworkUtils.getLocalHostName(tachyonConf);
