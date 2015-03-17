@@ -32,6 +32,14 @@ public interface BlockHandler extends ByteChannel {
 
   class Factory {
 
+    /**
+     * Create a block handler according to path scheme
+     * 
+     * @param path the path of the block
+     * @return the handler for the block
+     * @throws IOException
+     * @throws IllegalArgumentException
+     */
     public static BlockHandler get(String path)
         throws IOException, IllegalArgumentException {
       if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
@@ -48,11 +56,40 @@ public interface BlockHandler extends ByteChannel {
    */
   boolean delete() throws IOException;
 
+  /**
+   * Get the block position of current handler
+   * 
+   * @return the block position of current handler
+   * @throws IOException
+   */
   long position() throws IOException;
 
+  /**
+   * Set the block position for current handler
+   * 
+   * @param newPosition the position that will be set
+   * @return the handler with new position
+   * @throws IOException
+   */
   BlockHandler position(long newPosition) throws IOException;
 
+  /**
+   * Transfer a part of block to anther writable channel
+   * 
+   * @param position the starting position
+   * @param count the size of data to be transfered
+   * @param target the destination channel
+   * @return the size that is actually transfered
+   * @throws IOException
+   */
   long transferTo(long position, long count, WritableByteChannel target) throws IOException;
 
+  /**
+   * Get some file region for some part of block
+   * 
+   * @param offset the starting position
+   * @param length the length of the region
+   * @return file region for the specific part of block
+   */
   FileRegion getFileRegion(long offset, long length);
 }

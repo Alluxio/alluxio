@@ -78,6 +78,11 @@ final class BlockHandlerLocal implements BlockHandler {
     mCloser.close();
   }
 
+  /**
+   * Check the permission of the block, if not set, set the permission
+   * 
+   * @throws IOException
+   */
   private void checkPermission() throws IOException {
     if (!mPermission) {
       // change the permission of the file and use the sticky bit
