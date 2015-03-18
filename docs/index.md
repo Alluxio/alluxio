@@ -14,7 +14,7 @@ any code change. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
 multiple companies. It has more than
 [60 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 20 institutions,
-including Yahoo, Intel, and Redhat. The project is the storage layer of the Berkeley Data Analytics
+including Yahoo, Intel, and Red Hat. The project is the storage layer of the Berkeley Data Analytics
 Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
 
