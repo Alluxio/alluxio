@@ -25,7 +25,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
@@ -37,19 +36,17 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.master.MasterInfo;
-import tachyon.worker.WorkerStorage;
 
 /**
  * Class that bootstraps and starts the web server for the web interface.
  */
-public class UIWebServer {
+public abstract class UIWebServer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  protected final WebAppContext mWebAppContext;
   private Server mServer;
   private String mServerName;
   private InetSocketAddress mAddress;
-  private WebAppContext mWebAppContext;
   private final TachyonConf mTachyonConf;
 
   /**
@@ -59,12 +56,11 @@ public class UIWebServer {
    * @param address Address of the server
    * @param conf Tachyon configuration
    */
-  public UIWebServer(String serverName, InetSocketAddress address,
-      TachyonConf conf) {
+  public UIWebServer(String serverName, InetSocketAddress address, TachyonConf conf) {
     Preconditions.checkNotNull(serverName, "Server name cannot be null");
     Preconditions.checkNotNull(address, "Server address cannot be null");
     Preconditions.checkNotNull(conf, "Configuration cannot be null");
-    
+
     mAddress = address;
     mServerName = serverName;
     mTachyonConf = conf;
@@ -76,7 +72,7 @@ public class UIWebServer {
     SelectChannelConnector connector = new SelectChannelConnector();
     connector.setPort(address.getPort());
     connector.setAcceptors(webThreadCount);
-    mServer.setConnectors(new Connector[] { connector });
+    mServer.setConnectors(new Connector[] {connector});
 
     // Jetty needs at least (1 + selectors + acceptors) threads.
     threadPool.setMinThreads(webThreadCount * 2 + 1);
@@ -89,49 +85,8 @@ public class UIWebServer {
     File warPath =
         new File(mTachyonConf.get(Constants.WEB_RESOURCES, tachyonHome + "/core/src/main/webapp"));
     mWebAppContext.setWar(warPath.getAbsolutePath());
-  }
-
-  /**
-   * Setup the servlets for the master web server.
-   *
-   * @param masterInfo The MasterInfo instance in the master
-   */
-  public void setupMasterWebServer(MasterInfo masterInfo) {
-    Preconditions.checkNotNull(masterInfo, "Master information cannot be null");
-
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)),
-            "/home");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkersServlet(masterInfo)),
-        "/workers");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceConfigurationServlet(masterInfo)),
-        "/configuration");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseServlet(masterInfo)),
-        "/browse");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMemoryServlet(masterInfo)),
-        "/memory");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(masterInfo)),
-            "/dependency");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadServlet(masterInfo)),
-        "/download");
-
     HandlerList handlers = new HandlerList();
-    handlers.setHandlers(new Handler[] { mWebAppContext, new DefaultHandler() });
-    mServer.setHandler(handlers);
-  }
-
-  /**
-   * Setup the servlets for the worker web server.
-   *
-   * @param workerStorage The WorkerStorage instance in the worker
-   */
-  public void setupWorkerWebServer(WorkerStorage workerStorage) {
-    Preconditions.checkNotNull(workerStorage, "WorkerStorage cannot be null");
-
-    mWebAppContext.addServlet(
-            new ServletHolder(new WebInterfaceWorkerGeneralServlet(workerStorage)), "/home");
-
-    HandlerList handlers = new HandlerList();
-    handlers.setHandlers(new Handler[] { mWebAppContext, new DefaultHandler() });
+    handlers.setHandlers(new Handler[] {mWebAppContext, new DefaultHandler()});
     mServer.setHandler(handlers);
   }
 

@@ -45,6 +45,7 @@ import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
+import tachyon.web.WorkerUIWebServer;
 
 /**
  * Entry point for a worker daemon.
@@ -249,10 +250,8 @@ public class TachyonWorker implements Runnable {
     mWorkerStorage.initialize(mWorkerAddress);
 
     mWebServer =
-        new UIWebServer("Tachyon Worker", new InetSocketAddress(workerAddress.getHostName(),
-            mWebPort), mTachyonConf);
-    mWebServer.setupWorkerWebServer(mWorkerStorage);
-
+        new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(workerAddress.getHostName(),
+            mWebPort), mWorkerStorage, mTachyonConf);
   }
 
   /**
