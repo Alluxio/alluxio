@@ -38,17 +38,17 @@ import tachyon.thrift.ClientFileInfo;
  * The interface layer to communicate with Tachyon. Now Tachyon Client APIs may change and this
  * layer can keep the modifications of Tachyon-Perf in this single file.
  */
-public class PerfFileSystem {
+public class TachyonPerfFS implements PerfFS {
   protected static final Logger LOG = Logger.getLogger(PerfConstants.PERF_LOGGER_TYPE);
 
-  public static PerfFileSystem get() throws IOException {
-    return new PerfFileSystem();
+  public static TachyonPerfFS get() throws IOException {
+    return new TachyonPerfFS();
   }
 
   private TachyonConf mTachyonConf;
   private TachyonFS mTfs;
 
-  private PerfFileSystem() {
+  private TachyonPerfFS() {
     try {
       mTachyonConf = new TachyonConf();
       mTfs = TachyonFS.get(mTachyonConf);

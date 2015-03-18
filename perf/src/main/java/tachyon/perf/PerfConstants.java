@@ -15,10 +15,20 @@
 
 package tachyon.perf;
 
+import java.io.IOException;
+
+import tachyon.perf.fs.PerfFS;
+import tachyon.perf.fs.TachyonPerfFS;
+
+
 /**
  * Tachyon-Perf constants
  */
 public class PerfConstants {
   public static final String PERF_LOGGER_TYPE = System.getProperty("tachyon.perf.logger.type", "");
   public static final String PERF_CONTEXT_FILE_NAME_PREFIX = "context";
+
+  public static PerfFS getFileSystem() throws IOException {
+    return TachyonPerfFS.get();
+  }
 }

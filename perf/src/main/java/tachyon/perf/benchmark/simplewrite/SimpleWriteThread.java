@@ -18,17 +18,18 @@ package tachyon.perf.benchmark.simplewrite;
 import java.io.IOException;
 import java.util.List;
 
+import tachyon.perf.PerfConstants;
 import tachyon.perf.basic.PerfThread;
 import tachyon.perf.basic.TaskConfiguration;
 import tachyon.perf.benchmark.ListGenerator;
 import tachyon.perf.benchmark.Operators;
-import tachyon.perf.fs.PerfFileSystem;
+import tachyon.perf.fs.PerfFS;
 
 public class SimpleWriteThread extends PerfThread {
   private int mBlockSize;
   private int mBufferSize;
   private long mFileLength;
-  private PerfFileSystem mFileSystem;
+  private PerfFS mFileSystem;
   private List<String> mWriteFiles;
   private String mWriteType;
 
@@ -79,7 +80,7 @@ public class SimpleWriteThread extends PerfThread {
     mFileLength = taskConf.getLongProperty("file.length.bytes");
     mWriteType = taskConf.getProperty("write.type");
     try {
-      mFileSystem = PerfFileSystem.get();
+      mFileSystem = PerfConstants.getFileSystem();
       String writeDir = taskConf.getProperty("write.dir");
       int filesNum = taskConf.getIntProperty("files.per.thread");
       mWriteFiles = ListGenerator.generateWriteFiles(mId, filesNum, writeDir);
