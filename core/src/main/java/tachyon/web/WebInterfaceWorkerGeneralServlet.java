@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -28,6 +28,9 @@ import tachyon.Version;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerStorage;
 
+/**
+ * Servlets that shows a worker's general information, including hierarchy storage details.
+ */
 public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   private static final long serialVersionUID = 3735143768058466487L;
   private final transient WorkerStorage mWorkerStorage;
@@ -38,7 +41,7 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
-          throws ServletException, IOException {
+      throws ServletException, IOException {
     populateValues(request);
     getServletContext().getRequestDispatcher("/worker/general.jsp").forward(request, response);
   }
@@ -55,9 +58,9 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     request.setAttribute("workerAddress", mWorkerStorage.getWorkerAddress().toString());
 
     request.setAttribute(
-            "uptime",
-            CommonUtils.convertMsToClockTime(System.currentTimeMillis()
-                    - mWorkerStorage.getStarttimeMs()));
+        "uptime",
+        CommonUtils.convertMsToClockTime(System.currentTimeMillis()
+            - mWorkerStorage.getStarttimeMs()));
 
     request
         .setAttribute("startTime", CommonUtils.convertMsToDate(mWorkerStorage.getStarttimeMs()));
@@ -67,8 +70,7 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     request.setAttribute("capacityBytes",
         CommonUtils.getSizeFromBytes(mWorkerStorage.getCapacityBytes()));
 
-    request.setAttribute("usedBytes",
-            CommonUtils.getSizeFromBytes(mWorkerStorage.getUsedBytes()));
+    request.setAttribute("usedBytes", CommonUtils.getSizeFromBytes(mWorkerStorage.getUsedBytes()));
 
     request.setAttribute("memCapacityBytes",
         CommonUtils.getSizeFromBytes(mWorkerStorage.getCapacityBytes(StorageLevelAlias.MEM)));
