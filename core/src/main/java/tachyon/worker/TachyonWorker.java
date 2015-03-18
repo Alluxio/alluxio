@@ -118,26 +118,6 @@ public class TachyonWorker implements Runnable {
 
   }
 
-  private static String getMasterLocation(String[] args, TachyonConf conf) {
-    String masterHostname = NetworkUtils.getLocalHostName(conf);
-    int masterPort = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    String confFileMasterLoc = masterHostname + ":" + masterPort;
-    String masterLocation;
-    if (args.length < 1) {
-      masterLocation = confFileMasterLoc;
-    } else {
-      masterLocation = args[0];
-      if (masterLocation.indexOf(":") == -1) {
-        masterLocation += ":" + masterPort;
-      }
-      if (!masterLocation.equals(confFileMasterLoc)) {
-        LOG.warn("Master Address in configuration file(" + confFileMasterLoc + ") is different "
-            + "from the command line one(" + masterLocation + ").");
-      }
-    }
-    return masterLocation;
-  }
-
   public static void main(String[] args) throws UnknownHostException {
     if (args.length > 1) {
       LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
