@@ -18,16 +18,17 @@ package tachyon.perf.benchmark.simpleread;
 import java.io.IOException;
 import java.util.List;
 
+import tachyon.perf.PerfConstants;
 import tachyon.perf.basic.PerfThread;
 import tachyon.perf.basic.TaskConfiguration;
 import tachyon.perf.benchmark.ListGenerator;
 import tachyon.perf.benchmark.Operators;
 import tachyon.perf.conf.PerfConf;
-import tachyon.perf.fs.PerfFileSystem;
+import tachyon.perf.fs.PerfFS;
 
 public class SimpleReadThread extends PerfThread {
   private int mBufferSize;
-  private PerfFileSystem mFileSystem;
+  private PerfFS mFileSystem;
   private List<String> mReadFiles;
   private String mReadType;
 
@@ -74,7 +75,7 @@ public class SimpleReadThread extends PerfThread {
     mBufferSize = taskConf.getIntProperty("buffer.size.bytes");
     mReadType = taskConf.getProperty("read.type");
     try {
-      mFileSystem = PerfFileSystem.get();
+      mFileSystem = PerfConstants.getFileSystem();
       String readDir = taskConf.getProperty("read.dir");
       List<String> candidates = mFileSystem.listFullPath(readDir);
       if (candidates == null || candidates.isEmpty()) {
