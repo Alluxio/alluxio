@@ -58,8 +58,13 @@ public class TachyonMaster {
       System.exit(-1);
     }
 
-    TachyonMaster master = new TachyonMaster(new TachyonConf());
-    master.start();
+    try {
+      TachyonMaster master = new TachyonMaster(new TachyonConf());
+      master.start();
+    } catch (Exception e) {
+      LOG.error("Uncaught exception terminating Master", e);
+      System.exit(-1);
+    }
   }
 
   private boolean mIsStarted;
