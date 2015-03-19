@@ -436,8 +436,18 @@ abstract class AbstractTFS extends FileSystem {
     LOG.info("rename(" + src + ", " + dst + ")");
     TachyonURI srcPath = new TachyonURI(Utils.getPathWithoutScheme(src));
     TachyonURI dstPath = new TachyonURI(Utils.getPathWithoutScheme(dst));
+    ClientFileInfo info = mTFS.getFileStatus(-1, dstPath);
+    // If the destination is an existing folder, try to move the src into the folder
+    if (info != null && info.isFolder) {
+      dstPath = dstPath.join(srcPath.getName());
+    }
     fromHdfsToTachyon(srcPath);
-    return mTFS.rename(srcPath, dstPath);
+    try {
+      return mTFS.rename(srcPath, dstPath);
+    } catch (IOException ioe) {
+      LOG.error("Failed to rename {} to {}", src, dst, ioe);
+      return false;
+    }
   }
 
   @Override
