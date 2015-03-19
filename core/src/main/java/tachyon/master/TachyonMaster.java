@@ -119,12 +119,14 @@ public class TachyonMaster {
       mServerTServerSocket = new TServerSocket(address);
       mPort = NetworkUtils.getPort(mServerTServerSocket);
 
-      mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(address), mPort);
-      String journalFolder = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, "/journal/");
+      String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+      String journalFolder = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+          tachyonHome + "/journal/");
       String formatFilePrefix =
           mTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX, Constants.FORMAT_FILE_PREFIX);
       Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
           "Tachyon was not formatted! The journal folder is " + journalFolder);
+      mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(address), mPort);
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService, mTachyonConf);
 
