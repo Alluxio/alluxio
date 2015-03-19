@@ -137,6 +137,51 @@ public class TFSRenameTest {
       Assert.assertTrue(sTFS.exists(finalDst));
       cleanup(sTFS);
     }
+    // Rename /dirA to /dirB, /dirA/fileA should become /dirB/fileA
+    {
+      Path dirA = new Path("/dirA");
+      Path dirB = new Path("/dirB");
+      Path fileA = new Path("/dirA/fileA");
+      Path finalDst = new Path("/dirB/fileA");
+
+      sTFS.mkdirs(dirA);
+      create(sTFS, fileA);
+
+      Assert.assertTrue(sTFS.rename(dirA, dirB));
+
+      Assert.assertFalse(sTFS.exists(dirA));
+      Assert.assertFalse(sTFS.exists(fileA));
+      Assert.assertTrue(sTFS.exists(dirB));
+      Assert.assertTrue(sTFS.exists(finalDst));
+      cleanup(sTFS);
+    }
+    // Rename /dirA to /dirB, /dirA/fileA should become /dirB/fileA even if it was not closed
+    {
+      Path dirA = new Path("/dirA");
+      Path dirB = new Path("/dirB");
+      Path fileA = new Path("/dirA/fileA");
+      Path finalDst = new Path("/dirB/fileA");
+
+      sTFS.mkdirs(dirA);
+      FSDataOutputStream o = sTFS.create(fileA);
+      o.writeBytes("Test Bytes");
+      o.sync();
+
+      Assert.assertTrue(sTFS.rename(dirA, dirB));
+
+      Assert.assertFalse(sTFS.exists(dirA));
+      Assert.assertFalse(sTFS.exists(fileA));
+      Assert.assertTrue(sTFS.exists(dirB));
+      Assert.assertTrue(sTFS.exists(finalDst));
+
+      o.close();
+
+      Assert.assertFalse(sTFS.exists(dirA));
+      Assert.assertFalse(sTFS.exists(fileA));
+      Assert.assertTrue(sTFS.exists(dirB));
+      Assert.assertTrue(sTFS.exists(finalDst));
+      cleanup(sTFS);
+    }
   }
 
   @Test
