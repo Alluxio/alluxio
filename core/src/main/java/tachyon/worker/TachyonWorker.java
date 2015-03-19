@@ -155,12 +155,12 @@ public class TachyonWorker implements Runnable {
     if (args.length == 1) {
       setMasterAddress(args[0], tachyonConf);
     }
-    
+
     String resolvedWorkerHost = NetworkUtils.getLocalHostName(tachyonConf);
     LOG.info("Resolved local TachyonWorker host to " + resolvedWorkerHost);
 
-    TachyonWorker worker = TachyonWorker.createWorker(tachyonConf);
     try {
+      TachyonWorker worker = TachyonWorker.createWorker(tachyonConf);
       worker.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating worker", e);
