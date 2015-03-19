@@ -181,7 +181,7 @@ public final class LocalTachyonCluster {
     // default thread overhead is too much.
     mMasterConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
     mMasterConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
-    mMasterConf.set(Constants.MASTER_WEB_THREAD_COUNT, "1");
+    mMasterConf.set(Constants.WEB_THREAD_COUNT, "1");
 
     // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
@@ -200,6 +200,7 @@ public final class LocalTachyonCluster {
     mWorkerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
     mWorkerConf.set(Constants.WORKER_PORT, "0");
     mWorkerConf.set(Constants.WORKER_DATA_PORT, "0");
+    mWorkerConf.set(Constants.WORKER_WEB_PORT, "0");
     mWorkerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
     mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
     mWorkerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, "15");
