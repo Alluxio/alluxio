@@ -263,9 +263,10 @@ public final class StorageDir {
     boolean copySuccess = false;
     Closer closer = Closer.create();
     ByteBuffer buffer = null;
+    BlockHandler bhDst = null;
     try {
       BlockHandler bhSrc = closer.register(getBlockHandler(blockId));
-      BlockHandler bhDst = closer.register(dstDir.getBlockHandler(blockId));
+      bhDst = closer.register(dstDir.getBlockHandler(blockId));
       buffer = bhSrc.read(0, (int) size);
       copySuccess = (bhDst.append(0, buffer) == size);
     } finally {
@@ -273,7 +274,17 @@ public final class StorageDir {
       CommonUtils.cleanDirectBuffer(buffer);
     }
     if (copySuccess) {
-      dstDir.addBlockId(blockId, size, mLastBlockAccessTimeMs.get(blockId), true);
+      Long accessTime = mLastBlockAccessTimeMs.get(blockId);
+      if (accessTime != null) {
+        dstDir.addBlockId(blockId, size, accessTime, true);
+      } else {
+        // The bock had been freed during our copy. Because we lock the block before copy, the
+        // actual block file is not deleted but the blockId is deleted from mLastBlockAccessTimeMs.
+        // So we delete the copied block and return the space. We still think copyBlock is
+        // successful and return true as nothing need to be copied.
+        bhDst.delete();
+        dstDir.returnSpace(Users.MIGRATE_DATA_USER_ID, size);
+      }
     }
     return copySuccess;
   }
