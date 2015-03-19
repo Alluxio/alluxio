@@ -99,21 +99,21 @@ public class TFSRenameTest {
       cleanup(sTFS);
     }
     // Rename /fileA to /dirA/fileA without specifying the full path
-//    {
-//      Path fileA = new Path("/fileA");
-//      Path dirA = new Path("/dirA");
-//      Path finalDst = new Path("/dirA/fileA");
-//
-//      create(sTFS, fileA);
-//      sTFS.mkdirs(dirA);
-//
-//      Assert.assertTrue(sTFS.rename(fileA, dirA));
-//
-//      Assert.assertFalse(sTFS.exists(fileA));
-//      Assert.assertTrue(sTFS.exists(dirA));
-//      Assert.assertTrue(sTFS.exists(finalDst));
-//      cleanup(sTFS);
-//    }
+    {
+      Path fileA = new Path("/fileA");
+      Path dirA = new Path("/dirA");
+      Path finalDst = new Path("/dirA/fileA");
+
+      create(sTFS, fileA);
+      sTFS.mkdirs(dirA);
+
+      Assert.assertTrue(sTFS.rename(fileA, dirA));
+
+      Assert.assertFalse(sTFS.exists(fileA));
+      Assert.assertTrue(sTFS.exists(dirA));
+      Assert.assertTrue(sTFS.exists(finalDst));
+      cleanup(sTFS);
+    }
     // Rename /fileA to /fileA
     {
       Path fileA = new Path("/fileA");
