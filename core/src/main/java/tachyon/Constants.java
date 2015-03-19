@@ -93,6 +93,7 @@ public class Constants {
 
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String WEB_RESOURCES = "tachyon.web.resources";
+  public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
   public static final String UNDERFS_ADDRESS = "tachyon.underfs.address";
   public static final String UNDERFS_DATA_FOLDER = "tachyon.data.folder";
   public static final String UNDERFS_WORKERS_FOLDER = "tachyon.workers.folder";
@@ -120,7 +121,6 @@ public class Constants {
   public static final String MASTER_PORT = "tachyon.master.port";
   public static final String MASTER_ADDRESS = "tachyon.master.address";
   public static final String MASTER_WEB_PORT = "tachyon.master.web.port";
-  public static final String MASTER_WEB_THREAD_COUNT = "tachyon.master.web.threads";
   public static final String MASTER_TEMPORARY_FOLDER = "tachyon.master.temporary.folder";
   public static final String MASTER_HEARTBEAT_INTERVAL_MS = "tachyon.master.heartbeat.interval.ms";
   public static final String MASTER_MAX_WORKER_THREADS = "tachyon.master.max.worker.threads";

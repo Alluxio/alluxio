@@ -135,7 +135,7 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WEB_PORT, 0);
     Assert.assertTrue(intValue == 19999);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WEB_THREAD_COUNT, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.WEB_THREAD_COUNT, 0);
     Assert.assertTrue(intValue == 1);
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS, 0);

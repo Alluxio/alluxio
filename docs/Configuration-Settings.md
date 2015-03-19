@@ -33,6 +33,11 @@ The common configuration contains constants which specify paths and the log appe
   <td>Tachyon installation folder.</td>
 </tr>
 <tr>
+  <td>tachyon.web.threads</td>
+  <td>1</td>
+  <td>How many threads to use for the web server.</td>
+</tr>
+<tr>
   <td>tachyon.underfs.address</td>
   <td>$tachyon.home + "/underfs"</td>
   <td>Tachyon folder in the underlayer file system.</td>
@@ -157,11 +162,6 @@ number.
   <td>The comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Tachyon will try to cache the cacheable file when it is read for the first time.</td>
 </tr>
 <tr>
-  <td>tachyon.master.web.threads</td>
-  <td>1</td>
-  <td>How many threads to use for the web server.</td>
-</tr>
-<tr>
   <td>tachyon.master.worker.timeout.ms</td>
   <td>10000</td>
   <td>Timeout between master and worker indicating a lost worker.  Specified in milliseconds</td>
@@ -196,7 +196,7 @@ number.
   <td>The port Tachyon's worker's data server runs on.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.data.port</td>
+  <td>tachyon.worker.web.port</td>
   <td>30000</td>
   <td>The port Tachyon's worker's web server runs on.</td>
 </tr>

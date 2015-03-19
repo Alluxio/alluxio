@@ -100,7 +100,7 @@ public final class LocalTachyonMaster {
     // running with strange network configurations will see very slow tests
     tachyonConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
-    tachyonConf.set(Constants.MASTER_WEB_THREAD_COUNT, "1");
+    tachyonConf.set(Constants.WEB_THREAD_COUNT, "1");
     tachyonConf.set(Constants.WEB_RESOURCES, System.getProperty("user.dir") + "/src/main/webapp");
 
     mTachyonMaster = new TachyonMaster(tachyonConf);

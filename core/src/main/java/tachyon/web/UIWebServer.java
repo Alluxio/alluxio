@@ -66,7 +66,7 @@ public abstract class UIWebServer {
     mTachyonConf = conf;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = mTachyonConf.getInt(Constants.MASTER_WEB_THREAD_COUNT, 1);
+    int webThreadCount = mTachyonConf.getInt(Constants.WEB_THREAD_COUNT, 1);
 
     mServer = new Server();
     SelectChannelConnector connector = new SelectChannelConnector();
