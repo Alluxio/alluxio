@@ -53,6 +53,7 @@ public class Constants {
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;
   public static final int DEFAULT_WORKER_DATA_SERVER_PORT = DEFAULT_WORKER_PORT + 1;
+  public static final int DEFAULT_WORKER_WEB_PORT = DEFAULT_WORKER_PORT + 2;
 
   public static final int DEFAULT_MASTER_MAX_WORKER_THREADS = 2048;
   public static final int DEFAULT_WORKER_MAX_WORKER_THREADS = 2048;
@@ -92,6 +93,7 @@ public class Constants {
 
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String WEB_RESOURCES = "tachyon.web.resources";
+  public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
   public static final String UNDERFS_ADDRESS = "tachyon.underfs.address";
   public static final String UNDERFS_DATA_FOLDER = "tachyon.data.folder";
   public static final String UNDERFS_WORKERS_FOLDER = "tachyon.workers.folder";
@@ -119,7 +121,6 @@ public class Constants {
   public static final String MASTER_PORT = "tachyon.master.port";
   public static final String MASTER_ADDRESS = "tachyon.master.address";
   public static final String MASTER_WEB_PORT = "tachyon.master.web.port";
-  public static final String MASTER_WEB_THREAD_COUNT = "tachyon.master.web.threads";
   public static final String MASTER_TEMPORARY_FOLDER = "tachyon.master.temporary.folder";
   public static final String MASTER_HEARTBEAT_INTERVAL_MS = "tachyon.master.heartbeat.interval.ms";
   public static final String MASTER_MAX_WORKER_THREADS = "tachyon.master.max.worker.threads";
@@ -133,6 +134,7 @@ public class Constants {
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_PORT = "tachyon.worker.port";
   public static final String WORKER_DATA_PORT = "tachyon.worker.data.port";
+  public static final String WORKER_WEB_PORT = "tachyon.worker.web.port";
   public static final String WORKER_DATA_FOLDER = "tachyon.worker.data.folder";
   public static final String WORKER_HEARTBEAT_TIMEOUT_MS = "tachyon.worker.heartbeat.timeout.ms";
   public static final String WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =

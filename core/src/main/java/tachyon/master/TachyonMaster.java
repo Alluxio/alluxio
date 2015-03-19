@@ -43,6 +43,7 @@ import tachyon.thrift.MasterService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.web.MasterUIWebServer;
 import tachyon.web.UIWebServer;
 
 /**
@@ -240,7 +241,7 @@ public class TachyonMaster {
     mMasterInfo.init();
 
     mWebServer =
-        new UIWebServer("Tachyon Master Server", new InetSocketAddress(
+        new MasterUIWebServer("Tachyon Master Server", new InetSocketAddress(
             NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo, mTachyonConf);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
