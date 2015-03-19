@@ -2411,6 +2411,7 @@ public class MasterInfo extends ImageWriter {
           }
         }
 
+        List<Long> toRemovedBlocks = tWorkerInfo.getToRemovedBlocks();
         for (Entry<Long, List<Long>> addedBlocks : addedBlockIds.entrySet()) {
           long storageDirId = addedBlocks.getKey();
           for (long blockId : addedBlocks.getValue()) {
@@ -2418,6 +2419,8 @@ public class MasterInfo extends ImageWriter {
             int blockIndex = BlockInfo.computeBlockIndex(blockId);
             Inode inode = mFileIdToInodes.get(fileId);
             if (inode == null) {
+              // The file had been deleted. Ask the worker to remove the block.
+              toRemovedBlocks.add(blockId);
               LOG.error("File " + fileId + " does not exist");
             } else if (inode.isFile()) {
               List<BlockInfo> blockInfoList = ((InodeFile) inode).getBlockList();
@@ -2432,7 +2435,6 @@ public class MasterInfo extends ImageWriter {
           }
         }
 
-        List<Long> toRemovedBlocks = tWorkerInfo.getToRemovedBlocks();
         if (toRemovedBlocks.size() != 0) {
           return new Command(CommandType.Free, toRemovedBlocks);
         }
