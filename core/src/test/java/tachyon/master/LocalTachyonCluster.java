@@ -181,7 +181,7 @@ public final class LocalTachyonCluster {
     // default thread overhead is too much.
     mMasterConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
     mMasterConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
-    mMasterConf.set(Constants.MASTER_WEB_THREAD_COUNT, "1");
+    mMasterConf.set(Constants.WEB_THREAD_COUNT, "1");
 
     // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
