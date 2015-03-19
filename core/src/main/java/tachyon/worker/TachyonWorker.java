@@ -55,24 +55,6 @@ public class TachyonWorker implements Runnable {
 
   /**
    * Create a new TachyonWorker
-   *
-   * @param masterAddress The TachyonMaster's address
-   * @param workerAddress This TachyonWorker's address
-   * @param dataPort This TachyonWorker's data server's port
-   * @param minWorkerThreads The min number of worker threads used in TThreadPoolServer
-   * @param maxWorkerThreads The max number of worker threads used in TThreadPoolServer
-   * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to used by Worker.
-   * @return The new TachyonWorker
-   */
-  public static synchronized TachyonWorker createWorker(InetSocketAddress masterAddress,
-      InetSocketAddress workerAddress, int dataPort, int minWorkerThreads, int maxWorkerThreads,
-      TachyonConf tachyonConf) {
-    return new TachyonWorker(masterAddress, workerAddress, dataPort, minWorkerThreads,
-        maxWorkerThreads, tachyonConf);
-  }
-
-  /**
-   * Create a new TachyonWorker
    * 
    * @param masterAddress The TachyonMaster's address. e.g., localhost:19998
    * @param workerPort This TachyonWorker's port. e.g., 29998

@@ -16,7 +16,6 @@ package tachyon.master;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -205,9 +204,7 @@ public class LocalTachyonClusterMultiMaster {
     }
 
     mWorker =
-        TachyonWorker.createWorker(
-            CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 100, mWorkerConf);
+        TachyonWorker.createWorker(mCuratorServer.getConnectString(), 0, 0, 1, 100, mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
