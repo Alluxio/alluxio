@@ -75,21 +75,26 @@ public class TachyonWorker implements Runnable {
    * Create a new TachyonWorker
    * 
    * @param masterAddress The TachyonMaster's address. e.g., localhost:19998
-   * @param workerAddress This TachyonWorker's address. e.g., localhost:29998
+   * @param workerPort This TachyonWorker's port. e.g., 29998
    * @param dataPort This TachyonWorker's data server's port
    * @param minWorkerThreads The min number of worker threads used in TThreadPoolServer
    * @param maxWorkerThreads The max number of worker threads used in TThreadPoolServer
    * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to used by Worker.
    * @return The new TachyonWorker
    */
-  public static synchronized TachyonWorker createWorker(String masterAddress, String workerAddress,
+  public static synchronized TachyonWorker createWorker(String masterAddress, int workerPort,
       int dataPort, int minWorkerThreads, int maxWorkerThreads, TachyonConf tachyonConf) {
     String[] address = masterAddress.split(":");
-    InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
-    address = workerAddress.split(":");
-    InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
-    return new TachyonWorker(master, worker, dataPort, minWorkerThreads, maxWorkerThreads,
-        tachyonConf);
+    tachyonConf.set(Constants.MASTER_ADDRESS, address[0]);
+    if (address.length > 1) {
+      tachyonConf.set(Constants.MASTER_PORT, address[1]);
+    }
+    tachyonConf.set(Constants.WORKER_PORT, workerPort + "");
+    tachyonConf.set(Constants.WORKER_DATA_PORT, dataPort + "");
+    tachyonConf.set(Constants.WORKER_MIN_WORKER_THREADS, minWorkerThreads + "");
+    tachyonConf.set(Constants.WORKER_MAX_WORKER_THREADS, maxWorkerThreads + "");
+
+    return createWorker(tachyonConf);
   }
 
   /**
