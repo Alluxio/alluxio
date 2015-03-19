@@ -23,7 +23,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
-import tachyon.StorageLevelAlias;
 import tachyon.Version;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerStorage;
@@ -72,23 +71,9 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
     request.setAttribute("usedBytes", CommonUtils.getSizeFromBytes(mWorkerStorage.getUsedBytes()));
 
-    request.setAttribute("memCapacityBytes",
-        CommonUtils.getSizeFromBytes(mWorkerStorage.getCapacityBytes(StorageLevelAlias.MEM)));
+    request.setAttribute("capacityBytesOnTiers", mWorkerStorage.getCapacityBytesOnTiers());
 
-    request.setAttribute("memUsedBytes",
-        CommonUtils.getSizeFromBytes(mWorkerStorage.getUsedBytes(StorageLevelAlias.MEM)));
-
-    request.setAttribute("ssdCapacityBytes",
-        CommonUtils.getSizeFromBytes(mWorkerStorage.getCapacityBytes(StorageLevelAlias.SSD)));
-
-    request.setAttribute("ssdUsedBytes",
-        CommonUtils.getSizeFromBytes(mWorkerStorage.getUsedBytes(StorageLevelAlias.SSD)));
-
-    request.setAttribute("hddCapacityBytes",
-        CommonUtils.getSizeFromBytes(mWorkerStorage.getCapacityBytes(StorageLevelAlias.HDD)));
-
-    request.setAttribute("hddUsedBytes",
-        CommonUtils.getSizeFromBytes(mWorkerStorage.getUsedBytes(StorageLevelAlias.HDD)));
+    request.setAttribute("usedBytesOnTiers", mWorkerStorage.getUsedBytesOnTiers());
 
     request.setAttribute("storageDirs", mWorkerStorage.getStorageDirs());
   }
