@@ -601,19 +601,19 @@ public class WorkerStorage {
   }
 
   /**
-   * Get the capacity of the MEM/SSH/HDD tier.
+   * Get the capacity list of the MEM/SSD/HDD tier.
    *
-   * @param alias The alias of the storage tier
-   * @return the capacity in bytes
+   * @return the capacity list in bytes
    */
-  public long getCapacityBytes(StorageLevelAlias alias) {
-    long ret = 0;
-    for (StorageTier tier : mStorageTiers) {
-      if (tier.getAlias() == alias) {
-        ret += tier.getCapacityBytes();
-      }
+  public List<Long> getCapacityBytesOnTiers() {
+    List<Long> capacityBytesOnTiers =
+        new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+    for (StorageTier curStorageTier : mStorageTiers) {
+      int tier = curStorageTier.getAlias().getValue() - 1;
+      capacityBytesOnTiers.set(tier,
+          capacityBytesOnTiers.get(tier) + curStorageTier.getCapacityBytes());
     }
-    return ret;
+    return capacityBytesOnTiers;
   }
 
   /**
@@ -676,27 +676,11 @@ public class WorkerStorage {
   }
 
   /**
-   * Get the used bytes of the MEM/SSH/HDD tier.
-   *
-   * @param alias The alias of the storage tier
-   * @return the used bytes
-   */
-  public long getUsedBytes(StorageLevelAlias alias) {
-    long ret = 0;
-    for (StorageTier tier : mStorageTiers) {
-      if (tier.getAlias() == alias) {
-        ret += tier.getUsedBytes();
-      }
-    }
-    return ret;
-  }
-
-  /**
    * Get used bytes on each storage tier
    *
    * @return used bytes on each storage tier
    */
-  private List<Long> getUsedBytesOnTiers() {
+  public List<Long> getUsedBytesOnTiers() {
     List<Long> usedBytes = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
     for (StorageTier curTier : mStorageTiers) {
       int tier = curTier.getAlias().getValue() - 1;
@@ -883,12 +867,8 @@ public class WorkerStorage {
   public void register() {
     long id = 0;
     Map<Long, List<Long>> blockIdLists = new HashMap<Long, List<Long>>();
-    List<Long> capacityBytesOnTiers =
-        new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+    List<Long> capacityBytesOnTiers = getCapacityBytesOnTiers();
     for (StorageTier curStorageTier : mStorageTiers) {
-      int tier = curStorageTier.getAlias().getValue() - 1;
-      capacityBytesOnTiers.set(tier,
-          capacityBytesOnTiers.get(tier) + curStorageTier.getCapacityBytes());
       for (StorageDir curStorageDir : curStorageTier.getStorageDirs()) {
         Set<Long> blockSet = curStorageDir.getBlockIds();
         blockIdLists.put(curStorageDir.getStorageDirId(), new ArrayList<Long>(blockSet));

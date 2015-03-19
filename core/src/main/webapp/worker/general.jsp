@@ -1,5 +1,6 @@
 <%@ page import="java.util.*" %>
 <%@ page import="tachyon.StorageDirId" %>
+<%@ page import="tachyon.StorageLevelAlias" %>
 <%@ page import="tachyon.util.*" %>
 <%@ page import="tachyon.web.*" %>
 <%@ page import="tachyon.worker.hierarchy.StorageDir" %>
@@ -66,18 +67,17 @@
                   <th>Total Capacity / Used</th>
                   <th><%= request.getAttribute("capacityBytes") %> / <%= request.getAttribute("usedBytes") %></th>
                 </tr>
+                <% List<Long> capacityBytesOnTiers = (List<Long>) request.getAttribute("capacityBytesOnTiers"); %>
+                <% List<Long> usedBytesOnTiers = (List<Long>) request.getAttribute("usedBytesOnTiers"); %>
+                <% for (int i = 0; i < StorageLevelAlias.SIZE; i ++) { %>
                 <tr>
-                  <th>MEM Capacity / Used</th>
-                  <th><%= request.getAttribute("memCapacityBytes") %> / <%= request.getAttribute("memUsedBytes") %></th>
+                  <th><%= StorageLevelAlias.values()[i].name() %> Capacity / Used</th>
+                  <th>
+                    <%= CommonUtils.getSizeFromBytes(capacityBytesOnTiers.get(i)) %> /
+                    <%= CommonUtils.getSizeFromBytes(usedBytesOnTiers.get(i)) %>
+                  </th>
                 </tr>
-                <tr>
-                  <th>SSD Capacity / Used</th>
-                  <th><%= request.getAttribute("ssdCapacityBytes") %> / <%= request.getAttribute("ssdUsedBytes") %></th>
-                </tr>
-                <tr>
-                  <th>HDD Capacity / Used</th>
-                  <th><%= request.getAttribute("hddCapacityBytes") %> / <%= request.getAttribute("hddUsedBytes") %></th>
-                </tr>
+                <% } %>
               </tbody>
             </table>
           </div>
