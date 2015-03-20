@@ -737,7 +737,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
 
   /**
-   * @return the total number of bytes used in Tachyon cluster
+   * @return get the total number of bytes used in Tachyon cluster
    * @throws IOException
    */
   public synchronized long getUsedBytes() throws IOException {
@@ -745,7 +745,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * @return the total number of bytes used in Tachyon cluster
+   * @return get the capacity of Tachyon cluster
    * @throws IOException
    */
   public synchronized long getCapacityBytes() throws IOException {
