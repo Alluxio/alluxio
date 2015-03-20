@@ -419,6 +419,50 @@ public class TFsShell implements Closeable {
   }
 
   /**
+   * get number of bytes used in the TachyonFS
+   *
+   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int getUsedBytes(String[] argv) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs getUsedBytes <path>");
+      return -1;
+    }
+    TachyonURI path = new TachyonURI(argv[1]);
+    TachyonFS tachyonClient = createFS(path);
+    long usedBytes = tachyonClient.getUsedBytes();
+    if (usedBytes == -1) {
+      return -1;
+    }
+    System.out.println("Used Bytes: " + usedBytes);
+    return 0;
+  }
+
+  /**
+   * Get the capacity of the TachyonFS
+   *
+   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int getCapacityBytes(String[] argv) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs getCapacityBytes <path>");
+      return -1;
+    }
+    TachyonURI path = new TachyonURI(argv[1]);
+    TachyonFS tachyonClient = createFS(path);
+    long capacityBytes = tachyonClient.getCapacityBytes();
+    if (capacityBytes == -1) {
+      return -1;
+    }
+    System.out.println("Capacity Bytes: " + capacityBytes);
+    return 0;
+  }
+
+  /**
    * Pins the given file or folder (recursively pinning all children if a folder). Pinned files are
    * never evicted from memory.
    *
@@ -470,6 +514,8 @@ public class TFsShell implements Closeable {
     System.out.println("       [pin <path>]");
     System.out.println("       [unpin <path>]");
     System.out.println("       [free <file path|folder path>]");
+    System.out.println("       [getUsedBytes <path>]");
+    System.out.println("       [getCapacityBytes <path>]");
   }
 
   /**
@@ -598,6 +644,10 @@ public class TFsShell implements Closeable {
         exitCode = lsr(argv);
       } else if (cmd.equals("mkdir")) {
         exitCode = mkdir(argv);
+      } else if (cmd.equals("getUsedBytes")) {
+        exitCode = getUsedBytes(argv);
+      } else if (cmd.equals("getCapacityBytes")) {
+        exitCode = getCapacityBytes(argv);
       } else if (cmd.equals("rm")) {
         exitCode = rm(argv);
       } else if (cmd.equals("rmr")) {
