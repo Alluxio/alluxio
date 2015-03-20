@@ -300,6 +300,35 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
+  public synchronized long getUsedBytes() throws IOException {
+    long usedBytes = 0;
+    List<ClientWorkerInfo> infoList = getWorkersInfo();
+
+    if (infoList == null) {
+      LOG.error("unable to get workers info");
+      return -1;
+    }
+    for (ClientWorkerInfo info: infoList) {
+      usedBytes += info.getUsedBytes();
+    }
+    return usedBytes;
+  }
+
+  public synchronized long getCapacityBytes() throws IOException {
+    long capacityBytes = 0;
+    List<ClientWorkerInfo> infoList = getWorkersInfo();
+
+    if (infoList == null) {
+      LOG.error("unable to get workers info");
+      return -1;
+    }
+
+    for (ClientWorkerInfo info: infoList) {
+      capacityBytes += info.getCapacityBytes();
+    }
+    return capacityBytes;
+  }
+
   public synchronized boolean isConnected() {
     return mConnected;
   }

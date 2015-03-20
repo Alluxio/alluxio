@@ -735,6 +735,23 @@ public class TachyonFS extends AbstractTachyonFS {
     return mMasterClient.getUserId();
   }
 
+
+  /**
+   * @return the total number of bytes used in Tachyon cluster
+   * @throws IOException
+   */
+  public synchronized long getUsedBytes() throws IOException {
+    return mMasterClient.getUsedBytes();
+  }
+
+  /**
+   * @return the total number of bytes used in Tachyon cluster
+   * @throws IOException
+   */
+  public synchronized long getCapacityBytes() throws IOException {
+    return mMasterClient.getCapacityBytes();
+  }
+
   /**
    * @return all the works' info
    * @throws IOException
