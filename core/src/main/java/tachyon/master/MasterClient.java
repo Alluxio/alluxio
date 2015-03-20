@@ -300,6 +300,32 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
+  public synchronized long getCapacityBytes() throws IOException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_getCapacityBytes();
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return -1;
+  }
+
+  public synchronized long getUsedBytes() throws IOException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_getUsedBytes();
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return -1;
+  }
+
   public synchronized boolean isConnected() {
     return mConnected;
   }

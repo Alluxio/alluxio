@@ -173,6 +173,11 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public long user_getCapacityBytes() throws TException {
+    return mMasterInfo.getCapacityBytes();
+  }
+
+  @Override
   public ClientBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException,
       BlockInfoException, TException {
     return mMasterInfo.getClientBlockInfo(blockId);
@@ -214,6 +219,11 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public String user_getUfsAddress() throws TException {
     return mMasterInfo.getTachyonConf().get(Constants.UNDERFS_ADDRESS, "/underfs");
+  }
+
+  @Override
+  public long user_getUsedBytes() throws TException {
+    return mMasterInfo.getUsedBytes();
   }
 
   @Override
