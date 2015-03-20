@@ -148,6 +148,11 @@ You may also have to add the classpath variable M2_REPO by running:
 
     mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
 
+If you are using IntelliJ IDEA, you may need to change the Maven profile to 'hdfs-test' in order to avoid import errors.
+You can do this by going to
+
+    View > Tool Windows > Maven Projects
+
 ### Presentations:
 
 -   Strata and Hadoop World 2014 (October, 2014) [pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pdf) [pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pptx)
