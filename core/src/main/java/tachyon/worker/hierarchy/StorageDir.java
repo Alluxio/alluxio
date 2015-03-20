@@ -278,7 +278,7 @@ public final class StorageDir {
       if (accessTime != null) {
         dstDir.addBlockId(blockId, size, accessTime, true);
       } else {
-        // The bock had been freed during our copy. Because we lock the block before copy, the
+        // The block had been freed during our copy. Because we lock the block before copy, the
         // actual block file is not deleted but the blockId is deleted from mLastBlockAccessTimeMs.
         // So we delete the copied block and return the space. We still think copyBlock is
         // successful and return true as nothing need to be copied.
