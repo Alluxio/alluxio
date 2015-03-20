@@ -514,8 +514,8 @@ public class TFsShell implements Closeable {
     System.out.println("       [pin <path>]");
     System.out.println("       [unpin <path>]");
     System.out.println("       [free <file path|folder path>]");
-    System.out.println("       [getUsedBytes <path>]");
-    System.out.println("       [getCapacityBytes <path>]");
+    System.out.println("       [getUsedBytes <tachyon root path>]");
+    System.out.println("       [getCapacityBytes <tachyon root path>]");
   }
 
   /**
