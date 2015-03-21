@@ -3,8 +3,8 @@
 
 # Docker specific configurations go here
 
-def config_docker(config, i, total, name)
-  config.vm.synced_folder "../../", "/tachyon"
+def config_docker(config, i, total, name, tachyon_home)
+  config.vm.synced_folder tachyon_home, "/tachyon"
   config.vm.synced_folder "./", "/vagrant"
   config.ssh.username = "root"
   config.ssh.password = "vagrant"

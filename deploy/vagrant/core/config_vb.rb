@@ -3,9 +3,9 @@
 
 # VB specific configurations go here
 
-def config_vb(config, i, total, name)
+def config_vb(config, i, total, name, tachyon_home)
   puts "starting " + Addr[i - 1]
-  config.vm.synced_folder "../../", "/tachyon"
+  config.vm.synced_folder tachyon_home, "/tachyon"
   config.vm.synced_folder "./", "/vagrant"
   config.vm.box = "chef/centos-6.5"
   config.vm.provider "virtualbox" do |vb|
