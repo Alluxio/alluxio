@@ -30,19 +30,21 @@ import tachyon.worker.hierarchy.StorageDir;
  */
 public abstract class EvictStrategy {
   /**
+   * Get StorageDir allocated and also get blocks to be evicted among StorageDir candidates
+   *
+   * @param storageDirs StorageDir candidates that the space will be allocated in
+   * @param pinList list of pinned file
+   * @param requestBytes requested space size in bytes
+   * @return Pair of StorageDir allocated and blockInfoList which contains information of blocks to
+   *         be evicted, null if no allocated directory is found
+   */
+  public abstract Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
+      Set<Integer> pinList, long requestBytes);
+
+  /**
    * Actions to take when the new block is added
    */
   public void onAdd(long blockId) {}
-
-  /**
-   * Actions to take when delete the block
-   */
-  public void onDelete(long blockId) {}
-
-  /**
-   * Actions to take when read the block
-   */
-  public void onRead(long blockId) {}
 
   /**
    * Actions to take when cache the block
@@ -60,9 +62,9 @@ public abstract class EvictStrategy {
   public void onCopy(long blockId) {}
 
   /**
-   * Actions to take when move the block
+   * Actions to take when delete the block
    */
-  public void onMove(long blockId) {}
+  public void onDelete(long blockId) {}
 
   /**
    * Actions to take when lock the block
@@ -70,19 +72,17 @@ public abstract class EvictStrategy {
   public void onLock(long blockId) {}
 
   /**
+   * Actions to take when move the block
+   */
+  public void onMove(long blockId) {}
+
+  /**
+   * Actions to take when read the block
+   */
+  public void onRead(long blockId) {}
+
+  /**
    * Actions to take when unlock the block
    */
   public void onUnLock(long blockId) {}
-
-  /**
-   * Get StorageDir allocated and also get blocks to be evicted among StorageDir candidates
-   *
-   * @param storageDirs StorageDir candidates that the space will be allocated in
-   * @param pinList list of pinned file
-   * @param requestBytes requested space size in bytes
-   * @return Pair of StorageDir allocated and blockInfoList which contains information of blocks to
-   *         be evicted, null if no allocated directory is found
-   */
-  public abstract Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
-      Set<Integer> pinList, long requestBytes);
 }
