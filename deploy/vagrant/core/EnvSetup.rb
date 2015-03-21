@@ -83,7 +83,7 @@ def get_tachyon_home
       exit(1)
     end
 
-    puts "git cloneing #{url}..."
+    puts "git clone #{url} and mvn package"
     `if [ -d ../tachyon ]; then rm -rf ../tachyon; fi`
     `mkdir -p ../tachyon`
     `pushd ../tachyon > /dev/null; \
@@ -91,8 +91,9 @@ def get_tachyon_home
      git remote add origin #{repo}; \
      git fetch origin; \
      git checkout #{hash}; \
+     mvn package; \
      popd > /dev/null`
-    puts "cloned to #{home}"
+    puts "done"
   else
     puts "Unknown VersionType, Only {Github | Local} supported"
     exit(1)
