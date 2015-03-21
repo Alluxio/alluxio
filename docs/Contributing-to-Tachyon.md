@@ -79,10 +79,16 @@ leverage the Scala shell, as discussed in this
        method declaration in the body of an interface is implicitly public and abstract.
        (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)
 -   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml)
-    -  If you use IntelliJ IDEA: you can either use our formatter with the help from
-       [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
-       or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ
-       IDEA
+    -  If you use IntelliJ IDEA:
+       - you can either use our formatter with the help from
+         [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
+         or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ
+         IDEA.
+       - To automatically format the **import**, configure in Preferences->Code Style->Java->Imports->Import Layout
+         according to [this order](resources/order.importorder)
+       - To automatically reorder methods alphabetically, try the
+         [Rearranger Plugin](http://plugins.jetbrains.com/plugin/173), open Preferences, search for rearranger,
+         remove the unnecessary comments, then right click, choose "Rearrange", codes will be formatted to what you want
 -   Tachyon is using SLF4J for logging with typical usage pattern of:
 
         import org.slf4j.Logger;
