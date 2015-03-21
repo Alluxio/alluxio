@@ -57,3 +57,60 @@ def config_hosts(name)
     hosts.close unless hosts == nil
   end
 end
+
+require 'yaml'
+require 'open-uri'
+
+def get_tachyon_home
+  @v = YAML.load_file('tachyon_version.yml')
+  
+  type = @v['Type']
+  if type == "Local"
+    puts 'using local tachyon dir'
+    return "../../"
+  end
+
+  home = "../tachyon"
+  if type == "Github"
+    repo = @v['Github']['Repo']
+    hash = @v['Github']['Hash']
+    url = "#{repo}/commit/#{hash}"
+
+    begin
+      open(url)
+    rescue OpenURI::HTTPError
+      $stderr.print "The github URL #{url} is invalid"
+      exit(1)
+    end
+
+    puts "git cloneing #{url}..."
+    `if [ -d ../tachyon ]; then rm -rf ../tachyon; fi`
+    `mkdir -p ../tachyon`
+    `pushd ../tachyon > /dev/null; \
+     git init; \
+     git remote add origin #{repo}; \
+     git fetch origin; \
+     git checkout #{hash}; \
+     popd > /dev/null`
+    puts "cloned to #{home}"
+  else
+    puts "Unknown VersionType, Only {Github | Local} supported"
+    exit(1)
+  end
+end
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
