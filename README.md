@@ -5,13 +5,12 @@ The master branch is in version 0.7.0-SNAPSHOT:
 
 - [Project Homepage](http://www.tachyonproject.org)
 - [Previous Releases](https://github.com/amplab/tachyon/tags)
-- [Master Branch Document](http://tachyon-project.org/master/)
 - [Tachyon Issue Tracker](https://tachyon.atlassian.net/browse/TACHYON)
-- [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
-- [Meetup Group](http://www.meetup.com/Tachyon)
 - [How to Contribute](http://tachyon-project.org/master/Contributing-to-Tachyon.html) and
 [Beginner's Tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner)
-
+- [Master Branch Document](http://tachyon-project.org/master/)
+- [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
+- [Meetup Group](http://www.meetup.com/Tachyon)
 
 ## Building applications with Tachyon
 
