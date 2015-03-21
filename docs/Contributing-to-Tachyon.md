@@ -105,14 +105,14 @@ leverage the Scala shell, as discussed in this
 -  To verify that the coding standards match, you should run [checkstyle](http://checkstyle.sourceforge.net)
    before sending a pull-request to verify no new warnings are introduced:
 
-        mvn checkstyle:checkstyle
+        $ mvn checkstyle:checkstyle
 
 ### FindBugs
 
 Before submitting the pull-request, run the latest code against
 [FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.
 
-    mvn compile findbugs:findbugs findbugs:gui
+    $ mvn compile findbugs:findbugs findbugs:gui
 
 ### Startup Tasks for New Contributors
 
@@ -146,13 +146,14 @@ for beginners. For a tutorial, see the GitHub guides on
 
 You can generate an Eclipse configuration file by running:
 
-    mvn clean -Dtest.profile=hdfs -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
+    $ mvn clean install
+    $ mvn clean -Dtest.profile=hdfs -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
 
 Then import the folder into Eclipse.
 
 You may also have to add the classpath variable M2_REPO by running:
 
-    mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
+    $ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
 
 If you are using IntelliJ IDEA, you may need to change the Maven profile to 'hdfs-test' in order to avoid import errors.
 You can do this by going to

@@ -18,8 +18,9 @@ Before executing Tachyon run scripts, requisite environment variables must be sp
 
     $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
 
-To run standalone mode, make sure that `TACHYON_UNDERFS_ADDRESS` in `conf/tachyon-env.sh` is set to
-a tmp directory in the local filesystem (e.g., ``export TACHYON_UNDERFS_ADDRESS=/tmp``).
+To run standalone mode, make sure that:
+* `TACHYON_UNDERFS_ADDRESS` in `conf/tachyon-env.sh` is set to a tmp directory in the local filesystem (e.g., ``export TACHYON_UNDERFS_ADDRESS=/tmp``).
+* Remote login service is turned on so ``ssh localhost`` will succeed.
 
 Then, you can format Tachyon FileSystem and start it. *Note: since Tachyon needs to setup RAMfs,
 starting a local system requires users to input their root password for Linux based users.*
