@@ -82,20 +82,25 @@ public class StorageTier {
     mAlias = storageLevelAlias;
     mDirs = new StorageDir[storageDirNum];
 
+    mBlockEvictor =
+        EvictStrategies.getEvictStrategy(
+            mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictStrategyType.LRU),
+            isLastTier());
+
     long quotaBytes = 0;
-    for (int i = 0; i < dirPaths.length; i++) {
+    for (int i = 0; i < dirPaths.length; i ++) {
       long storageDirId = StorageDirId.getStorageDirId(storageLevel, mAlias.getValue(), i);
       mDirs[i] =
           new StorageDir(storageDirId, dirPaths[i], dirCapacityBytes[i], dataFolder,
               userTempFolder, conf, mTachyonConf);
+      mDirs[i].setEvictStrategy(mBlockEvictor);
       quotaBytes += dirCapacityBytes[i];
     }
     mCapacityBytes = quotaBytes;
     mNextTier = nextTier;
-    mSpaceAllocator = AllocateStrategies.getAllocateStrategy(mTachyonConf.getEnum(
-        Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocateStrategyType.MAX_FREE));
-    mBlockEvictor = EvictStrategies.getEvictStrategy(mTachyonConf.getEnum(
-        Constants.WORKER_EVICT_STRATEGY_TYPE, EvictStrategyType.LRU), isLastTier());
+    mSpaceAllocator =
+        AllocateStrategies.getAllocateStrategy(mTachyonConf.getEnum(
+            Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocateStrategyType.MAX_FREE));
   }
 
   /**
