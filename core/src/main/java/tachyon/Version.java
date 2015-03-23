@@ -35,7 +35,7 @@ public class Version {
     Properties p = new Properties();
 
     try {
-      in = Version.class.getClassLoader().getResourceAsStream("version.properties");
+      in = Version.class.getClassLoader().getResourceAsStream("tachyon-default.properties");
       p.load(in);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
