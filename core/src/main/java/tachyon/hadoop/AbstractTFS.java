@@ -106,7 +106,7 @@ abstract class AbstractTFS extends FileSystem {
     boolean asyncEnabled = mTachyonConf.getBoolean(Constants.ASYNC_ENABLED, true);
     if (!asyncEnabled) {
       TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-      if (mTFS.exist(path)) {
+      if (mTFS.exist(path) && overwrite && !mTFS.getFileStatus(-1, path).isFolder) {
         if (!mTFS.delete(path, false)) {
           throw new IOException("Failed to delete existing data " + cPath);
         }
