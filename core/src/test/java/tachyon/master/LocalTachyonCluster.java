@@ -195,6 +195,7 @@ public final class LocalTachyonCluster {
     CommonUtils.sleepMs(null, 10);
 
     mWorkerConf = new TachyonConf(mMasterConf);
+    mWorkerConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
     mWorkerConf.set(Constants.MASTER_PORT, getMasterPort() + "");
     mWorkerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
     mWorkerConf.set(Constants.WORKER_PORT, "0");
@@ -228,8 +229,7 @@ public final class LocalTachyonCluster {
     }
 
     mWorker =
-        TachyonWorker.createWorker(mLocalhostName + ":" + getMasterPort(), 0, 0, 1, 100,
-            mWorkerConf);
+        TachyonWorker.createWorker(mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {

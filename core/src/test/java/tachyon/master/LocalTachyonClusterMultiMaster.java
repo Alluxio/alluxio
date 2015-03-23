@@ -65,8 +65,6 @@ public class LocalTachyonClusterMultiMaster {
 
   private Thread mWorkerThread = null;
 
-  private String mLocalhostName = null;
-
   private final List<LocalTachyonMaster> mMasters = new ArrayList<LocalTachyonMaster>();
 
   private final Supplier<String> mClientSuppliers = new Supplier<String>() {
@@ -144,8 +142,6 @@ public class LocalTachyonClusterMultiMaster {
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
 
-    mLocalhostName = NetworkUtils.getLocalHostName(100);
-
     mMasterConf = new TachyonConf();
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
@@ -217,9 +213,6 @@ public class LocalTachyonClusterMultiMaster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
-
-    mWorkerConf.set(Constants.WORKER_PORT, mWorker.getMetaPort() + "");
-    mWorkerConf.set(Constants.WORKER_DATA_PORT, mWorker.getDataPort() + "");
   }
 
   public void stop() throws Exception {
