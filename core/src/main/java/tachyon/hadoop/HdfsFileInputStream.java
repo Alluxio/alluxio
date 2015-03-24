@@ -110,7 +110,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
       mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
     }
-    mHdfsInputStream.seek(position);;
+    mHdfsInputStream.seek(position);
   }
 
   /**

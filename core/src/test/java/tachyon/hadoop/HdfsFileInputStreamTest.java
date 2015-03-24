@@ -167,16 +167,16 @@ public class HdfsFileInputStreamTest {
   public void seekTest() throws IOException {
     mInMemInputStream.seek(0);
     Assert.assertEquals(0, mInMemInputStream.getPos());
-    IllegalArgumentException exception = null;
+    IOException exception = null;
     try {
       mInMemInputStream.seek(-1);
-    } catch (IllegalArgumentException e) {
+    } catch (IOException e) {
       exception = e;
     }
     Assert.assertEquals("Seek position is negative: -1", exception.getMessage());
     try {
       mInMemInputStream.seek(FILE_LEN + 1);
-    } catch (IllegalArgumentException e) {
+    } catch (IOException e) {
       exception = e;
     }
     Assert.assertEquals("Seek position is past EOF: " + (FILE_LEN + 1) + ", fileSize = " +
@@ -186,13 +186,13 @@ public class HdfsFileInputStreamTest {
     Assert.assertEquals(0, mUfsInputStream.getPos());
     try {
       mUfsInputStream.seek(-1);
-    } catch (IllegalArgumentException e) {
+    } catch (IOException e) {
       exception = e;
     }
     Assert.assertEquals("Seek position is negative: -1", exception.getMessage());
     try {
       mUfsInputStream.seek(FILE_LEN + 1);
-    } catch (IllegalArgumentException e) {
+    } catch (IOException e) {
       exception = e;
     }
     Assert.assertEquals("Seek position is past EOF: " + (FILE_LEN + 1) + ", fileSize = " +
