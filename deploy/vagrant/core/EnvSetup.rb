@@ -91,7 +91,7 @@ def get_tachyon_home
      git remote add origin #{repo}; \
      git fetch origin; \
      git checkout #{hash}; \
-     mvn package; \
+     mvn package -DskipTests; \
      popd > /dev/null`
     puts "done"
   else
