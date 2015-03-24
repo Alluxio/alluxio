@@ -838,9 +838,9 @@ public class TFsShell implements Closeable {
   /**
    * Calculates the size of a path (file or folder) specified by a TachyonURI.
    *
-   * @param tachoinFS A TachyonFS
+   * @param tachyonFS A TachyonFS
    * @param path A TachyonURI denoting the path
-   * @return total size in bytes of the specified path.
+   * @return total size of the specified path in byte.
    * @throws IOException
    */
   private long getFileOrFolderSize(TachyonFS tachyonFS, TachyonURI path) throws IOException {
