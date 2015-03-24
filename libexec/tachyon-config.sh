@@ -34,4 +34,9 @@ if [ -e $TACHYON_CONF_DIR/tachyon-env.sh ] ; then
   . $TACHYON_CONF_DIR/tachyon-env.sh
 fi
 
-export CLASSPATH="$TACHYON_CONF_DIR/:$TACHYON_JAR:$TACHYON_CLASSPATH"
+# A developer option to prepend Tachyon jars before TACHYON_CLASSPATH jars
+if [ -n "$TACHYON_PREPEND_TACHYON_CLASSES" ]; then
+  export CLASSPATH="$TACHYON_CONF_DIR/:$TACHYON_JAR:$TACHYON_CLASSPATH"
+else
+  export CLASSPATH="$TACHYON_CONF_DIR/:$TACHYON_CLASSPATH:$TACHYON_JAR"
+fi
