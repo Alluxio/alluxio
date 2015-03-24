@@ -448,6 +448,15 @@ abstract class AbstractTFS extends FileSystem {
     return ret;
   }
 
+  /**
+   * Attempts to create a folder with the specified path. Parent directories will be created.
+   * Mkdirs will fail if the path already exists or a parent is a file.
+   *
+   * @param cPath path to create
+   * @param permission permissions to grant the created folder
+   * @return
+   * @throws IOException
+   */
   @Override
   public boolean mkdirs(Path cPath, FsPermission permission) throws IOException {
     LOG.info("mkdirs(" + cPath + ", " + permission + ")");
