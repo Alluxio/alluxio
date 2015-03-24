@@ -464,6 +464,14 @@ abstract class AbstractTFS extends FileSystem {
     return mTFS.mkdir(path);
   }
 
+  /**
+   * Attempts to open the specified path for reading.
+   *
+   * @param cPath path to open
+   * @param bufferSize buffer size for reading
+   * @return
+   * @throws IOException if the file cannot be opened (ie. is a directory)
+   */
   @Override
   public FSDataInputStream open(Path cPath, int bufferSize) throws IOException {
     LOG.info("open(" + cPath + ", " + bufferSize + ")");
