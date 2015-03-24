@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -39,7 +39,7 @@ public class BlockInfo {
   /**
    * Compute the block's id with the inode's id and the block's index in the inode. In Tachyon, the
    * blockId is equal to ((inodeId << 30) + blockIndex).
-   * 
+   *
    * @param inodeId The inode's id of the block
    * @param blockIndex The block's index of the block in the inode
    * @return the block's id
@@ -51,7 +51,7 @@ public class BlockInfo {
   /**
    * Compute the block's index in the inode with the block's id. The blockIndex is the last 30 bits
    * of the blockId.
-   * 
+   *
    * @param blockId The id of the block
    * @return the block's index in the inode
    */
@@ -61,7 +61,7 @@ public class BlockInfo {
 
   /**
    * Compute the inode's id of the block. The inodeId is the first 34 bits of the blockId.
-   * 
+   *
    * @param blockId The id of the block
    * @return the inode's id of the block
    */
@@ -94,7 +94,7 @@ public class BlockInfo {
 
   /**
    * Add a location of the block. It means that the worker has the data of the block in memory.
-   * 
+   *
    * @param workerId The id of the worker
    * @param workerAddress The net address of the worker
    * @param storageDirId The id of the StorageDir which block is located in
@@ -106,7 +106,7 @@ public class BlockInfo {
 
   /**
    * Generate a ClientBlockInfo of the block, which is used for the thrift server.
-   * 
+   *
    * @return the generated ClientBlockInfo
    */
   public synchronized ClientBlockInfo generateClientBlockInfo(TachyonConf tachyonConf) {
@@ -123,7 +123,7 @@ public class BlockInfo {
   /**
    * Get the list of pairs "blockId, workerId", where the blockId is the id of this block, and the
    * workerId is the id of the worker who has the block's data in memory.
-   * 
+   *
    * @return the list of those pairs
    */
   public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
@@ -136,7 +136,7 @@ public class BlockInfo {
 
   /**
    * Get the InodeFile of the block
-   * 
+   *
    * @return the InodeFile of the block
    */
   public synchronized InodeFile getInodeFile() {
@@ -147,22 +147,16 @@ public class BlockInfo {
    * Get the locations of the block, which are the workers' net address who has the data of the
    * block in its hierarchy store. The list is sorted by the storage level alias(MEM, SSD, HDD).
    * That is, the worker who has the data of the block in its memory is in the top of the list.
-   * The highest tier locations are shuffled to spread the load.
-   * 
+   *
    * @return the net addresses of the locations
    */
   public synchronized List<NetAddress> getLocations(TachyonConf tachyonConf) {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
-    boolean shuffled = false;
     for (StorageLevelAlias alias : StorageLevelAlias.values()) {
       for (Map.Entry<NetAddress, Long> entry : mStorageDirIds.entrySet()) {
         if (alias.getValue() == StorageDirId.getStorageLevelAliasValue(entry.getValue())) {
           ret.add(entry.getKey());
         }
-      }
-      if (!shuffled && ret.size() > 0) {
-        Collections.shuffle(ret);
-        shuffled = true;
       }
     }
     if (ret.isEmpty() && mInodeFile.hasCheckpointed()) {
@@ -203,7 +197,7 @@ public class BlockInfo {
 
   /**
    * Remove the worker from the block's locations
-   * 
+   *
    * @param workerId The id of the removed worker
    */
   public synchronized void removeLocation(long workerId) {
