@@ -51,6 +51,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   private InStream mTachyonFileInputStream = null;
 
+  private boolean mClosed = false;
+
   private int mBufferLimit = 0;
   private int mBufferPosition = 0;
   private byte[] mBuffer;
@@ -80,6 +82,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   @Override
+  public int available() throws IOException {
+    throw new IOException("Not supported");
+  }
+
+  @Override
   public void close() throws IOException {
     if (mTachyonFileInputStream != null) {
       mTachyonFileInputStream.close();
@@ -87,6 +94,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     if (mHdfsInputStream != null) {
       mHdfsInputStream.close();
     }
+    mClosed = true;
   }
 
   private void getHdfsInputStream() throws IOException {
@@ -115,6 +123,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   @Override
   public int read() throws IOException {
+    if (mClosed) {
+      throw new IOException("Cannot read from a closed stream.");
+    }
     if (mTachyonFileInputStream != null) {
       int ret = 0;
       try {
@@ -126,7 +137,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
         mTachyonFileInputStream = null;
       }
     }
-
     getHdfsInputStream();
     return readFromHdfsBuffer();
   }
@@ -138,6 +148,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
+    if (mClosed) {
+      throw new IOException("Cannot read from a closed stream.");
+    }
     if (mTachyonFileInputStream != null) {
       int ret = 0;
       try {
@@ -165,6 +178,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   @Override
   public synchronized int read(long position, byte[] buffer, int offset, int length)
       throws IOException {
+    if (mClosed) {
+      throw new IOException("Cannot read from a closed stream.");
+    }
     int ret = -1;
     long oldPos = getPos();
     if ((position < 0) || (position >= mTachyonFile.length())) {
@@ -236,9 +252,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
 
     if (pos < 0) {
-      throw new IllegalArgumentException("Seek position is negative: " + pos);
+      throw new IOException("Seek position is negative: " + pos);
     } else if (pos > mTachyonFile.length()) {
-      throw new IllegalArgumentException("Seek position is past EOF: " + pos + ", fileSize = "
+      throw new IOException("Seek position is past EOF: " + pos + ", fileSize = "
           + mTachyonFile.length());
     }
 
