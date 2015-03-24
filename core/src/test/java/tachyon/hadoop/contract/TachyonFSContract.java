@@ -79,8 +79,7 @@ public class TachyonFSContract extends AbstractFSContract {
 
   @Override
   public Path getTestPath() {
-    Path path = fs.makeQualified(new Path(
-        getTestDataDir()));
+    Path path = fs.makeQualified(new Path(getTestDataDir()));
     return path;
   }
 
