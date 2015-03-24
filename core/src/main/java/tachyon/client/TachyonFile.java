@@ -163,7 +163,12 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("The file " + this + " is not complete.");
     }
 
-    List<Long> blocks = getUnCachedFileStatus().getBlockIds();
+    if (isDirectory()) {
+      throw new IOException("Cannot open a directory for reading.");
+    }
+
+    ClientFileInfo fileStatus = getUnCachedFileStatus();
+    List<Long> blocks = fileStatus.getBlockIds();
 
     if (blocks.size() == 0) {
       return new EmptyBlockInStream(this, readType, mTachyonConf);
