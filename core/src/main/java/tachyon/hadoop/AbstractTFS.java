@@ -108,7 +108,8 @@ abstract class AbstractTFS extends FileSystem {
    * @param blockSize block size
    * @param progress queryable progress
    * @return
-   * @throws IOException
+   * @throws IOException if overwrite is not specified and the path already exists or if the path
+   * is a folder
    */
   @Override
   public FSDataOutputStream create(Path cPath, FsPermission permission, boolean overwrite,
@@ -240,12 +241,29 @@ abstract class AbstractTFS extends FileSystem {
     return delete(path, true);
   }
 
+  /**
+   * Attempts to delete the file or directory with the specified path. Will return true if one or
+   * more files/directories were deleted. Will return false if no files or directories were
+   * deleted.
+   * @param cPath path to delete
+   * @param recursive if true, will attempt to delete all children of the path
+   * @return
+   * @throws IOException if the path failed to be deleted due to some constraint (ie. non empty
+   * directory with recursive flag disabled)
+   */
   @Override
   public boolean delete(Path cPath, boolean recursive) throws IOException {
     LOG.info("delete(" + cPath + ", " + recursive + ")");
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     fromHdfsToTachyon(path);
-    return mTFS.delete(path, recursive);
+    if (!mTFS.exist(path)) {
+      return false;
+    }
+    boolean rtn = mTFS.delete(path, recursive);
+    if (mTFS.exist(path)) {
+      throw new IOException("Failed to delete path " + path.toString());
+    }
+    return rtn;
   }
 
   private void fromHdfsToTachyon(TachyonURI path) throws IOException {
