@@ -103,9 +103,9 @@ abstract class AbstractTFS extends FileSystem {
    * @param cPath path to create
    * @param permission permissions of the created file/folder
    * @param overwrite overwrite if file exists
-   * @param bufferSize buffer size
-   * @param replication replication factor
-   * @param blockSize block size
+   * @param bufferSize the size in bytes of the buffer to be used
+   * @param replication under filesystem replication factor
+   * @param blockSize block size in bytes
    * @param progress queryable progress
    * @return
    * @throws IOException if overwrite is not specified and the path already exists or if the path
@@ -216,7 +216,7 @@ abstract class AbstractTFS extends FileSystem {
    *        overwritten, and if false an error will be thrown.
    * @param bufferSize the size of the buffer to be used.
    * @param replication required block replication for the file.
-   * @param blockSize
+   * @param blockSize the size in bytes of the buffer to be used.
    * @param progress
    * @throws IOException
    * @see #setPermission(Path, FsPermission)
@@ -468,7 +468,7 @@ abstract class AbstractTFS extends FileSystem {
    * Attempts to open the specified path for reading.
    *
    * @param cPath path to open
-   * @param bufferSize buffer size for reading
+   * @param bufferSize the size in bytes of the buffer to be used
    * @return
    * @throws IOException if the file cannot be opened (ie. is a directory)
    */
