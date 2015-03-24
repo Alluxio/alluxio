@@ -81,6 +81,12 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mTachyonFileInputStream = mTachyonFile.getInStream(ReadType.CACHE);
   }
 
+  /**
+   * Available is not implemented by HdfsFileInputStream. Explicitly marked as not supported to
+   * avoid default behavior of returning 0 in all cases.
+   * @return
+   * @throws IOException
+   */
   @Override
   public int available() throws IOException {
     throw new IOException("Not supported");

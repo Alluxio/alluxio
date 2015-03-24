@@ -14,20 +14,24 @@
  */
 package tachyon.hadoop.contract;
 
+import java.io.IOException;
+import java.net.URI;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
-import org.apache.hadoop.fs.contract.ContractOptions;
-import org.apache.hadoop.fs.contract.ContractTestUtils;
-import org.apache.hadoop.util.Shell;
+
 import tachyon.Constants;
 import tachyon.hadoop.TFS;
 import tachyon.master.LocalTachyonCluster;
 
-import java.io.IOException;
-import java.net.URI;
-
+/**
+ * This class provides an implementation of AbstractFSContract using tachyon.hadoop.TFS. This
+ * will be used to run Hadoop Contract tests which verify the AbstractTFS interface.
+ * More information can be found here:
+ * http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/filesystem/testing.html
+ */
 public class TachyonFSContract extends AbstractFSContract {
 
   public static final String CONTRACT_XML = "contract/tachyonfs.xml";
