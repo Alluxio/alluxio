@@ -587,4 +587,24 @@ public class TFsShellTest {
     CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(tachyonConf) * 2 + 10);
     Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
   }
+
+  @Test
+  public void duTest() throws IOException {
+    TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    TestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
+    TestUtils.createByteFile(mTfs, "/testRoot/testDir/testDir/testFileC", WriteType.MUST_CACHE, 30);
+
+    String expected = "";
+    // du a non-existing file
+    mFsShell.du(new String[] {"du", "/testRoot/noneExisting"});
+    expected += "/testRoot/noneExisting does not exist\n";
+    // du a file
+    mFsShell.du(new String[] {"du", "/testRoot/testFileA"});
+    expected += "/testRoot/testFileA is 10 bytes\n";
+    // du a folder
+    mFsShell.du(new String[] {"du", "/testRoot/testDir"});
+    expected += "/testRoot/testDir is 50 bytes\n";
+
+    Assert.assertEquals(expected, mOutput.toString());
+  }
 }
