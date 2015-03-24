@@ -97,6 +97,19 @@ abstract class AbstractTFS extends FileSystem {
     }
   }
 
+  /**
+   * Attempts to create a file. Overwrite will not succeed if the path exists and is a folder.
+   *
+   * @param cPath path to create
+   * @param permission permissions of the created file/folder
+   * @param overwrite overwrite if file exists
+   * @param bufferSize buffer size
+   * @param replication replication factor
+   * @param blockSize block size
+   * @param progress queryable progress
+   * @return
+   * @throws IOException
+   */
   @Override
   public FSDataOutputStream create(Path cPath, FsPermission permission, boolean overwrite,
       int bufferSize, short replication, long blockSize, Progressable progress) throws IOException {
@@ -106,9 +119,14 @@ abstract class AbstractTFS extends FileSystem {
     boolean asyncEnabled = mTachyonConf.getBoolean(Constants.ASYNC_ENABLED, true);
     if (!asyncEnabled) {
       TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-      if (mTFS.exist(path) && overwrite && !mTFS.getFileStatus(-1, path).isFolder) {
-        if (!mTFS.delete(path, false)) {
-          throw new IOException("Failed to delete existing data " + cPath);
+      if (mTFS.exist(path)) {
+        if (overwrite && !mTFS.getFileStatus(-1, path).isFolder) {
+          if (!mTFS.delete(path, false)) {
+            throw new IOException("Failed to delete existing data " + cPath);
+          }
+        } else {
+          throw new IOException(cPath.toString() + " already exists. Directories cannot be "
+              + "overwritten with create.");
         }
       }
       int fileId = mTFS.createFile(path, blockSize);
@@ -168,7 +186,7 @@ abstract class AbstractTFS extends FileSystem {
     } else {
       TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       int fileId;
-      WriteType type =  getWriteType();
+      WriteType type = getWriteType();
       if (mTFS.exist(path)) {
         fileId = mTFS.getFileId(path);
         type = WriteType.MUST_CACHE;
