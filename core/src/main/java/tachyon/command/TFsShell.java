@@ -516,6 +516,7 @@ public class TFsShell implements Closeable {
     System.out.println("       [free <file path|folder path>]");
     System.out.println("       [getUsedBytes <tachyon root path>]");
     System.out.println("       [getCapacityBytes <tachyon root path>]");
+    System.out.println("       [du <path>]");
   }
 
   /**
@@ -619,6 +620,29 @@ public class TFsShell implements Closeable {
   }
 
   /**
+   * Displays the size of a file or a directory specified by argv.
+   *
+   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int du(String[] argv) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs du <path>");
+      return -1;
+    }
+    TachyonURI path = new TachyonURI(argv[1]);
+    TachyonFS tachyonClient = createFS(path);
+    if (tachyonClient.exist(path)) {
+      long sizeInBytes = getFileOrFolderSize(tachyonClient, path);
+      System.out.println(path + " is " + sizeInBytes + " bytes");
+    } else {
+      System.out.println(path + " does not exist");
+    }
+    return 0;
+  }
+
+  /**
    * Method which determines how to handle the user's request, will display usage help to the user
    * if command format is incorrect.
    *
@@ -676,6 +700,8 @@ public class TFsShell implements Closeable {
         exitCode = unpin(argv);
       } else if (cmd.equals("free")) {
         exitCode = free(argv);
+      } else if (cmd.equals("du")) {
+        exitCode = du(argv);
       } else {
         printUsage();
         return -1;
@@ -807,5 +833,27 @@ public class TFsShell implements Closeable {
     String qualifiedPath = Utils.validatePath(path.toString(), mTachyonConf);
     TachyonFS tachyonFS = TachyonFS.get(new TachyonURI(qualifiedPath), mTachyonConf);
     return mCloser.register(tachyonFS);
+  }
+
+  /**
+   * Calculates the size of a path (file or folder) specified by a TachyonURI.
+   *
+   * @param tachyonFS A TachyonFS
+   * @param path A TachyonURI denoting the path
+   * @return total size of the specified path in byte.
+   * @throws IOException
+   */
+  private long getFileOrFolderSize(TachyonFS tachyonFS, TachyonURI path) throws IOException {
+    long sizeInBytes = 0;
+    List<ClientFileInfo> files = tachyonFS.listStatus(path);
+    for (ClientFileInfo file : files) {
+      if (file.isFolder) {
+        TachyonURI subFolder = new TachyonURI(file.getPath());
+        sizeInBytes += getFileOrFolderSize(tachyonFS, subFolder);
+      } else {
+        sizeInBytes += file.getLength();
+      }
+    }
+    return sizeInBytes;
   }
 }
