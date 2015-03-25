@@ -11,7 +11,7 @@ The **home page** gives an overview of the system's status.
 ![home](./img/screenshot_overview.png)
 
 To check the list of all workers, click "Workers" button. In **workers page**, all nodes are listed,
-also the last heartbeat, node state, workers capacity, spaced used in bytes, as well as space
+also the last heartbeat, node state, workers capacity, space used in bytes, as well as space
 usage percentage are presented.
 
 ![workers](./img/screenshot_workers.png)
@@ -20,7 +20,7 @@ To check current system configuration information, click "System Configuration" 
 
 ![configurations](./img/screenshot_systemConfiguration.png)
 
-To browse the list of file, click "Browse File System" button. In **browsing page**, files in the
+To browse the list of files, click "Browse File System" button. In **browsing page**, files in the
 current folder are listed, with the file name, file size, size for each block, the percentage of
 in-memory data, and the creation time. To view the content of a file in detail, click on that file.
 
