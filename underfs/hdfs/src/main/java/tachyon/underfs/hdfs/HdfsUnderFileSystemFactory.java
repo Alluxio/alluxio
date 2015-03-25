@@ -24,6 +24,13 @@ import tachyon.underfs.UnderFileSystemFactory;
 public class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
+  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
+    Preconditions.checkArgument(path != null, "path may not be null");
+
+    return new HdfsUnderFileSystem(path, tachyonConf, conf);
+  }
+
+  @Override
   public boolean supportsPath(String path, TachyonConf conf) {
     if (path == null) {
       return false;
@@ -31,12 +38,4 @@ public class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
 
     return UnderFileSystem.isHadoopUnderFS(path, conf);
   }
-
-  @Override
-  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
-    Preconditions.checkArgument(path != null, "path may not be null");
-    
-    return new HdfsUnderFileSystem(path, tachyonConf, conf);
-  }
-
 }
