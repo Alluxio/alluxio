@@ -38,10 +38,8 @@ public interface UnderFileSystemFactory {
   /**
    * Creates a client for accessing the given path
    * 
-   * @param path
-   *          File path
-   * @param tachyonConf
-   *          Tachyon configuration
+   * @param path File path
+   * @param tachyonConf Tachyon configuration
    * @param conf
    *          Optional configuration object for the UFS, may be null
    * @return Client
