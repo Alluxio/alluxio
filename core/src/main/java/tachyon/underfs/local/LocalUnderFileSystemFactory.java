@@ -27,6 +27,12 @@ import tachyon.underfs.UnderFileSystemFactory;
  *
  */
 public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
+  
+  @Override
+  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
+    Preconditions.checkArgument(path != null, "path may not be null");
+    return new LocalUnderFileSystem(tachyonConf);
+  }
 
   @Override
   public boolean supportsPath(String path, TachyonConf conf) {
@@ -34,11 +40,5 @@ public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
       return false;
     }
     return path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://");
-  }
-
-  @Override
-  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
-    Preconditions.checkArgument(path != null, "path may not be null");
-    return new LocalUnderFileSystem(tachyonConf);
   }
 }

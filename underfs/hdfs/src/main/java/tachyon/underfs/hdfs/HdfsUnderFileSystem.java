@@ -87,10 +87,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * configuration necessary for obtaining a usable {@linkplain FileSystem} instance.
    * </p>
    * 
-   * @param path
-   *          File system path
-   * @param config
-   *          Hadoop Configuration
+   * @param path File system path
+   * @param config Hadoop Configuration
    */
   protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically

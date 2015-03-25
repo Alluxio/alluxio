@@ -1048,10 +1048,8 @@ public class WorkerStorage {
    * to cache the block on the local users's node, while the user is reading from the local block,
    * the given block is locked and unlocked once read.
    *
-   * @param blockId
-   *          The id of the block
-   * @param userId
-   *          The id of the user who unlocks the block
+   * @param blockId The id of the block
+   * @param userId The id of the user who unlocks the block
    * @return true if success, false otherwise
    */
   public boolean unlockBlock(long blockId, long userId) {
@@ -1069,8 +1067,7 @@ public class WorkerStorage {
   /**
    * Handle the user's heartbeat.
    * 
-   * @param userId
-   *          The id of the user
+   * @param userId The id of the user
    */
   public void userHeartbeat(long userId) {
     mUsers.userHeartbeat(userId);
