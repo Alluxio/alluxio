@@ -6,7 +6,13 @@ title: Web Interface
 Tachyon has a user-friendly web interface allowing users to watch and manage the system. Below we
 describe its details.
 
-The **home page** gives an overview of the system's status.
+The **home page** gives an overview of the system's status. It includes the following sections:
+1. Tachyon Summary, which shows the master address, cluster start time and uptime, tachyon
+version used, number of running workers.
+2. Cluster Usage Summary, which shows total workers capacity in bytes, free bytes, used bytes,
+under file system capacity as well as free and used bytes.
+3. Storage Usage Summary, which shows the space capacity, space used of each tier (e.g. MEM, SSD
+, HDD) of the storage hierarchy.
 
 ![home](./img/screenshot_overview.png)
 
