@@ -38,9 +38,12 @@ import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.master.BlockInfo;
 import tachyon.master.MasterInfo;
+import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 
 /**
@@ -234,7 +237,17 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       UiFileInfo toAdd = new UiFileInfo(fileInfo);
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
-          toAdd.setFileLocations(mMasterInfo.getFileBlocks(toAdd.getId()).get(0).getLocations());
+          // We add all the checkpoint locations and all workers that have some part of the file
+          // cached
+          ClientBlockInfo info = mMasterInfo.getFileBlocks(toAdd.getId()).get(0);
+          List<NetAddress> locations = new ArrayList<NetAddress>();
+          for (String checkpoint : info.getCheckpoints()) {
+            locations.add(new NetAddress(checkpoint, -1, -1));
+          }
+          for (WorkerInfo worker : info.getWorkers()) {
+            locations.add(worker.getAddress());
+          }
+          toAdd.setFileLocations(locations);
         }
       } catch (FileDoesNotExistException fdne) {
         request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());

@@ -24,10 +24,11 @@ public class StorageDirId {
   /**
    * Compare storage level of StorageDirs
    * 
-   * @param storageDirIdLeft The left value of StorageDirId to be compared
-   * @param storageDirIdRight The right value of StorageDirId to be compared
-   * @return negative if storage level of left StorageDirId is higher than the right one, zero if
-   *         equals, positive if lower.
+   * @param storageDirIdLeft The storage id on the left of the comparison
+   * @param storageDirIdRight The storage id on the right of the comparison
+   * @return negative if storageDirIdLeft is on a higher storage tier (it has a lower alias value),
+   *         zero if they are equal, and positive if storageDirIdLeft is on a lower storage tier (it
+   *         has a higher alias value)
    */
   public static int compareStorageLevel(long storageDirIdLeft, long storageDirIdRight) {
     return getStorageLevelAliasValue(storageDirIdLeft)

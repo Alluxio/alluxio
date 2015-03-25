@@ -228,7 +228,7 @@ public class InodeFile extends Inode {
       throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
     }
 
-    return mBlocks.get(blockIndex).getLocations(tachyonConf);
+    return mBlocks.get(blockIndex).getWorkerAddresses();
   }
 
   /**
@@ -378,13 +378,30 @@ public class InodeFile extends Inode {
    *
    * @param blockIndex The index of the block in the file
    * @param workerId The id of the removed location worker
+   * @param storageDirId The storage directory id to remove from the worker
    * @throws BlockInfoException
    */
-  public synchronized void removeLocation(int blockIndex, long workerId) throws BlockInfoException {
+  public synchronized void removeLocation(int blockIndex, long workerId, long storageDirId)
+      throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
-    mBlocks.get(blockIndex).removeLocation(workerId);
+    mBlocks.get(blockIndex).removeLocation(workerId, storageDirId);
+  }
+
+  /**
+   * Remove a worker entirely from a block
+   * 
+   * @param blockIndex the index of the block in the file
+   * @param workerId The id of the worker to remove
+   * @throws BlockInfoException
+   */
+  public synchronized void removeLocationEntirely(int blockIndex, long workerId)
+      throws BlockInfoException {
+    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
+      throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
+    }
+    mBlocks.get(blockIndex).removeLocationEntirely(workerId);
   }
 
   /**

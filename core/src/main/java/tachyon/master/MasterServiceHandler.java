@@ -324,7 +324,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public Command worker_heartbeat(long workerId, List<Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
+      Map<Long, List<Long>> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
       throws BlockInfoException, TException {
     return mMasterInfo.workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds, addedBlockIds);
   }
