@@ -54,12 +54,9 @@ public abstract class UnderFileSystem {
   /**
    * Get the UnderFileSystem instance according to its schema.
    * 
-   * @param path
-   *          file path storing over the ufs.
-   * @param tachyonConf
-   *          the {@link tachyon.conf.TachyonConf} instance.
-   * @throws IllegalArgumentException
-   *           for unknown scheme
+   * @param path file path storing over the ufs.
+   * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance.
+   * @throws IllegalArgumentException for unknown scheme
    * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, TachyonConf tachyonConf) {
@@ -69,14 +66,10 @@ public abstract class UnderFileSystem {
   /**
    * Get the UnderFileSystem instance according to its scheme and configuration.
    * 
-   * @param path
-   *          file path storing over the ufs
-   * @param conf
-   *          the configuration object for ufs only
-   * @param tachyonConf
-   *          the {@link tachyon.conf.TachyonConf} instance.
-   * @throws IllegalArgumentException
-   *           for unknown scheme
+   * @param path file path storing over the ufs
+   * @param conf the configuration object for ufs only
+   * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance.
+   * @throws IllegalArgumentException for unknown scheme
    * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, Object conf, TachyonConf tachyonConf) {
@@ -111,8 +104,7 @@ public abstract class UnderFileSystem {
    * pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
    * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
    * 
-   * @param path
-   *          the input path string
+   * @param path the input path string
    * @return null if path does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,
    *         file://, /. Or a pair of strings denoting the under FS address and the relative path
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
@@ -152,11 +144,8 @@ public abstract class UnderFileSystem {
    * Depending on the implementation this may be a no-op
    * </p>
    * 
-   * @param conf
-   *          Tachyon configuration
-   * 
-   * @param hostname
-   *          The host that wants to connect to the under file system
+   * @param conf Tachyon configuration
+   * @param hostname The host that wants to connect to the under file system
    * @throws IOException
    */
   public abstract void connectFromMaster(TachyonConf conf, String hostname) throws IOException;
@@ -168,15 +157,12 @@ public abstract class UnderFileSystem {
    * Depending on the implementation this may be a no-op
    * </p>
    * 
-   * @param conf
-   *          Tachyon configuration
-   * 
-   * @param hostname
-   *          The host that wants to connect to the under file system
+   * @param conf Tachyon configuration
+   * @param hostname The host that wants to connect to the under file system
    * @throws IOException
    */
   public abstract void connectFromWorker(TachyonConf conf, String hostname) throws IOException;
-  
+
   public abstract void close() throws IOException;
 
   public abstract OutputStream create(String path) throws IOException;
@@ -225,8 +211,7 @@ public abstract class UnderFileSystem {
    * There is no guarantee that the name strings in the resulting array will appear in any specific
    * order; they are not, in particular, guaranteed to appear in alphabetical order.
    * 
-   * @param path
-   *          the path to list.
+   * @param path the path to list.
    * @return An array of strings naming the files and directories in the directory denoted by this
    *         abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory, or if an I/O error
@@ -239,10 +224,8 @@ public abstract class UnderFileSystem {
    * Creates the directory named by this abstract pathname. If the folder already exists, the method
    * returns false.
    * 
-   * @param path
-   *          the folder to create
-   * @param createParent
-   *          If true, the method creates any necessary but nonexistent parent
+   * @param path the folder to create
+   * @param createParent If true, the method creates any necessary but nonexistent parent
    *          directories. Otherwise, the method does not create nonexistent parent directories.
    * @return <code>true</code> if and only if the directory was created; <code>false</code>
    *         otherwise
@@ -258,18 +241,15 @@ public abstract class UnderFileSystem {
    * To set the configuration object for UnderFileSystem. The conf object is understood by the
    * concrete underfs's implementation.
    * 
-   * @param conf
-   *          The configuration object accepted by ufs.
+   * @param conf The configuration object accepted by ufs.
    */
   public abstract void setConf(Object conf);
 
   /**
    * Change posix file permission
    * 
-   * @param path
-   *          path of the file
-   * @param posixPerm
-   *          standard posix permission like "777", "775", etc.
+   * @param path path of the file
+   * @param posixPerm standard posix permission like "777", "775", etc.
    * @throws IOException
    */
   public abstract void setPermission(String path, String posixPerm) throws IOException;
