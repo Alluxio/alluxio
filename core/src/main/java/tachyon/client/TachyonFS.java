@@ -64,7 +64,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Create a TachyonFS handler.
    *
    * @param tachyonPath a Tachyon path contains master address. e.g., tachyon://localhost:19998,
-   *          tachyon://localhost:19998/ab/c.txt
+   *        tachyon://localhost:19998/ab/c.txt
    * @return the corresponding TachyonFS handler
    * @throws IOException
    * @see #get(tachyon.TachyonURI, tachyon.conf.TachyonConf)
@@ -78,7 +78,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Create a TachyonFS handler.
    * 
    * @param tachyonURI a Tachyon URI contains master address. e.g., tachyon://localhost:19998,
-   *          tachyon://localhost:19998/ab/c.txt
+   *        tachyon://localhost:19998/ab/c.txt
    * @param tachyonConf The TachyonConf instance.
    * @return the corresponding TachyonFS handler
    * @throws IOException
@@ -321,7 +321,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * 
    * @param path The path of the file
    * @param ufsPath The path of the file in the under file system. If this is empty, the file does
-   *          not exist in the under file system yet.
+   *        not exist in the under file system yet.
    * @param blockSizeByte The size of the block in bytes. It is -1 iff ufsPath is non-empty.
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return The file id, which is globally unique.
@@ -384,10 +384,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * Deletes a file or folder
    * 
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
-   *          Otherwise, the method uses the path parameter.
+   *        Otherwise, the method uses the path parameter.
    * @param path The path of the file / folder. It could be empty iff id is not -1.
    * @param recursive If fileId or path represents a non-empty folder, delete the folder recursively
-   *          or not
+   *        or not
    * @return true if deletes successfully, false otherwise.
    * @throws IOException
    */
@@ -431,7 +431,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockIndex The index of the block in the file.
    * @return the block id if exists
    * @throws IOException
-   *           if the file does not exist, or connection issue.
+   *         if the file does not exist, or connection issue.
    */
   public synchronized long getBlockId(int fileId, int blockIndex) throws IOException {
     ClientFileInfo info = getFileStatus(fileId, true);
@@ -806,7 +806,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * 
    * @param blockId The id of the block to lock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
-   *          non-negative.
+   *        non-negative.
    * @return the path of the block file locked
    * @throws IOException
    */
@@ -858,10 +858,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * Frees in memory file or folder
    *
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
-   *          Otherwise, the method uses the path parameter.
+   *        Otherwise, the method uses the path parameter.
    * @param path The path of the file / folder. It could be empty iff id is not -1.
    * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
-   *          or not
+   *        or not
    * @return true if in-memory free successfully, false otherwise.
    * @throws IOException
    */
@@ -890,7 +890,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Renames a file or folder to another path.
    * 
    * @param fileId The id of the source file / folder. If it is not -1, path parameter is ignored.
-   *          Otherwise, the method uses the srcPath parameter.
+   *        Otherwise, the method uses the srcPath parameter.
    * @param srcPath The path of the source file / folder. It could be empty iff id is not -1.
    * @param dstPath The path of the destination file / folder. It could be empty iff id is not -1.
    * @return true if renames successfully, false otherwise.
@@ -975,7 +975,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * 
    * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
-   *          non-negative.
+   *        non-negative.
    */
   synchronized boolean unlockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
