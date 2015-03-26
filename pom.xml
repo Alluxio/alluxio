@@ -280,13 +280,12 @@
           <aggregate>false</aggregate>
           <excludes>
             <!-- Code Exclusions -->
-            <exclude>**/src/main/resources/version.properties</exclude>
             <exclude>**/src/main/java/tachyon/thrift/*</exclude>
             <exclude>**/src/main/java/tachyon/perf/thrift/*</exclude>
             <exclude>**/src/main/webapp/**/*</exclude>
             <exclude>**/src/thrift/*</exclude>
             <exclude>**/src/deb/**/*</exclude>
-            <exclude>**/src/test/resources/*</exclude>
+            <exclude>**/src/test/resources/**</exclude>
             <exclude>**/package-info.java</exclude>
             <exclude>**/src/main/resources/tachyon-default.properties</exclude>
 

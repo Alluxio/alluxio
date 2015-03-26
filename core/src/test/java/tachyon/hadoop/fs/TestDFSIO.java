@@ -108,7 +108,7 @@ public class TestDFSIO implements Tool {
       + " [-rootDir]";
 
   // Constants for Tachyon
-  private static final int BLOCK_SIZE = 30;
+  private static final int BLOCK_SIZE = 8192;
   private Configuration config;
   private static LocalTachyonCluster mLocalTachyonCluster = null;
   private static URI mLocalTachyonClusterUri = null;

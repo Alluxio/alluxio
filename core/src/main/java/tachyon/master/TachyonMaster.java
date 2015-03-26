@@ -43,6 +43,7 @@ import tachyon.thrift.MasterService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.web.MasterUIWebServer;
 import tachyon.web.UIWebServer;
 
 /**
@@ -58,8 +59,13 @@ public class TachyonMaster {
       System.exit(-1);
     }
 
-    TachyonMaster master = new TachyonMaster(new TachyonConf());
-    master.start();
+    try {
+      TachyonMaster master = new TachyonMaster(new TachyonConf());
+      master.start();
+    } catch (Exception e) {
+      LOG.error("Uncaught exception terminating Master", e);
+      System.exit(-1);
+    }
   }
 
   private boolean mIsStarted;
@@ -90,9 +96,10 @@ public class TachyonMaster {
     mTachyonConf = tachyonConf;
 
     String hostName = mTachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
-    int port = mTachyonConf.getInt(Constants.MASTER_PORT, 0);
+    int port = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     InetSocketAddress address = new InetSocketAddress(hostName, port);
-    int webPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT, 0);
+    int webPort =
+        mTachyonConf.getInt(Constants.MASTER_WEB_PORT, Constants.DEFAULT_MASTER_WEB_PORT);
 
     TachyonConf.assertValidPort(address, mTachyonConf);
     TachyonConf.assertValidPort(webPort, mTachyonConf);
@@ -105,7 +112,12 @@ public class TachyonMaster {
         mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS, Runtime.getRuntime()
             .availableProcessors());
 
-    mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS, 2048);
+    mMaxWorkerThreads =
+        mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS,
+            Constants.DEFAULT_MASTER_MAX_WORKER_THREADS);
+    Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
+            "tachyon.master.max.worker.threads can not "
+            + "less than tachyon.master.min.worker.threads");
 
     try {
       // Extract the port from the generated socket.
@@ -116,12 +128,14 @@ public class TachyonMaster {
       mServerTServerSocket = new TServerSocket(address);
       mPort = NetworkUtils.getPort(mServerTServerSocket);
 
-      mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(address), mPort);
-      String journalFolder = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, "/journal/");
+      String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+      String journalFolder = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
+          tachyonHome + "/journal/");
       String formatFilePrefix =
           mTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX, Constants.FORMAT_FILE_PREFIX);
       Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
           "Tachyon was not formatted! The journal folder is " + journalFolder);
+      mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(address), mPort);
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService, mTachyonConf);
 
@@ -227,7 +241,7 @@ public class TachyonMaster {
     mMasterInfo.init();
 
     mWebServer =
-        new UIWebServer("Tachyon Master Server", new InetSocketAddress(
+        new MasterUIWebServer("Tachyon Master Server", new InetSocketAddress(
             NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo, mTachyonConf);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);

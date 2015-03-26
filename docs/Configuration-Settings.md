@@ -33,6 +33,11 @@ The common configuration contains constants which specify paths and the log appe
   <td>Tachyon installation folder.</td>
 </tr>
 <tr>
+  <td>tachyon.web.threads</td>
+  <td>1</td>
+  <td>How many threads to use for the web server.</td>
+</tr>
+<tr>
   <td>tachyon.underfs.address</td>
   <td>$tachyon.home + "/underfs"</td>
   <td>Tachyon folder in the underlayer file system.</td>
@@ -117,6 +122,11 @@ The common configuration contains constants which specify paths and the log appe
   <td>29</td>
   <td>How many times to try to reconnect with master.</td>
 </tr>
+<tr>
+  <td>tachyon.host.resolution.timeout.ms</td>
+  <td>5000</td>
+  <td>During startup of Master and Worker processes Tachyon needs to ensure that they are listening on externally visible and reachable host names.  To do this Tachyon will automatically attempt to select an appropriate host name if one was not explicitly specified.  This represents the maximum amount of time spent waiting to determine if a candidate host name is resolvable over the network.</td>
+</tr>
 </table>
 
 ## Master Configuration
@@ -152,9 +162,9 @@ number.
   <td>The comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Tachyon will try to cache the cacheable file when it is read for the first time.</td>
 </tr>
 <tr>
-  <td>tachyon.master.web.threads</td>
-  <td>1</td>
-  <td>How many threads to use for the web server.</td>
+  <td>tachyon.master.worker.timeout.ms</td>
+  <td>10000</td>
+  <td>Timeout between master and worker indicating a lost worker.  Specified in milliseconds</td>
 </tr>
 <tr>
   <td>tachyon.master.keytab.file</td>
@@ -184,6 +194,11 @@ number.
   <td>tachyon.worker.data.port</td>
   <td>29999</td>
   <td>The port Tachyon's worker's data server runs on.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.web.port</td>
+  <td>30000</td>
+  <td>The port Tachyon's worker's web server runs on.</td>
 </tr>
 <tr>
   <td>tachyon.worker.data.folder</td>
@@ -285,6 +300,11 @@ number.
   <td></td>
   <td>Kerberos principal for Tachyon worker.</td>
 </tr>
+<tr>
+  <td>tachyon.worker.user.timeout.ms</td>
+  <td>10000</td>
+  <td>Timeout between worker and user connection indicating a lost user connection.  Specified in milliseconds</td>
+</tr>
 </table>
 
 ## User Configuration
@@ -301,7 +321,7 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.file.writetype.default</td>
   <td>CACHE_THROUGH</td>
-  <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface. It can be any type in WriteType.</td>
+  <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.  Valid options are MUST_CACHE (write must cache), TRY_CACHE (write will try to cache), CACHE_THROUGH (try to cache, write to UnderFS synchronously), THROUGH (no cache, write to UnderFS synchronously), ASYNC_THROUGH (must cache and write to UnderFS asynchronously, or synchronous write to UnderFS).</td>
 </tr>
 <tr>
   <td>tachyon.user.quota.unit.bytes</td>
@@ -320,7 +340,7 @@ The user configuration specifies values regarding file system access.
 </tr>
 <tr>
   <td>tachyon.user.remote.read.buffer.size.byte</td>
-  <td>1 MB</td>
+  <td>8 MB</td>
   <td>The size of the file buffer to read data from remote Tachyon worker.</td>
 </tr>
 <tr>

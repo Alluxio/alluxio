@@ -45,7 +45,8 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void close() throws IOException {}
+  public void close() throws IOException {
+  }
 
   @Override
   public OutputStream create(String path) throws IOException {
@@ -111,7 +112,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
-    ret.add(NetworkUtils.getLocalHostName());
+    ret.add(NetworkUtils.getLocalHostName(mTachyonConf));
     return ret;
   }
 
@@ -190,7 +191,8 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void setConf(Object conf) {}
+  public void setConf(Object conf) {
+  }
 
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {

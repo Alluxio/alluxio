@@ -49,6 +49,8 @@ public class TachyonConf {
   private final Properties mProperties = new Properties();
 
   public static void assertValidPort(final int port, TachyonConf tachyonConf) {
+    Preconditions.checkArgument(port < 65536, "Port must be less than 65536");
+
     if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE, false)) {
       Preconditions.checkArgument(port > 0, "Port is only allowed to be zero in test mode.");
     }
@@ -142,7 +144,8 @@ public class TachyonConf {
     Properties defaultProps = new Properties();
 
     // Override runtime default
-    defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
+    defaultProps.setProperty(Constants.MASTER_HOSTNAME, 
+        NetworkUtils.getLocalHostName(250));
     defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
         ChannelType.defaultType().toString());
     defaultProps.setProperty(Constants.WORKER_MIN_WORKER_THREADS,
