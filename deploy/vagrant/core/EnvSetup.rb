@@ -61,6 +61,8 @@ end
 require 'yaml'
 require 'open-uri'
 
+# get the path of your repository that is to be deployed
+# the path should be relative to where Vagrantfile is. (TACHYON_REPO/deploy/vagrant)
 def get_tachyon_home
   @v = YAML.load_file('tachyon_version.yml')
   
@@ -70,12 +72,14 @@ def get_tachyon_home
     return "../../"
   end
 
+  # If type is Github, clone the repo and checkout the commit to TACHYON_REPO/deploy/tachyon
   home = "../tachyon"
   if type == "Github"
     repo = @v['Github']['Repo']
     hash = @v['Github']['Hash']
     url = "#{repo}/commit/#{hash}"
 
+    # validate URL
     begin
       open(url)
     rescue OpenURI::HTTPError
