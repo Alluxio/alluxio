@@ -165,18 +165,15 @@ public class TachyonFS extends AbstractTachyonFS {
 
   private TachyonURI mRootUri = null;
 
-  // Available memory space for this client.
-  private Long mAvailableSpaceBytes;
-
   private TachyonFS(TachyonConf tachyonConf) throws IOException {
     super(tachyonConf);
 
-    String masterHost = tachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
+    String masterHost = tachyonConf.get(Constants.MASTER_HOSTNAME,
+        NetworkUtils.getLocalHostName(tachyonConf));
     int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
 
     mMasterAddress = new InetSocketAddress(masterHost, masterPort);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
-    mAvailableSpaceBytes = 0L;
 
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.daemon("client-heartbeat-%d"));
@@ -187,7 +184,8 @@ public class TachyonFS extends AbstractTachyonFS {
         mTachyonConf));
 
     mUserFailedSpaceRequestLimits =
-        mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 0);
+        mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS,
+            Constants.DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS);
 
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
     String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
@@ -735,6 +733,23 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   long getUserId() throws IOException {
     return mMasterClient.getUserId();
+  }
+
+
+  /**
+   * @return get the total number of bytes used in Tachyon cluster
+   * @throws IOException
+   */
+  public synchronized long getUsedBytes() throws IOException {
+    return mMasterClient.getUsedBytes();
+  }
+
+  /**
+   * @return get the capacity of Tachyon cluster
+   * @throws IOException
+   */
+  public synchronized long getCapacityBytes() throws IOException {
+    return mMasterClient.getCapacityBytes();
   }
 
   /**

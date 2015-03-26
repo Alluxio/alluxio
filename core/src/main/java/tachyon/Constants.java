@@ -53,10 +53,20 @@ public class Constants {
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;
   public static final int DEFAULT_WORKER_DATA_SERVER_PORT = DEFAULT_WORKER_PORT + 1;
+  public static final int DEFAULT_WORKER_WEB_PORT = DEFAULT_WORKER_PORT + 2;
+
+  public static final int DEFAULT_MASTER_MAX_WORKER_THREADS = 2048;
+  public static final int DEFAULT_WORKER_MAX_WORKER_THREADS = 2048;
+
+  public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
 
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
 
+  public static final int DEFAULT_CHECKPOINT_CAP_MB_SEC = 1000;
+
   public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
+
+  public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
   public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
   public static final boolean DEBUG = Boolean.valueOf(System.getProperty("tachyon.debug", "false"));
@@ -83,6 +93,7 @@ public class Constants {
 
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String WEB_RESOURCES = "tachyon.web.resources";
+  public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
   public static final String UNDERFS_ADDRESS = "tachyon.underfs.address";
   public static final String UNDERFS_DATA_FOLDER = "tachyon.data.folder";
   public static final String UNDERFS_WORKERS_FOLDER = "tachyon.workers.folder";
@@ -90,6 +101,7 @@ public class Constants {
   public static final String ASYNC_ENABLED = "tachyon.async.enabled";
   public static final String MAX_COLUMNS = "tachyon.max.columns";
   public static final String IN_TEST_MODE = "tachyon.test.mode";
+  public static final String HOST_RESOLUTION_TIMEOUT_MS = "tachyon.host.resolution.timeout.ms";
   public static final String UNDERFS_GLUSTERFS_IMPL = "tachyon.underfs.glusterfs.impl";
   public static final String UNDERFS_GLUSTERFS_VOLUMES = "tachyon.underfs.glusterfs.volumes";
   public static final String UNDERFS_GLUSTERFS_MOUNTS = "tachyon.underfs.glusterfs.mounts";
@@ -109,7 +121,6 @@ public class Constants {
   public static final String MASTER_PORT = "tachyon.master.port";
   public static final String MASTER_ADDRESS = "tachyon.master.address";
   public static final String MASTER_WEB_PORT = "tachyon.master.web.port";
-  public static final String MASTER_WEB_THREAD_COUNT = "tachyon.master.web.threads";
   public static final String MASTER_TEMPORARY_FOLDER = "tachyon.master.temporary.folder";
   public static final String MASTER_HEARTBEAT_INTERVAL_MS = "tachyon.master.heartbeat.interval.ms";
   public static final String MASTER_MAX_WORKER_THREADS = "tachyon.master.max.worker.threads";
@@ -123,6 +134,7 @@ public class Constants {
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_PORT = "tachyon.worker.port";
   public static final String WORKER_DATA_PORT = "tachyon.worker.data.port";
+  public static final String WORKER_WEB_PORT = "tachyon.worker.web.port";
   public static final String WORKER_DATA_FOLDER = "tachyon.worker.data.folder";
   public static final String WORKER_HEARTBEAT_TIMEOUT_MS = "tachyon.worker.heartbeat.timeout.ms";
   public static final String WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
@@ -171,5 +183,5 @@ public class Constants {
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
   public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
       tachyon.client.tcp.TCPRemoteBlockReader.class;
-  
+
 }

@@ -67,7 +67,7 @@ public final class LocalTachyonMaster {
     UnderFileSystemsUtils.mkdirIfNotExists(mDataDir, tachyonConf);
     UnderFileSystemsUtils.mkdirIfNotExists(mLogDir, tachyonConf);
 
-    mHostname = NetworkUtils.getLocalHostName();
+    mHostname = NetworkUtils.getLocalHostName(250);
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
     // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
@@ -95,8 +95,12 @@ public final class LocalTachyonMaster {
     
     // If tests fail to connect they should fail early rather than using the default ridiculously high retries
     tachyonConf.set(Constants.MASTER_RETRY_COUNT, "3");
+    
+    // Since tests are always running on a single host keep the resolution timeout low as otherwise people
+    // running with strange network configurations will see very slow tests
+    tachyonConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
-    tachyonConf.set(Constants.MASTER_WEB_THREAD_COUNT, "1");
+    tachyonConf.set(Constants.WEB_THREAD_COUNT, "1");
     tachyonConf.set(Constants.WEB_RESOURCES, System.getProperty("user.dir") + "/src/main/webapp");
 
     mTachyonMaster = new TachyonMaster(tachyonConf);

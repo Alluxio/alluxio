@@ -44,6 +44,8 @@ import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.web.UIWebServer;
+import tachyon.web.WorkerUIWebServer;
 
 /**
  * Entry point for a worker daemon.
@@ -97,10 +99,10 @@ public class TachyonWorker implements Runnable {
    * @return The new TachyonWorker
    */
   public static synchronized TachyonWorker createWorker(TachyonConf tachyonConf) {
-    String masterHostname =
-        tachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
+    String masterHostname = tachyonConf.get(Constants.MASTER_HOSTNAME,
+        NetworkUtils.getLocalHostName(tachyonConf));
     int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    String workerHostName = NetworkUtils.getLocalHostName();
+    String workerHostName = NetworkUtils.getLocalHostName(tachyonConf);
     int workerPort = tachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
     int dataPort =
         tachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
@@ -108,7 +110,9 @@ public class TachyonWorker implements Runnable {
         tachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS, Runtime.getRuntime()
             .availableProcessors());
 
-    int maxWorkerThreads = tachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS, 2048);
+    int maxWorkerThreads =
+        tachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS,
+            Constants.DEFAULT_WORKER_MAX_WORKER_THREADS);
 
     return new TachyonWorker(new InetSocketAddress(masterHostname, masterPort),
         new InetSocketAddress(workerHostName, workerPort), dataPort, minWorkerThreads,
@@ -116,24 +120,30 @@ public class TachyonWorker implements Runnable {
 
   }
 
-  private static String getMasterLocation(String[] args, TachyonConf conf) {
-    String masterHostname = conf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName());
-    int masterPort = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    String confFileMasterLoc = masterHostname + ":" + masterPort;
-    String masterLocation;
-    if (args.length < 1) {
-      masterLocation = confFileMasterLoc;
-    } else {
-      masterLocation = args[0];
-      if (masterLocation.indexOf(":") == -1) {
-        masterLocation += ":" + masterPort;
-      }
-      if (!masterLocation.equals(confFileMasterLoc)) {
-        LOG.warn("Master Address in configuration file(" + confFileMasterLoc + ") is different "
-            + "from the command line one(" + masterLocation + ").");
+  private static void setMasterAddress(String masterAddress, TachyonConf conf) {
+    if (masterAddress == null) {
+      return;
+    }
+    String masterHostnameConf = conf.get(Constants.MASTER_HOSTNAME,
+        NetworkUtils.getLocalHostName(conf));
+    String masterPortConf = conf.get(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT + "");
+    String[] address = masterAddress.split(":");
+    String masterHostname = address[0];
+    if (!masterHostnameConf.equals(masterHostname)) {
+      LOG.warn("Master host in configuration ({}) is different from the command line ({}).",
+          masterHostnameConf, masterHostname);
+      conf.set(Constants.MASTER_HOSTNAME, masterHostname);
+    }
+    String masterPort = masterPortConf;
+    if (address.length > 1) {
+      masterPort = address[1];
+      if (!masterPortConf.equals(masterPort)) {
+        LOG.warn("Master port in configuration ({}) is different from the command line ({}).",
+            masterPortConf, masterPort);
+        conf.set(Constants.MASTER_PORT, masterPort);
       }
     }
-    return masterLocation;
+    return;
   }
 
   public static void main(String[] args) throws UnknownHostException {
@@ -143,12 +153,16 @@ public class TachyonWorker implements Runnable {
       System.exit(-1);
     }
 
-    String resolvedWorkerHost = NetworkUtils.getLocalHostName();
+    TachyonConf tachyonConf = new TachyonConf();
+    if (args.length == 1) {
+      setMasterAddress(args[0], tachyonConf);
+    }
+
+    String resolvedWorkerHost = NetworkUtils.getLocalHostName(tachyonConf);
     LOG.info("Resolved local TachyonWorker host to " + resolvedWorkerHost);
 
-    TachyonConf tachyonConf = new TachyonConf();
-    TachyonWorker worker = TachyonWorker.createWorker(tachyonConf);
     try {
+      TachyonWorker worker = TachyonWorker.createWorker(tachyonConf);
       worker.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating worker", e);
@@ -158,6 +172,8 @@ public class TachyonWorker implements Runnable {
 
   private final InetSocketAddress mMasterAddress;
   private final NetAddress mWorkerAddress;
+  private final UIWebServer mWebServer;
+  private final int mWebPort;
   private TServer mServer;
 
   private TServerSocket mServerTServerSocket;
@@ -199,6 +215,8 @@ public class TachyonWorker implements Runnable {
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
+    mWebPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
+
     // Extract the port from the generated socket.
     // When running tests, its great to use port '0' so the system will figure out what port to use
     // (any random free port).
@@ -230,6 +248,10 @@ public class TachyonWorker implements Runnable {
     mWorkerAddress =
         new NetAddress(workerAddress.getAddress().getCanonicalHostName(), mPort, mDataPort);
     mWorkerStorage.initialize(mWorkerAddress);
+
+    mWebServer =
+        new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(workerAddress.getHostName(),
+            mWebPort), mWorkerStorage, mTachyonConf);
   }
 
   /**
@@ -345,6 +367,7 @@ public class TachyonWorker implements Runnable {
     login();
 
     mHeartbeatThread.start();
+    mWebServer.startWebServer();
 
     LOG.info("The worker server started @ " + mWorkerAddress);
     mServer.serve();

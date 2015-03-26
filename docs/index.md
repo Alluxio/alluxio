@@ -14,7 +14,7 @@ any code change. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
 multiple companies. It has more than
 [60 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 20 institutions,
-including Yahoo, Intel, and Redhat. The project is the storage layer of the Berkeley Data Analytics
+including Yahoo, Intel, and Red Hat. The project is the storage layer of the Berkeley Data Analytics
 Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
 
@@ -28,9 +28,9 @@ Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 
 # Current Features
 
-* **Java-like File API**: Tachyon's native API is similar to that of the java.io.File class,
+* **Java-like File API**: Tachyon's native API is similar to that of the ``java.io.File`` class,
 providing InputStream and OutputStream interfaces and efficient support for memory-mapped I/O. We
-recommend using this API to get the best performance from Tachyon
+recommend using this API to get the best performance from Tachyon.
 
 * **Compatibility**: Tachyon implements the Hadoop FileSystem interface. Therefore, Hadoop MapReduce
 and Spark can run with Tachyon without modification. However, close integration is required to fully
@@ -60,7 +60,8 @@ to interact with Tachyon, e.g. copy data in and out of the file system.
 * [Single Node](Running-Tachyon-Locally.html)
 * [Cluster](Running-Tachyon-on-a-Cluster.html)
 * [Master Fault Tolerant Cluster](Fault-Tolerant-Tachyon-Cluster.html)
-* [Amazon AWS](Running-Tachyon-on-AWS.html)
+* [Amazon AWS Through Vagrant](Running-Tachyon-on-AWS.html)
+* [Amazon AWS Through mesos/spark-ec2](Running-Tachyon-on-EC2.html)
 * [OpenStack Compute](Running-Tachyon-on-OpenStack.html)
 * [Linux Container](Running-Tachyon-on-Container.html)
 * [VirtualBox](Running-Tachyon-on-VirtualBox.html)
@@ -87,6 +88,7 @@ Tachyon
 line.
 * [Syncing the Underlayer Storage System](Syncing-the-Underlying-Filesystem.html): Make Tachyon
 understand an existing underlayer storage system.
+* [FAQ](FAQ.html)
 * [Tachyon Java API (Javadoc)](api/java/index.html)
 * [Hierarchical Storage (Alpha)](Hierarchy-Storage-on-Tachyon.html)
 
@@ -98,7 +100,7 @@ understand an existing underlayer storage system.
 
 # Developer Documentation
 
-[Startup Tasks for New Contributors](Startup-Tasks-for-New-Contributors.html)
+[Contributing to Tachyon](Contributing-to-Tachyon.html)
 
 [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
 

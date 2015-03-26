@@ -58,6 +58,10 @@ export TACHYON_MASTER_MAX_WORKER_THREADS=2048
 export TACHYON_SSH_FOREGROUND="yes"
 export TACHYON_WORKER_SLEEP="0.02"
 
+# Prepend Tachyon classes before classes specified by TACHYON_CLASSPATH
+# in the Java classpath.  May be necessary if there are jar conflicts
+#export TACHYON_PREPEND_TACHYON_CLASSES="yes"
+
 CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export TACHYON_JAVA_OPTS+="

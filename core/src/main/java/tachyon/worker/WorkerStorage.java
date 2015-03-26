@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -247,7 +248,7 @@ public class WorkerStorage {
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
           int capMbSec =
               mTachyonConf.getInt(Constants.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC,
-                  Constants.SECOND_MS);
+                  Constants.DEFAULT_CHECKPOINT_CAP_MB_SEC);
           long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB / capMbSec);
           long currentTimeMs = System.currentTimeMillis();
           if (startCopyTimeMs + shouldTakeMs > currentTimeMs) {
@@ -268,6 +269,7 @@ public class WorkerStorage {
 
   private volatile MasterClient mMasterClient;
   private final InetSocketAddress mMasterAddress;
+  private final long mStartTimeMs;
   private NetAddress mWorkerAddress;
 
   private long mWorkerId;
@@ -299,7 +301,7 @@ public class WorkerStorage {
   /** Mapping from temporary block Information to StorageDir in which the block is */
   private final Map<Pair<Long, Long>, StorageDir> mTempBlockLocation = Collections
       .synchronizedMap(new HashMap<Pair<Long, Long>, StorageDir>());
-  /** Mapping from user id to ids of temporary blocks which are being written by the user */
+  /** Mapping from user id to id list of temporary blocks which are being written by the user */
   private final Multimap<Long, Long> mUserIdToTempBlockIds = Multimaps
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
 
@@ -320,6 +322,7 @@ public class WorkerStorage {
     mExecutorService = executorService;
     mTachyonConf = tachyonConf;
     mMasterAddress = masterAddress;
+    mStartTimeMs = System.currentTimeMillis();
     mMasterClient = new MasterClient(mMasterAddress, mExecutorService, mTachyonConf);
 
     mDataFolder = mTachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
@@ -589,6 +592,53 @@ public class WorkerStorage {
   }
 
   /**
+   * Get the capacity of the worker.
+   *
+   * @return the worker's capacity in bytes.
+   */
+  public long getCapacityBytes() {
+    return mCapacityBytes;
+  }
+
+  /**
+   * Get the capacity list of the MEM/SSD/HDD tier.
+   *
+   * @return the capacity list in bytes
+   */
+  public List<Long> getCapacityBytesOnTiers() {
+    List<Long> capacityBytesOnTiers =
+        new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+    for (StorageTier curStorageTier : mStorageTiers) {
+      int tier = curStorageTier.getAlias().getValue() - 1;
+      capacityBytesOnTiers.set(tier,
+          capacityBytesOnTiers.get(tier) + curStorageTier.getCapacityBytes());
+    }
+    return capacityBytesOnTiers;
+  }
+
+  /**
+   * Get the worker start time in milliseconds.
+   *
+   * @return the worker start time in milliseconds
+   */
+  public long getStarttimeMs() {
+    return mStartTimeMs;
+  }
+
+  /**
+   * Get all storageDirs in the worker.
+   *
+   * @return the storageDir array
+   */
+  public StorageDir[] getStorageDirs() {
+    List<StorageDir> storageDirs = new ArrayList<StorageDir>();
+    for (StorageTier tier : mStorageTiers) {
+      storageDirs.addAll(Arrays.asList(tier.getStorageDirs()));
+    }
+    return storageDirs.toArray(new StorageDir[storageDirs.size()]);
+  }
+
+  /**
    * Get StorageDir which contains specified block
    *
    * @param blockId the id of the block
@@ -613,16 +663,16 @@ public class WorkerStorage {
   }
 
   /**
-   * Get used bytes of current WorkerStorage
+   * Get the total used bytes of the worker.
    *
-   * @return used bytes of current WorkerStorage
+   * @return the worker's total used bytes.
    */
-  private long getUsedBytes() {
-    long usedBytes = 0;
-    for (StorageTier curTier : mStorageTiers) {
-      usedBytes += curTier.getUsedBytes();
+  public long getUsedBytes() {
+    long ret = 0;
+    for (StorageTier tier : mStorageTiers) {
+      ret += tier.getUsedBytes();
     }
-    return usedBytes;
+    return ret;
   }
 
   /**
@@ -630,7 +680,7 @@ public class WorkerStorage {
    *
    * @return used bytes on each storage tier
    */
-  private List<Long> getUsedBytesOnTiers() {
+  public List<Long> getUsedBytesOnTiers() {
     List<Long> usedBytes = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
     for (StorageTier curTier : mStorageTiers) {
       int tier = curTier.getAlias().getValue() - 1;
@@ -657,6 +707,15 @@ public class WorkerStorage {
     String ret = mUsers.getUserUfsTempFolder(userId);
     LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;
+  }
+
+  /**
+   * Get the worker address
+   *
+   * @return the worker address
+   */
+  public InetSocketAddress getWorkerAddress() {
+    return new InetSocketAddress(mWorkerAddress.getMHost(), mWorkerAddress.getMPort());
   }
 
   /**
@@ -695,7 +754,6 @@ public class WorkerStorage {
     }
     StorageTier nextStorageTier = null;
     for (int level = maxStorageLevels - 1; level >= 0; level --) {
-
       String tierLevelAliasProp = "tachyon.worker.hierarchystore.level" + level + ".alias";
       String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
       String tierDirsQuotaProp = "tachyon.worker.hierarchystore.level" + level + ".dirs.quota";
@@ -809,12 +867,8 @@ public class WorkerStorage {
   public void register() {
     long id = 0;
     Map<Long, List<Long>> blockIdLists = new HashMap<Long, List<Long>>();
-    List<Long> capacityBytesOnTiers =
-        new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+    List<Long> capacityBytesOnTiers = getCapacityBytesOnTiers();
     for (StorageTier curStorageTier : mStorageTiers) {
-      int tier = curStorageTier.getAlias().getValue() - 1;
-      capacityBytesOnTiers.set(tier,
-          capacityBytesOnTiers.get(tier) + curStorageTier.getCapacityBytes());
       for (StorageDir curStorageDir : curStorageTier.getStorageDirs()) {
         Set<Long> blockSet = curStorageDir.getBlockIds();
         blockIdLists.put(curStorageDir.getStorageDirId(), new ArrayList<Long>(blockSet));
@@ -985,7 +1039,7 @@ public class WorkerStorage {
    * Unlock the block
    * 
    * Used internally to make sure blocks are unmodified, but also used in
-   * {@link tachyon.client.TachyonFS} for cacheing blocks locally for users. When a user tries to
+   * {@link tachyon.client.TachyonFS} for caching blocks locally for users. When a user tries to
    * read a block ({@link tachyon.client.TachyonFile#readByteBuffer(int)}), the client will attempt
    * to cache the block on the local users's node, while the user is reading from the local block,
    * the given block is locked and unlocked once read.

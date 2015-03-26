@@ -557,7 +557,7 @@ public final class StorageDir {
    * 
    * @throws IOException
    */
-  public void initailize() throws IOException {
+  public void initialize() throws IOException {
     String dataPath = mDataPath.toString();
     if (!mFs.exists(dataPath)) {
       LOG.info("Data folder {} does not exist. Creating a new one.", mDataPath);
@@ -635,8 +635,16 @@ public final class StorageDir {
    * @throws IOException
    */
   public boolean moveBlock(long blockId, StorageDir dstDir) throws IOException {
-    if (copyBlock(blockId, dstDir)) {
-      return deleteBlock(blockId);
+    if (lockBlock(blockId, Users.MIGRATE_DATA_USER_ID)) {
+      boolean result = false;
+      try {
+        result = copyBlock(blockId, dstDir);
+      } finally {
+        unlockBlock(blockId, Users.MIGRATE_DATA_USER_ID);
+      }
+      if (result) {
+        return deleteBlock(blockId);
+      }
     }
     return false;
   }

@@ -96,6 +96,9 @@ public class TachyonConfTest {
 
     int intValue = sDefaultTachyonConf.getInt(Constants.MAX_COLUMNS, 0);
     Assert.assertTrue(intValue == 1000);
+    
+    intValue = sDefaultTachyonConf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS, 0);
+    Assert.assertEquals(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS, intValue);
 
     long longBytesValue = sDefaultTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE, 0L);
     Assert.assertTrue(longBytesValue == Constants.MB * 5);
@@ -110,10 +113,10 @@ public class TachyonConfTest {
     String value = sDefaultTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, null);
     Assert.assertTrue(value != null);
     Assert.assertTrue((tachyonHome + "/journal/").equals(value));
-
+    
     value = sDefaultTachyonConf.get(Constants.MASTER_HOSTNAME, null);
     Assert.assertTrue(value != null);
-    Assert.assertTrue(NetworkUtils.getLocalHostName().equals(value));
+    Assert.assertTrue(NetworkUtils.getLocalHostName(100).equals(value));
 
     value = sDefaultTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER, null);
     Assert.assertTrue(value != null);
@@ -132,7 +135,7 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WEB_PORT, 0);
     Assert.assertTrue(intValue == 19999);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WEB_THREAD_COUNT, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.WEB_THREAD_COUNT, 0);
     Assert.assertTrue(intValue == 1);
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS, 0);
@@ -221,7 +224,7 @@ public class TachyonConfTest {
     Assert.assertTrue(longValue == Constants.MB);
 
     longValue = sDefaultTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, 0);
-    Assert.assertTrue(longValue == Constants.MB);
+    Assert.assertTrue(longValue == 8 * Constants.MB);
 
     Class<? extends RemoteBlockReader> reader =
         sDefaultTachyonConf.getClass(Constants.USER_REMOTE_BLOCK_READER, null);

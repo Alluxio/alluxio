@@ -196,6 +196,10 @@ service MasterService {
   i64 user_getBlockId(1: i32 fileId, 2: i32 index)
     throws (1: FileDoesNotExistException e)
 
+  i64 user_getCapacityBytes()
+
+  i64 user_getUsedBytes()
+
   /**
    * Get local worker NetAddress
    */
