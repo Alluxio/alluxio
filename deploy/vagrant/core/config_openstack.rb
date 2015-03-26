@@ -3,14 +3,14 @@
 
 # OpenStack specific configurations go here
 
-def config_os(config, i, total, name)        
+def config_os(config, i, total, name, tachyon_home)        
   config.vm.box = "dummy"
   config.vm.box_url = 
     "https://github.com/cloudbau/vagrant-openstack-plugin/raw/master/dummy.box"
   # Make sure the private key from the key pair is provided
   config.ssh.private_key_path = KEY_PATH
-  config.vm.synced_folder "../../", "/tachyon", type: "rsync", 
-         rsync__exclude: ["../../.git/", "shared/"]
+  config.vm.synced_folder tachyon_home, "/tachyon", type: "rsync", 
+         rsync__exclude: [File.join(tachyon_home, ".git"), "shared/"]
   config.vm.synced_folder "./", "/vagrant", type: "rsync", 
          rsync__exclude: ["shared/"]
 

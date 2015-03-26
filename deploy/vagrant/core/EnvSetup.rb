@@ -57,3 +57,48 @@ def config_hosts(name)
     hosts.close unless hosts == nil
   end
 end
+
+require 'yaml'
+require 'open-uri'
+
+# get the path of your repository that is to be deployed
+# the path should be relative to where Vagrantfile is. (TACHYON_REPO/deploy/vagrant)
+def get_tachyon_home
+  @v = YAML.load_file('tachyon_version.yml')
+  
+  type = @v['Type']
+  if type == "Local"
+    puts 'using local tachyon dir'
+    return "../../"
+  end
+
+  # If type is Github, clone the repo and checkout the commit to TACHYON_REPO/deploy/tachyon
+  home = "../tachyon"
+  if type == "Github"
+    repo = @v['Github']['Repo']
+    hash = @v['Github']['Hash']
+    url = "#{repo}/commit/#{hash}"
+
+    # validate URL
+    begin
+      open(url)
+    rescue OpenURI::HTTPError
+      $stderr.print "The github URL #{url} is invalid"
+      exit(1)
+    end
+
+    puts "git clone #{url}"
+    `if [ -d ../tachyon ]; then rm -rf ../tachyon; fi`
+    `mkdir -p ../tachyon`
+    `pushd ../tachyon > /dev/null; \
+     git init; \
+     git remote add origin #{repo}; \
+     git fetch origin; \
+     git checkout #{hash}; \
+     popd > /dev/null`
+    puts "done"
+  else
+    puts "Unknown VersionType, Only {Github | Local} supported"
+    exit(1)
+  end
+end

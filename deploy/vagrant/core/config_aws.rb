@@ -3,14 +3,14 @@
 
 # AWS specific configurations go here
 
-def config_aws(config, i, total, name)
+def config_aws(config, i, total, name, tachyon_home)
   config.vm.box = "dummy"
   config.vm.box_url = 
     "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
   config.ssh.username = "ec2-user"
   config.ssh.private_key_path = KEY_PATH
-  config.vm.synced_folder "../../", "/tachyon", type: "rsync", 
-            rsync__exclude: ["../../.git/", "shared/"]
+  config.vm.synced_folder tachyon_home, "/tachyon", type: "rsync", 
+            rsync__exclude: [File.join(tachyon_home, ".git"), "shared/"]
   config.vm.synced_folder "./", "/vagrant", type: "rsync", 
             rsync__exclude: ["shared/"]
 
@@ -33,3 +33,4 @@ def config_aws(config, i, total, name)
 
   end
 end
+
