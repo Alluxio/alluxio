@@ -26,8 +26,9 @@ end
 
 
 def config_hosts(name)
-  file = File.open("../../conf/workers","w")
   system 'mkdir', '-p', './files'
+  # copy ./files/workers in Host to /tachyon/conf/workers in Vagrant
+  file = File.open("./files/workers","w")
   for i in (1..Total)
     if i == Total 
       name[i] = "TachyonMaster"

@@ -26,7 +26,7 @@ then
 EOF
     # ssh config
     mkdir -p ~/.ssh
-    src="/tachyon/deploy/vagrant/files"
+    src="/vagrant/files"
     mkdir -p ${src}
     if [ ! -f ${src}/id_rsa ]
     then
