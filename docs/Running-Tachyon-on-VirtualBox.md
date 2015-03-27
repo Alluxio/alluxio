@@ -22,6 +22,7 @@ vagrant
 │   ├── init.yml.docker
 │   └── openstack-config.yml
 ├── init.yml -> conf/init.yml.hdfs2
+|__ tachyon_version.yml
 ├── README.md
 └── ...
 </pre>
@@ -34,6 +35,8 @@ Command `vagrant up` allows you to launch a Tachyon on VirtualBox VMs. It reads 
 * **Install VirtualBox**. 
 
 ## Configure
+
+Configure Tachyon Version you want to deploy, refer to [this doc](Running-Specific-Tachyon-Commit-Via-Vagrant.html)
 
 Provide your desired Tachyon cluster configuration. A sample configuration can be found in `tachyon/deploy/vagrant/conf/init.yml.[hdfs2|hdfs1|glusterfs]`. Link or copy it to `tachyon/deploy/vagrant/init.yml`. 
 

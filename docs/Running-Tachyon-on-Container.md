@@ -22,6 +22,7 @@ vagrant
 │   ├── init.yml.docker
 │   └── openstack-config.yml
 ├── init.yml -> conf/init.yml.hdfs2
+|__ tachyon_version.yml
 ├── README.md
 ├── run_docker.sh
 └── ...
@@ -35,6 +36,8 @@ The `run_docker.sh` script allows you to launch a Tachyon inside containers. It 
 * **On Linux host, install Docker package**. 
 
 ## Configure
+
+Configure Tachyon Version you want to deploy, refer to [this doc](Running-Specific-Tachyon-Commit-Via-Vagrant.html)
 
 Provide your desired Tachyon cluster configuration. A sample configuration can be found in `tachyon/deploy/vagrant/conf/init.yml.docker`. Link or copy it to `tachyon/deploy/vagrant/init.yml`. 
 

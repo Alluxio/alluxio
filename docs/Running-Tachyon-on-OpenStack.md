@@ -22,6 +22,7 @@ vagrant
 │   ├── init.yml.docker
 │   └── openstack-config.yml
 ├── init.yml -> conf/init.yml.hdfs2
+|__ tachyon_version.yml
 ├── README.md
 ├── run_openstack.sh
 └── ...
@@ -42,6 +43,8 @@ The `run_openstack.sh` script allows you to launch a Tachyon cluster on OpenStac
 
 
 ## Configure
+
+Configure Tachyon Version you want to deploy, refer to [this doc](Running-Specific-Tachyon-Commit-Via-Vagrant.html)
 
 With the above information, fill them in `tachyon/deploy/vagrant/conf/openstack-config.yml`. Also ensure your OpenStack login credentials are set in your shell environmen variables `OS_USERNAME` and `OS_PASSWORD`.
 
