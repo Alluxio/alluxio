@@ -2,6 +2,7 @@ tests.log*
 .classpath
 .project
 *.iml
+.DS_STORE
 .idea/
 .metadata/
 .settings/
