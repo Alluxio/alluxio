@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.collect.Ordering;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
@@ -40,7 +41,7 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
    * array indexes.
    */
   public static class NodeInfo {
-    private final String mName;
+    private final String mHost;
     private final String mLastContactSec;
     private final String mWorkerState;
     private final long mCapacityBytes;
@@ -50,7 +51,7 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
     private final String mUptimeClockTime;
 
     private NodeInfo(ClientWorkerInfo workerInfo) {
-      mName = workerInfo.getAddress().getMHost();
+      mHost = workerInfo.getAddress().getMHost();
       mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
       mWorkerState = workerInfo.getState();
       mCapacityBytes = workerInfo.getCapacityBytes();
@@ -74,8 +75,8 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
       return mLastContactSec;
     }
 
-    public String getName() {
-      return mName;
+    public String getHost() {
+      return mHost;
     }
 
     public String getState() {
@@ -98,9 +99,11 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
   private static final long serialVersionUID = -7454493761603179826L;
 
   private final transient MasterInfo mMasterInfo;
+  private final TachyonConf mTachyonConf;
 
   public WebInterfaceWorkersServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
+    mTachyonConf = new TachyonConf();
   }
 
   /**
@@ -156,5 +159,8 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
     List<ClientWorkerInfo> lostWorkerInfos = mMasterInfo.getLostWorkersInfo();
     NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
+
+    request.setAttribute("workerWebPort", mTachyonConf.getInt(Constants.WORKER_WEB_PORT,
+        Constants.DEFAULT_WORKER_WEB_PORT));
   }
 }
