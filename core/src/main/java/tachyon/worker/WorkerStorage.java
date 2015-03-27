@@ -1028,8 +1028,7 @@ public class WorkerStorage {
    */
   private void swapoutOrphanBlocks(StorageDir storageDir, long blockId) throws IOException {
     if (UnderFileSystem.isDummyUnderFS(mTachyonConf)) {
-      LOG.info("Not swapping out orphan blocks since we are using" +
-              "a DummyUnderFileSystem");
+      LOG.info("Using a DummyUnderFileSystem thus not swapping out orphan blocks");
       return;
     }
     ByteBuffer buf = storageDir.getBlockData(blockId, 0, -1);
