@@ -80,7 +80,7 @@ public class FileOutStreamTest {
       is.close();
     }
 
-    if (op.isThrough()) {
+    if (op.isThrough() && !UnderFileSystem.isDummyUnderFS(mMasterTachyonConf)) {
       TachyonFile file = sTfs.getFile(filePath);
       String checkpointPath = file.getUfsPath();
       UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mMasterTachyonConf);
