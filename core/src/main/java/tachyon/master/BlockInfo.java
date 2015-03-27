@@ -144,9 +144,9 @@ public class BlockInfo {
   }
 
   /**
-   * Get the addresses where the block is checkpointed.
+   * Get the hostnames where the block is checkpointed.
    *
-   * @return the addresses of the checkpoint locations
+   * @return the hostnames of the checkpoints
    */
   public synchronized List<String> getCheckpoints(TachyonConf tachyonConf) {
     List<String> ret = new ArrayList<String>();

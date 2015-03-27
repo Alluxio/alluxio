@@ -51,21 +51,21 @@ public class RemoteBlockInStream extends BlockInStream {
    * lowest to highest, so we build a sorted list of NetAddress, storageDirId pairs.
    */
   private static class WorkerInfoPair implements Comparable<WorkerInfoPair> {
-    public WorkerInfoPair(NetAddress mAddress, long mStorageDirId) {
-      super();
-      this.mAddress = mAddress;
-      this.mStorageDirId = mStorageDirId;
-    }
-
     private NetAddress mAddress;
     private long mStorageDirId;
+
+    public WorkerInfoPair(NetAddress address, long storageDirId) {
+      super();
+      mAddress = address;
+      mStorageDirId = storageDirId;
+    }
 
     public NetAddress getAddress() {
       return mAddress;
     }
 
     public void setAddress(NetAddress address) {
-      this.mAddress = address;
+      mAddress = address;
     }
 
     public long getStorageDirId() {
@@ -73,7 +73,7 @@ public class RemoteBlockInStream extends BlockInStream {
     }
 
     public void setStorageDirId(long storageDirId) {
-      this.mStorageDirId = storageDirId;
+      mStorageDirId = storageDirId;
     }
 
     @Override
@@ -315,7 +315,7 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   public static ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, ClientBlockInfo blockInfo,
-                                                long offset, long len, TachyonConf conf) {
+      long offset, long len, TachyonConf conf) {
     return readRemoteByteBuffer(tachyonFS, blockInfo, buildSortedWorkers(blockInfo), offset, len,
         conf);
   }
@@ -325,8 +325,6 @@ public class RemoteBlockInStream extends BlockInStream {
     ByteBuffer buf = null;
 
     try {
-      List<WorkerInfo> workers = blockInfo.getWorkers();
-      LOG.info("Block locations:" + workers);
       String localhost = NetworkUtils.getLocalHostName(conf);
       // We are given a list of Workers sorted by the storage tier they are in (so workers with the
       // pages in memory come before workers in ssd, etc).
@@ -468,6 +466,7 @@ public class RemoteBlockInStream extends BlockInStream {
       }
       // The read failed, refresh the block info and try again
       mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
+      mSortedWorkers = buildSortedWorkers(mBlockInfo);
     }
     return false;
   }
