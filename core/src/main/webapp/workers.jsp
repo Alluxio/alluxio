@@ -37,7 +37,7 @@
               <tbody>
                 <% for (WebInterfaceWorkersServlet.NodeInfo nodeInfo : ((WebInterfaceWorkersServlet.NodeInfo[]) request.getAttribute("normalNodeInfos"))) { %>
                   <tr>
-                    <th><%= nodeInfo.getName() %></th>
+                    <th><a href="http://<%= nodeInfo.getHost() %>:<%= request.getAttribute("workerWebPort") %>"><%= nodeInfo.getHost() %></a></th>
                     <% if ((Boolean) request.getAttribute("debug")) { %>
                       <th><%= nodeInfo.getUptimeClockTime() %></th>
                     <% } %>
@@ -91,7 +91,7 @@
                 <% if (request.getAttribute("failedNodeInfos") != null) {
                   for (WebInterfaceWorkersServlet.NodeInfo nodeInfo : ((WebInterfaceWorkersServlet.NodeInfo[]) request.getAttribute("failedNodeInfos"))) { %>
                   <tr>
-                    <th><%= nodeInfo.getName() %></th>
+                    <th><a href="http://<%= nodeInfo.getHost() %>:<%= request.getAttribute("workerWebPort") %>"><%= nodeInfo.getHost() %></a></th>
                     <% if ((Boolean) request.getAttribute("debug")) { %>
                       <th><%= nodeInfo.getUptimeClockTime() %></th>
                     <% } %>
