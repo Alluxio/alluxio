@@ -17,7 +17,7 @@
   function displayContent()
   {
     var tmp = document.getElementById("offset").value;
-    var href = "./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>&offset=" + tmp;  
+    var href = "./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>&offset=" + tmp;
     if (document.getElementById("relative_end").checked) {
       href += "&end=1";
     }
@@ -46,7 +46,7 @@
       <span>Display from byte offset </span>
       <input type="text" id="offset" value="<% if(request.getParameter("offset")==null) { %><%= 0 %><% } else { %><%= request.getParameter("offset") %><% } %>"></input>
       <span>  relative to </span>
-      <% if(request.getParameter("end")==null) { %> 
+      <% if(request.getParameter("end")==null) { %>
         <input type="radio" name="rel" id="relative_begin" checked> begin </input>
         <input type="radio" name="rel" id="relative_end"> end </input>
       <% } else { %>
