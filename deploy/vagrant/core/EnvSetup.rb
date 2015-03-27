@@ -57,3 +57,53 @@ def config_hosts(name)
     hosts.close unless hosts == nil
   end
 end
+
+require 'yaml'
+
+# Return Tachyon version defined in tachyon_version.yml, e.x. Github, Local
+#
+# If version is Github, generate core/download_tachyon.sh to 
+# clone the repo
+#
+# If version is Local, remove core/download_tachyon.sh if it exists
+def get_version
+  @download_tachyon_sh = "core/download_tachyon.sh"
+
+  @version = YAML.load_file('tachyon_version.yml')
+  
+  type = @version['Type']
+
+  case type
+  when "Local"
+    puts 'using local tachyon dir'
+    if File.exists? @download_tachyon_sh
+      File.delete @download_tachyon_sh
+    end
+  when "Github"
+    repo = @version['Github']['Repo']
+    hash = @version['Github']['Hash']
+    url = "#{repo}/commit/#{hash}"
+    puts "using github commit #{url}"
+
+    File.open(@download_tachyon_sh, "w") do |f|
+      # script will be written to @download_tachyon_sh
+      # and executed when Vagrant boots
+      @script =
+          "sudo yum install -y -q git\n"\
+          "mkdir -p /tachyon\n"\
+          "pushd /tachyon > /dev/null\n"\
+          "git init\n"\
+          "git remote add origin #{repo}\n"\
+          "git fetch origin\n"\
+          "git checkout #{hash}\n"\
+          "cp /vagrant/files/workers /tachyon/conf/workers\n"\
+          "popd > /dev/null"
+      f.write(@script)
+    end
+  else
+    puts "Unknown VersionType, Only {Github | Local} supported"
+    exit(1)
+  end
+  
+  return type
+end
