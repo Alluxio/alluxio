@@ -610,7 +610,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   }
 
   public List<Long> getBlockIds() {
-    return this.blockIds;
+    return this.blockIds == null ? new ArrayList<Long>() : this.blockIds;
   }
 
   public ClientFileInfo setBlockIds(List<Long> blockIds) {
