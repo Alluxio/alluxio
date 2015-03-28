@@ -112,7 +112,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
-    ret.add(NetworkUtils.getLocalHostName(mTachyonConf));
+    ret.add(NetworkUtils.getLocalHostName(mTachyonConf) + ":" + Constants.DEFAULT_NAMENODE_PORT);
     return ret;
   }
 
