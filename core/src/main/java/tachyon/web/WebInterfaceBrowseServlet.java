@@ -187,20 +187,20 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
       if (!currentFileInfo.getIsDirectory()) {
-        String tmpParam = request.getParameter("offset");
+        String offsetParam = request.getParameter("offset");
         long relativeOffset = 0;
         long offset;
         try {
-          if (tmpParam != null) {
-            relativeOffset = Long.valueOf(tmpParam);
+          if (offsetParam != null) {
+            relativeOffset = Long.valueOf(offsetParam);
           }
         } catch (NumberFormatException nfe) {
           relativeOffset = 0;
         }
-        tmpParam = request.getParameter("end");
+        String endParam = request.getParameter("end");
         // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
         // relative to the end of the file.
-        if (tmpParam == null) {
+        if (endParam == null) {
           offset = relativeOffset;
         } else {
           offset = clientFileInfo.getLength() - relativeOffset;
