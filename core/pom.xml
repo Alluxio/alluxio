@@ -333,6 +333,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
               <artifactSet>
                 <includes>
                   <include>org.apache.thrift:libthrift</include>
