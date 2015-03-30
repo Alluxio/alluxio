@@ -23,15 +23,15 @@ public class DummyFileInputStream extends InputStream {
   }
 
   public int read() {
-    return 0;
+    return 1;
   }
 
   public int read(byte[] b) {
-    return 0;
+    return b.length;
   }
 
   public int read(byte[] b, int off, int len) {
-    return 0;
+    return len;
   }
 
   public void close() {
