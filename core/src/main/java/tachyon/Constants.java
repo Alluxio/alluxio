@@ -94,6 +94,7 @@ public class Constants {
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String WEB_RESOURCES = "tachyon.web.resources";
   public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
+  public static final String LOGS_DIR = "tachyon.logs.dir";
   public static final String UNDERFS_ADDRESS = "tachyon.underfs.address";
   public static final String UNDERFS_DATA_FOLDER = "tachyon.data.folder";
   public static final String UNDERFS_WORKERS_FOLDER = "tachyon.workers.folder";

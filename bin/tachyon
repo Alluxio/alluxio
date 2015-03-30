@@ -257,4 +257,4 @@ else
   exit 1
 fi
 
-$JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $PARAMETER $@
+$JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $PARAMETER $@

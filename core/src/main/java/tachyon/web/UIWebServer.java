@@ -22,8 +22,7 @@ import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -82,12 +81,18 @@ public abstract class UIWebServer {
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(TachyonURI.SEPARATOR);
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
-    File warPath =
-        new File(mTachyonConf.get(Constants.WEB_RESOURCES, tachyonHome + "/core/src/main/webapp"));
-    mWebAppContext.setWar(warPath.getAbsolutePath());
-    HandlerList handlers = new HandlerList();
-    handlers.setHandlers(new Handler[] {mWebAppContext, new DefaultHandler()});
-    mServer.setHandler(handlers);
+    String webResources =
+        mTachyonConf.get(Constants.WEB_RESOURCES, tachyonHome + "/core/src/main/webapp");
+    mWebAppContext.setResourceBase(webResources);
+
+    WebAppContext logsContext = new WebAppContext();
+    logsContext.setContextPath("/logs");
+    String logsDir = mTachyonConf.get(Constants.LOGS_DIR, tachyonHome + "/logs");
+    logsContext.setResourceBase(logsDir);
+
+    ContextHandlerCollection contexts = new ContextHandlerCollection();
+    contexts.setHandlers(new Handler[] {mWebAppContext, logsContext});
+    mServer.setHandler(contexts);
   }
 
   public void setHandler(AbstractHandler handler) {
