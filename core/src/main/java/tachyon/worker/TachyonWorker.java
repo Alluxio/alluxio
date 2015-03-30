@@ -56,7 +56,8 @@ public class TachyonWorker implements Runnable {
   /**
    * Create a new TachyonWorker
    * 
-   * @param masterAddress The TachyonMaster's address. e.g., localhost:19998
+   * @param masterAddress The TachyonMaster's address. e.g., localhost
+   * @param masterPort The TachyonMaster's port. e.g., 19998
    * @param workerPort This TachyonWorker's port. e.g., 29998
    * @param dataPort This TachyonWorker's data server's port
    * @param minWorkerThreads The min number of worker threads used in TThreadPoolServer
@@ -64,17 +65,27 @@ public class TachyonWorker implements Runnable {
    * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to used by Worker.
    * @return The new TachyonWorker
    */
-  public static synchronized TachyonWorker createWorker(String masterAddress, int workerPort,
-      int dataPort, int minWorkerThreads, int maxWorkerThreads, TachyonConf tachyonConf) {
-    String[] address = masterAddress.split(":");
-    tachyonConf.set(Constants.MASTER_ADDRESS, address[0]);
-    if (address.length > 1) {
-      tachyonConf.set(Constants.MASTER_PORT, address[1]);
+  public static synchronized TachyonWorker createWorker(String masterAddress, int masterPort,
+      int workerPort, int dataPort, int minWorkerThreads, int maxWorkerThreads,
+      TachyonConf tachyonConf) {
+    if (masterAddress != null) {
+      tachyonConf.set(Constants.MASTER_ADDRESS, masterAddress);
     }
-    tachyonConf.set(Constants.WORKER_PORT, workerPort + "");
-    tachyonConf.set(Constants.WORKER_DATA_PORT, dataPort + "");
-    tachyonConf.set(Constants.WORKER_MIN_WORKER_THREADS, minWorkerThreads + "");
-    tachyonConf.set(Constants.WORKER_MAX_WORKER_THREADS, maxWorkerThreads + "");
+    if (masterPort >= 0) {
+      tachyonConf.set(Constants.MASTER_PORT, masterPort + "");
+    }
+    if (workerPort >= 0) {
+      tachyonConf.set(Constants.WORKER_PORT, workerPort + "");
+    }
+    if (dataPort >= 0) {
+      tachyonConf.set(Constants.WORKER_DATA_PORT, dataPort + "");
+    }
+    if (minWorkerThreads > 0) {
+      tachyonConf.set(Constants.WORKER_MIN_WORKER_THREADS, minWorkerThreads + "");
+    }
+    if (maxWorkerThreads > 0) {
+      tachyonConf.set(Constants.WORKER_MAX_WORKER_THREADS, maxWorkerThreads + "");
+    }
 
     return createWorker(tachyonConf);
   }
