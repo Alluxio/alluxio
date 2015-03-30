@@ -11,4 +11,5 @@ mkdir -p /vol
 
 # build tachyon pkg
 cd /tachyon
+echo "compiling Tachyon..."
 mvn -q install -Dtest.profile=glusterfs -Dhadoop.version=2.3.0  -DskipTests

@@ -3,9 +3,12 @@
 
 # VB specific configurations go here
 
-def config_vb(config, i, total, name)
+def config_vb(config, i, total, name, version)
   puts "starting " + Addr[i - 1]
-  config.vm.synced_folder "../../", "/tachyon"
+  
+  if version == "Local"
+    config.vm.synced_folder "../../", "/tachyon"
+  end
   config.vm.synced_folder "./", "/vagrant"
   config.vm.box = "chef/centos-6.5"
   config.vm.provider "virtualbox" do |vb|

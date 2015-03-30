@@ -83,4 +83,5 @@ fi
 
 # setup tachyon
 cd /tachyon
+echo "compiling Tachyon..."
 mvn -q clean package install -DskipTests -Dhadoop.version=${HADOOP_VERSION}
