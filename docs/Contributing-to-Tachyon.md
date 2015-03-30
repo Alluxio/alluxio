@@ -35,7 +35,8 @@ purpose it serves.
 [TACHYON-100] Awesome New Feature
 ~~~~~
 
-This will connect the ticket to the proposed code changes.
+This will connect the ticket to the proposed code changes. In the description field of the pull
+request, please include a link to the JIRA ticket.
 
 ### Testing
 
