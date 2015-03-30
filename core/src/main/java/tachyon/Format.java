@@ -35,11 +35,14 @@ public class Format {
       throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(folder, tachyonConf);
     LOG.info("Formatting {}:{}", name, folder);
-    if (ufs.exists(folder) && !ufs.delete(folder, true)) {
-      LOG.info("Failed to remove {}:{}", name, folder);
-      return false;
-    }
-    if (!ufs.mkdirs(folder, true)) {
+    if (ufs.exists(folder)) {
+      for (String file : ufs.list(folder)) {
+        if (!ufs.delete(CommonUtils.concat(folder, file), true)) {
+          LOG.info("Failed to remove {}:{}", name, file);
+          return false;
+        }
+      }
+    } else if (!ufs.mkdirs(folder, true)) {
       LOG.info("Failed to create {}:{}", name, folder);
       return false;
     }
@@ -77,24 +80,16 @@ public class Format {
           tachyonConf);
     } else if (args[0].toUpperCase().equals("WORKER")) {
       int maxStorageLevels = tachyonConf.getInt(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, 1);
-      String workerDataFolder =
-          tachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
       for (int level = 0; level < maxStorageLevels; level ++) {
         String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
         String[] dirPaths = tachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
-        for (int i = 0; i < dirPaths.length; i ++) {
-          String dataPath = CommonUtils.concat(dirPaths[i].trim(), workerDataFolder);
-          UnderFileSystem ufs = UnderFileSystem.get(dataPath, tachyonConf);
-          LOG.info("Removing data under folder: {}", dataPath);
-          if (ufs.exists(dataPath)) {
-            String[] files = ufs.list(dataPath);
-            for (String file : files) {
-              ufs.delete(CommonUtils.concat(dataPath, file), true);
-            }
+        String name = "TIER_" + level + "_DIR_PATH";
+        for (String dirPath : dirPaths) {
+          if (!formatFolder(name, dirPath.trim(), tachyonConf)) {
+            System.exit(-1);
           }
         }
       }
-
     } else {
       LOG.info(USAGE);
       System.exit(-1);
