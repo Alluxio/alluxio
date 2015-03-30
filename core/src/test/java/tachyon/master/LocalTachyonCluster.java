@@ -228,8 +228,7 @@ public final class LocalTachyonCluster {
           newPath.substring(0, newPath.length() - 1));
     }
 
-    mWorker =
-        TachyonWorker.createWorker(mWorkerConf);
+    mWorker = TachyonWorker.createWorker(mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {

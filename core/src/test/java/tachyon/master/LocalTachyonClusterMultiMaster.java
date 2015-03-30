@@ -200,7 +200,8 @@ public class LocalTachyonClusterMultiMaster {
     }
 
     mWorker =
-        TachyonWorker.createWorker(mCuratorServer.getConnectString(), 0, 0, 1, 100, mWorkerConf);
+        TachyonWorker.createWorker(mCuratorServer.getConnectString().split(":")[0],
+            mCuratorServer.getPort(), 0, 0, 1, 100, mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
