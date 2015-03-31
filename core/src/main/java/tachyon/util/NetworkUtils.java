@@ -165,7 +165,10 @@ public final class NetworkUtils {
     }
 
     if (path.hasAuthority()) {
-      String authority = resolveHostName(path.getHost()) + ":" + path.getPort();
+      String authority = resolveHostName(path.getHost());
+      if (path.getPort() != -1) {
+        authority += ":" + path.getPort();
+      }
       return new TachyonURI(path.getScheme(), authority, path.getPath());
     } else {
       return path;
