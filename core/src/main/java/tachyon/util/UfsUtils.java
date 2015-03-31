@@ -123,7 +123,7 @@ public class UfsUtils {
     while (!ufsPathQueue.isEmpty()) {
       TachyonURI ufsPath = ufsPathQueue.poll(); // this is the absolute path
       LOG.info("Loading: " + ufsPath);
-      if (ufs.isFile(ufsPath.toString())) {
+      if (ufs.isFile(ufsPath.toString())) { // TODO: Fix path matching issue
         TachyonURI tfsPath = buildTFSPath(tachyonPath, ufsAddrRootPath, ufsPath);
         if (tfs.exist(tfsPath)) {
           LOG.info("File " + tfsPath + " already exists in Tachyon.");
@@ -140,6 +140,9 @@ public class UfsUtils {
         String[] files = ufs.list(ufsPath.toString()); // ufs.list() returns relative path
         if (files != null) {
           for (String filePath : files) {
+            if (filePath.isEmpty()) { // Prevent infinite loops
+              continue;
+            }
             LOG.info("Get: " + filePath);
             String aPath = CommonUtils.concat(ufsPath, filePath);
             String checkPath = aPath.substring(ufsAddrRootPath.toString().length());
