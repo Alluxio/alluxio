@@ -18,6 +18,7 @@ package tachyon;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.conf.TachyonConf;
@@ -42,17 +43,17 @@ public class UnderFileSystemDummy extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
-    return null;
+    return new DummyFileOutputStream();
   }
 
   @Override
   public OutputStream create(String path, int blockSizeByte) throws IOException {
-    return null;
+    return new DummyFileOutputStream();
   }
 
   @Override
   public OutputStream create(String path, short replication, int blockSizeByte) throws IOException {
-    return null;
+    return new DummyFileOutputStream();
   }
 
   @Override
@@ -62,52 +63,52 @@ public class UnderFileSystemDummy extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
-    return false;
+    return true;
   }
 
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return -1;
+    return 0;
   }
 
   @Override
   public Object getConf() {
-    return null;
+    return new Object();
   }
 
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    return null;
+    return new ArrayList<String>();
   }
 
   @Override
   public List<String> getFileLocations(String path, long offset) throws IOException {
-    return null;
+    return new ArrayList<String>();
   }
 
   @Override
   public long getFileSize(String path) throws IOException {
-    return -1;
+    return 0;
   }
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
-    return -1;
+    return 0;
   }
 
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
-    return -1;
+    return 0;
   }
 
   @Override
   public boolean isFile(String path) throws IOException {
-    return false;
+    return true;
   }
 
   @Override
   public String[] list(String path) throws IOException {
-    return null;
+    return new String[0];
   }
 
   @Override
@@ -117,7 +118,7 @@ public class UnderFileSystemDummy extends UnderFileSystem {
 
   @Override
   public InputStream open(String path) throws IOException {
-    return null;
+    return new DummyFileInputStream();
   }
 
   @Override
