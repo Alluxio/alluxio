@@ -12,31 +12,30 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon;
 
-import java.io.IOException;
+package tachyon.underfs.glusterfs;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
+import tachyon.underfs.UnderFileSystemFactory;
 
-public class GlusterfsCluster extends UnderFileSystemCluster {
+public class GlusterFSUnderFileSystemFactory implements UnderFileSystemFactory {
 
-  public GlusterfsCluster(String baseDir, TachyonConf tachyonConf) {
-    super(baseDir, tachyonConf);
+  @Override
+  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
+    Preconditions.checkArgument(path != null, "path may not be null");
+
+    return new GlusterFSUnderFileSystem(path, tachyonConf, conf);
   }
 
   @Override
-  public String getUnderFilesystemAddress() {
-    return "glusterfs:///tachyon_test";
+  public boolean supportsPath(String path, TachyonConf conf) {
+    if (path == null) {
+      return false;
+    }
+
+    return path.startsWith(GlusterFSUnderFileSystem.SCHEME);
   }
-
-  @Override
-  public boolean isStarted() {
-    return true;
-  }
-
-  @Override
-  public void shutdown() throws IOException {}
-
-  @Override
-  public void start() throws IOException {}
 }

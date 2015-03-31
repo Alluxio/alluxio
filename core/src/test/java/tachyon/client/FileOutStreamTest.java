@@ -26,10 +26,10 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystemCluster;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.underfs.UnderFileSystem;
+import tachyon.underfs.UnderFileSystemCluster;
 
 /**
  * Unit tests for <code>tachyon.client.FileOutStream</code>.
@@ -50,7 +50,11 @@ public class FileOutStreamTest {
 
   @AfterClass
   public static final void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
+    if (sLocalTachyonCluster != null) {
+      sLocalTachyonCluster.stop();
+    }
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   @BeforeClass
@@ -68,8 +72,8 @@ public class FileOutStreamTest {
    * @param fileLen
    * @throws IOException
    */
-  private void checkWrite(TachyonURI filePath, WriteType op, int fileLen, int increasingByteArrayLen)
-      throws IOException {
+  private void checkWrite(TachyonURI filePath, WriteType op, int fileLen,
+      int increasingByteArrayLen) throws IOException {
     for (ReadType rOp : ReadType.values()) {
       TachyonFile file = sTfs.getFile(filePath);
       InStream is = file.getInStream(rOp);

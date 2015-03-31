@@ -45,7 +45,10 @@ public class PinTest {
 
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
+    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @Test
@@ -66,7 +69,7 @@ public class PinTest {
 
     mTfs.unpinFile(fileId);
     assertFalse(mTfs.getFile(file).needPin());
-    assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer>newHashSet());
+    assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer> newHashSet());
 
     // Pinning a folder should recursively pin subfolders.
     mTfs.pinFile(dir1Id);
@@ -76,7 +79,7 @@ public class PinTest {
     // Same with unpinning.
     mTfs.unpinFile(dir0Id);
     assertFalse(mTfs.getFile(file).needPin());
-    assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer>newHashSet());
+    assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer> newHashSet());
 
     // The last pin command always wins.
     mTfs.pinFile(fileId);

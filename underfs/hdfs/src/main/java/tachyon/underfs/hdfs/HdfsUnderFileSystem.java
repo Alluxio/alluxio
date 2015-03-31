@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.underfs.hdfs;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -37,12 +38,14 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.conf.TachyonConf;
+import tachyon.Constants;
 import tachyon.hadoop.Utils;
+import tachyon.underfs.UnderFileSystem;
 
 /**
- * HDFS UnderFilesystem implementation.
+ * HDFS UnderFilesystem implementation
  */
-public class UnderFileSystemHdfs extends UnderFileSystem {
+public class HdfsUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
 
@@ -52,55 +55,17 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   private static final FsPermission PERMISSION = new FsPermission((short) 0777)
       .applyUMask(FsPermission.createImmutable((short) 0000));
 
-  public static UnderFileSystemHdfs getClient(String path, TachyonConf tachyonConf) {
-    return new UnderFileSystemHdfs(path, null, tachyonConf);
-  }
-
-  public static UnderFileSystemHdfs getClient(String path, Object conf, TachyonConf tachyonConf) {
-    return new UnderFileSystemHdfs(path, conf, tachyonConf);
-  }
-
-  private UnderFileSystemHdfs(String fsDefaultName, Object conf, TachyonConf tachyonConf) {
+  public HdfsUnderFileSystem(String fsDefaultName, TachyonConf tachyonConf, Object conf) {
     super(tachyonConf);
-
     mUfsPrefix = fsDefaultName;
     Configuration tConf;
-    if (conf != null) {
-      tConf = new Configuration((Configuration) conf);
+    if (conf != null && conf instanceof Configuration) {
+      tConf = (Configuration) conf;
     } else {
       tConf = new Configuration();
     }
-    String glusterfsPrefix = "glusterfs:///";
-    tConf.set("fs.defaultFS", fsDefaultName);
-    if (fsDefaultName.startsWith(glusterfsPrefix)) {
-      String gfsImpl = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_IMPL,
-          "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
-      String gfsMrDir = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR,
-          "glusterfs:///mapred/system");
-      String gfsVolumes = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null);
-      String gfsMounts = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null);
 
-      if (tConf.get("fs.glusterfs.impl") == null) {
-        tConf.set("fs.glusterfs.impl", gfsImpl);
-      }
-      if (tConf.get("mapred.system.dir") == null) {
-        tConf.set("mapred.system.dir", gfsMrDir);
-      }
-      if (tConf.get("fs.glusterfs.volumes") == null) {
-        tConf.set("fs.glusterfs.volumes", gfsVolumes);
-        tConf.set("fs.glusterfs.volume.fuse." + gfsVolumes, gfsMounts);
-      }
-    } else {
-      String ufsHdfsImpl = mTachyonConf.get(Constants.UNDERFS_HDFS_IMPL,
-          "org.apache.hadoop.hdfs.DistributedFileSystem");
-      tConf.set("fs.hdfs.impl", ufsHdfsImpl);
-
-      // To disable the instance cache for hdfs client, otherwise it causes the
-      // FileSystem closed exception. Being configurable for unit/integration
-      // test only, and not expose to the end-user currently.
-      tConf.set("fs.hdfs.impl.disable.cache",
-          System.getProperty("fs.hdfs.impl.disable.cache", "false"));
-    }
+    prepareConfiguration(fsDefaultName, tachyonConf, tConf);
 
     Utils.addS3Credentials(tConf);
 
@@ -111,6 +76,37 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       LOG.error("Exception thrown when trying to get FileSystem for " + mUfsPrefix, e);
       throw Throwables.propagate(e);
     }
+  }
+
+  /**
+   * Prepares the Hadoop configuration necessary to successfully obtain a {@link FileSystem}
+   * instance that can access the provided path
+   * <p>
+   * Derived implementations that work with specialised Hadoop {@linkplain FileSystem} API
+   * compatible implementations can override this method to add implementation specific
+   * configuration necessary for obtaining a usable {@linkplain FileSystem} instance.
+   * </p>
+   * 
+   * @param path File system path
+   * @param config Hadoop Configuration
+   */
+  protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
+    // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
+    // discover available file system implementations. However this configuration setting is
+    // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
+    // if present propagate it to the Hadoop configuration
+    String ufsHdfsImpl =
+        mTachyonConf.get(Constants.UNDERFS_HDFS_IMPL,
+            null);
+    if (!StringUtils.isEmpty(ufsHdfsImpl)) {
+      config.set("fs.hdfs.impl", ufsHdfsImpl);
+    }
+
+    // To disable the instance cache for hdfs client, otherwise it causes the
+    // FileSystem closed exception. Being configurable for unit/integration
+    // test only, and not expose to the end-user currently.
+    config.set("fs.hdfs.impl.disable.cache",
+        System.getProperty("fs.hdfs.impl.disable.cache", "false"));
   }
 
   @Override
@@ -302,8 +298,32 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
   }
 
-  public void login(String keytabFileKey, String keytabFile, String principalKey, String principal,
-      String hostname) throws IOException {
+  @Override
+  public void connectFromMaster(TachyonConf conf, String host) throws IOException {
+    String masterKeytab = conf.get(Constants.MASTER_KEYTAB_KEY, null);
+    String masterPrincipal = conf.get(Constants.MASTER_PRINCIPAL_KEY, null);
+    if (masterKeytab == null || masterPrincipal == null) {
+      return;
+    }
+
+    this.login(Constants.MASTER_KEYTAB_KEY, masterKeytab, Constants.MASTER_PRINCIPAL_KEY,
+        masterPrincipal, host);
+  }
+
+  @Override
+  public void connectFromWorker(TachyonConf conf, String host) throws IOException {
+    String workerKeytab = conf.get(Constants.WORKER_KEYTAB_KEY, null);
+    String workerPrincipal = conf.get(Constants.WORKER_PRINCIPAL_KEY, null);
+    if (workerKeytab == null || workerPrincipal == null) {
+      return;
+    }
+
+    this.login(Constants.WORKER_KEYTAB_KEY, workerKeytab, Constants.WORKER_PRINCIPAL_KEY,
+        workerPrincipal, host);
+  }
+
+  private void login(String keytabFileKey, String keytabFile, String principalKey,
+      String principal, String hostname) throws IOException {
     Configuration conf = new Configuration();
     conf.set(keytabFileKey, keytabFile);
     conf.set(principalKey, principal);

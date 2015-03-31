@@ -28,7 +28,6 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
@@ -36,6 +35,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * Test master journal, including image and edit log. Most tests will test edit log first, followed
@@ -121,10 +121,9 @@ public class JournalTest {
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
     Assert.assertTrue(info.getFileId(new TachyonURI("/xyz")) != -1);
     Assert.assertTrue(info.getFileId(new TachyonURI("/xyz_ck")) != -1);
-    Assert.assertEquals(
-        fileInfo, info.getClientFileInfo(info.getFileId(new TachyonURI("/xyz"))));
-    Assert.assertEquals(
-        ckFileInfo, info.getClientFileInfo(info.getFileId(new TachyonURI("/xyz_ck"))));
+    Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId(new TachyonURI("/xyz"))));
+    Assert.assertEquals(ckFileInfo,
+        info.getClientFileInfo(info.getFileId(new TachyonURI("/xyz_ck"))));
     info.stop();
   }
 
@@ -135,7 +134,9 @@ public class JournalTest {
    */
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
     mExecutorService.shutdown();
     System.clearProperty("fs.hdfs.impl.disable.cache");
   }
@@ -199,12 +200,13 @@ public class JournalTest {
     DeleteTestUtil();
   }
 
-  private void DeleteTestUtil() throws IOException, InvalidPathException, FileDoesNotExistException {
+  private void DeleteTestUtil() throws IOException, InvalidPathException,
+      FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
-        mMasterTachyonConf);
+      mMasterTachyonConf);
     info.init();
     Assert.assertEquals(31, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -250,12 +252,13 @@ public class JournalTest {
     FileFolderUtil();
   }
 
-  private void FileFolderUtil() throws IOException, InvalidPathException, FileDoesNotExistException {
+  private void FileFolderUtil() throws IOException, InvalidPathException,
+      FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-        Constants.DEFAULT_JOURNAL_FOLDER);
+      Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
-        mMasterTachyonConf);
+      mMasterTachyonConf);
     info.init();
     Assert.assertEquals(111, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -328,18 +331,18 @@ public class JournalTest {
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
-    Assert.assertEquals(
-        folder, info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder"))));
-    Assert.assertTrue(
-        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder"))).isPinned);
-    Assert.assertEquals(
-        file0, info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file0"))));
-    Assert.assertFalse(
-        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file0"))).isPinned);
-    Assert.assertEquals(
-        file1, info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file1"))));
-    Assert.assertTrue(
-        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file1"))).isPinned);
+    Assert.assertEquals(folder,
+        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder"))));
+    Assert
+        .assertTrue(info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder"))).isPinned);
+    Assert.assertEquals(file0,
+        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file0"))));
+    Assert
+        .assertFalse(info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file0"))).isPinned);
+    Assert.assertEquals(file1,
+        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file1"))));
+    Assert
+        .assertTrue(info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file1"))).isPinned);
     info.stop();
   }
 
@@ -351,7 +354,8 @@ public class JournalTest {
   @Test
   public void FolderTest() throws Exception {
     mTfs.mkdir(new TachyonURI("/xyz"));
-    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
+    ClientFileInfo fInfo =
+        mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
     mLocalTachyonCluster.stopTFS();
     FolderTest(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();

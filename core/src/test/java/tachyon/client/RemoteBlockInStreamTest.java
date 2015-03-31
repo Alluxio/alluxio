@@ -6,7 +6,7 @@
  * copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -70,8 +70,12 @@ public class RemoteBlockInStreamTest {
   public ExpectedException thrown = ExpectedException.none();
 
   @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+  public  final void afterClass() throws Exception {
+    if (mLocalTachyonCluster != null) {
+      mLocalTachyonCluster.stop();
+    }
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
   }
 
   @Before

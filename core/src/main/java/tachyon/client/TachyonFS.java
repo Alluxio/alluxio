@@ -36,7 +36,6 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
@@ -45,7 +44,11 @@ import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
+
 import tachyon.thrift.InvalidPathException;
+
+import tachyon.underfs.UnderFileSystem;
+
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
@@ -168,8 +171,8 @@ public class TachyonFS extends AbstractTachyonFS {
   private TachyonFS(TachyonConf tachyonConf) throws IOException {
     super(tachyonConf);
 
-    String masterHost = tachyonConf.get(Constants.MASTER_HOSTNAME,
-        NetworkUtils.getLocalHostName(tachyonConf));
+    String masterHost =
+        tachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(tachyonConf));
     int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
 
     mMasterAddress = new InetSocketAddress(masterHost, masterPort);
@@ -180,8 +183,8 @@ public class TachyonFS extends AbstractTachyonFS {
 
     mMasterClient =
         mCloser.register(new MasterClient(mMasterAddress, mExecutorService, mTachyonConf));
-    mWorkerClient = mCloser.register(new WorkerClient(mMasterClient, mExecutorService,
-        mTachyonConf));
+    mWorkerClient =
+        mCloser.register(new WorkerClient(mMasterClient, mExecutorService, mTachyonConf));
 
     mUserFailedSpaceRequestLimits =
         mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS,
@@ -427,7 +430,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param fileId the file id
    * @param blockIndex The index of the block in the file.
    * @return the block id if exists
-   * @throws IOException if the file does not exist, or connection issue.
+   * @throws IOException
+   *         if the file does not exist, or connection issue.
    */
   public synchronized long getBlockId(int fileId, int blockIndex) throws IOException {
     ClientFileInfo info = getFileStatus(fileId, true);
@@ -735,7 +739,6 @@ public class TachyonFS extends AbstractTachyonFS {
     return mMasterClient.getUserId();
   }
 
-
   /**
    * @return get the total number of bytes used in Tachyon cluster
    * @throws IOException
@@ -928,15 +931,13 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the size bytes that allocated to the block, -1 if no local worker exists
    * @throws IOException
    */
-  public synchronized long requestSpace(long blockId, long requestSpaceBytes)
-      throws IOException {
-
+  public synchronized long requestSpace(long blockId, long requestSpaceBytes) throws IOException {
     if (!hasLocalWorker()) {
       return -1;
     }
 
-    long userQuotaUnitBytes = mTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES,
-        8 * Constants.MB);
+    long userQuotaUnitBytes =
+        mTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES, 8 * Constants.MB);
 
     long toRequestSpaceBytes = Math.max(requestSpaceBytes, userQuotaUnitBytes);
     for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
