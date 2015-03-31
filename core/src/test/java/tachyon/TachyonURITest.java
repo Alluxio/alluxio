@@ -89,7 +89,7 @@ public class TachyonURITest {
     Assert.assertEquals(absPath, uri0.toString());
 
     TachyonURI uri1 = new TachyonURI(scheme, null, path);
-    Assert.assertEquals(scheme + ":" + absPath, uri1.toString());
+    Assert.assertEquals(scheme + "://" + absPath, uri1.toString());
 
     TachyonURI uri2 = new TachyonURI(scheme, authority, path);
     Assert.assertEquals(scheme + "://" + authority + absPath, uri2.toString());
@@ -217,7 +217,7 @@ public class TachyonURITest {
   @Test
   public void getNameTests() {
     Assert.assertEquals("", new TachyonURI("/").getName());
-    Assert.assertEquals("localhost", new TachyonURI("tachyon://localhost/").getName());
+    Assert.assertEquals("", new TachyonURI("tachyon://localhost/").getName());
     Assert.assertEquals("", new TachyonURI("tachyon:/").getName());
     Assert.assertEquals("a", new TachyonURI("tachyon:/a/").getName());
     Assert.assertEquals("a.txt", new TachyonURI("tachyon:/a.txt/").getName());
@@ -228,8 +228,7 @@ public class TachyonURITest {
   @Test
   public void getParentTests() {
     Assert.assertEquals(null, new TachyonURI("/").getParent());
-    Assert.assertEquals(new TachyonURI("tachyon://"),
-        new TachyonURI("tachyon://localhost/").getParent());
+    Assert.assertEquals(null, new TachyonURI("tachyon://localhost/").getParent());
     Assert.assertEquals(new TachyonURI("/a"), new TachyonURI("/a/b/../c").getParent());
     Assert.assertEquals(new TachyonURI("tachyon:/a"),
         new TachyonURI("tachyon:/a/b/../c").getParent());
@@ -274,7 +273,7 @@ public class TachyonURITest {
   public void hasAuthorityTests() {
     Assert.assertFalse(new TachyonURI("/").hasAuthority());
     Assert.assertFalse(new TachyonURI("file:/").hasAuthority());
-    Assert.assertFalse(new TachyonURI("file://localhost/").hasAuthority());
+    Assert.assertTrue(new TachyonURI("file://localhost/").hasAuthority());
     Assert.assertTrue(new TachyonURI("file://localhost:8080/").hasAuthority());
     Assert.assertTrue(new TachyonURI(null, "localhost:8080", "/").hasAuthority());
   }
@@ -317,7 +316,7 @@ public class TachyonURITest {
     Assert.assertTrue(new TachyonURI("tachyon://localhost:19998/").isRoot());
     Assert.assertTrue(new TachyonURI("hdfs://localhost:19998").isRoot());
     Assert.assertTrue(new TachyonURI("hdfs://localhost:19998/").isRoot());
-    Assert.assertFalse(new TachyonURI("file://localhost/").isRoot());
+    Assert.assertTrue(new TachyonURI("file://localhost/").isRoot());
     Assert.assertFalse(new TachyonURI("file://localhost/a/b").isRoot());
     Assert.assertFalse(new TachyonURI("a/b").isRoot());
   }
@@ -347,26 +346,23 @@ public class TachyonURITest {
 
     final String pathWithSpecialCharAndColon = "×ö,ßbÁ»$o\u0005ÉÆ[\u000F| \u009E=BÕ:½";
     Assert.assertEquals(new TachyonURI("/" + pathWithSpecialCharAndColon),
-            new TachyonURI("/").join(pathWithSpecialCharAndColon));
+        new TachyonURI("/").join(pathWithSpecialCharAndColon));
   }
 
   @Test
   public void toStringTests() {
     String[] uris =
-        new String[] {"/", "/a", "/a/ b", "tachyon:/a/b/c d.txt",
-            "tachyon://localhost:8080/a/b.txt", "foo", "foo/bar", "/foo/bar#boo", "foo/bar#boo",
-            "c:/", "c:/foo/bar", "C:/foo/bar#boo", "C:/foo/ bar"};
+        new String[] {"/", "/a", "/a/ b", "tachyon://a/b/c d.txt",
+            "tachyon://localhost:8080/a/b.txt", "foo", "foo/bar", "/foo/bar#boo", "foo/bar#boo",};
     for (String uri : uris) {
       TachyonURI turi = new TachyonURI(uri);
       Assert.assertEquals(uri, turi.toString());
     }
 
     Assert.assertEquals("", new TachyonURI(".").toString());
-    Assert.assertEquals("C:/", new TachyonURI("C:\\\\").toString());
-    Assert.assertEquals("C:/a/b.txt", new TachyonURI("C:\\\\a\\b.txt").toString());
-    Assert.assertEquals("file:/a", new TachyonURI("file:/a").toString());
-    Assert.assertEquals("file:/a", new TachyonURI("file:///a").toString());
-    Assert.assertEquals("file:/a", new TachyonURI("file", null, "/a").toString());
+    Assert.assertEquals("file:///a", new TachyonURI("file:/a").toString());
+    Assert.assertEquals("file:///a", new TachyonURI("file:///a").toString());
+    Assert.assertEquals("file:///a", new TachyonURI("file", null, "/a").toString());
   }
 
   @Test
@@ -383,9 +379,6 @@ public class TachyonURITest {
     Assert.assertEquals("../foo/boo", new TachyonURI("../foo/bar/..//boo").toString());
     Assert.assertEquals("/../foo/boo", new TachyonURI("/.././foo/boo").toString());
     Assert.assertEquals("foo/boo", new TachyonURI("./foo/boo").toString());
-
-    Assert.assertEquals("c:/a/b", new TachyonURI("c:\\a\\b").toString());
-    Assert.assertEquals("c:/a/c", new TachyonURI("c:\\a\\b\\..\\c").toString());
 
     Assert.assertEquals("foo://bar boo:8080/abc/c",
         new TachyonURI("foo://bar boo:8080/abc///c").toString());
