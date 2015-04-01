@@ -351,25 +351,6 @@ public final class StorageDir {
     return mSpaceCounter.getAvailableBytes();
   }
 
-  private int checkBound(long fileLength, long offset, int length) throws IOException {
-    String error = null;
-    if (offset > fileLength) {
-      error = String.format("offset(%d) is larger than file length(%d)", offset, fileLength);
-    } else if (length != -1 && offset + length > fileLength) {
-      error =
-          String.format("offset(%d) plus length(%d) is larger than file length(%d)", offset,
-              length, fileLength);
-    }
-    if (error != null) {
-      throw new IOException(error);
-    }
-    if (length == -1) {
-      return (int)(fileLength - offset);
-    } else {
-      return length;
-    }
-  }
-
   /**
    * Read data into ByteBuffer from some block file, caller must ensure that the block is locked
    * during reading
@@ -377,47 +358,24 @@ public final class StorageDir {
    * @param blockId Id of the block
    * @param offset starting position of the block file
    * @param length length of data to read, -1 means from the offset to the end of block
-   * @param direct whether put data into a direct buffer
    * @return ByteBuffer which contains data of the block
    * @throws IOException
    */
-  public ByteBuffer getBlockData(long blockId, long offset, int length, boolean direct)
+  public ByteBuffer getBlockData(long blockId, long offset, int length)
       throws IOException {
     long fileLength = getBlockSize(blockId);
     if (fileLength == -1) {
       throw new IOException("Block file doesn't exist! blockId:" + blockId);
     }
 
-    length = checkBound(fileLength, offset, length);
-    ByteBuffer buffer;
-    if (direct) {
-      buffer = ByteBuffer.allocateDirect(length);
-    } else {
-      buffer = ByteBuffer.allocate(length);
-    }
     BlockHandler handler = getBlockHandler(blockId);
     try {
-      handler.position(offset).read(buffer);
+      ByteBuffer buffer = handler.read(offset, length);
       accessBlock(blockId);
-      buffer.flip();
       return buffer;
     } finally {
       handler.close();
     }
-  }
-
-  /**
-   * Read data into ByteBuffer from some block file, caller needs to make sure the block is locked
-   * during reading
-   * 
-   * @param blockId Id of the block
-   * @param offset starting position of the block file
-   * @param length length of data to read
-   * @return ByteBuffer which contains data of the block
-   * @throws IOException
-   */
-  public ByteBuffer getBlockData(long blockId, long offset, int length) throws IOException {
-    return getBlockData(blockId, offset, length, false);
   }
 
   /**

@@ -114,7 +114,7 @@ public class WorkerServiceHandlerTest {
       throws IOException, InvalidPathException {
     UnderFileSystem.get(filename, mMasterTachyonConf).mkdirs(CommonUtils.getParent(filename), true);
     BlockHandler handler = BlockHandler.Factory.get(filename);
-    handler.write(ByteBuffer.wrap(TestUtils.getIncreasingByteArray(fileLen)));
+    handler.write(0, ByteBuffer.wrap(TestUtils.getIncreasingByteArray(fileLen)));
     handler.close();
   }
 

@@ -16,8 +16,8 @@
 package tachyon.worker;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
-import java.nio.channels.WritableByteChannel;
 
 import io.netty.channel.FileRegion;
 
@@ -48,6 +48,7 @@ public interface BlockHandler extends ByteChannel {
       throw new IllegalArgumentException("Unsupported block file path: " + path);
     }
   }
+
   /**
    * Deletes the block
    * 
@@ -57,34 +58,6 @@ public interface BlockHandler extends ByteChannel {
   boolean delete() throws IOException;
 
   /**
-   * Get the block position of current handler
-   * 
-   * @return the block position of current handler
-   * @throws IOException
-   */
-  long position() throws IOException;
-
-  /**
-   * Set the block position for current handler
-   * 
-   * @param newPosition the position that will be set
-   * @return the handler with new position
-   * @throws IOException
-   */
-  BlockHandler position(long newPosition) throws IOException;
-
-  /**
-   * Transfer a part of block to anther writable channel
-   * 
-   * @param position the starting position
-   * @param count the size of data to be transfered
-   * @param target the destination channel
-   * @return the size that is actually transfered
-   * @throws IOException
-   */
-  long transferTo(long position, long count, WritableByteChannel target) throws IOException;
-
-  /**
    * Get some file region for some part of block
    * 
    * @param offset the starting position
@@ -92,4 +65,35 @@ public interface BlockHandler extends ByteChannel {
    * @return file region for the specific part of block
    */
   FileRegion getFileRegion(long offset, long length);
+
+  /**
+   * Read data from a block
+   * 
+   * @param position the starting position in the block
+   * @param length the size of the data to be read
+   * @return the ByteBuffer that contains the data
+   * @throws IOException
+   */
+  ByteBuffer read(long position, int length) throws IOException;
+
+  /**
+   * Transfer data from this handler to another handler
+   * 
+   * @param position the starting position in the block
+   * @param length the size of the data to be transferred
+   * @param dest the destination handler
+   * @return the size of data that is transferred
+   * @throws IOException
+   */
+  long transferTo(long position, long length, BlockHandler dest) throws IOException;
+
+  /**
+   * Write data to a block
+   * 
+   * @param position the starting position in the block
+   * @param buf the ByteBuffer that contains the data
+   * @return the size of data that is written
+   * @throws IOException
+   */
+  int write(long position, ByteBuffer buf) throws IOException;
 }

@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.WritableByteChannel;
+import java.nio.channels.FileChannel.MapMode;
 
 import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.FileRegion;
@@ -51,31 +51,37 @@ final class BlockHandlerLocal implements BlockHandler {
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
   }
 
-  @Override
   public boolean delete() throws IOException {
     checkPermission();
     return new File(mFilePath).delete();
   }
 
-  @Override
-  public int read(ByteBuffer buffer) throws IOException {
-    return mLocalFileChannel.read(buffer);
-  }
-
-  @Override
-  public int write(ByteBuffer srcBuf) throws IOException {
-    checkPermission();
-    return mLocalFileChannel.write(srcBuf);
-  }
-
-  @Override
-  public boolean isOpen() {
-    return mLocalFileChannel.isOpen();
-  }
-
-  @Override
-  public void close() throws IOException {
-    mCloser.close();
+  /**
+   * Check the bounds for reading
+   * 
+   * @return actual read length
+   * @throws IOException
+   */
+  private int checkBounds(long position, int length) throws IOException {
+    long fileLength = mLocalFile.length();
+    String error = null;
+    if (position < 0 || position > fileLength) {
+      error = String.format("Invalid start position(%d), file length(%d)",
+          position, fileLength);
+    } else if (length != -1 && length < 0) {
+      error = String.format("Length(%d) can not be negative except -1", length);
+    } else if (position + length > fileLength) {
+      error =
+          String.format("Start position(%d) plus length(%d) is larger than file length(%d)",
+              position, length, fileLength);
+    }
+    if (error != null) {
+      throw new IOException(error);
+    }
+    if (length == -1) {
+      return (int) (fileLength - position);
+    }
+    return length;
   }
 
   /**
@@ -92,24 +98,43 @@ final class BlockHandlerLocal implements BlockHandler {
     }
   }
 
-  @Override
+  public void close() throws IOException {
+    mCloser.close();
+  }
+
   public FileRegion getFileRegion(long offset, long length) {
     return new DefaultFileRegion(mLocalFileChannel, offset, length);
   }
 
-  @Override
-  public long position() throws IOException {
-    return mLocalFileChannel.position();
+  public boolean isOpen() {
+    return mLocalFileChannel.isOpen();
   }
 
-  @Override
-  public BlockHandler position(long newPosition) throws IOException {
-    mLocalFileChannel.position(newPosition);
-    return this;
+  public int read(ByteBuffer buf) throws IOException {
+    return mLocalFileChannel.read(buf);
   }
 
-  @Override
-  public long transferTo(long position, long count, WritableByteChannel target) throws IOException {
-    return mLocalFileChannel.transferTo(position, count, target);
+  public ByteBuffer read(long position, int length) throws IOException {
+    int readLen = checkBounds(position, length);
+    return mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, position, readLen);
+  }
+
+  public long transferTo(long position, long length, BlockHandler dest) throws IOException {
+    return mLocalFileChannel.transferTo(position, length, dest);
+  }
+
+  public int write(ByteBuffer buf) throws IOException {
+    return mLocalFileChannel.write(buf);
+  }
+
+  public int write(long position, ByteBuffer buf) throws IOException {
+    checkPermission();
+    int bufLen = buf.limit();
+    ByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, position, bufLen);
+    out.put(buf);
+    CommonUtils.cleanDirectBuffer(buf);
+    CommonUtils.cleanDirectBuffer(out);
+
+    return bufLen;
   }
 }

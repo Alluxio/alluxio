@@ -49,30 +49,43 @@ public class BlockHandlerLocalTest {
     mTfs = mLocalTachyonCluster.getClient();
   }
 
-  private void bufferReadTest(boolean direct) throws IOException {
+  @Test
+  public void readTest() throws IOException {
     int fileId = TestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
     TachyonFile file = mTfs.getFile(fileId);
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.Factory.get(filename);
-    ByteBuffer buf;
-    if (direct) {
-      buf = ByteBuffer.allocateDirect(100);
-    } else {
-      buf = ByteBuffer.allocate(100);
-    }
+    ByteBuffer buf = handler.read(0, -1);
+    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(100), buf);
+    buf = handler.read(0, 10);
+    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf);
+
+    Exception e = null;
     try {
-      long pos = handler.position();
-      Assert.assertEquals(0, pos);
-      int len = handler.read(buf);
-      buf.flip();
-      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(100), buf);
-      Assert.assertEquals(100, handler.position());
-      Assert.assertEquals(100, len);
-      handler.position(10);
-      Assert.assertEquals(10, handler.position());
-    } finally {
-      handler.close();
+      handler.read(0, -10);
+    } catch (IOException ioe) {
+      e = ioe;
     }
+    Assert.assertEquals("Length(-10) can not be negative except -1", e.getMessage());
+    try {
+      handler.read(-1, 10);
+    } catch (IOException ioe) {
+      e = ioe;
+    }
+    Assert.assertEquals("Invalid start position(-1), file length(100)", e.getMessage());
+    try {
+      handler.read(100, 1);
+    } catch (IOException ioe) {
+      e = ioe;
+    }
+    Assert.assertEquals("Start position(100) plus length(1) is larger than file length(100)",
+        e.getMessage());
+    try {
+      handler.read(101, 10);
+    } catch (IOException ioe) {
+      e = ioe;
+    }
+    Assert.assertEquals("Invalid start position(101), file length(100)", e.getMessage());
   }
 
   private void bufferWriteTest(boolean direct) throws IOException {
@@ -90,7 +103,7 @@ public class BlockHandlerLocalTest {
     String filename = mTfs.getLocalBlockTemporaryPath(blockId, 100);
     BlockHandler handler = BlockHandler.Factory.get(filename);
     try {
-      handler.write(buf);
+      handler.write(0, buf);
     } finally {
       handler.close();
     }
@@ -98,12 +111,6 @@ public class BlockHandlerLocalTest {
     TachyonFile file = mTfs.getFile(fileId);
     long fileLen = file.length();
     Assert.assertEquals(100, fileLen);
-  }
-
-  @Test
-  public void readTest() throws IOException {
-    bufferReadTest(false);
-    bufferReadTest(true);
   }
 
   @Test

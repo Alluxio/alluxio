@@ -16,13 +16,11 @@
 package tachyon.worker.netty;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.List;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
 import com.google.common.primitives.Longs;
@@ -76,18 +74,11 @@ public final class BlockResponse {
                 .getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.TRANSFER);
         switch (type) {
           case MAPPED:
-            ByteBuffer buffer = ByteBuffer.allocate((int)msg.getLength());
-            try {
-              handler.position(msg.getOffset()).read(buffer);
-            } finally {
-              handler.close();
-            }
-            buffer.flip();
+            ByteBuffer buffer = handler.read(msg.getOffset(), (int)msg.getLength());
             out.add(Unpooled.wrappedBuffer(buffer));
             break;
           default: // TRANSFER
             out.add(handler.getFileRegion(msg.getOffset(), (int)msg.getLength()));
-            handler.close();
             break;
         }
       }

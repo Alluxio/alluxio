@@ -102,7 +102,7 @@ public class StorageTierTest {
     dir.requestSpace(USER_ID, blockSize);
     dir.updateTempBlockAllocatedBytes(USER_ID, blockId, blockSize);
     try {
-      bhSrc.write(ByteBuffer.wrap(buf));
+      bhSrc.write(0, ByteBuffer.wrap(buf));
     } finally {
       bhSrc.close();
     }
