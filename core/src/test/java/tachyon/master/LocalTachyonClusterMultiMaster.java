@@ -31,7 +31,6 @@ import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
 import tachyon.worker.TachyonWorker;
 
 /**
@@ -184,8 +183,8 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
     
-    // Since tests are always running on a single host keep the resolution timeout low as otherwise people
-    // running with strange network configurations will see very slow tests
+    // Since tests are always running on a single host keep the resolution timeout low as otherwise
+    // people running with strange network configurations will see very slow tests
     mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     for (int level = 1; level < maxLevel; level ++) {
@@ -199,9 +198,14 @@ public class LocalTachyonClusterMultiMaster {
           newPath.substring(0, newPath.length() - 1));
     }
 
-    mWorker =
-        TachyonWorker.createWorker(mCuratorServer.getConnectString().split(":")[0],
-            mCuratorServer.getPort(), 0, 0, 1, 100, mWorkerConf);
+    mWorkerConf.set(Constants.MASTER_ADDRESS, mCuratorServer.getConnectString().split(":")[0]);
+    mWorkerConf.set(Constants.MASTER_PORT, mCuratorServer.getPort() + "");
+    mWorkerConf.set(Constants.WORKER_PORT, "0");
+    mWorkerConf.set(Constants.WORKER_DATA_PORT, "0");
+    mWorkerConf.set(Constants.WORKER_MIN_WORKER_THREADS, "1");
+    mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, "100");
+    
+    mWorker = TachyonWorker.createWorker(mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
