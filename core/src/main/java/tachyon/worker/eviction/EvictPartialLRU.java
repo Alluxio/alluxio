@@ -46,7 +46,7 @@ public final class EvictPartialLRU extends EvictLRUBase {
         Pair<Long, Long> oldestAccess = getLRUBlock(dirSelected, blockIdSet, pinList);
         if (oldestAccess.getFirst() != -1) {
           long blockSize = dirSelected.getBlockSize(oldestAccess.getFirst());
-          if (blockSize > 0) {
+          if (blockSize != -1) {
             sizeToEvict += blockSize;
             blockInfoList.add(new BlockInfo(dirSelected, oldestAccess.getFirst(), blockSize));
             blockIdSet.add(oldestAccess.getFirst());
