@@ -55,41 +55,39 @@ public class TachyonWorker implements Runnable {
 
   /**
    * Create a new TachyonWorker
-   *
-   * @param masterAddress The TachyonMaster's address
-   * @param workerAddress This TachyonWorker's address
-   * @param dataPort This TachyonWorker's data server's port
-   * @param minWorkerThreads The min number of worker threads used in TThreadPoolServer
-   * @param maxWorkerThreads The max number of worker threads used in TThreadPoolServer
-   * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to used by Worker.
-   * @return The new TachyonWorker
-   */
-  public static synchronized TachyonWorker createWorker(InetSocketAddress masterAddress,
-      InetSocketAddress workerAddress, int dataPort, int minWorkerThreads, int maxWorkerThreads,
-      TachyonConf tachyonConf) {
-    return new TachyonWorker(masterAddress, workerAddress, dataPort, minWorkerThreads,
-        maxWorkerThreads, tachyonConf);
-  }
-
-  /**
-   * Create a new TachyonWorker
    * 
-   * @param masterAddress The TachyonMaster's address. e.g., localhost:19998
-   * @param workerAddress This TachyonWorker's address. e.g., localhost:29998
+   * @param masterAddress The TachyonMaster's address. e.g., localhost
+   * @param masterPort The TachyonMaster's port. e.g., 19998
+   * @param workerPort This TachyonWorker's port. e.g., 29998
    * @param dataPort This TachyonWorker's data server's port
    * @param minWorkerThreads The min number of worker threads used in TThreadPoolServer
    * @param maxWorkerThreads The max number of worker threads used in TThreadPoolServer
    * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to used by Worker.
    * @return The new TachyonWorker
    */
-  public static synchronized TachyonWorker createWorker(String masterAddress, String workerAddress,
-      int dataPort, int minWorkerThreads, int maxWorkerThreads, TachyonConf tachyonConf) {
-    String[] address = masterAddress.split(":");
-    InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
-    address = workerAddress.split(":");
-    InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
-    return new TachyonWorker(master, worker, dataPort, minWorkerThreads, maxWorkerThreads,
-        tachyonConf);
+  public static synchronized TachyonWorker createWorker(String masterAddress, int masterPort,
+      int workerPort, int dataPort, int minWorkerThreads, int maxWorkerThreads,
+      TachyonConf tachyonConf) {
+    if (masterAddress != null) {
+      tachyonConf.set(Constants.MASTER_ADDRESS, masterAddress);
+    }
+    if (masterPort >= 0) {
+      tachyonConf.set(Constants.MASTER_PORT, masterPort + "");
+    }
+    if (workerPort >= 0) {
+      tachyonConf.set(Constants.WORKER_PORT, workerPort + "");
+    }
+    if (dataPort >= 0) {
+      tachyonConf.set(Constants.WORKER_DATA_PORT, dataPort + "");
+    }
+    if (minWorkerThreads > 0) {
+      tachyonConf.set(Constants.WORKER_MIN_WORKER_THREADS, minWorkerThreads + "");
+    }
+    if (maxWorkerThreads > 0) {
+      tachyonConf.set(Constants.WORKER_MAX_WORKER_THREADS, maxWorkerThreads + "");
+    }
+
+    return createWorker(tachyonConf);
   }
 
   /**
