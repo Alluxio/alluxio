@@ -55,8 +55,6 @@ public class Constants {
   public static final int DEFAULT_WORKER_DATA_SERVER_PORT = DEFAULT_WORKER_PORT + 1;
   public static final int DEFAULT_WORKER_WEB_PORT = DEFAULT_WORKER_PORT + 2;
 
-  public static final int DEFAULT_NAMENODE_PORT = 50010;
-
   public static final int DEFAULT_MASTER_MAX_WORKER_THREADS = 2048;
   public static final int DEFAULT_WORKER_MAX_WORKER_THREADS = 2048;
 
