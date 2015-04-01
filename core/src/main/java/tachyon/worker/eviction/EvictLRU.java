@@ -57,7 +57,7 @@ public final class EvictLRU extends EvictLRUBase {
       long blockId = candidate.getSecond();
       long blockSize = dir.getBlockSize(blockId);
       long evictBytes = sizeToEvict.containsKey(dir) ? sizeToEvict.get(dir) : 0L;
-      if (blockSize > 0) {
+      if (blockSize != -1) {
         // Add info of the block to the list
         blockInfoList.add(new BlockInfo(dir, blockId, blockSize));
         dir2BlocksToEvict.put(dir, blockId);
