@@ -74,10 +74,10 @@ public abstract class UnderFileSystem {
 
     if (isHadoopUnderFS(path, tachyonConf)) {
       return UnderFileSystemHdfs.getClient(path, conf, tachyonConf);
-    } else if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
-      return UnderFileSystemSingleLocal.getClient(tachyonConf);
     } else if (isDummyUnderFS(tachyonConf)) {
       return UnderFileSystemDummy.getClient(tachyonConf);
+    } else if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
+      return UnderFileSystemSingleLocal.getClient(tachyonConf);
     }
     throw new IllegalArgumentException("Unknown under file system scheme " + path);
   }

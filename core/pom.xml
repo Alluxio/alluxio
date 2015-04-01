@@ -219,7 +219,6 @@
           <name>test.profile</name>
           <value>dummyUFS</value>
         </property>
-        <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
         <ufs>tachyon.DummyFilesystemCluster</ufs>

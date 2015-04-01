@@ -25,24 +25,14 @@ import tachyon.conf.TachyonConf;
 public class DummyFilesystemCluster extends UnderFileSystemCluster {
 
   private boolean mIsStarted = false;
+  private UnderFileSystem mUfs = null;
 
   public DummyFilesystemCluster(String dfsBaseDirs, TachyonConf tachyonConf) {
     super(dfsBaseDirs, tachyonConf);
   }
 
-  public static boolean mkdirs(String path, TachyonConf tachyonConf) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
+  public static boolean mkdirs(String path, UnderFileSystem ufs) throws IOException {
     return ufs.mkdirs(path, true);
-  }
-
-  private void delete(String path, boolean isRecursively) throws IOException {
-    File file = new File(path);
-    if (isRecursively && file.isDirectory()) {
-      for (File subdir : file.listFiles()) {
-        delete(subdir.getAbsolutePath(), isRecursively);
-      }
-    }
-    file.delete();
   }
 
   @Override
@@ -58,6 +48,7 @@ public class DummyFilesystemCluster extends UnderFileSystemCluster {
   @Override
   public void shutdown() throws IOException {
     if (mIsStarted) {
+      mUfs = null;
       mIsStarted = false;
     }
   }
@@ -65,7 +56,8 @@ public class DummyFilesystemCluster extends UnderFileSystemCluster {
   @Override
   public void start() throws IOException {
     if (!mIsStarted) {
-      if (!mkdirs(mBaseDir, mTachyonConf)) {
+      mUfs = new UnderFileSystemDummy(null);
+      if (!mkdirs(mBaseDir, mUfs)) {
         throw new IOException("Failed to make folder: " + mBaseDir);
       }
       mIsStarted = true;
