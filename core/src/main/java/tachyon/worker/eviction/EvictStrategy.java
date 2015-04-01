@@ -28,8 +28,7 @@ import tachyon.worker.hierarchy.StorageDir;
  * when actually evicting blocks, some blocks may be not allowed to be evicted, it may result in
  * having to try more than one time to get enough space.
  */
-public interface EvictStrategy {
-
+public abstract class EvictStrategy {
   /**
    * Get StorageDir allocated and also get blocks to be evicted among StorageDir candidates
    *
@@ -39,6 +38,51 @@ public interface EvictStrategy {
    * @return Pair of StorageDir allocated and blockInfoList which contains information of blocks to
    *         be evicted, null if no allocated directory is found
    */
-  public Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
+  public abstract Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
       Set<Integer> pinList, long requestBytes);
+
+  /**
+   * Actions to take when the new block is added
+   */
+  public void onAdd(long blockId) {}
+
+  /**
+   * Actions to take when cache the block
+   */
+  public void onCache(long blockId) {}
+
+  /**
+   * Actions to take when cancel the block
+   */
+  public void onCancel(long blockId) {}
+
+  /**
+   * Actions to take when copy the block
+   */
+  public void onCopy(long blockId) {}
+
+  /**
+   * Actions to take when delete the block
+   */
+  public void onDelete(long blockId) {}
+
+  /**
+   * Actions to take when lock the block
+   */
+  public void onLock(long blockId) {}
+
+  /**
+   * Actions to take when move the block
+   */
+  public void onMove(long blockId) {}
+
+  /**
+   * Actions to take when read the block
+   */
+  public void onRead(long blockId) {}
+
+  /**
+   * Actions to take when unlock the block
+   */
+  public void onUnLock(long blockId) {}
 }

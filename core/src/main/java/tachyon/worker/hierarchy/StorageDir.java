@@ -46,6 +46,7 @@ import tachyon.Users;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.SpaceCounter;
+import tachyon.worker.eviction.EvictStrategy;
 
 /**
  * Stores and manages block files in storage's directory in different storage systems.
@@ -89,6 +90,8 @@ public final class StorageDir {
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
   /** TachyonConf for this StorageDir **/
   private final TachyonConf mTachyonConf;
+  /** Reference to mBlockEvictor in the StorageTier it belongs to **/
+  private EvictStrategy mEvictor = null;
 
   /**
    * Create a new StorageDir.
@@ -147,6 +150,9 @@ public final class StorageDir {
    */
   private void addBlockId(long blockId, long sizeBytes, long accessTimeMs, boolean report) {
     synchronized (mLastBlockAccessTimeMs) {
+      if (mEvictor != null) {
+        mEvictor.onAdd(blockId);
+      }
       mLastBlockAccessTimeMs.put(blockId, accessTimeMs);
       if (mBlockSizes.containsKey(blockId)) {
         mSpaceCounter.returnUsedBytes(mBlockSizes.remove(blockId));
@@ -185,6 +191,9 @@ public final class StorageDir {
     if (mFs.rename(srcPath, dstPath)) {
       addBlockId(blockId, blockSize, false);
       updateUserOwnBytes(userId, -blockSize);
+      if (mEvictor != null) {
+        mEvictor.onCache(blockId);
+      }
       return true;
     } else {
       return false;
@@ -199,7 +208,7 @@ public final class StorageDir {
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public boolean cancelBlock(long userId, long blockId) throws IOException {  
+  public boolean cancelBlock(long userId, long blockId) throws IOException {
     String filePath = getUserTempFilePath(userId, blockId);
     Long allocatedBytes = mTempBlockAllocatedBytes.remove(new Pair<Long, Long>(userId, blockId));
     if (allocatedBytes == null) {
@@ -207,6 +216,9 @@ public final class StorageDir {
     }
     returnSpace(userId, allocatedBytes);
     if (!mFs.exists(filePath)) {
+      if (mEvictor != null) {
+        mEvictor.onCancel(blockId);
+      }
       return true;
     } else {
       return mFs.delete(filePath, false);
@@ -273,6 +285,9 @@ public final class StorageDir {
       CommonUtils.cleanDirectBuffer(buffer);
     }
     if (copySuccess) {
+      if (mEvictor != null) {
+        mEvictor.onCopy(blockId);
+      }
       dstDir.addBlockId(blockId, size, mLastBlockAccessTimeMs.get(blockId), true);
     }
     return copySuccess;
@@ -293,7 +308,7 @@ public final class StorageDir {
       return false;
     }
     String blockfile = getBlockFilePath(blockId);
-    // Should check lock status here 
+    // Should check lock status here
     if (!isBlockLocked(blockId)) {
       if (!mFs.delete(blockfile, false)) {
         LOG.error("Failed to delete block file! filename:{}", blockfile);
@@ -314,6 +329,9 @@ public final class StorageDir {
    */
   private void deleteBlockId(long blockId) {
     synchronized (mLastBlockAccessTimeMs) {
+      if (mEvictor != null) {
+        mEvictor.onDelete(blockId);
+      }
       mLastBlockAccessTimeMs.remove(blockId);
       mSpaceCounter.returnUsedBytes(mBlockSizes.remove(blockId));
       if (mAddedBlockIdList.contains(blockId)) {
@@ -359,6 +377,9 @@ public final class StorageDir {
     } finally {
       bh.close();
       accessBlock(blockId);
+      if (mEvictor != null) {
+        mEvictor.onRead(blockId);
+      }
     }
   }
 
@@ -622,6 +643,9 @@ public final class StorageDir {
       }
       mUserPerLockedBlock.put(blockId, userId);
       mLockedBlocksPerUser.put(userId, blockId);
+      if (mEvictor != null) {
+        mEvictor.onLock(blockId);
+      }
       return true;
     }
   }
@@ -643,6 +667,9 @@ public final class StorageDir {
         unlockBlock(blockId, Users.MIGRATE_DATA_USER_ID);
       }
       if (result) {
+        if (mEvictor != null) {
+          mEvictor.onMove(blockId);
+        }
         return deleteBlock(blockId);
       }
     }
@@ -687,6 +714,10 @@ public final class StorageDir {
     updateUserOwnBytes(userId, -size);
   }
 
+  public void setEvictStrategy(EvictStrategy evictor) {
+    mEvictor = evictor;
+  }
+
   /**
    * Unlock block by some user
    * 
@@ -708,6 +739,9 @@ public final class StorageDir {
           LOG.error(e.getMessage(), e);
           return false;
         }
+      }
+      if (mEvictor != null) {
+        mEvictor.onUnLock(blockId);
       }
       return true;
     }

@@ -33,7 +33,6 @@ public final class EvictPartialLRU extends EvictLRUBase {
     super(lastTier);
   }
 
-  @Override
   public synchronized Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
       Set<Integer> pinList, long requestBytes) {
     List<BlockInfo> blockInfoList = new ArrayList<BlockInfo>();

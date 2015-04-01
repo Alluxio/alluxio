@@ -26,7 +26,7 @@ import tachyon.worker.hierarchy.StorageDir;
 /**
  * Base class for evicting blocks by LRU strategy.
  */
-public abstract class EvictLRUBase implements EvictStrategy {
+public abstract class EvictLRUBase extends EvictStrategy {
   private final boolean mLastTier;
 
   protected EvictLRUBase(boolean lastTier) {
