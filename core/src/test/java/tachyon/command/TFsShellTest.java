@@ -477,7 +477,19 @@ public class TFsShellTest {
 
   @Test
   public void rmNotExistingFileTest() throws IOException {
-    Assert.assertEquals(0, mFsShell.rm(new String[] {"rm", "/testFile"}));
+    mFsShell.rm(new String[] {"rm", "/testFile"});
+    String expected= "rm: cannot remove '/testFile': No such file or directory\n";
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  @Test
+  public void rmNotExistingDirTest() throws IOException {
+    StringBuilder toCompare = new StringBuilder();
+    mFsShell.mkdir(new String[] {"mkdir", "/testFolder"});
+    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
+    mFsShell.rm(new String[] {"rm", "/testFolder"});
+    toCompare.append("rm: cannot remove a directory, please try rmr <path>\n");
+    Assert.assertEquals(toCompare.toString(), mOutput.toString());
   }
 
   @Test
