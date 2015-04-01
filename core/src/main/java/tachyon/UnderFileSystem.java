@@ -77,7 +77,7 @@ public abstract class UnderFileSystem {
     } else if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient(tachyonConf);
     } else if (isDummyUnderFS(tachyonConf)) {
-        return UnderFileSystemDummy.getClient(tachyonConf);
+      return UnderFileSystemDummy.getClient(tachyonConf);
     }
     throw new IllegalArgumentException("Unknown under file system scheme " + path);
   }
