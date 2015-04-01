@@ -76,8 +76,20 @@ public abstract class UnderFileSystem {
       return UnderFileSystemHdfs.getClient(path, conf, tachyonConf);
     } else if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient(tachyonConf);
+    } else if (isDummyUnderFS(tachyonConf)) {
+        return UnderFileSystemDummy.getClient(tachyonConf);
     }
     throw new IllegalArgumentException("Unknown under file system scheme " + path);
+  }
+
+  /**
+   * Determines if this is a dummy UnderFS.
+   */
+  public static boolean isDummyUnderFS(TachyonConf tachyonConf) {
+    if (tachyonConf.get(Constants.UNDERFS_ADDRESS, null).startsWith("Dummy")) {
+      return true;
+    }
+    return false;
   }
 
   /**
