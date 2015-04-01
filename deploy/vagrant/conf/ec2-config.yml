@@ -22,6 +22,14 @@ Availability_Zone: "us-east-1b"
 
 Instance_Type: "m1.small"
 
+# Block Device Mapping, modify this if you want your instance to have more than
+# 10.7 GB Storage
+Block_Device_Mapping:
+  - DeviceName: "/dev/sda1"
+    VirtualName: "root"
+    Ebs.VolumeSize: "75"
+    Ebs.DeleteOnTermination: "true"
+
 # tag to the instance name
 # to avoid name conflict during mutiple deployment
 Tag: "my-"
