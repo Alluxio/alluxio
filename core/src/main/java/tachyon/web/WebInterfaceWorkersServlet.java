@@ -99,7 +99,7 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
   private static final long serialVersionUID = -7454493761603179826L;
 
   private final transient MasterInfo mMasterInfo;
-  private final TachyonConf mTachyonConf;
+  private final transient TachyonConf mTachyonConf;
 
   public WebInterfaceWorkersServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
