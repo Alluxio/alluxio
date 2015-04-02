@@ -176,7 +176,9 @@ public class BlockInfo {
               resolvedHost = NetworkUtils.resolveHostName(ipport[0]);
               resolvedPort = Integer.parseInt(ipport[1]);
             }
-          } catch (UnknownHostException e) {
+          } catch (UnknownHostException uhe) {
+            continue;
+          } catch (NumberFormatException nfe) {
             continue;
           }
           ret.add(new NetAddress(resolvedHost, resolvedPort, -1));
