@@ -213,7 +213,7 @@ public final class EditLog {
       while (ufs.exists(toDelete)) {
         LOG.info("Deleting editlog " + toDelete);
         ufs.delete(toDelete, true);
-        sBackUpLogStartNum++;
+        sBackUpLogStartNum ++;
         toDelete = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
       }
     } catch (IOException e) {
@@ -279,7 +279,7 @@ public final class EditLog {
           mUfs.rename(toRename, dstPath);
           LOG.info("Rename " + toRename + " to " + dstPath);
           currentLogFileNum ++;
-          sBackUpLogStartNum++;
+          sBackUpLogStartNum ++;
           toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
           dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
         }

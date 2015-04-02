@@ -16,7 +16,6 @@ package tachyon.master;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +31,6 @@ import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
 import tachyon.worker.TachyonWorker;
 
 /**
@@ -65,8 +63,6 @@ public class LocalTachyonClusterMultiMaster {
   private String mWorkerDataFolder;
 
   private Thread mWorkerThread = null;
-
-  private String mLocalhostName = null;
 
   private final List<LocalTachyonMaster> mMasters = new ArrayList<LocalTachyonMaster>();
 
@@ -145,8 +141,6 @@ public class LocalTachyonClusterMultiMaster {
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
 
-    mLocalhostName = NetworkUtils.getLocalHostName(100);
-
     mMasterConf = new TachyonConf();
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
@@ -189,8 +183,8 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
     
-    // Since tests are always running on a single host keep the resolution timeout low as otherwise people
-    // running with strange network configurations will see very slow tests
+    // Since tests are always running on a single host keep the resolution timeout low as otherwise
+    // people running with strange network configurations will see very slow tests
     mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     for (int level = 1; level < maxLevel; level ++) {
@@ -204,10 +198,14 @@ public class LocalTachyonClusterMultiMaster {
           newPath.substring(0, newPath.length() - 1));
     }
 
-    mWorker =
-        TachyonWorker.createWorker(
-            CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 100, mWorkerConf);
+    mWorkerConf.set(Constants.MASTER_ADDRESS, mCuratorServer.getConnectString().split(":")[0]);
+    mWorkerConf.set(Constants.MASTER_PORT, mCuratorServer.getPort() + "");
+    mWorkerConf.set(Constants.WORKER_PORT, "0");
+    mWorkerConf.set(Constants.WORKER_DATA_PORT, "0");
+    mWorkerConf.set(Constants.WORKER_MIN_WORKER_THREADS, "1");
+    mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, "100");
+    
+    mWorker = TachyonWorker.createWorker(mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
@@ -220,9 +218,6 @@ public class LocalTachyonClusterMultiMaster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
-
-    mWorkerConf.set(Constants.WORKER_PORT, mWorker.getMetaPort() + "");
-    mWorkerConf.set(Constants.WORKER_DATA_PORT, mWorker.getDataPort() + "");
   }
 
   public void stop() throws Exception {

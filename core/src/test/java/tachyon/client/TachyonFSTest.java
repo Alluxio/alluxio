@@ -33,7 +33,6 @@ import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
 
 /**
  * Unit tests on TachyonClient (Reuse the LocalTachyonCluster).
@@ -361,8 +360,6 @@ public class TachyonFSTest {
     TachyonFS tfs = null;
     String[] originUrls =
         new String[] {"tachyon://127.0.0.1:19998", "tachyon-ft://127.0.0.1:19998",};
-    String localhost = NetworkUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
-    String localIP = NetworkUtils.getLocalIpAddress(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
     String[] resultUrls =
         new String[] {"tachyon://localhost/127.0.0.1:19998", "tachyon-ft://localhost/127.0.0.1:19998",};
     for (int i = 0, n = originUrls.length; i < n; i ++) {
