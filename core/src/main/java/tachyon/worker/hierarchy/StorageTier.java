@@ -279,8 +279,7 @@ public class StorageTier {
         Pair<StorageDir, List<BlockInfo>> evictInfo =
             mBlockEvictor.getDirCandidate(dirs, pinList, requestSizeBytes);
         if (evictInfo == null) {
-          // Nothing to evict. The blocks may have been deleted. Try to allocate space again.
-          return mSpaceAllocator.getStorageDir(dirs, userId, requestSizeBytes);
+          return null;
         }
         dirSelected = evictInfo.getFirst();
         List<BlockInfo> blocksInfoList = evictInfo.getSecond();
