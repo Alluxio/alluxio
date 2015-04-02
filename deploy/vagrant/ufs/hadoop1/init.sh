@@ -22,10 +22,10 @@ then
     ln -s `pwd`/hadoop-${HADOOP_VERSION} /hadoop
 
     # setup hadoop
-    rm -f /hadoop/conf/workers
+    rm -f /hadoop/conf/slaves
     for i in ${NODES[@]}
     do 
-        echo $i >> /hadoop/conf/workers
+        echo $i >> /hadoop/conf/slaves
     done
 
     # choose the last node as namenode
