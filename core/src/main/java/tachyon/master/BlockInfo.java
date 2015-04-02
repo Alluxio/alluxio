@@ -173,13 +173,11 @@ public class BlockInfo {
           try {
             String[] ipport = loc.split(":");
             if (ipport.length == 2) {
-              resolvedHost = ipport[0];
-
-              resolvedHost = NetworkUtils.resolveHostName(resolvedHost);
+              resolvedHost = NetworkUtils.resolveHostName(ipport[0]);
               resolvedPort = Integer.parseInt(ipport[1]);
             }
           } catch (UnknownHostException e) {
-            return ret;
+            continue;
           }
           ret.add(new NetAddress(resolvedHost, resolvedPort, -1));
         }
