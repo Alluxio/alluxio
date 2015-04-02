@@ -24,13 +24,17 @@ NODELIST=$TACHYON_PERF_CONF_DIR/slaves
 taskid=0
 SLAVES=`cat "$NODELIST"|sed  "s/#.*$//;/^$/d"`
 UNIQ_SLAVES=`sort "$NODELIST" | uniq | sed  "s/#.*$//;/^$/d"`
-for slave in $UNIQ_SLAVES; do
-  echo -n "Copy configurations to $slave... "
-  scp $TACHYON_PERF_CONF_DIR/tachyon-perf-env.sh $slave:$TACHYON_PERF_CONF_DIR/tachyon-perf-env.sh
-  scp $TACHYON_PERF_CONF_DIR/testsuite/$1.xml $slave:$TACHYON_PERF_CONF_DIR/testsuite/$1.xml
-  sleep 0.02
-done
-wait
+if [ $TACHYON_PERF_SHARED_FS = "true" ]; then
+  echo "Installed on a Shared File System, no configuration copy needed"
+else
+  for slave in $UNIQ_SLAVES; do
+    echo -n "Copy configurations to $slave... "
+    scp $TACHYON_PERF_CONF_DIR/tachyon-perf-env.sh $slave:$TACHYON_PERF_CONF_DIR/tachyon-perf-env.sh
+    scp $TACHYON_PERF_CONF_DIR/testsuite/$1.xml $slave:$TACHYON_PERF_CONF_DIR/testsuite/$1.xml
+    sleep 0.02
+  done
+  wait
+fi
 
 for slave in $UNIQ_SLAVES; do
   slavenum=`echo $SLAVES | grep -o "$slave" | wc -l`
