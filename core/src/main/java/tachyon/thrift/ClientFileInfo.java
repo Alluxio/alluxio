@@ -225,6 +225,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   }
 
   public ClientFileInfo() {
+    this.blockIds = new ArrayList<Long>();
+
   }
 
   public ClientFileInfo(
@@ -329,7 +331,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     this.isPinned = false;
     setIsCacheIsSet(false);
     this.isCache = false;
-    this.blockIds = null;
+    this.blockIds = new ArrayList<Long>();
+
     setDependencyIdIsSet(false);
     this.dependencyId = 0;
     setInMemoryPercentageIsSet(false);
