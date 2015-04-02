@@ -15,11 +15,9 @@
 
 package tachyon;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import tachyon.conf.TachyonConf;
 
@@ -28,7 +26,7 @@ import tachyon.conf.TachyonConf;
  * 
  * This is used when we use Tachyon as pure cache without any backing store
  */
-public class UnderFileSystemDummy extends UnderFileSystem {
+public class UnderFileSystemDummy extends UnderFileSystemSingleLocal {
 
   protected UnderFileSystemDummy(TachyonConf tachyonConf) {
     super(tachyonConf);
@@ -37,9 +35,6 @@ public class UnderFileSystemDummy extends UnderFileSystem {
   public static UnderFileSystem getClient(TachyonConf tachyonConf) {
     return new UnderFileSystemDummy(tachyonConf);
   }
-
-  @Override
-  public void close() throws IOException {}
 
   @Override
   public OutputStream create(String path) throws IOException {
@@ -57,6 +52,19 @@ public class UnderFileSystemDummy extends UnderFileSystem {
   }
 
   @Override
+  public InputStream open(String path) throws IOException {
+    if (exists(path)) {
+      super.open(path);
+    }
+    return new DummyFileInputStream();
+  }
+
+  @Override
+  public boolean rename(String src, String dst) throws IOException {
+    return true;
+  }
+
+  @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     return true;
   }
@@ -68,46 +76,49 @@ public class UnderFileSystemDummy extends UnderFileSystem {
 
   @Override
   public long getBlockSizeByte(String path) throws IOException {
+    if (super.exists(path)) {
+      return super.getBlockSizeByte(path);
+    }
     return 0;
   }
 
   @Override
-  public Object getConf() {
-    return new Object();
-  }
-
-  @Override
-  public List<String> getFileLocations(String path) throws IOException {
-    return new ArrayList<String>();
-  }
-
-  @Override
-  public List<String> getFileLocations(String path, long offset) throws IOException {
-    return new ArrayList<String>();
-  }
-
-  @Override
   public long getFileSize(String path) throws IOException {
+    if (super.exists(path)) {
+      return super.getFileSize(path);
+    }
     return 0;
   }
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
+    if (super.exists(path)) {
+      return super.getModificationTimeMs(path);
+    }
     return 0;
   }
 
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
+    if (super.exists(path)) {
+      return super.getSpace(path, type);
+    }
     return 0;
   }
 
   @Override
   public boolean isFile(String path) throws IOException {
+    if (super.exists(path)) {
+      return super.isFile(path);
+    }
     return true;
   }
 
   @Override
   public String[] list(String path) throws IOException {
+    if (super.exists(path)) {
+      super.list(path);
+    }
     return new String[0];
   }
 
@@ -115,19 +126,6 @@ public class UnderFileSystemDummy extends UnderFileSystem {
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     return true;
   }
-
-  @Override
-  public InputStream open(String path) throws IOException {
-    return new DummyFileInputStream();
-  }
-
-  @Override
-  public boolean rename(String src, String dst) throws IOException {
-    return true;
-  }
-
-  @Override
-  public void setConf(Object conf) {}
 
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {}
