@@ -207,6 +207,17 @@ public class TachyonConf {
   /**
    * Merge configuration properties with the other one. New one wins for duplicate
    *
+   * @param props The source properties to be merged.
+   */
+  public void merge(Properties props) {
+    if (props != null) {
+      mProperties.putAll(props);
+    }
+  }
+
+  /**
+   * Merge configuration properties with the other one. New one wins for duplicate
+   *
    * @param alternateConf The source <code>TachyonConf</code> to be merged.
    */
   public void merge(TachyonConf alternateConf) {

@@ -18,6 +18,7 @@ package tachyon.master;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Properties;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -65,10 +66,20 @@ public final class LocalTachyonCluster {
 
   private TachyonConf mWorkerConf;
 
+  private Properties mMasterProperties;
+  private Properties mWorkerProperties;
+
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
     mQuotaUnitBytes = quotaUnitBytes;
     mUserBlockSize = userBlockSize;
+  }
+
+  public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize,
+      Properties masterProps, Properties workerProps) {
+    this(workerCapacityBytes, quotaUnitBytes, userBlockSize);
+    mMasterProperties = masterProps;
+    mWorkerProperties = workerProps;
   }
 
   public TachyonFS getClient() throws IOException {
@@ -182,6 +193,10 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
     mMasterConf.set(Constants.WEB_THREAD_COUNT, "1");
 
+    if (mMasterProperties != null) {
+      mMasterConf.merge(mMasterProperties);
+    }
+
     // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
     mkdir(mTachyonHome);
@@ -215,6 +230,10 @@ public final class LocalTachyonCluster {
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
     mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
+
+    if (mWorkerProperties != null) {
+      mWorkerConf.merge(mWorkerProperties);
+    }
 
     int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, 1);
     for (int level = 1; level < maxLevel; level ++) {
