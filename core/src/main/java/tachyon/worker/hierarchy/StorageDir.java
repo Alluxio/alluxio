@@ -274,9 +274,9 @@ public final class StorageDir {
       CommonUtils.cleanDirectBuffer(buffer);
     }
     if (copySuccess) {
-      Long accessTime = mLastBlockAccessTimeMs.get(blockId);
-      if (accessTime != null) {
-        dstDir.addBlockId(blockId, size, accessTime, true);
+      Long accessTimeMs = mLastBlockAccessTimeMs.get(blockId);
+      if (accessTimeMs != null) {
+        dstDir.addBlockId(blockId, size, accessTimeMs, true);
       } else {
         // The block had been freed during our copy. Because we lock the block before copy, the
         // actual block file is not deleted but the blockId is deleted from mLastBlockAccessTimeMs.
