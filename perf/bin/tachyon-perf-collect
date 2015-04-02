@@ -26,9 +26,13 @@ mkdir -p $TACHYON_PERF_OUT_REPORTS_DIR
 
 taskid=0
 for slave in `cat "$NODELIST"|sed  "s/#.*$//;/^$/d"`; do
-  echo -n "Collect from $slave... "
-  scp $slave:$TACHYON_PERF_OUT_DIR/context$1-$taskid@$slave $TACHYON_PERF_OUT_REPORTS_DIR/context$1-$taskid@$slave
-  sleep 0.02
+  if [ $TACHYON_PERF_SHARED_FS = "true" ]; then
+    cp $TACHYON_PERF_OUT_DIR/context$1-$taskid@$slave $TACHYON_PERF_OUT_REPORTS_DIR/context$1-$taskid@$slave
+  else 
+    echo -n "Collect from $slave... "
+    scp $slave:$TACHYON_PERF_OUT_DIR/context$1-$taskid@$slave $TACHYON_PERF_OUT_REPORTS_DIR/context$1-$taskid@$slave
+    sleep 0.02
+  fi
   taskid=`expr $taskid + 1`
 done
 wait

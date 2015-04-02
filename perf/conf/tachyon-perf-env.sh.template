@@ -25,6 +25,10 @@ TACHYON_PERF_STATUS_DEBUG="false"
 TACHYON_PERF_FAILED_ABORT="true"
 TACHYON_PERF_FAILED_PERCENTAGE=1
 
+#if true the perf tool is installed on a shared file system visible to all slaves so copying
+#and collating configurations either is a no-op or a local copy rather than a scp
+TACHYON_PERF_SHARED_FS="false"
+
 PERF_CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export TACHYON_PERF_JAVA_OPTS+="
