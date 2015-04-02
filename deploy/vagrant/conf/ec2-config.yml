@@ -25,11 +25,11 @@ Instance_Type: "m1.small"
 # Block Device Mapping, modify this if you want your instance to have more than
 # 10 GB Storage. For more info see:
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/block-device-mapping-concepts.html
-Block_Device_Mapping:
-  - DeviceName: "/dev/sda1"
-    VirtualName: "root"
-    Ebs.VolumeSize: "100"
-    Ebs.DeleteOnTermination: "true"
+Block_Device_Mapping: []
+#  - DeviceName: "/dev/sda1"
+#    VirtualName: "root"
+#    Ebs.VolumeSize: "100"
+#    Ebs.DeleteOnTermination: "true"
 
 # tag to the instance name
 # to avoid name conflict during mutiple deployment
