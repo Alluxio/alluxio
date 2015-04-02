@@ -28,5 +28,12 @@
     <taskThreadClass>tachyon.perf.benchmark.skipread.SkipReadThread</taskThreadClass>
     <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
   </type>
+  <type>
+    <name>Mixture</name>
+    <taskClass>tachyon.perf.benchmark.mixture.MixtureTask</taskClass>
+    <taskContextClass>tachyon.perf.benchmark.mixture.MixtureTaskContext</taskContextClass>
+    <taskThreadClass>tachyon.perf.benchmark.mixture.MixtureThread</taskThreadClass>
+    <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
+  </type>
 </taskTypes>
 
