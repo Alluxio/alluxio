@@ -1025,23 +1025,25 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param uri The uri to validate
    */
   private void validateUri(TachyonURI uri) throws IOException {
-    if (uri != null && !uri.isPathAbsolute() && !TachyonURI.EMPTY_URI.equals(uri)) {
-      LOG.debug("URL is invalid because of Absolute");
-    }
-    if (uri != null && uri.hasScheme() && !mRootUri.getScheme().equals(uri.getScheme())) {
-      LOG.debug("URL is invalid because of schema");
+    if (uri == null) {
+      LOG.debug("URI cannot be null.");
+      throw new IOException("Uri " + uri + " is invalid.");
     }
 
-    if (uri != null && uri.hasAuthority() && !mRootUri.getAuthority().equals(uri.getAuthority())) {
-      LOG.debug("URL is invalid because of authority. URI has authoring "
+    if (!uri.isPathAbsolute() && !TachyonURI.EMPTY_URI.equals(uri)) {
+      LOG.debug("URI is invalid because of Absolute");
+      throw new IOException("Uri " + uri + " is invalid.");
+    }
+
+    if (uri.hasScheme() && !mRootUri.getScheme().equals(uri.getScheme())) {
+      LOG.debug("URI is invalid because of schema");
+      throw new IOException("Uri " + uri + " is invalid.");
+    }
+
+    if (uri.hasAuthority() && !mRootUri.getAuthority().equals(uri.getAuthority())) {
+      LOG.debug("URI is invalid because of authority. URI has authoring "
               + uri.hasAuthority() + " root authoring " + mRootUri.getAuthority()
               + " uri authority " + uri.getAuthority());
-    }
-
-    if (uri == null || (!uri.isPathAbsolute() && !TachyonURI.EMPTY_URI.equals(uri))
-        || (uri.hasScheme() && !mRootUri.getScheme().equals(uri.getScheme()))
-        || (uri.hasAuthority() && !mRootUri.getAuthority().equals(uri.getAuthority()))) {
-      throw new IOException("Uri " + uri + " is invalid.");
     }
   }
 }
