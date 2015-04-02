@@ -61,6 +61,8 @@ leverage the Scala shell, as discussed in this
 
 -   Run tests with a different Hadoop version: ``mvn -Dhadoop.version=2.2.0 clean test``
 
+-   Run tests with Hadoop FileSystem contract tests: ``mvn -Dtest.profile=contractTest test``
+
 ### Coding Style
 
 -   Please follow the style of the existing codebase. Specifically, we use
@@ -148,7 +150,7 @@ for beginners. For a tutorial, see the GitHub guides on
 You can generate an Eclipse configuration file by running:
 
     $ mvn clean install
-    $ mvn clean -Dtest.profile=hdfs -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
+    $ mvn clean -Dtest.profile=contractTest -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
 
 Then import the folder into Eclipse.
 
@@ -156,7 +158,7 @@ You may also have to add the classpath variable M2_REPO by running:
 
     $ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
 
-If you are using IntelliJ IDEA, you may need to change the Maven profile to 'hdfs-test' in order to avoid import errors.
+If you are using IntelliJ IDEA, you may need to change the Maven profile to 'contractTest' in order to avoid import errors.
 You can do this by going to
 
     View > Tool Windows > Maven Projects
