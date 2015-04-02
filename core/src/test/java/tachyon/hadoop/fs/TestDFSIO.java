@@ -26,7 +26,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URI;
 import java.util.Date;
-import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
 
@@ -37,7 +36,6 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
-import org.apache.hadoop.io.DefaultStringifier;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;

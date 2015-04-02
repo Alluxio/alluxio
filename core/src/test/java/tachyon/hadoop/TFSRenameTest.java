@@ -25,10 +25,9 @@ import org.apache.hadoop.fs.Path;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-
 import org.junit.Test;
-import tachyon.master.LocalTachyonCluster;
 
+import tachyon.master.LocalTachyonCluster;
 
 public class TFSRenameTest {
 
