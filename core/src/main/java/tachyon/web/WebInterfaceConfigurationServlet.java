@@ -45,7 +45,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
       Arrays.asList(Constants.MASTER_WHITELIST));
 
   private final transient MasterInfo mMasterInfo;
-  private final TachyonConf mTachyonConf;
+  private final transient TachyonConf mTachyonConf;
 
   public WebInterfaceConfigurationServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;

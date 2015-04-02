@@ -126,9 +126,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
             fileData = "Unable to read file";
           } else {
             fileData = CommonUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
-            if (fileData == null) {
-              fileData = "The requested file is not completely encoded in ascii";
-            }
           }
         }
       } finally {
