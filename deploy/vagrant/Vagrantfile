@@ -20,6 +20,8 @@ validate_provider(Provider)
 
 require "./core/config_#{Provider}"
 
+Version = get_version
+
 # config cluster and create /etc/hosts 
 NameArr = Array.new
 config_hosts(NameArr)
@@ -33,16 +35,19 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     name = NameArr[i]
     config.vm.define "#{name}" do |n|
       # common config
+      if Version == "Github"
+        n.vm.provision "shell", path: "core/download_tachyon.sh"
+      end
       n.vm.provision "shell", path: "core/init.sh"
       n.vm.provision "shell", path: Init
 
       # Provider specific init
       if Provider == "vb"
-        config_vb(n, i, Total, name)
+        config_vb(n, i, Total, name, Version)
       end
 
       if Provider == "docker"
-        config_docker(n, i, Total, name)
+        config_docker(n, i, Total, name, Version)
       end
 
       if Provider == "aws"
@@ -58,7 +63,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           AVAILABILITY_ZONE  = @ec2['Availability_Zone']
           TAG = @ec2['Tag']
         end
-        config_aws(n, i, Total, name)
+        config_aws(n, i, Total, name, Version)
       end
 
       if Provider == "openstack"
@@ -75,7 +80,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           SSH_USERNAME = @os['SSH_Username']
           TAG = @os['Tag']
         end
-        config_os(n, i, Total, name)
+        config_os(n, i, Total, name, Version)
       end
     end
   end

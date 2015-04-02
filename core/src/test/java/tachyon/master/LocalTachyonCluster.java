@@ -23,7 +23,6 @@ import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.MasterService.AsyncProcessor.worker_cacheBlock;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -196,6 +195,7 @@ public final class LocalTachyonCluster {
     CommonUtils.sleepMs(null, 10);
 
     mWorkerConf = new TachyonConf(mMasterConf);
+    mWorkerConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
     mWorkerConf.set(Constants.MASTER_PORT, getMasterPort() + "");
     mWorkerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
     mWorkerConf.set(Constants.WORKER_PORT, "0");
@@ -228,9 +228,7 @@ public final class LocalTachyonCluster {
           newPath.substring(0, newPath.length() - 1));
     }
 
-    mWorker =
-        TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 100, mWorkerConf);
+    mWorker = TachyonWorker.createWorker(mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {

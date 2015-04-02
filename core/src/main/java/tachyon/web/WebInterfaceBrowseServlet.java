@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -87,7 +87,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
   /**
    * This function displays 5KB of a file from a specific offset if it is in ASCII format.
-   * 
+   *
    * @param path The path of the file to display
    * @param request The HttpServletRequest object
    * @param offset Where the file starts to display.
@@ -126,9 +126,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
             fileData = "Unable to read file";
           } else {
             fileData = CommonUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
-            if (fileData == null) {
-              fileData = "The requested file is not completely encoded in ascii";
-            }
           }
         }
       } finally {
@@ -155,7 +152,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * Populates attribute fields with data from the MasterInfo associated with this servlet. Errors
    * will be displayed in an error field. Debugging can be enabled to display additional data. Will
    * eventually redirect the request to a jsp.
-   * 
+   *
    * @param request The HttpServletRequest object
    * @param response The HttpServletResponse object
    * @throws ServletException
@@ -187,14 +184,23 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
       if (!currentFileInfo.getIsDirectory()) {
-        String tmpParam = request.getParameter("offset");
-        long offset = 0;
+        String offsetParam = request.getParameter("offset");
+        long relativeOffset = 0;
+        long offset;
         try {
-          if (tmpParam != null) {
-            offset = Long.valueOf(tmpParam);
+          if (offsetParam != null) {
+            relativeOffset = Long.valueOf(offsetParam);
           }
         } catch (NumberFormatException nfe) {
-          offset = 0;
+          relativeOffset = 0;
+        }
+        String endParam = request.getParameter("end");
+        // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
+        // relative to the end of the file.
+        if (endParam == null) {
+          offset = relativeOffset;
+        } else {
+          offset = clientFileInfo.getLength() - relativeOffset;
         }
         if (offset < 0) {
           offset = 0;
@@ -273,7 +279,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
   /**
    * This function sets the fileinfos for folders that are in the path to the current directory.
-   * 
+   *
    * @param path The path of the current directory.
    * @param request The HttpServletRequest object
    * @throws FileDoesNotExistException
