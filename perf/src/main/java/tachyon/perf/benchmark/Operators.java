@@ -143,7 +143,7 @@ public class Operators {
     byte[] content = new byte[bufferSize];
     InputStream is = fs.open(filePath, readType);
     int onceLen = is.read(content);
-    while (onceLen != -1) {
+    while (onceLen > 0) {
       readLen += (long) onceLen;
       onceLen = is.read(content);
     }
@@ -157,7 +157,7 @@ public class Operators {
     int readLen = 0;
     while (remainBytes >= content.length) {
       int once = is.read(content);
-      if (once == -1) {
+      if (once <= 0) {
         return readLen;
       }
       readLen += once;
@@ -165,7 +165,7 @@ public class Operators {
     }
     if (remainBytes > 0) {
       int once = is.read(content, 0, (int) remainBytes);
-      if (once == -1) {
+      if (once <= 0) {
         return readLen;
       }
       readLen += once;
