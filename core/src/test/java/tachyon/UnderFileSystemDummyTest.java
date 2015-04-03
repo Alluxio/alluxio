@@ -53,7 +53,7 @@ public final class UnderFileSystemDummyTest {
 
   @Test
   public void existsTest() throws IOException {
-    Assert.assertTrue(mUFSD.exists(""));
+    Assert.assertFalse(mUFSD.exists(""));
   }
 
   @Test
@@ -63,7 +63,7 @@ public final class UnderFileSystemDummyTest {
 
   @Test
   public void getConfTest() throws IOException {
-    Assert.assertTrue(mUFSD.getConf() instanceof Object);
+    Assert.assertTrue(mUFSD.getConf() == null);
   }
 
   @Test
