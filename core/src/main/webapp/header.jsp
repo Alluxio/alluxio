@@ -7,6 +7,7 @@
       <li id="configuration-li"><a href="./configuration">System Configuration</a></li>
       <li id="browse-li"><a href="./browse?path=/">Browse File System</a></li>
       <li id="memory-li"><a href="./memory">In Memory Files</a></li>
+      <li id="logs-li"><a href="./logs">Logs</a></li>
     </ul>
   </div>
 </div>
