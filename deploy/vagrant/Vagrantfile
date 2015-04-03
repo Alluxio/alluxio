@@ -61,6 +61,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           SECURITY_GROUP=@ec2['Security_Group']
           INSTANCE_TYPE = @ec2['Instance_Type']
           AVAILABILITY_ZONE  = @ec2['Availability_Zone']
+          BLOCK_DEVICE_MAPPING = @ec2['Block_Device_Mapping']
           TAG = @ec2['Tag']
         end
         config_aws(n, i, Total, name, Version)
