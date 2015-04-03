@@ -50,6 +50,9 @@ public class HierarchyStoreTest {
     mLocalTachyonCluster.stop();
     // TODO Remove this once we are able to push hierarchy info to LocalTachyonCluster
     System.clearProperty("tachyon.worker.hierarchystore.level.max");
+    System.clearProperty("tachyon.worker.hierarchystore.level1.alias");
+    System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.path");
+    System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.quota");
   }
 
   @Before
