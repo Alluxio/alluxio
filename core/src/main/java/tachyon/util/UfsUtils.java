@@ -110,14 +110,14 @@ public class UfsUtils {
     // create the under FS handler (e.g. hdfs, local FS, s3 etc.)
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, tachyonConf);
 
-    // directory name, is calculated for case when current method is invoked for file
+    // directory name to load, either the path parent or the actual path if it is a directory
     TachyonURI directoryName;
     if (ufs.isFile(ufsAddrRootPath.toString())) {
       if ((ufsRootPath == null) || ufsRootPath.isEmpty() || ufsRootPath.equals("/")) {
         directoryName = TachyonURI.EMPTY_URI;
       } else {
         int lastSlashPos = ufsRootPath.lastIndexOf('/');
-        if (lastSlashPos >= 0) {
+        if (lastSlashPos > 0) {
           directoryName = new TachyonURI(ufsRootPath.substring(0, lastSlashPos)); // trim the slash
         } else {
           directoryName = TachyonURI.EMPTY_URI;
@@ -127,9 +127,9 @@ public class UfsUtils {
       directoryName = tachyonPath;
     }
 
-    if (!tfs.exist(directoryName)) {
-      LOG.debug("Loading ufs. Make dir if needed for '" + directoryName + "'.");
-      if (directoryName != TachyonURI.EMPTY_URI) {
+    if (!directoryName.equals(TachyonURI.EMPTY_URI)) {
+      if (!tfs.exist(directoryName)) {
+        LOG.debug("Loading ufs. Make dir if needed for '" + directoryName + "'.");
         tfs.mkdir(directoryName);
       }
       // TODO Add the following.
