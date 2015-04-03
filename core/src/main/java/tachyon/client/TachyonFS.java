@@ -597,10 +597,6 @@ public class TachyonFS extends AbstractTachyonFS {
     }
 
     info = mMasterClient.getFileStatus(fileId, path);
-    if (info == null) {
-      LOG.error("null file info retrieved for path '" + path + "'.");
-      return null;
-    }
 
     fileId = info.getId();
     if (fileId == -1) {
@@ -1025,25 +1021,20 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param uri The uri to validate
    */
   private void validateUri(TachyonURI uri) throws IOException {
+    String err = null;
     if (uri == null) {
-      LOG.debug("URI cannot be null.");
-      throw new IOException("Uri " + uri + " is invalid.");
+      err = "URI cannot be null";
+    } else if (!uri.isPathAbsolute() && !TachyonURI.EMPTY_URI.equals(uri)) {
+      err = "URI must be absolute";
+    } else if (uri.hasScheme() && !mRootUri.getScheme().equals(uri.getScheme())) {
+      err = "URI's scheme: " + uri.getScheme() + " must match the file system's scheme: "
+          + mRootUri.getScheme();
+    } else if (uri.hasAuthority() && !mRootUri.getAuthority().equals(uri.getAuthority())) {
+      err = "URI's authority: " + uri.getAuthority() + " must match the file system's authority: "
+          + mRootUri.getAuthority();
     }
-
-    if (!uri.isPathAbsolute() && !TachyonURI.EMPTY_URI.equals(uri)) {
-      LOG.debug("URI is invalid because of Absolute");
-      throw new IOException("Uri " + uri + " is invalid.");
-    }
-
-    if (uri.hasScheme() && !mRootUri.getScheme().equals(uri.getScheme())) {
-      LOG.debug("URI is invalid because of schema");
-      throw new IOException("Uri " + uri + " is invalid.");
-    }
-
-    if (uri.hasAuthority() && !mRootUri.getAuthority().equals(uri.getAuthority())) {
-      LOG.debug("URI is invalid because of authority. URI has authoring "
-              + uri.hasAuthority() + " root authoring " + mRootUri.getAuthority()
-              + " uri authority " + uri.getAuthority());
+    if (err != null) {
+      throw new IOException("Uri is invalid: " + err);
     }
   }
 }

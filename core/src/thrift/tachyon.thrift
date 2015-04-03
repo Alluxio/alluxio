@@ -39,7 +39,7 @@ struct ClientFileInfo {
   9: bool isFolder
   10: bool isPinned
   11: bool isCache
-  12: list<i64> blockIds = empty
+  12: list<i64> blockIds
   13: i32 dependencyId
   14: i32 inMemoryPercentage
   15: i64 lastModificationTimeMs
