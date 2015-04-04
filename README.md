@@ -21,24 +21,24 @@ The master branch is in version 0.7.0-SNAPSHOT:
 <dependency>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-client</artifactId>
-  <version>0.6.1</version>
+  <version>0.6.3</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```groovy
-compile 'org.tachyonproject:tachyon-client:0.6.1'
+compile 'org.tachyonproject:tachyon-client:0.6.3'
 ```
 
 #### Apache Ant
 ```xml
-<dependency org="org.tachyonproject" name="tachyon" rev="0.6.1">
+<dependency org="org.tachyonproject" name="tachyon" rev="0.6.3">
   <artifact name="tachyon-client" type="jar" />
 </dependency>
 ```
 
 #### SBT
 ```
-libraryDependencies += "org.tachyonproject" % "tachyon-client" % "0.6.1"
+libraryDependencies += "org.tachyonproject" % "tachyon-client" % "0.6.3"
 ```
