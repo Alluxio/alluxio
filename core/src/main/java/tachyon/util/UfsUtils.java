@@ -105,8 +105,33 @@ public class UfsUtils {
     String ufsAddress = ufsPair.getFirst();
     String ufsRootPath = ufsPair.getSecond();
 
-    if (!tfs.exist(tachyonPath)) {
-      tfs.mkdir(tachyonPath);
+    LOG.debug("Loading ufs, address:" + ufsAddress + "; root path: " + ufsRootPath);
+
+    // create the under FS handler (e.g. hdfs, local FS, s3 etc.)
+    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, tachyonConf);
+
+    // directory name to load, either the path parent or the actual path if it is a directory
+    TachyonURI directoryName;
+    if (ufs.isFile(ufsAddrRootPath.toString())) {
+      if ((ufsRootPath == null) || ufsRootPath.isEmpty() || ufsRootPath.equals("/")) {
+        directoryName = TachyonURI.EMPTY_URI;
+      } else {
+        int lastSlashPos = ufsRootPath.lastIndexOf('/');
+        if (lastSlashPos > 0) {
+          directoryName = new TachyonURI(ufsRootPath.substring(0, lastSlashPos)); // trim the slash
+        } else {
+          directoryName = TachyonURI.EMPTY_URI;
+        }
+      }
+    } else {
+      directoryName = tachyonPath;
+    }
+
+    if (!directoryName.equals(TachyonURI.EMPTY_URI)) {
+      if (!tfs.exist(directoryName)) {
+        LOG.debug("Loading ufs. Make dir if needed for '" + directoryName + "'.");
+        tfs.mkdir(directoryName);
+      }
       // TODO Add the following.
       // if (tfs.mkdir(tfsRootPath)) {
       // LOG.info("directory " + tfsRootPath + " does not exist in Tachyon: created");
@@ -114,9 +139,6 @@ public class UfsUtils {
       // throw new IOException("Failed to create folder in Tachyon: " + tfsRootPath);
       // }
     }
-
-    // create the under FS handler (e.g. hdfs, local FS, s3 etc.)
-    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, tachyonConf);
 
     Queue<TachyonURI> ufsPathQueue = new LinkedList<TachyonURI>();
     if (excludePathPrefix.outList(ufsRootPath)) {
@@ -127,19 +149,21 @@ public class UfsUtils {
       TachyonURI ufsPath = ufsPathQueue.poll(); // this is the absolute path
       LOG.info("Loading: " + ufsPath);
       if (ufs.isFile(ufsPath.toString())) { // TODO: Fix path matching issue
-        TachyonURI tfsPath = buildTFSPath(tachyonPath, ufsAddrRootPath, ufsPath);
+        TachyonURI tfsPath = buildTFSPath(directoryName, ufsAddrRootPath, ufsPath);
+        LOG.debug("Loading ufs. tfs path = " + tfsPath + ".");
         if (tfs.exist(tfsPath)) {
           LOG.info("File " + tfsPath + " already exists in Tachyon.");
           continue;
         }
         int fileId = tfs.createFile(tfsPath, ufsPath);
         if (fileId == -1) {
-          LOG.info("Failed to create tachyon file: " + tfsPath);
+          LOG.warn("Failed to create tachyon file: " + tfsPath);
         } else {
           LOG.info("Create tachyon file " + tfsPath + " with file id " + fileId + " and "
               + "checkpoint location " + ufsPath);
         }
       } else { // ufsPath is a directory
+        LOG.debug("Loading ufs. ufs path is a directory.");
         String[] files = ufs.list(ufsPath.toString()); // ufs.list() returns relative path
         if (files != null) {
           for (String filePath : files) {
@@ -162,7 +186,10 @@ public class UfsUtils {
         // ufsPath is a directory, so only concat the tfsRoot with the relative path
         TachyonURI tfsPath = new TachyonURI(CommonUtils.concat(
             tachyonPath, ufsPath.getPath().substring(ufsAddrRootPath.getPath().length())));
+        LOG.debug("Loading ufs. ufs path is a directory. tfsPath = " + tfsPath + ".");
         if (!tfs.exist(tfsPath)) {
+          LOG.debug("Loading ufs. ufs path is a directory. make dir = "
+                  + tfsPath + ".");
           tfs.mkdir(tfsPath);
           // TODO Add the following.
           // if (tfs.mkdir(tfsPath)) {
