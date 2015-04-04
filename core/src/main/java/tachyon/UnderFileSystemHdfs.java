@@ -227,8 +227,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       FileStatus fStatus = mFs.getFileStatus(new Path(path));
       BlockLocation[] bLocations = mFs.getFileBlockLocations(fStatus, offset, 1);
       if (bLocations.length > 0) {
-        String[] hosts = bLocations[0].getHosts();
-        Collections.addAll(ret, hosts);
+        String[] names = bLocations[0].getNames();
+        Collections.addAll(ret, names);
       }
     } catch (IOException e) {
       LOG.error("Unable to get file location for " + path, e);

@@ -22,6 +22,7 @@ def config_aws(config, i, total, name, version)
     aws.ami = AMI
     aws.region = REGION
     aws.instance_type = INSTANCE_TYPE
+    aws.block_device_mapping = BLOCK_DEVICE_MAPPING
     aws.tags = {
       'Name' => TAG + name,
     }

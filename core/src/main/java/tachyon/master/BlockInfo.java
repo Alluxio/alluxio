@@ -168,13 +168,20 @@ public class BlockInfo {
       }
       if (locs != null) {
         for (String loc : locs) {
-          String resolvedHost;
+          String resolvedHost = loc;
+          int resolvedPort = -1;
           try {
-            resolvedHost = NetworkUtils.resolveHostName(loc);
-          } catch (UnknownHostException e) {
-            resolvedHost = loc;
+            String[] ipport = loc.split(":");
+            if (ipport.length == 2) {
+              resolvedHost = NetworkUtils.resolveHostName(ipport[0]);
+              resolvedPort = Integer.parseInt(ipport[1]);
+            }
+          } catch (UnknownHostException uhe) {
+            continue;
+          } catch (NumberFormatException nfe) {
+            continue;
           }
-          ret.add(new NetAddress(resolvedHost, -1, -1));
+          ret.add(new NetAddress(resolvedHost, resolvedPort, -1));
         }
       }
     }

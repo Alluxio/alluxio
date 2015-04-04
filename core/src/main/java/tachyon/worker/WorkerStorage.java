@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -66,7 +66,7 @@ import tachyon.worker.hierarchy.StorageDir;
 import tachyon.worker.hierarchy.StorageTier;
 
 /**
- * The structure to store a worker's information in worker node.
+ * The structure to store a worker's information on a worker node.
  */
 public class WorkerStorage {
   /**
@@ -139,6 +139,7 @@ public class WorkerStorage {
 
     @Override
     public void run() {
+      // TODO: this method needs to be refactored.
       while (!Thread.currentThread().isInterrupted()) {
         try {
           int fileId = -1;
@@ -315,7 +316,7 @@ public class WorkerStorage {
    *
    * @param masterAddress The TachyonMaster's address
    * @param executorService
-   * @param tachyonConf The instance of TachyonConf to be used. If null the instantiate new one.
+   * @param tachyonConf The instance of TachyonConf to be used. If null, instantiate a new one.
    */
   public WorkerStorage(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
@@ -335,6 +336,11 @@ public class WorkerStorage {
         Executors.newFixedThreadPool(checkpointThreads, ThreadFactoryUtils.build("checkpoint-%d"));
   }
 
+  /**
+   * Initialize this WorkerStorage.
+   *
+   * @param address The address of this worker.
+   */
   public void initialize(final NetAddress address) {
     mWorkerAddress = address;
 
@@ -560,7 +566,7 @@ public class WorkerStorage {
   /**
    * Remove a block from Tachyon cache space.
    *
-   * @param blockId The block to be removed.
+   * @param blockId The id of the block to be removed.
    */
   private void freeBlock(long blockId) {
     for (StorageTier storageTier : mStorageTiers) {
@@ -578,7 +584,7 @@ public class WorkerStorage {
   }
 
   /**
-   * Remove blocks from Tachyon cache space.
+   * Remove a list of blocks from Tachyon cache space.
    *
    * This is triggered when the worker heartbeats to the master, which sends a
    * {@link tachyon.thrift.Command} with type {@link tachyon.thrift.CommandType#Free}
@@ -617,7 +623,7 @@ public class WorkerStorage {
   }
 
   /**
-   * Get the worker start time in milliseconds.
+   * Get the worker start time (in UTC) in milliseconds.
    *
    * @return the worker start time in milliseconds
    */
@@ -678,7 +684,7 @@ public class WorkerStorage {
   /**
    * Get used bytes on each storage tier
    *
-   * @return used bytes on each storage tier
+   * @return a list of used bytes on each storage tier
    */
   public List<Long> getUsedBytesOnTiers() {
     List<Long> usedBytes = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
@@ -804,7 +810,7 @@ public class WorkerStorage {
    * attempt to cache the block on the local users's node, while the user is reading from the local
    * block, the given block is locked and unlocked once read.
    *
-   * @param blockId The id of the block
+   * @param blockId The id of the block to lock
    * @param userId The id of the user who locks the block
    * @return the StorageDir in which the block is locked
    */
@@ -821,9 +827,9 @@ public class WorkerStorage {
   }
 
   /**
-   * If the block is not on top StorageTier, promote block to top StorageTier
+   * If the block is not on the top StorageTier, promote this block to the top StorageTier.
    *
-   * @param blockId the id of the block
+   * @param blockId The id of the block to promote
    * @return true if success, false otherwise
    */
   public boolean promoteBlock(long blockId) {
@@ -831,7 +837,9 @@ public class WorkerStorage {
     StorageDir storageDir = lockBlock(blockId, userId);
     if (storageDir == null) {
       return false;
-    } else if (StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId()) != mStorageTiers
+    }
+
+    if (StorageDirId.getStorageLevelAliasValue(storageDir.getStorageDirId()) != mStorageTiers
         .get(0).getAlias().getValue()) {
       long blockSize = storageDir.getBlockSize(blockId);
       StorageDir dstStorageDir = requestSpace(null, userId, blockSize);
@@ -893,12 +901,12 @@ public class WorkerStorage {
   }
 
   /**
-   * Get temporary file path for some block, it is used to choose appropriate StorageDir for some
-   * block file with specified initial size.
+   * Get a temporary file path for some block, it is used to choose appropriate StorageDir for some
+   * block file with the specified initial size.
    *
-   * @param userId the id of the user who wants to write the file
-   * @param blockId the id of the block
-   * @param initialBytes the initial size allocated for the block
+   * @param userId The id of the user who wants to write the file
+   * @param blockId The id of the block
+   * @param initialBytes The initial size in bytes allocated for the block
    * @return the temporary path of the block file
    * @throws OutOfSpaceException
    * @throws FileAlreadyExistException
@@ -968,7 +976,7 @@ public class WorkerStorage {
    * Request space from the specified StorageDir, it is used for requesting space for the block
    * which is partially written in some StorageDir
    *
-   * @param userId The id of the user who send the request
+   * @param userId The id of the user who sends the request
    * @param blockId The id of the block that the space is allocated for
    * @param requestBytes The requested space size, in bytes
    * @return true if succeed, false otherwise
@@ -1037,13 +1045,13 @@ public class WorkerStorage {
 
   /**
    * Unlock the block
-   * 
+   *
    * Used internally to make sure blocks are unmodified, but also used in
    * {@link tachyon.client.TachyonFS} for caching blocks locally for users. When a user tries to
    * read a block ({@link tachyon.client.TachyonFile#readByteBuffer(int)}), the client will attempt
    * to cache the block on the local users's node, while the user is reading from the local block,
    * the given block is locked and unlocked once read.
-   * 
+   *
    * @param blockId The id of the block
    * @param userId The id of the user who unlocks the block
    * @return true if success, false otherwise
@@ -1062,7 +1070,7 @@ public class WorkerStorage {
 
   /**
    * Handle the user's heartbeat.
-   * 
+   *
    * @param userId The id of the user
    */
   public void userHeartbeat(long userId) {
