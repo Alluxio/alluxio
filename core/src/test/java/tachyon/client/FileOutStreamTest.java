@@ -103,6 +103,10 @@ public class FileOutStreamTest {
    */
   @Test
   public void writeTest1() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
@@ -128,6 +132,10 @@ public class FileOutStreamTest {
    */
   @Test
   public void writeTest2() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
@@ -151,6 +159,10 @@ public class FileOutStreamTest {
    */
   @Test
   public void writeTest3() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
@@ -179,6 +191,10 @@ public class FileOutStreamTest {
    */
   @Test
   public void longWriteChangesUserId() throws IOException, InterruptedException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     TachyonURI filePath = new TachyonURI(TestUtils.uniqPath());
     WriteType op = WriteType.THROUGH;
     int len = 2;

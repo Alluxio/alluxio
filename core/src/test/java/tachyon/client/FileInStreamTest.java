@@ -59,6 +59,10 @@ public class FileInStreamTest {
    */
   @Test
   public void readTest1() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
@@ -104,6 +108,10 @@ public class FileInStreamTest {
    */
   @Test
   public void readTest2() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
@@ -133,6 +141,10 @@ public class FileInStreamTest {
    */
   @Test
   public void readTest3() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
@@ -162,6 +174,10 @@ public class FileInStreamTest {
    */
   @Test
   public void readEndOfFileTest() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
@@ -194,6 +210,10 @@ public class FileInStreamTest {
    */
   @Test
   public void seekExceptionTest1() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
@@ -223,6 +243,10 @@ public class FileInStreamTest {
    */
   @Test
   public void seekExceptionTest2() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     thrown.expect(IOException.class);
     thrown.expectMessage("Seek position is past EOF");
     String uniqPath = TestUtils.uniqPath();
@@ -247,6 +271,10 @@ public class FileInStreamTest {
    */
   @Test
   public void seekTest() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
@@ -273,6 +301,10 @@ public class FileInStreamTest {
    */
   @Test
   public void skipTest() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
