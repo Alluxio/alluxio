@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -54,9 +54,9 @@ public class TachyonWorker implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Create a new TachyonWorker
-   * 
-   * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to used by Worker.
+   * Create a new TachyonWorker based on the given TachyonConfig.
+   *
+   * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to be used by Worker
    * @return The new TachyonWorker
    */
   public static synchronized TachyonWorker createWorker(TachyonConf tachyonConf) {
@@ -70,7 +70,6 @@ public class TachyonWorker implements Runnable {
     int minWorkerThreads =
         tachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS, Runtime.getRuntime()
             .availableProcessors());
-
     int maxWorkerThreads =
         tachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS,
             Constants.DEFAULT_WORKER_MAX_WORKER_THREADS);
@@ -78,7 +77,6 @@ public class TachyonWorker implements Runnable {
     return new TachyonWorker(new InetSocketAddress(masterHostname, masterPort),
         new InetSocketAddress(workerHostName, workerPort), dataPort, minWorkerThreads,
         maxWorkerThreads, tachyonConf);
-
   }
 
   private static void setMasterAddress(String masterAddress, TachyonConf conf) {
@@ -238,7 +236,7 @@ public class TachyonWorker implements Runnable {
 
   /**
    * Get the worker server handler class. This is for unit test only.
-   * 
+   *
    * @return the WorkerServiceHandler
    */
   WorkerServiceHandler getWorkerServiceHandler() {
@@ -337,7 +335,7 @@ public class TachyonWorker implements Runnable {
 
   /**
    * Stop this TachyonWorker. Stop all the threads belong to this TachyonWorker.
-   * 
+   *
    * @throws IOException
    * @throws InterruptedException
    */
