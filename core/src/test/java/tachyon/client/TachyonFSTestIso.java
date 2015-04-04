@@ -62,6 +62,10 @@ public class TachyonFSTestIso {
 
   @Test
   public void createFileWithUfsFileTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String tempFolder = mLocalTachyonCluster.getTempFolderInUnderFs();
     UnderFileSystem underFs = UnderFileSystem.get(tempFolder, mMasterTachyonConf);
     OutputStream os = underFs.create(tempFolder + "/temp", 100);
@@ -74,6 +78,10 @@ public class TachyonFSTestIso {
 
   @Test
   public void lockBlockTest1() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
@@ -100,6 +108,10 @@ public class TachyonFSTestIso {
 
   @Test
   public void lockBlockTest2() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
@@ -127,6 +139,10 @@ public class TachyonFSTestIso {
 
   @Test
   public void lockBlockTest3() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
@@ -158,6 +174,10 @@ public class TachyonFSTestIso {
 
   @Test
   public void lockBlockTest4() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
@@ -184,6 +204,10 @@ public class TachyonFSTestIso {
 
   @Test
   public void unlockBlockTest1() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
@@ -213,6 +237,10 @@ public class TachyonFSTestIso {
 
   @Test
   public void unlockBlockTest2() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
@@ -244,6 +272,10 @@ public class TachyonFSTestIso {
 
   @Test
   public void unlockBlockTest3() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
