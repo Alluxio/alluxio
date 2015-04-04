@@ -213,6 +213,10 @@ public class TestDFSIO implements Tool {
     mLocalTachyonCluster = new LocalTachyonCluster(500000, 100000, BLOCK_SIZE);
     mLocalTachyonCluster.start();
 
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     mLocalTachyonClusterUri = URI.create(mLocalTachyonCluster.getMasterUri());
     bench.getConf().set("fs.defaultFS", mLocalTachyonClusterUri.toString());
     bench.getConf().set("fs.default.name", mLocalTachyonClusterUri.toString());
@@ -234,6 +238,10 @@ public class TestDFSIO implements Tool {
     if (mLocalTachyonCluster == null)
       return;
 
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     // Clear TestDFSIO
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     bench.cleanup(fs);
@@ -243,6 +251,10 @@ public class TestDFSIO implements Tool {
   }
 
   public static void testWrite() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.writeTest(fs);
@@ -252,6 +264,10 @@ public class TestDFSIO implements Tool {
 
   @Test(timeout = 25000)
   public void testRead() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.readTest(fs);
@@ -261,6 +277,10 @@ public class TestDFSIO implements Tool {
 
   @Test(timeout = 25000)
   public void testReadRandom() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.getConf().setLong("test.io.skip.size", 0);
@@ -271,6 +291,10 @@ public class TestDFSIO implements Tool {
 
   @Test(timeout = 25000)
   public void testReadBackward() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.getConf().setLong("test.io.skip.size", -DEFAULT_BUFFER_SIZE);
@@ -281,6 +305,10 @@ public class TestDFSIO implements Tool {
 
   @Test(timeout = 20000)
   public void testReadSkip() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.getConf().setLong("test.io.skip.size", 1);
@@ -291,6 +319,10 @@ public class TestDFSIO implements Tool {
 
   @Test(timeout = 25000)
   public void testReadLargeSkip() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.getConf().setLong("test.io.skip.size", 5000);
@@ -302,6 +334,10 @@ public class TestDFSIO implements Tool {
   // TODO: Should active this unit test after TACHYON-25 has been solved
   // @Test (timeout = 25000)
   public void testAppend() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.appendTest(fs);
