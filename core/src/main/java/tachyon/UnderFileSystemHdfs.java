@@ -293,8 +293,14 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       String[] rtn = new String[files.length];
       int i = 0;
       for (FileStatus status : files) {
+        String filePath = status.getPath().toUri().toString();
+        if (filePath.length() < path.length()) {
+          LOG.warn("File Path should not be shorter than base dir path.  File Path: "
+          + status.getPath().toUri().toString() + " and Base Dir Path: "
+          + path.toString());
+        }
         // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i ++] = status.getPath().toUri().toString().substring(path.length()); // mUfsPrefix
+        rtn[i ++] = filePath.substring(path.length()); // mUfsPrefix
       }
       return rtn;
     } else {
