@@ -38,6 +38,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.conf.TachyonConf;
 import tachyon.hadoop.Utils;
+import tachyon.util.NetworkUtils;
 
 /**
  * HDFS UnderFilesystem implementation.
@@ -293,7 +294,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       String[] rtn = new String[files.length];
       int i = 0;
       for (FileStatus status : files) {
-        String filePath = status.getPath().toUri().toString();
+        TachyonURI filePathURI = new TachyonURI(status.getPath().toUri().toString());
+        String filePath =  NetworkUtils.replaceHostName(filePathURI).toString();
         if (filePath.length() < path.length()) {
           LOG.warn("File Path should not be shorter than base dir path.  File Path: "
               + filePath + " and Base Dir Path: " + path);
