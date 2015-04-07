@@ -97,7 +97,7 @@ public class UnderFileSystemRegistry {
    * 
    * @param path Path
    * @param conf Optional configuration object for the UFS, may be null
-   * @param tachyonConfTachyon Configuration
+   * @param tachyonConf Tachyon Configuration
    * @return Client for the under file system
    * @throws IllegalArgumentException Thrown if there is no under file system for the given path or
    *         if no under file system could successfully be created
@@ -123,37 +123,21 @@ public class UnderFileSystemRegistry {
     // If we reach here no factories were able to successfully create for this path likely due to
     // missing configuration since if we reached here at least some factories claimed to support the
     // path
-    // Need to appropriate collate the errors
-    switch (errors.size()) {
-      case 0:
-        // Can only occur if there were no factories and already have been handled but included for
-        // completeness
-        throw new IllegalArgumentException("No known Under File System supports the given path "
-            + path);
-      case 1:
-        // Return the single error directly
-        throw new IllegalArgumentException(
-            "All eligible Under File System were unable to create an instance for the given path "
-                + path, errors.get(0));
-      default:
-        // Collate up the errors into a single error
-        StringBuilder errorStr = new StringBuilder();
-        errorStr
-            .append("All eligible Under File System were unable to create an instance for the");
-        errorStr.append("given path ");
-        errorStr.append(path).append('\n');
-        for (Throwable e : errors) {
-          errorStr.append(e.getMessage()).append('\n');
-        }
-        throw new IllegalArgumentException(errorStr.toString());
+    // Need to collate the errors
+    StringBuilder errorStr = new StringBuilder();
+    errorStr.append("All eligible Under File Systems were unable to create an instance for the "
+        + "given path: ").append(path).append('\n');
+    for (Throwable e: errors) {
+      errorStr.append(e.getMessage()).append('\n');
     }
+    throw new IllegalArgumentException(errorStr.toString());
   }
 
   /**
    * Finds the first Under File System factory that supports the given path
    * 
    * @param path Path
-   * @param Tachyon configuration
+   * @param conf Tachyon configuration
    * @return Factory if available, null otherwise
    */
   public static UnderFileSystemFactory find(String path, TachyonConf conf) {
@@ -184,7 +168,7 @@ public class UnderFileSystemRegistry {
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<UnderFileSystemFactory>();
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path, conf)) {
-        LOG.debug("Selected Under File System Factory implementation {} for path {}",
+        LOG.debug("Under File System Factory implementation {} is eligible for path {}",
             factory.getClass(), path);
         eligibleFactories.add(factory);
       }
