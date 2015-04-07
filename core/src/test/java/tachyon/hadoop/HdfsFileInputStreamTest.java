@@ -56,6 +56,9 @@ public class HdfsFileInputStreamTest {
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     mLocalTachyonCluster.start();
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
     mTfs = mLocalTachyonCluster.getClient();
     TestUtils.createByteFile(mTfs, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
     TestUtils.createByteFile(mTfs, "/testFile2", WriteType.THROUGH, FILE_LEN);
@@ -63,12 +66,19 @@ public class HdfsFileInputStreamTest {
 
   @After
   public final void after() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
     mInMemInputStream.close();
     mUfsInputStream.close();
   }
 
   @Before
   public final void before() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     ClientFileInfo fileInfo = mTfs.getFileStatus(-1, new TachyonURI("/testFile1"));
     mInMemInputStream = new HdfsFileInputStream(mTfs, fileInfo.getId(),
         new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE,

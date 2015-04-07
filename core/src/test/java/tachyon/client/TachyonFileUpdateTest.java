@@ -56,6 +56,10 @@ public final class TachyonFileUpdateTest {
 
   @Test
   public void rerunOutStream() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     run(new Write() {
       @Override
       public void apply(TachyonFile file, WriteType type, int numRuns) throws IOException {
@@ -74,6 +78,10 @@ public final class TachyonFileUpdateTest {
 
   @Test
   public void rerunBuffer() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     run(new Write() {
       @Override
       public void apply(TachyonFile file, WriteType type, int numRuns) throws IOException {

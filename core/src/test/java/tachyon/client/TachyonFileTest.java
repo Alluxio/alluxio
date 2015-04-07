@@ -71,6 +71,10 @@ public class TachyonFileTest {
    */
   @Test
   public void isInMemoryTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int fileId =
         TestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
     TachyonFile file = mTfs.getFile(fileId);
@@ -215,6 +219,10 @@ public class TachyonFileTest {
 
   @Test
   public void writeEmptyFileTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     TachyonURI uri = new TachyonURI("/emptyFile");
     Assert.assertEquals(2, mTfs.createFile(uri));
     Assert.assertTrue(mTfs.exist(uri));
