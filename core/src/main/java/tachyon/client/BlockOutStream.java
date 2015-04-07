@@ -213,14 +213,14 @@ public class BlockOutStream extends OutStream {
 
     long userFileBufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES,
         Constants.MB);
-    if (mBuffer.position() + len >= userFileBufferBytes && mBuffer.position() > 0) {
+    if (mBuffer.position() > 0 && mBuffer.position() + len > userFileBufferBytes) {
       appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       mBuffer.clear();
     }
 
-    if (len >= userFileBufferBytes) {
+    if (len > userFileBufferBytes/2) {
       appendCurrentBuffer(b, off, len);
-    } else {
+    } else if (len > 0) {
       mBuffer.put(b, off, len);
     }
 
