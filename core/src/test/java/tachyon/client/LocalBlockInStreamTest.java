@@ -65,6 +65,10 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void readTest1() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
@@ -119,6 +123,10 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void readTest2() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
@@ -157,6 +165,10 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void readTest3() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
@@ -198,6 +210,10 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void seekExceptionTest1() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
@@ -231,6 +247,10 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void seekExceptionTest2() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     thrown.expect(IOException.class);
     thrown.expectMessage("Seek position is past buffer limit");
 
@@ -260,6 +280,10 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void seekTest() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
@@ -289,6 +313,10 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void skipTest() throws IOException {
+    if (sLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {

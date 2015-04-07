@@ -80,6 +80,10 @@ public class TFsShellTest {
 
   @Test
   public void catDirectoryTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String[] command = new String[] {"mkdir", "/testDir"};
     mFsShell.mkdir(command);
     int ret = mFsShell.cat(new String[] {"cat", "/testDir"});
@@ -91,12 +95,20 @@ public class TFsShellTest {
 
   @Test
   public void catNotExistTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int ret = mFsShell.cat(new String[] {"cat", "/testFile"});
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void catTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.cat(new String[] {"cat", "/testFile"});
     byte expect[] = TestUtils.getIncreasingByteArray(10);
@@ -105,6 +117,10 @@ public class TFsShellTest {
 
   @Test
   public void copyFromLocalLargeTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
@@ -125,6 +141,10 @@ public class TFsShellTest {
 
   @Test
   public void copyFromLocalTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     File testDir = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir");
     testDir.mkdir();
     File testDirInner = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testDirInner");
@@ -148,6 +168,10 @@ public class TFsShellTest {
 
   @Test
   public void copyFromLocalTestWithFullURI() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     File testFile = generateFileContent("/srcFileURI", TestUtils.getIncreasingByteArray(10));
     String tachyonURI =
         "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
@@ -166,6 +190,10 @@ public class TFsShellTest {
 
   @Test
   public void copyFromLocalFileToDstPathTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String dataString = "copyFromLocalFileToDstPathTest";
     byte[] data = dataString.getBytes();
     File localDir = new File(mLocalTachyonCluster.getTachyonHome() + "/localDir");
@@ -182,6 +210,10 @@ public class TFsShellTest {
 
   @Test
   public void copyToLocalLargeTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, SIZE_BYTES);
     mFsShell.copyToLocal(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"});
@@ -197,6 +229,10 @@ public class TFsShellTest {
 
   @Test
   public void copyToLocalTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.copyToLocal(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"});
@@ -212,6 +248,10 @@ public class TFsShellTest {
 
   @Test
   public void countNotExistTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int ret = mFsShell.count(new String[] {"count", "/NotExistFile"});
     Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
     Assert.assertEquals(-1, ret);
@@ -219,6 +259,10 @@ public class TFsShellTest {
 
   @Test
   public void countTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     TestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
     TestUtils.createByteFile(mTfs, "/testRoot/testFileB", WriteType.MUST_CACHE, 30);
@@ -232,6 +276,10 @@ public class TFsShellTest {
 
   @Test
   public void fileinfoNotExistTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int ret = mFsShell.fileinfo(new String[] {"fileinfo", "/NotExistFile"});
     Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
     Assert.assertEquals(-1, ret);
@@ -239,6 +287,10 @@ public class TFsShellTest {
 
   @Test
   public void fileinfoTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int fileId = TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.fileinfo(new String[] {"fileinfo", "/testFile"});
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
@@ -309,6 +361,10 @@ public class TFsShellTest {
 
   @Test
   public void locationNotExistTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int ret = mFsShell.location(new String[] {"location", "/NotExistFile"});
     Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
     Assert.assertEquals(-1, ret);
@@ -316,6 +372,10 @@ public class TFsShellTest {
 
   @Test
   public void locationTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int fileId = TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.location(new String[] {"location", "/testFile"});
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
@@ -335,6 +395,10 @@ public class TFsShellTest {
 
   @Test
   public void lsrTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int fileIdA = TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     TachyonFile[] files = new TachyonFile[4];
     files[0] = mTfs.getFile(fileIdA);
@@ -362,6 +426,10 @@ public class TFsShellTest {
 
   @Test
   public void lsTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int fileIdA = TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     TachyonFile[] files = new TachyonFile[3];
     files[0] = mTfs.getFile(fileIdA);
@@ -388,6 +456,10 @@ public class TFsShellTest {
 
   @Test
   public void mkdirComplexPathTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     mFsShell.mkdir(new String[] {"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"});
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
     Assert.assertNotNull(tFile);
@@ -398,17 +470,29 @@ public class TFsShellTest {
 
   @Test
   public void mkdirExistingTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     Assert.assertEquals(0, mFsShell.mkdir(new String[] {"mkdir", "/testFile1"}));
     Assert.assertEquals(0, mFsShell.mkdir(new String[] {"mkdir", "/testFile1"}));
   }
 
   @Test(expected = IOException.class)
   public void mkdirInvalidPathTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     mFsShell.mkdir(new String[] {"mkdir", "/test File Invalid Path"});
   }
 
   @Test
   public void mkdirShortPathTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     mFsShell.mkdir(new String[] {"mkdir", "/root/testFile1"});
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/root/testFile1"));
     Assert.assertNotNull(tFile);
@@ -419,6 +503,10 @@ public class TFsShellTest {
 
   @Test
   public void mkdirTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String qualifiedPath =
         "tachyon://" + NetworkUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS)
         + ":" + mLocalTachyonCluster.getMasterPort()
@@ -440,6 +528,10 @@ public class TFsShellTest {
 
   @Test
   public void renameParentDirectoryTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[] {"mkdir", "/test/File1"});
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/test/File1"}));
@@ -453,6 +545,10 @@ public class TFsShellTest {
 
   @Test
   public void renameTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[] {"mkdir", "/testFolder1"});
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
@@ -466,6 +562,10 @@ public class TFsShellTest {
 
   @Test
   public void renameToExistingFileTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[] {"mkdir", "/testFolder"});
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
@@ -477,11 +577,19 @@ public class TFsShellTest {
 
   @Test
   public void rmNotExistingFileTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     Assert.assertEquals(0, mFsShell.rm(new String[] {"rm", "/testFile"}));
   }
 
   @Test
   public void rmTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[] {"mkdir", "/testFolder1/testFolder2"});
     toCompare
@@ -505,6 +613,10 @@ public class TFsShellTest {
 
   @Test
   public void rmrTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[] {"mkdir", "/testFolder1/testFolder2"});
     toCompare
@@ -534,6 +646,10 @@ public class TFsShellTest {
 
   @Test
   public void tailLargeFileTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 2048);
     mFsShell.tail(new String[] {"tail", "/testFile"});
     byte expect[] = TestUtils.getIncreasingByteArray(1024, 1024);
@@ -542,12 +658,20 @@ public class TFsShellTest {
 
   @Test
   public void tailNotExistTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int ret = mFsShell.tail(new String[] {"tail", "/testFile"});
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void tailSmallFileTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.tail(new String[] {"tail", "/testFile"});
     byte expect[] = TestUtils.getIncreasingByteArray(10);
@@ -556,6 +680,10 @@ public class TFsShellTest {
 
   @Test
   public void touchTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String[] argv = new String[] {"touch", "/testFile"};
     mFsShell.touch(argv);
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
@@ -566,6 +694,10 @@ public class TFsShellTest {
 
   @Test
   public void touchTestWithFullURI() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String tachyonURI =
         "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
             + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
@@ -581,6 +713,10 @@ public class TFsShellTest {
 
   @Test
   public void freeTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.free(new String[]{"free", "/testFile"});
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
@@ -590,6 +726,10 @@ public class TFsShellTest {
 
   @Test
   public void duTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     TestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
     TestUtils.createByteFile(mTfs, "/testRoot/testDir/testDir/testFileC", WriteType.MUST_CACHE, 30);

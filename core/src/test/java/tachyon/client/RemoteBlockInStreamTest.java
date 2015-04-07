@@ -91,6 +91,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void readTest1() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
@@ -168,6 +172,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void readTest2() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
@@ -221,6 +229,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void readTest3() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
@@ -274,6 +286,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void readTest4() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.MUST_CACHE;
@@ -304,6 +320,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void readTest5() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.MUST_CACHE;
@@ -329,6 +349,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void readTest6() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.MUST_CACHE;
@@ -354,6 +378,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void readTest7() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
@@ -383,6 +411,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void seekExceptionTest1() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
@@ -415,6 +447,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void seekExceptionTest2() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     thrown.expect(IOException.class);
     thrown.expectMessage("Seek position is past block size");
     String uniqPath = TestUtils.uniqPath();
@@ -442,6 +478,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void seekTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
@@ -471,6 +511,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void skipTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
@@ -503,6 +547,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void completeFileReadTriggersRecache() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     int len = 2;
     int fileId = TestUtils.createByteFile(mTfs, uniqPath, WriteType.THROUGH, len);
@@ -524,6 +572,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void incompleteFileReadCancelsRecache() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     int fileId = TestUtils.createByteFile(mTfs, uniqPath, WriteType.THROUGH, 2);
     TachyonFile file = mTfs.getFile(fileId);
@@ -541,6 +593,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void readMultiBlockFile() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     int blockSizeByte = 10;
     int numBlocks = 10;
@@ -569,6 +625,10 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void seekAroundLocalBlock() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String uniqPath = TestUtils.uniqPath();
     // The number of bytes per remote block read should be set to 100 in the before function
     int fileId = TestUtils.createByteFile(mTfs, uniqPath, WriteType.MUST_CACHE, 200);
