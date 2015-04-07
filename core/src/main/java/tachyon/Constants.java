@@ -114,6 +114,8 @@ public class Constants {
   public static final String UNDERFS_HADOOP_PREFIXS = "tachyon.underfs.hadoop.prefixes";
   public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.byte";
   public static final String FORMAT_FILE_PREFIX = "_format_";
+  public static final String JXIO_TRANSPORT = "tachyon.network.jxio.transport";
+  public static final String JXIO_ENABLE = "tachyon.jxio.enable";
 
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";
   public static final String MASTER_HOSTNAME = "tachyon.master.hostname";
@@ -170,6 +172,10 @@ public class Constants {
   public static final String WORKER_DATA_SEVRER = "tachyon.worker.data.server.class";
   public static final Class<? extends DataServer> WORKER_DATA_SERVER_CLASS =
       tachyon.worker.netty.NettyDataServer.class;
+  public static final String WORKER_RDMA_SERVER_INITIAL_BUFFERS =
+      "tachyon.worker.network.rdma.server.initial.buffers";
+  public static final String WORKER_RDMA_SERVER_INC_BUFFERS =
+      "tachyon.worker.network.rdma.server.inc.buffers";
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";
@@ -183,5 +189,5 @@ public class Constants {
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
   public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
       tachyon.client.tcp.TCPRemoteBlockReader.class;
-
+  public static final String USER_RDMA_CLIENT_BUFFERS = "tachyon.user.network.rdma.client.buffers";
 }

@@ -24,7 +24,8 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.client.RemoteBlockReader;
-import tachyon.worker.nio.DataServerMessage;
+import tachyon.conf.TachyonConf;
+import tachyon.worker.DataServerMessage;
 
 /**
  * Read data from remote data server using TCP.
@@ -32,10 +33,27 @@ import tachyon.worker.nio.DataServerMessage;
 public final class TCPRemoteBlockReader implements RemoteBlockReader {
 
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private final TachyonConf mConf;
+
+  public TCPRemoteBlockReader(TachyonConf conf) {
+    this.mConf = conf;
+  }
 
   @Override
   public ByteBuffer readRemoteBlock(String host, int port, long blockId, long offset, long length)
       throws IOException {
+    DataServerMessage remoteMsg = getRemoteMsg(host, port, blockId, offset, length);
+
+    if (remoteMsg.getBlockId() < 0) {
+      LOG.info("Data " + remoteMsg.getBlockId() + " is not in remote machine.");
+      return null;
+    }
+    return remoteMsg.getReadOnlyData();
+  }
+
+  @Override
+  public DataServerMessage getRemoteMsg(String host, int port, long blockId, long offset,
+      long length) throws IOException {
     InetSocketAddress address = new InetSocketAddress(host, port);
     SocketChannel socketChannel = SocketChannel.open();
     try {
@@ -60,12 +78,7 @@ public final class TCPRemoteBlockReader implements RemoteBlockReader {
       }
       LOG.info("Data " + blockId + " from remote machine " + address + " received");
 
-      if (recvMsg.getBlockId() < 0) {
-        LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
-        return null;
-      }
-
-      return recvMsg.getReadOnlyData();
+      return recvMsg;
     } finally {
       socketChannel.close();
     }

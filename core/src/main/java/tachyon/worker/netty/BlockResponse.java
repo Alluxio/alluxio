@@ -31,7 +31,7 @@ import com.google.common.primitives.Shorts;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.BlockHandler;
-import tachyon.worker.nio.DataServerMessage;
+import tachyon.worker.DataServerMessage;
 
 /**
  * When a user sends a {@link tachyon.worker.netty.BlockRequest}, the response back is of this type.
