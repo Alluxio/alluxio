@@ -120,8 +120,8 @@ public class TestDFSIO implements Tool {
 
   private static enum TestType {
     TEST_TYPE_READ("read"), TEST_TYPE_WRITE("write"), TEST_TYPE_CLEANUP("cleanup"),
-    TEST_TYPE_APPEND("append"), TEST_TYPE_READ_RANDOM("random read"), TEST_TYPE_READ_BACKWARD(
-        "backward read"), TEST_TYPE_READ_SKIP("skip read");
+        TEST_TYPE_APPEND("append"), TEST_TYPE_READ_RANDOM("random read"),
+        TEST_TYPE_READ_BACKWARD("backward read"), TEST_TYPE_READ_SKIP("skip read");
 
     private String type;
 
@@ -131,8 +131,7 @@ public class TestDFSIO implements Tool {
 
     @Override
     // String
-        public
-        String toString() {
+    public String toString() {
       return type;
     }
   }
@@ -363,13 +362,11 @@ public class TestDFSIO implements Tool {
   private abstract static class IOStatMapper extends IOMapperBase<Long> {
     protected CompressionCodec compressionCodec;
 
-    IOStatMapper() {
-    }
+    IOStatMapper() {}
 
     @Override
     // Mapper
-        public
-        void configure(JobConf conf) {
+    public void configure(JobConf conf) {
       super.configure(conf);
 
       // grab compression
@@ -392,8 +389,8 @@ public class TestDFSIO implements Tool {
 
     @Override
     // IOMapperBase
-        void collectStats(OutputCollector<Text, Text> output, String name, long execTime,
-            Long objSize) throws IOException {
+    void collectStats(OutputCollector<Text, Text> output, String name, long execTime, Long objSize)
+        throws IOException {
       long totalSize = objSize.longValue();
       float ioRateMbSec = (float) totalSize * 1000 / (execTime * MEGA);
       LOG.info("Number of bytes processed = " + totalSize);
@@ -425,8 +422,7 @@ public class TestDFSIO implements Tool {
 
     @Override
     // IOMapperBase
-        public
-        Closeable getIOStream(String name) throws IOException {
+    public Closeable getIOStream(String name) throws IOException {
       // create file
       OutputStream out = fs.create(new Path(getDataDir(getConf()), name), true, bufferSize);
       if (compressionCodec != null)
@@ -437,9 +433,8 @@ public class TestDFSIO implements Tool {
 
     @Override
     // IOMapperBase
-        public
-        Long doIO(Reporter reporter, String name, long totalSize // in bytes
-        ) throws IOException {
+    public Long doIO(Reporter reporter, String name, long totalSize // in bytes
+    ) throws IOException {
       OutputStream out = (OutputStream) this.stream;
       // write to the file
       long nrRemaining;
@@ -490,8 +485,7 @@ public class TestDFSIO implements Tool {
 
     @Override
     // IOMapperBase
-        public
-        Closeable getIOStream(String name) throws IOException {
+    public Closeable getIOStream(String name) throws IOException {
       // open file for append
       OutputStream out = fs.append(new Path(getDataDir(getConf()), name), bufferSize);
       if (compressionCodec != null)
@@ -502,9 +496,8 @@ public class TestDFSIO implements Tool {
 
     @Override
     // IOMapperBase
-        public
-        Long doIO(Reporter reporter, String name, long totalSize // in bytes
-        ) throws IOException {
+    public Long doIO(Reporter reporter, String name, long totalSize // in bytes
+    ) throws IOException {
       OutputStream out = (OutputStream) this.stream;
       // write to the file
       long nrRemaining;
@@ -529,13 +522,11 @@ public class TestDFSIO implements Tool {
    */
   public static class ReadMapper extends IOStatMapper {
 
-    public ReadMapper() {
-    }
+    public ReadMapper() {}
 
     @Override
     // IOMapperBase
-        public
-        Closeable getIOStream(String name) throws IOException {
+    public Closeable getIOStream(String name) throws IOException {
       // open file
       InputStream in = fs.open(new Path(getDataDir(getConf()), name));
       if (compressionCodec != null)
@@ -546,9 +537,8 @@ public class TestDFSIO implements Tool {
 
     @Override
     // IOMapperBase
-        public
-        Long doIO(Reporter reporter, String name, long totalSize // in bytes
-        ) throws IOException {
+    public Long doIO(Reporter reporter, String name, long totalSize // in bytes
+    ) throws IOException {
       InputStream in = (InputStream) this.stream;
       long actualSize = 0;
       while (actualSize < totalSize) {
@@ -571,8 +561,8 @@ public class TestDFSIO implements Tool {
 
   /**
    * Mapper class for random reads. The mapper chooses a position in the file and reads bufferSize
-   * bytes starting at the chosen position. It stops after reading the totalSize bytes, specified by
-   * -size.
+   * bytes starting at the chosen position. It stops after reading the totalSize bytes, specified
+   * by size.
    * 
    * There are three type of reads. 1) Random read always chooses a random position to read from:
    * skipSize = 0 2) Backward read reads file in reverse order : skipSize < 0 3) Skip-read skips
@@ -585,8 +575,7 @@ public class TestDFSIO implements Tool {
 
     @Override
     // Mapper
-        public
-        void configure(JobConf conf) {
+    public void configure(JobConf conf) {
       super.configure(conf);
       skipSize = conf.getLong("test.io.skip.size", 0);
     }
@@ -597,8 +586,7 @@ public class TestDFSIO implements Tool {
 
     @Override
     // IOMapperBase
-        public
-        Closeable getIOStream(String name) throws IOException {
+    public Closeable getIOStream(String name) throws IOException {
       Path filePath = new Path(getDataDir(getConf()), name);
       this.fileSize = fs.getFileStatus(filePath).getLen();
       InputStream in = fs.open(filePath);
@@ -611,9 +599,8 @@ public class TestDFSIO implements Tool {
 
     @Override
     // IOMapperBase
-        public
-        Long doIO(Reporter reporter, String name, long totalSize // in bytes
-        ) throws IOException {
+    public Long doIO(Reporter reporter, String name, long totalSize // in bytes
+    ) throws IOException {
       PositionedReadable in = (PositionedReadable) this.stream;
       long actualSize = 0;
       for (long pos = nextOffset(-1); actualSize < totalSize; pos = nextOffset(pos)) {
@@ -631,8 +618,7 @@ public class TestDFSIO implements Tool {
      * Get next offset for reading. If current < 0 then choose initial offset according to the read
      * type.
      * 
-     * @param current
-     *          offset
+     * @param current offset
      * @return
      */
     private long nextOffset(long current) {
@@ -655,22 +641,22 @@ public class TestDFSIO implements Tool {
       int nrFiles) throws IOException {
     IOStatMapper ioer = null;
     switch (testType) {
-    case TEST_TYPE_READ:
-      ioer = new ReadMapper();
-      break;
-    case TEST_TYPE_WRITE:
-      ioer = new WriteMapper();
-      break;
-    case TEST_TYPE_APPEND:
-      ioer = new AppendMapper();
-      break;
-    case TEST_TYPE_READ_RANDOM:
-    case TEST_TYPE_READ_BACKWARD:
-    case TEST_TYPE_READ_SKIP:
-      ioer = new RandomReadMapper();
-      break;
-    default:
-      return;
+      case TEST_TYPE_READ:
+        ioer = new ReadMapper();
+        break;
+      case TEST_TYPE_WRITE:
+        ioer = new WriteMapper();
+        break;
+      case TEST_TYPE_APPEND:
+        ioer = new AppendMapper();
+        break;
+      case TEST_TYPE_READ_RANDOM:
+      case TEST_TYPE_READ_BACKWARD:
+      case TEST_TYPE_READ_SKIP:
+        ioer = new RandomReadMapper();
+        break;
+      default:
+        return;
     }
     for (int i = 0; i < nrFiles; i ++)
       ioer.doIO(Reporter.NULL, BASE_FILE_NAME + Integer.toString(i), fileSize);
@@ -692,8 +678,7 @@ public class TestDFSIO implements Tool {
 
   @Override
   // Tool
-      public
-      int run(String[] args) throws IOException {
+  public int run(String[] args) throws IOException {
     TestType testType = null;
     int bufferSize = DEFAULT_BUFFER_SIZE;
     long nrBytes = 1 * MEGA;
@@ -735,17 +720,17 @@ public class TestDFSIO implements Tool {
       } else if (args[i].startsWith("-seq")) {
         isSequential = true;
       } else if (args[i].startsWith("-compression")) {
-        compressionClass = args[++ i];
+        compressionClass = args[++i];
       } else if (args[i].equals("-nrFiles")) {
-        nrFiles = Integer.parseInt(args[++ i]);
+        nrFiles = Integer.parseInt(args[++i]);
       } else if (args[i].equals("-fileSize") || args[i].equals("-size")) {
-        nrBytes = parseSize(args[++ i]);
+        nrBytes = parseSize(args[++i]);
       } else if (args[i].equals("-skipSize")) {
-        skipSize = parseSize(args[++ i]);
+        skipSize = parseSize(args[++i]);
       } else if (args[i].equals("-bufferSize")) {
-        bufferSize = Integer.parseInt(args[++ i]);
+        bufferSize = Integer.parseInt(args[++i]);
       } else if (args[i].equals("-resFile")) {
-        resFileName = args[++ i];
+        resFileName = args[++i];
       } else {
         System.err.println("Illegal argument: " + args[i]);
         return -1;
@@ -790,19 +775,19 @@ public class TestDFSIO implements Tool {
     createControlFile(fs, nrBytes, nrFiles);
     long tStart = System.currentTimeMillis();
     switch (testType) {
-    case TEST_TYPE_WRITE:
-      writeTest(fs);
-      break;
-    case TEST_TYPE_READ:
-      readTest(fs);
-      break;
-    case TEST_TYPE_APPEND:
-      appendTest(fs);
-      break;
-    case TEST_TYPE_READ_RANDOM:
-    case TEST_TYPE_READ_BACKWARD:
-    case TEST_TYPE_READ_SKIP:
-      randomReadTest(fs);
+      case TEST_TYPE_WRITE:
+        writeTest(fs);
+        break;
+      case TEST_TYPE_READ:
+        readTest(fs);
+        break;
+      case TEST_TYPE_APPEND:
+        appendTest(fs);
+        break;
+      case TEST_TYPE_READ_RANDOM:
+      case TEST_TYPE_READ_BACKWARD:
+      case TEST_TYPE_READ_SKIP:
+        randomReadTest(fs);
     }
     long execTime = System.currentTimeMillis() - tStart;
 
@@ -812,23 +797,20 @@ public class TestDFSIO implements Tool {
 
   @Override
   // Configurable
-      public
-      Configuration getConf() {
+  public Configuration getConf() {
     return this.config;
   }
 
   @Override
   // Configurable
-      public
-      void setConf(Configuration conf) {
+  public void setConf(Configuration conf) {
     this.config = conf;
   }
 
   /**
    * Returns size in bytes.
    * 
-   * @param arg
-   *          = {d}[B|KB|MB|GB|TB]
+   * @param arg = {d}[B|KB|MB|GB|TB]
    * @return
    */
   static long parseSize(String arg) {
@@ -881,12 +863,12 @@ public class TestDFSIO implements Tool {
     double med = rate / 1000 / tasks;
     double stdDev = Math.sqrt(Math.abs(sqrate / 1000 / tasks - med * med));
     String resultLines[] =
-        { "----- TestDFSIO ----- : " + testType,
+        {"----- TestDFSIO ----- : " + testType,
             "           Date & time: " + new Date(System.currentTimeMillis()),
             "       Number of files: " + tasks, "Total MBytes processed: " + toMB(size),
             "     Throughput mb/sec: " + size * 1000.0 / (time * MEGA),
             "Average IO rate mb/sec: " + med, " IO rate std deviation: " + stdDev,
-            "    Test exec time sec: " + (float) execTime / 1000, "" };
+            "    Test exec time sec: " + (float) execTime / 1000, ""};
 
     PrintStream res = null;
     try {
@@ -907,16 +889,16 @@ public class TestDFSIO implements Tool {
 
   private Path getReduceFilePath(TestType testType) {
     switch (testType) {
-    case TEST_TYPE_WRITE:
-      return new Path(getWriteDir(config), "part-00000");
-    case TEST_TYPE_APPEND:
-      return new Path(getAppendDir(config), "part-00000");
-    case TEST_TYPE_READ:
-      return new Path(getReadDir(config), "part-00000");
-    case TEST_TYPE_READ_RANDOM:
-    case TEST_TYPE_READ_BACKWARD:
-    case TEST_TYPE_READ_SKIP:
-      return new Path(getRandomReadDir(config), "part-00000");
+      case TEST_TYPE_WRITE:
+        return new Path(getWriteDir(config), "part-00000");
+      case TEST_TYPE_APPEND:
+        return new Path(getAppendDir(config), "part-00000");
+      case TEST_TYPE_READ:
+        return new Path(getReadDir(config), "part-00000");
+      case TEST_TYPE_READ_RANDOM:
+      case TEST_TYPE_READ_BACKWARD:
+      case TEST_TYPE_READ_SKIP:
+        return new Path(getRandomReadDir(config), "part-00000");
     }
     return null;
   }

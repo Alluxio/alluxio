@@ -37,7 +37,6 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 
-
 /**
  * Tachyon File.
  */
