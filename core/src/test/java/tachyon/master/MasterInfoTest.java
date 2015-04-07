@@ -298,6 +298,10 @@ public class MasterInfoTest {
 
   @Test
   public void concurrentCreateJournalTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     // Makes sure the file id's are the same between a master info and the journal it creates
     for (int i = 0; i < 5; i ++) {
       ConcurrentCreator concurrentCreator =

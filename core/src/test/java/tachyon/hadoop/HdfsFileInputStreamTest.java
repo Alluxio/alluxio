@@ -85,6 +85,10 @@ public class HdfsFileInputStreamTest {
    */
   @Test
   public void readTest1() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     for (int i = 0; i < FILE_LEN; i ++) {
       int value = mInMemInputStream.read();
       Assert.assertEquals(i & 0x00ff, value);
@@ -105,6 +109,10 @@ public class HdfsFileInputStreamTest {
    */
   @Test
   public void readTest2() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     byte[] buf = new byte[FILE_LEN];
     int length = mInMemInputStream.read(buf, 0, FILE_LEN);
     Assert.assertEquals(FILE_LEN, length);
@@ -127,6 +135,10 @@ public class HdfsFileInputStreamTest {
    */
   @Test
   public void readTest3() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     byte[] buf = new byte[FILE_LEN];
     int length = mInMemInputStream.read(0, buf, 0, FILE_LEN);
     Assert.assertEquals(FILE_LEN, length);
@@ -165,6 +177,10 @@ public class HdfsFileInputStreamTest {
 
   @Test
   public void seekTest() throws IOException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     mInMemInputStream.seek(0);
     Assert.assertEquals(0, mInMemInputStream.getPos());
     IOException exception = null;

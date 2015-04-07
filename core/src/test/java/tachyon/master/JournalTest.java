@@ -55,6 +55,10 @@ public class JournalTest {
    */
   @Test
   public void AddBlockTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     TachyonURI uri = new TachyonURI("/xyz");
     mTfs.createFile(uri, 64);
     TachyonFile file = mTfs.getFile(uri);
@@ -96,6 +100,10 @@ public class JournalTest {
    */
   @Test
   public void AddCheckpointTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     TestUtils.createByteFile(mTfs, "/xyz", WriteType.THROUGH, 10);
     ClientFileInfo fInfo =
         mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
@@ -156,6 +164,10 @@ public class JournalTest {
    */
   @Test
   public void CompletedEditLogDeletionTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     Journal journal = mLocalTachyonCluster.getMasterInfo().getJournal();
     journal.setMaxLogSize(Constants.KB);
     for (int i = 0; i < 124; i ++) {
@@ -180,6 +192,10 @@ public class JournalTest {
    */
   @Test
   public void DeleteTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     for (int i = 0; i < 10; i ++) {
       mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
@@ -218,6 +234,10 @@ public class JournalTest {
 
   @Test
   public void EmptyImageTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     mLocalTachyonCluster.stopTFS();
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
@@ -237,6 +257,10 @@ public class JournalTest {
    */
   @Test
   public void FileFolderTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     for (int i = 0; i < 10; i ++) {
       mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
@@ -274,6 +298,10 @@ public class JournalTest {
    */
   @Test
   public void FileTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     mTfs.createFile(new TachyonURI("/xyz"), 64);
     ClientFileInfo fInfo =
         mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
@@ -304,6 +332,10 @@ public class JournalTest {
    */
   @Test
   public void PinTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     mTfs.mkdir(new TachyonURI("/myFolder"));
     int folderId = mTfs.getFileId(new TachyonURI("/myFolder"));
     mTfs.setPinned(folderId, true);
@@ -350,6 +382,10 @@ public class JournalTest {
    */
   @Test
   public void FolderTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     mTfs.mkdir(new TachyonURI("/xyz"));
     ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
     mLocalTachyonCluster.stopTFS();
@@ -381,6 +417,10 @@ public class JournalTest {
    */
   @Test
   public void ManyFileTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     for (int i = 0; i < 10; i ++) {
       mTfs.createFile(new TachyonURI("/a" + i), (i + 1) * 64);
     }
@@ -414,6 +454,10 @@ public class JournalTest {
    */
   @Test
   public void MultiEditLogTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     Journal journal = mLocalTachyonCluster.getMasterInfo().getJournal();
     journal.setMaxLogSize(Constants.KB);
     for (int i = 0; i < 124; i ++) {
@@ -449,6 +493,10 @@ public class JournalTest {
    */
   @Test
   public void RenameEditLogTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     String journalPrefix = "/tmp/JournalDir" + String.valueOf(System.currentTimeMillis());
     String journalPath = journalPrefix + "/log.data";
     String completedStr = journalPrefix + "/completed/";
@@ -499,6 +547,10 @@ public class JournalTest {
    */
   @Test
   public void RenameTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     for (int i = 0; i < 10; i ++) {
       mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
@@ -538,6 +590,10 @@ public class JournalTest {
    */
   @Test
   public void TableTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     mTfs.createRawTable(new TachyonURI("/xyz"), 10);
     ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().
         getClientFileInfo(new TachyonURI("/xyz"));
