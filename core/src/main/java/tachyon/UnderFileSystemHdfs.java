@@ -296,10 +296,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       for (FileStatus status : files) {
         TachyonURI filePathURI = new TachyonURI(status.getPath().toUri().toString());
         String filePath =  NetworkUtils.replaceHostName(filePathURI).toString();
-        if (filePath.length() < path.length()) {
-          LOG.warn("File Path should not be shorter than base dir path.  File Path: "
-              + filePath + " and Base Dir Path: " + path);
-        }
         // only return the relative path, to keep consistent with java.io.File.list()
         rtn[i ++] = filePath.substring(path.length()); // mUfsPrefix
       }
