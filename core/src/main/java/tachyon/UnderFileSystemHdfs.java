@@ -38,6 +38,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.conf.TachyonConf;
 import tachyon.hadoop.Utils;
+import tachyon.util.NetworkUtils;
 
 /**
  * HDFS UnderFilesystem implementation.
@@ -293,8 +294,10 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       String[] rtn = new String[files.length];
       int i = 0;
       for (FileStatus status : files) {
+        TachyonURI filePathURI = new TachyonURI(status.getPath().toUri().toString());
+        String filePath =  NetworkUtils.replaceHostName(filePathURI).toString();
         // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i ++] = status.getPath().toUri().toString().substring(path.length()); // mUfsPrefix
+        rtn[i ++] = filePath.substring(path.length()); // mUfsPrefix
       }
       return rtn;
     } else {
