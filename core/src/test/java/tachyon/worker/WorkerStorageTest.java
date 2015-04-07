@@ -109,6 +109,10 @@ public class WorkerStorageTest {
    */
   @Test
   public void cacheBlockTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int fileLen = USER_QUOTA_UNIT_BYTES + 4;
     int fid = TestUtils.createByteFile(mTfs, "/cacheBlockTest", WriteType.THROUGH, fileLen);
     long usedBytes = mLocalTachyonCluster.getMasterInfo().getWorkersInfo().get(0).getUsedBytes();
@@ -134,6 +138,10 @@ public class WorkerStorageTest {
    */
   @Test
   public void swapoutOrphanBlocksLargeFileTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     swapoutOrphanBlocksFileTestUtil(70000);
   }
 
@@ -144,6 +152,10 @@ public class WorkerStorageTest {
    */
   @Test
   public void swapoutOrphanBlocksSmallFileTest() throws Exception {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     swapoutOrphanBlocksFileTestUtil(10);
   }
 
