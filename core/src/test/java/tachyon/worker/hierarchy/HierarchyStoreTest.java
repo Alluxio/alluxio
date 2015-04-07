@@ -71,6 +71,10 @@ public class HierarchyStoreTest {
 
   @Test
   public void blockEvict() throws IOException, InterruptedException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int fileId1 =
         TestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
     int fileId2 =
@@ -105,6 +109,10 @@ public class HierarchyStoreTest {
 
   @Test
   public void promoteBlock() throws IOException, InterruptedException {
+    if (mLocalTachyonCluster.isDummyUnderFS()) {
+      return;
+    }
+
     int fileId1 =
         TestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
     int fileId2 =
