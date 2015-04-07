@@ -79,13 +79,16 @@ public class Format {
       CommonUtils.touch(masterJournal + Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis(),
           tachyonConf);
     } else if (args[0].toUpperCase().equals("WORKER")) {
+      String workerDataFolder =
+          tachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
       int maxStorageLevels = tachyonConf.getInt(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, 1);
       for (int level = 0; level < maxStorageLevels; level ++) {
         String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
         String[] dirPaths = tachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {
-          if (!formatFolder(name, dirPath.trim(), tachyonConf)) {
+          String dirWorkDataFolder = CommonUtils.concat(dirPath.trim(), workerDataFolder);
+          if (!formatFolder(name, dirWorkDataFolder, tachyonConf)) {
             System.exit(-1);
           }
         }
