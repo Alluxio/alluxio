@@ -24,7 +24,6 @@ import tachyon.underfs.UnderFileSystemFactory;
 
 /**
  * Factory for {@link LocalUnderFileSystem} instances
- *
  */
 public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
   

@@ -41,8 +41,8 @@ import tachyon.conf.TachyonConf;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.hadoop.Utils;
-import tachyon.util.NetworkUtils;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.NetworkUtils;
 
 /**
  * HDFS UnderFilesystem implementation

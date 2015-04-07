@@ -73,11 +73,11 @@ public class JournalTest {
 
   private void AddBlockTestUtil(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-        Constants.DEFAULT_JOURNAL_FOLDER);
+    String masterJournal =
+        mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
-        mMasterTachyonConf);
+    MasterInfo info =
+        new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
     info.init();
     Assert.assertEquals(2, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -254,11 +254,11 @@ public class JournalTest {
 
   private void FileFolderUtil() throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-      Constants.DEFAULT_JOURNAL_FOLDER);
+    String masterJournal =
+        mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
-      mMasterTachyonConf);
+    MasterInfo info =
+        new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
     info.init();
     Assert.assertEquals(111, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -331,18 +331,18 @@ public class JournalTest {
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
     info.init();
-    Assert.assertEquals(folder,
-        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder"))));
-    Assert
-        .assertTrue(info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder"))).isPinned);
-    Assert.assertEquals(file0,
-        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file0"))));
-    Assert
-        .assertFalse(info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file0"))).isPinned);
-    Assert.assertEquals(file1,
-        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file1"))));
-    Assert
-        .assertTrue(info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file1"))).isPinned);
+    Assert.assertEquals(
+        folder, info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder"))));
+    Assert.assertTrue(
+        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder"))).isPinned);
+    Assert.assertEquals(
+        file0, info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file0"))));
+    Assert.assertFalse(
+        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file0"))).isPinned);
+    Assert.assertEquals(
+        file1, info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file1"))));
+    Assert.assertTrue(
+        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file1"))).isPinned);
     info.stop();
   }
 
@@ -365,11 +365,11 @@ public class JournalTest {
 
   private void FolderTest(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-        Constants.DEFAULT_JOURNAL_FOLDER);
+    String masterJournal =
+        mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
-        mMasterTachyonConf);
+    MasterInfo info =
+        new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
     info.init();
     Assert.assertEquals(2, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);

@@ -44,11 +44,8 @@ import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
-
 import tachyon.thrift.InvalidPathException;
-
 import tachyon.underfs.UnderFileSystem;
-
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
@@ -430,8 +427,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param fileId the file id
    * @param blockIndex The index of the block in the file.
    * @return the block id if exists
-   * @throws IOException
-   *         if the file does not exist, or connection issue.
+   * @throws IOException if the file does not exist, or connection issue.
    */
   public synchronized long getBlockId(int fileId, int blockIndex) throws IOException {
     ClientFileInfo info = getFileStatus(fileId, true);
