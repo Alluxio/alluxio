@@ -46,4 +46,4 @@ for slave in $UNIQ_SLAVES; do
 done
 wait
 
-$JAVA -cp $TACHYON_PERF_CONF_DIR/:$TACHYON_PERF_JAR -Dtachyon.perf.home=$TACHYON_PERF_HOME -Dtachyon.perf.logger.type="PERF_MASTER_LOGGER" -Dlog4j.configuration=file:$TACHYON_PERF_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS $TACHYON_PERF_JAVA_OPTS tachyon.perf.TachyonPerfMaster $taskid $SLAVES $1
+$JAVA -cp $TACHYON_PERF_CONF_DIR/:$TACHYON_PERF_JAR -Dtachyon.perf.home=$TACHYON_PERF_HOME -Dtachyon.perf.logger.type="PERF_MASTER_LOGGER" -Dtachyon.perf.slave.id="" -Dlog4j.configuration=file:$TACHYON_PERF_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS $TACHYON_PERF_JAVA_OPTS tachyon.perf.TachyonPerfMaster $taskid $SLAVES $1
