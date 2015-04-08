@@ -55,9 +55,4 @@ public class UnderFileSystemDummy extends UnderFileSystemSingleLocal {
   public boolean rename(String src, String dst) throws IOException {
     return true;
   }
-
-  @Override
-  public boolean delete(String path, boolean recursive) throws IOException {
-    return true;
-  }
 }
