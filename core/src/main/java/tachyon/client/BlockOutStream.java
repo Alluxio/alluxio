@@ -218,7 +218,7 @@ public class BlockOutStream extends OutStream {
       mBuffer.clear();
     }
 
-    if (len > userFileBufferBytes/2) {
+    if (len > userFileBufferBytes / 2) {
       appendCurrentBuffer(b, off, len);
     } else if (len > 0) {
       mBuffer.put(b, off, len);
