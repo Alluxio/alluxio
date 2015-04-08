@@ -48,13 +48,11 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
           "org.apache.hadoop.fs.glusterfs.GlusterFileSystem"));
       config.set("mapred.system.dir",
           tachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR, "glusterfs:///mapred/system"));
-      config.set("fs.glusterfs.volumes",
-          tachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null));
       config
-          .set(
-              "fs.glusterfs.volume.fuse."
-                  + tachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null),
-              tachyonConf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null));
+          .set("fs.glusterfs.volumes", tachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null));
+      config.set(
+          "fs.glusterfs.volume.fuse." + tachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null),
+          tachyonConf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null));
     } else {
       // If not Gluster FS fall back to default HDFS behaviour
       // This should only happen if someone creates an instance of this directly rather than via the
