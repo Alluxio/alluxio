@@ -56,18 +56,16 @@ public final class EvictLRU extends EvictLRUBase {
       }
       long blockId = candidate.getSecond();
       long blockSize = dir.getBlockSize(blockId);
-      // Add info of the block to the list
-      blockInfoList.add(new BlockInfo(dir, blockId, blockSize));
-      dir2BlocksToEvict.put(dir, blockId);
-      dir2LRUBlocks.remove(dir);
-      long evictBytes;
-      // Update eviction size for this StorageDir
-      if (sizeToEvict.containsKey(dir)) {
-        evictBytes = sizeToEvict.get(dir) + blockSize;
-      } else {
-        evictBytes = blockSize;
+      long evictBytes = sizeToEvict.containsKey(dir) ? sizeToEvict.get(dir) : 0L;
+      if (blockSize != -1) {
+        // Add info of the block to the list
+        blockInfoList.add(new BlockInfo(dir, blockId, blockSize));
+        dir2BlocksToEvict.put(dir, blockId);
+        evictBytes += blockSize;
+        sizeToEvict.put(dir, evictBytes);
       }
-      sizeToEvict.put(dir, evictBytes);
+      dir2LRUBlocks.remove(dir);
+
       if (evictBytes + dir.getAvailableBytes() >= requestBytes) {
         return new Pair<StorageDir, List<BlockInfo>>(dir, blockInfoList);
       }
