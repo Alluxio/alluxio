@@ -392,10 +392,11 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
               <artifactSet>
                 <includes>
                   <include>org.apache.thrift:libthrift</include>
+                  <include>org.apache.http:httpclient</include>
+                  <include>org.apache.http:httpcore</include>
                 </includes>
               </artifactSet>
               <filters>
@@ -411,6 +412,10 @@
                 <relocation>
                   <pattern>org.apache.thrift</pattern>
                   <shadedPattern>tachyon.org.apache.thrift</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.http</pattern>
+                  <shadedPattern>tachyon.org.apache.http</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
