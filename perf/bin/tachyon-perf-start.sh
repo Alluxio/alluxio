@@ -22,7 +22,7 @@ if [ ! -d "$TACHYON_PERF_LOGS_DIR" ]; then
   mkdir -p $TACHYON_PERF_LOGS_DIR
 fi
 
-JAVACOMMAND="$JAVA -cp $TACHYON_PERF_CONF_DIR/:$TACHYON_PERF_JAR -Dtachyon.perf.home=$TACHYON_PERF_HOME -Dtachyon.perf.logger.type=PERF_SLAVE_LOGGER -Dlog4j.configuration=file:$TACHYON_PERF_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS $TACHYON_PERF_JAVA_OPTS tachyon.perf.TachyonPerfSlave"
+JAVACOMMAND="$JAVA -cp $TACHYON_PERF_CONF_DIR/:$TACHYON_PERF_JAR -Dtachyon.perf.home=$TACHYON_PERF_HOME -Dtachyon.perf.logger.type=PERF_SLAVE_LOGGER -Dtachyon.perf.slave.id="$2" -Dlog4j.configuration=file:$TACHYON_PERF_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS $TACHYON_PERF_JAVA_OPTS tachyon.perf.TachyonPerfSlave"
 
 for (( i = $2; i <= $3; i ++))
 do
