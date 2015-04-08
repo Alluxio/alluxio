@@ -73,11 +73,8 @@ public class DataServerTest {
 
   @After
   public final void after() throws Exception {
-    if (mLocalTachyonCluster != null) {
-      mLocalTachyonCluster.stop();
-    }
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.worker.network.type");
+    mLocalTachyonCluster.stop();
+    System.clearProperty(Constants.WORKER_DATA_SEVRER);
   }
 
   /**

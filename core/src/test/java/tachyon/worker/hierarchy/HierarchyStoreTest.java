@@ -47,10 +47,7 @@ public class HierarchyStoreTest {
 
   @After
   public final void after() throws Exception {
-    if (mLocalTachyonCluster != null) {
-      mLocalTachyonCluster.stop();
-    }
-    System.clearProperty("tachyon.user.quota.unit.bytes");
+    mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.worker.hierarchystore.level.max");
     System.clearProperty("tachyon.worker.hierarchystore.level1.alias");
     System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.path");

@@ -218,14 +218,14 @@ public class TachyonMaster {
     return mZookeeperMode;
   }
 
-  private void connect() throws IOException {
+  private void connectToUFS() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(mTachyonConf.get(Constants.UNDERFS_ADDRESS, null),
         mTachyonConf);
     ufs.connectFromMaster(mTachyonConf, NetworkUtils.getFqdnHost(mMasterAddress));
   }
 
   private void setup() throws IOException, TTransportException {
-    connect();
+    connectToUFS();
     if (mZookeeperMode) {
       mEditLogProcessor.stop();
     }

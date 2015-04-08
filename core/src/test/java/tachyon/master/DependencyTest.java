@@ -41,9 +41,7 @@ public class DependencyTest {
   @After
   public final void after() throws Exception {
     DependencyVariables.VARIABLES.clear();
-    if (mLocalTachyonCluster != null) {
-      mLocalTachyonCluster.stop();
-    }
+    mLocalTachyonCluster.stop();
   }
 
   @Before

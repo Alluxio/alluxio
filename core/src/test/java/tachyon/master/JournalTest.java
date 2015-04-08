@@ -134,9 +134,7 @@ public class JournalTest {
    */
   @After
   public final void after() throws Exception {
-    if (mLocalTachyonCluster != null) {
-      mLocalTachyonCluster.stop();
-    }
+    mLocalTachyonCluster.stop();
     mExecutorService.shutdown();
     System.clearProperty("fs.hdfs.impl.disable.cache");
   }

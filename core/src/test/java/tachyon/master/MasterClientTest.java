@@ -42,9 +42,7 @@ public class MasterClientTest {
 
   @After
   public final void after() throws Exception {
-    if (mLocalTachyonCluster != null) {
-      mLocalTachyonCluster.stop();
-    }
+    mLocalTachyonCluster.stop();
     mExecutorService.shutdown();
   }
 

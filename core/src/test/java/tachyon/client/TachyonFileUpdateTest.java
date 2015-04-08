@@ -51,10 +51,7 @@ public final class TachyonFileUpdateTest {
 
   @After
   public final void after() throws Exception {
-    if (mLocalTachyonCluster != null) {
-      mLocalTachyonCluster.stop();
-    }
-    System.clearProperty("tachyon.user.quota.unit.bytes");
+    mLocalTachyonCluster.stop();
   }
 
   @Test

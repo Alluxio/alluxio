@@ -45,11 +45,7 @@ public class TachyonFSTestIso {
 
   @After
   public final void after() throws Exception {
-    if (mLocalTachyonCluster != null) {
-      mLocalTachyonCluster.stop();
-    }
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.max.columns");
+    mLocalTachyonCluster.stop();
   }
 
   @Before

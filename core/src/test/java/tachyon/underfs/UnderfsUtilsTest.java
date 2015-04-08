@@ -47,11 +47,7 @@ public class UnderfsUtilsTest {
 
   @After
   public final void after() throws Exception {
-    if (mLocalTachyonCluster != null) {
-      mLocalTachyonCluster.stop();
-    }
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
+    mLocalTachyonCluster.stop();
   }
 
   @Before
@@ -72,8 +68,8 @@ public class UnderfsUtilsTest {
     // Or could it run on some general subsets of Under File Systems?
     Assume.assumeTrue(UnderFileSystemCluster.isUFSHDFS());
 
-    String[] exclusions = { "/tachyon", "/exclusions" };
-    String[] inclusions = { "/inclusions/sub-1", "/inclusions/sub-2" };
+    String[] exclusions = {"/tachyon", "/exclusions"};
+    String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
       if (!mUfs.exists(exclusion)) {
         mUfs.mkdirs(exclusion, true);

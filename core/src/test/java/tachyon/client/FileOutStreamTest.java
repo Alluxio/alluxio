@@ -50,11 +50,7 @@ public class FileOutStreamTest {
 
   @AfterClass
   public static final void afterClass() throws Exception {
-    if (sLocalTachyonCluster != null) {
-      sLocalTachyonCluster.stop();
-    }
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
+    sLocalTachyonCluster.stop();
   }
 
   @BeforeClass

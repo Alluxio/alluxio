@@ -39,9 +39,7 @@ public class BlockInStreamTest {
 
   @AfterClass
   public static final void afterClass() throws Exception {
-    if (sLocalTachyonCluster != null) {
-      sLocalTachyonCluster.stop();
-    }
+    sLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 

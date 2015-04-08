@@ -34,20 +34,16 @@ import tachyon.worker.TachyonWorker;
 public final class LocalTachyonCluster {
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
-    if (cluster != null) {
-      cluster.start();
-      CommonUtils.sleepMs(null, Constants.SECOND_MS);
-      cluster.stop();
-      CommonUtils.sleepMs(null, Constants.SECOND_MS);
-    }
+    cluster.start();
+    CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    cluster.stop();
+    CommonUtils.sleepMs(null, Constants.SECOND_MS);
 
     cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
-    if (cluster != null) {
-      cluster.start();
-      CommonUtils.sleepMs(null, Constants.SECOND_MS);
-      cluster.stop();
-      CommonUtils.sleepMs(null, Constants.SECOND_MS);
-    }
+    cluster.start();
+    CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    cluster.stop();
+    CommonUtils.sleepMs(null, Constants.SECOND_MS);
   }
 
   private TachyonWorker mWorker = null;
@@ -263,12 +259,8 @@ public final class LocalTachyonCluster {
    * @throws Exception
    */
   public void stopTFS() throws Exception {
-    if (mMaster != null) {
-      mMaster.stop();
-    }
-    if (mWorker != null) {
-      mWorker.stop();
-    }
+    mMaster.stop();
+    mWorker.stop();
 
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.worker.port");
@@ -288,17 +280,11 @@ public final class LocalTachyonCluster {
    * @throws Exception
    */
   public void stopUFS() throws Exception {
-    if (mMaster != null) {
-      mMaster.cleanupUnderfs();
-    }
+    mMaster.cleanupUnderfs();
   }
 
   public void stopWorker() throws Exception {
-    if (mMaster != null) {
-      mMaster.clearClients();
-    }
-    if (mWorker != null) {
-      mWorker.stop();
-    }
+    mMaster.clearClients();
+    mWorker.stop();
   }
 }

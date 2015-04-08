@@ -47,10 +47,7 @@ public class HdfsFileInputStreamTest {
 
   @AfterClass
   public static final void afterClass() throws Exception {
-    if (mLocalTachyonCluster != null) {
-      mLocalTachyonCluster.stop();
-    }
-    System.clearProperty("tachyon.user.quota.unit.bytes");
+    mLocalTachyonCluster.stop();
   }
 
   @BeforeClass
