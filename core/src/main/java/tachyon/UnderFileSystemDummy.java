@@ -56,85 +56,8 @@ public class UnderFileSystemDummy extends UnderFileSystemSingleLocal {
     return true;
   }
 
-/*
-  @Override
-  public InputStream open(String path) throws IOException {
-    if (exists(path)) {
-      super.open(path);
-    }
-    return new DummyFileInputStream();
-  }
-
-  @Override
-  public boolean rename(String src, String dst) throws IOException {
-    return true;
-  }
-
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     return true;
   }
-
-
-  @Override
-  public boolean exists(String path) throws IOException {
-    return false;
-  }
-
-  @Override
-  public long getBlockSizeByte(String path) throws IOException {
-    if (super.exists(path)) {
-      return super.getBlockSizeByte(path);
-    }
-    return 0;
-  }
-
-  @Override
-  public long getFileSize(String path) throws IOException {
-    if (super.exists(path)) {
-      return super.getFileSize(path);
-    }
-    return 0;
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    if (super.exists(path)) {
-      return super.getModificationTimeMs(path);
-    }
-    return 0;
-  }
-
-  @Override
-  public long getSpace(String path, SpaceType type) throws IOException {
-    if (super.exists(path)) {
-      return super.getSpace(path, type);
-    }
-    return 0;
-  }
-
-  @Override
-  public boolean isFile(String path) throws IOException {
-    if (super.exists(path)) {
-      return super.isFile(path);
-    }
-    return true;
-  }
-
-  @Override
-  public String[] list(String path) throws IOException {
-    if (super.exists(path)) {
-      super.list(path);
-    }
-    return new String[0];
-  }
-
-  @Override
-  public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return true;
-  }
-
-  @Override
-  public void setPermission(String path, String posixPerm) throws IOException {}
-*/
 }

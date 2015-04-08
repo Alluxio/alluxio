@@ -454,7 +454,6 @@ public class InodeFile extends Inode {
     if (length > 0) {
       addBlock(new BlockInfo(this, mBlocks.size(), (int) length));
     }
-    mIsComplete = true;
   }
 
   @Override

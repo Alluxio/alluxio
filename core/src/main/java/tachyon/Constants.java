@@ -95,6 +95,7 @@ public class Constants {
   public static final String WEB_RESOURCES = "tachyon.web.resources";
   public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
   public static final String UNDERFS_ADDRESS = "tachyon.underfs.address";
+  public static final String UNDERFS_IS_DUMMY = "tachyon.underfs.isDummy";
   public static final String UNDERFS_DATA_FOLDER = "tachyon.data.folder";
   public static final String UNDERFS_WORKERS_FOLDER = "tachyon.workers.folder";
   public static final String UNDERFS_HDFS_IMPL = "tachyon.underfs.hdfs.impl";

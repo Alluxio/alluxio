@@ -380,7 +380,6 @@ public class MasterInfo extends ImageWriter {
         }
       }
       addFile(fileId, tFile.getDependencyId());
-      tFile.setComplete();
 
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);

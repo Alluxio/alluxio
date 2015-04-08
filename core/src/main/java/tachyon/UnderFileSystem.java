@@ -74,9 +74,10 @@ public abstract class UnderFileSystem {
 
     if (isHadoopUnderFS(path, tachyonConf)) {
       return UnderFileSystemHdfs.getClient(path, conf, tachyonConf);
-    } else if (isDummyUnderFS(tachyonConf)) {
-      return UnderFileSystemDummy.getClient(tachyonConf);
     } else if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
+      if (isDummyUnderFS(tachyonConf)) {
+        return UnderFileSystemDummy.getClient(tachyonConf);
+      }
       return UnderFileSystemSingleLocal.getClient(tachyonConf);
     }
     throw new IllegalArgumentException("Unknown under file system scheme " + path);
@@ -86,10 +87,7 @@ public abstract class UnderFileSystem {
    * Determines if this is a dummy UnderFS.
    */
   public static boolean isDummyUnderFS(TachyonConf tachyonConf) {
-    if (tachyonConf.get(Constants.UNDERFS_ADDRESS, null).startsWith("Dummy")) {
-      return true;
-    }
-    return false;
+    return tachyonConf.getBoolean(Constants.UNDERFS_IS_DUMMY, false);
   }
 
   /**
