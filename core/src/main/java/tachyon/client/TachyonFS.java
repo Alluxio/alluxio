@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -441,6 +443,54 @@ public class TachyonFS extends AbstractTachyonFS {
     }
 
     return mMasterClient.user_getBlockId(fileId, blockIndex);
+  }
+  
+  /**
+   * Gets the block IDs by the file ID and block offset.  It will check whether the file 
+   * and the block exist.
+   * @param fileId the file id
+   * @param offset The index of the first block ID to return
+   * @param numBlocks The number of block IDs to return
+   * @return List of block IDs
+   * @throws IOException
+   */
+  public synchronized List<Long> getBlockIds(int fileId, int offset, int numBlocks) 
+      throws IOException {
+    if (offset < 0) {
+      throw new IndexOutOfBoundsException();
+    }
+    if (numBlocks == 0) {
+      return Collections.emptyList();
+    }
+    
+    ClientFileInfo info = getFileStatus(fileId, true);
+    
+    if (info == null) {
+      throw new IOException("File " + fileId + " does not exist.");
+    }
+
+    List<Long> blockIds = new ArrayList<Long>();
+    if (info.blockIds.size() > offset) {
+      for (int i = offset; i < info.blockIds.size() && blockIds.size() < numBlocks; i++) {
+        blockIds.add(info.blockIds.get(i));
+      }
+    }
+    
+    if (blockIds.size() == numBlocks) {
+      return blockIds;
+    }
+    
+    // Otherwise need to allocate some more blocks
+    List<Long> newBlocks = mMasterClient.user_getBlockIds(fileId, offset + blockIds.size(), 
+                                          numBlocks - blockIds.size());
+    if (newBlocks == null) {
+      throw new IOException("Failed to allocate additional blocks");
+    }
+    blockIds.addAll(newBlocks);
+    if (blockIds.size() < numBlocks) {
+      throw new IOException("Failed to allocate the desired number of blocks");
+    }
+    return blockIds;
   }
 
   /**

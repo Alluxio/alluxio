@@ -510,6 +510,22 @@ public final class MasterClient implements Closeable {
     }
     return -1;
   }
+  
+  public synchronized List<Long> user_getBlockIds(int fId, int offset, int numBlocks) 
+      throws IOException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_getBlockIds(fId, offset, numBlocks);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return null;
+  }
 
   public synchronized ClientBlockInfo user_getClientBlockInfo(long blockId) throws IOException {
     while (!mIsShutdown) {

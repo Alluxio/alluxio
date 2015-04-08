@@ -97,6 +97,17 @@ public class TachyonFile implements Comparable<TachyonFile> {
   public long getBlockId(int blockIndex) throws IOException {
     return mTachyonFS.getBlockId(mFileId, blockIndex);
   }
+  
+  /**
+   * Returns a number of block IDs for a file
+   * @param offset Offset of the first block ID to return
+   * @param numBlocks Number of block IDs to return
+   * @return List of Block IDs
+   * @throws IOException
+   */
+  public List<Long> getBlockIds(int offset, int numBlocks) throws IOException {
+    return mTachyonFS.getBlockIds(mFileId, offset, numBlocks);
+  }
 
   /**
    * Get the block id by the file id and offset. it will check whether the file and the block exist.
@@ -108,7 +119,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   long getBlockIdBasedOnOffset(long offset) throws IOException {
     return getBlockId((int) (offset / getBlockSizeByte()));
   }
-
+  
   /**
    * Return the block's size of this file
    * 

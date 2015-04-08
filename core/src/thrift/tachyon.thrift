@@ -195,6 +195,9 @@ service MasterService {
 
   i64 user_getBlockId(1: i32 fileId, 2: i32 index)
     throws (1: FileDoesNotExistException e)
+    
+  list<i64> user_getBlockIds(1: i32 fileId, 2: i32 offset, 3: i32 length)
+    throws (1: FileDoesNotExistException e)
 
   i64 user_getCapacityBytes()
 
