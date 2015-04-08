@@ -252,13 +252,8 @@ public class MasterInfoTest {
 
   @After
   public final void after() throws Exception {
-    if (mLocalTachyonCluster != null) {
-      mLocalTachyonCluster.stop();
-    }
-    if (mExecutorService != null) {
-      mExecutorService.shutdown();
-    }
-    System.clearProperty("tachyon.user.quota.unit.bytes");
+    mLocalTachyonCluster.stop();
+    mExecutorService.shutdown();
   }
 
   @Before

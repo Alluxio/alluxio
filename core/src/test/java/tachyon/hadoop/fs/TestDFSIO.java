@@ -237,11 +237,7 @@ public class TestDFSIO implements Tool {
     bench.cleanup(fs);
 
     // Stop local Tachyon cluster
-    if (mLocalTachyonCluster != null) {
-      mLocalTachyonCluster.stop();
-    }
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
+    mLocalTachyonCluster.stop();
   }
 
   public static void testWrite() throws Exception {

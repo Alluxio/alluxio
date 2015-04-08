@@ -23,7 +23,7 @@ import tachyon.conf.TachyonConf;
 public interface UnderFileSystemFactory {
   
   /**
-   * Creates a client for accessing the given path
+   * Creates a new client for accessing the given path
    * 
    * @param path File path
    * @param tachyonConf Tachyon configuration

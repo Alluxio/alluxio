@@ -71,7 +71,7 @@ import tachyon.conf.TachyonConf;
  * will have the first opportunity to indicate whether they support a requested path.
  * </p>
  */
-public class UnderFileSystemRegistry {
+public final class UnderFileSystemRegistry {
 
   private static final List<UnderFileSystemFactory> FACTORIES =
       new CopyOnWriteArrayList<UnderFileSystemFactory>();
@@ -93,7 +93,7 @@ public class UnderFileSystemRegistry {
   }
 
   /**
-   * Creates a client that can talk to the under file system
+   * Creates a client for operations involved with the under file system.
    * 
    * @param path Path
    * @param conf Optional configuration object for the UFS, may be null
@@ -105,7 +105,7 @@ public class UnderFileSystemRegistry {
   public static UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
     // Try to obtain the appropriate factory
     List<UnderFileSystemFactory> factories = findAll(path, tachyonConf);
-    if (factories.size() == 0) {
+    if (factories.isEmpty()) {
       throw new IllegalArgumentException("No known Under File System supports the given path "
           + path);
     }
@@ -174,7 +174,7 @@ public class UnderFileSystemRegistry {
       }
     }
 
-    if (eligibleFactories.size() == 0) {
+    if (eligibleFactories.isEmpty()) {
       LOG.warn("No Under File System Factory implementation supports the path {}", path);
     }
     return eligibleFactories;
@@ -186,9 +186,9 @@ public class UnderFileSystemRegistry {
     }
 
     // Discover and register the available factories
-    ServiceLoader<UnderFileSystemFactory> discoverableFactories =
+    ServiceLoader<UnderFileSystemFactory> discoveredFactories =
         ServiceLoader.load(UnderFileSystemFactory.class);
-    for (UnderFileSystemFactory factory : discoverableFactories) {
+    for (UnderFileSystemFactory factory : discoveredFactories) {
       LOG.debug("Discovered Under File System Factory implementation {} - {}", factory.getClass(),
           factory.toString());
       FACTORIES.add(factory);

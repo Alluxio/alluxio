@@ -48,11 +48,7 @@ public class TachyonFileTest {
 
   @After
   public final void after() throws Exception {
-    if (mLocalTachyonCluster != null) {
-      mLocalTachyonCluster.stop();
-    }
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.file.buffer.bytes");
+    mLocalTachyonCluster.stop();
   }
 
   @Before
