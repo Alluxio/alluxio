@@ -327,10 +327,6 @@ public final class MasterClient implements Closeable {
     }
   }
 
-  public synchronized void shutdown() {
-    close();
-  }
-
   public synchronized void user_completeFile(int fId) throws IOException {
     connect();
     try {
