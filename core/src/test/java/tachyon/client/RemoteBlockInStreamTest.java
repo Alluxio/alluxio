@@ -70,7 +70,7 @@ public class RemoteBlockInStreamTest {
   public ExpectedException thrown = ExpectedException.none();
 
   @After
-  public  final void afterClass() throws Exception {
+  public final void after() throws Exception {
     mLocalTachyonCluster.stop();
   }
 

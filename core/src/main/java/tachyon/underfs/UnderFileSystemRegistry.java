@@ -106,8 +106,7 @@ public final class UnderFileSystemRegistry {
     // Try to obtain the appropriate factory
     List<UnderFileSystemFactory> factories = findAll(path, tachyonConf);
     if (factories.isEmpty()) {
-      throw new IllegalArgumentException("No known Under File System supports the given path "
-          + path);
+      throw new IllegalArgumentException("No Under File System Factory found for: " + path);
     }
 
     List<Throwable> errors = new ArrayList<Throwable>();
