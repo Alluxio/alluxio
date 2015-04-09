@@ -35,5 +35,12 @@
     <taskThreadClass>tachyon.perf.benchmark.mixture.MixtureThread</taskThreadClass>
     <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
   </type>
+  <type>
+    <name>Iterate</name>
+    <taskClass>tachyon.perf.benchmark.iterate.IterateTask</taskClass>
+    <taskContextClass>tachyon.perf.benchmark.iterate.IterateTaskContext</taskContextClass>
+    <taskThreadClass>tachyon.perf.benchmark.iterate.IterateThread</taskThreadClass>
+    <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
+  </type>
 </taskTypes>
 
