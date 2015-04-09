@@ -171,6 +171,25 @@ public class MasterServiceHandler implements MasterService.Iface {
   public long user_getBlockId(int fileId, int index) throws FileDoesNotExistException, TException {
     return BlockInfo.computeBlockId(fileId, index);
   }
+  
+  @Override
+  public List<Long> user_getBlockIds(int fileId, int offset, int numBlocks) 
+      throws FileDoesNotExistException, TException {
+    List<ClientBlockInfo> blocks = mMasterInfo.getFileBlocks(fileId);
+    List<Long> blockIds = new ArrayList<Long>();
+    for (int i = offset; offset < blocks.size() && blockIds.size() < numBlocks; i++) {
+      blockIds.add(blocks.get(i).getBlockId());
+    }
+    
+    if (blockIds.size() == numBlocks) {
+      return blockIds;
+    }
+    
+    while (blockIds.size() < numBlocks) {
+      blockIds.add(user_createNewBlock(fileId));
+    }
+    return blockIds;
+  }
 
   @Override
   public long user_getCapacityBytes() throws TException {
