@@ -12,7 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.util;
+package tachyon.underfs;
 
 import static org.junit.Assert.fail;
 
@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,11 +29,12 @@ import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.underfs.UnderFileSystem;
+import tachyon.util.CommonUtils;
+import tachyon.util.UfsUtils;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.
@@ -62,9 +64,9 @@ public class UnderfsUtilsTest {
 
   @Test
   public void loadUnderFsTest() throws IOException {
-    if (!UnderFileSystemCluster.isUFSHDFS()) {
-      return;
-    }
+    // TODO Is this test really tied to HDFS?
+    // Or could it run on some general subsets of Under File Systems?
+    Assume.assumeTrue(UnderFileSystemCluster.isUFSHDFS());
 
     String[] exclusions = {"/tachyon", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};

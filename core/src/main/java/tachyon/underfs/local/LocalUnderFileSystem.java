@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.underfs.local;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,22 +26,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.conf.TachyonConf;
+import tachyon.Constants;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 
 /**
- * Single node UnderFilesystem implementation.
- * 
- * This only works for single machine. It is for local unit test and single machine mode.
+ * Local node UnderFilesystem implementation.
+ * <p>
+ * This is primarily intended for local unit test and single machine mode. In principal it can be
+ * used on a system where a shared file system (e.g. NFS) is mounted at the same path on every
+ * node but it is generally preferable to use a proper distributed file system for that scenario.
+ * </p>
  */
-public class UnderFileSystemSingleLocal extends UnderFileSystem {
-
-  protected UnderFileSystemSingleLocal(TachyonConf tachyonConf) {
-    super(tachyonConf);
-  }
-
-  public static UnderFileSystem getClient(TachyonConf tachyonConf) {
-    return new UnderFileSystemSingleLocal(tachyonConf);
+public class LocalUnderFileSystem extends UnderFileSystem {
+  
+  public LocalUnderFileSystem(TachyonConf conf) {
+    super(conf);
   }
 
   @Override
@@ -197,5 +198,15 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {
     CommonUtils.changeLocalFilePermission(path, posixPerm);
+  }
+
+  @Override
+  public void connectFromMaster(TachyonConf conf, String hostname) throws IOException {
+    // No-op
+  }
+  
+  @Override
+  public void connectFromWorker(TachyonConf conf, String hostname) throws IOException {
+    // No-op
   }
 }
