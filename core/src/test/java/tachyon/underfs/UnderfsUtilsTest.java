@@ -32,7 +32,6 @@ import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.UfsUtils;
 
@@ -66,7 +65,7 @@ public class UnderfsUtilsTest {
   public void loadUnderFsTest() throws IOException {
     // TODO Is this test really tied to HDFS?
     // Or could it run on some general subsets of Under File Systems?
-    Assume.assumeTrue(UnderFileSystemCluster.isUFSHDFS());
+    Assume.assumeTrue(UnderFileSystemCluster.readEOFReturnsNegative());
 
     String[] exclusions = {"/tachyon", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
