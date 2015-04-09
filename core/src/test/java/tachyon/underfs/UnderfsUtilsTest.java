@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -63,21 +62,17 @@ public class UnderfsUtilsTest {
 
   @Test
   public void loadUnderFsTest() throws IOException {
-    // TODO Is this test really tied to HDFS?
-    // Or could it run on some general subsets of Under File Systems?
-    Assume.assumeTrue(UnderFileSystemCluster.readEOFReturnsNegative());
-
     String[] exclusions = {"/tachyon", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
       if (!mUfs.exists(exclusion)) {
-        mUfs.mkdirs(exclusion, true);
+        mUfs.mkdirs(mUnderfsAddress + exclusion, true);
       }
     }
 
     for (String inclusion : inclusions) {
       if (!mUfs.exists(inclusion)) {
-        mUfs.mkdirs(inclusion, true);
+        mUfs.mkdirs(mUnderfsAddress + inclusion, true);
       }
       CommonUtils.touch(mUnderfsAddress + inclusion + "/1",
           mLocalTachyonCluster.getMasterTachyonConf());
