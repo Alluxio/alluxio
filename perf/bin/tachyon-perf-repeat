@@ -26,6 +26,7 @@ SimpleRead|SimpleWrite|Metadata|SkipRead|Workflow)
   ;;
 *)
   echo "${TEST} is not a valid test case"
+  exit 1
   ;;
 esac
 
