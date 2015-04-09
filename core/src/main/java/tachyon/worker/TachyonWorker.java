@@ -242,7 +242,7 @@ public class TachyonWorker implements Runnable {
     return mWorkerServiceHandler;
   }
 
-  private void connect() throws IOException {
+  private void connectToUFS() throws IOException {
     String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "localhost/underfs");
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
     ufs.connectFromWorker(mTachyonConf, NetworkUtils.getFqdnHost(mWorkerAddress));
@@ -313,7 +313,7 @@ public class TachyonWorker implements Runnable {
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() throws IOException {
-    connect();
+    connectToUFS();
 
     mHeartbeatThread.start();
     mWebServer.startWebServer();
