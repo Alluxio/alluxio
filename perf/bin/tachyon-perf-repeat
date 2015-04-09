@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+function printUsage() {
+  echo "Usage: tachyon-perf-repeat <TestCase> [<Iterations>]"
+  echo -e "  The TestCase is the same as ./tachyon-perf"
+  echo -e "  The Iterations is the number of iterations to run, defaults to 10 if not specified"
+}
+
+TEST=$1
+if [ -z "${TEST}" ]; then
+  printUsage
+  exit 1
+fi
+ITERATIONS=${2:-10}
+
+bin=`cd "$( dirname "$0" )"; pwd`
+
+DEFAULT_PERF_LIBEXEC_DIR="$bin"/../libexec
+TACHYON_PERF_LIBEXEC_DIR=${TACHYON_PERF_LIBEXEC_DIR:-$DEFAULT_PERF_LIBEXEC_DIR}
+. $TACHYON_PERF_LIBEXEC_DIR/tachyon-perf-config.sh
+
+# Validate test case name
+case ${TEST} in
+SimpleRead|SimpleWrite|Metadata|SkipRead|Workflow)
+  # Valid test case
+  ;;
+*)
+  echo "${TEST} is not a valid test case"
+  ;;
+esac
+
+# Clean up appropriately
+rm -fv result/TachyonPerfResult-${TEST}-*
+${bin}/tachyon-perf-clean
+echo "Aborting any previous Perf testing processes"
+${bin}/tachyon-perf-abort
+echo "Previous Perf testing processes aborted"
+
+if [[ "${TEST}" == *"Read"* ]]; then
+  # Need to run SimpleWrite once to prepare the data
+  echo "Generating data for use by read tests"
+  ${bin}/tachyon-perf SimpleWrite
+  echo "Generated data for read tests"
+fi
+
+echo "Running test ${TEST} for ${ITERATIONS} iterations"
+
+# Run test iterations
+i=1
+while [ "${i}" -le "${ITERATIONS}" ]; do
+  # Run the test
+  echo "Running ${TEST} iteration ${i}"
+  ${bin}/tachyon-perf ${TEST}
+
+  # Collect the results
+  ${bin}/tachyon-perf-collect ${TEST}
+  cp -v result/TachyonPerfReport-${TEST} result/TachyonPerfResult-${TEST}-${i}
+
+  # Clean up if necessary
+  if [ "${TEST}" = "SimpleWrite" ]; then
+    ${bin}/tachyon-perf-clean
+  fi
+  echo "Completed ${TEST} iteration ${i}"
+
+  i=`expr ${i} + 1`
+done
+
+echo "Completed ${ITERATIONS} iterations of test ${TEST}"
+
+# Collate results files
+pushd result
+RESULTS="TachyonPerfResult-${TEST}.tar.gz"
+tar -cz TachyonPerfResult-${TEST}-* -f "${RESULTS}"
+echo "Created results archive at ${RESULTS}"
+popd
+
+# Calculate statistics
+TOTALS_FILE="result/totals-${TEST}.txt"
+grep "Total" result/TachyonPerfResult-${TEST}-* | cut -f 2 | sort -n > ${TOTALS_FILE}
+AVG_THROUGHPUT=`cat ${TOTALS_FILE} | awk '{a+=$0} END{print a/NR}'`
+MAX_THROUGHPUT=`tail -n 1 ${TOTALS_FILE}`
+MIN_THROUGHPUT=`head -n 1 ${TOTALS_FILE}`
+rm -fv ${TOTALS_FILE}
+
+# Output statistics
+UNIT="MB/second"
+if [ "${TEST}" = "Metadata" ]; then
+  UNIT="Operations/second"
+fi
+echo "Statistics for ${TEST} over ${ITERATIONS} iterations"
+echo "Average Throughput was ${AVG_THROUGHPUT} ${UNIT}"
+echo "Max Throughput was ${MAX_THROUGHPUT} ${UNIT}"
+echo "Min Throughout was ${MIN_THROUGHPUT} ${UNIT}"
