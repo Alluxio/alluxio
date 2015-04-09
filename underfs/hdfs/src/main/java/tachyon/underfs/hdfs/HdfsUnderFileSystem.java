@@ -308,7 +308,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       return;
     }
 
-    this.login(Constants.MASTER_KEYTAB_KEY, masterKeytab, Constants.MASTER_PRINCIPAL_KEY,
+    login(Constants.MASTER_KEYTAB_KEY, masterKeytab, Constants.MASTER_PRINCIPAL_KEY,
         masterPrincipal, host);
   }
 
@@ -320,7 +320,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       return;
     }
 
-    this.login(Constants.WORKER_KEYTAB_KEY, workerKeytab, Constants.WORKER_PRINCIPAL_KEY,
+    login(Constants.WORKER_KEYTAB_KEY, workerKeytab, Constants.WORKER_PRINCIPAL_KEY,
         workerPrincipal, host);
   }
 

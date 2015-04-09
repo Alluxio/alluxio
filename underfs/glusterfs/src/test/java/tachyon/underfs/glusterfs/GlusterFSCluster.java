@@ -31,8 +31,9 @@ public class GlusterFSCluster extends UnderFileSystemCluster {
   }
 
   private void checkGlusterConfigured(TachyonConf conf) {
-    if (conf == null) throw new NullPointerException("Null Tachyon Configuration provided");
-    
+    if (conf == null) {
+      throw new NullPointerException("Null Tachyon Configuration provided");
+    }
     if (StringUtils.isEmpty(conf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null))) {
       throw new IllegalArgumentException("Gluster FS Mounts are undefined");
     }

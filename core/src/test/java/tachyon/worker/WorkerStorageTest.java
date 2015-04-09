@@ -41,7 +41,6 @@ import tachyon.util.CommonUtils;
 import tachyon.worker.hierarchy.StorageDir;
 import tachyon.underfs.UnderFileSystem;
 
-
 /**
  * Unit tests for tachyon.worker.WorkerStorage
  */
