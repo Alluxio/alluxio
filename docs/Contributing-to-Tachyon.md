@@ -40,17 +40,17 @@ request, please include a link to the JIRA ticket.
 
 ### Testing
 
--   Run all unit tests with ``mvn test`` (will use the local filesystem as the under filesystem) and
-``mvn -Dtest.profile=hdfs -Dhadoop.version=2.4.0 test`` (will use HDFS 2.4.0 as the under
-filesystem)
+-   Run all unit tests with ``mvn test`` (will use the local filesystem as the under filesystem and
+HDFS 1.0.4 as the under filesystem in the HDFS module.). ``mvn -Dhadoop.version=2.4.0 test`` will use
+HDFS 2.4.0 as the under filesystem for the HDFS module tests.
 
--   In GlusterFS environment, also run GlusterFS unit tests: ``mvn
--Dhadoop.version=2.3.0 -Dtest.profile=glusterfs
--Dtachyon.underfs.glusterfs.mounts=/vol
--Dtachyon.underfs.glusterfs.volumes=testvol test`` (use GlusterFS as under
-filesystem, where /vol is a valid GlusterFS mount point) and ``mvn
--Dhadoop.version=2.3.0 -Dtest.profile=glusterfs test`` (use localfs as under
-filesystem)
+-   To run tests against specific under filesystems, execute the maven command from the desired
+submodule directory, for example for HDFS, tachyon/underfs/hdfs.
+
+-   In GlusterFS environment, GlusterFS unit tests can be run from tachyon/underfs/glusterfs with:
+``mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dtachyon.underfs.glusterfs.mounts=/vol
+-Dtachyon.underfs.glusterfs.volumes=testvol test`` (use GlusterFS as under filesystem,
+where /vol is a valid GlusterFS mount point)
 
 -   Run a single unit test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.
 ``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
