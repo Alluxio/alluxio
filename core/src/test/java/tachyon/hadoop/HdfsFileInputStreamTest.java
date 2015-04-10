@@ -48,7 +48,6 @@ public class HdfsFileInputStreamTest {
   @AfterClass
   public static final void afterClass() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @BeforeClass
@@ -110,12 +109,12 @@ public class HdfsFileInputStreamTest {
     Assert.assertEquals(FILE_LEN, length);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(FILE_LEN, buf));
 
-    Arrays.fill(buf, (byte)0);
+    Arrays.fill(buf, (byte) 0);
     length = mUfsInputStream.read(buf, 0, FILE_LEN);
     Assert.assertEquals(FILE_LEN, length);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(FILE_LEN, buf));
 
-    Arrays.fill(buf, (byte)0);
+    Arrays.fill(buf, (byte) 0);
     length = mInMemInputStream.read(buf, 0, 1);
     Assert.assertEquals(-1, length);
     length = mUfsInputStream.read(buf, 0, 1);
@@ -133,25 +132,25 @@ public class HdfsFileInputStreamTest {
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(FILE_LEN, buf));
     Assert.assertEquals(0, mInMemInputStream.getPos());
 
-    Arrays.fill(buf, (byte)0);
+    Arrays.fill(buf, (byte) 0);
     length = mUfsInputStream.read(0, buf, 0, FILE_LEN);
     Assert.assertEquals(FILE_LEN, length);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(FILE_LEN, buf));
     Assert.assertEquals(0, mUfsInputStream.getPos());
 
-    Arrays.fill(buf, (byte)0);
+    Arrays.fill(buf, (byte) 0);
     length = mInMemInputStream.read(10, buf, 0, FILE_LEN - 10);
     Assert.assertEquals(FILE_LEN - 10, length);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, FILE_LEN - 10, buf));
     Assert.assertEquals(0, mInMemInputStream.getPos());
 
-    Arrays.fill(buf, (byte)0);
+    Arrays.fill(buf, (byte) 0);
     length = mUfsInputStream.read(10, buf, 0, FILE_LEN - 10);
     Assert.assertEquals(FILE_LEN - 10, length);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, FILE_LEN - 10, buf));
     Assert.assertEquals(0, mUfsInputStream.getPos());
 
-    Arrays.fill(buf, (byte)0);
+    Arrays.fill(buf, (byte) 0);
     length = mInMemInputStream.read(-1, buf, 0, FILE_LEN);
     Assert.assertEquals(-1, length);
     length = mUfsInputStream.read(-1, buf, 0, FILE_LEN);
@@ -179,8 +178,8 @@ public class HdfsFileInputStreamTest {
     } catch (IOException e) {
       exception = e;
     }
-    Assert.assertEquals("Seek position is past EOF: " + (FILE_LEN + 1) + ", fileSize = " +
-        FILE_LEN, exception.getMessage());
+    Assert.assertEquals("Seek position is past EOF: " + (FILE_LEN + 1) + ", fileSize = "
+        + FILE_LEN, exception.getMessage());
 
     mUfsInputStream.seek(0);
     Assert.assertEquals(0, mUfsInputStream.getPos());
@@ -195,7 +194,7 @@ public class HdfsFileInputStreamTest {
     } catch (IOException e) {
       exception = e;
     }
-    Assert.assertEquals("Seek position is past EOF: " + (FILE_LEN + 1) + ", fileSize = " +
-        FILE_LEN, exception.getMessage());
+    Assert.assertEquals("Seek position is past EOF: " + (FILE_LEN + 1) + ", fileSize = "
+        + FILE_LEN, exception.getMessage());
   }
 }

@@ -35,11 +35,10 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystemHdfs;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.MasterService;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
@@ -219,22 +218,14 @@ public class TachyonMaster {
     return mZookeeperMode;
   }
 
-  private void login() throws IOException {
-    String masterKeytab = mTachyonConf.get(Constants.MASTER_KEYTAB_KEY, null);
-    String masterPrincipal = mTachyonConf.get(Constants.MASTER_PRINCIPAL_KEY, null);
-    if (masterKeytab == null || masterPrincipal == null) {
-      return;
-    }
-    UnderFileSystem ufs =
-        UnderFileSystem.get(mTachyonConf.get(Constants.UNDERFS_ADDRESS, null), mTachyonConf);
-    if (ufs instanceof UnderFileSystemHdfs) {
-      ((UnderFileSystemHdfs) ufs).login(masterKeytab, masterKeytab, masterPrincipal,
-          masterPrincipal, NetworkUtils.getFqdnHost(mMasterAddress));
-    }
+  private void connectToUFS() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(mTachyonConf.get(Constants.UNDERFS_ADDRESS, null),
+        mTachyonConf);
+    ufs.connectFromMaster(mTachyonConf, NetworkUtils.getFqdnHost(mMasterAddress));
   }
 
   private void setup() throws IOException, TTransportException {
-    login();
+    connectToUFS();
     if (mZookeeperMode) {
       mEditLogProcessor.stop();
     }

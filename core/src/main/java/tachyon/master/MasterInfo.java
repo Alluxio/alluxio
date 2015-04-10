@@ -33,7 +33,7 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -55,8 +55,6 @@ import tachyon.PrefixList;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystem.SpaceType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
@@ -75,6 +73,8 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.underfs.UnderFileSystem;
+import tachyon.underfs.UnderFileSystem.SpaceType;
 import tachyon.util.CommonUtils;
 
 /**
@@ -276,7 +276,7 @@ public class MasterInfo extends ImageWriter {
   private final Map<NetAddress, Long> mWorkerAddressToId = new HashMap<NetAddress, Long>();
 
   private final BlockingQueue<MasterWorkerInfo> mLostWorkers =
-      new ArrayBlockingQueue<MasterWorkerInfo>(32);
+      new LinkedBlockingQueue<MasterWorkerInfo>();
 
   // TODO Check the logic related to this two lists.
   private final PrefixList mWhitelist;

@@ -12,22 +12,26 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.hadoop;
+package tachyon.underfs.glusterfs;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
+import tachyon.underfs.UnderFileSystemFactory;
+import tachyon.underfs.UnderFileSystemRegistry;
 
 /**
- * Unit tests for <code>tachyon.hadoop.GlusterFS</code>.
+ * Unit tests for {@code GlusterFSUnderFileSystem}
  */
-public class GlusterFSTest {
+public class GlusterFSUnderFileSystemTest {
   private UnderFileSystem mGfs = null;
   private String mMount = null;
   private String mVolume = null;
@@ -43,9 +47,18 @@ public class GlusterFSTest {
 
   @Test
   public void createGlusterFS() throws Exception {
-    if (mMount != null && !mMount.equals("") && mVolume != null && !mVolume.equals("")) {
-      mGfs = UnderFileSystem.get("glusterfs:///", mTachyonConf);
-      Assert.assertTrue(mGfs.create("tachyon_test") != null);
-    }
+    // Using Assume will mark the tests as skipped rather than passed which provides a truer
+    // indication of their status
+    Assume.assumeTrue(!StringUtils.isEmpty(mMount));
+    Assume.assumeTrue(!StringUtils.isEmpty(mVolume));
+
+    mGfs = UnderFileSystem.get("glusterfs:///", mTachyonConf);
+    Assert.assertNotNull(mGfs.create("tachyon_test"));
+  }
+  
+  @Test
+  public void factoryTest() {
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mTachyonConf);
+    Assert.assertNotNull("A UnderFileSystemFactory should exist for Gluster FS paths when using this module", factory);
   }
 }

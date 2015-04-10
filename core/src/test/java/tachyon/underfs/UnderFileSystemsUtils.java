@@ -12,14 +12,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon;
+package tachyon.underfs;
 
 import java.io.IOException;
 
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
 
 /**
- * Utility functions for working with {@link tachyon.UnderFileSystem}.
+ * Utility functions for working with {@link tachyon.underfs.UnderFileSystem}.
  * 
  * TODO May move this to non-testing code.
  */
