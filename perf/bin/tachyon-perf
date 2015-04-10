@@ -3,7 +3,7 @@
 function printUsage {
   echo "Usage: tachyon-perf <TestCase>"
   echo "now TestCase is one of:"
-  echo -e "  SimpleWrite SimpleRead SkipRead Metadata"
+  echo -e "  SimpleWrite SimpleRead SkipRead Metadata Mixture Iterate"
   echo "the detailed configurations are in conf/testsuite/"
 }
 
