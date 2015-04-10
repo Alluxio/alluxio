@@ -99,13 +99,11 @@ public abstract class UnderFileSystemCluster {
   protected final TachyonConf mTachyonConf;
 
   /**
-   * This method is only for unit-test {@link tachyon.client.FileOutStreamTest} temporally
+   * This method is only for unit-test {@link tachyon.client.FileOutStreamTest} temporarily
    * 
-   * @return
+   * @return true if reads on end of file return negative otherwise false
    */
-  public static boolean isUFSHDFS() {
-    // TODO This should be renamed to something technology agnostic
-    // e.g. doZeroLengthFileReadsReturnNegative()
+  public static boolean readEOFReturnsNegative() {
     // TODO Should be dynamically determined - may need additional method on UnderFileSystem
     return (null != mUfsClz) && (mUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster"));
   }

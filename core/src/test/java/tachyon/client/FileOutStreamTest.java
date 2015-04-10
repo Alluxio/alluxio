@@ -87,8 +87,8 @@ public class FileOutStreamTest {
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) file.length()];
-      if (UnderFileSystemCluster.isUFSHDFS() && 0 == res.length) {
-        // HDFS returns -1 for zero-sized byte array to indicate no more bytes available here.
+      if (UnderFileSystemCluster.readEOFReturnsNegative() && 0 == res.length) {
+        // Returns -1 for zero-sized byte array to indicate no more bytes available here.
         Assert.assertEquals(-1, is.read(res));
       } else {
         Assert.assertEquals((int) file.length(), is.read(res));
