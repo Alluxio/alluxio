@@ -34,6 +34,8 @@ import tachyon.TachyonURI;
 public abstract class UnderFileSystem {
   protected final TachyonConf mTachyonConf;
 
+  private boolean mProvidesStorage = true;
+
   public enum SpaceType {
     SPACE_TOTAL(0), SPACE_FREE(1), SPACE_USED(2);
 
@@ -97,6 +99,13 @@ public abstract class UnderFileSystem {
       }
     }
     return false;
+  }
+
+  /**
+   * Checks whether the underFS provides storage
+   */
+  public boolean providesStorage() throws IOException {
+    return mProvidesStorage;
   }
 
   /**
