@@ -3,12 +3,12 @@
   <property>
     <name>iterations</name>
     <value>2</value>
-    <description>the number of the write-read iteration</description>
+    <description>number of write-read iterations</description>
   </property>
   <property>
     <name>shuffle.mode</name>
     <value>false</value>
-    <description>shuffle mode means it may read remotely</description>
+    <description>workers will only read their own dataset by default, set shuffle mode to true to read from the entire dataset</description>
   </property>
   <property>
     <name>read.files.per.thread</name>

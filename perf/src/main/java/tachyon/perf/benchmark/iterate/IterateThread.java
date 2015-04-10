@@ -97,8 +97,7 @@ public class IterateThread extends PerfThread {
           mSuccess = false;
         }
       }
-      tTimeMs = System.currentTimeMillis() - tTimeMs;
-      writeTimeMs += tTimeMs;
+      writeTimeMs += System.currentTimeMillis() - tTimeMs;
 
       try {
         syncBarrier(i);
@@ -117,11 +116,12 @@ public class IterateThread extends PerfThread {
         LOG.error("Failed to read file", e);
         mSuccess = false;
       }
-      tTimeMs = System.currentTimeMillis() - tTimeMs;
-      readTimeMs += tTimeMs;
+      readTimeMs += System.currentTimeMillis() - tTimeMs;
     }
-    mReadThroughput = (readBytes / 1024.0 / 1024.0) / (readTimeMs / 1000.0);
-    mWriteThroughput = (writeBytes / 1024.0 / 1024.0) / (writeTimeMs / 1000.0);
+    mReadThroughput =
+        (readTimeMs == 0) ? 0 : (readBytes / 1024.0 / 1024.0) / (readTimeMs / 1000.0);
+    mWriteThroughput =
+        (writeTimeMs == 0) ? 0 : (writeBytes / 1024.0 / 1024.0) / (writeTimeMs / 1000.0);
   }
 
   @Override
