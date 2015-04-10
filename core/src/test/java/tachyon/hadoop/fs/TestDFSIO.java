@@ -119,9 +119,9 @@ public class TestDFSIO implements Tool {
   }
 
   private static enum TestType {
-    TEST_TYPE_READ("read"), TEST_TYPE_WRITE("write"), TEST_TYPE_CLEANUP("cleanup"), TEST_TYPE_APPEND(
-        "append"), TEST_TYPE_READ_RANDOM("random read"), TEST_TYPE_READ_BACKWARD("backward read"), TEST_TYPE_READ_SKIP(
-        "skip read");
+    TEST_TYPE_READ("read"), TEST_TYPE_WRITE("write"), TEST_TYPE_CLEANUP("cleanup"),
+        TEST_TYPE_APPEND("append"), TEST_TYPE_READ_RANDOM("random read"),
+        TEST_TYPE_READ_BACKWARD("backward read"), TEST_TYPE_READ_SKIP("skip read");
 
     private String type;
 
@@ -557,8 +557,8 @@ public class TestDFSIO implements Tool {
 
   /**
    * Mapper class for random reads. The mapper chooses a position in the file and reads bufferSize
-   * bytes starting at the chosen position. It stops after reading the totalSize bytes, specified by
-   * -size.
+   * bytes starting at the chosen position. It stops after reading the totalSize bytes, specified
+   * by size.
    * 
    * There are three type of reads. 1) Random read always chooses a random position to read from:
    * skipSize = 0 2) Backward read reads file in reverse order : skipSize < 0 3) Skip-read skips

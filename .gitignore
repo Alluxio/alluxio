@@ -1,6 +1,7 @@
 tests.log*
 .classpath
 .project
+.checkstyle
 *.iml
 .DS_STORE
 .idea/

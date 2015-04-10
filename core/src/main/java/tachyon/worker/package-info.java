@@ -15,8 +15,8 @@
  * 
  * <h3>Checkpoint</h3>
  * 
- * The act of moving temporary data into accessible data on {@link tachyon.UnderFileSystem}. This is
- * triggered by {@link tachyon.client.WriteType#isThrough()} operations.
+ * The act of moving temporary data into accessible data on {@link tachyon.underfs.UnderFileSystem}.
+ * This is triggered by {@link tachyon.client.WriteType#isThrough()} operations.
  * 
  * Implementation can be found at {@link tachyon.worker.WorkerStorage#addCheckpoint(long, int)}
  * 
@@ -29,7 +29,7 @@
  * 
  * <h3>Lock / Unlock</h3>
  * 
- * Tachyon supports cacheing blocks to local disk (client side). When this happens, a lock is given
+ * Tachyon supports caching blocks to local disk (client side). When this happens, a lock is given
  * to the client to protect it from the remote block changing.
  * 
  * Implementation can be found at {@link tachyon.worker.WorkerStorage#lockBlock(long, long)} and
@@ -56,3 +56,4 @@
  * {@link tachyon.worker.netty.BlockResponse}; theses classes are network compatible.
  */
 package tachyon.worker;
+

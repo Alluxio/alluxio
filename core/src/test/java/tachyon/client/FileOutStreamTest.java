@@ -26,10 +26,10 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystemCluster;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.underfs.UnderFileSystem;
+import tachyon.underfs.UnderFileSystemCluster;
 
 /**
  * Unit tests for <code>tachyon.client.FileOutStream</code>.
@@ -68,8 +68,8 @@ public class FileOutStreamTest {
    * @param fileLen
    * @throws IOException
    */
-  private void checkWrite(TachyonURI filePath, WriteType op, int fileLen, int increasingByteArrayLen)
-      throws IOException {
+  private void checkWrite(TachyonURI filePath, WriteType op, int fileLen,
+      int increasingByteArrayLen) throws IOException {
     for (ReadType rOp : ReadType.values()) {
       TachyonFile file = sTfs.getFile(filePath);
       InStream is = file.getInStream(rOp);
@@ -87,8 +87,8 @@ public class FileOutStreamTest {
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) file.length()];
-      if (UnderFileSystemCluster.isUFSHDFS() && 0 == res.length) {
-        // HDFS returns -1 for zero-sized byte array to indicate no more bytes available here.
+      if (UnderFileSystemCluster.readEOFReturnsNegative() && 0 == res.length) {
+        // Returns -1 for zero-sized byte array to indicate no more bytes available here.
         Assert.assertEquals(-1, is.read(res));
       } else {
         Assert.assertEquals((int) file.length(), is.read(res));

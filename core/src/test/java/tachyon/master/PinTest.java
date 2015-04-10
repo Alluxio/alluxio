@@ -66,7 +66,7 @@ public class PinTest {
 
     mTfs.unpinFile(fileId);
     assertFalse(mTfs.getFile(file).needPin());
-    assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer>newHashSet());
+    assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer> newHashSet());
 
     // Pinning a folder should recursively pin subfolders.
     mTfs.pinFile(dir1Id);
@@ -76,7 +76,7 @@ public class PinTest {
     // Same with unpinning.
     mTfs.unpinFile(dir0Id);
     assertFalse(mTfs.getFile(file).needPin());
-    assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer>newHashSet());
+    assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer> newHashSet());
 
     // The last pin command always wins.
     mTfs.pinFile(fileId);
