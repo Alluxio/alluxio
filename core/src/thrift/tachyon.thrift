@@ -10,7 +10,7 @@ struct NetAddress {
   3: i32 mSecondaryPort
 }
 
-struct WorkerInfo {
+struct LocationInfo {
   1: NetAddress address
   2: list<i64> storageDirIds
 }
@@ -19,7 +19,7 @@ struct ClientBlockInfo {
   1: i64 blockId
   2: i64 offset
   3: i64 length
-  4: list<WorkerInfo> workers
+  4: list<LocationInfo> workers
   5: list<string> checkpoints
 }
 

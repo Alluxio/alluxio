@@ -43,7 +43,7 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.WorkerInfo;
+import tachyon.thrift.LocationInfo;
 import tachyon.util.CommonUtils;
 
 /**
@@ -244,7 +244,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
           for (String checkpoint : info.getCheckpoints()) {
             locations.add(new NetAddress(checkpoint, -1, -1));
           }
-          for (WorkerInfo worker : info.getWorkers()) {
+          for (LocationInfo worker : info.getWorkers()) {
             locations.add(worker.getAddress());
           }
           toAdd.setFileLocations(locations);

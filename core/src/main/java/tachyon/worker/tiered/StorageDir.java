@@ -315,9 +315,6 @@ public final class StorageDir {
       }
       deleteBlockId(blockId);
     } else {
-      if (mRemovedBlockIdList.contains(blockId)) {
-        mRemovedBlockIdList.remove(blockId);
-      }
       mToRemoveBlockIdSet.add(blockId);
       LOG.debug("Add block file {} to remove list!", blockfile);
     }

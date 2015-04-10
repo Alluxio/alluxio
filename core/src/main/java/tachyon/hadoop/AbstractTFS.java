@@ -43,7 +43,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.WorkerInfo;
+import tachyon.thrift.LocationInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.ConfUtils;
 import tachyon.util.UfsUtils;
@@ -316,7 +316,7 @@ abstract class AbstractTFS extends FileSystem {
         ArrayList<String> hosts = new ArrayList<String>();
         names.addAll(info.getCheckpoints());
         hosts.addAll(names);
-        for (WorkerInfo worker : info.getWorkers()) {
+        for (LocationInfo worker : info.getWorkers()) {
           names.add(worker.getAddress().mHost);
           hosts.add(worker.getAddress().mHost);
         }

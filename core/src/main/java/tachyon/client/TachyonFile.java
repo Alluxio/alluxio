@@ -36,7 +36,7 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.thrift.WorkerInfo;
+import tachyon.thrift.LocationInfo;
 
 /**
  * Tachyon File.
@@ -199,7 +199,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   public List<String> getLocationHosts() throws IOException {
     List<String> ret = new ArrayList<String>();
     if (getNumberOfBlocks() > 0) {
-      for (WorkerInfo info : getClientBlockInfo(0).getWorkers()) {
+      for (LocationInfo info : getClientBlockInfo(0).getWorkers()) {
         ret.add(info.getAddress().mHost);
       }
       ret.addAll(getClientBlockInfo(0).getCheckpoints());

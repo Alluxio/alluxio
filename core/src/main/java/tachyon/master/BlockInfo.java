@@ -32,8 +32,9 @@ import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.LocationInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.WorkerInfo;
+import tachyon.thrift.LocationInfo;
 import tachyon.util.NetworkUtils;
 
 /**
@@ -133,11 +134,11 @@ public class BlockInfo {
     ret.blockId = mBlockId;
     ret.offset = mOffset;
     ret.length = mLength;
-    ret.workers = new ArrayList<WorkerInfo>();
+    ret.workers = new ArrayList<LocationInfo>();
     for (Map.Entry<Long, NetAddress> entry : mLocations.entrySet()) {
       List<Long> storageDirIds = new ArrayList<Long>();
       storageDirIds.addAll(mWorkerDirs.get(entry.getKey()));
-      ret.workers.add(new WorkerInfo(entry.getValue(), storageDirIds));
+      ret.workers.add(new LocationInfo(entry.getValue(), storageDirIds));
     }
     ret.checkpoints = getCheckpoints(tachyonConf);
     return ret;
