@@ -188,6 +188,9 @@ public class TachyonMaster {
       folder += TachyonURI.SEPARATOR;
     }
     UnderFileSystem ufs = UnderFileSystem.get(folder, mTachyonConf);
+    if (ufs.providesStorage() == false) {
+      return true;
+    }
     String[] files = ufs.list(folder);
     if (files == null) {
       return false;
