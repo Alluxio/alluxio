@@ -63,7 +63,7 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
    * Prepares for downloading a file
    * 
    * @param request The HttpServletRequest object
-   * @param response The HttpServletReponse object
+   * @param response The HttpServletResponse object
    * @throws ServletException
    * @throws IOException
    */
@@ -172,6 +172,14 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
     }
   }
 
+  /**
+   * This function prepares for downloading a log file on the local filesystem.
+   *
+   * @param path The path of the local log file to download
+   * @param request The HttpServletRequest object
+   * @param response The HttpServletResponse object
+   * @throws IOException
+   */
   private void downloadLogFile(Path path, HttpServletRequest request,
                                HttpServletResponse response) throws IOException {
     long len = Files.size(path);
