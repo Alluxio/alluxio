@@ -98,7 +98,7 @@ public class Users {
       String folder = getUserUfsTempFolder(userId);
       sb.append(" Remove users underfs folder ").append(folder);
       try {
-        String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underfs");
+        String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
         UnderFileSystem.get(ufsAddress, mTachyonConf).delete(folder, true);
       } catch (IOException e) {
         LOG.warn(e.getMessage(), e);
