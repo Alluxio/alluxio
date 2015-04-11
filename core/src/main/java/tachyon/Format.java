@@ -89,9 +89,12 @@ public class Format {
         String[] dirPaths = tachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {
-          String dirWorkDataFolder = CommonUtils.concat(dirPath.trim(), workerDataFolder);
-          if (!formatFolder(name, dirWorkDataFolder, tachyonConf)) {
-            System.exit(-1);
+          String dirWorkerDataFolder = CommonUtils.concat(dirPath.trim(), workerDataFolder);
+          UnderFileSystem ufs = UnderFileSystem.get(dirWorkerDataFolder, tachyonConf);
+          if (ufs.exists(dirWorkerDataFolder)) {
+            if (!formatFolder(name, dirWorkerDataFolder, tachyonConf)) {
+              System.exit(-1);
+            }
           }
         }
       }
