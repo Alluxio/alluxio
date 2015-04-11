@@ -112,7 +112,7 @@ public final class LocalTachyonCluster {
   }
 
   public String getTempFolderInUnderFs() {
-    return mMasterConf.get(Constants.UNDERFS_ADDRESS, "/underfs");
+    return mMasterConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
   }
 
   public TachyonWorker getWorker() {
