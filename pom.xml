@@ -306,7 +306,7 @@
             <exclude>NOTICE</exclude>
 
             <!-- Default local file Exclusions -->
-            <exclude>**/underfs/**</exclude>
+            <exclude>**/underFSStorage/**</exclude>
             <exclude>**/journal/**</exclude>
 
           </excludes>

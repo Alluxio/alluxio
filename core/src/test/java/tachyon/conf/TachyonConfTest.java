@@ -59,7 +59,7 @@ public class TachyonConfTest {
 
     String ufsAddress = sDefaultTachyonConf.get(Constants.UNDERFS_ADDRESS, null);
     Assert.assertTrue(ufsAddress != null);
-    Assert.assertTrue((tachyonHome + "/underfs").equals(ufsAddress));
+    Assert.assertTrue((tachyonHome + "/underFSStorage").equals(ufsAddress));
 
     String value = sDefaultTachyonConf.get(Constants.WEB_RESOURCES, null);
     Assert.assertTrue(value != null);

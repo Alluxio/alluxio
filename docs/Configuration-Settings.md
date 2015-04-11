@@ -39,7 +39,7 @@ The common configuration contains constants which specify paths and the log appe
 </tr>
 <tr>
   <td>tachyon.underfs.address</td>
-  <td>$tachyon.home + "/underfs"</td>
+  <td>$tachyon.home + "/underFSStorage"</td>
   <td>Tachyon folder in the underlayer file system.</td>
 </tr>
 <tr>
