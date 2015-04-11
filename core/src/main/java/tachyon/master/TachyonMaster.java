@@ -219,8 +219,10 @@ public class TachyonMaster {
   }
 
   private void connectToUFS() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mTachyonConf.get(Constants.UNDERFS_ADDRESS, null),
-        mTachyonConf);
+    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String ufsAddress =
+        mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
+    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
     ufs.connectFromMaster(mTachyonConf, NetworkUtils.getFqdnHost(mMasterAddress));
   }
 
