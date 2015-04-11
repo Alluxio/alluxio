@@ -38,17 +38,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
-import tachyon.client.InStream;
-import tachyon.client.ReadType;
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFile;
 import tachyon.conf.TachyonConf;
-import tachyon.master.BlockInfo;
 import tachyon.master.MasterInfo;
-import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 
 /**

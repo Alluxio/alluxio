@@ -15,7 +15,6 @@
 
 package tachyon.web;
 
-import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +40,7 @@ public final class UiFileInfo {
         }
       });
 
+  // Simple class for describing a file on the local filesystem.
   public static class LocalFileInfo {
     final String mName;
     final String mAbsolutePath;
