@@ -16,6 +16,11 @@
 package tachyon.web;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -69,6 +74,37 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
     if (requestPath == null || requestPath.isEmpty()) {
       requestPath = TachyonURI.SEPARATOR;
     }
+    boolean downloadLog = false;
+    String downloadLogParam = request.getParameter("downloadLogFile");
+    if (downloadLogParam != null) {
+      try {
+        downloadLog = Integer.valueOf(downloadLogParam) != 0;
+      } catch (NumberFormatException nfe) {
+        downloadLog = false;
+      }
+    }
+
+    if (downloadLog) {
+      // Download a log file from the local filesystem.
+      TachyonConf tachyonConf = new TachyonConf();
+      String baseDir = tachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+
+      // Only allow filenames as the path, to avoid downloading any local files.
+      requestPath = Paths.get(requestPath).getFileName().toString();
+      Path logFilePath = Paths.get(baseDir, "/logs", "/" + requestPath);
+      try {
+        downloadLogFile(logFilePath, request, response);
+      } catch (NoSuchFileException nsfe) {
+        request.setAttribute("invalidPathError", "Error: Invalid file " + nsfe.getMessage());
+        request.setAttribute("currentPath", requestPath);
+        request.setAttribute("downloadLogFile", 1);
+        request.setAttribute("viewingOffset", 0);
+        request.setAttribute("baseUrl", "./browseLogs");
+        getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
+      }
+      return;
+    }
+
     TachyonURI currentPath = new TachyonURI(requestPath);
     try {
       ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
@@ -133,6 +169,34 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
       tachyonClient.close();
     } catch (IOException e) {
       LOG.error(e.getMessage());
+    }
+  }
+
+  private void downloadLogFile(Path path, HttpServletRequest request,
+                               HttpServletResponse response) throws IOException {
+    long len = Files.size(path);
+    InputStream is = Files.newInputStream(path);
+    String fileName = path.getFileName().toString();
+    response.setContentType("application/octet-stream");
+    if (len <= Integer.MAX_VALUE) {
+      response.setContentLength((int) len);
+    } else {
+      response.addHeader("Content-Length", Long.toString(len));
+    }
+    response.addHeader("Content-Disposition", "attachment;filename=" + fileName);
+
+    ServletOutputStream out = null;
+    try {
+      out = response.getOutputStream();
+      ByteStreams.copy(is, out);
+    } finally {
+      if (out != null) {
+        out.flush();
+        out.close();
+      }
+      if (is != null) {
+        is.close();
+      }
     }
   }
 }

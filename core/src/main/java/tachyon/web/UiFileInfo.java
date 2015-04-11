@@ -15,6 +15,8 @@
 
 package tachyon.web;
 
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +40,18 @@ public final class UiFileInfo {
           return input.mAbsolutePath;
         }
       });
+
+  public static class LocalFileInfo {
+    final String mName;
+    final String mAbsolutePath;
+    final BasicFileAttributes mAttributes;
+
+    public LocalFileInfo(String name, String absolutePath, BasicFileAttributes attributes) {
+      mName = name;
+      mAbsolutePath = absolutePath;
+      mAttributes = attributes;
+    }
+  }
 
   private final int mId;
   private final int mDependencyId;
@@ -68,6 +82,23 @@ public final class UiFileInfo {
     mInMemoryPercent = fileInfo.getInMemoryPercentage();
     mIsDirectory = fileInfo.isFolder;
     mIsPinned = fileInfo.isPinned;
+    mFileLocations = new ArrayList<String>();
+  }
+
+  public UiFileInfo(LocalFileInfo fileInfo) {
+    mId = -1;
+    mDependencyId = -1;
+    mName = fileInfo.mName;
+    mAbsolutePath = fileInfo.mAbsolutePath;
+    mCheckpointPath = "";
+    mBlockSizeBytes = 0;
+    mSize = fileInfo.mAttributes.size();
+    mCreationTimeMs = fileInfo.mAttributes.creationTime().toMillis();
+    mLastModificationTimeMs = fileInfo.mAttributes.lastModifiedTime().toMillis();
+    mInMemory = false;
+    mInMemoryPercent = 0;
+    mIsDirectory = fileInfo.mAttributes.isDirectory();
+    mIsPinned = false;
     mFileLocations = new ArrayList<String>();
   }
 
