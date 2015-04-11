@@ -108,7 +108,7 @@
                     <% if (!fileInfo.getIsDirectory()) { %>
                       <i class="icon-file"></i>
                     <% } %>
-                    <a href="./browse?path=<%=encode(fileInfo.getAbsolutePath(), "UTF-8")%>"><%= escapeHtml(fileInfo.getName()) %></a>
+                    <a href="<%= (request.getAttribute("baseUrl") == null) ? "./browse" : request.getAttribute("baseUrl").toString() %>?path=<%=encode(fileInfo.getAbsolutePath(), "UTF-8")%>"><%= escapeHtml(fileInfo.getName()) %></a>
                   </th>
                   <th><%= fileInfo.getSize() %></th>
                   <th><%= fileInfo.getBlockSizeBytes() %></th>

@@ -14,17 +14,18 @@
 <script src="js/jquery-1.9.1.min.js" type="text/javascript"></script>
 <script src="js/bootstrap.min.js"></script>
 <script>
-  function displayContent()
-  {
+  function displayContent() {
     var tmp = document.getElementById("offset").value;
-    var href = "./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>&offset=" + tmp;
+    var base_url = "<%= (request.getAttribute("baseUrl") == null) ? "./browse" : request.getAttribute("baseUrl").toString() %>";
+    var href = base_url + "?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>&offset=" + tmp;
     if (document.getElementById("relative_end").checked) {
       href += "&end=1";
     }
     window.location.href = href;
   }
-  $(document).ready(function(){
-    var download_url = "./download?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>";
+  $(document).ready(function() {
+    var download_log_file = "<%= (request.getAttribute("downloadLogFile") == null) ? 0 : request.getAttribute("downloadLogFile").toString() %>";
+    var download_url = "./download?downloadLogFile=" + download_log_file + "&path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>";
     $("#file-download").attr("href",download_url);
   });
 </script>
@@ -60,29 +61,31 @@
       </div>
     </div>
     <hr>
-    <div>
-      <h5>Detailed blocks information (block capacity is <%= request.getAttribute("blockSizeByte") %> Bytes):</h5>
-      <table class="table table-bordered table-striped">
-        <tr>
-          <th>ID</th>
-          <th>Size (Byte)</th>
-          <th>In Memory</th>
-        </tr>
-        <% for (WebInterfaceBrowseServlet.UiBlockInfo blockInfo : ((List<WebInterfaceBrowseServlet.UiBlockInfo>) request.getAttribute("fileBlocks"))) { %>
+    <% if (request.getAttribute("fileBlocks") != null) { %>
+      <div>
+        <h5>Detailed blocks information (block capacity is <%= request.getAttribute("blockSizeByte") %> Bytes):</h5>
+        <table class="table table-bordered table-striped">
           <tr>
-            <td><%= blockInfo.getID() %></td>
-            <td><%= blockInfo.getBlockLength() %></td>
-            <td>
-              <% if(blockInfo.inMemory()) { %>
-                Yes
-              <% } else { %>
-                No
-              <% } %>
-            </td>
+            <th>ID</th>
+            <th>Size (Byte)</th>
+            <th>In Memory</th>
           </tr>
-        <% } %>
-      </table>
-    </div>
+          <% for (WebInterfaceBrowseServlet.UiBlockInfo blockInfo : ((List<WebInterfaceBrowseServlet.UiBlockInfo>) request.getAttribute("fileBlocks"))) { %>
+            <tr>
+              <td><%= blockInfo.getID() %></td>
+              <td><%= blockInfo.getBlockLength() %></td>
+              <td>
+                <% if(blockInfo.inMemory()) { %>
+                  Yes
+                <% } else { %>
+                  No
+                <% } %>
+              </td>
+            </tr>
+          <% } %>
+        </table>
+      </div>
+    <% } %>
   </div>
   <hr>
   <%@ include file="footer.jsp" %>
