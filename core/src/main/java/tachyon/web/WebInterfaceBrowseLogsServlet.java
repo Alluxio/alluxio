@@ -50,9 +50,14 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final transient TachyonConf mTachyonConf;
+  private final String mBrowseJsp;
+  private final String mViewJsp;
 
-  public WebInterfaceBrowseLogsServlet(MasterInfo masterInfo) {
+  public WebInterfaceBrowseLogsServlet(boolean isMasterServlet) {
     mTachyonConf = new TachyonConf();
+    String prefix = isMasterServlet ? "/" : "/worker/";
+    mBrowseJsp = prefix + "browse.jsp";
+    mViewJsp = prefix + "viewFile.jsp";
   }
 
   /**
@@ -134,7 +139,7 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
 
       // URL can not determine offset and limit, let javascript in jsp determine and redirect
       if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
-        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
         return;
       }
 
@@ -146,20 +151,20 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
       } catch (NumberFormatException nfe) {
         request.setAttribute("fatalError",
                 "Error: offset or limit parse error, " + nfe.getLocalizedMessage());
-        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
         return;
       } catch (IndexOutOfBoundsException iobe) {
         request.setAttribute("fatalError",
                 "Error: offset or offset + limit is out of bound, " + iobe.getLocalizedMessage());
-        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
         return;
       } catch (IllegalArgumentException iae) {
         request.setAttribute("fatalError", iae.getLocalizedMessage());
-        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
         return;
       }
 
-      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+      getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
     } else {
       // Request a specific log file.
 
@@ -202,11 +207,11 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
 
         displayLocalFile(logFilePath, request, offset);
         request.setAttribute("viewingOffset", offset);
-        getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
+        getServletContext().getRequestDispatcher(mViewJsp).forward(request, response);
       } catch (IOException ie) {
         request.setAttribute("invalidPathError", "Error: File " + logFilePath + " is not available "
                 + ie.getMessage());
-        getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
+        getServletContext().getRequestDispatcher(mViewJsp).forward(request, response);
       }
     }
   }
