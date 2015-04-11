@@ -104,7 +104,7 @@ public class BlockInfoTest {
     ClientBlockInfo clientBlockInfo = tInfo.generateClientBlockInfo(mTachyonConf);
     Assert.assertEquals((long) Constants.DEFAULT_BLOCK_SIZE_BYTE * 300, clientBlockInfo.offset);
     Assert.assertEquals(800, clientBlockInfo.length);
-    Assert.assertEquals(3, clientBlockInfo.getWorkers().size());
+    Assert.assertEquals(3, clientBlockInfo.getWorkerLocations().size());
   }
 
   private List<String> getHosts(List<NetAddress> locations) {

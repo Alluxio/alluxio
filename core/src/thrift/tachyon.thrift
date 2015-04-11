@@ -19,8 +19,8 @@ struct ClientBlockInfo {
   1: i64 blockId
   2: i64 offset
   3: i64 length
-  4: list<LocationInfo> workers
-  5: list<string> checkpoints
+  4: list<LocationInfo> workerLocations
+  5: list<string> ufsPaths
 }
 
 struct ClientWorkerInfo {

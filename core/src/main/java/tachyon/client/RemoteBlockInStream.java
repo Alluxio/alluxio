@@ -28,12 +28,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.StorageDirId;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.LocationInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.StorageDirId;
-import tachyon.thrift.LocationInfo;
 import tachyon.util.NetworkUtils;
 
 /**
@@ -46,8 +46,8 @@ public class RemoteBlockInStream extends BlockInStream {
   private ClientBlockInfo mBlockInfo;
 
   /**
-   * For each worker that stores the block, we also have a list of storage directories that pages of
-   * the block are in. While reading, we want to consider the workers in order of storage tier, from
+   * For each worker that stores the block, we also have a list of storage directories that
+   * the block is in. While reading, we want to consider the workers in order of storage tier, from
    * lowest to highest, so we build a sorted list of NetAddress, storageDirId pairs.
    */
   private static class LocationInfoPair implements Comparable<LocationInfoPair> {
@@ -189,7 +189,7 @@ public class RemoteBlockInStream extends BlockInStream {
    */
   private static List<LocationInfoPair> sortLocations(ClientBlockInfo blockInfo) {
     List<LocationInfoPair> ret = new ArrayList<LocationInfoPair>();
-    for (LocationInfo worker : blockInfo.getWorkers()) {
+    for (LocationInfo worker : blockInfo.getWorkerLocations()) {
       for (Long storageDirId : worker.getStorageDirIds()) {
         ret.add(new LocationInfoPair(worker.getAddress(), storageDirId));
       }
@@ -460,7 +460,8 @@ public class RemoteBlockInStream extends BlockInStream {
 
     for (int i = 0; i < MAX_REMOTE_READ_ATTEMPTS; i ++) {
       mCurrentBuffer =
-          readRemoteByteBuffer(mTachyonFS, mBlockInfo, mBufferStartPos, length, mTachyonConf);
+          readRemoteByteBuffer(mTachyonFS, mBlockInfo, mSortedWorkers, mBufferStartPos, length,
+              mTachyonConf);
       if (mCurrentBuffer != null) {
         return true;
       }

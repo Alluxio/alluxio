@@ -218,8 +218,8 @@ public class DataServerTest {
     DataServerMessage sendMsg =
         DataServerMessage.createBlockRequestMessage(block.blockId, offset, length);
     SocketChannel socketChannel =
-        SocketChannel.open(new InetSocketAddress(block.getWorkers().get(0).address.mHost, block
-            .getWorkers().get(0).address.mSecondaryPort));
+        SocketChannel.open(new InetSocketAddress(block.getWorkerLocations().get(0).address.mHost, block
+            .getWorkerLocations().get(0).address.mSecondaryPort));
     try {
       while (!sendMsg.finishSending()) {
         sendMsg.send(socketChannel);

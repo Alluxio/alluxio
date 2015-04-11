@@ -34,7 +34,6 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.LocationInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.LocationInfo;
 import tachyon.util.NetworkUtils;
 
 /**
@@ -88,7 +87,7 @@ public class BlockInfo {
   private final Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>(5);
 
   /**
-   * Maps workerIds to the storageIds they have pages cached in.
+   * Maps workerIds to the storageIds they have blocks cached in.
    */
   private final Map<Long, Set<Long>> mWorkerDirs = new HashMap<Long, Set<Long>>();
 
@@ -134,22 +133,22 @@ public class BlockInfo {
     ret.blockId = mBlockId;
     ret.offset = mOffset;
     ret.length = mLength;
-    ret.workers = new ArrayList<LocationInfo>();
+    ret.workerLocations = new ArrayList<LocationInfo>();
     for (Map.Entry<Long, NetAddress> entry : mLocations.entrySet()) {
       List<Long> storageDirIds = new ArrayList<Long>();
       storageDirIds.addAll(mWorkerDirs.get(entry.getKey()));
-      ret.workers.add(new LocationInfo(entry.getValue(), storageDirIds));
+      ret.workerLocations.add(new LocationInfo(entry.getValue(), storageDirIds));
     }
-    ret.checkpoints = getCheckpoints(tachyonConf);
+    ret.ufsPaths = getUFSPaths(tachyonConf);
     return ret;
   }
 
   /**
-   * Get the hostnames where the block is checkpointed.
+   * Get the hostnames where the block is stored in the under file system.
    *
-   * @return the hostnames of the checkpoints
+   * @return the hostnames of the underfilesystem paths
    */
-  public synchronized List<String> getCheckpoints(TachyonConf tachyonConf) {
+  public synchronized List<String> getUFSPaths(TachyonConf tachyonConf) {
     List<String> ret = new ArrayList<String>();
     if (mInodeFile.hasCheckpointed()) {
       UnderFileSystem ufs = UnderFileSystem.get(mInodeFile.getUfsPath(), tachyonConf);

@@ -241,10 +241,10 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
           // cached
           ClientBlockInfo info = mMasterInfo.getFileBlocks(toAdd.getId()).get(0);
           List<NetAddress> locations = new ArrayList<NetAddress>();
-          for (String checkpoint : info.getCheckpoints()) {
+          for (String checkpoint : info.getUfsPaths()) {
             locations.add(new NetAddress(checkpoint, -1, -1));
           }
-          for (LocationInfo worker : info.getWorkers()) {
+          for (LocationInfo worker : info.getWorkerLocations()) {
             locations.add(worker.getAddress());
           }
           toAdd.setFileLocations(locations);

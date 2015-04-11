@@ -314,9 +314,9 @@ abstract class AbstractTFS extends FileSystem {
       if ((offset >= start && offset <= start + len) || (end >= start && end <= start + len)) {
         ArrayList<String> names = new ArrayList<String>();
         ArrayList<String> hosts = new ArrayList<String>();
-        names.addAll(info.getCheckpoints());
+        names.addAll(info.getUfsPaths());
         hosts.addAll(names);
-        for (LocationInfo worker : info.getWorkers()) {
+        for (LocationInfo worker : info.getWorkerLocations()) {
           names.add(worker.getAddress().mHost);
           hosts.add(worker.getAddress().mHost);
         }
