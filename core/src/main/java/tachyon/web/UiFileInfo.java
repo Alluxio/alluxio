@@ -15,7 +15,6 @@
 
 package tachyon.web;
 
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,12 +43,19 @@ public final class UiFileInfo {
   public static class LocalFileInfo {
     final String mName;
     final String mAbsolutePath;
-    final BasicFileAttributes mAttributes;
+    private final long mSize;
+    private final long mCreationTimeMs;
+    private final long mLastModificationTimeMs;
+    private final boolean mIsDirectory;
 
-    public LocalFileInfo(String name, String absolutePath, BasicFileAttributes attributes) {
+    public LocalFileInfo(String name, String absolutePath, long size, long creationTimeMs,
+                         long lastModificationTimeMs, boolean isDirectory) {
       mName = name;
       mAbsolutePath = absolutePath;
-      mAttributes = attributes;
+      mSize = size;
+      mCreationTimeMs = creationTimeMs;
+      mLastModificationTimeMs = lastModificationTimeMs;
+      mIsDirectory = isDirectory;
     }
   }
 
@@ -92,12 +98,12 @@ public final class UiFileInfo {
     mAbsolutePath = fileInfo.mAbsolutePath;
     mCheckpointPath = "";
     mBlockSizeBytes = 0;
-    mSize = fileInfo.mAttributes.size();
-    mCreationTimeMs = fileInfo.mAttributes.creationTime().toMillis();
-    mLastModificationTimeMs = fileInfo.mAttributes.lastModifiedTime().toMillis();
+    mSize = fileInfo.mSize;
+    mCreationTimeMs = fileInfo.mCreationTimeMs;
+    mLastModificationTimeMs = fileInfo.mLastModificationTimeMs;
     mInMemory = false;
     mInMemoryPercent = 0;
-    mIsDirectory = fileInfo.mAttributes.isDirectory();
+    mIsDirectory = fileInfo.mIsDirectory;
     mIsPinned = false;
     mFileLocations = new ArrayList<String>();
   }

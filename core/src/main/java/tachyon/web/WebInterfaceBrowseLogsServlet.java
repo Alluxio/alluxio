@@ -15,13 +15,11 @@
 
 package tachyon.web;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,28 +46,38 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
   private final transient TachyonConf mTachyonConf;
   private final String mBrowseJsp;
   private final String mViewJsp;
+  private final FilenameFilter mLogFileFilter;
 
   public WebInterfaceBrowseLogsServlet(boolean isMasterServlet) {
     mTachyonConf = new TachyonConf();
     String prefix = isMasterServlet ? "/" : "/worker/";
     mBrowseJsp = prefix + "browse.jsp";
     mViewJsp = prefix + "viewFile.jsp";
+    mLogFileFilter = new FilenameFilter() {
+      public boolean accept(File dir, String name) {
+        if (name.toLowerCase().endsWith(".log")) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    };
   }
 
   /**
    * This function displays 5KB of a file from a specific offset if it is in ASCII format.
    *
-   * @param path The path of the file to display
+   * @param file The local file to display
    * @param request The HttpServletRequest object
    * @param offset Where the file starts to display.
    * @throws IOException
    */
-  private void displayLocalFile(Path path, HttpServletRequest request, long offset)
+  private void displayLocalFile(File file, HttpServletRequest request, long offset)
       throws IOException {
     String fileData = null;
-    InputStream is = Files.newInputStream(path);
+    InputStream is = new FileInputStream(file);
     try {
-      long fileSize = Files.size(path);
+      long fileSize = file.length();
       int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
       byte[] data = new byte[len];
       long skipped = is.skip(offset);
@@ -109,7 +117,6 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     request.setAttribute("debug", Constants.DEBUG);
-
     request.setAttribute("invalidPathError", "");
     request.setAttribute("viewingOffset", 0);
     request.setAttribute("downloadLogFile", 1);
@@ -117,21 +124,23 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
     request.setAttribute("currentPath", "");
 
     String baseDir = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
-
+    File logsDir = new File(baseDir, "logs");
     String requestFile = request.getParameter("path");
 
     if (requestFile == null || requestFile.isEmpty()) {
       // List all log files in the log/ directory.
-      DirectoryStream<Path> logFiles =
-              Files.newDirectoryStream(Paths.get(baseDir, "/logs"), "*.log");
+
       List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>();
-      for (Path logFile : logFiles) {
-        BasicFileAttributes attr = Files.readAttributes(logFile, BasicFileAttributes.class);
-        String logFileName = logFile.getFileName().toString();
-        fileInfos.add(new UiFileInfo(new UiFileInfo.LocalFileInfo(logFileName, logFileName, attr)));
+      File[] logFiles = logsDir.listFiles(mLogFileFilter);
+      for (File logFile : logFiles) {
+        String logFileName = logFile.getName();
+        // java 6 does not support getting creation time, so lastModified is reused.
+        fileInfos.add(new UiFileInfo(new UiFileInfo.LocalFileInfo(logFileName, logFileName,
+                logFile.length(), logFile.lastModified(),
+                logFile.lastModified(), logFile.isDirectory())));
       }
       Collections.sort(fileInfos, UiFileInfo.PATH_STRING_COMPARE);
-      request.setAttribute("nTotalFile", Integer.valueOf(fileInfos.size()));
+      request.setAttribute("nTotalFile", fileInfos.size());
 
       // URL can not determine offset and limit, let javascript in jsp determine and redirect
       if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
@@ -165,18 +174,13 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
       // Request a specific log file.
 
       // Only allow filenames as the path, to avoid arbitrary local path lookups.
-      Path filePart = Paths.get(requestFile).getFileName();
-      if (filePart == null) {
-        requestFile = "";
-      } else {
-        requestFile = filePart.toString();
-      }
+      requestFile = new File(requestFile).getName();
       request.setAttribute("currentPath", requestFile);
 
-      Path logFilePath = Paths.get(baseDir, "/logs", "/" + requestFile);
+      File logFile = new File(logsDir, requestFile);
 
       try {
-        long fileSize = Files.size(logFilePath);
+        long fileSize = logFile.length();
         String offsetParam = request.getParameter("offset");
         long relativeOffset = 0;
         long offset;
@@ -201,11 +205,11 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
           offset = fileSize;
         }
 
-        displayLocalFile(logFilePath, request, offset);
+        displayLocalFile(logFile, request, offset);
         request.setAttribute("viewingOffset", offset);
         getServletContext().getRequestDispatcher(mViewJsp).forward(request, response);
       } catch (IOException ie) {
-        request.setAttribute("invalidPathError", "Error: File " + logFilePath + " is not available "
+        request.setAttribute("invalidPathError", "Error: File " + logFile + " is not available "
                 + ie.getMessage());
         getServletContext().getRequestDispatcher(mViewJsp).forward(request, response);
       }
