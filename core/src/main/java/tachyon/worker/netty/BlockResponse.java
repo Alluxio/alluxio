@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -69,26 +69,29 @@ public final class BlockResponse {
       // Add the header information to output
       out.add(createHeader(ctx, msg));
 
-      BlockHandler handler = msg.getHandler();
-      if (handler != null) {
-        FileTransferType type = mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE,
-            FileTransferType.TRANSFER);
-        switch (type) {
-          case MAPPED:
-            ByteBuffer data = handler.read(msg.getOffset(), (int) msg.getLength());
-            out.add(Unpooled.wrappedBuffer(data));
+      final BlockHandler handler = msg.getHandler();
+      if (handler == null) {
+        return;
+      }
+      final FileTransferType type =
+          mTachyonConf
+              .getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.TRANSFER);
+      switch (type) {
+        case MAPPED:
+          ByteBuffer data = handler.read(msg.getOffset(), (int) msg.getLength());
+          out.add(Unpooled.wrappedBuffer(data));
+          handler.close();
+          break;
+        case TRANSFER:
+        default:
+          if (handler.getChannel() instanceof FileChannel) {
+            out.add(new DefaultFileRegion((FileChannel) handler.getChannel(), msg.getOffset(), msg
+                .getLength()));
+          } else {
             handler.close();
-            break;
-          default: // TRANSFER
-            if (handler.getChannel() instanceof FileChannel) {
-              out.add(new DefaultFileRegion((FileChannel) handler.getChannel(), msg.getOffset(),
-                  msg.getLength()));
-            } else {
-              handler.close();
-              throw new Exception("Only FileChannel is supported!");
-            }
-            break;
-        }
+            throw new Exception("Only FileChannel is supported!");
+          }
+          break;
       }
     }
   }
@@ -96,6 +99,9 @@ public final class BlockResponse {
   /**
    * Creates a {@link tachyon.worker.netty.BlockResponse} that represents a error case for the given
    * block.
+   *
+   * @param blockId The Id of block to request
+   * @return BlockResponse created.
    */
   public static BlockResponse createErrorResponse(final long blockId) {
     return new BlockResponse(-blockId, 0, 0, null);
@@ -103,9 +109,7 @@ public final class BlockResponse {
 
   private final long mBlockId;
   private final long mOffset;
-
   private final long mLength;
-
   private final BlockHandler mHandler;
 
   public BlockResponse(long blockId, long offset, long length, BlockHandler handler) {
