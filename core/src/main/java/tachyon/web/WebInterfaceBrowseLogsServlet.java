@@ -68,8 +68,8 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
       throws IOException {
     String fileData = null;
     InputStream is = Files.newInputStream(path);
-    long fileSize = Files.size(path);
     try {
+      long fileSize = Files.size(path);
       int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
       byte[] data = new byte[len];
       long skipped = is.skip(offset);
@@ -122,12 +122,12 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
 
     if (requestFile == null || requestFile.isEmpty()) {
       // List all log files in the log/ directory.
-      DirectoryStream<Path> directories =
+      DirectoryStream<Path> logFiles =
               Files.newDirectoryStream(Paths.get(baseDir, "/logs"), "*.log");
       List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>();
-      for (Path directory : directories) {
-        BasicFileAttributes attr = Files.readAttributes(directory, BasicFileAttributes.class);
-        String logFileName = directory.getFileName().toString();
+      for (Path logFile : logFiles) {
+        BasicFileAttributes attr = Files.readAttributes(logFile, BasicFileAttributes.class);
+        String logFileName = logFile.getFileName().toString();
         fileInfos.add(new UiFileInfo(new UiFileInfo.LocalFileInfo(logFileName, logFileName, attr)));
       }
       Collections.sort(fileInfos, UiFileInfo.PATH_STRING_COMPARE);
