@@ -717,7 +717,7 @@ public final class StorageDir {
     }
     // Check if this blocks is currently hold by other users.
     if (isBlockLocked(blockId) || !mToRemoveBlockIdSet.contains(blockId)) {
-      return false;
+      return true;
     }
     try {
       if (!mFs.delete(getBlockFilePath(blockId), false)) {
