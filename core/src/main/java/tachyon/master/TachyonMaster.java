@@ -94,9 +94,10 @@ public class TachyonMaster {
   public TachyonMaster(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
 
-    String hostName = mTachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
     int port = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    InetSocketAddress address = new InetSocketAddress(hostName, port);
+    //HOSTNAME may be be different in complex setups
+    //so it's probably better to run on a wildcard IP, listening on all interfaces
+    InetSocketAddress address = new InetSocketAddress(port);
     int webPort =
         mTachyonConf.getInt(Constants.MASTER_WEB_PORT, Constants.DEFAULT_MASTER_WEB_PORT);
 
