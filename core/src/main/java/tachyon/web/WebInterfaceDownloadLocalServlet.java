@@ -45,7 +45,10 @@ public class WebInterfaceDownloadLocalServlet extends HttpServlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private final transient TachyonConf mTachyonConf;
+
   public WebInterfaceDownloadLocalServlet() {
+    mTachyonConf = new TachyonConf();
   }
 
   /**
@@ -65,8 +68,7 @@ public class WebInterfaceDownloadLocalServlet extends HttpServlet {
     }
 
     // Download a file from the local filesystem.
-    TachyonConf tachyonConf = new TachyonConf();
-    String baseDir = tachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String baseDir = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
 
     // Only allow filenames as the path, to avoid downloading arbitrary local files.
     requestPath = Paths.get(requestPath).getFileName().toString();
