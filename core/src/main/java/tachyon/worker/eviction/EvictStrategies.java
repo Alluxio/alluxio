@@ -16,14 +16,14 @@
 package tachyon.worker.eviction;
 
 /**
- * Used to get specific EvictStrategy by EvictStrategyType
+ * Used to get a specific EvictStrategy based on EvictStrategyType
  */
 public class EvictStrategies {
   /**
    * Get block EvictStrategy based on configuration
    *
    * @param strategyType configuration of EvictStrategy
-   * @param isLastTier whether eviction is on last StorageTier
+   * @param isLastTier whether eviction is applied on the last StorageTier
    * @return EvictStrategy generated
    */
   public static EvictStrategy getEvictStrategy(EvictStrategyType strategyType, boolean isLastTier) {
