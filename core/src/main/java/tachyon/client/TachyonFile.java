@@ -99,17 +99,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * Get the block id by the file id and offset. it will check whether the file and the block exist.
-   * 
-   * @param offset The offset of the file.
-   * @return the block id if exists
-   * @throws IOException
-   */
-  long getBlockIdBasedOnOffset(long offset) throws IOException {
-    return getBlockId((int) (offset / getBlockSizeByte()));
-  }
-
-  /**
    * Return the block's size of this file
    * 
    * @return the block's size in bytes
