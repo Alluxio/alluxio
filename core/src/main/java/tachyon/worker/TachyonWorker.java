@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -36,6 +36,7 @@ import tachyon.Constants;
 import tachyon.Users;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
+import tachyon.metrics.MetricsSystem;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
@@ -59,8 +60,8 @@ public class TachyonWorker implements Runnable {
    * @return The new TachyonWorker
    */
   public static synchronized TachyonWorker createWorker(TachyonConf tachyonConf) {
-    String masterHostname = tachyonConf.get(Constants.MASTER_HOSTNAME,
-        NetworkUtils.getLocalHostName(tachyonConf));
+    String masterHostname =
+        tachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(tachyonConf));
     int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     String workerHostName = NetworkUtils.getLocalHostName(tachyonConf);
     int workerPort = tachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
@@ -82,8 +83,8 @@ public class TachyonWorker implements Runnable {
     if (masterAddress == null) {
       return;
     }
-    String masterHostnameConf = conf.get(Constants.MASTER_HOSTNAME,
-        NetworkUtils.getLocalHostName(conf));
+    String masterHostnameConf =
+        conf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(conf));
     String masterPortConf = conf.get(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT + "");
     String[] address = masterAddress.split(":");
     String masterHostname = address[0];
@@ -138,6 +139,8 @@ public class TachyonWorker implements Runnable {
   private final WorkerStorage mWorkerStorage;
 
   private final WorkerServiceHandler mWorkerServiceHandler;
+
+  private final MetricsSystem mWorkerMetricSystem;
 
   private final DataServer mDataServer;
 
@@ -210,6 +213,9 @@ public class TachyonWorker implements Runnable {
     mWebServer =
         new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(workerAddress.getHostName(),
             mWebPort), mWorkerStorage, mTachyonConf);
+
+    mWorkerMetricSystem = new MetricsSystem("worker", mTachyonConf);
+    mWorkerMetricSystem.registerSource(mWorkerStorage.getWorkerSource());
   }
 
   /**
@@ -257,8 +263,8 @@ public class TachyonWorker implements Runnable {
     while (!mStop) {
       long diff = System.currentTimeMillis() - lastHeartbeatMs;
       int hbIntervalMs =
-          mTachyonConf
-              .getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+          mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
+              Constants.SECOND_MS);
       if (diff < hbIntervalMs) {
         LOG.debug("Heartbeat process takes {} ms.", diff);
         CommonUtils.sleepMs(LOG, hbIntervalMs - diff);
@@ -319,6 +325,7 @@ public class TachyonWorker implements Runnable {
 
     mHeartbeatThread.start();
     mWebServer.startWebServer();
+    mWorkerMetricSystem.start();
 
     LOG.info("The worker server started @ " + mWorkerAddress);
     mServer.serve();
@@ -334,6 +341,7 @@ public class TachyonWorker implements Runnable {
   public void stop() throws IOException, InterruptedException {
     mStop = true;
     mWorkerStorage.stop();
+    mWorkerMetricSystem.stop();
     mDataServer.close();
     mServer.stop();
     mServerTServerSocket.close();
