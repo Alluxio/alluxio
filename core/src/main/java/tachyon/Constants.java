@@ -61,6 +61,7 @@ public class Constants {
   public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
 
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
+  public static final int DEFAULT_BLOCK_QUANTITY = 1;
 
   public static final int DEFAULT_CHECKPOINT_CAP_MB_SEC = 1000;
 
@@ -177,6 +178,7 @@ public class Constants {
   public static final String USER_FILE_BUFFER_BYTES = "tachyon.user.file.buffer.bytes";
   public static final String USER_HEARTBEAT_INTERVAL_MS = "tachyon.user.heartbeat.interval.ms";
   public static final String USER_DEFAULT_BLOCK_SIZE_BYTE = "tachyon.user.default.block.size.byte";
+  public static final String USER_DEFAULT_BLOCK_QUANTITY = "tachyon.user.default.block.quantity";
   public static final String USER_REMOTE_READ_BUFFER_SIZE_BYTE =
       "tachyon.user.remote.read.buffer.size.byte";
   public static final String USER_DEFAULT_WRITE_TYPE = "tachyon.user.file.writetype.default";

@@ -18,7 +18,9 @@ package tachyon.client;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +43,10 @@ public class FileOutStream extends OutStream {
   private BlockOutStream mCurrentBlockOutStream;
   private long mCurrentBlockId;
   private long mCurrentBlockLeftByte;
+  private Queue<Long> mReservedBlocks;
   private List<BlockOutStream> mPreviousBlockOutStreams;
   private long mCachedBytes;
+  private int mBlocksToAllocate;
 
   private OutputStream mCheckpointOutputStream = null;
   private String mUnderFsFile = null;
@@ -69,6 +73,11 @@ public class FileOutStream extends OutStream {
     mCurrentBlockLeftByte = 0;
     mPreviousBlockOutStreams = new ArrayList<BlockOutStream>();
     mCachedBytes = 0;
+    mBlocksToAllocate = tachyonConf.getInt(Constants.USER_DEFAULT_BLOCK_QUANTITY, 
+                                           Constants.DEFAULT_BLOCK_QUANTITY);
+    if (mBlocksToAllocate > 1) {
+      mReservedBlocks = new LinkedList<Long>();
+    }
 
     if (mWriteType.isThrough()) {
       mUnderFsFile = CommonUtils.concat(mTachyonFS.createAndGetUserUfsTempFolder(ufsConf),
@@ -121,6 +130,14 @@ public class FileOutStream extends OutStream {
             }
             canComplete = true;
           }
+          
+          // Cancel any remaining reserved blocks
+          if (mReservedBlocks != null) {
+            while (mReservedBlocks.size() > 0) {
+              long bID = mReservedBlocks.remove();
+              mTachyonFS.cancelBlock(bID);
+            }
+          }
         } catch (IOException ioe) {
           if (mWriteType.isMustCache()) {
             LOG.error(ioe.getMessage(), ioe);
@@ -159,9 +176,18 @@ public class FileOutStream extends OutStream {
     }
 
     if (mWriteType.isCache()) {
-      mCurrentBlockId = mFile.getBlockIdBasedOnOffset(mCachedBytes);
+      if (mBlocksToAllocate <= 1) {
+        mCurrentBlockId = mFile.getBlockIdBasedOnOffset(mCachedBytes);
+      } else {
+        if (mReservedBlocks.size() == 0) {
+          mReservedBlocks.addAll(mFile.getBlockIds(
+                                  (int)mFile.getBlockIdBasedOnOffset(mCachedBytes), 
+                                  mBlocksToAllocate));
+        }
+        mCurrentBlockId = mReservedBlocks.remove();
+      }
       mCurrentBlockLeftByte = mBlockCapacityByte;
-
+      
       mCurrentBlockOutStream =
           new BlockOutStream(mFile, mWriteType, (int) (mCachedBytes / mBlockCapacityByte),
               mTachyonConf);
