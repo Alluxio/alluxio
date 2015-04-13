@@ -6,7 +6,8 @@
   var nFilePerPage = 20;
   var nMaxPageShown = 10;
 
-  var baseUrl = "/browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>";
+  var base = "<%= (request.getAttribute("baseUrl") == null) ? "./browse" : request.getAttribute("baseUrl").toString() %>";
+  var baseUrl = base + "?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>";
   var nFilePerPageCookie = "nFilePerPageBrowse";
   var nMaxPageShownCookie = "nMaxPageShownBrowse";
 
