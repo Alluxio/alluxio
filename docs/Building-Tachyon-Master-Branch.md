@@ -14,6 +14,10 @@ Checkout the Tachyon master branch from Github and package:
     $ cd tachyon
     $ mvn install
 
+If you getting java.lang.OutOfMemoryError: Java heap space, please execute 
+
+    $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
+
 If you want to build a particular version of Tachyon, for example {{site.TACHYON_RELEASED_VERSION}},
 please do `git checkout v{{site.TACHYON_RELEASED_VERSION}}` after `cd tachyon`.
 
