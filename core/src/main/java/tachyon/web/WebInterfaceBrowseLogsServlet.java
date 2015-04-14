@@ -134,9 +134,8 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
       File[] logFiles = logsDir.listFiles(mLogFileFilter);
       for (File logFile : logFiles) {
         String logFileName = logFile.getName();
-        // java 6 does not support getting creation time, so lastModified is reused.
         fileInfos.add(new UiFileInfo(new UiFileInfo.LocalFileInfo(logFileName, logFileName,
-                logFile.length(), logFile.lastModified(),
+                logFile.length(), UiFileInfo.LocalFileInfo.EMPTY_CREATION_TIME,
                 logFile.lastModified(), logFile.isDirectory())));
       }
       Collections.sort(fileInfos, UiFileInfo.PATH_STRING_COMPARE);
