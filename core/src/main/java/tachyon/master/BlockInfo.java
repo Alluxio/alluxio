@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Pair;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
@@ -75,15 +77,18 @@ public class BlockInfo {
   public final long mOffset;
   public final long mLength;
 
+  /* Map worker's workerId to its NetAddress */
   private final Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>(5);
+  /* Map worker's NetAddress to storageDirId */
   private final Map<NetAddress, Long> mStorageDirIds = new HashMap<NetAddress, Long>(5);
 
   /**
    * @param inodeFile
    * @param blockIndex
-   * @param length Can not be no bigger than 2^31 - 1
+   * @param length Can not be larger than 2^31 - 1
    */
   BlockInfo(InodeFile inodeFile, int blockIndex, long length) {
+    Preconditions.checkArgument(length < (1 << 31), "length can not be larger than 2^31 - 1");
     mInodeFile = inodeFile;
     mBlockIndex = blockIndex;
     mBlockId = computeBlockId(mInodeFile.getId(), mBlockIndex);
