@@ -65,8 +65,7 @@ public final class NettyDataServer implements DataServer {
   }
 
   private ServerBootstrap createBootstrap() {
-    final ServerBootstrap boot = new ServerBootstrap();
-    setupGroups(boot,
+    final ServerBootstrap boot = createBootstrapOfType(
         mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.defaultType()));
 
     // use pooled buffers
@@ -101,7 +100,8 @@ public final class NettyDataServer implements DataServer {
    */
   @Override
   public int getPort() {
-    // according to the docs, InetSocketAddress is returned and the user must down-cast
+    // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
+    // InetSocketAddress to get detailed info such as port.
     return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getPort();
   }
 
@@ -112,27 +112,29 @@ public final class NettyDataServer implements DataServer {
 
   /**
    * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and groups are
-   * preset. Current channel type supported are nio and epoll.
+   * preset. Current channel types supported are nio and epoll.
    */
-  private void setupGroups(final ServerBootstrap boot, final ChannelType type) {
-    ThreadFactory bossThreadFactory = ThreadFactoryUtils.build("data-server-boss-%d");
-    ThreadFactory workerThreadFactory = ThreadFactoryUtils.build("data-server-worker-%d");
-    EventLoopGroup bossGroup;
-    EventLoopGroup workerGroup;
-    int bossThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS, 1);
-    int workerThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 0);
+  private ServerBootstrap createBootstrapOfType(final ChannelType type) {
+    final ServerBootstrap boot = new ServerBootstrap();
+    final ThreadFactory bossThreadFactory = ThreadFactoryUtils.build("data-server-boss-%d");
+    final ThreadFactory workerThreadFactory = ThreadFactoryUtils.build("data-server-worker-%d");
+    final EventLoopGroup bossGroup;
+    final EventLoopGroup workerGroup;
+    final int bossThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS, 1);
+    final int workerThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 0);
     switch (type) {
       case EPOLL:
         bossGroup = new EpollEventLoopGroup(bossThreadCount, bossThreadFactory);
         workerGroup = new EpollEventLoopGroup(workerThreadCount, workerThreadFactory);
         boot.channel(EpollServerSocketChannel.class);
         break;
-      case NIO:
+      case NIO: // intend to fall through as NIO is the default type.
       default:
         bossGroup = new NioEventLoopGroup(bossThreadCount, bossThreadFactory);
         workerGroup = new NioEventLoopGroup(workerThreadCount, workerThreadFactory);
         boot.channel(NioServerSocketChannel.class);
     }
     boot.group(bossGroup, workerGroup);
+    return boot;
   }
 }

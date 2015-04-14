@@ -82,11 +82,11 @@ public final class BlockResponse {
           out.add(Unpooled.wrappedBuffer(data));
           handler.close();
           break;
-        case TRANSFER:
+        case TRANSFER: // intend to fall through as TRANSFER is the default type.
         default:
           if (handler.getChannel() instanceof FileChannel) {
-            out.add(new DefaultFileRegion((FileChannel) handler.getChannel(), msg.getOffset(), msg
-                .getLength()));
+            out.add(new DefaultFileRegion((FileChannel) handler.getChannel(), msg.getOffset(),
+                msg.getLength()));
           } else {
             handler.close();
             throw new Exception("Only FileChannel is supported!");
@@ -101,7 +101,7 @@ public final class BlockResponse {
    * block.
    *
    * @param blockId The Id of block to request
-   * @return BlockResponse created.
+   * @return the new error BlockResponse created.
    */
   public static BlockResponse createErrorResponse(final long blockId) {
     return new BlockResponse(-blockId, 0, 0, null);
