@@ -15,12 +15,11 @@
 
 package tachyon.web;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -69,14 +68,15 @@ public class WebInterfaceDownloadLocalServlet extends HttpServlet {
 
     // Download a file from the local filesystem.
     String baseDir = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    File logsDir = new File(baseDir, "logs");
 
     // Only allow filenames as the path, to avoid downloading arbitrary local files.
-    requestPath = Paths.get(requestPath).getFileName().toString();
-    Path logFilePath = Paths.get(baseDir, "/logs", "/" + requestPath);
+    requestPath = new File(requestPath).getName();
+    File logFile = new File(logsDir, requestPath);
     try {
-      downloadLogFile(logFilePath, request, response);
-    } catch (NoSuchFileException nsfe) {
-      request.setAttribute("invalidPathError", "Error: Invalid file " + nsfe.getMessage());
+      downloadLogFile(logFile, request, response);
+    } catch (FileNotFoundException fnfe) {
+      request.setAttribute("invalidPathError", "Error: Invalid file " + fnfe.getMessage());
       request.setAttribute("currentPath", requestPath);
       request.setAttribute("downloadLogFile", 1);
       request.setAttribute("viewingOffset", 0);
@@ -88,16 +88,16 @@ public class WebInterfaceDownloadLocalServlet extends HttpServlet {
   /**
    * This function prepares for downloading a log file on the local filesystem.
    *
-   * @param path The path of the local log file to download
+   * @param file The local log file to download
    * @param request The HttpServletRequest object
    * @param response The HttpServletResponse object
    * @throws IOException
    */
-  private void downloadLogFile(Path path, HttpServletRequest request,
+  private void downloadLogFile(File file, HttpServletRequest request,
                                HttpServletResponse response) throws IOException {
-    long len = Files.size(path);
-    InputStream is = Files.newInputStream(path);
-    String fileName = path.getFileName().toString();
+    long len = file.length();
+    InputStream is = new FileInputStream(file);
+    String fileName = file.getName();
     response.setContentType("application/octet-stream");
     if (len <= Integer.MAX_VALUE) {
       response.setContentLength((int) len);
