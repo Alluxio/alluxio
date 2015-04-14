@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -38,11 +38,10 @@ import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
 
 /**
- * Runs a netty server that will response to block requests.
+ * Runs a netty data server that responses to block requests.
  */
 public final class NettyDataServer implements DataServer {
   private final ServerBootstrap mBootstrap;
-
   private final ChannelFuture mChannelFuture;
   private final TachyonConf mTachyonConf;
 
@@ -66,9 +65,8 @@ public final class NettyDataServer implements DataServer {
   }
 
   private ServerBootstrap createBootstrap() {
-    ServerBootstrap boot = new ServerBootstrap();
-    boot = setupGroups(boot, mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL,
-        ChannelType.defaultType()));
+    final ServerBootstrap boot = createBootstrapOfType(
+        mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.defaultType()));
 
     // use pooled buffers
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -82,15 +80,15 @@ public final class NettyDataServer implements DataServer {
         mTachyonConf.getInt(Constants.WORKER_NETTY_WATERMARK_LOW, 8 * 1024));
 
     // more buffer settings
-    int optBacklog = mTachyonConf.getInt(Constants.WORKER_NETTY_BACKLOG, -1);
+    final int optBacklog = mTachyonConf.getInt(Constants.WORKER_NETTY_BACKLOG, -1);
     if (optBacklog > 0) {
       boot.option(ChannelOption.SO_BACKLOG, optBacklog);
     }
-    int optSendBuffer = mTachyonConf.getInt(Constants.WORKER_NETTY_SEND_BUFFER, -1);
+    final int optSendBuffer = mTachyonConf.getInt(Constants.WORKER_NETTY_SEND_BUFFER, -1);
     if (optSendBuffer > 0) {
       boot.option(ChannelOption.SO_SNDBUF, optSendBuffer);
     }
-    int optReceiveBuffer = mTachyonConf.getInt(Constants.WORKER_NETTY_RECEIVE_BUFFER, -1);
+    final int optReceiveBuffer = mTachyonConf.getInt(Constants.WORKER_NETTY_RECEIVE_BUFFER, -1);
     if (optReceiveBuffer > 0) {
       boot.option(ChannelOption.SO_RCVBUF, optReceiveBuffer);
     }
@@ -102,7 +100,8 @@ public final class NettyDataServer implements DataServer {
    */
   @Override
   public int getPort() {
-    // according to the docs, a InetSocketAddress is returned and the user must down-cast
+    // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
+    // InetSocketAddress to get detailed info such as port.
     return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getPort();
   }
 
@@ -113,21 +112,23 @@ public final class NettyDataServer implements DataServer {
 
   /**
    * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and groups are
-   * preset. Current channel type supported are nio and epoll.
+   * preset. Current channel types supported are nio and epoll.
    */
-  private ServerBootstrap setupGroups(final ServerBootstrap boot, final ChannelType type) {
-    ThreadFactory bossThreadFactory = ThreadFactoryUtils.build("data-server-boss-%d");
-    ThreadFactory workerThreadFactory = ThreadFactoryUtils.build("data-server-worker-%d");
-    EventLoopGroup bossGroup;
-    EventLoopGroup workerGroup;
-    int bossThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS, 1);
-    int workerThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 0);
+  private ServerBootstrap createBootstrapOfType(final ChannelType type) {
+    final ServerBootstrap boot = new ServerBootstrap();
+    final ThreadFactory bossThreadFactory = ThreadFactoryUtils.build("data-server-boss-%d");
+    final ThreadFactory workerThreadFactory = ThreadFactoryUtils.build("data-server-worker-%d");
+    final EventLoopGroup bossGroup;
+    final EventLoopGroup workerGroup;
+    final int bossThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS, 1);
+    final int workerThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 0);
     switch (type) {
       case EPOLL:
         bossGroup = new EpollEventLoopGroup(bossThreadCount, bossThreadFactory);
         workerGroup = new EpollEventLoopGroup(workerThreadCount, workerThreadFactory);
         boot.channel(EpollServerSocketChannel.class);
         break;
+      case NIO: // intend to fall through as NIO is the default type.
       default:
         bossGroup = new NioEventLoopGroup(bossThreadCount, bossThreadFactory);
         workerGroup = new NioEventLoopGroup(workerThreadCount, workerThreadFactory);
