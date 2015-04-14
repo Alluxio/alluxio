@@ -17,7 +17,9 @@ package tachyon.perf;
 
 import java.io.IOException;
 
+import tachyon.perf.fs.HDFSPerfFS;
 import tachyon.perf.fs.PerfFS;
+import tachyon.perf.fs.THCIPerfFS;
 import tachyon.perf.fs.TachyonPerfFS;
 
 
@@ -27,8 +29,18 @@ import tachyon.perf.fs.TachyonPerfFS;
 public class PerfConstants {
   public static final String PERF_LOGGER_TYPE = System.getProperty("tachyon.perf.logger.type", "");
   public static final String PERF_CONTEXT_FILE_NAME_PREFIX = "context";
+  public static final String PERF_UFS = System.getProperty("tachyon.perf.ufs", "Tachyon");
 
   public static PerfFS getFileSystem() throws IOException {
+    if (PERF_UFS.equalsIgnoreCase("Tachyon")) {
+      return TachyonPerfFS.get();
+    }
+    if (PERF_UFS.equalsIgnoreCase("THCI")) {
+      return THCIPerfFS.get();
+    }
+    if (PERF_UFS.equalsIgnoreCase("HDFS")) {
+      return HDFSPerfFS.get();
+    }
     return TachyonPerfFS.get();
   }
 }
