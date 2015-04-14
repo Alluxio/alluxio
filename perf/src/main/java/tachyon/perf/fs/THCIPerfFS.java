@@ -33,8 +33,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
-import tachyon.client.ReadType;
-import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.hadoop.TFS;
 import tachyon.perf.PerfConstants;
@@ -110,7 +108,7 @@ public class THCIPerfFS implements PerfFS {
    * @throws IOException
    */
   public OutputStream create(String path, int blockSizeByte, String writeType) throws IOException {
-    WriteType type = WriteType.valueOf(writeType);
+    System.setProperty("tachyon.user.file.writetype.default", writeType);
     Path p = new Path(path);
     return mTfs.create(p);
   }
@@ -263,7 +261,7 @@ public class THCIPerfFS implements PerfFS {
    * @throws IOException
    */
   public InputStream open(String path, String readType) throws IOException {
-    ReadType type = ReadType.valueOf(readType);
+    // Read type hardcoded in thci
     Path p = new Path(path);
     if (!mTfs.exists(p)) {
       throw new FileNotFoundException("File not exists " + path);
