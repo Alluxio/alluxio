@@ -55,11 +55,7 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
     mViewJsp = prefix + "viewFile.jsp";
     mLogFileFilter = new FilenameFilter() {
       public boolean accept(File dir, String name) {
-        if (name.toLowerCase().endsWith(".log")) {
-          return true;
-        } else {
-          return false;
-        }
+        return name.toLowerCase().endsWith(".log");
       }
     };
   }
