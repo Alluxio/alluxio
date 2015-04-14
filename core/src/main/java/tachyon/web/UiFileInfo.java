@@ -41,8 +41,10 @@ public final class UiFileInfo {
 
   // Simple class for describing a file on the local filesystem.
   public static class LocalFileInfo {
-    final String mName;
-    final String mAbsolutePath;
+    public static final long EMPTY_CREATION_TIME = 0;
+
+    private final String mName;
+    private final String mAbsolutePath;
     private final long mSize;
     private final long mCreationTimeMs;
     private final long mLastModificationTimeMs;
@@ -125,7 +127,11 @@ public final class UiFileInfo {
   }
 
   public String getCreationTime() {
-    return CommonUtils.convertMsToDate(mCreationTimeMs);
+    if (mCreationTimeMs == LocalFileInfo.EMPTY_CREATION_TIME) {
+      return " ";
+    } else {
+      return CommonUtils.convertMsToDate(mCreationTimeMs);
+    }
   }
 
   public String getModificationTime() {
