@@ -116,7 +116,7 @@ public final class UiFileInfo {
 
   public String getBlockSizeBytes() {
     if (mIsDirectory) {
-      return " ";
+      return "";
     } else {
       return CommonUtils.getSizeFromBytes(mBlockSizeBytes);
     }
@@ -128,7 +128,7 @@ public final class UiFileInfo {
 
   public String getCreationTime() {
     if (mCreationTimeMs == LocalFileInfo.EMPTY_CREATION_TIME) {
-      return " ";
+      return "";
     } else {
       return CommonUtils.convertMsToDate(mCreationTimeMs);
     }
@@ -176,7 +176,7 @@ public final class UiFileInfo {
 
   public String getSize() {
     if (mIsDirectory) {
-      return " ";
+      return "";
     } else {
       return CommonUtils.getSizeFromBytes(mSize);
     }
