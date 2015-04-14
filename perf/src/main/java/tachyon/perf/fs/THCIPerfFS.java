@@ -108,7 +108,7 @@ public class THCIPerfFS implements PerfFS {
    * @throws IOException
    */
   public OutputStream create(String path, int blockSizeByte, String writeType) throws IOException {
-    System.setProperty("tachyon.user.file.writetype.default", writeType);
+    // Write type needs to be set with Tachyon Java option in tachyon-perf-env.sh
     Path p = new Path(path);
     return mTfs.create(p);
   }
