@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -60,7 +60,7 @@ public class TachyonPerfFS implements PerfFS {
 
   /**
    * Close the connection to Tachyon
-   * 
+   *
    * @throws IOException
    */
   public void close() throws IOException {
@@ -69,7 +69,7 @@ public class TachyonPerfFS implements PerfFS {
 
   /**
    * Create a file. Use the default block size and TRY_CACHE write type.
-   * 
+   *
    * @param path the file's full path
    * @return the output stream of the created file
    * @throws IOException
@@ -84,7 +84,7 @@ public class TachyonPerfFS implements PerfFS {
 
   /**
    * Create a file with the specified block size. Use the TRY_CACHE write type.
-   * 
+   *
    * @param path the file's full path
    * @param blockSizeByte the block size of the file
    * @return the output stream of the created file
@@ -100,7 +100,7 @@ public class TachyonPerfFS implements PerfFS {
 
   /**
    * Create a file with the specified block size and write type.
-   * 
+   *
    * @param path the file's full path
    * @param blockSizeByte the block size of the file
    * @param writeType the write type of the file
@@ -118,7 +118,7 @@ public class TachyonPerfFS implements PerfFS {
 
   /**
    * Create an empty file
-   * 
+   *
    * @param path the file's full path
    * @return true if success, false otherwise.
    * @throws IOException
@@ -134,7 +134,7 @@ public class TachyonPerfFS implements PerfFS {
   /**
    * Delete the file. If recursive and the path is a directory, it will delete all the files under
    * the path.
-   * 
+   *
    * @param path the file's full path
    * @param recursive It true, delete recursively
    * @return true if success, false otherwise.
@@ -146,7 +146,7 @@ public class TachyonPerfFS implements PerfFS {
 
   /**
    * Check whether the file exists or not.
-   * 
+   *
    * @param path the file's full path
    * @return true if exists, false otherwise
    * @throws IOException
@@ -157,7 +157,7 @@ public class TachyonPerfFS implements PerfFS {
 
   /**
    * Get the length of the file, in bytes.
-   * 
+   *
    * @param path
    * @return the length of the file in bytes
    * @throws IOException
@@ -172,7 +172,7 @@ public class TachyonPerfFS implements PerfFS {
 
   /**
    * Check if the path is a directory.
-   * 
+   *
    * @param path the file's full path
    * @return true if it's a directory, false otherwise
    * @throws IOException
@@ -187,7 +187,7 @@ public class TachyonPerfFS implements PerfFS {
 
   /**
    * Check if the path is a file.
-   * 
+   *
    * @param path the file's full path
    * @return true if it's a file, false otherwise
    * @throws IOException
@@ -204,7 +204,7 @@ public class TachyonPerfFS implements PerfFS {
    * List the files under the path. If the path is a file, return the full path of the file. if the
    * path is a directory, return the full paths of all the files under the path. Otherwise return
    * null.
-   * 
+   *
    * @param path the file's full path
    * @return the list contains the full paths of the listed files
    * @throws IOException
@@ -224,7 +224,7 @@ public class TachyonPerfFS implements PerfFS {
   /**
    * Creates the directory named by the path. If the folder already exists, the method returns
    * false.
-   * 
+   *
    * @param path the file's full path
    * @param createParent If true, the method creates any necessary but nonexistent parent
    *        directories. Otherwise, the method does not create nonexistent parent directories.
@@ -241,7 +241,7 @@ public class TachyonPerfFS implements PerfFS {
 
   /**
    * Open a file and return it's input stream. Use the NO_CACHE read type.
-   * 
+   *
    * @param path the file's full path
    * @return the input stream of the opened file
    * @throws IOException
@@ -256,7 +256,7 @@ public class TachyonPerfFS implements PerfFS {
 
   /**
    * Open a file and return it's input stream, with the specified read type.
-   * 
+   *
    * @param path the file's full path
    * @param readType the read type of the file
    * @return the input stream of the opened file
@@ -273,7 +273,7 @@ public class TachyonPerfFS implements PerfFS {
 
   /**
    * Rename the file.
-   * 
+   *
    * @param src the src full path
    * @param dst the dst full path
    * @return true if success, false otherwise
