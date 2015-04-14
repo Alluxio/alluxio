@@ -31,6 +31,9 @@ TACHYON_PERF_SHARED_FS="false"
 
 PERF_CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# Specify this value and add to OPTS to test against another fs client impl.
+# TACHYON_PERF_UFS="Tachyon"
+
 export TACHYON_PERF_JAVA_OPTS+="
   -Dlog4j.configuration=file:$PERF_CONF_DIR/log4j.properties
   -Dtachyon.perf.failed.abort=$TACHYON_PERF_FAILED_ABORT
