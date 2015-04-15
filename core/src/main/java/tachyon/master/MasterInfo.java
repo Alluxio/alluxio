@@ -123,30 +123,32 @@ public class MasterInfo extends ImageWriter {
               for (long blockId : worker.getBlocks()) {
                 int fileId = BlockInfo.computeInodeId(blockId);
                 InodeFile tFile = (InodeFile) mFileIdToInodes.get(fileId);
-                if (tFile != null) {
-                  int blockIndex = BlockInfo.computeBlockIndex(blockId);
-                  tFile.removeLocation(blockIndex, worker.getId());
-                  if (!tFile.hasCheckpointed()
-                      && tFile.getBlockLocations(blockIndex, mTachyonConf).size() == 0) {
-                    LOG.info("Block " + blockId + " got lost from worker " + worker.getId() + " .");
-                    int depId = tFile.getDependencyId();
-                    if (depId == -1) {
-                      LOG.error("Permanent Data loss: " + tFile);
-                    } else {
-                      mLostFiles.add(tFile.getId());
-                      Dependency dep = mFileIdToDependency.get(depId);
-                      dep.addLostFile(tFile.getId());
-                      LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
-                          + " . Trying to recompute it using dependency " + dep.mId);
-                      String tmp = mTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER, "/tmp");
-                      if (!getPath(tFile).toString().startsWith(tmp)) {
-                        mMustRecomputedDpendencies.add(depId);
-                      }
-                    }
+                if (tFile == null) {
+                  continue;
+                }
+
+                int blockIndex = BlockInfo.computeBlockIndex(blockId);
+                tFile.removeLocation(blockIndex, worker.getId());
+                if (!tFile.hasCheckpointed()
+                    && tFile.getBlockLocations(blockIndex, mTachyonConf).size() == 0) {
+                  LOG.info("Block " + blockId + " got lost from worker " + worker.getId() + " .");
+                  int depId = tFile.getDependencyId();
+                  if (depId == -1) {
+                    LOG.error("Permanent Data loss: " + tFile);
                   } else {
-                    LOG.info("Block " + blockId + " only lost an in memory copy from worker "
-                        + worker.getId());
+                    mLostFiles.add(tFile.getId());
+                    Dependency dep = mFileIdToDependency.get(depId);
+                    dep.addLostFile(tFile.getId());
+                    LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
+                        + " . Trying to recompute it using dependency " + dep.mId);
+                    String tmp = mTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER, "/tmp");
+                    if (!getPath(tFile).toString().startsWith(tmp)) {
+                      mMustRecomputedDpendencies.add(depId);
+                    }
                   }
+                } else {
+                  LOG.info("Block " + blockId + " only lost an in memory copy from worker "
+                      + worker.getId());
                 }
               }
             } catch (BlockInfoException e) {
@@ -2481,7 +2483,7 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
-   * Used by internal classes when trying to create new instance based on this MasterInfo
+   * Used by internal classes when trying to create a new instance based on this MasterInfo
    *
    * @return TachyonConf used by this MasterInfo.
    */
