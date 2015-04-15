@@ -11,6 +11,7 @@
 </head>
 <title>Tachyon</title>
 <body>
-  <jsp:include page="viewFile-body.jsp" />
+  <% request.setAttribute("useWorkerHeader", "1"); %>
+  <jsp:include page="../viewFile-body.jsp" />
 </body>
 </html>

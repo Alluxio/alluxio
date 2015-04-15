@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -36,7 +36,7 @@ import tachyon.worker.eviction.EvictStrategy;
 import tachyon.worker.eviction.EvictStrategyType;
 
 /**
- * StorageTier manages StorageDirs, requests space for new coming blocks, and evicts old blocks to
+ * StorageTier manages StorageDirs, requests space for new coming blocks, and evicts stale blocks to
  * its successor StorageTier to get enough space requested. Each StorageTier contains several
  * StorageDirs. It is recommended to configure multiple StorageDirs in each StorageTier, to spread
  * out the I/O for better performance.
@@ -45,24 +45,24 @@ public class StorageTier {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Storage level of current StorageTier */
   private final int mLevel;
-  /** Alias of current StorageTier's storage level */
+  /** Alias of the current StorageTier's storage level */
   private final StorageLevelAlias mAlias;
-  /** Successor StorageTier of current StorageTier */
+  /** Successor StorageTier of the current StorageTier */
   private final StorageTier mNextTier;
-  /** StorageDirs in current StorageTier */
+  /** StorageDirs in the current StorageTier */
   private final StorageDir[] mDirs;
   /** Allocate space among StorageDirs by certain strategy */
   private final AllocateStrategy mSpaceAllocator;
   /** Evict block files to successor StorageTier by certain strategy */
   private final EvictStrategy mBlockEvictor;
-  /** Capacity of current StorageTier in bytes */
+  /** Capacity of the current StorageTier in bytes */
   private final long mCapacityBytes;
   /** The TachyonConf configuration properties */
   private final TachyonConf mTachyonConf;
 
   /**
    * Creates a new StorageTier
-   * 
+   *
    * @param storageLevel the level of the StorageTier
    * @param storageLevelAlias the alias of the StorageTier's storage level
    * @param dirPaths paths of StorageDirs in the StorageTier
@@ -83,7 +83,7 @@ public class StorageTier {
     mDirs = new StorageDir[storageDirNum];
 
     long quotaBytes = 0;
-    for (int i = 0; i < dirPaths.length; i++) {
+    for (int i = 0; i < dirPaths.length; i ++) {
       long storageDirId = StorageDirId.getStorageDirId(storageLevel, mAlias.getValue(), i);
       mDirs[i] =
           new StorageDir(storageDirId, dirPaths[i], dirCapacityBytes[i], dataFolder,
@@ -92,15 +92,18 @@ public class StorageTier {
     }
     mCapacityBytes = quotaBytes;
     mNextTier = nextTier;
-    mSpaceAllocator = AllocateStrategies.getAllocateStrategy(mTachyonConf.getEnum(
-        Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocateStrategyType.MAX_FREE));
-    mBlockEvictor = EvictStrategies.getEvictStrategy(mTachyonConf.getEnum(
-        Constants.WORKER_EVICT_STRATEGY_TYPE, EvictStrategyType.LRU), isLastTier());
+    mSpaceAllocator =
+        AllocateStrategies.getAllocateStrategy(mTachyonConf.getEnum(
+            Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocateStrategyType.MAX_FREE));
+    mBlockEvictor =
+        EvictStrategies.getEvictStrategy(
+            mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictStrategyType.LRU),
+            isLastTier());
   }
 
   /**
    * Check whether certain block exists in current StorageTier
-   * 
+   *
    * @param blockId id of the block
    * @return true if the block exists in current StorageTier, false otherwise
    */
@@ -110,7 +113,7 @@ public class StorageTier {
 
   /**
    * Get capacity of current StorageTier in bytes
-   * 
+   *
    * @return capacity of StorageTier in bytes
    */
   public long getCapacityBytes() {
@@ -119,7 +122,7 @@ public class StorageTier {
 
   /**
    * Get next StorageTier
-   * 
+   *
    * @return next StorageTier
    */
   public StorageTier getNextStorageTier() {
@@ -128,7 +131,7 @@ public class StorageTier {
 
   /**
    * Find the StorageDir which contains the given block Id
-   * 
+   *
    * @param blockId the id of the block
    * @return StorageDir which contains the block, null if none of StorageDir contains the block.
    */
@@ -143,7 +146,7 @@ public class StorageTier {
 
   /**
    * Get StorageDir by array index
-   * 
+   *
    * @param dirIndex index of the StorageDir
    * @return StorageDir selected, null if index out of boundary
    */
@@ -156,7 +159,7 @@ public class StorageTier {
 
   /**
    * Get StorageDirs in current StorageTier
-   * 
+   *
    * @return StorageDirs in current StorageTier
    */
   public StorageDir[] getStorageDirs() {
@@ -166,7 +169,7 @@ public class StorageTier {
 
   /**
    * Get the storage level of the StorageTier
-   * 
+   *
    * @return the storage level of the StorageTier
    */
   public int getLevel() {
@@ -175,7 +178,7 @@ public class StorageTier {
 
   /**
    * Get the alias of the StorageTier's storage level
-   * 
+   *
    * @return the alias of the StorageTier's storage level
    */
   public StorageLevelAlias getAlias() {
@@ -184,7 +187,7 @@ public class StorageTier {
 
   /**
    * Get used space in the StorageTier
-   * 
+   *
    * @return used space size in bytes
    */
   public long getUsedBytes() {
@@ -197,7 +200,7 @@ public class StorageTier {
 
   /**
    * Initialize StorageDirs in current StorageTier
-   * 
+   *
    * @throws IOException
    */
   public void initialize() throws IOException {
@@ -208,7 +211,7 @@ public class StorageTier {
 
   /**
    * Check whether the StorageTier is the last tier
-   * 
+   *
    * @return true if the StorageTier is the last tier, false otherwise
    */
   public boolean isLastTier() {
@@ -217,7 +220,7 @@ public class StorageTier {
 
   /**
    * Request space from any StorageDir in the StorageTier.
-   * 
+   *
    * @param userId the id of the user
    * @param requestBytes requested space in bytes
    * @param pinList list of pinned files
@@ -232,7 +235,7 @@ public class StorageTier {
 
   /**
    * Request space from specified StorageDir in the StorageTier.
-   * 
+   *
    * @param storageDir StorageDir that the space will be allocated in
    * @param userId id of the user
    * @param requestBytes size to request in bytes
@@ -253,7 +256,7 @@ public class StorageTier {
 
   /**
    * Request space from StorageDir candidates in the StorageTier.
-   * 
+   *
    * @param dirs candidates of StorageDirs to allocate space
    * @param userId id of the user
    * @param requestSizeBytes size to request in bytes
@@ -271,7 +274,6 @@ public class StorageTier {
     }
 
     if (mSpaceAllocator.fitInPossible(dirs, requestSizeBytes)) {
-
       // Max retry times when requesting space from current StorageTier
       int failedSpaceRequestsLimit =
           mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 3);

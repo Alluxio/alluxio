@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -57,10 +57,10 @@ public final class StorageDir {
   /** Mapping from blockId to its last access time in milliseconds */
   private final ConcurrentMap<Long, Long> mLastBlockAccessTimeMs =
       new ConcurrentHashMap<Long, Long>();
-  /** List of added block Ids to be reported */
+  /** List of added block Ids to report */
   private final BlockingQueue<Long> mAddedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
-  /** List of to be removed block Ids */
+  /** Set of block Ids to remove */
   private final Set<Long> mToRemoveBlockIdSet = Collections.synchronizedSet(new HashSet<Long>());
   /** Space counter of the StorageDir */
   private final SpaceCounter mSpaceCounter;
@@ -72,7 +72,7 @@ public final class StorageDir {
   private final TachyonURI mDataPath;
   /** Path of user temporary directory in the StorageDir */
   private final TachyonURI mUserTempPath;
-  /** Under file system of current StorageDir */
+  /** Under file system of the current StorageDir */
   private final UnderFileSystem mFs;
   /** Configuration of under file system */
   private final Object mConf;
@@ -115,7 +115,7 @@ public final class StorageDir {
 
   /**
    * Update the last access time of the block
-   * 
+   *
    * @param blockId Id of the block
    */
   public void accessBlock(long blockId) {
@@ -127,8 +127,8 @@ public final class StorageDir {
   }
 
   /**
-   * Adds a block into the dir.
-   * 
+   * Adds a block into the StorageDir.
+   *
    * @param blockId the Id of the block
    * @param sizeBytes the size of the block in bytes
    * @param report need to be reported during heartbeat with master
@@ -138,8 +138,8 @@ public final class StorageDir {
   }
 
   /**
-   * Adds a block into the dir.
-   * 
+   * Adds a block into the StorageDir.
+   *
    * @param blockId Id of the block
    * @param sizeBytes size of the block in bytes
    * @param accessTimeMs access time of the block in millisecond.
@@ -160,7 +160,7 @@ public final class StorageDir {
 
   /**
    * Move the cached block file from user temporary folder to data folder
-   * 
+   *
    * @param userId the id of the user
    * @param blockId the id of the block
    * @return true if success, false otherwise
@@ -193,13 +193,13 @@ public final class StorageDir {
 
   /**
    * Cancel a block which is being written
-   * 
+   *
    * @param userId the id of the user
    * @param blockId the id of the block to be cancelled
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public boolean cancelBlock(long userId, long blockId) throws IOException {  
+  public boolean cancelBlock(long userId, long blockId) throws IOException {
     String filePath = getUserTempFilePath(userId, blockId);
     Long allocatedBytes = mTempBlockAllocatedBytes.remove(new Pair<Long, Long>(userId, blockId));
     if (allocatedBytes == null) {
@@ -215,7 +215,7 @@ public final class StorageDir {
 
   /**
    * Clean resources related to the removed user
-   * 
+   *
    * @param userId id of the removed user
    * @param tempBlockIdList list of block ids that are being written by the user
    */
@@ -236,8 +236,8 @@ public final class StorageDir {
   }
 
   /**
-   * Check whether the StorageDir contains certain block
-   * 
+   * Check whether the StorageDir contains a certain block
+   *
    * @param blockId Id of the block
    * @return true if StorageDir contains the block, false otherwise
    */
@@ -246,9 +246,9 @@ public final class StorageDir {
   }
 
   /**
-   * Copy block file from this StorageDir to another StorageDir, the caller needs to make sure the
+   * Copy block file from this StorageDir to another StorageDir, the caller must ensure that this
    * block is locked during copying
-   * 
+   *
    * @param blockId Id of the block
    * @param dstDir destination StorageDir
    * @return true if success, false otherwise
@@ -290,10 +290,10 @@ public final class StorageDir {
   }
 
   /**
-   * Remove a block from current StorageDir, once calling this method, the block will not be
-   * available any longer
-   * 
-   * @param blockId Id of the block to be removed.
+   * Remove a block from the current StorageDir. Once this method is called, this block will no
+   * longer be available.
+   *
+   * @param blockId Id of the block to remove.
    * @return true if succeed, false otherwise
    * @throws IOException
    */
@@ -304,7 +304,7 @@ public final class StorageDir {
       return false;
     }
     String blockfile = getBlockFilePath(blockId);
-    // Should check lock status here 
+    // Should check lock status here
     if (!isBlockLocked(blockId)) {
       if (!mFs.delete(blockfile, false)) {
         LOG.error("Failed to delete block file! filename:{}", blockfile);
@@ -319,8 +319,8 @@ public final class StorageDir {
   }
 
   /**
-   * Delete information of a block from current StorageDir
-   * 
+   * Delete the information of a block from the current StorageDir.
+   *
    * @param blockId Id of the block
    */
   private void deleteBlockId(long blockId) {
@@ -335,7 +335,7 @@ public final class StorageDir {
 
   /**
    * Get Ids of newly added blocks
-   * 
+   *
    * @return list of added block Ids
    */
   public List<Long> getAddedBlockIdList() {
@@ -345,8 +345,8 @@ public final class StorageDir {
   }
 
   /**
-   * Get available space size in bytes in current StorageDir
-   * 
+   * Get the size of available space in bytes in the current StorageDir
+   *
    * @return available space size in current StorageDir
    */
   public long getAvailableBytes() {
@@ -354,9 +354,9 @@ public final class StorageDir {
   }
 
   /**
-   * Read data into ByteBuffer from some block file, caller needs to make sure the block is locked
+   * Read data into ByteBuffer from some block file, caller must ensure that the block is locked
    * during reading
-   * 
+   *
    * @param blockId Id of the block
    * @param offset starting position of the block file
    * @param length length of data to read
@@ -375,17 +375,17 @@ public final class StorageDir {
 
   /**
    * Get file path of the block file
-   * 
+   *
    * @param blockId Id of the block
    * @return file path of the block
    */
   public String getBlockFilePath(long blockId) {
-    return mDataPath.join("" + blockId).toString();
+    return mDataPath.join(String.valueOf(blockId)).toString();
   }
 
   /**
    * Get block handler used to access the block file
-   * 
+   *
    * @param blockId Id of the block
    * @return block handler of the block file
    * @throws IOException
@@ -401,7 +401,7 @@ public final class StorageDir {
 
   /**
    * Get Ids of the blocks in current StorageDir
-   * 
+   *
    * @return Ids of the blocks in current StorageDir
    */
   public Set<Long> getBlockIds() {
@@ -410,7 +410,7 @@ public final class StorageDir {
 
   /**
    * Get size of the block in bytes
-   * 
+   *
    * @param blockId Id of the block
    * @return size of the block, -1 if block doesn't exist
    */
@@ -425,7 +425,7 @@ public final class StorageDir {
 
   /**
    * Get sizes of the blocks in bytes in current StorageDir
-   * 
+   *
    * @return set of map entry mapping from block Id to the block size in current StorageDir
    */
   public Set<Entry<Long, Long>> getBlockSizes() {
@@ -434,7 +434,7 @@ public final class StorageDir {
 
   /**
    * Get capacity of current StorageDir in bytes
-   * 
+   *
    * @return capacity of current StorageDir in bytes
    */
   public long getCapacityBytes() {
@@ -443,7 +443,7 @@ public final class StorageDir {
 
   /**
    * Get data path of current StorageDir
-   * 
+   *
    * @return data path of current StorageDir
    */
   public TachyonURI getDirDataPath() {
@@ -452,7 +452,7 @@ public final class StorageDir {
 
   /**
    * Get root path of current StorageDir
-   * 
+   *
    * @return root path of StorageDir
    */
   public TachyonURI getDirPath() {
@@ -461,7 +461,7 @@ public final class StorageDir {
 
   /**
    * Get last access time of blocks in current StorageDir
-   * 
+   *
    * @return set of map entry mapping from block Id to its last access time in current StorageDir
    */
   public Set<Entry<Long, Long>> getLastBlockAccessTimeMs() {
@@ -470,7 +470,7 @@ public final class StorageDir {
 
   /**
    * Get size of locked blocks in bytes in current StorageDir
-   * 
+   *
    * @return size of locked blocks in bytes in current StorageDir
    */
   public long getLockedSizeBytes() {
@@ -486,7 +486,7 @@ public final class StorageDir {
 
   /**
    * Get Id of current StorageDir
-   * 
+   *
    * @return Id of current StorageDir
    */
   public long getStorageDirId() {
@@ -495,7 +495,7 @@ public final class StorageDir {
 
   /**
    * Get current StorageDir's under file system
-   * 
+   *
    * @return StorageDir's under file system
    */
   public UnderFileSystem getUfs() {
@@ -504,7 +504,7 @@ public final class StorageDir {
 
   /**
    * Get configuration of current StorageDir's under file system
-   * 
+   *
    * @return configuration of the under file system
    */
   public Object getUfsConf() {
@@ -513,7 +513,7 @@ public final class StorageDir {
 
   /**
    * Get used space in bytes in current StorageDir
-   * 
+   *
    * @return used space in bytes in current StorageDir
    */
   public long getUsedBytes() {
@@ -522,7 +522,7 @@ public final class StorageDir {
 
   /**
    * Get temporary space owned by the user in current StorageDir
-   * 
+   *
    * @return temporary space in bytes owned by the user in current StorageDir
    */
   public long getUserOwnBytes(long userId) {
@@ -535,18 +535,18 @@ public final class StorageDir {
 
   /**
    * Get temporary file path of block written by some user
-   * 
+   *
    * @param userId Id of the user
    * @param blockId Id of the block
    * @return temporary file path of the block
    */
   public String getUserTempFilePath(long userId, long blockId) {
-    return mUserTempPath.join("" + userId).join("" + blockId).toString();
+    return mUserTempPath.join(String.valueOf(userId)).join(String.valueOf(blockId)).toString();
   }
 
   /**
    * Get root temporary path of users
-   * 
+   *
    * @return TachyonURI of users' temporary path
    */
   public TachyonURI getUserTempPath() {
@@ -555,17 +555,17 @@ public final class StorageDir {
 
   /**
    * Get temporary path of some user
-   * 
+   *
    * @param userId Id of the user
    * @return temporary path of the user
    */
   public String getUserTempPath(long userId) {
-    return mUserTempPath.join("" + userId).toString();
+    return mUserTempPath.join(String.valueOf(userId)).toString();
   }
 
   /**
    * Initialize current StorageDir
-   * 
+   *
    * @throws IOException
    */
   public void initialize() throws IOException {
@@ -610,8 +610,8 @@ public final class StorageDir {
   }
 
   /**
-   * Check whether certain block is locked
-   * 
+   * Check whether a certain block is locked
+   *
    * @param blockId Id of the block
    * @return true if block is locked, false otherwise
    */
@@ -621,7 +621,7 @@ public final class StorageDir {
 
   /**
    * Lock block by some user
-   * 
+   *
    * @param blockId Id of the block
    * @param userId Id of the user
    * @return true if success, false otherwise
@@ -639,7 +639,7 @@ public final class StorageDir {
 
   /**
    * Move a block from its current StorageDir to another StorageDir
-   * 
+   *
    * @param blockId the id of the block
    * @param dstDir the destination StorageDir
    * @return true if success, false otherwise
@@ -661,8 +661,8 @@ public final class StorageDir {
   }
 
   /**
-   * Request space from current StorageDir by some user
-   * 
+   * Request a specific amount of space from the current StorageDir by a user.
+   *
    * @param userId Id of the user
    * @param size request size in bytes
    * @return true if success, false otherwise
@@ -677,7 +677,7 @@ public final class StorageDir {
 
   /**
    * Return space owned by the user to current StorageDir
-   * 
+   *
    * @param userId Id of the user
    */
   private void returnSpace(long userId) {
@@ -689,7 +689,7 @@ public final class StorageDir {
 
   /**
    * Return space to current StorageDir by some user
-   * 
+   *
    * @param userId Id of the user
    * @param size size to return in bytes
    */
@@ -700,34 +700,41 @@ public final class StorageDir {
 
   /**
    * Unlock block by some user
-   * 
+   *
    * @param blockId Id of the block
    * @param userId Id of the user
    * @return true if success, false otherwise
    */
   public boolean unlockBlock(long blockId, long userId) {
-    if (mUserPerLockedBlock.remove(blockId, userId)) {
-      mLockedBlocksPerUser.remove(userId, blockId);
-      if (!isBlockLocked(blockId) && mToRemoveBlockIdSet.contains(blockId)) {
-        try {
-          if (!mFs.delete(getBlockFilePath(blockId), false)) {
-            return false;
-          }
-          mToRemoveBlockIdSet.remove(blockId);
-          deleteBlockId(blockId);
-        } catch (IOException e) {
-          LOG.error(e.getMessage(), e);
-          return false;
-        }
-      }
+    if (!mUserPerLockedBlock.remove(blockId, userId)) {
+      return false;
+    }
+    if (!mLockedBlocksPerUser.remove(userId, blockId)) {
+      // NOTE: we are not expected to reach here.
+      // TODO Recover from this tricky case where mUserPerLockedBlock has been updated.
+      LOG.error("Cannot remove userId from mLockedBlocksPerUser. userId:{}", blockId);
+      return false;
+    }
+    // Check if this blocks is currently hold by other users.
+    if (isBlockLocked(blockId) || !mToRemoveBlockIdSet.contains(blockId)) {
       return true;
     }
-    return false;
+    try {
+      if (!mFs.delete(getBlockFilePath(blockId), false)) {
+        return false;
+      }
+      mToRemoveBlockIdSet.remove(blockId);
+      deleteBlockId(blockId);
+      return true;
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
+      return false;
+    }
   }
 
   /**
    * Update allocated space bytes of a temporary block in current StorageDir
-   * 
+   *
    * @param userId Id of the user
    * @param blockId Id of the block
    * @param sizeBytes updated space size in bytes
@@ -748,19 +755,20 @@ public final class StorageDir {
 
   /**
    * Update user owned space bytes
-   * 
+   *
    * @param userId Id of the user
    * @param sizeBytes updated space size in bytes
    */
   private void updateUserOwnBytes(long userId, long sizeBytes) {
     Long used = mOwnBytesPerUser.putIfAbsent(userId, sizeBytes);
-    if (used != null) {
-      while (!mOwnBytesPerUser.replace(userId, used, used + sizeBytes)) {
-        used = mOwnBytesPerUser.get(userId);
-        if (used == null) {
-          LOG.error("Unknown user! userId:{}", userId);
-          break;
-        }
+    if (used == null) {
+      return;
+    }
+    while (!mOwnBytesPerUser.replace(userId, used, used + sizeBytes)) {
+      used = mOwnBytesPerUser.get(userId);
+      if (used == null) {
+        LOG.error("Unknown user! userId:{}", userId);
+        break;
       }
     }
   }
