@@ -129,26 +129,28 @@ public class MasterInfo extends ImageWriter {
 
                 int blockIndex = BlockInfo.computeBlockIndex(blockId);
                 tFile.removeLocation(blockIndex, worker.getId());
-                if (!tFile.hasCheckpointed()
-                    && tFile.getBlockLocations(blockIndex, mTachyonConf).size() == 0) {
-                  LOG.info("Block " + blockId + " got lost from worker " + worker.getId() + " .");
-                  int depId = tFile.getDependencyId();
-                  if (depId == -1) {
-                    LOG.error("Permanent Data loss: " + tFile);
-                  } else {
-                    mLostFiles.add(tFile.getId());
-                    Dependency dep = mFileIdToDependency.get(depId);
-                    dep.addLostFile(tFile.getId());
-                    LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
-                        + " . Trying to recompute it using dependency " + dep.mId);
-                    String tmp = mTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER, "/tmp");
-                    if (!getPath(tFile).toString().startsWith(tmp)) {
-                      mMustRecomputedDpendencies.add(depId);
-                    }
-                  }
-                } else {
+                if (tFile.hasCheckpointed()
+                    || tFile.getBlockLocations(blockIndex, mTachyonConf).size() != 0) {
                   LOG.info("Block " + blockId + " only lost an in memory copy from worker "
                       + worker.getId());
+                  continue;
+                }
+
+                LOG.info("Block " + blockId + " got lost from worker " + worker.getId() + " .");
+                int depId = tFile.getDependencyId();
+                if (depId == -1) {
+                  LOG.error("Permanent Data loss: " + tFile);
+                  continue;
+                }
+
+                mLostFiles.add(tFile.getId());
+                Dependency dep = mFileIdToDependency.get(depId);
+                dep.addLostFile(tFile.getId());
+                LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
+                    + " . Trying to recompute it using dependency " + dep.mId);
+                String tmp = mTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER, "/tmp");
+                if (!getPath(tFile).toString().startsWith(tmp)) {
+                  mMustRecomputedDpendencies.add(depId);
                 }
               }
             } catch (BlockInfoException e) {
