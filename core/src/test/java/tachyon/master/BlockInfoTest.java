@@ -86,7 +86,7 @@ public class BlockInfoTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void constructorExceptionTest() {
+  public void constructorTestWithIllegalArgumentException() {
     new BlockInfo(new InodeFile("t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE,
         System.currentTimeMillis()), 300, (1L << 31));
   }
