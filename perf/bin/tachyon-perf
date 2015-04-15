@@ -22,7 +22,7 @@ TACHYON_PERF_LIBEXEC_DIR=${TACHYON_PERF_LIBEXEC_DIR:-$DEFAULT_PERF_LIBEXEC_DIR}
 NODELIST=$TACHYON_PERF_CONF_DIR/slaves
 
 taskid=0
-SLAVES=`cat "$NODELIST"|sed  "s/#.*$//;/^$/d"`
+SLAVES=`sort "$NODELIST"|sed  "s/#.*$//;/^$/d"`
 UNIQ_SLAVES=`sort "$NODELIST" | uniq | sed  "s/#.*$//;/^$/d"`
 if [ $TACHYON_PERF_SHARED_FS = "true" ]; then
   echo "Installed on a Shared File System, no configuration copy needed"
