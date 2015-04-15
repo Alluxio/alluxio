@@ -157,7 +157,8 @@ public class TachyonConfTest {
     Class<? extends DataServer> dataServer =
         sDefaultTachyonConf.getClass(Constants.WORKER_DATA_SEVRER, null);
     Assert.assertTrue(dataServer != null);
-    Assert.assertTrue(dataServer.equals(Constants.WORKER_DATA_SERVER_CLASS));
+    //Assert.assertTrue(dataServer.equals(Constants.WORKER_DATA_SERVER_CLASS));
+    Assert.assertTrue(dataServer.equals(tachyon.worker.netty.NettyDataServer.class));
 
     ChannelType channelType =
         sDefaultTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.NIO);
@@ -229,7 +230,8 @@ public class TachyonConfTest {
     Class<? extends RemoteBlockReader> reader =
         sDefaultTachyonConf.getClass(Constants.USER_REMOTE_BLOCK_READER, null);
     Assert.assertTrue(reader != null);
-    Assert.assertTrue(reader.equals(Constants.USER_REMOTE_BLOCK_READER_CLASS));
+    //Assert.assertTrue(reader.equals(Constants.USER_REMOTE_BLOCK_READER_CLASS));
+    Assert.assertTrue(reader.equals(tachyon.client.tcp.TCPRemoteBlockReader.class));
   }
 
   @Test

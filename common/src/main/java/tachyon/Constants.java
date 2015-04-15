@@ -15,8 +15,8 @@
 
 package tachyon;
 
-import tachyon.client.RemoteBlockReader;
-import tachyon.worker.DataServer;
+//import tachyon.client.RemoteBlockReader;
+//import tachyon.worker.DataServer;
 
 /**
  * System wide constants
@@ -168,8 +168,8 @@ public class Constants {
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
   public static final String WORKER_DATA_SEVRER = "tachyon.worker.data.server.class";
-  public static final Class<? extends DataServer> WORKER_DATA_SERVER_CLASS =
-      tachyon.worker.netty.NettyDataServer.class;
+  //public static final Class<? extends DataServer> WORKER_DATA_SERVER_CLASS =
+  //    tachyon.worker.netty.NettyDataServer.class;
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";
@@ -181,7 +181,7 @@ public class Constants {
       "tachyon.user.remote.read.buffer.size.byte";
   public static final String USER_DEFAULT_WRITE_TYPE = "tachyon.user.file.writetype.default";
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
-  public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
-      tachyon.client.tcp.TCPRemoteBlockReader.class;
+  //public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
+  //    tachyon.client.tcp.TCPRemoteBlockReader.class;
 
 }

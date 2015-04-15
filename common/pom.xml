@@ -6,10 +6,10 @@
     <artifactId>tachyon-parent</artifactId>
     <version>0.7.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon</artifactId>
+  <artifactId>tachyon-common</artifactId>
   <packaging>jar</packaging>
-  <description>Tachyon: A Reliable Memory Centric Distributed Storage System</description>
-  <name>Tachyon Project Core</name>
+  <description>Tachyon Project's Common Classes for Clients and Servers</description>
+  <name>Tachyon Project Common</name>
 
   <properties>
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
@@ -18,13 +18,7 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <!--dependency-->
-      <!-- using older version to map dependency version from Hadoop -->
-      <!--groupId>com.google.guava</groupId>
+      <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>14.0.1</version>
       <scope>compile</scope>
@@ -57,7 +51,7 @@
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlet</artifactId>
       <version>${jetty.version}</version>
-    </dependency-->
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -76,7 +70,7 @@
       <version>${powermock.version}</version>
       <scope>test</scope>
     </dependency>
-    <!--dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
@@ -111,13 +105,18 @@
           <artifactId>slf4j-api</artifactId>
         </exclusion>
       </exclusions>
-    </dependency-->
+    </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>3.0</version>
     </dependency>
-    <!--dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-recipes</artifactId>
       <version>${apache.curator.version}</version>
@@ -131,8 +130,8 @@
           <artifactId>guava</artifactId>
         </exclusion>
       </exclusions>
-    </dependency-->
-    <dependency>
+    </dependency>
+    <!--dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-test</artifactId>
       <version>${apache.curator.version}</version>
@@ -143,13 +142,13 @@
           <artifactId>javassist</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
+    </dependency-->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>2.3.0</version>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
       <version>${hadoop.version}</version>
@@ -167,16 +166,16 @@
           <artifactId>guava</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
+    </dependency-->
+    <!--dependency>
       <groupId>commons-httpclient</groupId>
       <artifactId>commons-httpclient</artifactId>
       <version>3.0.1</version>
       <scope>test</scope>
-    </dependency>
+    </dependency-->
   </dependencies>
 
-  <profiles>
+  <!--profiles>
     <profile>
       <id>contractTest</id>
       <activation>
@@ -206,7 +205,7 @@
         </dependency>
       </dependencies>
     </profile>
-  </profiles>
+  </profiles-->
   <build>
     <resources>
       <resource>
@@ -254,7 +253,7 @@
         <artifactId>maven-shade-plugin</artifactId>
         <version>2.2</version>
         <executions>
-          <execution>
+          <!--execution>
             <id>include-thrift</id>
             <phase>package</phase>
             <goals>
@@ -267,9 +266,9 @@
                 </includes>
               </artifactSet>
               <filters>
-                <filter>
+                <filter-->
                   <!-- Sigh. The Thrift jar contains its source -->
-                  <artifact>org.apache.thrift:libthrift</artifact>
+                  <!--artifact>org.apache.thrift:libthrift</artifact>
                   <excludes>
                     <exclude>**/*.java</exclude>
                   </excludes>
@@ -282,7 +281,7 @@
                 </relocation>
               </relocations>
             </configuration>
-          </execution>
+          </execution-->
           <execution>
             <id>uber-jar</id>
             <phase>package</phase>

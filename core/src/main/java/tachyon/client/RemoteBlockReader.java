@@ -33,7 +33,8 @@ public interface RemoteBlockReader {
     public static RemoteBlockReader createRemoteBlockReader(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(conf.getClass(Constants.USER_REMOTE_BLOCK_READER,
-            Constants.USER_REMOTE_BLOCK_READER_CLASS), null, null);
+            //Constants.USER_REMOTE_BLOCK_READER_CLASS), null, null);
+            tachyon.client.tcp.TCPRemoteBlockReader.class), null, null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
