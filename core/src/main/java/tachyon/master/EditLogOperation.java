@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -23,8 +23,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Objects;
 
 /**
- * Each entry in the EditLog is represented as a single Operation, which is serialized as JSON. An
- * Operation has a type, a transaction id, and a set of parameters determined by the type.
+ * Each entry in EditLog is represented as a single EditLogOperation, which is serialized as a JSON
+ * object. An EditLogOperation has a type, a transaction id, and a set of parameters according to
+ * the type.
  */
 class EditLogOperation extends JsonObject {
   // NB: These type names are used in the serialized JSON. They should be concise but readable.
