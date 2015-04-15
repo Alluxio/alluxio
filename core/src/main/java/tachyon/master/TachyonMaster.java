@@ -131,8 +131,11 @@ public class TachyonMaster {
           mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, tachyonHome + "/journal/");
       String formatFilePrefix =
           mTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX, Constants.FORMAT_FILE_PREFIX);
-      Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
-          "Tachyon was not formatted! The journal folder is " + journalFolder);
+      UnderFileSystem ufs = UnderFileSystem.get(journalFolder, mTachyonConf);
+      if (ufs.providesStorage()) {
+        Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
+            "Tachyon was not formatted! The journal folder is " + journalFolder);
+      }
       mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(address), mPort);
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService, mTachyonConf);
