@@ -114,8 +114,8 @@ public class TachyonMaster {
         mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS,
             Constants.DEFAULT_MASTER_MAX_WORKER_THREADS);
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
-        "tachyon.master.max.worker.threads can not be "
-            + "less than tachyon.master.min.worker.threads");
+        Constants.MASTER_MAX_WORKER_THREADS + " can not be less than "
+            + Constants.MASTER_MIN_WORKER_THREADS);
 
     try {
       // Extract the port from the generated socket.
