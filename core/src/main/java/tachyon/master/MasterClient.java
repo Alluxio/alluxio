@@ -70,8 +70,8 @@ import tachyon.util.NetworkUtils;
 
 /**
  * The master server client side.
- * 
- * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
+ *
+ * Since MasterService.Client is not thread safe, this class has to guarantee thread safety.
  */
 // TODO When TException happens, the caller can't really do anything about it.
 // when the other exceptions are thrown as a IOException, the caller can't do anything about it
@@ -84,7 +84,7 @@ public final class MasterClient implements Closeable {
   private InetSocketAddress mMasterAddress = null;
   private TProtocol mProtocol = null;
   private volatile boolean mConnected;
-  private volatile boolean mIsShutdown;
+  private volatile boolean mIsClosed;
   private volatile long mUserId = -1;
   private final ExecutorService mExecutorService;
   private Future<?> mHeartbeat;
@@ -98,7 +98,7 @@ public final class MasterClient implements Closeable {
       mMasterAddress = masterAddress;
     }
     mConnected = false;
-    mIsShutdown = false;
+    mIsClosed = false;
     mExecutorService = executorService;
   }
 
@@ -114,7 +114,7 @@ public final class MasterClient implements Closeable {
    */
   public synchronized boolean addCheckpoint(long workerId, int fileId, long length,
       String checkpointPath) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -134,11 +134,10 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Clean the connect. E.g. if the client has not connect the master for a while, the connection
-   * should be shut down.
+   * Close the connection with the Tachyon Master and do the necessary cleanup. It should
+   * be used if the client has not connected with the master for a while, for example.
    */
-  @Override
-  public synchronized void close() {
+  public synchronized void disconnect() {
     if (mConnected) {
       LOG.debug("Disconnecting from the master {}", mMasterAddress);
       mConnected = false;
@@ -155,17 +154,17 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Connects to the Tachyon Master; an exception is thrown if this fails.
+   * Connect with the Tachyon Master; an exception is thrown if this fails.
    */
   public synchronized void connect() throws IOException {
     if (mConnected) {
       return;
     }
 
-    close();
+    disconnect();
 
-    if (mIsShutdown) {
-      throw new IOException("Client is shutdown, will not try to connect");
+    if (mIsClosed) {
+      throw new IOException("Client is closed, will not try to connect");
     }
 
     Exception lastException = null;
@@ -174,8 +173,8 @@ public final class MasterClient implements Closeable {
     do {
       mMasterAddress = getMasterAddress();
 
-      LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect master @ "
-          + mMasterAddress);
+      LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect with master"
+          + " @ " + mMasterAddress);
 
       mProtocol =
           new TBinaryProtocol(new TFramedTransport(new TSocket(
@@ -194,8 +193,8 @@ public final class MasterClient implements Closeable {
                 interval / 2));
       } catch (TTransportException e) {
         lastException = e;
-        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress 
-            + " : " + e.getMessage());
+        LOG.error("Failed to connect (" + retry.getRetryCount() + ") with master @ "
+            + mMasterAddress + " : " + e.getMessage());
         if (mHeartbeat != null) {
           mHeartbeat.cancel(true);
         }
@@ -209,19 +208,19 @@ public final class MasterClient implements Closeable {
         LOG.error(e.getMessage(), e);
         continue;
       }
-      LOG.info("User registered at the master " + mMasterAddress + " got UserId " + mUserId);
+      LOG.info("User registered with the master @ " + mMasterAddress + "; got UserId " + mUserId);
 
       mConnected = true;
       return;
-    } while (retry.attemptRetry() && !mIsShutdown);
+    } while (retry.attemptRetry() && !mIsClosed);
 
     // Reaching here indicates that we did not successfully connect.
-    throw new IOException("Failed to connect to master " + mMasterAddress + " after "
+    throw new IOException("Failed to connect with master @ " + mMasterAddress + " after "
         + (retry.getRetryCount()) + " attempts", lastException);
   }
 
   public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -244,7 +243,7 @@ public final class MasterClient implements Closeable {
       throw new IOException("Illegal path parameter: " + path);
     }
 
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -277,7 +276,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized long getUserId() throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       return mUserId;
@@ -287,7 +286,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -301,7 +300,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized long getCapacityBytes() throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
       try {
         return mClient.user_getCapacityBytes();
@@ -314,7 +313,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized long getUsedBytes() throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
       try {
         return mClient.user_getUsedBytes();
@@ -331,7 +330,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
       try {
         return mClient.liststatus(path);
@@ -356,13 +355,18 @@ public final class MasterClient implements Closeable {
     }
   }
 
-  public synchronized void shutdown() {
-    close();
-    mIsShutdown = true;
+  /**
+   * Close the connection with the Tachyon Master permanently. MasterClient instance
+   * should be discarded after this is executed.
+   */
+  @Override
+  public synchronized void close() {
+    disconnect();
+    mIsClosed = true;
   }
 
   public synchronized void user_completeFile(int fId) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -380,7 +384,7 @@ public final class MasterClient implements Closeable {
   public synchronized int user_createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -413,7 +417,7 @@ public final class MasterClient implements Closeable {
       ufsPath = "";
     }
 
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -437,7 +441,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized long user_createNewBlock(int fId) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -458,7 +462,7 @@ public final class MasterClient implements Closeable {
       metadata = ByteBuffer.allocate(0);
     }
 
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -481,7 +485,7 @@ public final class MasterClient implements Closeable {
 
   public synchronized boolean user_delete(int fileId, String path, boolean recursive)
       throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -497,7 +501,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized long user_getBlockId(int fId, int index) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
       try {
         return mClient.user_getBlockId(fId, index);
@@ -512,7 +516,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized ClientBlockInfo user_getClientBlockInfo(long blockId) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -533,7 +537,7 @@ public final class MasterClient implements Closeable {
       throws IOException {
     parameterCheck(id, path);
 
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -556,7 +560,7 @@ public final class MasterClient implements Closeable {
       throws IOException {
     parameterCheck(fileId, path);
 
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -574,7 +578,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized int user_getRawTableId(String path) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
       try {
         return mClient.user_getRawTableId(path);
@@ -589,7 +593,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized String user_getUfsAddress() throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -604,7 +608,7 @@ public final class MasterClient implements Closeable {
 
   public synchronized NetAddress user_getWorker(boolean random, String hostname)
       throws NoWorkerException, IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -620,7 +624,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized void user_heartbeat() throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
       try {
         mClient.user_heartbeat();
@@ -633,7 +637,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized boolean user_mkdirs(String path, boolean recursive) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
       try {
         return mClient.user_mkdirs(path, recursive);
@@ -655,7 +659,7 @@ public final class MasterClient implements Closeable {
       throws IOException {
     parameterCheck(fileId, srcPath);
 
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -675,7 +679,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized void user_reportLostFile(int fileId) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -691,7 +695,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized void user_requestFilesInDependency(int depId) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -707,7 +711,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized void user_setPinned(int id, boolean pinned) throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -724,7 +728,7 @@ public final class MasterClient implements Closeable {
 
   public synchronized void user_updateRawTableMetadata(int id, ByteBuffer metadata)
       throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -743,7 +747,7 @@ public final class MasterClient implements Closeable {
 
   public synchronized boolean user_freepath(int fileId, String path, boolean recursive)
       throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
       try {
         return mClient.user_freepath(fileId, path, recursive);
@@ -759,7 +763,7 @@ public final class MasterClient implements Closeable {
 
   public synchronized void worker_cacheBlock(long workerId, long usedBytesOnTier, long storageDirId,
       long blockId, long length) throws IOException, FileDoesNotExistException, BlockInfoException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -777,7 +781,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized Set<Integer> worker_getPinIdList() throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -791,7 +795,7 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized List<Integer> worker_getPriorityDependencyList() throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
       try {
         return mClient.worker_getPriorityDependencyList();
@@ -806,7 +810,7 @@ public final class MasterClient implements Closeable {
   public synchronized Command worker_heartbeat(long workerId, List<Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds)
       throws IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
@@ -823,7 +827,7 @@ public final class MasterClient implements Closeable {
 
   /**
    * Register the worker to the master.
-   * 
+   *
    * @param workerNetAddress Worker's NetAddress
    * @param totalBytesOnTiers Total bytes on each storage tier
    * @param usedBytesOnTiers Used bytes on each storage tier
@@ -835,7 +839,7 @@ public final class MasterClient implements Closeable {
   public synchronized long worker_register(NetAddress workerNetAddress,
       List<Long> totalBytesOnTiers, List<Long> usedBytesOnTiers,
       Map<Long, List<Long>> currentBlockList) throws BlockInfoException, IOException {
-    while (!mIsShutdown) {
+    while (!mIsClosed) {
       connect();
 
       try {
