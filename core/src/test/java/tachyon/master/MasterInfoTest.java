@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -533,7 +533,7 @@ public class MasterInfoTest {
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     long opTimeMs = System.currentTimeMillis();
-    mMasterInfo._addCheckpoint(-1, fileId, 1, new TachyonURI("/testPath"), opTimeMs);
+    mMasterInfo.addCheckpointInternal(-1, fileId, 1, new TachyonURI("/testPath"), opTimeMs);
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
@@ -545,7 +545,7 @@ public class MasterInfoTest {
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     long opTimeMs = System.currentTimeMillis();
-    mMasterInfo._completeFile(fileId, opTimeMs);
+    mMasterInfo.completeFileInternal(fileId, opTimeMs);
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
@@ -555,7 +555,7 @@ public class MasterInfoTest {
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     long opTimeMs = System.currentTimeMillis();
-    mMasterInfo._createFile(false, new TachyonURI("/testFolder/testFile"), false,
+    mMasterInfo.createFileInternal(false, new TachyonURI("/testFolder/testFile"), false,
         Constants.DEFAULT_BLOCK_SIZE_BYTE, opTimeMs);
     ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
@@ -571,7 +571,7 @@ public class MasterInfoTest {
     Assert.assertEquals(2, mMasterInfo.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mMasterInfo.getFileId(new TachyonURI("/testFolder/testFile")));
     long opTimeMs = System.currentTimeMillis();
-    Assert.assertTrue(mMasterInfo._delete(fileId, true, opTimeMs));
+    Assert.assertTrue(mMasterInfo.deleteInternal(fileId, true, opTimeMs));
     ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }
@@ -584,7 +584,7 @@ public class MasterInfoTest {
         mMasterInfo.createFile(new TachyonURI("/testFolder/testFile1"),
             Constants.DEFAULT_BLOCK_SIZE_BYTE);
     long opTimeMs = System.currentTimeMillis();
-    Assert.assertTrue(mMasterInfo._rename(fileId, new TachyonURI("/testFolder/testFile2"),
+    Assert.assertTrue(mMasterInfo.rename(fileId, new TachyonURI("/testFolder/testFile2"),
         opTimeMs));
     ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
