@@ -584,7 +584,7 @@ public class MasterInfoTest {
         mMasterInfo.createFile(new TachyonURI("/testFolder/testFile1"),
             Constants.DEFAULT_BLOCK_SIZE_BYTE);
     long opTimeMs = System.currentTimeMillis();
-    Assert.assertTrue(mMasterInfo.rename(fileId, new TachyonURI("/testFolder/testFile2"),
+    Assert.assertTrue(mMasterInfo.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"),
         opTimeMs));
     ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
