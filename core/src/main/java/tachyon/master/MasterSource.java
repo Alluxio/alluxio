@@ -32,7 +32,8 @@ import tachyon.metrics.source.Source;
  */
 public class MasterSource implements Source {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private MetricRegistry mMetricRegistry = new MetricRegistry();
+  private static final String MASTER_SOURCE_NAME = "master";
+  private final MetricRegistry mMetricRegistry = new MetricRegistry();
   private final Counter mFilesCreated = mMetricRegistry.counter(MetricRegistry
       .name("FilesCreated"));
   private final Counter mCreateFileOps = mMetricRegistry.counter(MetricRegistry
@@ -44,7 +45,7 @@ public class MasterSource implements Source {
   private final Counter mFilesRenamed = mMetricRegistry.counter(MetricRegistry
       .name("FilesRenamed"));
   private final Counter mFilesCheckpointed = mMetricRegistry.counter(MetricRegistry
-          .name("FilesCheckpointed"));
+      .name("FilesCheckpointed"));
   private final Counter mGetFileStatusOps = mMetricRegistry.counter(MetricRegistry
       .name("GetFileStatusOps"));
 
@@ -129,12 +130,11 @@ public class MasterSource implements Source {
         return masterInfo.getNumberOfPinnedFiles();
       }
     });
-
   }
 
   @Override
   public String getName() {
-    return "master";
+    return MASTER_SOURCE_NAME;
   }
 
   @Override

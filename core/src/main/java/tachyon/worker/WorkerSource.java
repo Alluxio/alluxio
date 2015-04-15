@@ -25,17 +25,18 @@ import tachyon.metrics.source.Source;
  * A WorkerSource collects a Worker's internal state.
  */
 public class WorkerSource implements Source {
-  private MetricRegistry mMetricRegistry = new MetricRegistry();
+  private static final String WORKER_SOURCE_NAME = "worker";
+  private final MetricRegistry mMetricRegistry = new MetricRegistry();
   private final Counter mBlocksAccessed = mMetricRegistry.counter(MetricRegistry
-          .name("BlocksAccessed"));
+      .name("BlocksAccessed"));
   private final Counter mBlocksCanceled = mMetricRegistry.counter(MetricRegistry
-          .name("BlocksCanceled"));
+      .name("BlocksCanceled"));
   private final Counter mBlocksDeleted = mMetricRegistry.counter(MetricRegistry
-          .name("BlocksDeleted"));
+      .name("BlocksDeleted"));
   private final Counter mBlocksEvicted = mMetricRegistry.counter(MetricRegistry
-          .name("BlocksEvicted"));
+      .name("BlocksEvicted"));
   private final Counter mBlocksPromoted = mMetricRegistry.counter(MetricRegistry
-          .name("BlocksPromoted"));
+      .name("BlocksPromoted"));
 
   public WorkerSource(final WorkerStorage workerStorage) {
     mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
@@ -69,7 +70,7 @@ public class WorkerSource implements Source {
 
   @Override
   public String getName() {
-    return "worker";
+    return WORKER_SOURCE_NAME;
   }
 
   @Override
@@ -96,6 +97,4 @@ public class WorkerSource implements Source {
   public void incBlocksPromoted() {
     mBlocksPromoted.inc();
   }
-
-
 }

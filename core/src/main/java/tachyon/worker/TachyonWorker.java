@@ -140,7 +140,7 @@ public class TachyonWorker implements Runnable {
 
   private final WorkerServiceHandler mWorkerServiceHandler;
 
-  private final MetricsSystem mWorkerMetricSystem;
+  private final MetricsSystem mWorkerMetricsSystem;
 
   private final DataServer mDataServer;
 
@@ -214,8 +214,8 @@ public class TachyonWorker implements Runnable {
         new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(workerAddress.getHostName(),
             mWebPort), mWorkerStorage, mTachyonConf);
 
-    mWorkerMetricSystem = new MetricsSystem("worker", mTachyonConf);
-    mWorkerMetricSystem.registerSource(mWorkerStorage.getWorkerSource());
+    mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
+    mWorkerMetricsSystem.registerSource(mWorkerStorage.getWorkerSource());
   }
 
   /**
@@ -325,7 +325,7 @@ public class TachyonWorker implements Runnable {
 
     mHeartbeatThread.start();
     mWebServer.startWebServer();
-    mWorkerMetricSystem.start();
+    mWorkerMetricsSystem.start();
 
     LOG.info("The worker server started @ " + mWorkerAddress);
     mServer.serve();
@@ -341,7 +341,7 @@ public class TachyonWorker implements Runnable {
   public void stop() throws IOException, InterruptedException {
     mStop = true;
     mWorkerStorage.stop();
-    mWorkerMetricSystem.stop();
+    mWorkerMetricsSystem.stop();
     mDataServer.close();
     mServer.stop();
     mServerTServerSocket.close();

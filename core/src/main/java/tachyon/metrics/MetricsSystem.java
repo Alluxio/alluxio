@@ -79,7 +79,6 @@ public class MetricsSystem {
     mInstance = instance;
     mTachyonConf = tachyonConf;
     mMetricsConfig = new MetricsConfig(mTachyonConf.get(Constants.METRICS_CONF_FILE, null));
-    mMetricsConfig.initialize();
   }
 
   /**
@@ -110,7 +109,7 @@ public class MetricsSystem {
     try {
       mMetricRegistry.register(source.getName(), source.getMetricRegistry());
     } catch (IllegalArgumentException e) {
-      LOG.info("Metrics already registered", e);
+      LOG.warn("Metrics already registered", e);
     }
   }
 
@@ -118,7 +117,7 @@ public class MetricsSystem {
    * Register all the sources configured in the metrics config file.
    */
   private void registerSources() {
-    Properties instConfig = mMetricsConfig.getInstance(mInstance);
+    Properties instConfig = mMetricsConfig.getInstanceProperties(mInstance);
     Map<String, Properties> sourceConfigs = mMetricsConfig.subProperties(instConfig, SOURCE_REGEX);
     for (Map.Entry<String, Properties> entry : sourceConfigs.entrySet()) {
       String classPath = entry.getValue().getProperty("class");
@@ -137,7 +136,7 @@ public class MetricsSystem {
    * Register all the sinks configured in the metrics config file.
    */
   private void registerSinks() {
-    Properties instConfig = mMetricsConfig.getInstance(mInstance);
+    Properties instConfig = mMetricsConfig.getInstanceProperties(mInstance);
     Map<String, Properties> sinkConfigs = mMetricsConfig.subProperties(instConfig, SINK_REGEX);
     for (Map.Entry<String, Properties> entry : sinkConfigs.entrySet()) {
       String classPath = entry.getValue().getProperty("class");
