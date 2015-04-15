@@ -16,26 +16,49 @@
 package tachyon.underfs.s3;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
 
+import java.io.IOException;
+
 public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Override
   public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    return new S3UnderFileSystem(tachyonConf);
+    if (addAndCheckAWSCredentials(tachyonConf)) {
+      return new S3UnderFileSystem(tachyonConf);
+    } else {
+      String err = "AWS Credentials not available, cannot create S3 Under File System.";
+      LOG.error(err);
+      throw Throwables.propagate(new IOException(err));
+    }
   }
 
   @Override
-  public boolean supportsPath(String path, TachyonConf conf) {
-    if (path == null) {
-      return false;
-    }
+  public boolean supportsPath(String path, TachyonConf tachyonConf) {
+    return path != null && (path.startsWith("s3://") || path.startsWith("s3n://"));
+  }
 
-    return path.startsWith("s3://") || path.startsWith("s3n://");
+  private boolean addAndCheckAWSCredentials(TachyonConf tachyonConf) {
+    String accessKeyConf = "fs.s3n.awsAccessKeyId";
+    if (System.getProperty(accessKeyConf) != null && tachyonConf.get(accessKeyConf, null) == null) {
+      tachyonConf.set(accessKeyConf, System.getProperty(accessKeyConf));
+    }
+    String secretKeyConf = "fs.s3n.awsSecretAccessKey";
+    if (System.getProperty(secretKeyConf) != null && tachyonConf.get(secretKeyConf, null) == null) {
+      tachyonConf.set(secretKeyConf, System.getProperty(secretKeyConf));
+    }
+    return tachyonConf.get(accessKeyConf, null) != null
+        && tachyonConf.get(secretKeyConf, null) != null;
   }
 }
