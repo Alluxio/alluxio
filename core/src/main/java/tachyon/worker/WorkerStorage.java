@@ -1013,7 +1013,7 @@ public class WorkerStorage {
    * Disconnect to the Master.
    */
   public void stop() {
-    mMasterClient.shutdown();
+    mMasterClient.close();
     // this will make sure that we don't move on till checkpoint threads are cleaned up
     // needed or tests can get resource issues
     mCheckpointExecutor.shutdownNow();
