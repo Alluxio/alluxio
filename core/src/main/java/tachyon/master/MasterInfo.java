@@ -2135,21 +2135,6 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
-   * Rename a file. This method is supposed to be called in unittest only.
-   *
-   * @param fileId The id of the file to rename
-   * @param dstPath The new path of the file
-   * @param opTimeMs The time of the rename operation, in milliseconds
-   * @return true if the rename succeeded, false otherwise
-   * @throws FileDoesNotExistException If the id doesn't point to an inode
-   * @throws InvalidPathException if the source path is a prefix of the destination
-   */
-  public boolean rename(int fileId, TachyonURI dstPath, long opTimeMs)
-      throws FileDoesNotExistException, InvalidPathException {
-    return renameInternal(fileId, dstPath, opTimeMs);
-  }
-
-  /**
    * Logs a lost file and sets it to be recovered.
    *
    * @param fileId The id of the file to be recovered
