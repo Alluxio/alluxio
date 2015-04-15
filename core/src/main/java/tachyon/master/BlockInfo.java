@@ -86,10 +86,10 @@ public class BlockInfo {
   /**
    * @param inodeFile
    * @param blockIndex
-   * @param length Can not be larger than 2^31 - 1
+   * @param length must be smaller than 2^31 (i.e., 2GB)
    */
   BlockInfo(InodeFile inodeFile, int blockIndex, long length) {
-    Preconditions.checkArgument(length < (1 << 31), "length can not be larger than 2^31 - 1");
+    Preconditions.checkArgument((length >> 31) == 0, "length must be smaller than 2^31");
     mInodeFile = inodeFile;
     mBlockIndex = blockIndex;
     mBlockId = computeBlockId(mInodeFile.getId(), mBlockIndex);
