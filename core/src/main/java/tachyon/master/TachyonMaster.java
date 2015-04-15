@@ -75,7 +75,7 @@ public class TachyonMaster {
   private TServerSocket mServerTServerSocket;
   private TServer mMasterServiceServer;
   private MasterServiceHandler mMasterServiceHandler;
-  private MetricsSystem mMasterMetricSystem;
+  private MetricsSystem mMasterMetricsSystem;
   private Journal mJournal;
   private EditLogProcessor mEditLogProcessor;
   private int mWebPort;
@@ -142,7 +142,7 @@ public class TachyonMaster {
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService, mTachyonConf);
 
-      mMasterMetricSystem = new MetricsSystem("master", mTachyonConf);
+      mMasterMetricsSystem = new MetricsSystem("master", mTachyonConf);
 
       if (mZookeeperMode) {
         // InetSocketAddress.toString causes test issues, so build the string by hand
@@ -284,8 +284,8 @@ public class TachyonMaster {
               LOG.error(e.getMessage(), e);
               throw Throwables.propagate(e);
             }
-            mMasterMetricSystem.registerSource(mMasterInfo.getMasterSource());
-            mMasterMetricSystem.start();
+            mMasterMetricsSystem.registerSource(mMasterInfo.getMasterSource());
+            mMasterMetricsSystem.start();
             mWebServer.startWebServer();
             LOG.info("The master (leader) server started @ " + mMasterAddress);
             mMasterServiceServer.serve();
@@ -312,8 +312,8 @@ public class TachyonMaster {
         throw Throwables.propagate(e);
       }
 
-      mMasterMetricSystem.registerSource(mMasterInfo.getMasterSource());
-      mMasterMetricSystem.start();
+      mMasterMetricsSystem.registerSource(mMasterInfo.getMasterSource());
+      mMasterMetricsSystem.start();
       mWebServer.startWebServer();
       LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
       mMasterServiceServer.serve();
@@ -328,7 +328,7 @@ public class TachyonMaster {
     if (mIsStarted) {
       mWebServer.shutdownWebServer();
       mMasterInfo.stop();
-      mMasterMetricSystem.stop();
+      mMasterMetricsSystem.stop();
       mMasterServiceServer.stop();
       mServerTServerSocket.close();
       mExecutorService.shutdown();

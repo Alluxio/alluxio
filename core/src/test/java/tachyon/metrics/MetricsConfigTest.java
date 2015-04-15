@@ -34,16 +34,15 @@ public class MetricsConfigTest {
   @Test
   public void setPropertiesTest() {
     MetricsConfig config = new MetricsConfig(mFilePath);
-    config.initialize();
 
-    Properties masterProp = config.getInstance("master");
+    Properties masterProp = config.getInstanceProperties("master");
     Assert.assertEquals(3, masterProp.size());
     Assert.assertEquals("tachyon.metrics.sink.ConsoleSink",
         masterProp.getProperty("sink.console.class"));
     Assert.assertEquals("20", masterProp.getProperty("sink.console.period"));
     Assert.assertEquals("minutes", masterProp.getProperty("sink.console.unit"));
 
-    Properties workerProp = config.getInstance("worker");
+    Properties workerProp = config.getInstanceProperties("worker");
     Assert.assertEquals(2, workerProp.size());
     Assert.assertEquals("tachyon.metrics.sink.ConsoleSink",
         workerProp.getProperty("sink.console.class"));
@@ -53,12 +52,11 @@ public class MetricsConfigTest {
   @Test
   public void subPropertiesTest() {
     MetricsConfig config = new MetricsConfig(mFilePath);
-    config.initialize();
 
     Map<String, Properties> propertyCategories = config.getPropertyCategories();
     Assert.assertEquals(2, propertyCategories.size());
 
-    Properties masterProp = config.getInstance("master");
+    Properties masterProp = config.getInstanceProperties("master");
 
     Map<String, Properties> sinkProps = config.subProperties(masterProp, MetricsSystem.SINK_REGEX);
     Assert.assertEquals(1, sinkProps.size());

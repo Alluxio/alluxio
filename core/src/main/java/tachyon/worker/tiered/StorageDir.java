@@ -323,7 +323,6 @@ public final class StorageDir {
       mToRemoveBlockIdSet.add(blockId);
       LOG.debug("Add block file {} to remove list!", blockFile);
     }
-    mWorkerSource.incBlocksDeleted();
     return true;
   }
 
@@ -339,6 +338,7 @@ public final class StorageDir {
       if (mAddedBlockIdList.contains(blockId)) {
         mAddedBlockIdList.remove(blockId);
       }
+      mWorkerSource.incBlocksDeleted();
     }
   }
 

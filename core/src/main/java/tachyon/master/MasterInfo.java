@@ -552,7 +552,6 @@ public class MasterInfo extends ImageWriter {
         currentInodeFolder = (InodeFolder) dir;
       }
       mMasterSource.incFilesCreated(parentPath.length - pathIndex);
-      mMasterSource.incCreateFileOps();
 
       // Create the final path component. First we need to make sure that there isn't already a file
       // here with that name. If there is an existing file that is a directory and we're creating a
@@ -560,6 +559,7 @@ public class MasterInfo extends ImageWriter {
       Inode ret = currentInodeFolder.getChild(name);
       if (ret != null) {
         if (ret.isDirectory() && directory) {
+          mMasterSource.incCreateFileOps();
           return ret.getId();
         }
         LOG.info("FileAlreadyExistException: " + path);
@@ -587,6 +587,7 @@ public class MasterInfo extends ImageWriter {
       currentInodeFolder.addChild(ret);
       currentInodeFolder.setLastModificationTimeMs(creationTimeMs);
       mMasterSource.incFilesCreated();
+      mMasterSource.incCreateFileOps();
 
       LOG.debug("createFile: File Created: {} parent: ", ret, currentInodeFolder);
       return ret.getId();

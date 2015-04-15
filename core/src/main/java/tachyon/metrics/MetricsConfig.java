@@ -45,6 +45,7 @@ public final class MetricsConfig {
   public MetricsConfig(String configFile) {
     mConfigFile = configFile;
     mProperties = new Properties();
+    initialize();
   }
 
   private void addDefaultProperties(Properties prop, Properties defaultProp) {
@@ -62,7 +63,7 @@ public final class MetricsConfig {
    * @param inst the instance name, "master" or "worker".
    * @return the properties.
    */
-  public Properties getInstance(String inst) {
+  public Properties getInstanceProperties(String inst) {
     Properties prop = mPropertyCategories.get(inst);
     if (prop == null) {
       prop = mPropertyCategories.get(DEFAULT_PREFIX);
@@ -85,7 +86,7 @@ public final class MetricsConfig {
   /**
    * Loads and parses the metrics configuration file.
    */
-  public void initialize() {
+  private void initialize() {
     InputStream is = null;
     try {
       if (mConfigFile != null) {
