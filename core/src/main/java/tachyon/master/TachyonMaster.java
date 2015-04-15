@@ -133,7 +133,7 @@ public class TachyonMaster {
       String formatFilePrefix =
           mTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX, Constants.FORMAT_FILE_PREFIX);
       UnderFileSystem ufs = UnderFileSystem.get(journalFolder, mTachyonConf);
-      if (ufs.providesStorage() == true) {
+      if (ufs.providesStorage()) {
         Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
             "Tachyon was not formatted! The journal folder is " + journalFolder);
       }
