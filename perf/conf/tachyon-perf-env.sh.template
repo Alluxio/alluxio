@@ -32,6 +32,9 @@ TACHYON_PERF_SHARED_FS="false"
 PERF_CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Specify this value and add to the java opts to test against another fs client impl.
+# 'HDFS' will use HDFS's native FileSystem client
+# 'THCI' will use Tachyon's implementation (AbstractTFS) of HDFS's FileSystem interface
+# Any other value, including empty, will default to Tachyon's native FileSystem client.
 #TACHYON_PERF_UFS="Tachyon"
 #export TACHYON_PERF_JAVA_OPTS+="-Dtachyon.perf.ufs=$TACHYON_PERF_UFS"
 
