@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -221,7 +221,7 @@ public class InodeFileTest {
   public void emeptyInodeGetBlock() throws BlockInfoException {
     InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
     Assert.assertEquals(0, inode1.getBlockIds().size());
-    // cant get a block that is missing
+    // can not get a block that is missing
     inode1.getClientBlockInfo(0, mTachyonConf);
   }
 
@@ -229,14 +229,14 @@ public class InodeFileTest {
   public void emeptyInodeGetBlockLarger() throws BlockInfoException {
     InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
     Assert.assertEquals(0, inode1.getBlockIds().size());
-    // cant get a block that is missing
+    // can not get a block that is missing
     inode1.getClientBlockInfo(1, mTachyonConf);
   }
 
   @Test(expected = BlockInfoException.class)
   public void negativeBlockGetBlock() throws BlockInfoException {
     InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
-    // cant get a block that is missing
+    // can not get a block that is missing
     inode1.getClientBlockInfo(-1, mTachyonConf);
   }
 

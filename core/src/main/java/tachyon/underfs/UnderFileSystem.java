@@ -34,6 +34,13 @@ import tachyon.TachyonURI;
 public abstract class UnderFileSystem {
   protected final TachyonConf mTachyonConf;
 
+  /**
+   *  this variable indicates whether the underFS actually
+   *  provides storage. Most UnderFS should provide storage,
+   *  but a dummyFS for example does not.
+   */
+  private boolean mProvidesStorage = true;
+
   public enum SpaceType {
     SPACE_TOTAL(0), SPACE_FREE(1), SPACE_USED(2);
 
@@ -97,6 +104,13 @@ public abstract class UnderFileSystem {
       }
     }
     return false;
+  }
+
+  /**
+   * Checks whether the underFS provides storage
+   */
+  public boolean providesStorage() throws IOException {
+    return mProvidesStorage;
   }
 
   /**
