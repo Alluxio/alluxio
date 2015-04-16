@@ -149,7 +149,7 @@ for beginners. For a tutorial, see the GitHub guides on
 
 You can generate an Eclipse configuration file by running:
 
-    $ mvn clean install
+    $ mvn clean install -DskipTests
     $ mvn clean -Dtest.profile=contractTest -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
 
 Then import the folder into Eclipse.

@@ -218,7 +218,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public String user_getUfsAddress() throws TException {
-    return mMasterInfo.getTachyonConf().get(Constants.UNDERFS_ADDRESS, "/underfs");
+    return mMasterInfo.getTachyonConf().get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
   }
 
   @Override

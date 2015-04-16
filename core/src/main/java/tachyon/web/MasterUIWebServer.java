@@ -48,5 +48,9 @@ public class MasterUIWebServer extends UIWebServer {
         "/dependency");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadServlet(masterInfo)),
         "/download");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadLocalServlet()),
+        "/downloadLocal");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(true)),
+        "/browseLogs");
   }
 }

@@ -67,7 +67,8 @@ public class Format {
       }
 
       String tachyonHome = tachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
-      String ufsAddress = tachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underfs");
+      String ufsAddress =
+          tachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
       String ufsDataFolder = tachyonConf.get(Constants.UNDERFS_DATA_FOLDER,
           ufsAddress + "/tachyon/data");
       String ufsWorkerFolder = tachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER,
@@ -88,9 +89,12 @@ public class Format {
         String[] dirPaths = tachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {
-          String dirWorkDataFolder = CommonUtils.concat(dirPath.trim(), workerDataFolder);
-          if (!formatFolder(name, dirWorkDataFolder, tachyonConf)) {
-            System.exit(-1);
+          String dirWorkerDataFolder = CommonUtils.concat(dirPath.trim(), workerDataFolder);
+          UnderFileSystem ufs = UnderFileSystem.get(dirWorkerDataFolder, tachyonConf);
+          if (ufs.exists(dirWorkerDataFolder)) {
+            if (!formatFolder(name, dirWorkerDataFolder, tachyonConf)) {
+              System.exit(-1);
+            }
           }
         }
       }
