@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
@@ -36,7 +37,8 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     if (addAndCheckAWSCredentials(tachyonConf)) {
-      return new S3UnderFileSystem(tachyonConf);
+      TachyonURI uri = new TachyonURI(path);
+      return new S3UnderFileSystem(uri.getHost(), tachyonConf);
     } else {
       String err = "AWS Credentials not available, cannot create S3 Under File System.";
       LOG.error(err);
