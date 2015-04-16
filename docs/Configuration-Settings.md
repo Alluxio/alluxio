@@ -129,8 +129,8 @@ The common configuration contains constants which specify paths and the log appe
 </tr>
 <tr>
   <td>tachyon.metrics.conf</td>
-  <td>null</td>
-  <td>The file path of the metrics system configuration file.</td>
+  <td>$tachyon.home + "/conf/metrics.properties"</td>
+  <td>The file path of the metrics system configuration file. By default it is metrics.properties in the conf directory.</td>
 </tr>
 <tr>
   <td>tachyon.host.resolution.timeout.ms</td>
