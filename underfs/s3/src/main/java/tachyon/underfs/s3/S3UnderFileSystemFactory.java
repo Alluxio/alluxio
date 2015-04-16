@@ -15,6 +15,8 @@
 
 package tachyon.underfs.s3;
 
+import java.io.IOException;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
@@ -25,8 +27,6 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
-
-import java.io.IOException;
 
 public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
