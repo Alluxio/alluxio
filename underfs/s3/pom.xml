@@ -23,9 +23,9 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-s3</artifactId>
-      <version>1.9.30</version>
+      <groupId>net.java.dev.jets3t</groupId>
+      <artifactId>jets3t</artifactId>
+      <version>0.9.3</version>
     </dependency>
 
     <!-- Test Dependencies -->
