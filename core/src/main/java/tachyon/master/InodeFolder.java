@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -94,8 +94,8 @@ public class InodeFolder extends Inode {
    * Create a new InodeFolder.
    *
    * @param name The name of the folder
-   * @param id The id of the folder
-   * @param parentId The id of the parent of the folder
+   * @param id The inode id of the folder
+   * @param parentId The inode id of the parent of the folder
    * @param creationTimeMs The creation time of the folder, in milliseconds
    */
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
@@ -152,13 +152,13 @@ public class InodeFolder extends Inode {
   }
 
   /**
-   * Returns the child with the given id.
+   * Returns the child with the given inode id.
    *
-   * @param fid The id of the child
+   * @param id The inode id of the child
    * @return the inode with the given id, or null if there is no child with that id
    */
-  public synchronized Inode getChild(int fid) {
-    return mChildrenIds.get(fid);
+  public synchronized Inode getChild(int id) {
+    return mChildrenIds.get(id);
   }
 
   /**
@@ -210,7 +210,7 @@ public class InodeFolder extends Inode {
   }
 
   /**
-   * Removes the given child from the folder.
+   * Removes the given child by its name from the folder.
    *
    * @param name The name of the Inode to remove.
    * @return true if the inode was removed, false otherwise.
