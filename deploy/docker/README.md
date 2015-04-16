@@ -114,7 +114,7 @@ share the tachyon home folder on your host with your VM.*
 * finally have a look at web UI
 
 #### Instructions
-set `TACHYON_UNDERFS_ADDRESS` in `tachyon-dev/tachyon-base/files/tachyon-env.sh.template` to `$TACHYON_HOME/underfs`
+set `TACHYON_UNDERFS_ADDRESS` in `tachyon-dev/tachyon-base/files/tachyon-env.sh.template` to `$TACHYON_HOME/underFSStorage`
 
 Then:
 

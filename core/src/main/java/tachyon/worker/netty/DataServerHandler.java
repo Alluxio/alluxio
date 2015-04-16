@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -31,7 +31,7 @@ import tachyon.worker.BlocksLocker;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * Main logic for the read path. This class consumes {@link tachyon.worker.netty.BlockRequest}
+ * Main logic of the read path. This class consumes {@link tachyon.worker.netty.BlockRequest}
  * messages and returns {@link tachyon.worker.netty.BlockResponse} messages.
  */
 @ChannelHandler.Sharable
@@ -40,7 +40,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
 
   private final BlocksLocker mLocker;
 
-  public DataServerHandler(BlocksLocker locker, TachyonConf tachyonConf) {
+  public DataServerHandler(final BlocksLocker locker, final TachyonConf tachyonConf) {
     mLocker = locker;
   }
 
@@ -104,12 +104,12 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
 
   private void validateBounds(final BlockRequest req, final long fileLength) {
     if (req.getOffset() > fileLength) {
-      String msg =
+      final String msg =
           String.format("Offset(%d) is larger than file length(%d)", req.getOffset(), fileLength);
       throw new IllegalArgumentException(msg);
     }
     if (req.getLength() != -1 && req.getOffset() + req.getLength() > fileLength) {
-      String msg =
+      final String msg =
           String.format("Offset(%d) plus length(%d) is larger than file length(%d)",
               req.getOffset(), req.getLength(), fileLength);
       throw new IllegalArgumentException(msg);

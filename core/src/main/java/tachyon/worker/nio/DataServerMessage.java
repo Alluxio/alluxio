@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -41,7 +41,7 @@ public class DataServerMessage {
   /**
    * Create a default block request message, just allocate the message header, and no attribute is
    * set. The message is not ready to be sent.
-   * 
+   *
    * @return the created block request message
    */
   public static DataServerMessage createBlockRequestMessage() {
@@ -51,9 +51,9 @@ public class DataServerMessage {
   }
 
   /**
-   * Create a block request message specified by the block's id, and the message is ready to be
-   * sent.
-   * 
+   * Create a block request message for an entire block by the block id, and the message is ready to
+   * be sent.
+   *
    * @param blockId The id of the block
    * @return The created block request message
    */
@@ -62,9 +62,9 @@ public class DataServerMessage {
   }
 
   /**
-   * Create a block request message specified by the block's id, the offset and the length. The
-   * message is ready to be sent. If <code>len</code> is -1, it means request the data from offset
-   * to the block's end.
+   * Create a block request message for a part of the block by the block id, the offset and the
+   * length. The message is ready to be sent. If <code>len</code> is -1, it means requesting the
+   * data from offset to the end of the block.
    *
    * @param blockId The id of the block
    * @param offset The requested data's offset in the block
@@ -166,7 +166,7 @@ public class DataServerMessage {
 
   /**
    * New a DataServerMessage. Notice that it's not ready.
-   * 
+   *
    * @param isToSendData true if this is a send message, otherwise this is a recv message
    * @param msgType The message type
    */
@@ -201,7 +201,7 @@ public class DataServerMessage {
   /**
    * Return whether the message finishes sending or not. It will check if the message is a send
    * message, so don't call this on a recv message.
-   * 
+   *
    * @return true if the message finishes sending, false otherwise
    */
   public boolean finishSending() {
@@ -221,7 +221,7 @@ public class DataServerMessage {
 
   /**
    * Get the id of the block. Make sure the message is ready before calling this method.
-   * 
+   *
    * @return The id of the block
    */
   public long getBlockId() {
@@ -232,7 +232,7 @@ public class DataServerMessage {
   /**
    * Get the length of the message's requested or responded data. Make sure the message is ready
    * before calling this method.
-   * 
+   *
    * @return The length of the message's requested or responded data
    */
   public long getLength() {
@@ -242,7 +242,7 @@ public class DataServerMessage {
 
   /**
    * Get the id of the block's locker.
-   * 
+   *
    * @return The id of the block's locker
    */
   int getLockId() {
@@ -252,7 +252,7 @@ public class DataServerMessage {
   /**
    * Get the offset of the message's data in the block. Make sure the message is ready before
    * calling this method.
-   * 
+   *
    * @return The offset of the message's data in the block
    */
   public long getOffset() {
@@ -263,7 +263,7 @@ public class DataServerMessage {
   /**
    * Get the read only buffer of the message's data. Make sure the message is ready before calling
    * this method.
-   * 
+   *
    * @return The read only buffer of the message's data
    */
   public ByteBuffer getReadOnlyData() {
@@ -293,7 +293,7 @@ public class DataServerMessage {
   /**
    * Use this message to receive from the specified socket channel. Make sure this is a recv message
    * and the message type is matched.
-   * 
+   *
    * @param socketChannel The socket channel to receive from
    * @return The number of bytes read, possibly zero, or -1 if the channel has reached end-of-stream
    * @throws IOException
@@ -337,7 +337,7 @@ public class DataServerMessage {
 
   /**
    * Send this message to the specified socket channel. Make sure this is a send message.
-   * 
+   *
    * @param socketChannel The socket channel to send to
    * @throws IOException
    */
@@ -353,7 +353,7 @@ public class DataServerMessage {
 
   /**
    * Set the id of the block's locker.
-   * 
+   *
    * @param lockId The id of the block's locker
    */
   void setLockId(int lockId) {
