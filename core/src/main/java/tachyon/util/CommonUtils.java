@@ -33,6 +33,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
@@ -42,7 +44,6 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
 import tachyon.underfs.UnderFileSystem;
-
 import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;
 
@@ -118,7 +119,7 @@ public final class CommonUtils {
   /**
    * Force to unmap direct buffer if the buffer is no longer used. It is unsafe operation and
    * currently a walk-around to avoid huge memory occupation caused by memory map.
-   * 
+   *
    * @param buffer the byte buffer to be unmapped
    */
   public static void cleanDirectBuffer(ByteBuffer buffer) {
@@ -180,6 +181,15 @@ public final class CommonUtils {
       }
     }
     return retPath;
+  }
+
+  public static String joinPath(String... args) {
+    String[] eleList = new String[];
+    for (String ele : args) {
+      String trimedEle = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(ele);
+
+    }
+    return Joiner.on(TachyonURI.SEPARATOR);
   }
 
   public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
@@ -522,10 +532,10 @@ public final class CommonUtils {
   }
   /**
    * Creates new instance of a class by calling a constructor that receives ctorClassArgs arguments
-   * 
+   *
    * @param cls the class to create
    * @param ctorClassArgs parameters type list of the constructor to initiate, if null default
-   * constructor will be called 
+   * constructor will be called
    * @param ctorArgs the arguments to pass the constructor
    * @return new class object or null if not successful
    */
