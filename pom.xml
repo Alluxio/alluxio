@@ -137,7 +137,6 @@
     <license.header.path>build/license/</license.header.path>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
     <findbugs.path>build/findbugs/</findbugs.path>
-    <junit.version>4.10</junit.version>
   </properties>
 
   <modules>
