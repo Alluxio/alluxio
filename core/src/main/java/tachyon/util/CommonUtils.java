@@ -127,7 +127,7 @@ public final class CommonUtils {
       return;
     }
     if (buffer.isDirect()) {
-      Cleaner cleaner = ((DirectBuffer)buffer).cleaner();
+      Cleaner cleaner = ((DirectBuffer) buffer).cleaner();
       cleaner.clean();
     }
   }
@@ -183,13 +183,24 @@ public final class CommonUtils {
     return retPath;
   }
 
-  public static String joinPath(String... args) {
-    String[] eleList = new String[];
-    for (String ele : args) {
-      String trimedEle = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(ele);
-
+  /**
+   * Join each element in paths in order, separated by {@code TachyonURI.SEPARATOR}.
+   *
+   * For example, {@code concatPath("/myroot/", "dir", "filename"); } returns
+   * {@code "/myroot/dir/filename"}
+   *
+   * @param paths to concatenate
+   * @return joined path
+   */
+  public static String concatPath(String... paths) {
+    List<String> trimmedPathList = new ArrayList<String>();
+    for (String path : paths) {
+      String trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
+      if (trimmedPath != "") {
+        trimmedPathList.add(trimmedPath);
+      }
     }
-    return Joiner.on(TachyonURI.SEPARATOR);
+    return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
   }
 
   public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
@@ -530,12 +541,13 @@ public final class CommonUtils {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
   }
+
   /**
    * Creates new instance of a class by calling a constructor that receives ctorClassArgs arguments
    *
    * @param cls the class to create
    * @param ctorClassArgs parameters type list of the constructor to initiate, if null default
-   * constructor will be called
+   *        constructor will be called
    * @param ctorArgs the arguments to pass the constructor
    * @return new class object or null if not successful
    */
