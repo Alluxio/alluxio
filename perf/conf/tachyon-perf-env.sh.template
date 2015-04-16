@@ -2,37 +2,38 @@
 
 # The following gives an example:
 
-#the workspace dir in Tachyon
+# The workspace dir in Tachyon
 export TACHYON_PERF_WORKSPACE="/tmp/tachyon-perf-workspace"
 
-#the report output path
+# The report output path
 export TACHYON_PERF_OUT_DIR="$TACHYON_PERF_HOME/result"
 
-#the tachyon-perf master service address
+# The tachyon-perf master service address
 TACHYON_PERF_MASTER_HOSTNAME="master"
 TACHYON_PERF_MASTER_PORT=23333
 
-#the threads num
+# The number of threads per worker
 TACHYON_PERF_THREADS_NUM=1
 
-#the slave is considered to be failed if not register in this time
+# The slave is considered to be failed if not register in this time
 TACHYON_PERF_UNREGISTER_TIMEOUT_MS=10000
 
-#if true, the TachyonPerfSupervision will print the names of those running and remaining nodes
+# If true, the TachyonPerfSupervision will print the names of those running and remaining nodes
 TACHYON_PERF_STATUS_DEBUG="false"
 
-#if true, the test will abort when the number of failed nodes more than the threshold
+# If true, the test will abort when the number of failed nodes more than the threshold
 TACHYON_PERF_FAILED_ABORT="true"
 TACHYON_PERF_FAILED_PERCENTAGE=1
 
-#if true the perf tool is installed on a shared file system visible to all slaves so copying
-#and collating configurations either is a no-op or a local copy rather than a scp
+# If true the perf tool is installed on a shared file system visible to all slaves so copying
+# and collating configurations either is a no-op or a local copy rather than a scp
 TACHYON_PERF_SHARED_FS="false"
 
 PERF_CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Specify this value and add to OPTS to test against another fs client impl.
-# TACHYON_PERF_UFS="Tachyon"
+# Specify this value and add to the java opts to test against another fs client impl.
+#TACHYON_PERF_UFS="Tachyon"
+#export TACHYON_PERF_JAVA_OPTS+="-Dtachyon.perf.ufs=$TACHYON_PERF_UFS"
 
 export TACHYON_PERF_JAVA_OPTS+="
   -Dlog4j.configuration=file:$PERF_CONF_DIR/log4j.properties
