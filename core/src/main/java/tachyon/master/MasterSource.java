@@ -34,20 +34,22 @@ public class MasterSource implements Source {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String MASTER_SOURCE_NAME = "master";
   private final MetricRegistry mMetricRegistry = new MetricRegistry();
-  private final Counter mFilesCreated = mMetricRegistry.counter(MetricRegistry
-      .name("FilesCreated"));
-  private final Counter mCreateFileOps = mMetricRegistry.counter(MetricRegistry
-      .name("CreateFileOps"));
-  private final Counter mFilesDeleted = mMetricRegistry.counter(MetricRegistry
-      .name("FilesDeleted"));
-  private final Counter mDeleteFileOps = mMetricRegistry.counter(MetricRegistry
-      .name("DeleteFileOps"));
-  private final Counter mFilesRenamed = mMetricRegistry.counter(MetricRegistry
-      .name("FilesRenamed"));
-  private final Counter mFilesCheckpointed = mMetricRegistry.counter(MetricRegistry
-      .name("FilesCheckpointed"));
-  private final Counter mGetFileStatusOps = mMetricRegistry.counter(MetricRegistry
-      .name("GetFileStatusOps"));
+  private final Counter mFilesCreated =
+      mMetricRegistry.counter(MetricRegistry.name("FilesCreated"));
+  private final Counter mCreateFileOps =
+      mMetricRegistry.counter(MetricRegistry.name("CreateFileOps"));
+  private final Counter mFilesDeleted =
+      mMetricRegistry.counter(MetricRegistry.name("FilesDeleted"));
+  private final Counter mDeleteFileOps =
+      mMetricRegistry.counter(MetricRegistry.name("DeleteFileOps"));
+  private final Counter mFilesRenamed =
+      mMetricRegistry.counter(MetricRegistry.name("FilesRenamed"));
+  private final Counter mRenameOps =
+      mMetricRegistry.counter(MetricRegistry.name("RenameFileOps"));
+  private final Counter mFilesCheckpointed =
+      mMetricRegistry.counter(MetricRegistry.name("FilesCheckpointed"));
+  private final Counter mGetFileStatusOps =
+      mMetricRegistry.counter(MetricRegistry.name("GetFileStatusOps"));
 
   public MasterSource(final MasterInfo masterInfo) {
     mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
@@ -176,5 +178,9 @@ public class MasterSource implements Source {
 
   public void incGetFileStatusOps() {
     mGetFileStatusOps.inc();
+  }
+
+  public void incRenameOps() {
+    mRenameOps.inc();
   }
 }

@@ -498,6 +498,7 @@ public class MasterInfo extends ImageWriter {
   int createFileInternal(boolean recursive, TachyonURI path, boolean directory, long blockSizeByte,
       long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
       BlockInfoException, TachyonException {
+    mMasterSource.incCreateFileOps();
     if (path.isRoot()) {
       LOG.info("FileAlreadyExistException: " + path);
       throw new FileAlreadyExistException(path.toString());
@@ -559,7 +560,6 @@ public class MasterInfo extends ImageWriter {
       Inode ret = currentInodeFolder.getChild(name);
       if (ret != null) {
         if (ret.isDirectory() && directory) {
-          mMasterSource.incCreateFileOps();
           return ret.getId();
         }
         LOG.info("FileAlreadyExistException: " + path);
@@ -587,7 +587,6 @@ public class MasterInfo extends ImageWriter {
       currentInodeFolder.addChild(ret);
       currentInodeFolder.setLastModificationTimeMs(creationTimeMs);
       mMasterSource.incFilesCreated();
-      mMasterSource.incCreateFileOps();
 
       LOG.debug("createFile: File Created: {} parent: ", ret, currentInodeFolder);
       return ret.getId();
@@ -614,6 +613,7 @@ public class MasterInfo extends ImageWriter {
    * @throws TachyonException
    */
   boolean deleteInternal(int fileId, boolean recursive, long opTimeMs) throws TachyonException {
+    mMasterSource.incDeleteFileOps();
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fileId);
       if (inode == null) {
@@ -684,7 +684,6 @@ public class MasterInfo extends ImageWriter {
       }
 
       mMasterSource.incFilesDeleted(delInodes.size());
-      mMasterSource.incDeleteFileOps();
       return true;
     }
   }
@@ -780,6 +779,7 @@ public class MasterInfo extends ImageWriter {
    */
   boolean renameInternal(int fileId, TachyonURI dstPath, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException {
+    mMasterSource.incRenameOps();
     synchronized (mRootLock) {
       TachyonURI srcPath = getPath(fileId);
       if (srcPath.equals(dstPath)) {
@@ -1238,9 +1238,9 @@ public class MasterInfo extends ImageWriter {
    * @return the file info
    */
   public ClientFileInfo getClientFileInfo(int fid) {
+    mMasterSource.incGetFileStatusOps();
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fid);
-      mMasterSource.incGetFileStatusOps();
       if (inode == null) {
         ClientFileInfo info = new ClientFileInfo();
         info.id = -1;
@@ -1258,9 +1258,9 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    */
   public ClientFileInfo getClientFileInfo(TachyonURI path) throws InvalidPathException {
+    mMasterSource.incGetFileStatusOps();
     synchronized (mRootLock) {
       Inode inode = getInode(path);
-      mMasterSource.incGetFileStatusOps();
       if (inode == null) {
         ClientFileInfo info = new ClientFileInfo();
         info.id = -1;
@@ -2174,6 +2174,7 @@ public class MasterInfo extends ImageWriter {
     synchronized (mRootLock) {
       Inode inode = getInode(srcPath);
       if (inode == null) {
+        mMasterSource.incRenameOps();
         throw new FileDoesNotExistException("Failed to rename: " + srcPath + " does not exist");
       }
       return rename(inode.getId(), dstPath);
