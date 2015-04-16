@@ -17,13 +17,14 @@ package tachyon.perf.benchmark.metadata;
 
 import java.io.IOException;
 
+import tachyon.perf.PerfConstants;
 import tachyon.perf.basic.PerfThread;
 import tachyon.perf.basic.TaskConfiguration;
 import tachyon.perf.benchmark.Operators;
-import tachyon.perf.fs.PerfFileSystem;
+import tachyon.perf.fs.PerfFS;
 
 public class MetadataThread extends PerfThread {
-  private PerfFileSystem[] mClients;
+  private PerfFS[] mClients;
   private int mClientsNum;
   private int mOpTimeMs;
   private String mWorkDir;
@@ -76,9 +77,9 @@ public class MetadataThread extends PerfThread {
     mOpTimeMs = taskConf.getIntProperty("op.second.per.thread") * 1000;
     mWorkDir = taskConf.getProperty("work.dir");
     try {
-      mClients = new PerfFileSystem[mClientsNum];
+      mClients = new PerfFS[mClientsNum];
       for (int i = 0; i < mClientsNum; i ++) {
-        mClients[i] = PerfFileSystem.get();
+        mClients[i] = PerfConstants.getFileSystem();
       }
     } catch (IOException e) {
       LOG.error("Failed to setup thread, task " + mTaskId + " - thread " + mId, e);

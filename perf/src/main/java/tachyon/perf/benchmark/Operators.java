@@ -20,7 +20,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Random;
 
-import tachyon.perf.fs.PerfFileSystem;
+import tachyon.perf.fs.PerfFS;
+import tachyon.perf.fs.TachyonPerfFS;
 
 /**
  * This class contains a set of file operators which can be used in different benchmarks.
@@ -41,7 +42,7 @@ public class Operators {
    * @return the actual number of bytes read
    * @throws IOException
    */
-  public static long forwardSkipRead(PerfFileSystem fs, String filePath, int bufferSize,
+  public static long forwardSkipRead(PerfFS fs, String filePath, int bufferSize,
       long skipBytes, long readBytes, String readType, int times) throws IOException {
     byte[] content = new byte[bufferSize];
     long readLen = 0;
@@ -63,7 +64,7 @@ public class Operators {
    * @return the actual number of finished metadata operations
    * @throws IOException
    */
-  public static int metadataSample(PerfFileSystem fs, String filePath) throws IOException {
+  public static int metadataSample(PerfFS fs, String filePath) throws IOException {
     String emptyFilePath = filePath + "/metadata-test-file";
     if (!fs.mkdirs(filePath, true)) {
       return 0;
@@ -95,7 +96,7 @@ public class Operators {
    * @return the actual number of bytes read
    * @throws IOException
    */
-  public static long randomSkipRead(PerfFileSystem fs, String filePath, int bufferSize,
+  public static long randomSkipRead(PerfFS fs, String filePath, int bufferSize,
       long readBytes, String readType, int times) throws IOException {
     byte[] content = new byte[bufferSize];
     long readLen = 0;
@@ -122,7 +123,7 @@ public class Operators {
    * @return the actual number of bytes read
    * @throws IOException
    */
-  public static long readSingleFile(PerfFileSystem fs, String filePath, int bufferSize)
+  public static long readSingleFile(PerfFS fs, String filePath, int bufferSize)
       throws IOException {
     return readSingleFile(fs, filePath, bufferSize, "NO_CACHE");
   }
@@ -137,7 +138,7 @@ public class Operators {
    * @return the actual number of bytes read
    * @throws IOException
    */
-  public static long readSingleFile(PerfFileSystem fs, String filePath, int bufferSize,
+  public static long readSingleFile(PerfFS fs, String filePath, int bufferSize,
       String readType) throws IOException {
     long readLen = 0;
     byte[] content = new byte[bufferSize];
@@ -195,7 +196,7 @@ public class Operators {
    * @param bufferSize
    * @throws IOException
    */
-  public static void writeSingleFile(PerfFileSystem fs, String filePath, long fileSize,
+  public static void writeSingleFile(PerfFS fs, String filePath, long fileSize,
       int bufferSize) throws IOException {
     OutputStream os = fs.create(filePath);
     writeContentToFile(os, fileSize, bufferSize);
@@ -212,7 +213,7 @@ public class Operators {
    * @param bufferSize
    * @throws IOException
    */
-  public static void writeSingleFile(PerfFileSystem fs, String filePath, long fileSize,
+  public static void writeSingleFile(PerfFS fs, String filePath, long fileSize,
       int blockSize, int bufferSize) throws IOException {
     OutputStream os = fs.create(filePath, blockSize);
     writeContentToFile(os, fileSize, bufferSize);
@@ -230,7 +231,7 @@ public class Operators {
    * @param writeType
    * @throws IOException
    */
-  public static void writeSingleFile(PerfFileSystem fs, String filePath, long fileSize,
+  public static void writeSingleFile(PerfFS fs, String filePath, long fileSize,
       int blockSize, int bufferSize, String writeType) throws IOException {
     OutputStream os = fs.create(filePath, blockSize, writeType);
     writeContentToFile(os, fileSize, bufferSize);
