@@ -20,18 +20,27 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 
 public class S3UnderFileSystem extends UnderFileSystem {
 
+  private final AmazonS3 mS3Client;
+
   public S3UnderFileSystem(TachyonConf tachyonConf) {
     super(tachyonConf);
+    BasicAWSCredentials credentials =
+        new BasicAWSCredentials(tachyonConf.get("fs.s3n.awsAccessKeyId", null),
+        tachyonConf.get("fs.s3n.awsSecretAccessKey", null));
+    mS3Client = new AmazonS3Client(credentials);
   }
 
   @Override
   public void close() throws IOException {
-
   }
 
   @Override
