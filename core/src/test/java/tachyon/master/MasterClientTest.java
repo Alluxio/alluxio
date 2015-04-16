@@ -69,7 +69,6 @@ public class MasterClientTest {
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
     Assert.assertTrue(masterClient.getFileStatus(-1, "/file") != null);
-    masterClient.close();
   }
 
   @Test(timeout = 3000, expected = FileNotFoundException.class)
