@@ -756,7 +756,7 @@ public class WorkerStorage {
    * @throws IOException
    */
   public void initializeStorageTier() throws IOException {
-    int maxStorageLevels = mTachyonConf.getInt(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, 1);
+    int maxStorageLevels = mTachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
 
     mStorageTiers = new ArrayList<StorageTier>(maxStorageLevels);
     for (int k = 0; k < maxStorageLevels; k ++) {
@@ -764,9 +764,9 @@ public class WorkerStorage {
     }
     StorageTier nextStorageTier = null;
     for (int level = maxStorageLevels - 1; level >= 0; level --) {
-      String tierLevelAliasProp = "tachyon.worker.hierarchystore.level" + level + ".alias";
-      String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
-      String tierDirsQuotaProp = "tachyon.worker.hierarchystore.level" + level + ".dirs.quota";
+      String tierLevelAliasProp = "tachyon.worker.tieredstore.level" + level + ".alias";
+      String tierLevelDirPath = "tachyon.worker.tieredstore.level" + level + ".dirs.path";
+      String tierDirsQuotaProp = "tachyon.worker.tieredstore.level" + level + ".dirs.quota";
       int index = level;
       if (index >= Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length) {
         index = level - 1;
