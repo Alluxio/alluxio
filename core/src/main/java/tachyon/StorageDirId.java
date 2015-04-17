@@ -16,7 +16,7 @@
 package tachyon;
 
 /**
- * Used to identify StorageDir in hierarchy store.
+ * Used to identify StorageDir in tiered store.
  */
 public class StorageDirId {
   static final long UNKNOWN = -1;

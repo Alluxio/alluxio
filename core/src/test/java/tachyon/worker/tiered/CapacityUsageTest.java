@@ -45,7 +45,7 @@ public class CapacityUsageTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    // TODO Remove this once we are able to push hierarchy info to LocalTachyonCluster
+    // TODO Remove this once we are able to push tiered storage info to LocalTachyonCluster
     System.clearProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     System.clearProperty("tachyon.worker.tieredstore.level1.alias");
     System.clearProperty("tachyon.worker.tieredstore.level1.dirs.path");
