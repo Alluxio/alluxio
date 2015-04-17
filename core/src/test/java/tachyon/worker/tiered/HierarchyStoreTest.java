@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.hierarchy;
+package tachyon.worker.tiered;
 
 import java.io.IOException;
 
