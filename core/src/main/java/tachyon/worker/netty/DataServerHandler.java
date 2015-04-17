@@ -28,7 +28,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
-import tachyon.worker.hierarchy.StorageDir;
+import tachyon.worker.tiered.StorageDir;
 
 /**
  * Main logic of the read path. This class consumes {@link tachyon.worker.netty.BlockRequest}

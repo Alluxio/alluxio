@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.hierarchy;
+package tachyon.worker.tiered;
 
 import java.io.IOException;
 
@@ -34,9 +34,9 @@ import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
 
 /**
- * Unit tests for tachyon.worker.StorageTier.
+ * Unit tests for tachyon.worker.tiered.StorageTier.
  */
-public class HierarchyStoreTest {
+public class TieredStoreTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
   private static final int DISK_CAPACITY_BYTES = 10000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
@@ -48,10 +48,10 @@ public class HierarchyStoreTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.worker.hierarchystore.level.max");
-    System.clearProperty("tachyon.worker.hierarchystore.level1.alias");
-    System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.path");
-    System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.quota");
+    System.clearProperty("tachyon.worker.tieredstore.level.max");
+    System.clearProperty("tachyon.worker.tieredstore.level1.alias");
+    System.clearProperty("tachyon.worker.tieredstore.level1.dirs.path");
+    System.clearProperty("tachyon.worker.tieredstore.level1.dirs.quota");
   }
 
   @Before
@@ -59,12 +59,12 @@ public class HierarchyStoreTest {
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
 
-    // Add system properties to pre-populate the storage hierarchy
+    // Add system properties to pre-populate the storage tiers
     // TODO Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
-    System.setProperty("tachyon.worker.hierarchystore.level.max", "2");
-    System.setProperty("tachyon.worker.hierarchystore.level1.alias", "HDD");
-    System.setProperty("tachyon.worker.hierarchystore.level1.dirs.path", "/disk1" + "," + "/disk2");
-    System.setProperty("tachyon.worker.hierarchystore.level1.dirs.quota", DISK_CAPACITY_BYTES + "");
+    System.setProperty("tachyon.worker.tieredstore.level.max", "2");
+    System.setProperty("tachyon.worker.tieredstore.level1.alias", "HDD");
+    System.setProperty("tachyon.worker.tieredstore.level1.dirs.path", "/disk1" + "," + "/disk2");
+    System.setProperty("tachyon.worker.tieredstore.level1.dirs.quota", DISK_CAPACITY_BYTES + "");
 
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
