@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.hierarchy;
+package tachyon.worker.tiered;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -30,7 +30,6 @@ import tachyon.client.OutStream;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
-import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
 
