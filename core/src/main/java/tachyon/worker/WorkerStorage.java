@@ -62,8 +62,8 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
-import tachyon.worker.hierarchy.StorageDir;
-import tachyon.worker.hierarchy.StorageTier;
+import tachyon.worker.tiered.StorageDir;
+import tachyon.worker.tiered.StorageTier;
 
 /**
  * The structure to store a worker's information on a worker node.
