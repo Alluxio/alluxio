@@ -304,7 +304,7 @@ public class DataServerMessage {
     int numRead = 0;
     if (mHeader.remaining() > 0) {
       numRead = socketChannel.read(mHeader);
-      if (mHeader.remaining() == 0) {
+      while (mHeader.remaining() == 0) {
         mHeader.flip();
         short msgType = mHeader.getShort();
         assert (mMessageType == msgType);
@@ -324,11 +324,13 @@ public class DataServerMessage {
         if (mMessageType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
           mIsMessageReady = true;
         }
+        break;
       }
     } else {
       numRead = socketChannel.read(mData);
-      if (mData.remaining() == 0) {
+      while (mData.remaining() == 0) {
         mIsMessageReady = true;
+        break;
       }
     }
 
@@ -346,8 +348,9 @@ public class DataServerMessage {
 
     socketChannel.write(mHeader);
 
-    if (mHeader.remaining() == 0) {
+    while (mHeader.remaining() == 0) {
       socketChannel.write(mData);
+      break;
     }
   }
 
