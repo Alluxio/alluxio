@@ -15,7 +15,7 @@
 
 package tachyon.worker.allocation;
 
-import tachyon.worker.hierarchy.StorageDir;
+import tachyon.worker.tiered.StorageDir;
 
 /**
  * Allocate space on the StorageDir that has most free space.
