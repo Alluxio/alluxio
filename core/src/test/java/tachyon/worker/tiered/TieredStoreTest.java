@@ -59,7 +59,7 @@ public class TieredStoreTest {
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
 
-    // Add system properties to pre-populate the storage hierarchy
+    // Add system properties to pre-populate the storage tiers
     // TODO Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
     System.setProperty("tachyon.worker.tieredstore.level.max", "2");
     System.setProperty("tachyon.worker.tieredstore.level1.alias", "HDD");
