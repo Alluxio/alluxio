@@ -34,21 +34,23 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
    */
   private boolean mPinned = false;
 
+  /**
+   * The last modification time of this inode, in milliseconds.
+   */
   private long mLastModificationTimeMs;
 
   /**
    * Create an inode.
    *
    * @param name the name of the inode.
-   * @param id the id of the inode, which is globaly unique.
-   * @param parentId the parent of the inode. -1 if there is no parent.
+   * @param id the id of the inode, which is globally unique.
+   * @param parentId the id of the parent inode. -1 if there is no parent.
    * @param isFolder if the inode presents a folder
-   * @param creationTimeMs the creation time of the inode.
+   * @param creationTimeMs the creation time of the inode, in milliseconds.
    */
   protected Inode(String name, int id, int parentId, boolean isFolder, long creationTimeMs) {
     mCreationTimeMs = creationTimeMs;
     mIsFolder = isFolder;
-
     mId = id;
     mName = name;
     mParentId = parentId;

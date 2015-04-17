@@ -39,6 +39,28 @@ public final class UiFileInfo {
         }
       });
 
+  // Simple class for describing a file on the local filesystem.
+  public static class LocalFileInfo {
+    public static final long EMPTY_CREATION_TIME = 0;
+
+    private final String mName;
+    private final String mAbsolutePath;
+    private final long mSize;
+    private final long mCreationTimeMs;
+    private final long mLastModificationTimeMs;
+    private final boolean mIsDirectory;
+
+    public LocalFileInfo(String name, String absolutePath, long size, long creationTimeMs,
+                         long lastModificationTimeMs, boolean isDirectory) {
+      mName = name;
+      mAbsolutePath = absolutePath;
+      mSize = size;
+      mCreationTimeMs = creationTimeMs;
+      mLastModificationTimeMs = lastModificationTimeMs;
+      mIsDirectory = isDirectory;
+    }
+  }
+
   private final int mId;
   private final int mDependencyId;
   private final String mName;
@@ -71,13 +93,30 @@ public final class UiFileInfo {
     mFileLocations = new ArrayList<String>();
   }
 
+  public UiFileInfo(LocalFileInfo fileInfo) {
+    mId = -1;
+    mDependencyId = -1;
+    mName = fileInfo.mName;
+    mAbsolutePath = fileInfo.mAbsolutePath;
+    mCheckpointPath = "";
+    mBlockSizeBytes = 0;
+    mSize = fileInfo.mSize;
+    mCreationTimeMs = fileInfo.mCreationTimeMs;
+    mLastModificationTimeMs = fileInfo.mLastModificationTimeMs;
+    mInMemory = false;
+    mInMemoryPercent = 0;
+    mIsDirectory = fileInfo.mIsDirectory;
+    mIsPinned = false;
+    mFileLocations = new ArrayList<String>();
+  }
+
   public String getAbsolutePath() {
     return mAbsolutePath;
   }
 
   public String getBlockSizeBytes() {
     if (mIsDirectory) {
-      return " ";
+      return "";
     } else {
       return CommonUtils.getSizeFromBytes(mBlockSizeBytes);
     }
@@ -88,7 +127,11 @@ public final class UiFileInfo {
   }
 
   public String getCreationTime() {
-    return CommonUtils.convertMsToDate(mCreationTimeMs);
+    if (mCreationTimeMs == LocalFileInfo.EMPTY_CREATION_TIME) {
+      return "";
+    } else {
+      return CommonUtils.convertMsToDate(mCreationTimeMs);
+    }
   }
 
   public String getModificationTime() {
@@ -133,7 +176,7 @@ public final class UiFileInfo {
 
   public String getSize() {
     if (mIsDirectory) {
-      return " ";
+      return "";
     } else {
       return CommonUtils.getSizeFromBytes(mSize);
     }

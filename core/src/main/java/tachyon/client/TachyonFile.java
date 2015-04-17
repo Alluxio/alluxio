@@ -31,11 +31,11 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * Tachyon File.
@@ -96,17 +96,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public long getBlockId(int blockIndex) throws IOException {
     return mTachyonFS.getBlockId(mFileId, blockIndex);
-  }
-
-  /**
-   * Get the block id by the file id and offset. it will check whether the file and the block exist.
-   * 
-   * @param offset The offset of the file.
-   * @return the block id if exists
-   * @throws IOException
-   */
-  long getBlockIdBasedOnOffset(long offset) throws IOException {
-    return getBlockId((int) (offset / getBlockSizeByte()));
   }
 
   /**

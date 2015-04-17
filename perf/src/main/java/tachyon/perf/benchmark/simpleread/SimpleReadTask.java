@@ -17,16 +17,17 @@ package tachyon.perf.benchmark.simpleread;
 
 import java.io.IOException;
 
+import tachyon.perf.PerfConstants;
 import tachyon.perf.basic.PerfTaskContext;
 import tachyon.perf.benchmark.SimpleTask;
 import tachyon.perf.conf.PerfConf;
-import tachyon.perf.fs.PerfFileSystem;
+import tachyon.perf.fs.PerfFS;
 
 public class SimpleReadTask extends SimpleTask {
   @Override
   protected boolean setupTask(PerfTaskContext taskContext) {
     try {
-      PerfFileSystem fs = PerfFileSystem.get();
+      PerfFS fs = PerfConstants.getFileSystem();
       String readDir = PerfConf.get().WORK_DIR + "/simple-read-write/" + mId;
       if (!fs.exists(readDir)) {
         throw new IOException("No data to read at " + readDir);

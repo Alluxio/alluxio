@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -34,7 +34,6 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.io.Utils;
 import tachyon.thrift.BlockInfoException;
@@ -44,6 +43,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
@@ -57,7 +57,7 @@ public final class EditLog {
 
   /**
    * Load edit log.
-   * 
+   *
    * @param info The Master Info.
    * @param path The path of the edit logs.
    * @param currentLogFileNum The smallest completed log number that this master has not loaded
@@ -95,7 +95,7 @@ public final class EditLog {
 
   /**
    * Load one edit log.
-   * 
+   *
    * @param info The Master Info
    * @param path The path of the edit log
    * @throws IOException
@@ -129,35 +129,37 @@ public final class EditLog {
             break;
           }
           case ADD_CHECKPOINT: {
-            info._addCheckpoint(-1, op.getInt("fileId"), op.getLong("length"),
+            info.addCheckpointInternal(-1, op.getInt("fileId"), op.getLong("length"),
                 new TachyonURI(op.getString("path")), op.getLong("opTimeMs"));
             break;
           }
           case CREATE_FILE: {
-            info._createFile(op.getBoolean("recursive"), new TachyonURI(op.getString("path")),
-                op.getBoolean("directory"), op.getLong("blockSizeByte"),
-                op.getLong("creationTimeMs"));
+            info.createFileInternal(op.getBoolean("recursive"),
+                new TachyonURI(op.getString("path")), op.getBoolean("directory"),
+                op.getLong("blockSizeByte"), op.getLong("creationTimeMs"));
             break;
           }
           case COMPLETE_FILE: {
-            info._completeFile(op.get("fileId", Integer.class), op.getLong("opTimeMs"));
+            info.completeFileInternal(op.get("fileId", Integer.class), op.getLong("opTimeMs"));
             break;
           }
           case SET_PINNED: {
-            info._setPinned(op.getInt("fileId"), op.getBoolean("pinned"), op.getLong("opTimeMs"));
+            info.setPinnedInternal(op.getInt("fileId"), op.getBoolean("pinned"),
+                op.getLong("opTimeMs"));
             break;
           }
           case RENAME: {
-            info._rename(op.getInt("fileId"), new TachyonURI(op.getString("dstPath")),
+            info.renameInternal(op.getInt("fileId"), new TachyonURI(op.getString("dstPath")),
                 op.getLong("opTimeMs"));
             break;
           }
           case DELETE: {
-            info._delete(op.getInt("fileId"), op.getBoolean("recursive"), op.getLong("opTimeMs"));
+            info.deleteInternal(op.getInt("fileId"), op.getBoolean("recursive"),
+                op.getLong("opTimeMs"));
             break;
           }
           case CREATE_RAW_TABLE: {
-            info._createRawTable(op.getInt("tableId"), op.getInt("columns"),
+            info.createRawTableInternal(op.getInt("tableId"), op.getInt("columns"),
                 op.getByteBuffer("metadata"));
             break;
           }
@@ -166,7 +168,7 @@ public final class EditLog {
             break;
           }
           case CREATE_DEPENDENCY: {
-            info._createDependency(op.get("parents", new TypeReference<List<Integer>>() {}),
+            info.createDependencyInternal(op.get("parents", new TypeReference<List<Integer>>() {}),
                 op.get("children", new TypeReference<List<Integer>>() {}),
                 op.getString("commandPrefix"), op.getByteBufferList("data"),
                 op.getString("comment"), op.getString("framework"),
@@ -200,7 +202,7 @@ public final class EditLog {
 
   /**
    * Make the edit log up-to-date, It will delete all editlogs since sBackUpLogStartNum.
-   * 
+   *
    * @param path The path of the edit logs
    * @param info The Master Info
    */
@@ -225,6 +227,7 @@ public final class EditLog {
   /** When a master is replaying an edit log, mark the current edit log as an mInactive one. */
   private final boolean mInactive;
 
+  /** Path of the edit logs. */
   private final String mPath;
 
   /** Writer used to serialize Operations into the edit log. */
@@ -251,7 +254,7 @@ public final class EditLog {
 
   /**
    * Create a new EditLog
-   * 
+   *
    * @param path The path of the edit logs.
    * @param inactive If a master is replaying an edit log, the current edit log is inactive.
    * @param transactionId The beginning transactionId of the edit log
@@ -261,61 +264,60 @@ public final class EditLog {
       throws IOException {
     mInactive = inactive;
     mTachyonConf = tachyonConf;
-    if (!mInactive) {
-      LOG.info("Creating edit log file " + path);
-      mPath = path;
-      mUfs = UnderFileSystem.get(path, mTachyonConf);
-      if (sBackUpLogStartNum != -1) {
-        LOG.info("Deleting completed editlogs that are part of the image.");
-        deleteCompletedLogs(path, sBackUpLogStartNum, tachyonConf);
-        LOG.info("Backing up logs from " + sBackUpLogStartNum + " since image is not updated.");
-        String folder =
-            path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "/completed";
-        mUfs.mkdirs(folder, true);
-        String toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
-        int currentLogFileNum = 0;
-        String dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
-        while (mUfs.exists(toRename)) {
-          mUfs.rename(toRename, dstPath);
-          LOG.info("Rename " + toRename + " to " + dstPath);
-          currentLogFileNum ++;
-          sBackUpLogStartNum ++;
-          toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
-          dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
-        }
-        if (mUfs.exists(path)) {
-          dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
-          mUfs.rename(path, dstPath);
-          LOG.info("Rename " + path + " to " + dstPath);
-          currentLogFileNum ++;
-        }
-        sBackUpLogStartNum = -1;
-      }
-
-      // In case this file is created by different dfs-clients, which has been
-      // fixed in HDFS-3755 since 3.0.0, 2.0.2-alpha
-      if (mUfs.exists(path)) {
-        mUfs.delete(path, true);
-      }
-      mOs = mUfs.create(path);
-      mDos = new DataOutputStream(mOs);
-      LOG.info("Created file " + path);
-      mFlushedTransactionId = transactionId;
-      mTransactionId = transactionId;
-      mWriter = JsonObject.createObjectMapper().writer();
-    } else {
+    if (mInactive) {
       mPath = null;
       mUfs = null;
       mOs = null;
       mDos = null;
       mWriter = null;
+      return;
     }
+    LOG.info("Creating edit log file " + path);
+    mPath = path;
+    mUfs = UnderFileSystem.get(path, mTachyonConf);
+    if (sBackUpLogStartNum != -1) {
+      LOG.info("Deleting completed editlogs that are part of the image.");
+      deleteCompletedLogs(path, sBackUpLogStartNum, tachyonConf);
+      LOG.info("Backing up logs from " + sBackUpLogStartNum + " since image is not updated.");
+      String folder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "/completed";
+      mUfs.mkdirs(folder, true);
+      String toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
+      int currentLogFileNum = 0;
+      String dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
+      while (mUfs.exists(toRename)) {
+        mUfs.rename(toRename, dstPath);
+        LOG.info("Rename " + toRename + " to " + dstPath);
+        currentLogFileNum ++;
+        sBackUpLogStartNum ++;
+        toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
+        dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
+      }
+      if (mUfs.exists(path)) {
+        dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
+        mUfs.rename(path, dstPath);
+        LOG.info("Rename " + path + " to " + dstPath);
+        currentLogFileNum ++;
+      }
+      sBackUpLogStartNum = -1;
+    }
+
+    // In case this file is created by different dfs-clients, which has been
+    // fixed in HDFS-3755 since 3.0.0, 2.0.2-alpha
+    if (mUfs.exists(path)) {
+      mUfs.delete(path, true);
+    }
+    mOs = mUfs.create(path);
+    mDos = new DataOutputStream(mOs);
+    LOG.info("Created file " + path);
+    mFlushedTransactionId = transactionId;
+    mTransactionId = transactionId;
+    mWriter = JsonObject.createObjectMapper().writer();
   }
 
   /**
    * Only close the currently opened output streams.
    */
-  private synchronized void _closeActiveStream() {
+  private synchronized void closeActiveStream() {
     try {
       if (mDos != null) {
         mDos.close();
@@ -330,7 +332,7 @@ public final class EditLog {
 
   /**
    * Log an addBlock operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param fileId The id of the file
    * @param blockIndex The index of the block to be added
    * @param blockLength The length of the block to be added
@@ -350,7 +352,7 @@ public final class EditLog {
 
   /**
    * Log an addCheckpoint operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param fileId The file to add the checkpoint
    * @param length The length of the checkpoint
    * @param checkpointPath The path of the checkpoint
@@ -378,7 +380,7 @@ public final class EditLog {
     }
 
     try {
-      _closeActiveStream();
+      closeActiveStream();
       mUfs.close();
     } catch (IOException e) {
       throw Throwables.propagate(e);
@@ -387,7 +389,7 @@ public final class EditLog {
 
   /**
    * Log a completeFile operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param fileId The id of the file
    * @param opTimeMs The time of the completeFile operation, in milliseconds
    */
@@ -405,7 +407,7 @@ public final class EditLog {
   /**
    * Log a createDependency operation. The parameters are like creating a new Dependency. Do nothing
    * if the edit log is inactive.
-   * 
+   *
    * @param parents The input files' id of the dependency
    * @param children The output files' id of the dependency
    * @param commandPrefix The prefix of the command used for recomputation
@@ -438,7 +440,7 @@ public final class EditLog {
 
   /**
    * Log a createFile operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param recursive If recursive is true and the filesystem tree is not filled in all the way to
    *        path yet, it fills in the missing components.
    * @param path The path to create
@@ -462,7 +464,7 @@ public final class EditLog {
 
   /**
    * Log a createRawTable operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param tableId The id of the raw table
    * @param columns The number of columns in the table
    * @param metadata Additional metadata about the table
@@ -481,7 +483,7 @@ public final class EditLog {
 
   /**
    * Log a delete operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param fileId the file to be deleted.
    * @param recursive whether delete the file recursively or not.
    * @param opTimeMs The time of the delete operation, in milliseconds
@@ -500,7 +502,7 @@ public final class EditLog {
 
   /**
    * Delete the completed logs.
-   * 
+   *
    * @param path The path of the logs
    * @param upTo The logs in the path from 0 to upTo-1 are completed and to be deleted
    * @param conf The {@link tachyon.conf.TachyonConf} instance
@@ -544,7 +546,7 @@ public final class EditLog {
 
   /**
    * Get the current TransactionId and FlushedTransactionId
-   * 
+   *
    * @return (TransactionId, FlushedTransactionId)
    */
   public synchronized Pair<Long, Long> getTransactionIds() {
@@ -553,7 +555,7 @@ public final class EditLog {
 
   /**
    * Log a rename operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param fileId The id of the file to rename
    * @param dstPath The new path of the file
    * @param opTimeMs The time of the rename operation, in milliseconds
@@ -572,7 +574,7 @@ public final class EditLog {
 
   /**
    * The edit log reaches the max log size and needs rotate. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param path The path of the edit log
    */
   public void rotateEditLog(String path) {
@@ -580,10 +582,9 @@ public final class EditLog {
       return;
     }
 
-    _closeActiveStream();
+    closeActiveStream();
     LOG.info("Edit log max size of " + mMaxLogSize + " bytes reached, rotating edit log");
-    String pathPrefix =
-        path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
+    String pathPrefix = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     LOG.info("path: " + path + " prefix: " + pathPrefix);
     try {
       if (!mUfs.exists(pathPrefix)) {
@@ -602,7 +603,7 @@ public final class EditLog {
 
   /**
    * Changes the max log size for testing purposes.
-   * 
+   *
    * @param size
    */
   void setMaxLogSize(int size) {
@@ -622,7 +623,7 @@ public final class EditLog {
 
   /**
    * Log a setPinned operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param fileId The id of the file
    * @param pinned If true, the file is never evicted from memory
    * @param opTimeMs The time of the setPinned operation, in milliseconds
@@ -641,7 +642,7 @@ public final class EditLog {
 
   /**
    * Log an updateRawTableMetadata operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param tableId The id of the raw table
    * @param metadata The new metadata of the raw table
    */

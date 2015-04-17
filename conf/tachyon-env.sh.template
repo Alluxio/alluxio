@@ -48,7 +48,7 @@ fi
 
 export JAVA="$JAVA_HOME/bin/java"
 export TACHYON_MASTER_ADDRESS=localhost
-export TACHYON_UNDERFS_ADDRESS=$TACHYON_HOME/underfs
+export TACHYON_UNDERFS_ADDRESS=$TACHYON_HOME/underFSStorage
 #export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:9000
 export TACHYON_WORKER_MEMORY_SIZE=1GB
 export TACHYON_UNDERFS_HDFS_IMPL=org.apache.hadoop.hdfs.DistributedFileSystem

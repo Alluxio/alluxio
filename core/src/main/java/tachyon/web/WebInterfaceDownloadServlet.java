@@ -56,9 +56,9 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
 
   /**
    * Prepares for downloading a file
-   * 
+   *
    * @param request The HttpServletRequest object
-   * @param response The HttpServletReponse object
+   * @param response The HttpServletResponse object
    * @throws ServletException
    * @throws IOException
    */
@@ -87,7 +87,7 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
 
   /**
    * This function prepares for downloading a file.
-   * 
+   *
    * @param path The path of the file to download
    * @param request The HttpServletRequest object
    * @param response The HttpServletResponse object

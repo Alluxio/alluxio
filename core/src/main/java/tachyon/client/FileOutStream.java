@@ -24,8 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
@@ -159,12 +159,10 @@ public class FileOutStream extends OutStream {
     }
 
     if (mWriteType.isCache()) {
-      mCurrentBlockId = mFile.getBlockIdBasedOnOffset(mCachedBytes);
+      int offset = (int) (mCachedBytes / mBlockCapacityByte);
+      mCurrentBlockId = mFile.getBlockId(offset);
       mCurrentBlockLeftByte = mBlockCapacityByte;
-
-      mCurrentBlockOutStream =
-          new BlockOutStream(mFile, mWriteType, (int) (mCachedBytes / mBlockCapacityByte),
-              mTachyonConf);
+      mCurrentBlockOutStream = new BlockOutStream(mFile, mWriteType, offset, mTachyonConf);
     }
   }
 
@@ -197,7 +195,6 @@ public class FileOutStream extends OutStream {
             mCurrentBlockOutStream.write(b, tOff, tLen);
             mCurrentBlockLeftByte -= tLen;
             mCachedBytes += tLen;
-            tOff += tLen;
             tLen = 0;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) mCurrentBlockLeftByte);
