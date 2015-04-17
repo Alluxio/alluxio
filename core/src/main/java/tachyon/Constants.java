@@ -163,7 +163,7 @@ public class Constants {
   public static final String WORKER_EVICT_STRATEGY_TYPE = "tachyon.worker.evict.strategy";
   public static final String WORKER_ALLOCATE_STRATEGY_TYPE = "tachyon.worker.allocate.strategy";
   public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =
-          "tachyon.worker.tieredstore.level.max";
+      "tachyon.worker.tieredstore.level.max";
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
