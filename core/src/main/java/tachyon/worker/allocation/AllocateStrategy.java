@@ -15,7 +15,7 @@
 
 package tachyon.worker.allocation;
 
-import tachyon.worker.hierarchy.StorageDir;
+import tachyon.worker.tiered.StorageDir;
 
 /**
  * Space allocation strategy from dirs in the same StorageTier.

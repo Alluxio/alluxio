@@ -3,7 +3,7 @@
 <%@ page import="tachyon.StorageLevelAlias" %>
 <%@ page import="tachyon.util.*" %>
 <%@ page import="tachyon.web.*" %>
-<%@ page import="tachyon.worker.hierarchy.StorageDir" %>
+<%@ page import="tachyon.worker.tiered.StorageDir" %>
 
 <html>
 <head>
@@ -91,7 +91,7 @@
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion3" href="#data3">
-            <h4>Hierarchy Storage Details</h4>
+            <h4>Tiered Storage Details</h4>
           </a>
         </div>
         <div id="data3" class="accordion-body collapse in">

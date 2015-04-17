@@ -83,9 +83,9 @@ public class Format {
     } else if (args[0].toUpperCase().equals("WORKER")) {
       String workerDataFolder =
           tachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
-      int maxStorageLevels = tachyonConf.getInt(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, 1);
+      int maxStorageLevels = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
       for (int level = 0; level < maxStorageLevels; level ++) {
-        String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
+        String tierLevelDirPath = "tachyon.worker.tieredstore.level" + level + ".dirs.path";
         String[] dirPaths = tachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {
