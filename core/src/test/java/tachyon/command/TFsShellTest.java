@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -111,7 +111,8 @@ public class TFsShellTest {
     byte toWrite[] = TestUtils.getIncreasingByteArray(SIZE_BYTES);
     fos.write(toWrite);
     fos.close();
-    mFsShell.copyFromLocal(new String[] {"copyFromLocal", testFile.getAbsolutePath(), "/testFile"});
+    mFsShell
+        .copyFromLocal(new String[] {"copyFromLocal", testFile.getAbsolutePath(), "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyFromLocal", testFile.getAbsolutePath(),
         "/testFile"}), mOutput.toString());
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
@@ -130,7 +131,8 @@ public class TFsShellTest {
     File testDirInner = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testDirInner");
     testDirInner.mkdir();
     File testFile = generateFileContent("/testDir/testFile", TestUtils.getIncreasingByteArray(10));
-    generateFileContent("/testDir/testDirInner/testFile2", TestUtils.getIncreasingByteArray(10, 20));
+    generateFileContent(
+        "/testDir/testDirInner/testFile2", TestUtils.getIncreasingByteArray(10, 20));
     mFsShell.copyFromLocal(new String[] {"copyFromLocal", testFile.getParent(), "/testDir"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyFromLocal", testFile.getParent(),
         "/testDir"}), mOutput.toString());
@@ -421,8 +423,7 @@ public class TFsShellTest {
   public void mkdirTest() throws IOException {
     String qualifiedPath =
         "tachyon://" + NetworkUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS)
-        + ":" + mLocalTachyonCluster.getMasterPort()
-        + "/root/testFile1";
+            + ":" + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
     mFsShell.mkdir(new String[] {"mkdir", qualifiedPath});
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/root/testFile1"));
     Assert.assertNotNull(tFile);
@@ -478,7 +479,7 @@ public class TFsShellTest {
   @Test
   public void rmNotExistingFileTest() throws IOException {
     mFsShell.rm(new String[] {"rm", "/testFile"});
-    String expected= "rm: cannot remove '/testFile': No such file or directory\n";
+    String expected = "rm: cannot remove '/testFile': No such file or directory\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -496,8 +497,7 @@ public class TFsShellTest {
   public void rmTest() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[] {"mkdir", "/testFolder1/testFolder2"});
-    toCompare
-        .append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
+    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
     mFsShell.touch(new String[] {"touch", "/testFolder1/testFolder2/testFile2"});
     toCompare
         .append(getCommandOutput(new String[] {"touch", "/testFolder1/testFolder2/testFile2"}));
@@ -519,8 +519,7 @@ public class TFsShellTest {
   public void rmrTest() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[] {"mkdir", "/testFolder1/testFolder2"});
-    toCompare
-        .append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
+    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
     mFsShell.touch(new String[] {"touch", "/testFolder1/testFolder2/testFile2"});
     toCompare
         .append(getCommandOutput(new String[] {"touch", "/testFolder1/testFolder2/testFile2"}));
@@ -594,7 +593,7 @@ public class TFsShellTest {
   @Test
   public void freeTest() throws IOException {
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
-    mFsShell.free(new String[]{"free", "/testFile"});
+    mFsShell.free(new String[] {"free", "/testFile"});
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(tachyonConf) * 2 + 10);
     Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());

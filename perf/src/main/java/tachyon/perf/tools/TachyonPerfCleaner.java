@@ -18,8 +18,9 @@ package tachyon.perf.tools;
 import java.io.IOException;
 
 import tachyon.conf.TachyonConf;
+import tachyon.perf.PerfConstants;
 import tachyon.perf.conf.PerfConf;
-import tachyon.perf.fs.PerfFileSystem;
+import tachyon.perf.fs.PerfFS;
 
 /**
  * A tool to clean the workspace on Tachyon.
@@ -28,7 +29,7 @@ public class TachyonPerfCleaner {
   public static void main(String[] args) {
     String tachyonAddress = new TachyonConf().get(tachyon.Constants.MASTER_ADDRESS, "");
     try {
-      PerfFileSystem fs = PerfFileSystem.get();
+      PerfFS fs = PerfConstants.getFileSystem();
       fs.delete(PerfConf.get().WORK_DIR, true);
       fs.close();
     } catch (IOException e) {

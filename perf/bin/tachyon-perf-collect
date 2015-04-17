@@ -25,7 +25,7 @@ fi
 mkdir -p $TACHYON_PERF_OUT_REPORTS_DIR
 
 taskid=0
-for slave in `cat "$NODELIST"|sed  "s/#.*$//;/^$/d"`; do
+for slave in `sort "$NODELIST"|sed  "s/#.*$//;/^$/d"`; do
   if [ $TACHYON_PERF_SHARED_FS = "true" ]; then
     cp $TACHYON_PERF_OUT_DIR/context$1-$taskid@$slave $TACHYON_PERF_OUT_REPORTS_DIR/context$1-$taskid@$slave
   else 

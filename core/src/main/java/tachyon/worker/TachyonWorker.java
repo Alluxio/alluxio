@@ -33,14 +33,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystemHdfs;
 import tachyon.Users;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
@@ -243,19 +242,12 @@ public class TachyonWorker implements Runnable {
     return mWorkerServiceHandler;
   }
 
-  private void login() throws IOException {
-    String workerKeytabFile = mTachyonConf.get(Constants.WORKER_KEYTAB_KEY, null);
-    String workerPrincipal = mTachyonConf.get(Constants.WORKER_PRINCIPAL_KEY, null);
-    if (workerKeytabFile == null || workerPrincipal == null) {
-      return;
-    }
-    String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "localhost/underfs");
+  private void connectToUFS() throws IOException {
+    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String ufsAddress =
+        mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
-    if (ufs instanceof UnderFileSystemHdfs) {
-      ((UnderFileSystemHdfs) ufs)
-          .login(Constants.WORKER_KEYTAB_KEY, workerKeytabFile, Constants.WORKER_PRINCIPAL_KEY,
-              workerPrincipal, NetworkUtils.getFqdnHost(mWorkerAddress));
-    }
+    ufs.connectFromWorker(mTachyonConf, NetworkUtils.getFqdnHost(mWorkerAddress));
   }
 
   @Override
@@ -323,7 +315,7 @@ public class TachyonWorker implements Runnable {
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() throws IOException {
-    login();
+    connectToUFS();
 
     mHeartbeatThread.start();
     mWebServer.startWebServer();

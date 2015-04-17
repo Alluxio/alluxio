@@ -21,7 +21,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import tachyon.perf.fs.PerfFileSystem;
+import tachyon.perf.fs.PerfFS;
+import tachyon.perf.fs.TachyonPerfFS;
 import tachyon.perf.thrift.SlaveAlreadyRegisterException;
 import tachyon.perf.thrift.SlaveNotRegisterException;
 
@@ -75,7 +76,7 @@ public class SlaveStatus {
    * @throws IOException
    */
   public void cleanup() throws IOException {
-    PerfFileSystem fs = PerfFileSystem.get();
+    PerfFS fs = TachyonPerfFS.get();
     synchronized (this) {
       for (String dir : mCleanupDirs) {
         if (fs.exists(dir)) {

@@ -1,6 +1,7 @@
 tests.log*
 .classpath
 .project
+.checkstyle
 *.iml
 .DS_STORE
 .idea/
@@ -21,3 +22,5 @@ logs/
 script/
 target/
 **/tachyon-site.properties
+perf/result
+perf/conf/tachyon-perf-env.sh

@@ -29,7 +29,6 @@ import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.UnderFileSystem;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -48,6 +47,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
@@ -218,7 +218,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public String user_getUfsAddress() throws TException {
-    return mMasterInfo.getTachyonConf().get(Constants.UNDERFS_ADDRESS, "/underfs");
+    return mMasterInfo.getTachyonConf().get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
   }
 
   @Override

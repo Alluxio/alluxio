@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.underfs;
 
 import java.io.InputStream;
 import java.io.IOException;
@@ -23,6 +23,9 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
+import tachyon.Constants;
+import tachyon.Pair;
+import tachyon.TachyonURI;
 
 /**
  * Tachyon stores data into an under layer file system. Any file system implementing this interface
@@ -30,6 +33,13 @@ import tachyon.conf.TachyonConf;
  */
 public abstract class UnderFileSystem {
   protected final TachyonConf mTachyonConf;
+
+  /**
+   *  this variable indicates whether the underFS actually
+   *  provides storage. Most UnderFS should provide storage,
+   *  but a dummyFS for example does not.
+   */
+  private boolean mProvidesStorage = true;
 
   public enum SpaceType {
     SPACE_TOTAL(0), SPACE_FREE(1), SPACE_USED(2);
@@ -72,28 +82,35 @@ public abstract class UnderFileSystem {
   public static UnderFileSystem get(String path, Object conf, TachyonConf tachyonConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    if (isHadoopUnderFS(path, tachyonConf)) {
-      return UnderFileSystemHdfs.getClient(path, conf, tachyonConf);
-    } else if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
-      return UnderFileSystemSingleLocal.getClient(tachyonConf);
-    }
-    throw new IllegalArgumentException("Unknown under file system scheme " + path);
+    // Use the registry to determine the factory to use to create the client
+    return UnderFileSystemRegistry.create(path, tachyonConf, conf);
   }
 
   /**
-   * Determines if the Hadoop implementation of {@link tachyon.UnderFileSystem} should be used.
+   * Determines if given path is on a Hadoop under file system
    * 
    * The logic to say if a path should use the hadoop implementation is by checking if
    * {@link String#startsWith(String)} to see if the configured schemas are found.
    */
-  private static boolean isHadoopUnderFS(final String path, TachyonConf tachyonConf) {
-
+  public static boolean isHadoopUnderFS(final String path, TachyonConf tachyonConf) {
+    // TODO In Hadoop 2.x this can be replaced with the simpler call to
+    // FileSystem.getFileSystemClass() without any need for having users explicitly declare the file
+    // system schemes to treat as being HDFS
+    // However as long as pre 2.x versions of Hadoop are supported this is not an option and we have
+    // to continue to use this method
     for (final String prefix : tachyonConf.getList(Constants.UNDERFS_HADOOP_PREFIXS, ",", null)) {
       if (path.startsWith(prefix)) {
         return true;
       }
     }
     return false;
+  }
+
+  /**
+   * Checks whether the underFS provides storage
+   */
+  public boolean providesStorage() throws IOException {
+    return mProvidesStorage;
   }
 
   /**
@@ -133,6 +150,32 @@ public abstract class UnderFileSystem {
   protected UnderFileSystem(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
   }
+
+  /**
+   * Takes any necessary actions required to establish a connection to the under file system from
+   * the given master host e.g. logging in
+   * <p>
+   * Depending on the implementation this may be a no-op
+   * </p>
+   * 
+   * @param conf Tachyon configuration
+   * @param hostname The host that wants to connect to the under file system
+   * @throws IOException
+   */
+  public abstract void connectFromMaster(TachyonConf conf, String hostname) throws IOException;
+
+  /**
+   * Takes any necessary actions required to establish a connection to the under file system from
+   * the given worker host e.g. logging in
+   * <p>
+   * Depending on the implementation this may be a no-op
+   * </p>
+   * 
+   * @param conf Tachyon configuration
+   * @param hostname The host that wants to connect to the under file system
+   * @throws IOException
+   */
+  public abstract void connectFromWorker(TachyonConf conf, String hostname) throws IOException;
 
   public abstract void close() throws IOException;
 

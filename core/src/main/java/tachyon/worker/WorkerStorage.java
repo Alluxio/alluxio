@@ -47,7 +47,6 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
-import tachyon.UnderFileSystem;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
@@ -60,6 +59,7 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.hierarchy.StorageDir;
@@ -353,7 +353,8 @@ public class WorkerStorage {
     register();
 
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
-    String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underfs");
+    String ufsAddress =
+        mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     String ufsWorkerFolder =
         mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, ufsAddress + "/tachyon/workers");
     mUfsWorkerFolder = CommonUtils.concat(ufsWorkerFolder, mWorkerId);
@@ -396,7 +397,8 @@ public class WorkerStorage {
    * This method is normally triggered from {@link tachyon.client.FileOutStream#close()} if and only
    * if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
    * checkpointing is that through {@link tachyon.client.WriteType} operations write to
-   * {@link tachyon.UnderFileSystem} on the client's write path, but under a user temp directory
+   * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a user temp
+   * directory
    * (temp directory is defined in the worker as {@link #getUserUfsTempFolder(long)}).
    *
    * @param userId The user id of the client who send the notification
@@ -697,14 +699,16 @@ public class WorkerStorage {
 
   /**
    * Get the user temporary folder in the under file system of the specified user.
-   *
+   * <p>
    * This method is a wrapper around {@link tachyon.Users#getUserUfsTempFolder(long)}, and as such
    * should be referentially transparent with {@link Users#getUserUfsTempFolder(long)}. In the
    * context of {@code this}, this call will output the result of path concat of
    * {@link #mUfsWorkerFolder} with the provided {@literal userId}.
-   *
-   * This temp folder generated lives inside the {@link tachyon.UnderFileSystem}, and as such, will
-   * be stored remotely, most likely on disk.
+   * </p>
+   * <p>
+   * This temp folder generated lives inside the {@link tachyon.underfs.UnderFileSystem}, and as
+   * such, will be stored remotely, most likely on disk.
+   * </p>
    *
    * @param userId The id of the user
    * @return The user temporary folder in the under file system

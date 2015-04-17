@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -44,35 +44,33 @@ public final class EvictPartialLRU extends EvictLRUBase {
       long sizeToEvict = 0;
       while (sizeToEvict + dirSelected.getAvailableBytes() < requestBytes) {
         Pair<Long, Long> oldestAccess = getLRUBlock(dirSelected, blockIdSet, pinList);
-        if (oldestAccess.getFirst() != -1) {
-          long blockSize = dirSelected.getBlockSize(oldestAccess.getFirst());
-          if (blockSize != -1) {
-            sizeToEvict += blockSize;
-            blockInfoList.add(new BlockInfo(dirSelected, oldestAccess.getFirst(), blockSize));
-            blockIdSet.add(oldestAccess.getFirst());
-          }
-        } else {
+        if (oldestAccess.getFirst() == -1) {
           break;
         }
+        long blockSize = dirSelected.getBlockSize(oldestAccess.getFirst());
+        if (blockSize != -1) {
+          sizeToEvict += blockSize;
+          blockInfoList.add(new BlockInfo(dirSelected, oldestAccess.getFirst(), blockSize));
+          blockIdSet.add(oldestAccess.getFirst());
+        }
       }
-      if (sizeToEvict + dirSelected.getAvailableBytes() < requestBytes) {
-        ignoredDirs.add(dirSelected);
-        blockInfoList.clear();
-        blockIdSet.clear();
-        dirSelected = getDirWithMaxFreeSpace(requestBytes, storageDirs, ignoredDirs);
-      } else {
+      if (sizeToEvict + dirSelected.getAvailableBytes() >= requestBytes) {
         return new Pair<StorageDir, List<BlockInfo>>(dirSelected, blockInfoList);
       }
+      ignoredDirs.add(dirSelected);
+      blockInfoList.clear();
+      blockIdSet.clear();
+      dirSelected = getDirWithMaxFreeSpace(requestBytes, storageDirs, ignoredDirs);
     }
     return null;
   }
 
   /**
-   * Get the StorageDir which has max free space
-   * 
-   * @param requestSize space size to request
-   * @param storageDirs StorageDir candidates that the space will be allocated in
-   * @param ignoredList StorageDirs that have been ignored
+   * Get the StorageDir which has the most amount of free space.
+   *
+   * @param requestSize size of requested space in bytes
+   * @param storageDirs StorageDir candidates to allocate space
+   * @param ignoredList set of StorageDir to ignore
    * @return the StorageDir selected
    */
   private StorageDir getDirWithMaxFreeSpace(long requestSize, StorageDir[] storageDirs,

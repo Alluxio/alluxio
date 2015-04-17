@@ -23,9 +23,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
 

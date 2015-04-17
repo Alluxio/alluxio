@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -83,8 +83,8 @@ public class MasterInfoTest {
         ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           Callable<Void> call =
-              (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
-                  path.join(Integer.toString(i))));
+              (new ConcurrentCreator(depth - 1, concurrencyDepth - 1, path.join(Integer
+                  .toString(i))));
           futures.add(executor.submit(call));
         }
         for (Future<Void> f : futures) {
@@ -266,8 +266,8 @@ public class MasterInfoTest {
   }
 
   @Test
-  public void clientFileInfoDirectoryTest() throws InvalidPathException, FileDoesNotExistException,
-      FileAlreadyExistException, TachyonException {
+  public void clientFileInfoDirectoryTest() throws InvalidPathException,
+      FileDoesNotExistException, FileAlreadyExistException, TachyonException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals("testFolder", fileInfo.getName());
@@ -281,8 +281,8 @@ public class MasterInfoTest {
   }
 
   @Test
-  public void clientFileInfoEmptyFileTest() throws InvalidPathException, FileDoesNotExistException,
-      FileAlreadyExistException, BlockInfoException, TachyonException {
+  public void clientFileInfoEmptyFileTest() throws InvalidPathException,
+      FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException {
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
@@ -347,7 +347,8 @@ public class MasterInfoTest {
     int numFiles = mMasterInfo.ls(ROOT_PATH, true).size();
 
     ConcurrentRenamer concurrentRenamer =
-        new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2, TachyonURI.EMPTY_URI);
+        new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2,
+            TachyonURI.EMPTY_URI);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles, mMasterInfo.ls(ROOT_PATH2, true).size());
@@ -398,7 +399,8 @@ public class MasterInfoTest {
     // System.out.println(System.currentTimeMillis() - sMs);
     // sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mMasterInfo.getClientFileInfo(new TachyonURI("/testFile").join(MasterInfo.COL + k).join("0"));
+      mMasterInfo
+          .getClientFileInfo(new TachyonURI("/testFile").join(MasterInfo.COL + k).join("0"));
     }
     // System.out.println(System.currentTimeMillis() - sMs);
   }
@@ -531,7 +533,7 @@ public class MasterInfoTest {
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     long opTimeMs = System.currentTimeMillis();
-    mMasterInfo._addCheckpoint(-1, fileId, 1, new TachyonURI("/testPath"), opTimeMs);
+    mMasterInfo.addCheckpointInternal(-1, fileId, 1, new TachyonURI("/testPath"), opTimeMs);
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
@@ -543,7 +545,7 @@ public class MasterInfoTest {
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     long opTimeMs = System.currentTimeMillis();
-    mMasterInfo._completeFile(fileId, opTimeMs);
+    mMasterInfo.completeFileInternal(fileId, opTimeMs);
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
@@ -553,7 +555,7 @@ public class MasterInfoTest {
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     long opTimeMs = System.currentTimeMillis();
-    mMasterInfo._createFile(false, new TachyonURI("/testFolder/testFile"), false,
+    mMasterInfo.createFileInternal(false, new TachyonURI("/testFolder/testFile"), false,
         Constants.DEFAULT_BLOCK_SIZE_BYTE, opTimeMs);
     ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
@@ -569,7 +571,7 @@ public class MasterInfoTest {
     Assert.assertEquals(2, mMasterInfo.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mMasterInfo.getFileId(new TachyonURI("/testFolder/testFile")));
     long opTimeMs = System.currentTimeMillis();
-    Assert.assertTrue(mMasterInfo._delete(fileId, true, opTimeMs));
+    Assert.assertTrue(mMasterInfo.deleteInternal(fileId, true, opTimeMs));
     ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }
@@ -582,8 +584,8 @@ public class MasterInfoTest {
         mMasterInfo.createFile(new TachyonURI("/testFolder/testFile1"),
             Constants.DEFAULT_BLOCK_SIZE_BYTE);
     long opTimeMs = System.currentTimeMillis();
-    Assert.assertTrue(mMasterInfo
-        ._rename(fileId, new TachyonURI("/testFolder/testFile2"), opTimeMs));
+    Assert.assertTrue(mMasterInfo.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"),
+        opTimeMs));
     ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }
@@ -648,8 +650,8 @@ public class MasterInfoTest {
       FileDoesNotExistException, TachyonException, BlockInfoException {
     mMasterInfo.createFile(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     mMasterInfo.createFile(new TachyonURI("/testFile2"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    Assert.assertFalse(mMasterInfo.rename(new TachyonURI("/testFile1"),
-        new TachyonURI("/testFile2")));
+    Assert.assertFalse(mMasterInfo.rename(new TachyonURI("/testFile1"), new TachyonURI(
+        "/testFile2")));
   }
 
   @Test(expected = FileDoesNotExistException.class)
@@ -698,12 +700,12 @@ public class MasterInfoTest {
 
     // parse the written bytes and look for the Checkpoint and Version ImageElements
     String[] splits = new String(os.toByteArray()).split("\n");
-    for (String split: splits) {
+    for (String split : splits) {
       byte[] bytes = split.getBytes();
       JsonParser parser = mapper.getFactory().createParser(bytes);
       ImageElement ele = parser.readValueAs(ImageElement.class);
 
-       if (ele.mType.equals(ImageElementType.Checkpoint)) {
+      if (ele.mType.equals(ImageElementType.Checkpoint)) {
         checkpoint = ele;
       }
 

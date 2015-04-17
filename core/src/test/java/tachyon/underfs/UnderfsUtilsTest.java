@@ -12,7 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.util;
+package tachyon.underfs;
 
 import static org.junit.Assert.fail;
 
@@ -28,11 +28,11 @@ import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.util.CommonUtils;
+import tachyon.util.UfsUtils;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.
@@ -62,21 +62,17 @@ public class UnderfsUtilsTest {
 
   @Test
   public void loadUnderFsTest() throws IOException {
-    if (!UnderFileSystemCluster.isUFSHDFS()) {
-      return;
-    }
-
     String[] exclusions = {"/tachyon", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
       if (!mUfs.exists(exclusion)) {
-        mUfs.mkdirs(exclusion, true);
+        mUfs.mkdirs(mUnderfsAddress + exclusion, true);
       }
     }
 
     for (String inclusion : inclusions) {
       if (!mUfs.exists(inclusion)) {
-        mUfs.mkdirs(inclusion, true);
+        mUfs.mkdirs(mUnderfsAddress + inclusion, true);
       }
       CommonUtils.touch(mUnderfsAddress + inclusion + "/1",
           mLocalTachyonCluster.getMasterTachyonConf());

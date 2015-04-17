@@ -22,11 +22,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Pair;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
-import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.NetworkUtils;
@@ -36,33 +38,34 @@ import tachyon.util.NetworkUtils;
  */
 public class BlockInfo {
   /**
-   * Compute the block's id with the inode's id and the block's index in the inode. In Tachyon, the
-   * blockId is equal to ((inodeId << 30) + blockIndex).
+   * Compute the block id based on its inode id and its index among all blocks of the inode. In
+   * Tachyon, blockId is calculated by ((inodeId << 30) + blockIndex).
    *
-   * @param inodeId The inode's id of the block
-   * @param blockIndex The block's index of the block in the inode
-   * @return the block's id
+   * @param inodeId The inode id of the block
+   * @param blockIndex The index of the block in the inode
+   * @return the block id
    */
   public static long computeBlockId(int inodeId, int blockIndex) {
     return ((long) inodeId << 30) + blockIndex;
   }
 
   /**
-   * Compute the block's index in the inode with the block's id. The blockIndex is the last 30 bits
-   * of the blockId.
+   * Compute the index of a block within its inode based on the block id. The blockIndex is the 30
+   * least significant bits (LSBs) of the blockId.
    *
    * @param blockId The id of the block
-   * @return the block's index in the inode
+   * @return the index of the block in the inode
    */
   public static int computeBlockIndex(long blockId) {
     return (int) (blockId & 0x3fffffff);
   }
 
   /**
-   * Compute the inode's id of the block. The inodeId is the first 34 bits of the blockId.
+   * Compute the inode id of the block. The inodeId is the 34 most significant bits (MSBs) of the
+   * blockId.
    *
    * @param blockId The id of the block
-   * @return the inode's id of the block
+   * @return the inode id of the block
    */
   public static int computeInodeId(long blockId) {
     return (int) (blockId >> 30);
@@ -75,15 +78,18 @@ public class BlockInfo {
   public final long mOffset;
   public final long mLength;
 
+  /* Map worker's workerId to its NetAddress */
   private final Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>(5);
+  /* Map worker's NetAddress to storageDirId */
   private final Map<NetAddress, Long> mStorageDirIds = new HashMap<NetAddress, Long>(5);
 
   /**
    * @param inodeFile
    * @param blockIndex
-   * @param length Can not be no bigger than 2^31 - 1
+   * @param length must be smaller than 2^31 (i.e., 2GB)
    */
   BlockInfo(InodeFile inodeFile, int blockIndex, long length) {
+    Preconditions.checkArgument((length >> 31) == 0, "length must be smaller than 2^31");
     mInodeFile = inodeFile;
     mBlockIndex = blockIndex;
     mBlockId = computeBlockId(mInodeFile.getId(), mBlockIndex);
