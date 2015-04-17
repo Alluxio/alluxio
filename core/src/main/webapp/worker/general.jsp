@@ -3,7 +3,7 @@
 <%@ page import="tachyon.StorageLevelAlias" %>
 <%@ page import="tachyon.util.*" %>
 <%@ page import="tachyon.web.*" %>
-<%@ page import="tachyon.worker.hierarchy.StorageDir" %>
+<%@ page import="tachyon.worker.tiered.StorageDir" %>
 
 <html>
 <head>

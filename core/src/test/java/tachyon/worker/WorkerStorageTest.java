@@ -38,7 +38,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.worker.hierarchy.StorageDir;
+import tachyon.worker.tiered.StorageDir;
 import tachyon.underfs.UnderFileSystem;
 
 /**
