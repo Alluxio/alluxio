@@ -34,9 +34,9 @@ import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
 
 /**
- * Unit tests for tachyon.worker.StorageTier.
+ * Unit tests for tachyon.worker.tiered.StorageTier.
  */
-public class HierarchyStoreTest {
+public class TieredStoreTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
   private static final int DISK_CAPACITY_BYTES = 10000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
