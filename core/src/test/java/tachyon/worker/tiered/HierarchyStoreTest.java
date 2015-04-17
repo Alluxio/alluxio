@@ -48,10 +48,10 @@ public class HierarchyStoreTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.worker.hierarchystore.level.max");
-    System.clearProperty("tachyon.worker.hierarchystore.level1.alias");
-    System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.path");
-    System.clearProperty("tachyon.worker.hierarchystore.level1.dirs.quota");
+    System.clearProperty("tachyon.worker.tieredstore.level.max");
+    System.clearProperty("tachyon.worker.tieredstore.level1.alias");
+    System.clearProperty("tachyon.worker.tieredstore.level1.dirs.path");
+    System.clearProperty("tachyon.worker.tieredstore.level1.dirs.quota");
   }
 
   @Before
@@ -61,10 +61,10 @@ public class HierarchyStoreTest {
 
     // Add system properties to pre-populate the storage hierarchy
     // TODO Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
-    System.setProperty("tachyon.worker.hierarchystore.level.max", "2");
-    System.setProperty("tachyon.worker.hierarchystore.level1.alias", "HDD");
-    System.setProperty("tachyon.worker.hierarchystore.level1.dirs.path", "/disk1" + "," + "/disk2");
-    System.setProperty("tachyon.worker.hierarchystore.level1.dirs.quota", DISK_CAPACITY_BYTES + "");
+    System.setProperty("tachyon.worker.tieredstore.level.max", "2");
+    System.setProperty("tachyon.worker.tieredstore.level1.alias", "HDD");
+    System.setProperty("tachyon.worker.tieredstore.level1.dirs.path", "/disk1" + "," + "/disk2");
+    System.setProperty("tachyon.worker.tieredstore.level1.dirs.quota", DISK_CAPACITY_BYTES + "");
 
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
