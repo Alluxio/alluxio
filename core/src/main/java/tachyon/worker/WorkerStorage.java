@@ -550,9 +550,9 @@ public class WorkerStorage {
    * It finds the users that timed out and cleans them up.
    */
   public void checkStatus() {
-    List<Long> removedUsers = mUsers.checkStatus();
+    List<Long> timedOutUsers = mUsers.getTimedOutUsers();
 
-    for (long userId : removedUsers) {
+    for (long userId : timedOutUsers) {
       Collection<Long> tempBlockIdList = mUserIdToTempBlockIds.removeAll(userId);
       for (Long blockId : tempBlockIdList) {
         mTempBlockLocation.remove(new Pair<Long, Long>(userId, blockId));
