@@ -62,7 +62,7 @@
             <th>Size (Byte)</th>
             <th>In Memory</th>
           </tr>
-          <% for (WebInterfaceBrowseServlet.UiBlockInfo blockInfo : ((List<WebInterfaceBrowseServlet.UiBlockInfo>) request.getAttribute("fileBlocks"))) { %>
+          <% for (UiBlockInfo blockInfo : ((List<UiBlockInfo>) request.getAttribute("fileBlocks"))) { %>
             <tr>
               <td><%= blockInfo.getID() %></td>
               <td><%= blockInfo.getBlockLength() %></td>

@@ -469,6 +469,17 @@ public final class StorageDir {
   }
 
   /**
+   * Get last access time of a block in current StorageDir
+   *
+   * @return the last block access time in Ms, -1 if the block doesn't exist
+   */
+  public long getLastBlockAccessTimeMs(long blockId) {
+    Long lastBlockAccessTimeMs = mLastBlockAccessTimeMs.get(blockId);
+    return lastBlockAccessTimeMs != null ? lastBlockAccessTimeMs : -1;
+  }
+
+
+  /**
    * Get size of locked blocks in bytes in current StorageDir
    *
    * @return size of locked blocks in bytes in current StorageDir
