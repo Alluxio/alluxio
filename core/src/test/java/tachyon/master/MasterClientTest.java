@@ -64,7 +64,7 @@ public class MasterClientTest {
     Assert.assertTrue(masterClient.isConnected());
     masterClient.user_createFile("/file", "", Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     Assert.assertTrue(masterClient.getFileStatus(-1, "/file") != null);
-    masterClient.close();
+    masterClient.disconnect();
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.hierarchy;
+package tachyon.worker.tiered;
 
 /**
  * Block information on worker side.

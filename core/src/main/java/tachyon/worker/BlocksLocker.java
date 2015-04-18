@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import tachyon.worker.hierarchy.StorageDir;
+import tachyon.worker.tiered.StorageDir;
 
 /**
  * Handle local block locking.
