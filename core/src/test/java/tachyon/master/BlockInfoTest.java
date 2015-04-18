@@ -14,6 +14,7 @@
  */
 package tachyon.master;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
@@ -103,7 +104,15 @@ public class BlockInfoTest {
     ClientBlockInfo clientBlockInfo = tInfo.generateClientBlockInfo(mTachyonConf);
     Assert.assertEquals((long) Constants.DEFAULT_BLOCK_SIZE_BYTE * 300, clientBlockInfo.offset);
     Assert.assertEquals(800, clientBlockInfo.length);
-    Assert.assertEquals(3, clientBlockInfo.locations.size());
+    Assert.assertEquals(3, clientBlockInfo.getWorkerLocations().size());
+  }
+
+  private List<String> getHosts(List<NetAddress> locations) {
+    List<String> ret = new ArrayList<String>();
+    for (NetAddress address : locations) {
+      ret.add(address.getMHost());
+    }
+    return ret;
   }
 
   @Test
@@ -114,37 +123,58 @@ public class BlockInfoTest {
     long memStorageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
     long ssdStorageDirId = StorageDirId.getStorageDirId(1, StorageLevelAlias.SSD.getValue(), 0);
     long hddStorageDirId = StorageDirId.getStorageDirId(2, StorageLevelAlias.HDD.getValue(), 0);
-    Assert.assertEquals(0, tInfo.getLocations(mTachyonConf).size());
+    Assert.assertEquals(0, tInfo.getWorkerAddresses().size());
     tInfo.addLocation(15, new NetAddress("abc", 1, 11), hddStorageDirId);
-    Assert.assertEquals(1, tInfo.getLocations(mTachyonConf).size());
+    Assert.assertEquals(1, tInfo.getWorkerAddresses().size());
     tInfo.addLocation(22, new NetAddress("def", 2, 21), memStorageDirId);
-    List<NetAddress> locations = tInfo.getLocations(mTachyonConf);
+    List<NetAddress> locations = tInfo.getWorkerAddresses();
+    List<String> hosts = getHosts(locations);
     Assert.assertEquals(2, locations.size());
-    Assert.assertEquals("def", locations.get(0).getMHost());
-    Assert.assertEquals("abc", locations.get(1).getMHost());
+    Assert.assertTrue(hosts.contains("def"));
+    Assert.assertTrue(hosts.contains("abc"));
     tInfo.addLocation(29, new NetAddress("gh", 3, 31), ssdStorageDirId);
-    locations = tInfo.getLocations(mTachyonConf);
+    locations = tInfo.getWorkerAddresses();
+    hosts = getHosts(locations);
     Assert.assertEquals(3, locations.size());
-    Assert.assertEquals("def", locations.get(0).getMHost());
-    Assert.assertEquals("gh", locations.get(1).getMHost());
-    Assert.assertEquals("abc", locations.get(2).getMHost());
+    Assert.assertTrue(hosts.contains("def"));
+    Assert.assertTrue(hosts.contains("gh"));
+    Assert.assertTrue(hosts.contains("abc"));
     tInfo.addLocation(15, new NetAddress("abc", 1, 11), hddStorageDirId);
-    Assert.assertEquals(3, tInfo.getLocations(mTachyonConf).size());
+    Assert.assertEquals(3, tInfo.getWorkerAddresses().size());
     tInfo.addLocation(22, new NetAddress("def", 2, 21), memStorageDirId);
-    Assert.assertEquals(3, tInfo.getLocations(mTachyonConf).size());
+    Assert.assertEquals(3, tInfo.getWorkerAddresses().size());
     tInfo.addLocation(36, new NetAddress("ij", 4, 41), memStorageDirId);
-    locations = tInfo.getLocations(mTachyonConf);
+    locations = tInfo.getWorkerAddresses();
+    hosts = getHosts(locations);
     Assert.assertEquals(4, locations.size());
-    Assert.assertEquals(6, locations.get(0).getMPort() + locations.get(1).getMPort());
-    Assert.assertEquals("gh", locations.get(2).getMHost());
-    Assert.assertEquals("abc", locations.get(3).getMHost());
-    tInfo.removeLocation(15);
-    tInfo.removeLocation(36);
-    locations = tInfo.getLocations(mTachyonConf);
+    Assert.assertEquals(10, locations.get(0).getMPort() + locations.get(1).getMPort()
+        + locations.get(2).getMPort() + locations.get(3).getMPort());
+    Assert.assertTrue(hosts.contains("gh"));
+    Assert.assertTrue(hosts.contains("abc"));
+    tInfo.removeLocation(15, hddStorageDirId);
+    tInfo.removeLocation(36, memStorageDirId);
+    locations = tInfo.getWorkerAddresses();
     Assert.assertEquals(2, locations.size());
-    Assert.assertEquals("def", locations.get(0).getMHost());
-    Assert.assertEquals("gh", locations.get(1).getMHost());
-    tInfo.removeLocation(10);
-    Assert.assertEquals(2, tInfo.getLocations(mTachyonConf).size());
+    Assert.assertTrue(hosts.contains("def"));
+    Assert.assertTrue(hosts.contains("gh"));
+    tInfo.removeLocation(10, memStorageDirId);
+    Assert.assertEquals(2, tInfo.getWorkerAddresses().size());
+  }
+
+  @Test
+  public void isInMemoryTest1() {
+    // First add all the pages in SSD, and isInMemory should be false. Then add them
+    // in MEM, and it should return true
+    BlockInfo tInfo =
+        new BlockInfo(new InodeFile("t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE,
+            System.currentTimeMillis()), 300, Constants.MB * 10);
+    long memStorageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.MEM.getValue(), 0);
+    long ssdStorageDirId = StorageDirId.getStorageDirId(0, StorageLevelAlias.SSD.getValue(), 0);
+    // Add all the pages in SSD
+    tInfo.addLocation(1, new NetAddress("abc", 1, 1), ssdStorageDirId);
+    Assert.assertEquals(false, tInfo.isInMemory());
+    // Add all the pages in MEM
+    tInfo.addLocation(2, new NetAddress("def", 1, 1), memStorageDirId);
+    Assert.assertEquals(true, tInfo.isInMemory());
   }
 }

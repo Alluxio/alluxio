@@ -20,14 +20,18 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.StorageDirId;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.LocationInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.NetworkUtils;
@@ -40,6 +44,50 @@ public class RemoteBlockInStream extends BlockInStream {
 
   /** The block info of the block we are reading */
   private ClientBlockInfo mBlockInfo;
+
+  /**
+   * For each worker that stores the block, we also have a list of storage directories that
+   * the block is in. While reading, we want to consider the workers in order of storage tier, from
+   * lowest to highest, so we build a sorted list of NetAddress, storageDirId pairs.
+   */
+  private static class LocationInfoPair implements Comparable<LocationInfoPair> {
+    private NetAddress mAddress;
+    private long mStorageDirId;
+
+    public LocationInfoPair(NetAddress address, long storageDirId) {
+      super();
+      mAddress = address;
+      mStorageDirId = storageDirId;
+    }
+
+    public NetAddress getAddress() {
+      return mAddress;
+    }
+
+    public void setAddress(NetAddress address) {
+      mAddress = address;
+    }
+
+    public long getStorageDirId() {
+      return mStorageDirId;
+    }
+
+    public void setStorageDirId(long storageDirId) {
+      mStorageDirId = storageDirId;
+    }
+
+    @Override
+    public int compareTo(LocationInfoPair o) {
+      return StorageDirId.compareStorageLevel(mStorageDirId, o.getStorageDirId());
+    }
+  }
+
+  /**
+   * A list of workers sorted by storage tier, from lowest value to highest, i.e. highest storage
+   * tier (memory) to lowest.
+   */
+  List<LocationInfoPair> mSortedWorkers;
+
   /**
    * An input stream for the checkpointed copy of the block. If we are ever unable to read part of
    * the block from the workers, we use this checkpoint stream
@@ -55,8 +103,8 @@ public class RemoteBlockInStream extends BlockInStream {
   private long mCheckpointPos = -1;
 
   /**
-   * The position in the block we are currently at, relative to the block. The
-   * position relative to the file would be mBlockInfo.offset + mBlockPos.
+   * The position in the block we are currently at, relative to the block. The position relative to
+   * the file would be mBlockInfo.offset + mBlockPos.
    */
   private long mBlockPos = 0;
 
@@ -126,10 +174,28 @@ public class RemoteBlockInStream extends BlockInStream {
     }
 
     mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
+    mSortedWorkers = sortLocations(mBlockInfo);
 
     mRecache = readType.isCache();
 
     mUFSConf = ufsConf;
+  }
+
+  /**
+   * Builds a sorted list of LocationInfoPairs from the given client block info.
+   *
+   * @param blockInfo the metadata to create a sorted worker list out of
+   * @return a list of LocationInfoPairs sorted by storage tier level
+   */
+  private static List<LocationInfoPair> sortLocations(ClientBlockInfo blockInfo) {
+    List<LocationInfoPair> ret = new ArrayList<LocationInfoPair>();
+    for (LocationInfo worker : blockInfo.getWorkerLocations()) {
+      for (Long storageDirId : worker.getStorageDirIds()) {
+        ret.add(new LocationInfoPair(worker.getAddress(), storageDirId));
+      }
+    }
+    Collections.sort(ret);
+    return ret;
   }
 
   /**
@@ -250,22 +316,22 @@ public class RemoteBlockInStream extends BlockInStream {
 
   public static ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, ClientBlockInfo blockInfo,
       long offset, long len, TachyonConf conf) {
+    return readRemoteByteBuffer(tachyonFS, blockInfo, sortLocations(blockInfo), offset, len,
+        conf);
+  }
+
+  public static ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, ClientBlockInfo blockInfo,
+      List<LocationInfoPair> sortedWorkers, long offset, long len, TachyonConf conf) {
     ByteBuffer buf = null;
 
     try {
-      List<NetAddress> blockLocations = blockInfo.getLocations();
-      LOG.info("Block locations:" + blockLocations);
       String localhost = NetworkUtils.getLocalHostName(conf);
+      // We are given a list of Workers sorted by the storage tier they are in (so workers with the
+      // pages in memory come before workers in ssd, etc).
+      for (LocationInfoPair workerPair : sortedWorkers) {
+        String host = workerPair.getAddress().mHost;
+        int port = workerPair.getAddress().mSecondaryPort;
 
-      for (NetAddress blockLocation : blockLocations) {
-        String host = blockLocation.mHost;
-        int port = blockLocation.mSecondaryPort;
-
-        // The data is not in remote machine's memory if port == -1.
-        if (port == -1) {
-          continue;
-        }
-        
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())
             || host.equals(localhost)) {
@@ -394,12 +460,14 @@ public class RemoteBlockInStream extends BlockInStream {
 
     for (int i = 0; i < MAX_REMOTE_READ_ATTEMPTS; i ++) {
       mCurrentBuffer =
-          readRemoteByteBuffer(mTachyonFS, mBlockInfo, mBufferStartPos, length, mTachyonConf);
+          readRemoteByteBuffer(mTachyonFS, mBlockInfo, mSortedWorkers, mBufferStartPos, length,
+              mTachyonConf);
       if (mCurrentBuffer != null) {
         return true;
       }
       // The read failed, refresh the block info and try again
       mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
+      mSortedWorkers = sortLocations(mBlockInfo);
     }
     return false;
   }

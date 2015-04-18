@@ -117,9 +117,7 @@ public class StorageTierTest {
   @Test
   public void getStorageDirTest() throws IOException {
     long blockId = 1;
-    List<Long> removedBlockIds = new ArrayList<Long>();
-    StorageDir dir = mStorageTiers[0].requestSpace(USER_ID, 100, new HashSet<Integer>(),
-        removedBlockIds);
+    StorageDir dir = mStorageTiers[0].requestSpace(USER_ID, 100, new HashSet<Integer>());
     createBlockFile(dir, blockId, 100);
     StorageDir dir1 = mStorageTiers[0].getStorageDirByBlockId(1);
     Assert.assertEquals(dir, dir1);
@@ -146,28 +144,23 @@ public class StorageTierTest {
   @Test
   public void requestSpaceTest() throws IOException {
     long blockId = 1;
-    List<Long> removedBlockIds = new ArrayList<Long>();
     Assert.assertEquals(1000, mStorageTiers[0].getCapacityBytes());
     Assert.assertEquals(8000, mStorageTiers[1].getCapacityBytes());
-    StorageDir dir = mStorageTiers[0].requestSpace(USER_ID, 500, new HashSet<Integer>(),
-        removedBlockIds);
+    StorageDir dir = mStorageTiers[0].requestSpace(USER_ID, 500, new HashSet<Integer>());
     dir.updateTempBlockAllocatedBytes(USER_ID, blockId, 500);
     Assert.assertEquals(mStorageTiers[0].getStorageDirs()[0], dir);
     Assert.assertEquals(500, dir.getAvailableBytes());
     Assert.assertEquals(500, dir.getUsedBytes());
-    StorageDir dir1 = mStorageTiers[0].requestSpace(USER_ID, 501, new HashSet<Integer>(),
-        removedBlockIds);
+    StorageDir dir1 = mStorageTiers[0].requestSpace(USER_ID, 501, new HashSet<Integer>());
     Assert.assertEquals(null, dir1);
     createBlockFile(dir, blockId, 500);
-    boolean request = mStorageTiers[0].requestSpace(dir, USER_ID, 501, new HashSet<Integer>(),
-        removedBlockIds);
+    boolean request = mStorageTiers[0].requestSpace(dir, USER_ID, 501, new HashSet<Integer>());
     Assert.assertTrue(request);
     Assert.assertEquals(499, dir.getAvailableBytes());
     Assert.assertEquals(501, dir.getUsedBytes());
     Assert.assertTrue(mStorageTiers[1].containsBlock(blockId));
     Assert.assertEquals(500, mStorageTiers[1].getUsedBytes());
-    request = mStorageTiers[0].requestSpace(dir, USER_ID, 500, new HashSet<Integer>(),
-        removedBlockIds);
+    request = mStorageTiers[0].requestSpace(dir, USER_ID, 500, new HashSet<Integer>());
     Assert.assertEquals(false, request);
   }
 }
