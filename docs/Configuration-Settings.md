@@ -211,22 +211,22 @@ number.
   <td>Memory capacity of each worker node.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.hierarchystore.level.max</td>
+  <td>tachyon.worker.tieredstore.level.max</td>
   <td>1</td>
   <td>The max level of storage layers.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.hierarchystore.level0.alias</td>
+  <td>tachyon.worker.tieredstore.level0.alias</td>
   <td>MEM</td>
   <td>The alias of top storage layer.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.hierarchystore.level0.dirs.path</td>
+  <td>tachyon.worker.tieredstore.level0.dirs.path</td>
   <td>/mnt/ramdisk/</td>
   <td>The path of storage directory path for top storage layer. Note for macs the value should be "/Volumes/"</td>
 </tr>
 <tr>
-  <td>tachyon.worker.hierarchystore.level0.dirs.quota</td>
+  <td>tachyon.worker.tieredstore.level0.dirs.quota</td>
   <td>${tachyon.worker.memory.size}</td>
   <td>The capacity of top storage layer.</td>
 </tr>

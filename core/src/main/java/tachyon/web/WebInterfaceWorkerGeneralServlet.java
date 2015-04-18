@@ -28,7 +28,7 @@ import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerStorage;
 
 /**
- * Servlets that shows a worker's general information, including hierarchy storage details.
+ * Servlets that shows a worker's general information, including tiered storage details.
  */
 public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   private static final long serialVersionUID = 3735143768058466487L;

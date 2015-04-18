@@ -12,7 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.worker.hierarchy;
+package tachyon.worker.tiered;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,23 +51,23 @@ public class StorageTierTest {
     tachyonConf.set(Constants.TACHYON_HOME, tachyonHome);
 
     // Setup conf for worker
-    tachyonConf.set(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, Integer.toString(maxLevel));
-    tachyonConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
-    tachyonConf.set("tachyon.worker.hierarchystore.level0.dirs.path", tachyonHome + "/ramdisk");
-    tachyonConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", 1000 + "");
-    tachyonConf.set("tachyon.worker.hierarchystore.level1.alias", "HDD");
-    tachyonConf.set("tachyon.worker.hierarchystore.level1.dirs.path", tachyonHome + "/disk1,"
+    tachyonConf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, Integer.toString(maxLevel));
+    tachyonConf.set("tachyon.worker.tieredstore.level0.alias", "MEM");
+    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", tachyonHome + "/ramdisk");
+    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", 1000 + "");
+    tachyonConf.set("tachyon.worker.tieredstore.level1.alias", "HDD");
+    tachyonConf.set("tachyon.worker.tieredstore.level1.dirs.path", tachyonHome + "/disk1,"
         + tachyonHome + "/disk2");
-    tachyonConf.set("tachyon.worker.hierarchystore.level1.dirs.quota", 4000 + "," + 4000);
+    tachyonConf.set("tachyon.worker.tieredstore.level1.dirs.quota", 4000 + "," + 4000);
 
     mStorageTiers = new StorageTier[maxLevel];
     StorageTier nextTier = null;
     for (int level = maxLevel - 1; level >= 0; level --) {
-      String tierLevelAliasProp = "tachyon.worker.hierarchystore.level" + level + ".alias";
-      String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
+      String tierLevelAliasProp = "tachyon.worker.tieredstore.level" + level + ".alias";
+      String tierLevelDirPath = "tachyon.worker.tieredstore.level" + level + ".dirs.path";
       StorageLevelAlias storageLevelAlias = tachyonConf.getEnum(tierLevelAliasProp,
           StorageLevelAlias.MEM);
-      String tierDirsCapacityProp = "tachyon.worker.hierarchystore.level" + level + ".dirs.quota";
+      String tierDirsCapacityProp = "tachyon.worker.tieredstore.level" + level + ".dirs.quota";
       int index = level;
       if (index >= Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length) {
         index = level - 1;

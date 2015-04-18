@@ -1,13 +1,13 @@
 ---
 layout: global
-title: Hierarchical storage on Tachyon (Alpha)
+title: Tiered storage on Tachyon (Alpha)
 ---
 
-The hierarchical storage introduces more storage layers besides the existing memory layer. Each
+Tiered storage introduces more storage layers besides the existing memory layer. Each
 layer contains one or more storage directories, where each directory stores block files.
 
 When writing data into Tachyon, client needs to request space from a worker, and the worker
-allocates space on hierarchical storage, Currently the newly coming data is always stored onto top
+allocates space on tiered storage. Currently, the newly incoming data is always stored in the top
 level storage layer for high speed, and the space is allocated among storage directories in one
 storage layer by a configured strategy. If the upper level storage runs out of space, its block
 files will be evicted to successor storage layer by a configured strategy to get enough space. If
@@ -20,26 +20,26 @@ to lock the block and get the path of the block file. After reading the data, th
 worker to update the block access time and unlock it. If the block does not exist on local worker,
 the client will try to get the block data from remote workers which contain the block.
 
-## Configuring hierarchical storage
+## Configuring tiered storage
 
-Use tachyon-env.sh to configure the hierarchical storage by adding properties into
-Tachyon_JAVA_OPTS, there are six configuration parameters for hierarchical storage:
+Use tachyon-env.sh to configure the tiered storage by adding properties into
+Tachyon_JAVA_OPTS, there are six configuration parameters for tiered storage:
 
-    $ tachyon.worker.hierarchystore.level.max
+    $ tachyon.worker.tieredstore.level.max
 The maximum level of storage tier sets the number of storage layers in Tachyon. Its default
 value is 1, which means there is only one storage layer.
 
-    $ tachyon.worker.hierarchystore.level{x}.alias
+    $ tachyon.worker.tieredstore.level{x}.alias
 The alias of each storage tier, x represents the number of storage layers (starts from 0). There
 are pre-defined alias names in StorageLevelAlias, such as MEM, SSD, and HDD etc. Currently only
 local file system is supported, more types of storage layer will be added later.
 
-    $ tachyon.worker.hierarchystore.level{x}.dirs.path
+    $ tachyon.worker.tieredstore.level{x}.dirs.path
 The paths of storage directories in each storage layer, which are delimited by comma. x represents
 the storage layer. It is okay to have one directory for the memory layer. It is suggested to have
 one storage directory per hardware device for SSD and HDD.
 
-    $ tachyon.worker.hierarchystore.level{x}.dirs.quota
+    $ tachyon.worker.tieredstore.level{x}.dirs.quota
 The quotas for all storage directories in a storage layer, which are also be delimited by comma. x
 represents the storage layer. Workers use the corresponding quota in the configuration for storage
 directories. If the quota for some storage directories are not set, the last quota will be used.
@@ -62,13 +62,13 @@ future.
 
 For example:
 
-    -Dtachyon.worker.hierarchystore.level.max=2
-    -Dtachyon.worker.hierarchystore.level0.alias=MEM
-    -Dtachyon.worker.hierarchystore.level0.dirs.path=/mnt/ramdisk
-    -Dtachyon.worker.hierarchystore.level0.dirs.quota=10G
-    -Dtachyon.worker.hierarchystore.level1.alias=SSD
-    -Dtachyon.worker.hierarchystore.level1.dirs.path=/mnt/ssd1,/mnt/ssd2
-    -Dtachyon.worker.hierarchystore.level1.dirs.quota=60G,80G
+    -Dtachyon.worker.tieredstore.level.max=2
+    -Dtachyon.worker.tieredstore.level0.alias=MEM
+    -Dtachyon.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
+    -Dtachyon.worker.tieredstore.level0.dirs.quota=10G
+    -Dtachyon.worker.tieredstore.level1.alias=SSD
+    -Dtachyon.worker.tieredstore.level1.dirs.path=/mnt/ssd1,/mnt/ssd2
+    -Dtachyon.worker.tieredstore.level1.dirs.quota=60G,80G
     -Dtachyon.worker.allocate.strategy=MAX_FREE
     -Dtachyon.worker.evict.strategy=LRU
 
@@ -77,6 +77,6 @@ directory. The path is /mnt/ramdisk with 10GB quota. The alias of the second lay
 directories. The paths are /mnt/ssd1 and /mnt/ssd2, with 60GB and 80GB quotas respectively. The
 space allocation strategy is MAX_FREE and the block eviction strategy is LRU.
 
-Currently only synchronous eviction is supported by hierarchical storage, it is recommended to use
+Currently only synchronous eviction is supported by tiered storage, it is recommended to use
 small block size (less than 64MB), to reduce the latency of block eviction. this restriction will
 not exist when asynchronous eviction is introduced.

@@ -178,23 +178,23 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, 15 + "");
 
     // Setup conf for worker
-    mWorkerConf.set(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, Integer.toString(maxLevel));
-    mWorkerConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
-    mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
-    mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
+    mWorkerConf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, Integer.toString(maxLevel));
+    mWorkerConf.set("tachyon.worker.tieredstore.level0.alias", "MEM");
+    mWorkerConf.set("tachyon.worker.tieredstore.level0.dirs.path", mTachyonHome + "/ramdisk");
+    mWorkerConf.set("tachyon.worker.tieredstore.level0.dirs.quota", mWorkerCapacityBytes + "");
     
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
     mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     for (int level = 1; level < maxLevel; level ++) {
-      String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
+      String tierLevelDirPath = "tachyon.worker.tieredstore.level" + level + ".dirs.path";
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
       String newPath = "";
       for (int i = 0; i < dirPaths.length; i ++) {
         newPath += mTachyonHome + dirPaths[i] + ",";
       }
-      mWorkerConf.set("tachyon.worker.hierarchystore.level" + level + ".dirs.path",
+      mWorkerConf.set("tachyon.worker.tieredstore.level" + level + ".dirs.path",
           newPath.substring(0, newPath.length() - 1));
     }
 

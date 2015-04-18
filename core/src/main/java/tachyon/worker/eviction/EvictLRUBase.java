@@ -21,7 +21,7 @@ import java.util.Set;
 
 import tachyon.Pair;
 import tachyon.master.BlockInfo;
-import tachyon.worker.hierarchy.StorageDir;
+import tachyon.worker.tiered.StorageDir;
 
 /**
  * Base class for evicting blocks by LRU strategy.
