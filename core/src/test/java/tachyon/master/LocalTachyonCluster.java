@@ -212,19 +212,19 @@ public final class LocalTachyonCluster {
     // running with strange network configurations will see very slow tests
     mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
-    mWorkerConf.set("tachyon.worker.hierarchystore.level0.alias", "MEM");
-    mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.path", mTachyonHome + "/ramdisk");
-    mWorkerConf.set("tachyon.worker.hierarchystore.level0.dirs.quota", mWorkerCapacityBytes + "");
+    mWorkerConf.set("tachyon.worker.tieredstore.level0.alias", "MEM");
+    mWorkerConf.set("tachyon.worker.tieredstore.level0.dirs.path", mTachyonHome + "/ramdisk");
+    mWorkerConf.set("tachyon.worker.tieredstore.level0.dirs.quota", mWorkerCapacityBytes + "");
 
-    int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_HIERARCHY_STORAGE_LEVEL, 1);
+    int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
     for (int level = 1; level < maxLevel; level ++) {
-      String tierLevelDirPath = "tachyon.worker.hierarchystore.level" + level + ".dirs.path";
+      String tierLevelDirPath = "tachyon.worker.tieredstore.level" + level + ".dirs.path";
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
       String newPath = "";
       for (int i = 0; i < dirPaths.length; i ++) {
         newPath += mTachyonHome + dirPaths[i] + ",";
       }
-      mWorkerConf.set("tachyon.worker.hierarchystore.level" + level + ".dirs.path",
+      mWorkerConf.set("tachyon.worker.tieredstore.level" + level + ".dirs.path",
           newPath.substring(0, newPath.length() - 1));
     }
 
@@ -269,7 +269,7 @@ public final class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.memory.size");
     System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
-    System.clearProperty("tachyon.worker.hierarchystore.level.max");
+    System.clearProperty("tachyon.worker.tieredstore.level.max");
     System.clearProperty("tachyon.worker.network.netty.worker.threads");
     System.clearProperty("tachyon.worker.min.worker.threads");
   }

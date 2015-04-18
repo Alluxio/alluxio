@@ -227,6 +227,7 @@ public final class EditLog {
   /** When a master is replaying an edit log, mark the current edit log as an mInactive one. */
   private final boolean mInactive;
 
+  /** Path of the edit logs. */
   private final String mPath;
 
   /** Writer used to serialize Operations into the edit log. */
@@ -263,61 +264,60 @@ public final class EditLog {
       throws IOException {
     mInactive = inactive;
     mTachyonConf = tachyonConf;
-    if (!mInactive) {
-      LOG.info("Creating edit log file " + path);
-      mPath = path;
-      mUfs = UnderFileSystem.get(path, mTachyonConf);
-      if (sBackUpLogStartNum != -1) {
-        LOG.info("Deleting completed editlogs that are part of the image.");
-        deleteCompletedLogs(path, sBackUpLogStartNum, tachyonConf);
-        LOG.info("Backing up logs from " + sBackUpLogStartNum + " since image is not updated.");
-        String folder =
-            path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "/completed";
-        mUfs.mkdirs(folder, true);
-        String toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
-        int currentLogFileNum = 0;
-        String dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
-        while (mUfs.exists(toRename)) {
-          mUfs.rename(toRename, dstPath);
-          LOG.info("Rename " + toRename + " to " + dstPath);
-          currentLogFileNum ++;
-          sBackUpLogStartNum ++;
-          toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
-          dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
-        }
-        if (mUfs.exists(path)) {
-          dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
-          mUfs.rename(path, dstPath);
-          LOG.info("Rename " + path + " to " + dstPath);
-          currentLogFileNum ++;
-        }
-        sBackUpLogStartNum = -1;
-      }
-
-      // In case this file is created by different dfs-clients, which has been
-      // fixed in HDFS-3755 since 3.0.0, 2.0.2-alpha
-      if (mUfs.exists(path)) {
-        mUfs.delete(path, true);
-      }
-      mOs = mUfs.create(path);
-      mDos = new DataOutputStream(mOs);
-      LOG.info("Created file " + path);
-      mFlushedTransactionId = transactionId;
-      mTransactionId = transactionId;
-      mWriter = JsonObject.createObjectMapper().writer();
-    } else {
+    if (mInactive) {
       mPath = null;
       mUfs = null;
       mOs = null;
       mDos = null;
       mWriter = null;
+      return;
     }
+    LOG.info("Creating edit log file " + path);
+    mPath = path;
+    mUfs = UnderFileSystem.get(path, mTachyonConf);
+    if (sBackUpLogStartNum != -1) {
+      LOG.info("Deleting completed editlogs that are part of the image.");
+      deleteCompletedLogs(path, sBackUpLogStartNum, tachyonConf);
+      LOG.info("Backing up logs from " + sBackUpLogStartNum + " since image is not updated.");
+      String folder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "/completed";
+      mUfs.mkdirs(folder, true);
+      String toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
+      int currentLogFileNum = 0;
+      String dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
+      while (mUfs.exists(toRename)) {
+        mUfs.rename(toRename, dstPath);
+        LOG.info("Rename " + toRename + " to " + dstPath);
+        currentLogFileNum ++;
+        sBackUpLogStartNum ++;
+        toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
+        dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
+      }
+      if (mUfs.exists(path)) {
+        dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
+        mUfs.rename(path, dstPath);
+        LOG.info("Rename " + path + " to " + dstPath);
+        currentLogFileNum ++;
+      }
+      sBackUpLogStartNum = -1;
+    }
+
+    // In case this file is created by different dfs-clients, which has been
+    // fixed in HDFS-3755 since 3.0.0, 2.0.2-alpha
+    if (mUfs.exists(path)) {
+      mUfs.delete(path, true);
+    }
+    mOs = mUfs.create(path);
+    mDos = new DataOutputStream(mOs);
+    LOG.info("Created file " + path);
+    mFlushedTransactionId = transactionId;
+    mTransactionId = transactionId;
+    mWriter = JsonObject.createObjectMapper().writer();
   }
 
   /**
    * Only close the currently opened output streams.
    */
-  private synchronized void _closeActiveStream() {
+  private synchronized void closeActiveStream() {
     try {
       if (mDos != null) {
         mDos.close();
@@ -380,7 +380,7 @@ public final class EditLog {
     }
 
     try {
-      _closeActiveStream();
+      closeActiveStream();
       mUfs.close();
     } catch (IOException e) {
       throw Throwables.propagate(e);
@@ -582,7 +582,7 @@ public final class EditLog {
       return;
     }
 
-    _closeActiveStream();
+    closeActiveStream();
     LOG.info("Edit log max size of " + mMaxLogSize + " bytes reached, rotating edit log");
     String pathPrefix = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     LOG.info("path: " + path + " prefix: " + pathPrefix);

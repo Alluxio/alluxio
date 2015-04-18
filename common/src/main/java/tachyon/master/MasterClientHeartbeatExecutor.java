@@ -36,7 +36,7 @@ class MasterClientHeartbeatExecutor implements HeartbeatExecutor {
     try {
       mClient.user_heartbeat();
     } catch (IOException e) {
-      mClient.close();
+      mClient.disconnect();
       Throwables.propagate(e);
     }
   }
