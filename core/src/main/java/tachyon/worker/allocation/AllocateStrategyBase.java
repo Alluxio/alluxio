@@ -15,7 +15,7 @@
 
 package tachyon.worker.allocation;
 
-import tachyon.worker.hierarchy.StorageDir;
+import tachyon.worker.tiered.StorageDir;
  
 /**
  * Base class for AllocateStrategy, which provides basic function for AllocateStrategy
