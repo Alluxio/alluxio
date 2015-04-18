@@ -394,13 +394,14 @@ public class MasterInfoTest {
       FileDoesNotExistException, TachyonException {
     // long sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mMasterInfo.mkdirs(new TachyonURI("/testFile").join(MasterInfo.COL + k).join("0"), true);
+      mMasterInfo.mkdirs(new TachyonURI("/testFile")
+        .join(Constants.COLUMN_PREFIX + k).join("0"), true);
     }
     // System.out.println(System.currentTimeMillis() - sMs);
     // sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mMasterInfo
-          .getClientFileInfo(new TachyonURI("/testFile").join(MasterInfo.COL + k).join("0"));
+      mMasterInfo.getClientFileInfo(new TachyonURI("/testFile")
+        .join(Constants.COLUMN_PREFIX + k).join("0"));
     }
     // System.out.println(System.currentTimeMillis() - sMs);
   }

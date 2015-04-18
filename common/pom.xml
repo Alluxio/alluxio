@@ -8,8 +8,8 @@
   </parent>
   <artifactId>tachyon-common</artifactId>
   <packaging>jar</packaging>
+  <name>Tachyon Common</name>
   <description>Tachyon Project's Common Classes for Clients and Servers</description>
-  <name>Tachyon Project Common</name>
 
   <properties>
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>

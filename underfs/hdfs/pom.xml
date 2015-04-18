@@ -19,7 +19,7 @@
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon</artifactId>
+      <artifactId>tachyon-hadoop</artifactId>
       <version>${project.version}</version>
     </dependency>
 

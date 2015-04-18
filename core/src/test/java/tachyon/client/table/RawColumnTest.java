@@ -55,7 +55,7 @@ public class RawColumnTest {
       for (int pid = 0; pid < 5; pid ++) {
         Assert.assertTrue(column.createPartition(pid));
         TachyonFile file = column.getPartition(pid);
-        Assert.assertEquals("/table" + TachyonURI.SEPARATOR + MasterInfo.COL + col
+        Assert.assertEquals("/table" + TachyonURI.SEPARATOR + Constants.COLUMN_PREFIX + col
             + TachyonURI.SEPARATOR + pid, file.getPath());
       }
       Assert.assertEquals(5, column.partitions());
