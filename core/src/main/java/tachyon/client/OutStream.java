@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -21,9 +21,10 @@ import java.io.OutputStream;
 import tachyon.conf.TachyonConf;
 
 /**
- * <code>OutStream</code> is the base output stream class for TachyonFile streaming output methods.
- * It can only be gotten by calling the methods in <code>tachyon.client.TachyonFile</code>, but can
- * not be initialized by the client code.
+ * <code>OutStream</code> is the base class of output stream for TachyonFile streaming output. To
+ * get an instance of this class, one should call the method <code>getOutStream</code> of
+ * <code>tachyon.client.TachyonFile</code>, rather than constructing a new instance directly in the
+ * client code.
  */
 public abstract class OutStream extends OutputStream {
   protected final TachyonFile mFile;
@@ -44,7 +45,7 @@ public abstract class OutStream extends OutputStream {
 
   /**
    * Cancel the write operations to the OutStream
-   * 
+   *
    * @throws IOException
    */
   public abstract void cancel() throws IOException;
