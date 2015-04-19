@@ -93,12 +93,28 @@ public class CommonUtilsTest {
     Assert.assertEquals("foo", CommonUtils.concatPath("foo"));
     Assert.assertEquals("/foo", CommonUtils.concatPath("/foo"));
     Assert.assertEquals("/foo", CommonUtils.concatPath("/foo", ""));
+
+    // Join
     Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo", "bar"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo", "bar/"));
     Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo/", "bar"));
     Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo/", "bar/"));
+
+    // Whitespace must be trimmed.
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo ", "bar  "));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo ", "  bar"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo ", "  bar  "));
+
+    // Redundant separator must be trimmed.
     Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo/", "bar//"));
+
+    // Multiple components to join.
     Assert.assertEquals("/foo/bar/a/b/c", CommonUtils.concatPath("/foo", "bar", "a", "b", "c"));
     Assert.assertEquals("/foo/bar/b/c", CommonUtils.concatPath("/foo", "bar", "", "b", "c"));
+
+    // Non-string
+    Assert.assertEquals("/foo/bar/1", CommonUtils.concatPath("/foo", "bar", 1));
+    Assert.assertEquals("/foo/bar/2", CommonUtils.concatPath("/foo", "bar", 2L));
   }
 
   @Test
