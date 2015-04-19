@@ -83,7 +83,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     if (recursive && file.isDirectory()) {
       String[] files = file.list();
       for (String child : files) {
-        success = success && delete(CommonUtils.concat(path, child), true);
+        success = success && delete(CommonUtils.concatPath(path, child), true);
       }
     }
 

@@ -69,9 +69,9 @@ public class Utils {
       String hostname = tachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
       int port =  tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
       if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false)) {
-        return CommonUtils.concat(Constants.HEADER_FT + hostname + ":" + port, path);
+        return CommonUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }
-      return CommonUtils.concat(Constants.HEADER + hostname + ":" + port, path);
+      return CommonUtils.concatPath(Constants.HEADER + hostname + ":" + port, path);
     }
   }
 }

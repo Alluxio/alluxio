@@ -71,7 +71,7 @@ public class FileOutStream extends OutStream {
     mCachedBytes = 0;
 
     if (mWriteType.isThrough()) {
-      mUnderFsFile = CommonUtils.concat(mTachyonFS.createAndGetUserUfsTempFolder(ufsConf),
+      mUnderFsFile = CommonUtils.concatPath(mTachyonFS.createAndGetUserUfsTempFolder(ufsConf),
           mFile.mFileId);
       UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile, ufsConf, tachyonConf);
       if (mBlockCapacityByte > Integer.MAX_VALUE) {

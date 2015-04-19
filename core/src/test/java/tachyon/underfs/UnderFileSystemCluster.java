@@ -126,7 +126,7 @@ public abstract class UnderFileSystemCluster {
       String path = getUnderFilesystemAddress() + TachyonURI.SEPARATOR;
       UnderFileSystem ufs = UnderFileSystem.get(path, mTachyonConf);
       for (String p : ufs.list(path)) {
-        ufs.delete(CommonUtils.concat(path, p), true);
+        ufs.delete(CommonUtils.concatPath(path, p), true);
       }
     }
   }
