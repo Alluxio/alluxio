@@ -24,8 +24,8 @@ import java.util.Set;
 import com.google.common.collect.HashMultimap;
 
 import tachyon.Pair;
-import tachyon.worker.hierarchy.BlockInfo;
-import tachyon.worker.hierarchy.StorageDir;
+import tachyon.worker.tiered.BlockInfo;
+import tachyon.worker.tiered.StorageDir;
 
 /**
  * Used to evict old blocks among several StorageDirs by LRU strategy.

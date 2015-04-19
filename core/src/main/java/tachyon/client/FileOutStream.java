@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -29,9 +29,9 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
- * <code>FileOutStream</code> implementation of TachyonFile. It can only be gotten by calling the
- * methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by the client
- * code.
+ * <code>FileOutStream</code> implementation of TachyonFile. To get an instance of this class, one
+ * should call the method <code>getOutStream</code> of <code>tachyon.client.TachyonFile</code>,
+ * rather than constructing a new instance directly in the client code.
  */
 public class FileOutStream extends OutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -71,8 +71,8 @@ public class FileOutStream extends OutStream {
     mCachedBytes = 0;
 
     if (mWriteType.isThrough()) {
-      mUnderFsFile = CommonUtils.concat(mTachyonFS.createAndGetUserUfsTempFolder(ufsConf),
-          mFile.mFileId);
+      mUnderFsFile =
+          CommonUtils.concat(mTachyonFS.createAndGetUserUfsTempFolder(ufsConf), mFile.mFileId);
       UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile, ufsConf, tachyonConf);
       if (mBlockCapacityByte > Integer.MAX_VALUE) {
         throw new IOException("BLOCK_CAPACITY (" + mBlockCapacityByte + ") can not bigger than "
@@ -90,55 +90,55 @@ public class FileOutStream extends OutStream {
 
   @Override
   public void close() throws IOException {
-    if (!mClosed) {
-      if (mCurrentBlockOutStream != null) {
-        mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
-      }
+    if (mClosed) {
+      return;
+    }
+    if (mCurrentBlockOutStream != null) {
+      mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
+    }
 
-      Boolean canComplete = false;
-      if (mWriteType.isThrough()) {
-        if (mCancel) {
-          mCheckpointOutputStream.close();
-          UnderFileSystem underFsClient = UnderFileSystem.get(mUnderFsFile, mTachyonConf);
-          underFsClient.delete(mUnderFsFile, false);
-        } else {
-          mCheckpointOutputStream.flush();
-          mCheckpointOutputStream.close();
-          mTachyonFS.addCheckpoint(mFile.mFileId);
-          canComplete = true;
-        }
-      }
-
-      if (mWriteType.isCache()) {
-        try {
-          if (mCancel) {
-            for (BlockOutStream bos : mPreviousBlockOutStreams) {
-              bos.cancel();
-            }
-          } else {
-            for (BlockOutStream bos : mPreviousBlockOutStreams) {
-              bos.close();
-            }
-            canComplete = true;
-          }
-        } catch (IOException ioe) {
-          if (mWriteType.isMustCache()) {
-            LOG.error(ioe.getMessage(), ioe);
-            throw new IOException("Fail to cache: " + mWriteType, ioe);
-          } else {
-            LOG.warn("Fail to cache for: ", ioe);
-          }
-        }
-      }
-
-      if (canComplete) {
-        if (mWriteType.isAsync()) {
-          mTachyonFS.asyncCheckpoint(mFile.mFileId);
-        }
-        mTachyonFS.completeFile(mFile.mFileId);
+    Boolean canComplete = false;
+    if (mWriteType.isThrough()) {
+      if (mCancel) {
+        mCheckpointOutputStream.close();
+        UnderFileSystem underFsClient = UnderFileSystem.get(mUnderFsFile, mTachyonConf);
+        underFsClient.delete(mUnderFsFile, false);
+      } else {
+        mCheckpointOutputStream.flush();
+        mCheckpointOutputStream.close();
+        mTachyonFS.addCheckpoint(mFile.mFileId);
+        canComplete = true;
       }
     }
 
+    if (mWriteType.isCache()) {
+      try {
+        if (mCancel) {
+          for (BlockOutStream bos : mPreviousBlockOutStreams) {
+            bos.cancel();
+          }
+        } else {
+          for (BlockOutStream bos : mPreviousBlockOutStreams) {
+            bos.close();
+          }
+          canComplete = true;
+        }
+      } catch (IOException ioe) {
+        if (mWriteType.isMustCache()) {
+          LOG.error(ioe.getMessage(), ioe);
+          throw new IOException("Fail to cache: " + mWriteType, ioe);
+        } else {
+          LOG.warn("Fail to cache for: ", ioe);
+        }
+      }
+    }
+
+    if (canComplete) {
+      if (mWriteType.isAsync()) {
+        mTachyonFS.asyncCheckpoint(mFile.mFileId);
+      }
+      mTachyonFS.completeFile(mFile.mFileId);
+    }
     mClosed = true;
   }
 
