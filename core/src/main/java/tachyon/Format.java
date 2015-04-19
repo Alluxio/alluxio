@@ -38,7 +38,7 @@ public class Format {
     LOG.info("Formatting {}:{}", name, folder);
     if (ufs.exists(folder)) {
       for (String file : ufs.list(folder)) {
-        if (!ufs.delete(CommonUtils.concat(folder, file), true)) {
+        if (!ufs.delete(CommonUtils.concatPath(folder, file), true)) {
           LOG.info("Failed to remove {}:{}", name, file);
           return false;
         }
@@ -89,7 +89,7 @@ public class Format {
         String[] dirPaths = tachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {
-          String dirWorkerDataFolder = CommonUtils.concat(dirPath.trim(), workerDataFolder);
+          String dirWorkerDataFolder = CommonUtils.concatPath(dirPath.trim(), workerDataFolder);
           UnderFileSystem ufs = UnderFileSystem.get(dirWorkerDataFolder, tachyonConf);
           if (ufs.exists(dirWorkerDataFolder)) {
             if (!formatFolder(name, dirWorkerDataFolder, tachyonConf)) {
