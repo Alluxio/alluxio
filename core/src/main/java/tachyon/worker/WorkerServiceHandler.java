@@ -27,7 +27,7 @@ import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
-import tachyon.worker.hierarchy.StorageDir;
+import tachyon.worker.tiered.StorageDir;
 
 /**
  * <code>WorkerServiceHandler</code> handles all the RPC calls to the worker.

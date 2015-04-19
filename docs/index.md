@@ -92,7 +92,7 @@ line.
 understand an existing underlayer storage system.
 * [FAQ](FAQ.html)
 * [Tachyon Java API (Javadoc)](api/java/index.html)
-* [Hierarchical Storage (Alpha)](Hierarchy-Storage-on-Tachyon.html)
+* [Tiered Storage (Alpha)](Tiered-Storage-on-Tachyon.html)
 
 **Tachyon Presentations:**
 

@@ -150,7 +150,7 @@ public class BlockInfo {
 
   /**
    * Get the locations of the block, which are the workers' net address who has the data of the
-   * block in its hierarchy store. The list is sorted by the storage level alias(MEM, SSD, HDD).
+   * block in its tiered storage. The list is sorted by the storage level alias(MEM, SSD, HDD).
    * That is, the worker who has the data of the block in its memory is in the top of the list.
    *
    * @return the net addresses of the locations
