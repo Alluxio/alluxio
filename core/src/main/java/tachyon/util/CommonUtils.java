@@ -171,12 +171,20 @@ public final class CommonUtils {
    */
   public static String concatPath(Object... paths) {
     List<String> trimmedPathList = new ArrayList<String>();
-    for (Object path : paths) {
-      String trimmedPath =
-          CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path.toString().trim());
-      if (trimmedPath != "") {
-        trimmedPathList.add(trimmedPath);
+    for (int k = 0; k < paths.length; k ++) {
+      String path = paths[k].toString().trim();
+      String trimmedPath;
+      if (k == 0) {
+        trimmedPath =
+            CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
+      } else {
+        trimmedPath =
+            CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
+        if (trimmedPath == "") {
+          continue;
+        }
       }
+      trimmedPathList.add(trimmedPath);
     }
     return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
   }
