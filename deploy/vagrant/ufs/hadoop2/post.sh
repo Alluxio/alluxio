@@ -9,5 +9,3 @@ echo "check node list..."
 until /hadoop/bin/yarn node -list -all ; do sleep 1; done
 echo "check storage space..."
 until /hadoop/bin/hdfs dfsadmin -report ; do sleep 1; done;
-
-
