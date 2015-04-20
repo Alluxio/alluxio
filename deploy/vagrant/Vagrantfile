@@ -13,41 +13,61 @@ Total = @cmd['Total']
 Provider = @cmd['Provider']
 Memory = @cmd['Memory']
 Addr = @cmd['Addresses']
-Init = "ufs/#{Ufs}/init.sh"
-Post = "ufs/#{Ufs}/post.sh"
 
 validate_provider(Provider)
 
+# load version configuration from tachyon_version.yml
+VersionYaml = TachyonVersion.new('tachyon_version.yml')
+
 require "./core/config_#{Provider}"
 
-Version = get_version
-
-# config cluster and create /etc/hosts 
+# config cluster and create /etc/hosts
 NameArr = Array.new
 config_hosts(NameArr)
-
-# Vagrantfile API/syntax version. 
+# Vagrantfile API/syntax version.
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.require_version ">= 1.6.5"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  (1..Total).each do |i|    
+  (1..Total).each do |i|
     # multi vm config
     name = NameArr[i]
     config.vm.define "#{name}" do |n|
-      # common config
-      if Version == "Github"
-        n.vm.provision "shell", path: "core/download_tachyon.sh"
+      n.vm.hostname = "#{name}"
+
+      # Provision when the machine is master
+      if i == Total
+        n.vm.provision :ansible do |ans|
+          ans.playbook = "provision/playbook.yaml"
+          ans.limit = "all" # to let "- hosts: all" work in playbooks
+          is_git = VersionYaml.type == "Github"
+          if is_git
+            git_url, git_hash = VersionYaml.repo_hash
+          else
+            git_url, git_hash = '', ''
+          end
+          is_vb = Provider == "vb"
+          ans.extra_vars = {
+              is_git: is_git,
+              git_url: git_url,
+              git_hash: git_hash,
+              is_aws: Provider == "aws",
+              is_vb: is_vb,
+              ufs: Ufs,
+          }
+          ans.verbose = "vvvv"
+          if is_vb
+            ans.raw_arguments = ["--private-key","~/.vagrant.d/insecure_private_key"]
+          end
+        end
       end
-      n.vm.provision "shell", path: "core/init.sh"
-      n.vm.provision "shell", path: Init
 
       # Provider specific init
       if Provider == "vb"
-        config_vb(n, i, Total, name, Version)
+        config_vb(n, i, Total, name, VersionYaml.type == "Local")
       end
 
       if Provider == "docker"
-        config_docker(n, i, Total, name, Version)
+        config_docker(n, i, Total, name)
       end
 
       if Provider == "aws"
@@ -64,7 +84,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           BLOCK_DEVICE_MAPPING = @ec2['Block_Device_Mapping']
           TAG = @ec2['Tag']
         end
-        config_aws(n, i, Total, name, Version)
+        config_aws(n, i, Total, name)
       end
 
       if Provider == "openstack"
@@ -81,7 +101,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           SSH_USERNAME = @os['SSH_Username']
           TAG = @os['Tag']
         end
-        config_os(n, i, Total, name, Version)
+        config_os(n, i, Total, name)
       end
     end
   end
