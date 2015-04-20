@@ -24,10 +24,11 @@ vagrant
 ├── init.yml -> conf/init.yml.hdfs2
 |__ tachyon_version.yml
 ├── README.md
+├── run_vb.sh
 └── ...
 </pre>
 
-Command `vagrant up` allows you to launch a Tachyon on VirtualBox VMs. It reads Tachyon cluster configuration from `tachyon/deploy/vagrant/init.yml`, then the script automatically creates the cluster, sets up under filesystem, and starts Tachyon master and workers on the cluster for you.
+Command `run_vb.sh` allows you to launch a Tachyon on VirtualBox VMs. It reads Tachyon cluster configuration from `tachyon/deploy/vagrant/init.yml`, then the script automatically creates the cluster, sets up under filesystem, and starts Tachyon master and workers on the cluster for you.
 
 ## Prerequisite
 * **Install Vagrant**. You can download and install [Vagrant](https://www.vagrantup.com/downloads.html). Version 1.6.5 and higher is required
@@ -72,7 +73,7 @@ For Docker provider, containers use DHCP, these addresses are not used.
 
 Run command to launch your Tachyon cluster
 
-    $ vagrant up
+    $ run_vb.sh
 
 A successful deployment will end up with messages showing Tachyon master and workers are launched.
 
