@@ -4,7 +4,7 @@ function printUsage() {
   cat << EOF 
 Usage: tachyon-perf-repeat <TestCase> [Options]
 
-The TestCase is the same as ./tachyon-perf
+The TestCase is the same as tachyon-perf
 
 Options are as follows:
 
