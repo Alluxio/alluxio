@@ -90,15 +90,23 @@ public class CommonUtilsTest {
   @Test
   public void concatPath() {
     Assert.assertEquals("", CommonUtils.concatPath());
+    Assert.assertEquals("/bar", CommonUtils.concatPath("/", "bar"));
+
     Assert.assertEquals("foo", CommonUtils.concatPath("foo"));
     Assert.assertEquals("/foo", CommonUtils.concatPath("/foo"));
     Assert.assertEquals("/foo", CommonUtils.concatPath("/foo", ""));
 
-    // Join
+    // Join base without trailing "/"
     Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo", "bar"));
     Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo", "bar/"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo", "/bar"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo", "/bar/"));
+
+    // Join base with trailing "/"
     Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo/", "bar"));
     Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo/", "bar/"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo/", "/bar"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo/", "/bar/"));
 
     // Whitespace must be trimmed.
     Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo ", "bar  "));
