@@ -8,7 +8,7 @@ The TestCase is the same as tachyon-perf
 
 Each Name=Value pair will be used to change the given configuration setting for the
 given test case.  This allows for scriptable changes to the configuration which can
-be used to script running the same test case with a variety of different
+be used to automate running the same test case with a variety of different
 configurations.
 
 This script uses the xsltproc tool to apply the configuration changes and will fail
@@ -41,7 +41,7 @@ TACHYON_PERF_LIBEXEC_DIR=${TACHYON_PERF_LIBEXEC_DIR:-$DEFAULT_PERF_LIBEXEC_DIR}
 CONFIG_FILE="${TACHYON_PERF_HOME}/conf/testsuite/${TEST}.xml"
 
 if [ ! -e "${CONFIG_FILE}" ]; then
-  echo "Failed to locate test case configuration file for test ${TEST}"
+  echo "Failed to locate the configuration file for test case ${TEST}"
   exit 1
 fi
 
@@ -59,8 +59,9 @@ while [ $# -gt 0 ]
 do
   NVP=(${1})
 
-  if [ ${#NVP[@]} -lt 2 ]; then
+  if [ ${#NVP[@]} != 2 ]; then
     echo "Invalid NVP ${NVP}"
+    exit 1
   fi
 
   NAME=${NVP[0]}
@@ -87,5 +88,5 @@ if [ -e "${TEMP_FILE}" ]; then
 fi
 rm "${ORIG_FILE}"
 
-echo "Successfully configured ${TEST} configuration ${CONFIG_FILE}"
+echo "Successfully configured test case ${TEST} configuration file ${CONFIG_FILE}"
 

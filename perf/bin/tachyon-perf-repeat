@@ -50,7 +50,7 @@ PRECLEAN=0
 CLEAN=0
 shift
 
-while [[ $# > 1 ]]
+while [ $# -gt 0 ]
 do
   OPTION=$1
   shift
