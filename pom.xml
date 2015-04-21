@@ -285,7 +285,10 @@
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
             <exclude>**/package-info.java</exclude>
+<<<<<<< HEAD
             <exclude>**/src/main/resources/tachyon-default.properties</exclude>
+=======
+>>>>>>> branch-0.6
 
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
