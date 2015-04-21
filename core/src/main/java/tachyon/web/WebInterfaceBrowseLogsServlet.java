@@ -119,8 +119,9 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
     request.setAttribute("baseUrl", "./browseLogs");
     request.setAttribute("currentPath", "");
 
-    String baseDir = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
-    File logsDir = new File(baseDir, "logs");
+    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String logsPath = mTachyonConf.get(Constants.LOGS_DIR, tachyonHome + "/logs");
+    File logsDir = new File(logsPath);
     String requestFile = request.getParameter("path");
 
     if (requestFile == null || requestFile.isEmpty()) {
