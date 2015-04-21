@@ -1,6 +1,6 @@
 #!/bin/bash
 
-namenode=$(tail -n1 /tachyon/conf/workers)
+namenode=`tail -n1 /tachyon/conf/workers`
 
 # create tachyon env
 /bin/cp /tachyon/conf/tachyon-env.sh.template /tachyon/conf/tachyon-env.sh
