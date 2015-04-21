@@ -1,5 +1,5 @@
 #!/bin/bash
-N_INSTANCE_BEG=5
+N_INSTANCE_BEG=2
 N_INSTANCE_END=5
 
 ROOT=`dirname $0`
