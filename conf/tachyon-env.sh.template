@@ -62,6 +62,9 @@ export TACHYON_WORKER_SLEEP="0.02"
 # in the Java classpath.  May be necessary if there are jar conflicts
 #export TACHYON_PREPEND_TACHYON_CLASSES="yes"
 
+# Where log files are stored. $TACHYON_HOME/logs by default.
+#export TACHYON_LOGS_DIR=$TACHYON_HOME/logs
+
 CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export TACHYON_JAVA_OPTS+="
