@@ -1389,7 +1389,7 @@ public class MasterInfo extends ImageWriter {
 
     if (inode.isDirectory()) {
       for (Inode child : ((InodeFolder) inode).getChildren()) {
-        ret.add(child.generateClientFileInfo(CommonUtils.concat(path, child.getName())));
+        ret.add(child.generateClientFileInfo(CommonUtils.concatPath(path, child.getName())));
       }
     } else {
       ret.add(inode.generateClientFileInfo(path.toString()));

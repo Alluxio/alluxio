@@ -189,9 +189,9 @@ public class WorkerStorage {
 
           // TODO checkpoint process. In future, move from midPath to dstPath should be done by
           // master
-          String midPath = CommonUtils.concat(mUfsWorkerDataFolder, fileId);
+          String midPath = CommonUtils.concatPath(mUfsWorkerDataFolder, fileId);
           String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data");
-          String dstPath = CommonUtils.concat(ufsDataFolder, fileId);
+          String dstPath = CommonUtils.concatPath(ufsDataFolder, fileId);
           LOG.info("Thread " + mId + " is checkpointing file " + fileId + " from " + mDataFolder
               + " to " + midPath + " to " + dstPath);
 
@@ -329,7 +329,7 @@ public class WorkerStorage {
     mDataFolder = mTachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
 
     String userTmpFolder = mTachyonConf.get(Constants.WORKER_USER_TEMP_RELATIVE_FOLDER, "users");
-    mUserFolder = CommonUtils.concat(mDataFolder, userTmpFolder);
+    mUserFolder = CommonUtils.concatPath(mDataFolder, userTmpFolder);
 
     int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
     mCheckpointExecutor =
@@ -357,7 +357,7 @@ public class WorkerStorage {
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     String ufsWorkerFolder =
         mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, ufsAddress + "/tachyon/workers");
-    mUfsWorkerFolder = CommonUtils.concat(ufsWorkerFolder, mWorkerId);
+    mUfsWorkerFolder = CommonUtils.concatPath(ufsWorkerFolder, mWorkerId);
     mUfsWorkerDataFolder = mUfsWorkerFolder + "/data";
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
     mUsers = new Users(mUfsWorkerFolder, mTachyonConf);
@@ -412,9 +412,9 @@ public class WorkerStorage {
   public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,
       SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, IOException {
     // TODO This part needs to be changed.
-    String srcPath = CommonUtils.concat(getUserUfsTempFolder(userId), fileId);
+    String srcPath = CommonUtils.concatPath(getUserUfsTempFolder(userId), fileId);
     String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data");
-    String dstPath = CommonUtils.concat(ufsDataFolder, fileId);
+    String dstPath = CommonUtils.concatPath(ufsDataFolder, fileId);
     try {
       if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
@@ -1031,7 +1031,7 @@ public class WorkerStorage {
    */
   private void swapOutOrphanBlocks(StorageDir storageDir, long blockId) throws IOException {
     ByteBuffer buf = storageDir.getBlockData(blockId, 0, -1);
-    String ufsOrphanBlock = CommonUtils.concat(mUfsOrphansFolder, blockId);
+    String ufsOrphanBlock = CommonUtils.concatPath(mUfsOrphansFolder, blockId);
     OutputStream os = mUfs.create(ufsOrphanBlock);
     final int bulkSize = Constants.KB * 64;
     byte[] bulk = new byte[bulkSize];
