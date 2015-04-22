@@ -35,6 +35,9 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
 
+/**
+ * BlockHandler for files on LocalFS, such as RamDisk, SSD and HDD.
+ */
 final class BlockHandlerLocal implements BlockHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -44,21 +47,18 @@ final class BlockHandlerLocal implements BlockHandler {
   private final String mFilePath;
   private final Closer mCloser = Closer.create();
 
-  BlockHandlerLocal(final String filePath) throws FileNotFoundException {
+  BlockHandlerLocal(String filePath) throws FileNotFoundException {
     mFilePath = Preconditions.checkNotNull(filePath);
     LOG.debug("{} is created", mFilePath);
     mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
   }
 
-  public boolean delete() throws IOException {
-    checkPermission();
-    return new File(mFilePath).delete();
-  }
-
   /**
    * Check the bounds for reading
    * 
+   * @param position the starting position in the block
+   * @param length the size of the data to be read
    * @return actual read length
    * @throws IOException
    */
@@ -84,6 +84,10 @@ final class BlockHandlerLocal implements BlockHandler {
     return length;
   }
 
+  public void close() throws IOException {
+    mCloser.close();
+  }
+
   /**
    * Check the permission of the block, if not set, set the permission
    * 
@@ -98,20 +102,13 @@ final class BlockHandlerLocal implements BlockHandler {
     }
   }
 
-  public void close() throws IOException {
-    mCloser.close();
+  public boolean delete() throws IOException {
+    checkPermission();
+    return new File(mFilePath).delete();
   }
 
   public FileRegion getFileRegion(long offset, long length) {
     return new DefaultFileRegion(mLocalFileChannel, offset, length);
-  }
-
-  public boolean isOpen() {
-    return mLocalFileChannel.isOpen();
-  }
-
-  public int read(ByteBuffer buf) throws IOException {
-    return mLocalFileChannel.read(buf);
   }
 
   public ByteBuffer read(long position, int length) throws IOException {
@@ -119,22 +116,23 @@ final class BlockHandlerLocal implements BlockHandler {
     return mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, position, readLen);
   }
 
-  public long transferTo(long position, long length, BlockHandler dest) throws IOException {
-    return mLocalFileChannel.transferTo(position, length, dest);
-  }
-
-  public int write(ByteBuffer buf) throws IOException {
-    return mLocalFileChannel.write(buf);
+  public int transferTo(long position, int length, BlockHandler dest, long offset)
+      throws IOException {
+    ByteBuffer readBuf = read(position, length);
+    return dest.write(offset, readBuf);
   }
 
   public int write(long position, ByteBuffer buf) throws IOException {
     checkPermission();
-    int bufLen = buf.limit();
+    int bufLen = buf.remaining();
     ByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, position, bufLen);
     out.put(buf);
-    CommonUtils.cleanDirectBuffer(buf);
     CommonUtils.cleanDirectBuffer(out);
-
-    return bufLen;
+    if (buf.remaining() == 0) {
+      CommonUtils.cleanDirectBuffer(buf);
+      return bufLen;
+    } else {
+      return bufLen - buf.remaining();
+    }
   }
 }

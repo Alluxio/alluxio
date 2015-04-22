@@ -267,7 +267,7 @@ public final class StorageDir {
     try {
       BlockHandler srcBH = closer.register(getBlockHandler(blockId));
       dstBH = closer.register(dstDir.getBlockHandler(blockId));
-      copySuccess = srcBH.transferTo(0L, size, dstBH) > -1;
+      copySuccess = srcBH.transferTo(0L, (int)size, dstBH, 0) > -1;
     } finally {
       closer.close();
     }

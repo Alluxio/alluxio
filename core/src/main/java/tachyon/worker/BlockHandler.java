@@ -15,20 +15,20 @@
 
 package tachyon.worker;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ByteChannel;
 
 import io.netty.channel.FileRegion;
 
 import tachyon.TachyonURI;
 
 /**
- * General interface for handling block I/O. Block handlers for different under file systems can be
- * implemented by extending this class. It is not thread safe, the caller must guarantee thread
- * safe. This class is internal and subject to changes.
+ * General interface for handling block I/O. Block handlers for different under file systems
+ * implement this interface. It is not thread safe, the caller must guarantee thread safe.
+ * This interface is internal and subject to changes.
  */
-public interface BlockHandler extends ByteChannel {
+public interface BlockHandler extends Closeable {
 
   class Factory {
 
@@ -40,8 +40,7 @@ public interface BlockHandler extends ByteChannel {
      * @throws IOException
      * @throws IllegalArgumentException
      */
-    public static BlockHandler get(String path)
-        throws IOException, IllegalArgumentException {
+    public static BlockHandler get(String path) throws IOException, IllegalArgumentException {
       if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
         return new BlockHandlerLocal(path);
       }
@@ -50,7 +49,7 @@ public interface BlockHandler extends ByteChannel {
   }
 
   /**
-   * Deletes the block
+   * Delete the block
    * 
    * @return true if success, otherwise false
    * @throws IOException
@@ -58,7 +57,7 @@ public interface BlockHandler extends ByteChannel {
   boolean delete() throws IOException;
 
   /**
-   * Get some file region for some part of block
+   * Get file region for some part of block
    * 
    * @param offset the starting position
    * @param length the length of the region
@@ -82,10 +81,11 @@ public interface BlockHandler extends ByteChannel {
    * @param position the starting position in the block
    * @param length the size of the data to be transferred
    * @param dest the destination handler
+   * @param offset the offset in the destination handler
    * @return the size of data that is transferred
    * @throws IOException
    */
-  long transferTo(long position, long length, BlockHandler dest) throws IOException;
+  int transferTo(long position, int length, BlockHandler dest, long offset) throws IOException;
 
   /**
    * Write data to a block
