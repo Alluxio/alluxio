@@ -72,7 +72,7 @@ public class ValidateConf {
         continue;
       }
       if (propertyName.startsWith("tachyon.") && !validProperties.contains(propertyName)) {
-        System.out.println("Unsupported or deprecated property " + propertyName);
+        System.err.println("Unsupported or deprecated property " + propertyName);
         valid = false;
       }
     }
