@@ -11,6 +11,10 @@
     - name: configure ssh
       script: ssh.sh
 
+    - name: open PasswordAuthentication of sshd for openstack
+      shell: sudo sed -i -e "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+      when: is_os
+
     - name: configure hosts
       script: host.sh
 

@@ -50,6 +50,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               is_git: is_git,
               git_url: git_url,
               git_hash: git_hash,
+              is_os: Provider == "openstack",
               is_aws: Provider == "aws",
               is_vb: is_vb,
               ufs: Ufs,

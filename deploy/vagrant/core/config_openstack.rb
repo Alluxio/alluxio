@@ -25,5 +25,4 @@ def config_os(config, i, total, name)
     os.server_name = TAG + name
   end
 
-  config.vm.provision "shell", inline: 'sudo sed -i -e "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config'
 end
