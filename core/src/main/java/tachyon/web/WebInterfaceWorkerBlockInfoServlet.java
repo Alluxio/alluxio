@@ -44,7 +44,7 @@ import tachyon.worker.tiered.StorageDir;
 public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private static final long serialVersionUID = 4148506607369321012L;
   private final transient WorkerStorage mWorkerStorage;
-  private final TachyonConf mTachyonConf;
+  private final transient TachyonConf mTachyonConf;
 
   public WebInterfaceWorkerBlockInfoServlet(WorkerStorage workerStorage, TachyonConf conf) {
     mWorkerStorage = workerStorage;
@@ -69,7 +69,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     if (!(filePath == null || filePath.isEmpty())) {
       // Display file block info
       try {
-        UiFileInfo uiFileInfo = getUiFileInfo(tachyonClient, -1, new TachyonURI(filePath));
+        UiFileInfo uiFileInfo = getUiFileInfo(tachyonClient, new TachyonURI(filePath));
         request.setAttribute("fileBlocksOnTier", uiFileInfo.getBlocksOnTier());
         request.setAttribute("blockSizeByte", uiFileInfo.getBlockSizeBytes());
         request.setAttribute("path", filePath);
@@ -91,7 +91,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       }
     }
 
-    List<Integer> fileIds = getFileIds(tachyonClient);
+    List<Integer> fileIds = getSortedFileIds();
     request.setAttribute("nTotalFile", fileIds.size());
 
     // URL can not determine offset and limit, let javascript in jsp determine and redirect
@@ -106,7 +106,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       List<Integer> subFileIds = fileIds.subList(offset, offset + limit);
       List<UiFileInfo> uiFileInfos = new ArrayList<UiFileInfo>(subFileIds.size());
       for (int fileId : subFileIds) {
-        uiFileInfos.add(getUiFileInfo(tachyonClient, fileId, TachyonURI.EMPTY_URI));
+        uiFileInfos.add(getUiFileInfo(tachyonClient, fileId));
       }
       request.setAttribute("fileInfos", uiFileInfos);
     } catch (FileDoesNotExistException fdne) {
@@ -133,7 +133,12 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
   }
 
-  private List<Integer> getFileIds(TachyonFS tachyonClient) {
+  /***
+   * Get sorted fileIds of the files cached in the worker.
+   *
+   * @return a sorted fileId list
+   */
+  private List<Integer> getSortedFileIds() {
     Set<Integer> fileIds = new HashSet<Integer>();
     for (StorageDir storageDir : mWorkerStorage.getStorageDirs()) {
       for (long blockId : storageDir.getBlockIds()) {
@@ -146,8 +151,36 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     return sortedFileIds;
   }
 
+  /***
+   * Get the UiFileInfo object based on fileId.
+   *
+   * @param tachyonClient the TachyonFS client.
+   * @param fileId the file id of the file.
+   * @return the UiFileInfo object of the file.
+   * @throws FileDoesNotExistException
+   * @throws IOException
+   */
+  private UiFileInfo getUiFileInfo(TachyonFS tachyonClient, int fileId)
+      throws FileDoesNotExistException, IOException {
+    return getUiFileInfo(tachyonClient, fileId, TachyonURI.EMPTY_URI);
+  }
+
+  /***
+   * Get the UiFileInfo object based on filePath.
+   *
+   * @param tachyonClient the TachyonFS client.
+   * @param filePath the path of the file.
+   * @return the UiFileInfo object of the file.
+   * @throws FileDoesNotExistException
+   * @throws IOException
+   */
+  private UiFileInfo getUiFileInfo(TachyonFS tachyonClient, TachyonURI filePath)
+      throws FileDoesNotExistException, IOException {
+    return getUiFileInfo(tachyonClient, -1, filePath);
+  }
+
   /**
-   * Gets the uiFileInfo object that represents the fileId, or the filePath if fileId is -1.
+   * Gets the UiFileInfo object that represents the fileId, or the filePath if fileId is -1.
    *
    * @param tachyonClient the TachyonFS client.
    * @param fileId the file id of the file.
