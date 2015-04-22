@@ -128,7 +128,7 @@ The common configuration contains constants which specify paths and the log appe
   <td>How many times to try to reconnect with master.</td>
 </tr>
 <tr>
-  <td>tachyon.metrics.conf</td>
+  <td>tachyon.metrics.conf.file</td>
   <td>$tachyon.home + "/conf/metrics.properties"</td>
   <td>The file path of the metrics system configuration file. By default it is metrics.properties in the conf directory.</td>
 </tr>
