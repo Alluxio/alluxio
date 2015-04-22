@@ -114,7 +114,7 @@ public class Constants {
   public static final String ZOOKEEPER_LEADER_PATH = "tachyon.zookeeper.leader.path";
   public static final String UNDERFS_HADOOP_PREFIXS = "tachyon.underfs.hadoop.prefixes";
   public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.byte";
-  public static final String METRICS_CONF_FILE = "tachyon.metrics.conf";
+  public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
 
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";

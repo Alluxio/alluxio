@@ -36,8 +36,8 @@
 #    For example, master.sink.console.period takes precedence over
 #    *.sink.console.period.
 #    4. A metrics specific configuration
-#    "tachyon.metrics.conf=${TACHYON_HOME}/conf/metrics.properties" should be
-#    added to Java properties using -Dtachyon.metrics.conf=xxx if you want to
+#    "tachyon.metrics.conf.file=${TACHYON_HOME}/conf/metrics.properties" should be
+#    added to Java properties using -Dtachyon.metrics.conf.file=xxx if you want to
 #    customize metrics system. You can also put the file in ${TACHYON_HOME}/conf
 #    and it will be loaded automatically.
 #
