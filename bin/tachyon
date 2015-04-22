@@ -21,6 +21,7 @@ function printUsage {
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
   echo -e "  thriftGen     \t Generate all thrift code."
   echo -e "  version       \t Print Tachyon version and exit."
+  echo -e "  validateConf  \t Validate Tachyon conf and exit."
   echo "Commands print help when invoked without parameters."
 }
 
@@ -253,6 +254,8 @@ elif [ "$COMMAND" == "clearCache" ]; then
   exit 0
 elif [ "$COMMAND" == "version" ]; then
   CLASS=tachyon.Version
+elif [ "$COMMAND" == "validateConf" ]; then
+  CLASS=tachyon.ValidateConf
 else
   printUsage
   exit 1
