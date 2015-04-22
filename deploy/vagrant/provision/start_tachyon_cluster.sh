@@ -2,5 +2,5 @@
 
 cd /tachyon/bin
 ./tachyon format
-./tachyon-start.sh all SudoMount
+./tachyon-start.sh all Mount
 jps
