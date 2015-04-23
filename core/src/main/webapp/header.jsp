@@ -8,6 +8,8 @@
         <li id="configuration-li"><a href="./configuration">System Configuration</a></li>
         <li id="browse-li"><a href="./browse?path=/">Browse File System</a></li>
         <li id="memory-li"><a href="./memory">In Memory Files</a></li>
+      <% } else {%>
+        <li id="blockInfo-li"><a href="./blockInfo">BlockInfo</a></li>
       <% } %>
       <li id="browseLogs-li"><a href="./browseLogs">Browse Log Files</a></li>
     </ul>
