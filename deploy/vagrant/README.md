@@ -17,9 +17,20 @@ across all running environments accelerates development, testing, and adoption p
 This directory contains Vagrant recipe to create VirtualBox images and Amazon EC2 instances and
 configurations to initialize Hadoop (both 1.x and 2.x) and GlusterFS.
 
-Please download and install Vagrant (at least version 1.6.5). Once Vagrant is installed, starting an
-Tachyon cluster requires only `vagrant up` command. A two-VM cluster is then created. `vagrant
+Dependencies:
+Please download and install Vagrant (at least version 1.6.5). 
+We use Ansible for provisioning, please install ansible according to http://docs.ansible.com/intro_installation.html. 
+Also, if you want to setup a local cluster on your host machine, you need virtualbox.
+ 
+Once the dependencies are satisfied, starting an
+Tachyon cluster requires only `./run_vb.sh`. A two-VM cluster is then created. `vagrant
 destroy` command destroys the cluster.
+
+After `./run_vb.sh` or `./run_aws.sh` finishes, a purple line like 
+`>>> visit 54.200.126.199:19999 for Tachyon Web Console <<<` will be shown to tell you how to access the web console.
+
+`tachyon/deploy/vagrant/tachyon_version.yml` is the configration file that sets whether you want to use
+your local tachyon directory, or clone from a specific commit of a github repo.
 
 `tachyon/deploy/vagrant/init.yml` is the configuration file that sets different cluster parameters.
 They are explained below.
@@ -52,7 +63,7 @@ For Docker provider, containers use DHCP, these addresses are not used.
 
 ## VirtualBox Provider
 
-Run command `vagrant up [--provider=virtualbox]` to start VirtualBox VM. After VM is up, login to
+Run command `./run_vb.sh` to start VirtualBox VM. After VM is up, login to
 the VM as `root` and password as `vagrant`.
 
 ## AWS Provider
@@ -90,7 +101,7 @@ necessary.
 
 Then start the clusters.
 
-    vagrant up --provider=virtualbox
+    ./run_vb.sh
 
 ## Examples of Running AWS Clusters Using HDFS 2.4 as Underfilesystem
 
@@ -122,6 +133,9 @@ Then start the clusters.
 
     ./run_docker.sh
 
+## Test AWS deployment performance
+
+`bash util/aws_parallel_perf_test.sh` will deploy a range of size of clusters to AWS, range is specified in the file via `N_INSTANCE_BEG` and `N_INSTANCE_END`, the default values is 2 and 5. This script will use `time` to measure the performance.
 
 ## Use Tachyon Cluster
 
