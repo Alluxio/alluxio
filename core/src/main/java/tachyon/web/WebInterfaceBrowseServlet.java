@@ -47,33 +47,6 @@ import tachyon.util.CommonUtils;
  * Servlet that provides data for browsing the file system.
  */
 public class WebInterfaceBrowseServlet extends HttpServlet {
-  /**
-   * Class to make referencing file objects more intuitive. Mainly to avoid implicit association by
-   * array indexes.
-   */
-  public static final class UiBlockInfo {
-    private final long mId;
-    private final long mBlockLength;
-    private final boolean mInMemory;
-
-    public UiBlockInfo(BlockInfo blockInfo) {
-      mId = blockInfo.mBlockId;
-      mBlockLength = blockInfo.mLength;
-      mInMemory = blockInfo.isInMemory();
-    }
-
-    public long getBlockLength() {
-      return mBlockLength;
-    }
-
-    public long getID() {
-      return mId;
-    }
-
-    public boolean inMemory() {
-      return mInMemory;
-    }
-  }
 
   private static final long serialVersionUID = 6121623049981468871L;
 

@@ -54,7 +54,7 @@ public class UfsUtils {
       filePath = path.getPath().substring(
           ufsRootPath.getPath().lastIndexOf(TachyonURI.SEPARATOR) + 1);
     }
-    return new TachyonURI(CommonUtils.concat(tfsRootPath, filePath));
+    return new TachyonURI(CommonUtils.concatPath(tfsRootPath, filePath));
   }
 
   /**
@@ -171,7 +171,7 @@ public class UfsUtils {
               continue;
             }
             LOG.info("Get: " + filePath);
-            String aPath = CommonUtils.concat(ufsPath, filePath);
+            String aPath = CommonUtils.concatPath(ufsPath, filePath);
             String checkPath = aPath.substring(ufsAddrRootPath.toString().length());
             if (checkPath.startsWith(TachyonURI.SEPARATOR)) {
               checkPath = checkPath.substring(TachyonURI.SEPARATOR.length());
@@ -184,7 +184,7 @@ public class UfsUtils {
           }
         }
         // ufsPath is a directory, so only concat the tfsRoot with the relative path
-        TachyonURI tfsPath = new TachyonURI(CommonUtils.concat(
+        TachyonURI tfsPath = new TachyonURI(CommonUtils.concatPath(
             tachyonPath, ufsPath.getPath().substring(ufsAddrRootPath.getPath().length())));
         LOG.debug("Loading ufs. ufs path is a directory. tfsPath = " + tfsPath + ".");
         if (!tfs.exist(tfsPath)) {

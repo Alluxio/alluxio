@@ -76,7 +76,7 @@ public class Users {
    * @return String contains the user's temporary data folder in the under filesystem.
    */
   public String getUserUfsTempFolder(long userId) {
-    return CommonUtils.concat(mUserUnderFSFolder, userId);
+    return CommonUtils.concatPath(mUserUnderFSFolder, userId);
   }
 
   /**
