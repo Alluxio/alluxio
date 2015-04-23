@@ -77,7 +77,8 @@ public final class BlockResponse {
             ByteBuffer buffer = handler.read(msg.getOffset(), (int)msg.getLength());
             out.add(Unpooled.wrappedBuffer(buffer));
             break;
-          default: // TRANSFER
+          case TRANSFER: // intend to fall through as TRANSFER is the default type.
+          default:
             out.add(handler.getFileRegion(msg.getOffset(), (int)msg.getLength()));
             break;
         }

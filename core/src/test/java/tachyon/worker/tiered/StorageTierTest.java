@@ -127,7 +127,7 @@ public class StorageTierTest {
   }
 
   private void initializeStorageDir(StorageDir dir, long userId) throws IOException {
-    UnderFileSystem ufs = dir.getFs();
+    UnderFileSystem ufs = dir.getUfs();
     ufs.mkdirs(dir.getUserTempPath(userId), true);
     CommonUtils.changeLocalFileToFullPermission(dir.getUserTempPath(userId));
   }

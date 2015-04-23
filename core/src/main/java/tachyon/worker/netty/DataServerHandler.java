@@ -53,23 +53,23 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     final long offset = req.getOffset();
     final long len = req.getLength();
     final int lockId = mLocker.getLockId();
-    final StorageDir dir = mLocker.lock(blockId, lockId);
+    final StorageDir storageDir = mLocker.lock(blockId, lockId);
 
     BlockHandler handler = null;
     try {
       validateInput(req);
-      handler = dir.getBlockHandler(blockId);
+      handler = storageDir.getBlockHandler(blockId);
 
-      final long fileLength = dir.getBlockSize(blockId);
+      final long fileLength = storageDir.getBlockSize(blockId);
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
       ChannelFuture future =
           ctx.writeAndFlush(new BlockResponse(blockId, offset, readLength, handler));
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(handler));
-      dir.accessBlock(blockId);
+      storageDir.accessBlock(blockId);
       LOG.info("Response remote request by reading from {}, preparation done.",
-          dir.getBlockFilePath(blockId));
+          storageDir.getBlockFilePath(blockId));
     } catch (Exception e) {
       // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);

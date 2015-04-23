@@ -107,8 +107,8 @@ final class BlockHandlerLocal implements BlockHandler {
     return new File(mFilePath).delete();
   }
 
-  public FileRegion getFileRegion(long offset, long length) {
-    return new DefaultFileRegion(mLocalFileChannel, offset, length);
+  public FileRegion getFileRegion(long position, long length) {
+    return new DefaultFileRegion(mLocalFileChannel, position, length);
   }
 
   public ByteBuffer read(long position, int length) throws IOException {

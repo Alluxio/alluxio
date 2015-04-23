@@ -59,11 +59,11 @@ public interface BlockHandler extends Closeable {
   /**
    * Get file region for some part of block
    * 
-   * @param offset the starting position
+   * @param position the starting position
    * @param length the length of the region
    * @return file region for the specific part of block
    */
-  FileRegion getFileRegion(long offset, long length);
+  FileRegion getFileRegion(long position, long length);
 
   /**
    * Read data from a block

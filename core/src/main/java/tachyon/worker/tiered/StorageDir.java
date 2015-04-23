@@ -509,11 +509,11 @@ public final class StorageDir {
   }
 
   /**
-   * Get current StorageDir's file system
+   * Get current StorageDir's under file system
    * 
    * @return StorageDir's under file system
    */
-  public UnderFileSystem getFs() {
+  public UnderFileSystem getUfs() {
     return mFs;
   }
 
@@ -522,7 +522,7 @@ public final class StorageDir {
    *
    * @return configuration of the under file system
    */
-  public Object getFsConf() {
+  public Object getUfsConf() {
     return mConf;
   }
 
