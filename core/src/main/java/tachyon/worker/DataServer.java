@@ -43,7 +43,7 @@ public interface DataServer extends Closeable {
     }
   }
 
-  public abstract int getPort();
+  int getPort();
 
-  public abstract boolean isClosed();
+  boolean isClosed();
 }
