@@ -52,6 +52,7 @@ import tachyon.worker.SpaceCounter;
  */
 public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final long NON_EXISTENT_TIME = -1L;
   /** Mapping from blockId to blockSize in bytes */
   private final ConcurrentMap<Long, Long> mBlockSizes = new ConcurrentHashMap<Long, Long>();
   /** Mapping from blockId to its last access time in milliseconds */
@@ -467,6 +468,17 @@ public final class StorageDir {
   public Set<Entry<Long, Long>> getLastBlockAccessTimeMs() {
     return mLastBlockAccessTimeMs.entrySet();
   }
+
+  /**
+   * Get last access time of a block in current StorageDir
+   *
+   * @return the last block access time in Ms, -1 if the block doesn't exist
+   */
+  public long getLastBlockAccessTimeMs(long blockId) {
+    Long lastBlockAccessTimeMs = mLastBlockAccessTimeMs.get(blockId);
+    return lastBlockAccessTimeMs != null ? lastBlockAccessTimeMs : NON_EXISTENT_TIME;
+  }
+
 
   /**
    * Get size of locked blocks in bytes in current StorageDir
