@@ -56,12 +56,20 @@ public class ValidateConf {
     validProperties.add("tachyon.version");
     validProperties.add("tachyon.debug");
 
-    // There are three properties that are auto-generated in WorkerStorage rather than defined in
-    // Tachyon.Constants.
-    Pattern aliasPattern = Pattern.compile("tachyon.worker.tieredstore.level\\d+.alias");
-    Pattern dirsPathPattern = Pattern.compile("tachyon.worker.tieredstore.level\\d+.dirs.path");
-    Pattern dirsQuotaPattern = Pattern.compile("tachyon.worker.tieredstore.level\\d+.dirs.quota");
-
+    // There are three properties that are auto-generated in WorkerStorage based on corresponding
+    // format strings defined in Tachyon.Constants. Here we transform each format string to a regexp
+    // to check if a property name follows the format. E.g.,
+    // "tachyon.worker.tieredstore.leve%d.alias" is transformed to
+    // "tachyon\.worker\.tieredstore\.level\d+\.alias".
+    Pattern aliasPattern =
+        Pattern.compile(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT.replace("%d", "\\d+")
+            .replace(".", "\\."));
+    Pattern dirsPathPattern =
+        Pattern.compile(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT
+            .replace("%d", "\\d+").replace(".", "\\."));
+    Pattern dirsQuotaPattern =
+        Pattern.compile(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT.replace("%d",
+            "\\d+").replace(".", "\\."));
     TachyonConf tachyonConf = new TachyonConf();
     boolean valid = true;
     for (Entry<String, String> entry : tachyonConf.toMap().entrySet()) {
