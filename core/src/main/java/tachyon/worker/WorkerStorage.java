@@ -398,8 +398,7 @@ public class WorkerStorage {
    * if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
    * checkpointing is that through {@link tachyon.client.WriteType} operations write to
    * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a user temp
-   * directory
-   * (temp directory is defined in the worker as {@link #getUserUfsTempFolder(long)}).
+   * directory (temp directory is defined in the worker as {@link #getUserUfsTempFolder(long)}).
    *
    * @param userId The user id of the client who sends the notification
    * @param fileId The id of the checkpointed file
@@ -486,9 +485,9 @@ public class WorkerStorage {
   /**
    * Notify the worker the block is cached.
    *
-   * This is called remotely from {@link tachyon.client.TachyonFS#cacheBlock(long)} which is
-   * only ever called from {@link tachyon.client.BlockOutStream#close()} (though it's a public api
-   * so anyone could call it). There are a few interesting preconditions for this to work.
+   * This is called remotely from {@link tachyon.client.TachyonFS#cacheBlock(long)} which is only
+   * ever called from {@link tachyon.client.BlockOutStream#close()} (though it's a public api so
+   * anyone could call it). There are a few interesting preconditions for this to work.
    *
    * 1) Client process writes to files locally under a tachyon defined temp directory. 2) Worker
    * process is on the same node as the client 3) Client is talking to the local worker directly
@@ -763,9 +762,12 @@ public class WorkerStorage {
     }
     StorageTier nextStorageTier = null;
     for (int level = maxStorageLevels - 1; level >= 0; level --) {
-      String tierLevelAliasProp = "tachyon.worker.tieredstore.level" + level + ".alias";
-      String tierLevelDirPath = "tachyon.worker.tieredstore.level" + level + ".dirs.path";
-      String tierDirsQuotaProp = "tachyon.worker.tieredstore.level" + level + ".dirs.quota";
+      String tierLevelAliasProp =
+          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level);
+      String tierLevelDirPath =
+          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
+      String tierDirsQuotaProp =
+          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, level);
       int index = level;
       if (index >= Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length) {
         index = level - 1;
@@ -937,8 +939,8 @@ public class WorkerStorage {
    * Request space from the worker, and expecting worker return the appropriate StorageDir which has
    * enough space for the requested space size
    *
-   * @param dirCandidate The StorageDir in which the space will be allocated. If null, search
-   *                     all available StorageDirs to allocate the requested size.
+   * @param dirCandidate The StorageDir in which the space will be allocated. If null, search all
+   *        available StorageDirs to allocate the requested size.
    * @param userId The id of the user who send the request
    * @param requestBytes The requested space size, in bytes
    * @return StorageDir assigned, null if failed
