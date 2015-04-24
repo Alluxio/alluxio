@@ -1,5 +1,8 @@
 - hosts: all
   tasks:
+    - name: mount devices defined in block device mapping
+      script: device.sh
+
     - name: prepare /vagrant
       shell: sudo mkdir -p /vagrant && user=`whoami` && sudo chown -R $user /vagrant
       when: not is_vb # vb sync the whole /vagrant directory
