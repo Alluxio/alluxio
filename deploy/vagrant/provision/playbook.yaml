@@ -2,6 +2,7 @@
   tasks:
     - name: mount devices defined in block device mapping
       script: device.sh
+      when: is_aws
 
     - name: prepare /vagrant
       shell: sudo mkdir -p /vagrant && user=`whoami` && sudo chown -R $user /vagrant
