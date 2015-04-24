@@ -186,18 +186,53 @@ public class S3UnderFileSystem extends UnderFileSystem {
       if (checkParent(path)) {
         // Parent directory exists
         return mkdir(path);
+      } else {
+        LOG.error("Cannot create path " + path + " because parent does not exist");
+        return false;
       }
     }
-    return false;
+    // createParent is true
+    if (checkParent(path)) {
+      // Parent directory exists
+      return mkdir(path);
+    } else {
+      String parentKey = getParentKey(path);
+      // Recursively make the parent folders
+      return mkdirs(parentKey, true) && mkdir(parentKey);
+    }
   }
 
   @Override
   public InputStream open(String path) throws IOException {
-    return null;
+    try {
+      return mClient.getObject(mBucketName, path).getDataInputStream();
+    } catch (ServiceException se) {
+      LOG.error("Failed to open file: " + path, se);
+      return null;
+    }
   }
 
   @Override
   public boolean rename(String src, String dst) throws IOException {
+    if (!exists(src)) {
+      return false;
+    }
+    if (exists(dst)) {
+      if (!isFolder(dst)) {
+        LOG.error("Unable to rename " + src + " to " + dst + " because destination already "
+            + "exists as a file");
+        return false;
+      }
+      // Destination is a folder, move source into dst
+      if (!isFolder(src)) {
+        // Source is a file
+        S3Object obj = new S3Object(src);
+      }
+    }
+    if (isFolder(src)) {
+
+    }
+    // Source is a file
     return false;
   }
 
@@ -220,8 +255,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
     if (isRoot(key)) {
       return true;
     }
-    int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
-    String parentKey = key.substring(0, separatorIndex);
+    String parentKey = getParentKey(key);
     return isFolder(parentKey);
   }
 
@@ -255,6 +289,15 @@ public class S3UnderFileSystem extends UnderFileSystem {
     return true;
   }
 
+  private String getKeyName(String key) {
+    int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
+    if (separatorIndex >= 0) {
+      return key.substring(separatorIndex, key.length());
+    } else {
+      return null;
+    }
+  }
+
   /**
    * Gets the StorageObject representing the metadata of a key. If the key does not exist as a
    * file or folder, null is returned
@@ -270,6 +313,15 @@ public class S3UnderFileSystem extends UnderFileSystem {
         return mClient.getObjectDetails(mBucketName, key);
       }
     } catch (ServiceException se) {
+      return null;
+    }
+  }
+
+  private String getParentKey(String key) {
+    int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
+    if (separatorIndex >= 0) {
+      return key.substring(0, separatorIndex);
+    } else {
       return null;
     }
   }
@@ -320,7 +372,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       mClient.putObject(mBucketName, obj);
       return true;
     } catch (ServiceException se) {
-      LOG.error("Failed to create directory: " + key);
+      LOG.error("Failed to create directory: " + key, se);
       return false;
     }
   }
