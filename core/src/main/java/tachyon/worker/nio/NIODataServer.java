@@ -37,7 +37,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
-import tachyon.worker.hierarchy.StorageDir;
+import tachyon.worker.tiered.StorageDir;
 
 /**
  * The Server to serve data file read requests from remote machines. The current implementation is
@@ -111,7 +111,6 @@ public class NIODataServer implements Runnable, DataServer {
    *
    * @throws IOException
    */
-  @Override
   public void close() throws IOException {
     mShutdown = true;
     mServerChannel.close();
@@ -121,7 +120,6 @@ public class NIODataServer implements Runnable, DataServer {
   /**
    * Gets the port listening on.
    */
-  @Override
   public int getPort() {
     return mServerChannel.socket().getLocalPort();
   }
@@ -168,7 +166,6 @@ public class NIODataServer implements Runnable, DataServer {
   /**
    * @return true if the server is closed, false otherwise
    */
-  @Override
   public boolean isClosed() {
     return mShutdownComplete;
   }
@@ -237,7 +234,6 @@ public class NIODataServer implements Runnable, DataServer {
     }
   }
 
-  @Override
   public void run() {
     while (!mShutdown) {
       try {

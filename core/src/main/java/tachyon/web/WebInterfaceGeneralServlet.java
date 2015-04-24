@@ -37,7 +37,7 @@ import tachyon.util.CommonUtils;
  */
 public class WebInterfaceGeneralServlet extends HttpServlet {
   /**
-   * Class to make referencing hierarchy storage information more intuitive.
+   * Class to make referencing tiered storage information more intuitive.
    */
   public static class StorageTierInfo {
     private final StorageLevelAlias mStorageLevelAlias;

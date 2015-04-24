@@ -33,6 +33,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
@@ -118,7 +120,7 @@ public final class CommonUtils {
   /**
    * Force to unmap direct buffer if the buffer is no longer used. It is unsafe operation and
    * currently a walk-around to avoid huge memory occupation caused by memory map.
-   * 
+   *
    * @param buffer the byte buffer to be unmapped
    */
   public static void cleanDirectBuffer(ByteBuffer buffer) {
@@ -126,7 +128,7 @@ public final class CommonUtils {
       return;
     }
     if (buffer.isDirect()) {
-      Cleaner cleaner = ((DirectBuffer)buffer).cleaner();
+      Cleaner cleaner = ((DirectBuffer) buffer).cleaner();
       cleaner.clean();
     }
   }
@@ -159,27 +161,32 @@ public final class CommonUtils {
   }
 
   /**
-   * Add the path component to the base path
+   * Join each element in paths in order, separated by {@code TachyonURI.SEPARATOR}.
+   * <p>
+   * For example, {@code concatPath("/myroot/", "dir", 1L, "filename")} returns
+   * {@code "/myroot/dir/1/filename"}
    *
-   * @param args The components to concatenate
-   * @return the concatenated path
+   * @param paths to concatenate
+   * @return joined path
    */
-  public static String concat(Object... args) {
-    if (args.length == 0) {
-      return "";
-    }
-    String retPath = args[0].toString();
-    for (int k = 1; k < args.length; k ++) {
-      while (retPath.endsWith(TachyonURI.SEPARATOR)) {
-        retPath = retPath.substring(0, retPath.length() - 1);
-      }
-      if (args[k].toString().startsWith(TachyonURI.SEPARATOR)) {
-        retPath += args[k].toString();
+  public static String concatPath(Object... paths) {
+    List<String> trimmedPathList = new ArrayList<String>();
+    for (int k = 0; k < paths.length; k ++) {
+      String path = paths[k].toString().trim();
+      String trimmedPath;
+      if (k == 0) {
+        trimmedPath =
+            CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
       } else {
-        retPath += TachyonURI.SEPARATOR + args[k].toString();
+        trimmedPath =
+            CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
+        if (trimmedPath == "") {
+          continue;
+        }
       }
+      trimmedPathList.add(trimmedPath);
     }
-    return retPath;
+    return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
   }
 
   public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
@@ -520,12 +527,13 @@ public final class CommonUtils {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
   }
+
   /**
    * Creates new instance of a class by calling a constructor that receives ctorClassArgs arguments
-   * 
+   *
    * @param cls the class to create
    * @param ctorClassArgs parameters type list of the constructor to initiate, if null default
-   * constructor will be called 
+   *        constructor will be called
    * @param ctorArgs the arguments to pass the constructor
    * @return new class object or null if not successful
    */

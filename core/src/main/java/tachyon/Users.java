@@ -30,7 +30,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
- * <code>Users</code> represents and manages all users contacting to a worker.
+ * <code>Users</code> represents and manages all users contacting a worker.
  */
 public class Users {
   public static final int DATASERVER_USER_ID = -1;
@@ -52,12 +52,12 @@ public class Users {
   }
 
   /**
-   * Check the status of the users pool.
+   * Get the users that timed out.
    *
-   * @return the list of timeout users.
+   * @return the list of user ids of users that timed out.
    */
-  public List<Long> checkStatus() {
-    LOG.debug("Worker is checking all users' status.");
+  public List<Long> getTimedOutUsers() {
+    LOG.debug("Worker is checking all users' status for timeouts.");
     List<Long> ret = new ArrayList<Long>();
     synchronized (mUsers) {
       for (Entry<Long, UserInfo> entry : mUsers.entrySet()) {
@@ -76,7 +76,7 @@ public class Users {
    * @return String contains the user's temporary data folder in the under filesystem.
    */
   public String getUserUfsTempFolder(long userId) {
-    return CommonUtils.concat(mUserUnderFSFolder, userId);
+    return CommonUtils.concatPath(mUserUnderFSFolder, userId);
   }
 
   /**

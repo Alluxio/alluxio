@@ -94,6 +94,7 @@ public class Constants {
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String WEB_RESOURCES = "tachyon.web.resources";
   public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
+  public static final String LOGS_DIR = "tachyon.logs.dir";
   public static final String UNDERFS_ADDRESS = "tachyon.underfs.address";
   public static final String UNDERFS_DATA_FOLDER = "tachyon.data.folder";
   public static final String UNDERFS_WORKERS_FOLDER = "tachyon.workers.folder";
@@ -162,8 +163,26 @@ public class Constants {
       "tachyon.worker.network.netty.buffer.receive";
   public static final String WORKER_EVICT_STRATEGY_TYPE = "tachyon.worker.evict.strategy";
   public static final String WORKER_ALLOCATE_STRATEGY_TYPE = "tachyon.worker.allocate.strategy";
-  public static final String WORKER_MAX_HIERARCHY_STORAGE_LEVEL =
-      "tachyon.worker.hierarchystore.level.max";
+  public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =
+      "tachyon.worker.tieredstore.level.max";
+  /**
+   * This format is used as a template to generate the property name for a given level.
+   * e.g., {@code String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level)}
+   */
+  public static final String WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT =
+      "tachyon.worker.tieredstore.level%d.alias";
+  /**
+   * This format is used as a template to generate the property name for a given level.
+   * e.g., {@code String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level)}
+   */
+  public static final String WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT =
+      "tachyon.worker.tieredstore.level%d.dirs.path";
+  /**
+   * This format is used as a template to generate the property name for a given level.
+   * e.g., {@code String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, level)}
+   */
+  public static final String WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT =
+      "tachyon.worker.tieredstore.level%d.dirs.quota";
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";

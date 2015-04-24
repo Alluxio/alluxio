@@ -12,7 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.worker.hierarchy;
+package tachyon.worker.tiered;
 
 import java.io.File;
 import java.io.IOException;
@@ -94,7 +94,7 @@ public class StorageDirTest {
   private void createBlockFile(StorageDir dir, long blockId, int blockSize) throws IOException {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
     BlockHandler bhSrc =
-        BlockHandler.get(CommonUtils.concat(dir.getUserTempFilePath(USER_ID, blockId)));
+        BlockHandler.get(CommonUtils.concatPath(dir.getUserTempFilePath(USER_ID, blockId)));
     dir.requestSpace(USER_ID, blockSize);
     dir.updateTempBlockAllocatedBytes(USER_ID, blockId, blockSize);
     try {

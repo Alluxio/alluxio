@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -22,6 +22,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 
 public class CommonUtilsTest {
   @Test
@@ -84,6 +85,44 @@ public class CommonUtilsTest {
       Assert.assertEquals(k * Constants.PB / 10, CommonUtils.parseSpaceSize(k / 10.0 + "PB"));
       Assert.assertEquals(k * Constants.PB / 10, CommonUtils.parseSpaceSize(k / 10.0 + "pB"));
     }
+  }
+
+  @Test
+  public void concatPath() {
+    Assert.assertEquals("", CommonUtils.concatPath());
+    Assert.assertEquals("/bar", CommonUtils.concatPath("/", "bar"));
+
+    Assert.assertEquals("foo", CommonUtils.concatPath("foo"));
+    Assert.assertEquals("/foo", CommonUtils.concatPath("/foo"));
+    Assert.assertEquals("/foo", CommonUtils.concatPath("/foo", ""));
+
+    // Join base without trailing "/"
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo", "bar"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo", "bar/"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo", "/bar"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo", "/bar/"));
+
+    // Join base with trailing "/"
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo/", "bar"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo/", "bar/"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo/", "/bar"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo/", "/bar/"));
+
+    // Whitespace must be trimmed.
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo ", "bar  "));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo ", "  bar"));
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo ", "  bar  "));
+
+    // Redundant separator must be trimmed.
+    Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo/", "bar//"));
+
+    // Multiple components to join.
+    Assert.assertEquals("/foo/bar/a/b/c", CommonUtils.concatPath("/foo", "bar", "a", "b", "c"));
+    Assert.assertEquals("/foo/bar/b/c", CommonUtils.concatPath("/foo", "bar", "", "b", "c"));
+
+    // Non-string
+    Assert.assertEquals("/foo/bar/1", CommonUtils.concatPath("/foo", "bar", 1));
+    Assert.assertEquals("/foo/bar/2", CommonUtils.concatPath("/foo", "bar", 2L));
   }
 
   @Test
