@@ -48,7 +48,7 @@ public final class NettyUtils {
       case EPOLL:
         return new EpollEventLoopGroup(numThreads, threadFactory);
       default:
-        throw new IllegalArgumentException("Unknown io mode: " + type);
+        throw new IllegalArgumentException("Unknown io type: " + type);
     }
   }
 
@@ -64,7 +64,7 @@ public final class NettyUtils {
       case EPOLL:
         return EpollServerSocketChannel.class;
       default:
-        throw new IllegalArgumentException("Unknown io mode: " + type);
+        throw new IllegalArgumentException("Unknown io type: " + type);
     }
   }
 }
