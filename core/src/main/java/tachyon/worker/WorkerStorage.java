@@ -189,9 +189,9 @@ public class WorkerStorage {
 
           // TODO checkpoint process. In future, move from midPath to dstPath should be done by
           // master
-          String midPath = CommonUtils.concat(mUfsWorkerDataFolder, fileId);
+          String midPath = CommonUtils.concatPath(mUfsWorkerDataFolder, fileId);
           String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data");
-          String dstPath = CommonUtils.concat(ufsDataFolder, fileId);
+          String dstPath = CommonUtils.concatPath(ufsDataFolder, fileId);
           LOG.info("Thread " + mId + " is checkpointing file " + fileId + " from " + mDataFolder
               + " to " + midPath + " to " + dstPath);
 
@@ -329,7 +329,7 @@ public class WorkerStorage {
     mDataFolder = mTachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
 
     String userTmpFolder = mTachyonConf.get(Constants.WORKER_USER_TEMP_RELATIVE_FOLDER, "users");
-    mUserFolder = CommonUtils.concat(mDataFolder, userTmpFolder);
+    mUserFolder = CommonUtils.concatPath(mDataFolder, userTmpFolder);
 
     int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
     mCheckpointExecutor =
@@ -357,7 +357,7 @@ public class WorkerStorage {
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     String ufsWorkerFolder =
         mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, ufsAddress + "/tachyon/workers");
-    mUfsWorkerFolder = CommonUtils.concat(ufsWorkerFolder, mWorkerId);
+    mUfsWorkerFolder = CommonUtils.concatPath(ufsWorkerFolder, mWorkerId);
     mUfsWorkerDataFolder = mUfsWorkerFolder + "/data";
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
     mUsers = new Users(mUfsWorkerFolder, mTachyonConf);
@@ -398,8 +398,7 @@ public class WorkerStorage {
    * if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
    * checkpointing is that through {@link tachyon.client.WriteType} operations write to
    * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a user temp
-   * directory
-   * (temp directory is defined in the worker as {@link #getUserUfsTempFolder(long)}).
+   * directory (temp directory is defined in the worker as {@link #getUserUfsTempFolder(long)}).
    *
    * @param userId The user id of the client who sends the notification
    * @param fileId The id of the checkpointed file
@@ -412,9 +411,9 @@ public class WorkerStorage {
   public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,
       SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, IOException {
     // TODO This part needs to be changed.
-    String srcPath = CommonUtils.concat(getUserUfsTempFolder(userId), fileId);
+    String srcPath = CommonUtils.concatPath(getUserUfsTempFolder(userId), fileId);
     String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data");
-    String dstPath = CommonUtils.concat(ufsDataFolder, fileId);
+    String dstPath = CommonUtils.concatPath(ufsDataFolder, fileId);
     try {
       if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
@@ -486,9 +485,9 @@ public class WorkerStorage {
   /**
    * Notify the worker the block is cached.
    *
-   * This is called remotely from {@link tachyon.client.TachyonFS#cacheBlock(long)} which is
-   * only ever called from {@link tachyon.client.BlockOutStream#close()} (though it's a public api
-   * so anyone could call it). There are a few interesting preconditions for this to work.
+   * This is called remotely from {@link tachyon.client.TachyonFS#cacheBlock(long)} which is only
+   * ever called from {@link tachyon.client.BlockOutStream#close()} (though it's a public api so
+   * anyone could call it). There are a few interesting preconditions for this to work.
    *
    * 1) Client process writes to files locally under a tachyon defined temp directory. 2) Worker
    * process is on the same node as the client 3) Client is talking to the local worker directly
@@ -763,9 +762,12 @@ public class WorkerStorage {
     }
     StorageTier nextStorageTier = null;
     for (int level = maxStorageLevels - 1; level >= 0; level --) {
-      String tierLevelAliasProp = "tachyon.worker.tieredstore.level" + level + ".alias";
-      String tierLevelDirPath = "tachyon.worker.tieredstore.level" + level + ".dirs.path";
-      String tierDirsQuotaProp = "tachyon.worker.tieredstore.level" + level + ".dirs.quota";
+      String tierLevelAliasProp =
+          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level);
+      String tierLevelDirPath =
+          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
+      String tierDirsQuotaProp =
+          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, level);
       int index = level;
       if (index >= Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length) {
         index = level - 1;
@@ -937,8 +939,8 @@ public class WorkerStorage {
    * Request space from the worker, and expecting worker return the appropriate StorageDir which has
    * enough space for the requested space size
    *
-   * @param dirCandidate The StorageDir in which the space will be allocated. If null, search
-   *                     all available StorageDirs to allocate the requested size.
+   * @param dirCandidate The StorageDir in which the space will be allocated. If null, search all
+   *        available StorageDirs to allocate the requested size.
    * @param userId The id of the user who send the request
    * @param requestBytes The requested space size, in bytes
    * @return StorageDir assigned, null if failed
@@ -1031,7 +1033,7 @@ public class WorkerStorage {
    */
   private void swapOutOrphanBlocks(StorageDir storageDir, long blockId) throws IOException {
     ByteBuffer buf = storageDir.getBlockData(blockId, 0, -1);
-    String ufsOrphanBlock = CommonUtils.concat(mUfsOrphansFolder, blockId);
+    String ufsOrphanBlock = CommonUtils.concatPath(mUfsOrphansFolder, blockId);
     OutputStream os = mUfs.create(ufsOrphanBlock);
     final int bulkSize = Constants.KB * 64;
     byte[] bulk = new byte[bulkSize];

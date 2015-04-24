@@ -16,11 +16,13 @@
 package tachyon.web;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
 
+import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
@@ -76,6 +78,11 @@ public final class UiFileInfo {
   private final boolean mIsPinned;
   private List<String> mFileLocations;
 
+  private final List<List<UiBlockInfo>> mBlocksOnTier = new ArrayList<List<UiBlockInfo>>(
+      StorageLevelAlias.SIZE);
+  private final List<Long> mSizeOnTier = new ArrayList<Long>(Collections.nCopies(
+      StorageLevelAlias.SIZE, 0L));
+
   public UiFileInfo(ClientFileInfo fileInfo) {
     mId = fileInfo.getId();
     mDependencyId = fileInfo.getDependencyId();
@@ -91,6 +98,9 @@ public final class UiFileInfo {
     mIsDirectory = fileInfo.isFolder;
     mIsPinned = fileInfo.isPinned;
     mFileLocations = new ArrayList<String>();
+    for (int i = 0; i < StorageLevelAlias.SIZE; i ++) {
+      mBlocksOnTier.add(new ArrayList<UiBlockInfo>());
+    }
   }
 
   public UiFileInfo(LocalFileInfo fileInfo) {
@@ -108,6 +118,19 @@ public final class UiFileInfo {
     mIsDirectory = fileInfo.mIsDirectory;
     mIsPinned = false;
     mFileLocations = new ArrayList<String>();
+    for (int i = 0; i < StorageLevelAlias.SIZE; i ++) {
+      mBlocksOnTier.add(new ArrayList<UiBlockInfo>());
+    }
+  }
+
+  public void addBlock(StorageLevelAlias storageLevelAlias, long blockId, long blockSize,
+      long blockLastAccessTimeMs) {
+    int tier = storageLevelAlias.getValue() - 1;
+    UiBlockInfo block =
+        new UiBlockInfo(blockId, blockSize, blockLastAccessTimeMs,
+            storageLevelAlias == StorageLevelAlias.MEM);
+    mBlocksOnTier.get(tier).add(block);
+    mSizeOnTier.set(tier, mSizeOnTier.get(tier) + blockSize);
   }
 
   public String getAbsolutePath() {
@@ -120,6 +143,10 @@ public final class UiFileInfo {
     } else {
       return CommonUtils.getSizeFromBytes(mBlockSizeBytes);
     }
+  }
+
+  public List<List<UiBlockInfo>> getBlocksOnTier() {
+    return mBlocksOnTier;
   }
 
   public String getCheckpointPath() {
@@ -164,6 +191,11 @@ public final class UiFileInfo {
 
   public boolean getNeedPin() {
     return mIsPinned;
+  }
+
+  public int getOnTierPercentage(StorageLevelAlias storageLevelAlias) {
+    int tier = storageLevelAlias.getValue() - 1;
+    return (int) (100 * mSizeOnTier.get(tier) / mSize);
   }
 
   public String getName() {

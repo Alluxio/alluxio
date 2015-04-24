@@ -38,6 +38,11 @@ The common configuration contains constants which specify paths and the log appe
   <td>How many threads to use for the web server.</td>
 </tr>
 <tr>
+  <td>tachyon.logs.dir</td>
+  <td>$tachyon.home + "/logs"</td>
+  <td>Where log files are stored.</td>
+</tr>
+<tr>
   <td>tachyon.underfs.address</td>
   <td>$tachyon.home + "/underFSStorage"</td>
   <td>Tachyon folder in the underlayer file system.</td>
