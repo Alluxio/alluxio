@@ -5,7 +5,7 @@ title: Running Tachyon on Oracle VirtualBox
 
 ## Deploy Tachyon Cluster on VirtualBox via Vagrant
 
-[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster in the on [VirtualBox](https://www.virtualbox.org/).
+[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster in the on [VirtualBox](https://www.virtualbox.org/), and provision all nodes in parallel with [Ansible](http://www.ansible.com/home).
 
 A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant`
 directory:
