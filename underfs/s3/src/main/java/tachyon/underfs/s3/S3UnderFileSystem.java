@@ -220,13 +220,14 @@ public class S3UnderFileSystem extends UnderFileSystem {
     if (exists(dst)) {
       if (!isFolder(dst)) {
         LOG.error("Unable to rename " + src + " to " + dst + " because destination already "
-            + "exists as a file");
+            + "exists as a file.");
         return false;
       }
       // Destination is a folder, move source into dst
       if (!isFolder(src)) {
         // Source is a file
-        S3Object obj = new S3Object(src);
+        String srcName = getKeyName(src);
+        renameInternal(src, dst);
       }
     }
     if (isFolder(src)) {
@@ -373,6 +374,17 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return true;
     } catch (ServiceException se) {
       LOG.error("Failed to create directory: " + key, se);
+      return false;
+    }
+  }
+
+  private boolean renameInternal(String src, String dst) {
+    try {
+      S3Object obj = new S3Object(dst);
+      mClient.copyObject(mBucketName, src, mBucketName, obj, false);
+      return true;
+    } catch (ServiceException se) {
+      LOG.error("Failed to rename file " + src + " to " + dst);
       return false;
     }
   }
