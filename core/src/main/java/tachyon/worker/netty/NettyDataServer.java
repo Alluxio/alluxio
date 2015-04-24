@@ -93,12 +93,14 @@ public final class NettyDataServer implements DataServer {
   /**
    * Gets the port listening on.
    */
+  @Override
   public int getPort() {
     // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
     // InetSocketAddress to get detailed info such as port.
     return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getPort();
   }
 
+  @Override
   public boolean isClosed() {
     return mBootstrap.group().isShutdown();
   }

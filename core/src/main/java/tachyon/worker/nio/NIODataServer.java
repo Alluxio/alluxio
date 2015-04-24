@@ -120,6 +120,7 @@ public class NIODataServer implements Runnable, DataServer {
   /**
    * Gets the port listening on.
    */
+  @Override
   public int getPort() {
     return mServerChannel.socket().getLocalPort();
   }
@@ -166,6 +167,7 @@ public class NIODataServer implements Runnable, DataServer {
   /**
    * @return true if the server is closed, false otherwise
    */
+  @Override
   public boolean isClosed() {
     return mShutdownComplete;
   }
