@@ -1,0 +1,113 @@
+- hosts: all
+  tasks:
+    - name: prepare /vagrant
+      shell: sudo mkdir -p /vagrant && user=`whoami` && sudo chown -R $user /vagrant
+      when: not is_vb # vb sync the whole /vagrant directory
+
+    - name: sync files
+      synchronize: src=../files dest=/vagrant
+      when: not is_vb # vb sync the whole /vagrant directory
+
+    - name: configure ssh
+      script: ssh.sh
+
+    - name: open PasswordAuthentication of sshd for openstack
+      shell: sudo sed -i -e "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+      when: is_os
+
+    - name: configure hosts
+      script: host.sh
+
+    - name: install java
+      script: java.sh
+
+    - name: install rsync
+      shell: sudo yum install -y -q rsync
+
+- hosts: TachyonMaster
+  tasks:
+    - name: install maven
+      script: maven.sh
+
+    - name: install git
+      command: sudo yum install -y -q git
+      when: is_git
+
+    - name: mkdir /tachyon
+      shell: sudo mkdir -p /tachyon && user=`whoami` && sudo chown -R $user /tachyon
+
+    - name: clone repo
+      git: repo={{ git_url }} dest=/tachyon version={{ git_hash }}
+      when: is_git
+
+    - name: clone local repo
+      synchronize:
+        src: ../../../
+        dest: /tachyon
+        rsync_opts: >
+          --exclude=.git,
+          --exclude=.gitignore,
+          --exclude=core/target,
+          --exclude=assembly/target,
+          --exclude=client/target,
+          --exclude=deploy,
+          --exclude=docs,
+          --exclude=journal,
+          --exclude=logs,
+          --exclude=underFSStorage
+      when: (not is_vb) and (not is_git)
+
+    - name: compile tachyon
+      script: ../ufs/{{ ufs }}/compile_tachyon.sh
+
+- hosts: TachyonWorker*
+  tasks:
+    - name: rsync tachyon bin distribution from TachyonMaster
+      shell: set -e \
+          && sudo mkdir -p /tachyon/core/target && user=`whoami` && sudo chown -R $user /tachyon \
+          && rsync -avz TachyonMaster.local:/tachyon/core/target/tachyon-*-jar-with-dependencies.jar /tachyon/core/target \
+          && rsync -avz TachyonMaster.local:'/tachyon/bin /tachyon/conf /tachyon/libexec' /tachyon
+      when: not is_vb
+
+- hosts: all
+  tasks:
+    - name: set tachyon/conf/workers
+      command: cp /vagrant/files/workers /tachyon/conf/workers
+
+    - name: prepare /vagrant/shared
+      shell: sudo mkdir -p /vagrant/shared && user=`whoami` && sudo chown -R $user /vagrant
+
+    - name: install wget
+      command: sudo yum install -y -q wget
+
+    - name: set tachyon-env.sh
+      script: ../ufs/{{ ufs }}/config_tachyon.sh
+    - name: set TACHYON_SSH_FOREGROUND=""
+      shell: sed -i 's/TACHYON_SSH_FOREGROUND="yes"/TACHYON_SSH_FOREGROUND=""/g' /tachyon/conf/tachyon-env.sh
+
+# when is_vb, only master downloads ufs, others share throught /vagrant/shared
+- hosts: TachyonMaster
+  tasks:
+    - name: download and configure underfs
+      script: ../ufs/{{ ufs }}/init.sh
+      when: is_vb
+- hosts: TachyonWorker*
+  tasks:
+    - name: configure underfs
+      script: ../ufs/{{ ufs }}/init.sh
+      when: is_vb
+
+# when not is_vb, all download ufs in parallel
+- hosts: all
+  tasks:
+    - name: download and configure underfs
+      script: ../ufs/{{ ufs }}/init.sh
+      when: not is_vb
+
+- hosts: TachyonMaster
+  tasks:
+    - name: start underfs
+      script: ../ufs/{{ ufs }}/post.sh
+
+    - name: start Tachyon
+      script: start_tachyon_cluster.sh

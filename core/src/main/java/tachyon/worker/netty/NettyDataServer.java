@@ -17,23 +17,19 @@ package tachyon.worker.netty;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ThreadFactory;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollServerSocketChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.ServerChannel;
 
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.NettyUtils;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
 
@@ -57,7 +53,6 @@ public final class NettyDataServer implements DataServer {
     }
   }
 
-  @Override
   public void close() throws IOException {
     mChannelFuture.channel().close().awaitUninterruptibly();
     mBootstrap.group().shutdownGracefully();
@@ -98,14 +93,12 @@ public final class NettyDataServer implements DataServer {
   /**
    * Gets the port listening on.
    */
-  @Override
   public int getPort() {
     // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
     // InetSocketAddress to get detailed info such as port.
     return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getPort();
   }
 
-  @Override
   public boolean isClosed() {
     return mBootstrap.group().isShutdown();
   }
@@ -116,25 +109,17 @@ public final class NettyDataServer implements DataServer {
    */
   private ServerBootstrap createBootstrapOfType(final ChannelType type) {
     final ServerBootstrap boot = new ServerBootstrap();
-    final ThreadFactory bossThreadFactory = ThreadFactoryUtils.build("data-server-boss-%d");
-    final ThreadFactory workerThreadFactory = ThreadFactoryUtils.build("data-server-worker-%d");
-    final EventLoopGroup bossGroup;
-    final EventLoopGroup workerGroup;
     final int bossThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS, 1);
     final int workerThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 0);
-    switch (type) {
-      case EPOLL:
-        bossGroup = new EpollEventLoopGroup(bossThreadCount, bossThreadFactory);
-        workerGroup = new EpollEventLoopGroup(workerThreadCount, workerThreadFactory);
-        boot.channel(EpollServerSocketChannel.class);
-        break;
-      case NIO: // intend to fall through as NIO is the default type.
-      default:
-        bossGroup = new NioEventLoopGroup(bossThreadCount, bossThreadFactory);
-        workerGroup = new NioEventLoopGroup(workerThreadCount, workerThreadFactory);
-        boot.channel(NioServerSocketChannel.class);
-    }
-    boot.group(bossGroup, workerGroup);
+    final EventLoopGroup bossGroup =
+        NettyUtils.createEventLoop(type, bossThreadCount, "data-server-boss-%d");
+    final EventLoopGroup workerGroup =
+        NettyUtils.createEventLoop(type, workerThreadCount, "data-server-worker-%d");
+
+    final Class<? extends ServerChannel> socketChannelClass =
+        NettyUtils.getServerChannelClass(type);
+    boot.group(bossGroup, workerGroup).channel(socketChannelClass);
+
     return boot;
   }
 }

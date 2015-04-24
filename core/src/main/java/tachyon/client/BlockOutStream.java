@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-
 
 import com.google.common.primitives.Ints;
 import com.google.common.io.Closer;
@@ -43,8 +42,7 @@ public class BlockOutStream extends OutStream {
   private final long mBlockCapacityByte;
   private final long mBlockId;
   private final long mBlockOffset;
-  private final boolean mPin;
-  private final Closer mCloser = Closer.create(); 
+  private final Closer mCloser = Closer.create();
   private final String mLocalFilePath;
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
@@ -66,8 +64,8 @@ public class BlockOutStream extends OutStream {
    */
   BlockOutStream(TachyonFile file, WriteType opType, int blockIndex, TachyonConf tachyonConf)
       throws IOException {
-    this(file, opType, blockIndex,
-        tachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES, 8 * Constants.MB), tachyonConf);
+    this(file, opType, blockIndex, tachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES,
+        8 * Constants.MB), tachyonConf);
   }
 
   /**
@@ -90,7 +88,6 @@ public class BlockOutStream extends OutStream {
     mBlockCapacityByte = mFile.getBlockSizeByte();
     mBlockId = mFile.getBlockId(mBlockIndex);
     mBlockOffset = mBlockCapacityByte * blockIndex;
-    mPin = mFile.needPin();
 
     mCanWrite = true;
 
@@ -109,8 +106,7 @@ public class BlockOutStream extends OutStream {
     LOG.info(mLocalFilePath + " was created!");
     mAvailableBytes += initialBytes;
 
-    long allocateBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES,
-        Constants.MB) + 4L;
+    long allocateBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB) + 4L;
     mBuffer = ByteBuffer.allocate(Ints.checkedCast(allocateBytes));
   }
 
@@ -211,8 +207,8 @@ public class BlockOutStream extends OutStream {
       throw new IOException("Out of capacity.");
     }
 
-    long userFileBufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES,
-        Constants.MB);
+    long userFileBufferBytes =
+        mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB);
     if (mBuffer.position() > 0 && mBuffer.position() + len > userFileBufferBytes) {
       appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       mBuffer.clear();
@@ -236,8 +232,8 @@ public class BlockOutStream extends OutStream {
       throw new IOException("Out of capacity.");
     }
 
-    if (mBuffer.position() >= mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES,
-        Constants.MB)) {
+    if (mBuffer.position()
+        >= mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB)) {
       appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       mBuffer.clear();
     }

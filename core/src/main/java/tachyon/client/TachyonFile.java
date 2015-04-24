@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -51,8 +51,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
   private final TachyonConf mTachyonConf;
 
   /**
-   * A Tachyon File handler, based file id
-   * 
+   * A Tachyon File handler, based on file id
+   *
    * @param tfs the Tachyon file system client handler
    * @param fid the file id
    * @param tachyonConf the TachyonConf for this file.
@@ -88,8 +88,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * Return the block id of a block in the file, specified by blockIndex
-   * 
+   * Return the id of a block in the file, specified by blockIndex
+   *
    * @param blockIndex the index of the block in this file
    * @return the block id
    * @throws IOException
@@ -99,9 +99,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * Return the block's size of this file
-   * 
-   * @return the block's size in bytes
+   * Return the block size of this file
+   *
+   * @return the block size in bytes
    * @throws IOException
    */
   public long getBlockSizeByte() throws IOException {
@@ -110,7 +110,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Get a ClientBlockInfo by the file id and block index
-   * 
+   *
    * @param blockIndex The index of the block in the file.
    * @return the ClientBlockInfo of the specified block
    * @throws IOException
@@ -121,7 +121,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Return the creation time of this file
-   * 
+   *
    * @return the creation time, in milliseconds
    * @throws IOException
    */
@@ -135,10 +135,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * Return the InStream of this file, use the specified read type. If it has no block, return an
-   * EmptyBlockInStream. Else if it has only one block ,return a BlockInStream of the block. Else,
-   * return a FileInStream.
-   * 
+   * Return the {@code InStream} of this file based on the specified read type. If it has no block,
+   * return an {@code EmptyBlockInStream}; if it has only one block, return a {@code BlockInStream}
+   * of the block; otherwise return a {@code FileInStream}.
+   *
    * @param readType the InStream's read type
    * @return the InStream
    * @throws IOException
@@ -161,7 +161,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
     if (blocks.size() == 0) {
       return new EmptyBlockInStream(this, readType, mTachyonConf);
-    } else if (blocks.size() == 1) {
+    }
+
+    if (blocks.size() == 1) {
       return BlockInStream.get(this, readType, 0, mUFSConf, mTachyonConf);
     }
 
@@ -173,7 +175,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * an alpha power-api feature for applications that want short-circuit-read files directly. There
    * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
    * from memory at any time.
-   * 
+   *
    * @param blockIndex The index of the block in the file.
    * @return filename on local file system or null if file not present on local file system.
    * @throws IOException
@@ -191,7 +193,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Return the net address of all the location hosts
-   * 
+   *
    * @return the list of those net address, in String
    * @throws IOException
    */
@@ -200,8 +202,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
     if (getNumberOfBlocks() > 0) {
       List<NetAddress> locations = getClientBlockInfo(0).getLocations();
       if (locations != null) {
-        for (int k = 0; k < locations.size(); k ++) {
-          ret.add(locations.get(k).mHost);
+        for (NetAddress location : locations) {
+          ret.add(location.mHost);
         }
       }
     }
@@ -211,7 +213,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Return the number of blocks the file has.
-   * 
+   *
    * @return the number of blocks
    * @throws IOException
    */
@@ -220,8 +222,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * Return the OutStream of this file, use the specified write type. Always return a FileOutStream.
-   * 
+   * Return the {@code OutStream} of this file, use the specified write type. Always return a
+   * {@code FileOutStream}.
+   *
    * @param writeType the OutStream's write type
    * @return the OutStream
    * @throws IOException
@@ -240,7 +243,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Return the path of this file in the Tachyon file system
-   * 
+   *
    * @return the path
    * @throws IOException
    */
@@ -250,7 +253,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * To get the configuration object for UnderFileSystem.
-   * 
+   *
    * @return configuration object used for concrete ufs instance
    */
   public Object getUFSConf() {
@@ -259,7 +262,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Return the under filesystem path in the under file system of this file
-   * 
+   *
    * @return the under filesystem path
    * @throws IOException
    */
@@ -280,7 +283,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Return whether this file is complete or not
-   * 
+   *
    * @return true if this file is complete, false otherwise
    * @throws IOException
    */
@@ -307,7 +310,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   /**
    * Return whether the file is in memory or not. Note that a file may be partly in memory. This
    * value is true only if the file is fully in memory.
-   * 
+   *
    * @return true if the file is fully in memory, false otherwise
    * @throws IOException
    */
@@ -333,7 +336,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Promote block back to top layer after access
-   * 
+   *
    * @param blockIndex the index of the block
    * @return true if success, false otherwise
    * @throws IOException
@@ -345,9 +348,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Advanced API.
-   * 
+   *
    * Return a TachyonByteBuffer of the block specified by the blockIndex
-   * 
+   *
    * @param blockIndex The block index of the current file to read.
    * @return TachyonByteBuffer containing the block.
    * @throws IOException
@@ -368,7 +371,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Get the the whole block.
-   * 
+   *
    * @param blockIndex The block index of the current file to read.
    * @return TachyonByteBuffer containing the block.
    * @throws IOException
@@ -379,7 +382,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Read local block return a TachyonByteBuffer
-   * 
+   *
    * @param blockIndex The id of the block.
    * @param offset The start position to read.
    * @param len The length to read. -1 represents read the whole block.
@@ -443,14 +446,15 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Get the the whole block from remote workers.
-   * 
+   *
    * @param blockInfo The blockInfo of the block to read.
    * @return TachyonByteBuffer containing the block.
    */
   TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) {
     // We call into the remote block in stream class to read a remote byte buffer
-    ByteBuffer buf = RemoteBlockInStream.readRemoteByteBuffer(mTachyonFS,
-        blockInfo, 0, blockInfo.length, mTachyonConf);
+    ByteBuffer buf =
+        RemoteBlockInStream.readRemoteByteBuffer(mTachyonFS, blockInfo, 0, blockInfo.length,
+            mTachyonConf);
     return (buf == null) ? null : new TachyonByteBuffer(mTachyonFS, buf, blockInfo.blockId, -1);
   }
 
@@ -523,7 +527,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Rename this file
-   * 
+   *
    * @param path the new name
    * @return true if succeed, false otherwise
    * @throws IOException
@@ -535,7 +539,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   /**
    * To set the configuration object for UnderFileSystem. The conf object is understood by the
    * concrete underfs' implementation.
-   * 
+   *
    * @param conf The configuration object accepted by ufs.
    */
   public void setUFSConf(Object conf) {
