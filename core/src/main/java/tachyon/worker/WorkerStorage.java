@@ -629,7 +629,7 @@ public class WorkerStorage {
    *
    * @return the worker start time in milliseconds
    */
-  public long getStarttimeMs() {
+  public long getStartTimeMs() {
     return mStartTimeMs;
   }
 
