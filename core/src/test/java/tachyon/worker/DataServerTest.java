@@ -74,7 +74,7 @@ public class DataServerTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty(Constants.WORKER_DATA_SEVRER);
+    System.clearProperty(Constants.WORKER_DATA_SERVER);
   }
 
   /**
@@ -105,7 +105,7 @@ public class DataServerTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty(Constants.WORKER_DATA_SEVRER, mDataServerClass);
+    System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     mLocalTachyonCluster.start();
