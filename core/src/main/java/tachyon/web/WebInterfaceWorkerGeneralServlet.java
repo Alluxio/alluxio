@@ -59,10 +59,10 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     request.setAttribute(
         "uptime",
         CommonUtils.convertMsToClockTime(System.currentTimeMillis()
-            - mWorkerStorage.getStarttimeMs()));
+            - mWorkerStorage.getStartTimeMs()));
 
     request
-        .setAttribute("startTime", CommonUtils.convertMsToDate(mWorkerStorage.getStarttimeMs()));
+        .setAttribute("startTime", CommonUtils.convertMsToDate(mWorkerStorage.getStartTimeMs()));
 
     request.setAttribute("version", Version.VERSION);
 
