@@ -59,20 +59,6 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Create a TachyonFS handler.
-   *
-   * @param tachyonPath a Tachyon path contains master address. e.g., tachyon://localhost:19998,
-   *        tachyon://localhost:19998/ab/c.txt
-   * @return the corresponding TachyonFS handler
-   * @throws IOException
-   * @see #get(tachyon.TachyonURI, tachyon.conf.TachyonConf)
-   */
-  @Deprecated
-  public static synchronized TachyonFS get(String tachyonPath) throws IOException {
-    return get(new TachyonURI(tachyonPath), new TachyonConf());
-  }
-
-  /**
-   * Create a TachyonFS handler.
    * 
    * @param tachyonURI a Tachyon URI contains master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
@@ -332,19 +318,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Create a file with the default block size (1GB) in the system. It also creates necessary
-   * folders along the path. // TODO It should not create necessary path.
-   * 
-   * @param path the path of the file
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException If file already exists, or path is invalid.
-   */
-  @Deprecated
-  public synchronized int createFile(String path) throws IOException {
-    return createFile(new TachyonURI(path));
-  }
-
-  /**
    * Create a RawTable and return its id
    * 
    * @param path the RawTable's path
@@ -393,20 +366,6 @@ public class TachyonFS extends AbstractTachyonFS {
       throws IOException {
     validateUri(path);
     return mMasterClient.user_delete(fileId, path.getPath(), recursive);
-  }
-
-  /**
-   * Delete the file denoted by the path.
-   * 
-   * @param path the file path
-   * @param recursive if delete the path recursively.
-   * @return true if the deletion succeed (including the case that the path does not exist in the
-   *         first place), false otherwise.
-   * @throws IOException
-   */
-  @Deprecated
-  public synchronized boolean delete(String path, boolean recursive) throws IOException {
-    return delete(new TachyonURI(path), recursive);
   }
 
   /**
@@ -510,28 +469,6 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized TachyonFile getFile(TachyonURI path) throws IOException {
     validateUri(path);
     return getFile(path, false);
-  }
-
-  /**
-   * Get <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
-   * 
-   * @param path file path.
-   * @return TachyonFile of the path, or null if the file does not exist.
-   * @throws IOException
-   */
-  @Deprecated
-  public synchronized TachyonFile getFile(String path) throws IOException {
-    return getFile(new TachyonURI(path));
-  }
-
-  /**
-   * Get <code>TachyonFile</code> based on the path. If useCachedMetadata, this will not see changes
-   * to the file's pin setting, or other dynamic properties.
-   */
-  @Deprecated
-  public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
-      throws IOException {
-    return getFile(new TachyonURI(path), useCachedMetadata);
   }
 
   /**
