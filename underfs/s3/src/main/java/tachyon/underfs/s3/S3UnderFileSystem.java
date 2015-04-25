@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.CommonUtils;
 
 /**
  * Under file system implementation for S3 using the Jets3t library.
@@ -48,7 +49,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private static final String PATH_SEPARATOR = "/";
 
   private final S3Service mClient;
-  private final S3Bucket mBucket;
   private final String mBucketName;
 
   public S3UnderFileSystem(String bucketName, TachyonConf tachyonConf) {
@@ -58,7 +58,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
             "fs.s3n.awsSecretAccessKey", null));
     mBucketName = bucketName;
     mClient = new RestS3Service(awsCredentials);
-    mBucket = new S3Bucket(bucketName);
   }
 
   @Override
@@ -77,7 +76,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
-    return null;
+    return new S3OutputStream(path);
   }
 
   // Same as create(path)
@@ -177,7 +176,17 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
-    return null;
+    try {
+      S3Object[] objs = mClient.listObjects(mBucketName, path, PATH_SEPARATOR);
+      String[] ret = new String[objs.length];
+      for (int i = 0; i < objs.length; i ++) {
+        ret[i] = objs[i].getKey();
+      }
+      return ret;
+    } catch (ServiceException se) {
+      LOG.info("Failed to list path " + path);
+      return null;
+    }
   }
 
   @Override
@@ -191,7 +200,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
         return false;
       }
     }
-    // createParent is true
+    // Parent directories should be created
     if (checkParent(path)) {
       // Parent directory exists
       return mkdir(path);
@@ -223,18 +232,54 @@ public class S3UnderFileSystem extends UnderFileSystem {
             + "exists as a file.");
         return false;
       }
+      String srcName = getKeyName(src);
       // Destination is a folder, move source into dst
       if (!isFolder(src)) {
         // Source is a file
-        String srcName = getKeyName(src);
-        renameInternal(src, dst);
+        // Copy to destination
+        if (copy(src, CommonUtils.concatPath(dst, srcName))) {
+          // Delete original
+          return deleteInternal(src);
+        } else {
+          return false;
+        }
       }
+      // Source and Destination are folders
+      // Rename the source folder first
+      String dstFolder = CommonUtils.concatPath(dst, convertToFolderName(srcName));
+      if (!copy(convertToFolderName(src), dstFolder)) {
+        return false;
+      }
+      // Rename each child in the src folder to destination/srcfolder/child
+      String [] children = list(src);
+      String parentName = getKeyName(getParentKey(src));
+      for (String childKey : children) {
+        if (!rename(childKey, CommonUtils.concatPath(dst, parentName))) {
+          return false;
+        }
+      }
+      // Delete everything under src
+      return delete(src, true);
     }
+    // Destination does not exist
     if (isFolder(src)) {
-
+      // Rename the source folder first
+      if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
+        return false;
+      }
+      // Rename each child in the src folder to destination/srcfolder/child
+      String [] children = list(src);
+      String parentName = getKeyName(getParentKey(src));
+      for (String childKey: children) {
+        if (!rename(childKey, CommonUtils.concatPath(dst, parentName))) {
+          return false;
+        }
+      }
+      // Delete everything under src
+      return delete(src, true);
     }
-    // Source is a file
-    return false;
+    // Source is a file and Destination does not exist
+    return copy(src, dst) && deleteInternal(src);
   }
 
   @Override
@@ -242,6 +287,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   }
 
+  // Not supported
   public void setPermission(String path, String posixPerm) throws IOException {
 
   }
@@ -378,7 +424,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
   }
 
-  private boolean renameInternal(String src, String dst) {
+  private boolean copy(String src, String dst) {
     try {
       S3Object obj = new S3Object(dst);
       mClient.copyObject(mBucketName, src, mBucketName, obj, false);
