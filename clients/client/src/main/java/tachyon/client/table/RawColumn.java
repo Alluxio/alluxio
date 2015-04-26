@@ -45,8 +45,9 @@ public class RawColumn {
   // TODO creating file here should be based on id.
   public boolean createPartition(int pId) throws IOException {
     TachyonURI tUri =
-        new TachyonURI(CommonUtils.concat(mRawTable.getPath(), Constants.COLUMN_PREFIX
-            + mColumnIndex, pId));
+        new TachyonURI(
+            CommonUtils.concatPath(
+                mRawTable.getPath(), Constants.COLUMN_PREFIX + mColumnIndex, pId));
     return mTachyonFS.createFile(tUri) > 0;
   }
 
@@ -58,16 +59,18 @@ public class RawColumn {
   // TODO creating file here should be based on id.
   public TachyonFile getPartition(int pId, boolean cachedMetadata) throws IOException {
     TachyonURI tUri =
-        new TachyonURI(CommonUtils.concat(mRawTable.getPath(), Constants.COLUMN_PREFIX
-            + mColumnIndex, pId));
+        new TachyonURI(
+            CommonUtils.concatPath(
+                mRawTable.getPath(), Constants.COLUMN_PREFIX + mColumnIndex, pId));
     return mTachyonFS.getFile(tUri, cachedMetadata);
   }
 
   // TODO creating file here should be based on id.
   public int partitions() throws IOException {
     TachyonURI tUri =
-        new TachyonURI(CommonUtils.concat(mRawTable.getPath(), Constants.COLUMN_PREFIX
-            + mColumnIndex));
+        new TachyonURI(
+            CommonUtils.concatPath(
+                mRawTable.getPath(), Constants.COLUMN_PREFIX + mColumnIndex));
     return mTachyonFS.listStatus(tUri).size();
   }
 }

@@ -79,26 +79,24 @@ public final class UnderFileSystemTest {
   }
 
   @Test
-  public void coreFactoryTest() {
-    // Supported in core
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/test/path", mTachyonConf);
-    Assert.assertNotNull("A UnderFileSystemFactory should exist for local file paths", factory);
-
-    factory = UnderFileSystemRegistry.find("file:///test/path", mTachyonConf);
-    Assert.assertNotNull("A UnderFileSystemFactory should exist for local file paths", factory);
-  }
-
-  @Test
   public void externalFactoryTest() {
     // As we are going to use some Maven trickery to re-use the test cases as is in the external
-    // modules this test needs to assume that only the core implementations are present as otherwise
-    // when we try and run it in the external modules it will fail
-    // In core there is only one under file system implementation, if there are any more we aren't
-    // running in core
-    Assume.assumeTrue(UnderFileSystemRegistry.available().size() == 1);
+    // modules this test needs to assume that only the common implementations are present as
+    // otherwise when we try and run it in the external modules it will fail.
+    Assume.assumeTrue(UnderFileSystemRegistry.available().size() == 0);
 
     // Requires additional modules
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("hdfs://localhost/test/path", mTachyonConf);
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/test/path", mTachyonConf);
+    Assert.assertNull(
+        "No UnderFileSystemFactory should exist for local paths as it requires a separate module",
+        factory);
+
+    factory = UnderFileSystemRegistry.find("file:///test/path", mTachyonConf);
+    Assert.assertNull(
+        "No UnderFileSystemFactory should exist for local paths as it requires a separate module",
+        factory);
+
+    factory = UnderFileSystemRegistry.find("hdfs://localhost/test/path", mTachyonConf);
     Assert.assertNull(
         "No UnderFileSystemFactory should exist for HDFS paths as it requires a separate module",
         factory);
@@ -114,9 +112,8 @@ public final class UnderFileSystemTest {
         factory);
 
     factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mTachyonConf);
-    Assert
-        .assertNull(
-            "No UnderFileSystemFactory should exist for Gluster FS paths as it requires a separate module",
-            factory);
+    Assert.assertNull(
+        "No UnderFileSystemFactory should exist for Gluster FS paths as it requires a separate module",
+        factory);
   }
 }

@@ -12,6 +12,7 @@
   <description>Parent POM for Under File System implementation modules</description>
 
   <modules>
+    <module>local</module>
     <module>hdfs</module>
     <module>glusterfs</module>
   </modules>
