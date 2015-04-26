@@ -111,7 +111,6 @@ public class NIODataServer implements Runnable, DataServer {
    *
    * @throws IOException
    */
-  @Override
   public void close() throws IOException {
     mShutdown = true;
     mServerChannel.close();
@@ -237,7 +236,6 @@ public class NIODataServer implements Runnable, DataServer {
     }
   }
 
-  @Override
   public void run() {
     while (!mShutdown) {
       try {

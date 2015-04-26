@@ -30,6 +30,3 @@ for i in ${nodes[@]}
 do 
    ssh ${i} "sudo mount -t glusterfs localhost:${vol} /vol"
 done
-
-# config tachyon env
-/bin/cp -f /tachyon/conf/tachyon-glusterfs-env.sh.template /tachyon/conf/tachyon-env.sh
