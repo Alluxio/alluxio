@@ -30,17 +30,9 @@
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
-
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon</artifactId>
-      <version>${project.version}</version>
-      <classifier>tests</classifier>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
-  <profiles>
+  <!--profiles>
     <profile>
       <id>glusterfsTest</id>
       <dependencies>
@@ -57,8 +49,8 @@
           <version>${hadoop.version}</version>
         </dependency>
 
-        <!-- Test Dependencies -->
-        <dependency>
+        < Test Dependencies -->
+        <!--dependency>
           <groupId>org.apache.thrift</groupId>
           <artifactId>libthrift</artifactId>
           <version>${libthrift.version}</version>
@@ -123,5 +115,5 @@
         </plugins>
       </build>
     </profile>
-  </profiles>
+  </profiles-->
 </project>

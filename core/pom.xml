@@ -17,11 +17,15 @@
     <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
   </properties>
   <dependencies>
+    <!-- tachyon-client is needed, because web is a part of core -->
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-client</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- Test Dependencies -->
+
     <!--dependency-->
       <!-- using older version to map dependency version from Hadoop -->
       <!--groupId>com.google.guava</groupId>
@@ -64,7 +68,7 @@
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-module-junit4</artifactId>
       <version>${powermock.version}</version>
@@ -100,7 +104,7 @@
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>2.4</version>
-    </dependency>
+    </dependency-->
     <!--dependency>
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
@@ -112,11 +116,11 @@
         </exclusion>
       </exclusions>
     </dependency-->
-    <dependency>
+    <!--dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>3.0</version>
-    </dependency>
+    </dependency-->
     <!--dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-recipes</artifactId>
@@ -131,7 +135,7 @@
           <artifactId>guava</artifactId>
         </exclusion>
       </exclusions>
-    </dependency-->
+    </dependency>
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-test</artifactId>
@@ -143,7 +147,7 @@
           <artifactId>javassist</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
+    </dependency-->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
@@ -168,12 +172,12 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>commons-httpclient</groupId>
       <artifactId>commons-httpclient</artifactId>
       <version>3.0.1</version>
       <scope>test</scope>
-    </dependency>
+    </dependency-->
   </dependencies>
 
   <profiles>
