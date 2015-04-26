@@ -18,9 +18,10 @@ package tachyon.hadoop;
 import tachyon.Constants;
 
 /**
- * An Apache Hadoop FileSystem interface implementation. Any program working with Hadoop HDFS can
- * work with Tachyon transparently by using this class. However, it is not as efficient as using the
- * Tachyon API in tachyon.client package.
+ * An Tachyon client API compatible with Apache Hadoop FileSystem interface. Any program working
+ * with Hadoop HDFS can work with Tachyon transparently. Note that the performance of using this TFS
+ * API may not be as efficient as the performance of using the Tachyon native API defined in
+ * {@link tachyon.client.TachyonFS}, which TFS is built on top of.
  */
 public final class TFS extends AbstractTFS {
 
