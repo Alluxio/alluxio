@@ -28,7 +28,7 @@ public interface AllocateStrategy {
    * @param requestSizeBytes The size of requested space in bytes
    * @return true if possible, false otherwise
    */
-  public boolean fitInPossible(StorageDir[] storageDirs, long requestSizeBytes);
+  boolean fitInPossible(StorageDir[] storageDirs, long requestSizeBytes);
 
   /**
    * Allocate space on StorageDirs. It returns the affordable StorageDir according to
@@ -39,5 +39,5 @@ public interface AllocateStrategy {
    * @param requestSizeBytes The size of requested space in bytes
    * @return StorageDir assigned, null if no StorageDir is found
    */
-  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestSizeBytes);
+  StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestSizeBytes);
 }

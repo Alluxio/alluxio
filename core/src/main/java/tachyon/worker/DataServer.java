@@ -34,7 +34,6 @@ public interface DataServer extends Closeable {
         final BlocksLocker blockLocker, TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
-            //conf.getClass(Constants.WORKER_DATA_SEVRER, Constants.WORKER_DATA_SERVER_CLASS),
             conf.getClass(Constants.WORKER_DATA_SEVRER, tachyon.worker.netty.NettyDataServer.class),
             new Class[] { InetSocketAddress.class, BlocksLocker.class, TachyonConf.class },
             new Object[] { dataAddress, blockLocker, conf });
@@ -44,7 +43,7 @@ public interface DataServer extends Closeable {
     }
   }
 
-  public abstract int getPort();
+  int getPort();
 
-  public abstract boolean isClosed();
+  boolean isClosed();
 }

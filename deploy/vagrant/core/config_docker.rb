@@ -3,11 +3,9 @@
 
 # Docker specific configurations go here
 
-def config_docker(config, i, total, name, version)
-  if version == "Local"
-    config.vm.synced_folder "../../", "/tachyon"
-  end
-  config.vm.synced_folder "./", "/vagrant"
+def config_docker(config, i, total, name)
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
   config.ssh.username = "root"
   config.ssh.password = "vagrant"
   config.ssh.private_key_path = "files/id_rsa"
@@ -17,11 +15,5 @@ def config_docker(config, i, total, name, version)
     d.has_ssh = true 
     d.create_args = ["--privileged"]
     d.remains_running = true
-  end
-
-  config.vm.host_name =  "#{name}"
-  if i == total # last VM starts tachyon
-    config.vm.provision "shell", path: Post
-    config.vm.provision "shell", path: "core/start_tachyon_cluster.sh"
   end
 end
