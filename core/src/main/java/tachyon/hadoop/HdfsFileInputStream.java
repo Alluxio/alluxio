@@ -74,16 +74,16 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mHadoopBufferSize = bufferSize;
     mTachyonFile = mTFS.getFile(mFileId);
     if (mTachyonFile == null) {
-      throw new FileNotFoundException("File " + hdfsPath + " with FID " + fileId
-          + " is not found.");
+      throw new FileNotFoundException("File " + hdfsPath + " with FID " + fileId + " is not found.");
     }
     mTachyonFile.setUFSConf(mHadoopConf);
     mTachyonFileInputStream = mTachyonFile.getInStream(ReadType.CACHE);
   }
 
   /**
-   * Available is not implemented by HdfsFileInputStream. Explicitly marked as not supported to
-   * avoid default behavior of returning 0 in all cases.
+   * Method available() is not supported in HdfsFileInputStream and an IOException will be thrown
+   * to override the default behavior of returning 0 in all cases.
+   *
    * @return
    * @throws IOException
    */
@@ -178,7 +178,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Read upto the specified number of bytes, from a given position within a file, and return the
+   * Read up to the specified number of bytes, from a given position within a file, and return the
    * number of bytes read. This does not change the current offset of a file, and is thread-safe.
    */
   @Override
@@ -230,8 +230,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Read number of bytes equalt to the length of the buffer, from a given position within a file.
+   * Read a number of bytes equal to the length of the buffer, from a given position within a file.
    * This does not change the current offset of a file, and is thread-safe.
+   * <p>
+   * This method is not supported in HdfsFileInputStream and an IOException will be thrown.
+   * </p>
    */
   @Override
   public void readFully(long position, byte[] buffer) throws IOException {
@@ -241,6 +244,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * Read the specified number of bytes, from a given position within a file. This does not change
    * the current offset of a file, and is thread-safe.
+   * <p>
+   * This method is not supported in HdfsFileInputStream and an IOException will be thrown.
+   * </p>
    */
   @Override
   public void readFully(long position, byte[] buffer, int offset, int length) throws IOException {
@@ -249,7 +255,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   /**
    * Seek to the given offset from the start of the file. The next read() will be from that
-   * location. Can't seek past the end of the file.
+   * location. Seek can not pass the end of the file.
    */
   @Override
   public void seek(long pos) throws IOException {
@@ -259,7 +265,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
     if (pos < 0) {
       throw new IOException("Seek position is negative: " + pos);
-    } else if (pos > mTachyonFile.length()) {
+    }
+    if (pos > mTachyonFile.length()) {
       throw new IOException("Seek position is past EOF: " + pos + ", fileSize = "
           + mTachyonFile.length());
     }
@@ -275,6 +282,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   /**
    * Seeks a different copy of the data. Returns true if found a new source, false otherwise.
+   * <p>
+   * This method is not supported in HdfsFileInputStream and an IOException will be thrown.
+   * </p>
    */
   @Override
   public boolean seekToNewSource(long targetPos) throws IOException {
