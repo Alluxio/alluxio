@@ -5,7 +5,7 @@ title: Running Tachyon on OpenStack Compute
 
 ## Deploy Tachyon Cluster on OpenStack Compute via Vagrant
 
-[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster in the cloud at [OpenStack Compute](http://www.openstack.org/software/openstack-compute/).
+[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster in the cloud at [OpenStack Compute](http://www.openstack.org/software/openstack-compute/), and provision all nodes in parallel with [Ansible](http://www.ansible.com/home).
 
 A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant`
 directory:
