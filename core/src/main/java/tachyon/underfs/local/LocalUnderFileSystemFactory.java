@@ -28,13 +28,13 @@ import tachyon.underfs.UnderFileSystemFactory;
 public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
   
   @Override
-  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
+  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object ufsConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
     return new LocalUnderFileSystem(tachyonConf);
   }
 
   @Override
-  public boolean supportsPath(String path, TachyonConf conf) {
+  public boolean supportsPath(String path, TachyonConf tachyonConf) {
     if (path == null) {
       return false;
     }
