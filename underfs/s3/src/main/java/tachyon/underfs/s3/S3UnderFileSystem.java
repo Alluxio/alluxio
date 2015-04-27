@@ -76,7 +76,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
-    return new S3OutputStream(path);
+    return new S3OutputStream(mBucketName, path, mClient);
   }
 
   // Same as create(path)
