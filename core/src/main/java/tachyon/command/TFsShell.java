@@ -748,7 +748,9 @@ public class TFsShell implements Closeable {
         }
         is.skip(tFile.length() - bytesToRead);
         int read = is.read(buf);
-        System.out.write(buf, 0, read);
+        if (read != -1) {
+          System.out.write(buf, 0, read);
+        }
         return 0;
       } finally {
         is.close();
