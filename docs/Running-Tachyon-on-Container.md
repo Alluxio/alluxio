@@ -5,7 +5,7 @@ title: Running Tachyon on Linux Container
 
 ## Deploy Tachyon Cluster on Linux Container via Vagrant
 
-[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster locally inside [Linux container](http://www.docker.com/).
+[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster locally inside [Linux container](http://www.docker.com/), and provision all nodes in parallel with [Ansible](http://www.ansible.com/home).
 
 A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant`
 directory:
