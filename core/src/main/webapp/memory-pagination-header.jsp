@@ -1,4 +1,3 @@
-<script src="js/cookies.min.js" type="text/javascript"></script>
 <script type="text/javascript">
   var nTotalFile = <%= request.getAttribute("inMemoryFileNum") %>;
 
