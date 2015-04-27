@@ -15,23 +15,46 @@
 
 package tachyon.underfs.s3;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import org.jets3t.service.S3Service;
+import org.jets3t.service.ServiceException;
+import org.jets3t.service.model.S3Object;
+
+import java.io.*;
 
 public class S3OutputStream extends OutputStream {
+  private final String mBucketName;
   private final String mKey;
   private final OutputStream mOut;
+  private final File mFile;
+  private final S3Service mClient;
 
-  public S3OutputStream(String key) throws IOException {
+  public S3OutputStream(String bucketName, String key, S3Service client) throws IOException {
+    mBucketName = bucketName;
     mKey = key;
-    File tmpFile = new File("/tmp/" + key);
-    mOut = new FileOutputStream(tmpFile);
+    mClient = client;
+    mFile = new File("/tmp/" + key);
+    mOut = new FileOutputStream(mFile);
   }
 
   @Override
   public void write(int b) throws IOException {
+    mOut.write(b);
+  }
 
+  @Override
+  public void flush() throws IOException {
+    mOut.flush();
+  }
+
+  @Override
+  public void close() throws IOException {
+    mOut.close();
+    BufferedInputStream in = new BufferedInputStream(new FileInputStream(mFile));
+    S3Object obj = new S3Object(mKey);
+    try {
+      mClient.putObject(mBucketName, obj);
+    } catch (ServiceException se) {
+      throw new IOException(se);
+    }
   }
 }
