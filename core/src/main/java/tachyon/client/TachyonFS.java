@@ -61,6 +61,20 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * Create a TachyonFS handler.
+   * 
+   * @param tachyonPath a Tachyon path contains master address. e.g., tachyon://localhost:19998,
+   *        tachyon://localhost:19998/ab/c.txt
+   * @return the corresponding TachyonFS hanlder
+   * @throws IOException
+   * @see #get(tachyon.TachyonURI)
+   */
+  @Deprecated
+  public static synchronized TachyonFS get(String tachyonPath) throws IOException {
+    return get(new TachyonURI(tachyonPath), new TachyonConf());
+  }
+
+  /**
+   * Create a TachyonFS handler.
    *
    * @param tachyonURI a Tachyon URI to indicate master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
