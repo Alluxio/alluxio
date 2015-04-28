@@ -73,20 +73,20 @@ public abstract class UnderFileSystem {
    * Get the UnderFileSystem instance according to its scheme and configuration.
    *
    * @param path file path storing over the ufs
-   * @param conf the configuration object for ufs only
+   * @param ufsConf the configuration object for ufs only
    * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance.
    * @throws IllegalArgumentException for unknown scheme
    * @return instance of the under layer file system
    */
-  public static UnderFileSystem get(String path, Object conf, TachyonConf tachyonConf) {
+  public static UnderFileSystem get(String path, Object ufsConf, TachyonConf tachyonConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     // Use the registry to determine the factory to use to create the client
-    return UnderFileSystemRegistry.create(path, tachyonConf, conf);
+    return UnderFileSystemRegistry.create(path, tachyonConf, ufsConf);
   }
 
   /**
-   * Determines if given path is on a Hadoop under file system
+   * Determines if the given path is on a Hadoop under file system
    *
    * To decide if a path should use the hadoop implementation, we check
    * {@link String#startsWith(String)} to see if the configured schemas are found.
@@ -108,7 +108,7 @@ public abstract class UnderFileSystem {
   /**
    * Checks whether the underFS provides storage
    */
-  public boolean providesStorage() throws IOException {
+  public boolean providesStorage() {
     return mProvidesStorage;
   }
 
@@ -280,7 +280,7 @@ public abstract class UnderFileSystem {
   public abstract long getFileSize(String path) throws IOException;
 
   /**
-   * Gets the UTC time when the indicated path was modified recently.
+   * Gets the UTC time of when the indicated path was modified recently in ms.
    *
    * @param path The file or folder name
    * @return modification time in milliseconds
