@@ -1,5 +1,5 @@
 # Type can be {None|Github}, None means don't set up spark
-Type: Github
+Type: None
 Github:
   Repo: https://github.com/apache/spark
   Version: branch-1.3 # repo of this version must contain make-distribution.sh, that is branch-0.8 afterwards
