@@ -22,7 +22,8 @@ vagrant
 │   ├── init.yml.docker
 │   └── openstack-config.yml
 ├── init.yml -> conf/init.yml.hdfs2
-|__ tachyon_version.yml
+├── tachyon_version.yml
+├── spark_version.yml
 ├── README.md
 ├── run_vb.sh
 └── ...
@@ -35,9 +36,11 @@ Command `run_vb.sh` allows you to launch a Tachyon on VirtualBox VMs. It reads T
 
 * **Install VirtualBox**. 
 
+* **Install Ansible**. [Installation Guide](http://docs.ansible.com/intro_installation.html#installation). Version 1.5 and higher is recommended for ssh speedup.
+
 ## Configure
 
-Configure Tachyon Version you want to deploy, refer to [this doc](Running-Specific-Tachyon-Commit-Via-Vagrant.html)
+Configure Version of Tachyon or Spark you want to deploy, refer to [this doc](Running-Specific-Version-Of-Tachyon-Or-Spark-Via-Vagrant.html)
 
 Provide your desired Tachyon cluster configuration. A sample configuration can be found in `tachyon/deploy/vagrant/conf/init.yml.[hdfs2|hdfs1|glusterfs]`. Link or copy it to `tachyon/deploy/vagrant/init.yml`. 
 
