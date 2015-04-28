@@ -6,9 +6,9 @@
     <artifactId>tachyon-underfs</artifactId>
     <version>0.7.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon-underfs-hdfs</artifactId>
-  <name>Tachyon Under File System - HDFS</name>
-  <description>HDFS Under File System implementation</description>
+  <artifactId>tachyon-underfs-local</artifactId>
+  <name>Tachyon Under File System - Local FS</name>
+  <description>Local Under File System implementation</description>
 
   <properties>
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
@@ -19,14 +19,10 @@
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-hadoop</artifactId>
+      <artifactId>tachyon-common</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
+
     <!-- Test Dependencies -->
     <dependency>
       <groupId>junit</groupId>
@@ -138,7 +134,7 @@
             <dependency>org.tachyonproject:tachyon</dependency>
           </dependenciesToScan>
           <systemPropertyVariables>
-            <ufs>tachyon.underfs.hdfs.LocalMiniDFSCluster</ufs>
+            <ufs>tachyon.underfs.local.LocalFilesystemCluster</ufs>
           </systemPropertyVariables>
         </configuration>
         <executions>
