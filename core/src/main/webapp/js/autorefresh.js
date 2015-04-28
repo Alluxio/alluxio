@@ -1,5 +1,5 @@
 var requestUrl = window.location.href;
-var autoRefresh = requestUrl.indexOf("autoRefresh=") != -1 ? true : false;
+var autoRefresh = requestUrl.indexOf("autoRefresh=") != -1;
 
 function doAutoRefresh() {
   var refreshUrl = window.location.href;
@@ -25,7 +25,7 @@ function toggleAutoRefresh() {
       $("#autorefresh-link").text("Disable Auto-Refresh");
   }
 }
-if (autoRefresh == "1") {
+if (autoRefresh) {
   $("#autorefresh-link").text("Disable Auto-Refresh");
   autoRefreshTimer = window.setTimeout(doAutoRefresh, 15000);
 } else {
