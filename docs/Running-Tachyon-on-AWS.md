@@ -5,7 +5,7 @@ title: Running Tachyon on Amazon EC2
 
 ## Deploy Tachyon Cluster on Amazon EC2 via Vagrant
 
-[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster in the cloud at [AWS EC2 VPC](http://aws.amazon.com/vpc/).
+[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster in the cloud at [AWS EC2 VPC](http://aws.amazon.com/vpc/), and provision all nodes in parallel with [Ansible](http://www.ansible.com/home).
 
 A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant`
 directory:
@@ -76,6 +76,13 @@ For Docker provider, containers use DHCP, these addresses are not used.
 </td><td>IPv4 address string</td>
 </tr>
 </table>
+
+## Block Device Mapping
+
+To mount extra disks, you can define them through block device mapping in conf/ec2-config.yml. 
+
+After launching the cluster, all block devices will either be mounted to /mnt, or /disk0, /disk1, ... in sequence. Each of
+these directories maps to a unique block device with ext4 as filesystem.
 
 ## Launch Cluster
 

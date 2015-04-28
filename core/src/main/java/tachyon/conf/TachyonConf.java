@@ -26,22 +26,27 @@ import tachyon.util.NetworkUtils;
 import tachyon.worker.netty.ChannelType;
 
 /**
- * Configuration for Tachyon. Used to set various Tachyon parameters as key-value pairs.
- *
- * This class will contains all the runtime configuration properties.
- *
- * Clients of this class can create a TachyonConf object with <code>new TachyonConf()`</code>,
- * which will load values from any Java system properties set as well.
- *
- * The class only support creation using `new TachyonConf(properties)` which will override default
- * values.
+ * <p>
+ * Configuration of Tachyon. It sets various Tachyon parameters as key-value pairs. This class
+ * contains all the runtime configuration properties. The default properties is stored in file
+ * <code>tachyon-default.properties</code> and users can override these default properties by
+ * modifying file <code>tachyon-site.properties</code>.
+ * </p>
+ * <p>
+ * User can create an instance of this class by <code>new TachyonConf()</code>, which will load
+ * values from any Java system properties set as well.
+ * </p>
+ * The class only supports creation using <code>new TachyonConf(properties)</code> to override
+ * default values.
  */
 public class TachyonConf {
+  /** File to set default properties */
   public static final String DEFAULT_PROPERTIES = "tachyon-default.properties";
+  /** File to set customized properties */
   public static final String SITE_PROPERTIES = "tachyon-site.properties";
-
-  // Regex to find ${key} for variable substitution
+  /** Regex string to find ${key} for variable substitution */
   public static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
+  /** Regex to find ${key} for variable substitution */
   public static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -95,7 +100,6 @@ public class TachyonConf {
    * Default constructor.
    *
    * Most clients will call this constructor to allow default loading of properties to happen.
-   *
    */
   public TachyonConf() {
     this(true);
@@ -103,9 +107,6 @@ public class TachyonConf {
 
   /**
    * Test constructor for TachyonConfTest class.
-   *
-   * Most clients will call this constructor to allow default loading of properties to happen.
-   *
    */
   TachyonConf(boolean includeSystemProperties) {
     loadDefault(includeSystemProperties);
@@ -124,30 +125,28 @@ public class TachyonConf {
   public boolean equals(Object obj) {
     if (this == obj) {
       return true;
-    } else if (obj instanceof TachyonConf) {
+    }
+    if (obj instanceof TachyonConf) {
       Properties props = ((TachyonConf) obj).getInternalProperties();
       return mProperties.equals(props);
-    } else {
-      return false;
     }
+    return false;
   }
 
   /**
-   * Here is the order of importance of resource where we load the properties:
+   * Here is the order of the sources to load the properties:
    *   -) System properties if desired
    *   -) Site specific properties via tachyon-site.properties file
    *   -) Default properties via tachyon-default.properties file
-   * so we will load it in reverse order.
-  */
+   */
   protected void loadDefault(boolean includeSystemProperties) {
     // Load default
     Properties defaultProps = new Properties();
 
     // Override runtime default
-    defaultProps.setProperty(Constants.MASTER_HOSTNAME, 
-        NetworkUtils.getLocalHostName(250));
-    defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
-        ChannelType.defaultType().toString());
+    defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(250));
+    defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.defaultType()
+        .toString());
     defaultProps.setProperty(Constants.WORKER_MIN_WORKER_THREADS,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
     defaultProps.setProperty(Constants.MASTER_MIN_WORKER_THREADS,
@@ -155,22 +154,21 @@ public class TachyonConf {
 
     InputStream defaultInputStream =
         TachyonConf.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTIES);
-    if (defaultInputStream != null) {
-      try {
-        defaultProps.load(defaultInputStream);
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to load default Tachyon properties file.", e);
-      }
-    } else {
+    if (defaultInputStream == null) {
       throw new RuntimeException("The default Tachyon properties file does not exist.");
+    }
+    try {
+      defaultProps.load(defaultInputStream);
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to load default Tachyon properties file.", e);
     }
 
     // Update tachyon.master_address
     String masterHostname = defaultProps.getProperty(Constants.MASTER_HOSTNAME);
     String masterPort = defaultProps.getProperty(Constants.MASTER_PORT);
     boolean useZk = Boolean.parseBoolean(defaultProps.getProperty(Constants.USE_ZOOKEEPER));
-    String masterAddress = (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":"
-        + masterPort;
+    String masterAddress =
+        (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
     defaultProps.setProperty(Constants.MASTER_ADDRESS, masterAddress);
 
     // Load site specific properties file
@@ -205,7 +203,8 @@ public class TachyonConf {
   }
 
   /**
-   * Merge configuration properties with the other one. New one wins for duplicate
+   * Merge the current configuration properties with another one. A property from the new
+   * configuration wins if it also appears in the current configuration.
    *
    * @param alternateConf The source <code>TachyonConf</code> to be merged.
    */
@@ -236,11 +235,9 @@ public class TachyonConf {
         return Integer.parseInt(lookup(rawValue));
       } catch (NumberFormatException e) {
         LOG.warn("Configuration cannot evaluate key " + key + " as integer.");
-        return defaultValue;
       }
-    } else {
-      return defaultValue;
     }
+    return defaultValue;
   }
 
   public long getLong(String key, final long defaultValue) {
@@ -250,11 +247,9 @@ public class TachyonConf {
         return Long.parseLong(lookup(rawValue));
       } catch (NumberFormatException e) {
         LOG.warn("Configuration cannot evaluate key " + key + " as long.");
-        return defaultValue;
       }
-    } else {
-      return defaultValue;
     }
+    return defaultValue;
   }
 
   public double getDouble(String key, final double defaultValue) {
@@ -264,11 +259,9 @@ public class TachyonConf {
         return Double.parseDouble(lookup(rawValue));
       } catch (NumberFormatException e) {
         LOG.warn("Configuration cannot evaluate key " + key + " as double.");
-        return defaultValue;
       }
-    } else {
-      return defaultValue;
     }
+    return defaultValue;
   }
 
   public float getFloat(String key, final float defaultValue) {
@@ -278,20 +271,17 @@ public class TachyonConf {
         return Float.parseFloat(lookup(rawValue));
       } catch (NumberFormatException e) {
         LOG.warn("Configuration cannot evaluate key " + key + " as float.");
-        return defaultValue;
       }
-    } else {
-      return defaultValue;
     }
+    return defaultValue;
   }
 
   public boolean getBoolean(String key, boolean defaultValue) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       return Boolean.parseBoolean(lookup(rawValue));
-    } else {
-      return defaultValue;
     }
+    return defaultValue;
   }
 
   public List<String> getList(String key, String delimiter, List<String> defaultValue) {
@@ -301,18 +291,16 @@ public class TachyonConf {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       return Lists.newLinkedList(Splitter.on(',').trimResults().omitEmptyStrings().split(rawValue));
-    } else {
-      return defaultValue;
     }
+    return defaultValue;
   }
 
   public <T extends Enum<T>> T getEnum(String key, T defaultValue) {
     if (mProperties.containsKey(key)) {
       final String val = get(key, defaultValue.toString());
       return null == val ? defaultValue : Enum.valueOf(defaultValue.getDeclaringClass(), val);
-    } else {
-      return defaultValue;
     }
+    return defaultValue;
   }
 
   public long getBytes(String key, long defaultValue) {
@@ -332,13 +320,16 @@ public class TachyonConf {
       } catch (Exception e) {
         String msg = "requested class could not be loaded";
         LOG.error("{} : {} , {}", msg, rawValue, e);
-        return defaultValue;
       }
-    } else {
-      return defaultValue;
     }
+    return defaultValue;
   }
-  
+
+  /**
+   * Return the properties as a Map.
+   *
+   * @return a Map from each property name to its property values
+   */
   public Map<String, String> toMap() {
     Map<String, String> copy = new HashMap<String, String>();
     for (Enumeration<?> names = mProperties.propertyNames(); names.hasMoreElements();) {
@@ -357,7 +348,7 @@ public class TachyonConf {
    * Lookup key names to handle ${key} stuff. Set as package private for testing.
    *
    * @param base string to look for.
-   * @return returns the key name with the ${key} substituted
+   * @return the key name with the ${key} substituted
    */
   String lookup(String base) {
     return lookup(base, new HashMap<String, String>());
