@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 
 public final class Utils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -43,6 +44,19 @@ public final class Utils {
     String secretKeyConf = "fs.s3n.awsSecretAccessKey";
     if (System.getProperty(secretKeyConf) != null && conf.get(secretKeyConf) == null) {
       conf.set(secretKeyConf, System.getProperty(secretKeyConf));
+    }
+  }
+  
+  /**
+   * Replace default key with user provided key 
+   * @param conf
+   * @param key
+   */
+  public static void addKey(Configuration conf, TachyonConf tachyonConf, String key) {
+    if (System.getProperty(key) != null && conf.get(key) == null) {
+      conf.set(key, System.getProperty(key));
+    } else if (tachyonConf.containsKey(key)) {
+      conf.set(key, tachyonConf.get(key, null));
     }
   }
 

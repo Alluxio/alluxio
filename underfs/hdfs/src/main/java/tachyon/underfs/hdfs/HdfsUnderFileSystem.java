@@ -66,9 +66,10 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     } else {
       tConf = new Configuration();
     }
-
     prepareConfiguration(fsDefaultName, tachyonConf, tConf);
-
+    Utils.addKey(tConf, tachyonConf, "tachyon.underfs.hadoop.configuration");
+    LOG.debug("Adding" + tConf.get("tachyon.underfs.hadoop.configuration"));
+    tConf.addResource(new Path(tConf.get("tachyon.underfs.hadoop.configuration")));
     Utils.addS3Credentials(tConf);
 
     Path path = new Path(mUfsPrefix);
