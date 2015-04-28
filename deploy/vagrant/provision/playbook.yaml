@@ -65,8 +65,11 @@
           --exclude=underFSStorage
       when: (not is_vb) and (not is_git)
 
+    - copy: src=../ufs/{{ ufs }}/compile_tachyon.sh dest=/tmp/compile_tachyon.sh
     - name: compile tachyon
-      script: ../ufs/{{ ufs }}/compile_tachyon.sh
+      command: bash /tmp/compile_tachyon.sh
+      async: 1200
+      poll: 60
 
     - name: set tachyon/conf/workers tachyon/conf/slaves
       shell: cp /vagrant/files/workers /tachyon/conf/workers && cp /vagrant/files/workers /tachyon/conf/slaves
@@ -107,8 +110,11 @@
       script: config_spark.sh
       when: use_spark
 
+    - copy: src=../ufs/{{ ufs }}/compile_spark.sh dest=/tmp/compile_spark.sh
     - name: compile spark and make-distribution
-      script: ../ufs/{{ ufs }}/compile_spark.sh
+      command: bash /tmp/compile_spark.sh
+      async: 1800
+      poll: 60
       when: use_spark
 
 - hosts: TachyonWorker*
