@@ -141,6 +141,7 @@
 
   <modules>
     <module>core</module>
+    <module>common</module>
     <module>client</module>
     <module>assembly</module>
     <module>underfs</module>
