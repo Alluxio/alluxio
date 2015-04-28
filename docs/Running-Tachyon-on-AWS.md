@@ -22,7 +22,8 @@ vagrant
 │   ├── init.yml.docker
 │   └── openstack-config.yml
 ├── init.yml -> conf/init.yml.hdfs2
-|__ tachyon_version.yml
+├── tachyon_version.yml
+├── spark_version.yml
 ├── README.md
 ├── run_aws.sh
 └── ...
@@ -41,9 +42,11 @@ The `run_aws.sh` script allows you to launch a Tachyon VPC on Amazon EC2. It rea
 
 * **Choose EC2 Availability Zone**. You need to provide a `Availability Zone` for your VPC's network address range.
 
+* **Install Ansible**. [Installation Guide](http://docs.ansible.com/intro_installation.html#installation). Version 1.5 and higher is recommended for ssh speedup.
+
 ## Configure
 
-Configure Tachyon Version you want to deploy, refer to [this doc](Running-Specific-Tachyon-Commit-Via-Vagrant.html)
+Configure Version of Tachyon or Spark you want to deploy, refer to [this doc](Running-Specific-Version-Of-Tachyon-Or-Spark-Via-Vagrant.html)
 
 With the above EC2 information, fill them in `tachyon/deploy/vagrant/conf/ec2-config.yml`. Also ensure your shell environmen variables `AWS_ACCESS_KEY` and `AWS_SECRET_KEY` are set correctly.
 
