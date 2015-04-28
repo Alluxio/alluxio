@@ -65,6 +65,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           if is_vb
             ans.raw_arguments = ["--private-key","~/.vagrant.d/insecure_private_key"]
           end
+          ans.raw_ssh_args = ['-o ServerAliveInterval 100']
         end
       end
 
