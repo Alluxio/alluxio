@@ -67,9 +67,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       tConf = new Configuration();
     }
     prepareConfiguration(fsDefaultName, tachyonConf, tConf);
-    Utils.addKey(tConf, tachyonConf, "tachyon.underfs.hadoop.configuration");
-    LOG.debug("Adding" + tConf.get("tachyon.underfs.hadoop.configuration"));
-    tConf.addResource(new Path(tConf.get("tachyon.underfs.hadoop.configuration")));
+    tConf.addResource(new Path(tConf.get(Constants.UNDERFS_HADOOP_CONFIGURATION)));
     Utils.addS3Credentials(tConf);
 
     Path path = new Path(mUfsPrefix);
@@ -108,6 +106,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     // test only, and not expose to the end-user currently.
     config.set("fs.hdfs.impl.disable.cache",
         System.getProperty("fs.hdfs.impl.disable.cache", "false"));
+    
+    Utils.addKey(config, tachyonConf, Constants.UNDERFS_HADOOP_CONFIGURATION);
   }
 
   @Override
