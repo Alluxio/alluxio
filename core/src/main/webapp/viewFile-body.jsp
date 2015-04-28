@@ -3,8 +3,7 @@
 <%@ page import="static org.apache.commons.lang.StringEscapeUtils.escapeHtml" %>
 <%@ page import="static java.net.URLEncoder.encode" %>
 
-<script src="js/jquery-1.9.1.min.js" type="text/javascript"></script>
-<script src="js/bootstrap.min.js"></script>
+<jsp:include page="header-scripts.jsp" />
 <script>
   function displayContent() {
     var tmp = document.getElementById("offset").value;
