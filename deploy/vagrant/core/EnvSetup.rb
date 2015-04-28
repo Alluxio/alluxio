@@ -64,6 +64,7 @@ require 'yaml'
 # parse tachyon_version.yml
 class TachyonVersion
   def initialize(yaml_path)
+    puts 'parsing tachyon_version.yml'
     @yml = YAML.load_file(yaml_path)
 
     @type = @yml['Type']
@@ -72,9 +73,8 @@ class TachyonVersion
       puts 'using local tachyon dir'
     when "Github"
       @repo = @yml['Github']['Repo']
-      @hash = @yml['Github']['Hash']
-      @url = "#{@repo}/commit/#{@hash}"
-      puts "using github commit #{@url}"
+      @version = @yml['Github']['Version']
+      puts "using github #{@repo}, version #{@version}"
     else
       puts "Unknown VersionType, Only {Github | Local} supported"
       exit(1)
@@ -85,8 +85,8 @@ class TachyonVersion
     return @type
   end
 
-  def repo_hash
-    return @repo, @hash
+  def repo_version
+    return @repo, @version
   end
 end
 

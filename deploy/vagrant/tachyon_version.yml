@@ -1,7 +1,7 @@
 # {Github | Local}
-Type: Local
+Type: Github
 
-# github repo and commit hash 
+# github repo and version(can be branch, commit hash)
 Github: 
   Repo: https://github.com/amplab/tachyon
-  Hash: 74f2968d99a9bb5f9ed973c1a226eee25d33ba65
+  Version: branch-0.5
