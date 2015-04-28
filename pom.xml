@@ -140,10 +140,11 @@
   </properties>
 
   <modules>
-    <module>core</module>
-    <module>client</module>
-    <module>assembly</module>
+    <module>common</module>
+    <module>clients</module>
     <module>underfs</module>
+    <module>core</module>
+    <module>assembly</module>
   </modules>
 
   <build>
