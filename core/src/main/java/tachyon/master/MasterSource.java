@@ -28,7 +28,9 @@ import tachyon.Constants;
 import tachyon.metrics.source.Source;
 
 /**
- * A MasterSource collects a Master's internal state.
+ * A MasterSource collects a Master's internal state. Metrics like *Ops are used to record how many
+ * times that operation was attempted so the counter is incremented no matter if it is successful or
+ * not.
  */
 public class MasterSource implements Source {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

@@ -60,8 +60,8 @@ public final class MetricsConfig {
   /**
    * Get an instance's properties.
    *
-   * @param inst the instance name, "master" or "worker".
-   * @return the properties.
+   * @param inst the instance name. Currently there are only two instances: "master" and "worker".
+   * @return the instance's properties if it is present, otherwise a default one is returned.
    */
   public Properties getInstanceProperties(String inst) {
     Properties prop = mPropertyCategories.get(inst);
