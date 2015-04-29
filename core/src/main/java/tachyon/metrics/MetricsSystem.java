@@ -74,6 +74,7 @@ public class MetricsSystem {
    * Creates a MetricsSystem and initialize the configuration.
    *
    * @param instance the instance name.
+   * @param tachyonConf The {@link TachyonConf} instance for configuration properties.
    */
   public MetricsSystem(String instance, TachyonConf tachyonConf) {
     mInstance = instance;
