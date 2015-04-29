@@ -140,8 +140,8 @@
   </properties>
 
   <modules>
-    <module>core</module>
     <module>common</module>
+    <module>core</module>
     <module>client</module>
     <module>assembly</module>
     <module>underfs</module>
