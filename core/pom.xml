@@ -255,35 +255,6 @@
         <version>2.2</version>
         <executions>
           <execution>
-            <id>include-thrift</id>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <artifactSet>
-                <includes>
-                  <include>org.apache.thrift:libthrift</include>
-                </includes>
-              </artifactSet>
-              <filters>
-                <filter>
-                  <!-- Sigh. The Thrift jar contains its source -->
-                  <artifact>org.apache.thrift:libthrift</artifact>
-                  <excludes>
-                    <exclude>**/*.java</exclude>
-                  </excludes>
-                </filter>
-              </filters>
-              <relocations>
-                <relocation>
-                  <pattern>org.apache.thrift</pattern>
-                  <shadedPattern>tachyon.org.apache.thrift</shadedPattern>
-                </relocation>
-              </relocations>
-            </configuration>
-          </execution>
-          <execution>
             <id>uber-jar</id>
             <phase>package</phase>
             <goals>
