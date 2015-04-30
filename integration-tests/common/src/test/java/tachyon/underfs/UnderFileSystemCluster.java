@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.google.common.base.Throwables;
 
 import tachyon.conf.TachyonConf;
-import tachyon.LocalFilesystemCluster;
 import tachyon.TachyonURI;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
@@ -74,22 +73,18 @@ public abstract class UnderFileSystemCluster {
       TachyonConf tachyonConf) {
     mUfsClz = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
 
-    if (!StringUtils.isEmpty(mUfsClz)) {
-      try {
-        UnderFileSystemCluster ufsCluster =
-            (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class,
-                TachyonConf.class).newInstance(baseDir, tachyonConf);
-        System.out.println("Initialized under file system testing cluster of type "
-            + ufsCluster.getClass().getCanonicalName() + " for integration testing");
-        return ufsCluster;
-      } catch (Throwable e) {
-        System.err.println("Failed to initialize the ufsCluster of " + mUfsClz
-            + " for integration test.");
-        throw Throwables.propagate(e);
-      }
+    try {
+      UnderFileSystemCluster ufsCluster =
+        (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class,
+            TachyonConf.class).newInstance(baseDir, tachyonConf);
+      System.out.println("Initialized under file system testing cluster of type "
+        + ufsCluster.getClass().getCanonicalName() + " for integration testing");
+      return ufsCluster;
+    } catch (Throwable e) {
+      System.err.println("Failed to initialize the ufsCluster of " + mUfsClz
+        + " for integration test.");
+      throw Throwables.propagate(e);
     }
-    System.out.println("Using default LocalFilesystemCluster for integration testing");
-    return new LocalFilesystemCluster(baseDir, tachyonConf);
   }
 
   protected String mBaseDir;
