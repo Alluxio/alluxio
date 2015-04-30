@@ -46,7 +46,7 @@
 
     - name: clone tachyon repo
       git: repo={{ tachyon_repo }} dest=/tachyon version={{ tachyon_version }}
-      when: is_git
+      when: tachyon_is_git
 
     - name: clone local tachyon repo
       synchronize:
@@ -63,7 +63,7 @@
           --exclude=journal,
           --exclude=logs,
           --exclude=underFSStorage
-      when: (not is_vb) and (not is_git)
+      when: (not is_vb) and (not tachyon_is_git)
 
     - copy: src=../ufs/{{ ufs }}/compile_tachyon.sh dest=/tmp/compile_tachyon.sh
     - name: compile tachyon
