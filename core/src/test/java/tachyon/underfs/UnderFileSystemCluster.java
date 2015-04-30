@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -52,7 +52,7 @@ public abstract class UnderFileSystemCluster {
 
   /**
    * To start the underfs test bed and register the shutdown hook
-   * 
+   *
    * @throws IOException
    * @throws InterruptedException
    */
@@ -100,12 +100,12 @@ public abstract class UnderFileSystemCluster {
 
   /**
    * This method is only for unit-test {@link tachyon.client.FileOutStreamTest} temporarily
-   * 
+   *
    * @return true if reads on end of file return negative otherwise false
    */
   public static boolean readEOFReturnsNegative() {
     // TODO Should be dynamically determined - may need additional method on UnderFileSystem
-    return (null != mUfsClz) && (mUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster"));
+    return (null != mUfsClz) && !(mUfsClz.equals("tachyon.LocalUnderFileSystem"));
   }
 
   public UnderFileSystemCluster(String baseDir, TachyonConf tachyonConf) {
@@ -118,7 +118,7 @@ public abstract class UnderFileSystemCluster {
    * system for the next test round instead of turning on/off it from time to time. This function is
    * expected to be called either before or after each test case which avoids certain overhead from
    * the bootstrap.
-   * 
+   *
    * @throws IOException
    */
   public void cleanup() throws IOException {
@@ -135,7 +135,7 @@ public abstract class UnderFileSystemCluster {
 
   /**
    * Check if the cluster started.
-   * 
+   *
    * @return
    */
   public abstract boolean isStarted();
@@ -143,7 +143,7 @@ public abstract class UnderFileSystemCluster {
   /**
    * Add a shutdown hook. The {@link #shutdown} phase will be automatically called while the process
    * exists.
-   * 
+   *
    * @throws InterruptedException
    */
   public void registerJVMOnExistHook() throws IOException {
@@ -152,14 +152,14 @@ public abstract class UnderFileSystemCluster {
 
   /**
    * To stop the underfs cluster system
-   * 
+   *
    * @throws IOException
    */
   public abstract void shutdown() throws IOException;
 
   /**
    * To start the underfs cluster system
-   * 
+   *
    * @throws IOException
    */
   public abstract void start() throws IOException;
