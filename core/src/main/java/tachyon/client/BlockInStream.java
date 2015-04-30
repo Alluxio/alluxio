@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -31,11 +31,11 @@ import tachyon.conf.TachyonConf;
  */
 public abstract class BlockInStream extends InStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  
+
   /**
    * Get a new BlockInStream of the given block without under file system configuration. The block
    * is decided by the tachyonFile and blockIndex
-   * 
+   *
    * @param tachyonFile the file the block belongs to
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the tachyonFile
@@ -51,7 +51,7 @@ public abstract class BlockInStream extends InStream {
   /**
    * Get a new BlockInStream of the given block with the under file system configuration. The block
    * is decided by the tachyonFile and blockIndex
-   * 
+   *
    * @param tachyonFile the file the block belongs to
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the tachyonFile
@@ -72,7 +72,7 @@ public abstract class BlockInStream extends InStream {
         return new LocalBlockInStream(tachyonFile, readType, blockIndex, buf, tachyonConf);
       }
     }
-    
+
     LOG.info("Reading with remote stream.");
     return new RemoteBlockInStream(tachyonFile, readType, blockIndex, ufsConf, tachyonConf);
   }
