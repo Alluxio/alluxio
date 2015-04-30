@@ -359,7 +359,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     if (!isComplete()) {
       return null;
     }
-    
+
     // TODO allow user to disable local read for this advanced API
     TachyonByteBuffer ret = readLocalByteBuffer(blockIndex);
     if (ret == null) {
