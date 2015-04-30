@@ -108,7 +108,7 @@
             <dependency>org.tachyonproject:tachyon</dependency>
           </dependenciesToScan>
           <systemPropertyVariables>
-            <ufs>tachyon.underfs.hdfs.LocalMiniDFSCluster</ufs>
+            <ufs>tachyon.underfs.s3.S3UnderStorageCluster</ufs>
           </systemPropertyVariables>
         </configuration>
         <executions>
