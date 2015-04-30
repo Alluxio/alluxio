@@ -107,7 +107,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
       String toDelete = path + pathToDelete;
       // If we fail to deleteInternal one file, stop
       if (!deleteInternal(path + pathToDelete)) {
-        System.out.println("Failed to delete: " + toDelete);
         return false;
       }
     }
@@ -251,7 +250,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
       if (!isFolder(src)) {
         // Source is a file
         // Copy to destination
-        System.out.println("SRC is a file");
         if (copy(src, CommonUtils.concatPath(dst, srcName))) {
           // Delete original
           return deleteInternal(src);
@@ -294,7 +292,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return delete(src, true);
     }
     // Source is a file and Destination does not exist
-    System.out.println("Dest does not exist and source is a file");
     return copy(src, dst) && deleteInternal(src);
   }
 
@@ -408,7 +405,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
     try {
       String keyAsFolder = convertToFolderName(key).substring(SCHEME.length()
           + mBucketName.length() + 1);
-      StorageObject details = mClient.getObjectDetails(mBucketName, keyAsFolder);
+      mClient.getObjectDetails(mBucketName, keyAsFolder);
       // If no exception is thrown, the key exists as a folder
       return true;
     } catch (ServiceException se) {
