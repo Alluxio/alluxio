@@ -55,8 +55,8 @@ public class RemoteBlockInStream extends BlockInStream {
   private long mCheckpointPos = -1;
 
   /**
-   * The position in the block we are currently at, relative to the block. The
-   * position relative to the file would be mBlockInfo.offset + mBlockPos.
+   * The position in the block we are currently at, relative to the block. The position relative to
+   * the file would be mBlockInfo.offset + mBlockPos.
    */
   private long mBlockPos = 0;
 
@@ -265,12 +265,11 @@ public class RemoteBlockInStream extends BlockInStream {
         if (port == -1) {
           continue;
         }
-        
+
         if (host.equals(InetAddress.getLocalHost().getHostName())
-            || host.equals(InetAddress.getLocalHost().getHostAddress())
-            || host.equals(localhost)) {
-          LOG.warn("Master thinks the local machine has data, But not! blockId:{}",
-              blockInfo.blockId);
+            || host.equals(InetAddress.getLocalHost().getHostAddress()) || host.equals(localhost)) {
+          LOG.warn("Master thinks the local machine has data, but not!"
+              + "(or local read is disabled) blockId:{}", blockInfo.blockId);
         }
         LOG.info(host + ":" + port + " current host is " + localhost + " "
             + NetworkUtils.getLocalIpAddress(conf));
@@ -366,10 +365,9 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   /**
-   * Makes sure mCurrentBuffer is set to read at mBlockPos. If it is already, we do
-   * nothing. Otherwise, we set mBufferStartPos accordingly and try to read the correct range of
-   * bytes remotely. If we fail to read remotely, mCurrentBuffer will be null at the end of the
-   * function
+   * Makes sure mCurrentBuffer is set to read at mBlockPos. If it is already, we do nothing.
+   * Otherwise, we set mBufferStartPos accordingly and try to read the correct range of bytes
+   * remotely. If we fail to read remotely, mCurrentBuffer will be null at the end of the function
    *
    * @return true if mCurrentBuffer was successfully set to read at mBlockPos, or false if the
    *         remote read failed.
