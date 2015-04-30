@@ -18,6 +18,7 @@ package tachyon.underfs.s3;
 import java.io.IOException;
 
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 
 /**
@@ -25,8 +26,13 @@ import tachyon.underfs.UnderFileSystemCluster;
  */
 public class S3UnderStorageCluster extends UnderFileSystemCluster {
 
+  private final String awsAccessKey = "";
+  private final String awsSecretKey = "";
+
   public S3UnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
+    System.setProperty("fs.s3n.awsAccessKeyId", awsAccessKey);
+    System.setProperty("fs.s3n.awsSecretAccessKey", awsSecretKey);
     mBaseDir = "s3n://calvin-s3-test/testdir";
   }
 
@@ -41,7 +47,10 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   }
 
   @Override
-  public void shutdown() throws IOException {}
+  public void shutdown() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mTachyonConf);
+    ufs.delete(mBaseDir, true);
+  }
 
   @Override
   public void start() throws IOException {}
