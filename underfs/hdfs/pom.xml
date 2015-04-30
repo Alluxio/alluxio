@@ -74,6 +74,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <!-- TODO: use dependency management, no duplicated version setting -->
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-minicluster</artifactId>
       <version>${hadoop.version}</version>
