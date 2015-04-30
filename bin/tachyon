@@ -246,8 +246,8 @@ elif [ "$COMMAND" == "copyDir" ]; then
   copyDir "$@"
   exit 0
 elif [ "$COMMAND" == "thriftGen" ]; then
-  rm -rf $bin/../core/src/main/java/tachyon/thrift
-  thrift --gen java -out $bin/../core/src/main/java/. $bin/../core/src/thrift/tachyon.thrift
+  rm -rf $bin/../common/src/main/java/tachyon/thrift
+  thrift --gen java -out $bin/../common/src/main/java/. $bin/../common/src/thrift/tachyon.thrift
   exit 0
 elif [ "$COMMAND" == "clearCache" ]; then
   sync; echo 3 > /proc/sys/vm/drop_caches ;
