@@ -27,7 +27,6 @@ import com.google.common.base.Throwables;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
-import org.jets3t.service.model.S3Bucket;
 import org.jets3t.service.model.S3Object;
 import org.jets3t.service.model.StorageObject;
 import org.jets3t.service.security.AWSCredentials;
@@ -47,6 +46,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String FOLDER_SUFFIX = "_$folder$";
   private static final String PATH_SEPARATOR = "/";
+  private static final String SCHEME = "s3n://";
 
   private final S3Service mClient;
   private final String mBucketName;
@@ -76,7 +76,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
-    return new S3OutputStream(mBucketName, path, mClient);
+    if (mkdirs(getParentKey(path), true)) {
+      return new S3OutputStream(mBucketName, path, mClient);
+    }
+    return null;
   }
 
   // Same as create(path)
@@ -101,8 +104,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
     // Get all relevant files
     String[] pathsToDelete = list(path);
     for (String pathToDelete : pathsToDelete) {
+      String toDelete = path + pathToDelete;
       // If we fail to deleteInternal one file, stop
-      if (!deleteInternal(pathToDelete)) {
+      if (!deleteInternal(path + pathToDelete)) {
+        System.out.println("Failed to delete: " + toDelete);
         return false;
       }
     }
@@ -177,10 +182,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public String[] list(String path) throws IOException {
     try {
+      path = path.substring(SCHEME.length() + mBucketName.length() + 1);
       S3Object[] objs = mClient.listObjects(mBucketName, path, PATH_SEPARATOR);
       String[] ret = new String[objs.length];
       for (int i = 0; i < objs.length; i ++) {
-        ret[i] = objs[i].getKey();
+        ret[i] = objs[i].getKey().substring(path.length());
       }
       return ret;
     } catch (ServiceException se) {
@@ -191,17 +197,24 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    if (isFolder(path)) {
+      return true;
+    }
+    if (exists(path)) {
+      LOG.error("Cannot create directory " + path + " because it is already a file.");
+      return false;
+    }
     if (!createParent) {
-      if (checkParent(path)) {
+      if (parentExists(path)) {
         // Parent directory exists
         return mkdir(path);
       } else {
-        LOG.error("Cannot create path " + path + " because parent does not exist");
+        LOG.error("Cannot create directory " + path + " because parent does not exist");
         return false;
       }
     }
     // Parent directories should be created
-    if (checkParent(path)) {
+    if (parentExists(path)) {
       // Parent directory exists
       return mkdir(path);
     } else {
@@ -214,6 +227,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public InputStream open(String path) throws IOException {
     try {
+      path = path.substring(SCHEME.length() + mBucketName.length() + 1);
       return mClient.getObject(mBucketName, path).getDataInputStream();
     } catch (ServiceException se) {
       LOG.error("Failed to open file: " + path, se);
@@ -237,6 +251,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       if (!isFolder(src)) {
         // Source is a file
         // Copy to destination
+        System.out.println("SRC is a file");
         if (copy(src, CommonUtils.concatPath(dst, srcName))) {
           // Delete original
           return deleteInternal(src);
@@ -279,6 +294,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return delete(src, true);
     }
     // Source is a file and Destination does not exist
+    System.out.println("Dest does not exist and source is a file");
     return copy(src, dst) && deleteInternal(src);
   }
 
@@ -297,7 +313,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @param key
    * @return
    */
-  private boolean checkParent(String key) {
+  private boolean parentExists(String key) {
     // Root does not have a parent
     if (isRoot(key)) {
       return true;
@@ -324,10 +340,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private boolean deleteInternal(String key) throws IOException {
     try {
       if (isFolder(key)) {
-        String keyAsFolder = convertToFolderName(key);
+        String keyAsFolder = convertToFolderName(key).substring(SCHEME.length()
+            + mBucketName.length() + 1);
         mClient.deleteObject(mBucketName, keyAsFolder);
       } else {
-        mClient.deleteObject(mBucketName, key);
+        mClient.deleteObject(mBucketName, key.substring(SCHEME.length()
+            + mBucketName.length() + 1));
       }
     } catch (ServiceException se) {
       LOG.error("Failed to delete " + key, se);
@@ -354,10 +372,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private StorageObject getObjectDetails(String key) {
     try {
       if (isFolder(key)) {
-        String keyAsFolder = convertToFolderName(key);
+        String keyAsFolder = convertToFolderName(key).substring(SCHEME.length()
+            + mBucketName.length() + 1);
         return mClient.getObjectDetails(mBucketName, keyAsFolder);
       } else {
-        return mClient.getObjectDetails(mBucketName, key);
+        return mClient.getObjectDetails(mBucketName, key.substring(SCHEME.length()
+            + mBucketName.length() + 1));
       }
     } catch (ServiceException se) {
       return null;
@@ -386,8 +406,9 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return true;
     }
     try {
-      String keyAsFolder = convertToFolderName(key);
-      mClient.getObjectDetails(mBucketName, keyAsFolder);
+      String keyAsFolder = convertToFolderName(key).substring(SCHEME.length()
+          + mBucketName.length() + 1);
+      StorageObject details = mClient.getObjectDetails(mBucketName, keyAsFolder);
       // If no exception is thrown, the key exists as a folder
       return true;
     } catch (ServiceException se) {
@@ -401,7 +422,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @return
    */
   private boolean isRoot(String key) {
-    return key.equals(mBucketName);
+    return key.equals(SCHEME + mBucketName);
   }
 
   /**
@@ -411,7 +432,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
    */
   private boolean mkdir(String key) {
     try {
-      String keyAsFolder = convertToFolderName(key);
+      String keyAsFolder =
+          convertToFolderName(key).substring(SCHEME.length() + mBucketName.length() + 1);
       S3Object obj = new S3Object(keyAsFolder);
       obj.setDataInputStream(new ByteArrayInputStream(new byte[0]));
       obj.setContentLength(0);
@@ -426,6 +448,9 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   private boolean copy(String src, String dst) {
     try {
+      src = src.substring(SCHEME.length() + mBucketName.length() + 1);
+      dst = dst.substring(SCHEME.length() + mBucketName.length() + 1);
+      LOG.info("Copying " + src + " to " + dst);
       S3Object obj = new S3Object(dst);
       mClient.copyObject(mBucketName, src, mBucketName, obj, false);
       return true;
