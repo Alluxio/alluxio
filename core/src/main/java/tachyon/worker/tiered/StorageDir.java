@@ -46,6 +46,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.SpaceCounter;
+import tachyon.worker.WorkerSource;
 
 /**
  * Stores and manages block files in storage's directory in different storage systems.
@@ -90,6 +91,8 @@ public final class StorageDir {
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
   /** TachyonConf for this StorageDir */
   private final TachyonConf mTachyonConf;
+  /** The WorkerSource instance in the metrics system */
+  private final WorkerSource mWorkerSource;
 
   /**
    * Create a new StorageDir.
@@ -101,9 +104,10 @@ public final class StorageDir {
    * @param userTempFolder temporary folder for users in current StorageDir
    * @param conf configuration of under file system
    * @param tachyonConf the TachyonConf instance of the under file system
+   * @param workerSource the WorkerSource instance in the metrics system
    */
   StorageDir(long storageDirId, String dirPath, long capacityBytes, String dataFolder,
-      String userTempFolder, Object conf, TachyonConf tachyonConf) {
+      String userTempFolder, Object conf, TachyonConf tachyonConf, WorkerSource workerSource) {
     mTachyonConf = tachyonConf;
     mStorageDirId = storageDirId;
     mDirPath = new TachyonURI(dirPath);
@@ -112,6 +116,7 @@ public final class StorageDir {
     mUserTempPath = mDirPath.join(userTempFolder);
     mConf = conf;
     mFs = UnderFileSystem.get(dirPath, conf, mTachyonConf);
+    mWorkerSource = workerSource;
   }
 
   /**
@@ -123,6 +128,7 @@ public final class StorageDir {
     synchronized (mLastBlockAccessTimeMs) {
       if (containsBlock(blockId)) {
         mLastBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
+        mWorkerSource.incBlocksAccessed();
       }
     }
   }
@@ -207,6 +213,7 @@ public final class StorageDir {
       allocatedBytes = 0L;
     }
     returnSpace(userId, allocatedBytes);
+    mWorkerSource.incBlocksCanceled();
     if (!mFs.exists(filePath)) {
       return true;
     } else {
@@ -331,6 +338,7 @@ public final class StorageDir {
       if (mAddedBlockIdList.contains(blockId)) {
         mAddedBlockIdList.remove(blockId);
       }
+      mWorkerSource.incBlocksDeleted();
     }
   }
 
@@ -493,6 +501,15 @@ public final class StorageDir {
       }
     }
     return lockedBytes;
+  }
+
+  /**
+   * Get the number of blocks in this StorageDir
+   *
+   * @return the number of blocks in this StorageDir
+   */
+  public int getNumberOfBlocks() {
+    return mBlockSizes.size();
   }
 
   /**
