@@ -71,6 +71,8 @@ class TachyonVersion
     case @type
     when "Local"
       puts 'using local tachyon dir'
+      @repo = ''
+      @version = ''
     when "Github"
       @repo = @yml['Github']['Repo']
       @version = @yml['Github']['Version']
