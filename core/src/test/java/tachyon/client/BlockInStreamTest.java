@@ -60,13 +60,13 @@ public class BlockInStreamTest {
     int fileId = TestUtils.createByteFile(sTfs, "/file_no_local_read", WriteType.TRY_CACHE, 10);
     
     TachyonConf conf = sLocalTachyonCluster.getWorkerTachyonConf();
-    conf.set(Constants.USER_DISABLE_LOCAL_READ, "true");
+    conf.set(Constants.USER_ENABLE_LOCAL_READ, "false");
     TachyonFS sTfs1 = TachyonFS.get(conf);
     TachyonFile file1 = sTfs1.getFile(fileId);
     InStream is1 = file1.getInStream(ReadType.NO_CACHE);
     Assert.assertTrue(is1 instanceof RemoteBlockInStream); //local read is disabled
     
-    conf.set(Constants.USER_DISABLE_LOCAL_READ, "false");
+    conf.set(Constants.USER_ENABLE_LOCAL_READ, "true");
     TachyonFS sTfs2 = TachyonFS.get(conf);
     TachyonFile file2 = sTfs2.getFile(fileId);
     InStream is2 = file2.getInStream(ReadType.NO_CACHE);
