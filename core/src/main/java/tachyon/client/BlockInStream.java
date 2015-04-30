@@ -17,6 +17,10 @@ package tachyon.client;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -26,6 +30,8 @@ import tachyon.conf.TachyonConf;
  * client code.
  */
 public abstract class BlockInStream extends InStream {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /**
    * Get a new BlockInStream of the given block without under file system configuration. The block
    * is decided by the tachyonFile and blockIndex
@@ -55,14 +61,19 @@ public abstract class BlockInStream extends InStream {
    */
   public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex,
       Object ufsConf, TachyonConf tachyonConf) throws IOException {
-    TachyonByteBuffer buf = tachyonFile.readLocalByteBuffer(blockIndex);
-    if (buf != null) {
-      if (readType.isPromote()) {
-        tachyonFile.promoteBlock(blockIndex);
+    if (tachyonConf.getBoolean(Constants.USER_ENABLE_LOCAL_READ,
+        Constants.DEFAULT_USER_ENABLE_LOCAL_READ)) {
+      LOG.info("Reading with local stream.");
+      TachyonByteBuffer buf = tachyonFile.readLocalByteBuffer(blockIndex);
+      if (buf != null) {
+        if (readType.isPromote()) {
+          tachyonFile.promoteBlock(blockIndex);
+        }
+        return new LocalBlockInStream(tachyonFile, readType, blockIndex, buf, tachyonConf);
       }
-      return new LocalBlockInStream(tachyonFile, readType, blockIndex, buf, tachyonConf);
     }
 
+    LOG.info("Reading with remote stream.");
     return new RemoteBlockInStream(tachyonFile, readType, blockIndex, ufsConf, tachyonConf);
   }
 
