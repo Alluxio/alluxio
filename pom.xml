@@ -144,6 +144,7 @@
     <module>clients</module>
     <module>underfs</module>
     <module>core</module>
+    <module>integration-tests</module>
     <module>assembly</module>
   </modules>
 
