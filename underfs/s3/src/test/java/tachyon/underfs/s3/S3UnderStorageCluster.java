@@ -33,7 +33,15 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
     super(baseDir, tachyonConf);
     System.setProperty("fs.s3n.awsAccessKeyId", awsAccessKey);
     System.setProperty("fs.s3n.awsSecretAccessKey", awsSecretKey);
-    mBaseDir = "s3n://calvin-s3-test/testdir";
+    mBaseDir = "s3n://calvin-s3-test/testdir" + Math.random() * 100;
+  }
+
+  @Override
+  public void cleanup() throws IOException {
+    String oldDir = mBaseDir;
+    mBaseDir = "s3n://calvin-s3-test/testdir" + Math.random() * 100;
+    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mTachyonConf);
+    ufs.delete(oldDir, true);
   }
 
   @Override
@@ -48,8 +56,6 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
 
   @Override
   public void shutdown() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mTachyonConf);
-    ufs.delete(mBaseDir, true);
   }
 
   @Override
