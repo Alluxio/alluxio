@@ -42,7 +42,7 @@
 
     - name: install git
       command: sudo yum install -y -q git
-      when: is_git
+      when: tachyon_is_git or use_spark
 
     - name: clone tachyon repo
       git: repo={{ tachyon_repo }} dest=/tachyon version={{ tachyon_version }}
