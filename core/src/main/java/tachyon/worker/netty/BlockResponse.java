@@ -16,13 +16,11 @@
 package tachyon.worker.netty;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.List;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
 import com.google.common.primitives.Longs;
@@ -70,28 +68,20 @@ public final class BlockResponse {
       out.add(createHeader(ctx, msg));
 
       final BlockHandler handler = msg.getHandler();
-      if (handler == null) {
-        return;
-      }
-      final FileTransferType type =
-          mTachyonConf
-              .getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.TRANSFER);
-      switch (type) {
-        case MAPPED:
-          ByteBuffer data = handler.read(msg.getOffset(), (int) msg.getLength());
-          out.add(Unpooled.wrappedBuffer(data));
-          handler.close();
-          break;
-        case TRANSFER: // intend to fall through as TRANSFER is the default type.
-        default:
-          if (handler.getChannel() instanceof FileChannel) {
-            out.add(new DefaultFileRegion((FileChannel) handler.getChannel(), msg.getOffset(),
-                msg.getLength()));
-          } else {
-            handler.close();
-            throw new Exception("Only FileChannel is supported!");
-          }
-          break;
+      if (handler != null) {
+        final FileTransferType type =
+            mTachyonConf
+                .getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.TRANSFER);
+        switch (type) {
+          case MAPPED:
+            ByteBuffer buffer = handler.read(msg.getOffset(), (int)msg.getLength());
+            out.add(Unpooled.wrappedBuffer(buffer));
+            break;
+          case TRANSFER: // intend to fall through as TRANSFER is the default type.
+          default:
+            out.add(handler.getFileRegion(msg.getOffset(), (int)msg.getLength()));
+            break;
+        }
       }
     }
   }

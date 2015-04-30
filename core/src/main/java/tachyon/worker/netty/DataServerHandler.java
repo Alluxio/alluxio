@@ -60,7 +60,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
       validateInput(req);
       handler = storageDir.getBlockHandler(blockId);
 
-      final long fileLength = handler.getLength();
+      final long fileLength = storageDir.getBlockSize(blockId);
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
       ChannelFuture future =

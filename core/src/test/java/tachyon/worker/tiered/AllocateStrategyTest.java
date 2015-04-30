@@ -54,11 +54,11 @@ public class AllocateStrategyTest {
   private void createBlockFile(StorageDir dir, long blockId, int blockSize) throws IOException {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
     BlockHandler bhSrc =
-        BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
+        BlockHandler.Factory.get(dir.getUserTempFilePath(USER_ID, blockId));
     dir.requestSpace(USER_ID, blockSize);
     dir.updateTempBlockAllocatedBytes(USER_ID, blockId, blockSize);
     try {
-      bhSrc.append(0, ByteBuffer.wrap(buf));
+      bhSrc.write(0, ByteBuffer.wrap(buf));
     } finally {
       bhSrc.close();
     }

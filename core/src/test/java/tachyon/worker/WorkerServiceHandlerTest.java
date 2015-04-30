@@ -16,6 +16,7 @@ package tachyon.worker;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.apache.thrift.TException;
 import org.junit.After;
@@ -112,8 +113,8 @@ public class WorkerServiceHandlerTest {
   private void createBlockFile(String filename, int fileLen)
       throws IOException, InvalidPathException {
     UnderFileSystem.get(filename, mMasterTachyonConf).mkdirs(CommonUtils.getParent(filename), true);
-    BlockHandler handler = BlockHandler.get(filename);
-    handler.append(0, TestUtils.getIncreasingByteArray(fileLen), 0, fileLen);
+    BlockHandler handler = BlockHandler.Factory.get(filename);
+    handler.write(0, ByteBuffer.wrap(TestUtils.getIncreasingByteArray(fileLen)));
     handler.close();
   }
 

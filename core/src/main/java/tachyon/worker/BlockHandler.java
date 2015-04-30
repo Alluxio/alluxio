@@ -18,86 +18,82 @@ package tachyon.worker;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ByteChannel;
+
+import io.netty.channel.FileRegion;
 
 import tachyon.TachyonURI;
 
 /**
- * Base class for handling block I/O. Block handlers for different under file systems can be
- * implemented by extending this class. It is not thread safe, the caller must guarantee thread
- * safe. This class is internal and subject to changes.
+ * General interface for handling block I/O. Block handlers for different under file systems
+ * implement this interface. It is not thread safe, the caller must guarantee thread safe.
+ * This interface is internal and subject to changes.
  */
-public abstract class BlockHandler implements Closeable {
+public interface BlockHandler extends Closeable {
 
-  /**
-   * Create a block handler according to path scheme
-   * 
-   * @param path the block path
-   * @return the handler of the block
-   * @throws IOException
-   * @throws IllegalArgumentException
-   */
-  public static BlockHandler get(String path) throws IOException, IllegalArgumentException {
-    if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
-      return new BlockHandlerLocal(path);
+  class Factory {
+
+    /**
+     * Create a block handler according to path scheme
+     * 
+     * @param path the path of the block
+     * @return the handler for the block
+     * @throws IOException
+     * @throws IllegalArgumentException
+     */
+    public static BlockHandler get(String path) throws IOException, IllegalArgumentException {
+      if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
+        return new BlockHandlerLocal(path);
+      }
+      throw new IllegalArgumentException("Unsupported block file path: " + path);
     }
-    throw new IllegalArgumentException("Unsupported block file path: " + path);
   }
 
   /**
-   * Append data to the block from a byte array
-   * 
-   * @param blockOffset starting position of the block file
-   * @param buf the data buffer
-   * @param offset the offset of the buffer
-   * @param length the length of the data
-   * @return the size of data that was written
-   * @throws IOException
-   */
-  public int append(long blockOffset, byte[] buf, int offset, int length) throws IOException {
-    return append(blockOffset, ByteBuffer.wrap(buf, offset, length));
-  }
-
-  /**
-   * Appends data to the block from a ByteBuffer
-   * 
-   * @param blockOffset starting position of the block file
-   * @param srcBuf ByteBuffer that data is stored in
-   * @return the size of data that was written
-   * @throws IOException
-   */
-  public abstract int append(long blockOffset, ByteBuffer srcBuf) throws IOException;
-
-  /**
-   * Deletes the block
+   * Delete the block
    * 
    * @return true if success, otherwise false
    * @throws IOException
    */
-  public abstract boolean delete() throws IOException;
+  boolean delete() throws IOException;
 
   /**
-   * Gets channel used to access block
+   * Get file region for some part of block
    * 
-   * @return the channel bounded with the block file
+   * @param position the starting position
+   * @param length the length of the region
+   * @return file region for the specific part of block
    */
-  public abstract ByteChannel getChannel();
+  FileRegion getFileRegion(long position, long length);
 
   /**
-   * Gets the length of the block
+   * Read data from a block
    * 
-   * @return the length of the block
+   * @param position the starting position in the block
+   * @param length the size of the data to be read
+   * @return the ByteBuffer that contains the data
    * @throws IOException
    */
-  public abstract long getLength() throws IOException;
+  ByteBuffer read(long position, int length) throws IOException;
 
   /**
-   * Reads data from block
+   * Transfer data from this handler to another handler
    * 
-   * @param offset the offset from starting of the block file
-   * @param length the length of data to read, -1 represents reading the rest of the block
-   * @return ByteBuffer the data that was read
+   * @param position the starting position in the block
+   * @param length the size of the data to be transferred
+   * @param dest the destination handler
+   * @param offset the offset in the destination handler
+   * @return the size of data that is transferred
    * @throws IOException
    */
-  public abstract ByteBuffer read(long offset, int length) throws IOException;
+  int transferTo(long position, int length, BlockHandler dest, long offset) throws IOException;
+
+  /**
+   * Write data to a block
+   * 
+   * @param position the starting position in the block
+   * @param buf the ByteBuffer that contains the data
+   * @return the size of data that is written
+   * @throws IOException
+   */
+  int write(long position, ByteBuffer buf) throws IOException;
 }
