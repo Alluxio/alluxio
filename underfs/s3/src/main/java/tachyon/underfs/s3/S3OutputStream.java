@@ -34,9 +34,9 @@ public class S3OutputStream extends OutputStream {
 
   public S3OutputStream(String bucketName, String key, S3Service client) throws IOException {
     mBucketName = bucketName;
-    mKey = key;
+    mKey = key.substring(6 + mBucketName.length() + 1);
     mClient = client;
-    mFile = new File("/tmp/" + key);
+    mFile = new File("/tmp/" + Math.random() * 100);
     mOut = new FileOutputStream(mFile);
   }
 
