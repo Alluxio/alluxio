@@ -544,6 +544,13 @@ public class TFsShellTest {
   }
 
   @Test
+  public void tailEmptyFileTest() throws IOException {
+    TestUtils.createByteFile(mTfs, "/emptyFile", WriteType.MUST_CACHE, 0);
+    int ret = mFsShell.tail(new String[] {"tail", "/emptyFile"});
+    Assert.assertEquals(0, ret);
+  }
+
+  @Test
   public void tailLargeFileTest() throws IOException {
     TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 2048);
     mFsShell.tail(new String[] {"tail", "/testFile"});
