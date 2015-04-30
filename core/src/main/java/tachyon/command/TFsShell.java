@@ -426,11 +426,11 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int getUsedBytes(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs getUsedBytes <path>");
+    if (argv.length != 1) {
+      System.out.println("Usage: tfs getUsedBytes");
       return -1;
     }
-    TachyonURI path = new TachyonURI(argv[1]);
+    TachyonURI path = new TachyonURI(TachyonURI.SEPARATOR);
     TachyonFS tachyonClient = createFS(path);
     long usedBytes = tachyonClient.getUsedBytes();
     if (usedBytes == -1) {
@@ -448,11 +448,11 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int getCapacityBytes(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs getCapacityBytes <path>");
+    if (argv.length != 1) {
+      System.out.println("Usage: tfs getCapacityBytes");
       return -1;
     }
-    TachyonURI path = new TachyonURI(argv[1]);
+    TachyonURI path = new TachyonURI(TachyonURI.SEPARATOR);
     TachyonFS tachyonClient = createFS(path);
     long capacityBytes = tachyonClient.getCapacityBytes();
     if (capacityBytes == -1) {
@@ -514,8 +514,8 @@ public class TFsShell implements Closeable {
     System.out.println("       [pin <path>]");
     System.out.println("       [unpin <path>]");
     System.out.println("       [free <file path|folder path>]");
-    System.out.println("       [getUsedBytes <tachyon root path>]");
-    System.out.println("       [getCapacityBytes <tachyon root path>]");
+    System.out.println("       [getUsedBytes]");
+    System.out.println("       [getCapacityBytes]");
     System.out.println("       [du <path>]");
   }
 
@@ -538,6 +538,7 @@ public class TFsShell implements Closeable {
       System.out.println("Renamed " + srcPath + " to " + dstPath);
       return 0;
     } else {
+      System.out.println("mv: Failed to rename " + srcPath + " to " + dstPath);
       return -1;
     }
   }
@@ -748,7 +749,9 @@ public class TFsShell implements Closeable {
         }
         is.skip(tFile.length() - bytesToRead);
         int read = is.read(buf);
-        System.out.write(buf, 0, read);
+        if (read != -1) {
+          System.out.write(buf, 0, read);
+        }
         return 0;
       } finally {
         is.close();
