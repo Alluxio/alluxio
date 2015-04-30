@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -55,8 +55,8 @@ public class RemoteBlockInStream extends BlockInStream {
   private long mCheckpointPos = -1;
 
   /**
-   * The position in the block we are currently at, relative to the block. The
-   * position relative to the file would be mBlockInfo.offset + mBlockPos.
+   * The position in the block we are currently at, relative to the block. The position relative to
+   * the file would be mBlockInfo.offset + mBlockPos.
    */
   private long mBlockPos = 0;
 
@@ -134,7 +134,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
   /**
    * Cancels the re-caching attempt
-   *
+   * 
    * @throws IOException
    */
   private void cancelRecache() throws IOException {
@@ -265,12 +265,11 @@ public class RemoteBlockInStream extends BlockInStream {
         if (port == -1) {
           continue;
         }
-        
+
         if (host.equals(InetAddress.getLocalHost().getHostName())
-            || host.equals(InetAddress.getLocalHost().getHostAddress())
-            || host.equals(localhost)) {
-          LOG.warn("Master thinks the local machine has data, But not! blockId:{}",
-              blockInfo.blockId);
+            || host.equals(InetAddress.getLocalHost().getHostAddress()) || host.equals(localhost)) {
+          LOG.warn("Master thinks the local machine has data, but not!"
+              + "(or local read is disabled) blockId:{}", blockInfo.blockId);
         }
         LOG.info(host + ":" + port + " current host is " + localhost + " "
             + NetworkUtils.getLocalIpAddress(conf));
@@ -320,7 +319,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
   /**
    * Sets up the underfs stream to read at mBlockPos
-   *
+   * 
    * @return true if the input stream is set to read at mBlockPos, false otherwise
    **/
   private boolean setupStreamFromUnderFs() throws IOException {
@@ -366,11 +365,10 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   /**
-   * Makes sure mCurrentBuffer is set to read at mBlockPos. If it is already, we do
-   * nothing. Otherwise, we set mBufferStartPos accordingly and try to read the correct range of
-   * bytes remotely. If we fail to read remotely, mCurrentBuffer will be null at the end of the
-   * function
-   *
+   * Makes sure mCurrentBuffer is set to read at mBlockPos. If it is already, we do nothing.
+   * Otherwise, we set mBufferStartPos accordingly and try to read the correct range of bytes
+   * remotely. If we fail to read remotely, mCurrentBuffer will be null at the end of the function
+   * 
    * @return true if mCurrentBuffer was successfully set to read at mBlockPos, or false if the
    *         remote read failed.
    * @throws IOException
