@@ -60,8 +60,8 @@ public class Constants {
 
   public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
   
-  public static final boolean DEFAULT_USER_DISABLE_LOCAL_READ = false;
-  public static final boolean DEFAULT_USER_DISABLE_LOCAL_WRITE = false;
+  public static final boolean DEFAULT_USER_ENABLE_LOCAL_READ = true;
+  public static final boolean DEFAULT_USER_ENABLE_LOCAL_WRITE = true;
 
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
 
@@ -205,7 +205,7 @@ public class Constants {
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
   public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
       tachyon.client.tcp.TCPRemoteBlockReader.class;
-  public static final String USER_DISABLE_LOCAL_READ = "tachyon.user.localread.disable";
-  public static final String USER_DISABLE_LOCAL_WRITE = "tachyon.user.localwrite.disable";
+  public static final String USER_ENABLE_LOCAL_READ = "tachyon.user.localread.enable";
+  public static final String USER_ENABLE_LOCAL_WRITE = "tachyon.user.localwrite.enable";
 
 }
