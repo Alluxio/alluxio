@@ -15,11 +15,15 @@
 
 package tachyon.underfs.s3;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Object;
-
-import java.io.*;
+import org.jets3t.service.utils.Mimetypes;
 
 public class S3OutputStream extends OutputStream {
   private final String mBucketName;
@@ -49,8 +53,10 @@ public class S3OutputStream extends OutputStream {
   @Override
   public void close() throws IOException {
     mOut.close();
-    BufferedInputStream in = new BufferedInputStream(new FileInputStream(mFile));
     S3Object obj = new S3Object(mKey);
+    obj.setDataInputFile(mFile);
+    obj.setContentLength(mFile.length());
+    obj.setContentEncoding(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
     try {
       mClient.putObject(mBucketName, obj);
     } catch (ServiceException se) {
