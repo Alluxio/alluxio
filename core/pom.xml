@@ -25,9 +25,19 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-core</artifactId>
+      <version>${metrics.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
       <version>4.0.23.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-common</artifactId>
+      <version>0.7.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -249,35 +259,6 @@
         <artifactId>maven-shade-plugin</artifactId>
         <version>2.2</version>
         <executions>
-          <execution>
-            <id>include-thrift</id>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <artifactSet>
-                <includes>
-                  <include>org.apache.thrift:libthrift</include>
-                </includes>
-              </artifactSet>
-              <filters>
-                <filter>
-                  <!-- Sigh. The Thrift jar contains its source -->
-                  <artifact>org.apache.thrift:libthrift</artifact>
-                  <excludes>
-                    <exclude>**/*.java</exclude>
-                  </excludes>
-                </filter>
-              </filters>
-              <relocations>
-                <relocation>
-                  <pattern>org.apache.thrift</pattern>
-                  <shadedPattern>tachyon.org.apache.thrift</shadedPattern>
-                </relocation>
-              </relocations>
-            </configuration>
-          </execution>
           <execution>
             <id>uber-jar</id>
             <phase>package</phase>

@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -34,20 +34,20 @@ import tachyon.util.NetworkUtils;
 /**
  * Local node UnderFilesystem implementation.
  * <p>
- * This is primarily intended for local unit test and single machine mode. In principal it can be
- * used on a system where a shared file system (e.g. NFS) is mounted at the same path on every
- * node but it is generally preferable to use a proper distributed file system for that scenario.
+ * This is primarily intended for local unit test and single machine mode. In principal it can also
+ * be used on a system where a shared file system (e.g. NFS) is mounted at the same path on every
+ * node of the system. However it is generally preferable to use a proper distributed file system
+ * for that scenario.
  * </p>
  */
 public class LocalUnderFileSystem extends UnderFileSystem {
-  
+
   public LocalUnderFileSystem(TachyonConf conf) {
     super(conf);
   }
 
   @Override
-  public void close() throws IOException {
-  }
+  public void close() throws IOException {}
 
   @Override
   public OutputStream create(String path) throws IOException {
@@ -192,8 +192,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void setConf(Object conf) {
-  }
+  public void setConf(Object conf) {}
 
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {
@@ -204,7 +203,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   public void connectFromMaster(TachyonConf conf, String hostname) throws IOException {
     // No-op
   }
-  
+
   @Override
   public void connectFromWorker(TachyonConf conf, String hostname) throws IOException {
     // No-op

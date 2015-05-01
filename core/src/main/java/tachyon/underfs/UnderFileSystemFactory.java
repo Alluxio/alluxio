@@ -27,12 +27,12 @@ public interface UnderFileSystemFactory {
    *
    * @param path File path
    * @param tachyonConf Tachyon configuration
-   * @param conf Optional configuration object for the UFS, may be null
+   * @param ufsConf Optional configuration object for the UFS, may be null
    * @return Client
    * @throws IllegalArgumentException Thrown if this factory does not support clients for the given
    *         path or if the configuration provided is insufficient to create a client
    */
-  UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf);
+  UnderFileSystem create(String path, TachyonConf tachyonConf, Object ufsConf);
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the

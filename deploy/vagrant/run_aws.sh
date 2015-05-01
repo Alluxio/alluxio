@@ -23,4 +23,5 @@ if [[ "$?" == "0" ]]; then
     purple='\033[1;35m'
     no_color='\033[0m'
     echo -e ">>> ${purple}visit $master:19999 for Tachyon Web Console${no_color} <<<"
+    echo -e ">>> ${purple}visit $master:8080  for Spark   Web Console${no_color} <<<"
 fi

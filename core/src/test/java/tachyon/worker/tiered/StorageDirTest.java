@@ -28,6 +28,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
+import tachyon.worker.WorkerSource;
 
 public class StorageDirTest {
   private StorageDir mSrcDir;
@@ -41,17 +42,19 @@ public class StorageDirTest {
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
     String workerDirFolder = tachyonHome + "/ramdisk";
     TachyonConf tachyonConf = new TachyonConf();
-    mSrcDir = new StorageDir(1, workerDirFolder + "/src", CAPACITY, "/data", "/user", null,
-        tachyonConf);
-    mDstDir = new StorageDir(2, workerDirFolder + "/dst", CAPACITY, "/data", "/user", null,
-        tachyonConf);
+    mSrcDir =
+        new StorageDir(1, workerDirFolder + "/src", CAPACITY, "/data", "/user", null, tachyonConf,
+            new WorkerSource(null));
+    mDstDir =
+        new StorageDir(2, workerDirFolder + "/dst", CAPACITY, "/data", "/user", null, tachyonConf,
+            new WorkerSource(null));
 
     initializeStorageDir(mSrcDir, USER_ID);
     initializeStorageDir(mDstDir, USER_ID);
   }
 
   @Test
-  public void cacheBlockCancelTest() throws  IOException {
+  public void cacheBlockCancelTest() throws IOException {
     long blockId = 100;
     int blockSize = 500;
     Exception exception = null;
@@ -106,7 +109,7 @@ public class StorageDirTest {
   }
 
   @Test
-  public void deleteLockedBlockTest() throws IOException{
+  public void deleteLockedBlockTest() throws IOException {
     long blockId = 100;
     int blockSize = 500;
 

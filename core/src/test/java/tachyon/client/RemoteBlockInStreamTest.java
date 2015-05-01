@@ -77,7 +77,7 @@ public class RemoteBlockInStreamTest {
   @Before
   public final void before() throws IOException {
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
-    System.setProperty(Constants.WORKER_DATA_SEVRER, mDataServerClass);
+    System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
     System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);
     mLocalTachyonCluster.start();
     mLocalTachyonCluster.getWorkerTachyonConf().set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE,
