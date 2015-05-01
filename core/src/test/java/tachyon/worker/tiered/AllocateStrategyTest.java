@@ -25,6 +25,7 @@ import org.junit.Test;
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.BlockHandler;
+import tachyon.worker.WorkerSource;
 import tachyon.worker.allocation.AllocateStrategies;
 import tachyon.worker.allocation.AllocateStrategy;
 import tachyon.worker.allocation.AllocateStrategyType;
@@ -43,18 +44,17 @@ public class AllocateStrategyTest {
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
     String workerDirFolder = tachyonHome + "/ramdisk";
     String[] dirPaths = "/dir1,/dir2,/dir3".split(",");
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i ++) {
       mStorageDirs[i] =
           new StorageDir(i + 1, workerDirFolder + dirPaths[i], CAPACITIES[i], "/data", "/user",
-              null, new TachyonConf());
+              null, new TachyonConf(), new WorkerSource(null));
       initializeStorageDir(mStorageDirs[i], USER_ID);
     }
   }
 
   private void createBlockFile(StorageDir dir, long blockId, int blockSize) throws IOException {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
-    BlockHandler bhSrc =
-        BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
+    BlockHandler bhSrc = BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
     dir.requestSpace(USER_ID, blockSize);
     dir.updateTempBlockAllocatedBytes(USER_ID, blockId, blockSize);
     try {
@@ -67,7 +67,7 @@ public class AllocateStrategyTest {
 
   @Test
   public void AllocateMaxFreeTest() throws IOException {
-    AllocateStrategy allocator = 
+    AllocateStrategy allocator =
         AllocateStrategies.getAllocateStrategy(AllocateStrategyType.MAX_FREE);
     StorageDir storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 300);
     Assert.assertEquals(3, storageDir.getStorageDirId());
@@ -89,7 +89,7 @@ public class AllocateStrategyTest {
 
   @Test
   public void AllocateRoundRobinTest() throws IOException {
-    AllocateStrategy allocator = 
+    AllocateStrategy allocator =
         AllocateStrategies.getAllocateStrategy(AllocateStrategyType.ROUND_ROBIN);
     StorageDir storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 300);
     Assert.assertEquals(1, storageDir.getStorageDirId());
@@ -111,7 +111,7 @@ public class AllocateStrategyTest {
 
   @Test
   public void AllocateRandomTest() throws IOException {
-    AllocateStrategy allocator = 
+    AllocateStrategy allocator =
         AllocateStrategies.getAllocateStrategy(AllocateStrategyType.RANDOM);
     StorageDir storageDir = allocator.getStorageDir(mStorageDirs, USER_ID, 300);
     Assert.assertEquals(true, storageDir != null);

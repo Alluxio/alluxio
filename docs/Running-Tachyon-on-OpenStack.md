@@ -5,7 +5,7 @@ title: Running Tachyon on OpenStack Compute
 
 ## Deploy Tachyon Cluster on OpenStack Compute via Vagrant
 
-[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster in the cloud at [OpenStack Compute](http://www.openstack.org/software/openstack-compute/).
+[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster in the cloud at [OpenStack Compute](http://www.openstack.org/software/openstack-compute/), and provision all nodes in parallel with [Ansible](http://www.ansible.com/home).
 
 A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant`
 directory:
@@ -22,7 +22,8 @@ vagrant
 │   ├── init.yml.docker
 │   └── openstack-config.yml
 ├── init.yml -> conf/init.yml.hdfs2
-|__ tachyon_version.yml
+├── tachyon_version.yml
+├── spark_version.yml
 ├── README.md
 ├── run_openstack.sh
 └── ...
@@ -41,10 +42,11 @@ The `run_openstack.sh` script allows you to launch a Tachyon cluster on OpenStac
 
 * **Create OpenStack Network Secruity Group**. Security Group determines if network access is allowed. Your Security Group should permit `ssh` access. 
 
+* **Install Ansible**. [Installation Guide](http://docs.ansible.com/intro_installation.html#installation). Version 1.5 and higher is recommended for ssh speedup.
 
 ## Configure
 
-Configure Tachyon Version you want to deploy, refer to [this doc](Running-Specific-Tachyon-Commit-Via-Vagrant.html)
+Configure Version of Tachyon or Spark you want to deploy, refer to [this doc](Running-Specific-Version-Of-Tachyon-Or-Spark-Via-Vagrant.html)
 
 With the above information, fill them in `tachyon/deploy/vagrant/conf/openstack-config.yml`. Also ensure your OpenStack login credentials are set in your shell environmen variables `OS_USERNAME` and `OS_PASSWORD`.
 

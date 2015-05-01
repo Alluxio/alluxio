@@ -46,6 +46,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.SpaceCounter;
+import tachyon.worker.WorkerSource;
 
 /**
  * Stores and manages block files in storage's directory in different storage systems.
@@ -88,8 +89,10 @@ public final class StorageDir {
   /** Mapping from block Id to list of users that lock the block */
   private final Multimap<Long, Long> mUserPerLockedBlock = Multimaps
       .synchronizedMultimap(HashMultimap.<Long, Long>create());
-  /** TachyonConf for this StorageDir **/
+  /** TachyonConf for this StorageDir */
   private final TachyonConf mTachyonConf;
+  /** The WorkerSource instance in the metrics system */
+  private final WorkerSource mWorkerSource;
 
   /**
    * Create a new StorageDir.
@@ -101,9 +104,10 @@ public final class StorageDir {
    * @param userTempFolder temporary folder for users in current StorageDir
    * @param conf configuration of under file system
    * @param tachyonConf the TachyonConf instance of the under file system
+   * @param workerSource the WorkerSource instance in the metrics system
    */
   StorageDir(long storageDirId, String dirPath, long capacityBytes, String dataFolder,
-      String userTempFolder, Object conf, TachyonConf tachyonConf) {
+      String userTempFolder, Object conf, TachyonConf tachyonConf, WorkerSource workerSource) {
     mTachyonConf = tachyonConf;
     mStorageDirId = storageDirId;
     mDirPath = new TachyonURI(dirPath);
@@ -112,6 +116,7 @@ public final class StorageDir {
     mUserTempPath = mDirPath.join(userTempFolder);
     mConf = conf;
     mFs = UnderFileSystem.get(dirPath, conf, mTachyonConf);
+    mWorkerSource = workerSource;
   }
 
   /**
@@ -123,6 +128,7 @@ public final class StorageDir {
     synchronized (mLastBlockAccessTimeMs) {
       if (containsBlock(blockId)) {
         mLastBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
+        mWorkerSource.incBlocksAccessed();
       }
     }
   }
@@ -132,7 +138,7 @@ public final class StorageDir {
    *
    * @param blockId the Id of the block
    * @param sizeBytes the size of the block in bytes
-   * @param report need to be reported during heartbeat with master
+   * @param report if true, report to the master with the heartbeat
    */
   private void addBlockId(long blockId, long sizeBytes, boolean report) {
     addBlockId(blockId, sizeBytes, System.currentTimeMillis(), report);
@@ -143,8 +149,8 @@ public final class StorageDir {
    *
    * @param blockId Id of the block
    * @param sizeBytes size of the block in bytes
-   * @param accessTimeMs access time of the block in millisecond.
-   * @param report whether need to be reported During heart beat with master
+   * @param accessTimeMs access time of the block in milliseconds
+   * @param report if true, report to the master with the heartbeat
    */
   private void addBlockId(long blockId, long sizeBytes, long accessTimeMs, boolean report) {
     synchronized (mLastBlockAccessTimeMs) {
@@ -207,6 +213,7 @@ public final class StorageDir {
       allocatedBytes = 0L;
     }
     returnSpace(userId, allocatedBytes);
+    mWorkerSource.incBlocksCanceled();
     if (!mFs.exists(filePath)) {
       return true;
     } else {
@@ -282,7 +289,7 @@ public final class StorageDir {
         // The block had been freed during our copy. Because we lock the block before copy, the
         // actual block file is not deleted but the blockId is deleted from mLastBlockAccessTimeMs.
         // So we delete the copied block and return the space. We still think copyBlock is
-        // successful and return true as nothing need to be copied.
+        // successful and return true as nothing needed to be copied.
         bhDst.delete();
         dstDir.returnSpace(Users.MIGRATE_DATA_USER_ID, size);
       }
@@ -295,7 +302,7 @@ public final class StorageDir {
    * longer be available.
    *
    * @param blockId Id of the block to remove.
-   * @return true if succeed, false otherwise
+   * @return true if success, false otherwise
    * @throws IOException
    */
   public boolean deleteBlock(long blockId) throws IOException {
@@ -304,17 +311,17 @@ public final class StorageDir {
       LOG.warn("Block does not exist in current StorageDir! blockId:{}", blockId);
       return false;
     }
-    String blockfile = getBlockFilePath(blockId);
+    String blockFile = getBlockFilePath(blockId);
     // Should check lock status here
     if (!isBlockLocked(blockId)) {
-      if (!mFs.delete(blockfile, false)) {
-        LOG.error("Failed to delete block file! filename:{}", blockfile);
+      if (!mFs.delete(blockFile, false)) {
+        LOG.error("Failed to delete block file! filename:{}", blockFile);
         return false;
       }
       deleteBlockId(blockId);
     } else {
       mToRemoveBlockIdSet.add(blockId);
-      LOG.debug("Add block file {} to remove list!", blockfile);
+      LOG.debug("Add block file {} to remove list!", blockFile);
     }
     return true;
   }
@@ -331,6 +338,7 @@ public final class StorageDir {
       if (mAddedBlockIdList.contains(blockId)) {
         mAddedBlockIdList.remove(blockId);
       }
+      mWorkerSource.incBlocksDeleted();
     }
   }
 
@@ -479,7 +487,6 @@ public final class StorageDir {
     return lastBlockAccessTimeMs != null ? lastBlockAccessTimeMs : NON_EXISTENT_TIME;
   }
 
-
   /**
    * Get size of locked blocks in bytes in current StorageDir
    *
@@ -494,6 +501,15 @@ public final class StorageDir {
       }
     }
     return lockedBytes;
+  }
+
+  /**
+   * Get the number of blocks in this StorageDir
+   *
+   * @return the number of blocks in this StorageDir
+   */
+  public int getNumberOfBlocks() {
+    return mBlockSizes.size();
   }
 
   /**
@@ -618,7 +634,6 @@ public final class StorageDir {
         }
       }
     }
-    return;
   }
 
   /**

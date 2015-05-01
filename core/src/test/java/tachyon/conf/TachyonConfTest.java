@@ -155,7 +155,7 @@ public class TachyonConfTest {
     Assert.assertTrue(("/mnt/ramdisk").equals(value));
 
     Class<? extends DataServer> dataServer =
-        sDefaultTachyonConf.getClass(Constants.WORKER_DATA_SEVRER, null);
+        sDefaultTachyonConf.getClass(Constants.WORKER_DATA_SERVER, null);
     Assert.assertTrue(dataServer != null);
     Assert.assertTrue(dataServer.equals(Constants.WORKER_DATA_SERVER_CLASS));
 

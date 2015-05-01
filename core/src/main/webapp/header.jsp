@@ -12,6 +12,7 @@
         <li id="blockInfo-li"><a href="./blockInfo">BlockInfo</a></li>
       <% } %>
       <li id="browseLogs-li"><a href="./browseLogs">Browse Log Files</a></li>
+      <li id="autorefresh-li"><a href="javascript:toggleAutoRefresh();" id="autorefresh-link">Enable Auto-Refresh</a></li>
     </ul>
   </div>
 </div>
