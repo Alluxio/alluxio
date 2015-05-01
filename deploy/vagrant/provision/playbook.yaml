@@ -24,6 +24,9 @@
 
     - name: configure hosts
       script: host.sh
+    - name: rename hostname from TachyonXXX to TachyonXXX.local in virtualbox
+      shell: sudo hostname `hostname`.local
+      when: is_vb
 
     - name: install java
       script: java.sh
