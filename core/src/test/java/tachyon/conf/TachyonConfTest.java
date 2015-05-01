@@ -3,6 +3,7 @@ package tachyon.conf;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -26,6 +27,14 @@ public class TachyonConfTest {
   private static final Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
 
   private TachyonConf mCustomPropsTachyonConf;
+  private TachyonConf mSystemPropsTachyonConf;
+  
+  @AfterClass
+  public static void afterClass() {
+    System.clearProperty(Constants.MASTER_HOSTNAME);
+    System.clearProperty(Constants.MASTER_PORT);
+    System.clearProperty(Constants.USE_ZOOKEEPER);
+  }
 
   @BeforeClass
   public static void beforeClass() {
@@ -38,6 +47,11 @@ public class TachyonConfTest {
     sTestProperties.put("recursive", "${multiplesubs}");
     sTestProperties.put("home.port", "8080");
     sTestProperties.put("complex.address", "tachyon://${home}:${home.port}");
+    
+    // initialize the system properties
+    System.setProperty(Constants.MASTER_HOSTNAME, "master");
+    System.setProperty(Constants.MASTER_PORT, "20001");
+    System.setProperty(Constants.USE_ZOOKEEPER, "true");
 
     // initialize
     sDefaultTachyonConf = new TachyonConf(false);
@@ -47,6 +61,7 @@ public class TachyonConfTest {
   public void beforeTests() {
     // init TachyonConf
     mCustomPropsTachyonConf = new TachyonConf(sTestProperties);
+    mSystemPropsTachyonConf = new TachyonConf();
   }
 
   // test default properties
@@ -263,5 +278,12 @@ public class TachyonConfTest {
     String multiplesubs = mCustomPropsTachyonConf.get("multiplesubs", null);
     String recursive = mCustomPropsTachyonConf.get("recursive", null);
     Assert.assertTrue(multiplesubs.equals(recursive));
+  }
+  
+  @Test
+  public void testSystemVariableSubstitutionSample() {
+    String masterAddress = mSystemPropsTachyonConf.get(Constants.MASTER_ADDRESS, null);
+    Assert.assertTrue(masterAddress != null);
+    Assert.assertTrue("tachyon-ft://master:20001".equals(masterAddress));
   }
 }
