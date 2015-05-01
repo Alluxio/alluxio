@@ -8,3 +8,6 @@
 # This makes other DN unable to connect to NN
 # Solution is to use fully qualified domain name
 cat /vagrant/files/hosts | sudo tee -a /etc/hosts
+
+# TachyonMaster => TachyonMaster.local, TachyonWorker1 => TachyonWorker1.local, etc
+sudo hostname `hostname`.local
