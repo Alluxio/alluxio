@@ -141,6 +141,7 @@
   </properties>
 
   <modules>
+    <module>common</module>
     <module>core</module>
     <module>client</module>
     <module>assembly</module>
