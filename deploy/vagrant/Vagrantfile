@@ -25,6 +25,8 @@ require "./core/config_#{Provider}"
 # config cluster and create /etc/hosts
 NameArr = Array.new
 config_hosts(NameArr)
+# generate ssh keys under ./files, will be copied to clusters later
+gen_ssh_key
 # Vagrantfile API/syntax version.
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.require_version ">= 1.6.5"
