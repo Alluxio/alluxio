@@ -242,6 +242,8 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
+  public static final String COL = "COL_";
+
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final InetSocketAddress mMasterAddress;
@@ -1088,7 +1090,7 @@ public class MasterInfo extends ImageWriter {
     }
 
     for (int k = 0; k < columns; k ++) {
-      mkdirs(path.join(Constants.COLUMN_PREFIX + k), true);
+      mkdirs(path.join(COL + k), true);
     }
 
     return id;
