@@ -102,9 +102,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
 
     // Get all relevant files
-    String[] pathsToDelete = list(path);
+    String[] pathsToDelete = listInternal(path, true);
     for (String pathToDelete : pathsToDelete) {
-      String toDelete = path + pathToDelete;
       // If we fail to deleteInternal one file, stop
       if (!deleteInternal(path + pathToDelete)) {
         return false;
@@ -180,18 +179,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
-    try {
-      path = path.substring(SCHEME.length() + mBucketName.length() + 1);
-      S3Object[] objs = mClient.listObjects(mBucketName, path, PATH_SEPARATOR);
-      String[] ret = new String[objs.length];
-      for (int i = 0; i < objs.length; i ++) {
-        ret[i] = objs[i].getKey().substring(path.length());
-      }
-      return ret;
-    } catch (ServiceException se) {
-      LOG.info("Failed to list path " + path);
-      return null;
-    }
+    // Non recursive list
+    return listInternal(path, false);
   }
 
   @Override
@@ -454,6 +443,22 @@ public class S3UnderFileSystem extends UnderFileSystem {
     } catch (ServiceException se) {
       LOG.error("Failed to rename file " + src + " to " + dst);
       return false;
+    }
+  }
+
+  private String[] listInternal(String path, boolean recursive) throws IOException {
+    try {
+      String separator = recursive ? "" : PATH_SEPARATOR;
+      path = path.substring(SCHEME.length() + mBucketName.length() + 1);
+      S3Object[] objs = mClient.listObjects(mBucketName, path, separator);
+      String[] ret = new String[objs.length];
+      for (int i = 0; i < objs.length; i ++) {
+        ret[i] = objs[i].getKey().substring(path.length());
+      }
+      return ret;
+    } catch (ServiceException se) {
+      LOG.info("Failed to list path " + path);
+      return null;
     }
   }
 
