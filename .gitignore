@@ -8,7 +8,7 @@ tests.log*
 .metadata/
 .settings/
 conf/tachyon-env.sh
-core/dependency-reduced-pom.xml
+dependency-reduced-pom.xml
 data/
 deploy/vagrant/conf/
 deploy/vagrant/files/
