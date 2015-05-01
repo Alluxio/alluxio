@@ -180,6 +180,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public String[] list(String path) throws IOException {
     // Non recursive list
+    if (!isFolder(path)) {
+      return null;
+    }
+    System.out.println("List with : " + path);
+    path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
+    System.out.println("List after : " + path);
     return listInternal(path, false);
   }
 
@@ -387,6 +393,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @throws IOException
    */
   private boolean isFolder(String key) {
+    key = key.endsWith(PATH_SEPARATOR) ? key.substring(0, key.length() - 1) : key;
     // Root is always a folder
     if (isRoot(key)) {
       return true;
