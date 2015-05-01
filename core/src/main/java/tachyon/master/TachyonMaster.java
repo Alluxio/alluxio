@@ -318,6 +318,7 @@ public class TachyonMaster {
       LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
       mMasterServiceServer.serve();
       LOG.info("Tachyon Master version " + Version.VERSION + " ended @ " + mMasterAddress);
+      mJournal.close();
     }
   }
 
