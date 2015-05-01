@@ -328,6 +328,7 @@ public class TachyonMaster {
     if (mIsStarted) {
       mWebServer.shutdownWebServer();
       mMasterInfo.stop();
+      mJournal.close();
       mMasterMetricsSystem.stop();
       mMasterServiceServer.stop();
       mServerTServerSocket.close();
