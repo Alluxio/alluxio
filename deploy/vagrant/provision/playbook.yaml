@@ -1,5 +1,8 @@
 - hosts: all
   tasks:
+    - name: be sure libselinux-python are installed
+      shell: sudo yum install -y libselinux-python
+
     - name: mount devices defined in block device mapping
       script: device.sh
       when: is_aws
