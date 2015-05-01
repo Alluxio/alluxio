@@ -272,6 +272,7 @@ public class WorkerStorage {
   private final InetSocketAddress mMasterAddress;
   private final long mStartTimeMs;
   private NetAddress mWorkerAddress;
+  private final WorkerSource mWorkerSource;
 
   private long mWorkerId;
 
@@ -334,6 +335,8 @@ public class WorkerStorage {
     int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
     mCheckpointExecutor =
         Executors.newFixedThreadPool(checkpointThreads, ThreadFactoryUtils.build("checkpoint-%d"));
+
+    mWorkerSource = new WorkerSource(this);
   }
 
   /**
@@ -624,6 +627,18 @@ public class WorkerStorage {
     return capacityBytesOnTiers;
   }
 
+  /** Get the total number of blocks
+   *
+   * @return the number of blocks
+   */
+  public int getNumberOfBlocks() {
+    int ret = 0;
+    for (StorageTier tier : mStorageTiers) {
+      ret += tier.getNumberOfBlocks();
+    }
+    return ret;
+  }
+
   /**
    * Get the worker start time (in UTC) in milliseconds.
    *
@@ -726,6 +741,14 @@ public class WorkerStorage {
     return new InetSocketAddress(mWorkerAddress.getMHost(), mWorkerAddress.getMPort());
   }
 
+  /** Get the WorkerSource instance
+   *
+   * @return the WorkerSource instance
+   */
+  public WorkerSource getWorkerSource() {
+    return mWorkerSource;
+  }
+
   /**
    * Heartbeat with the TachyonMaster. Send the removed block list and added block list to the
    * Master.
@@ -796,7 +819,8 @@ public class WorkerStorage {
       }
       StorageTier curTier =
           new StorageTier(level, storageLevelAlias, dirPaths, dirCapacities, mDataFolder,
-              mUserFolder, nextStorageTier, null, mTachyonConf); // TODO add conf for UFS
+              mUserFolder, nextStorageTier, null, mTachyonConf, mWorkerSource); // TODO add conf for
+                                                                                // UFS
       curTier.initialize();
       mCapacityBytes += curTier.getCapacityBytes();
       mStorageTiers.set(level, curTier);
@@ -860,6 +884,7 @@ public class WorkerStorage {
         }
         if (result) {
           storageDir.deleteBlock(blockId);
+          mWorkerSource.incBlocksPromoted();
         }
         return result;
       } catch (IOException e) {
