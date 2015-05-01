@@ -130,7 +130,7 @@
           && mkdir -p /tachyon/core/target \
           && rsync -avz TachyonMaster.local:/tachyon/core/target/tachyon-*-jar-with-dependencies.jar /tachyon/core/target \
           && rsync -avz TachyonMaster.local:'/tachyon/bin /tachyon/conf /tachyon/libexec' /tachyon
-      when: not is_vb
+      when: not (is_vb and tachyon_is_local)
 
     - name: rsync spark bin distribution from TachyonMaster
       shell: rsync -avz TachyonMaster.local:/spark/dist/* /spark
