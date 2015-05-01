@@ -3,7 +3,7 @@
 
 # VB specific configurations go here
 
-def config_vb(config, i, total, name, is_local)
+def config_vb(config, i, total, name, tachyon_is_local)
   puts "starting " + Addr[i - 1]
 
   # sync vagrant/shared, but shared may be created in vm, so we sync vagrant/
@@ -13,7 +13,7 @@ def config_vb(config, i, total, name, is_local)
   # each vm will download in parallel
   config.vm.synced_folder ".", "/vagrant"
 
-  if is_local
+  if tachyon_is_local
     config.vm.synced_folder "../../", "/tachyon"
   end
 

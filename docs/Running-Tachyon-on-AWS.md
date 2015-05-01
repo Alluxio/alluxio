@@ -5,7 +5,7 @@ title: Running Tachyon on Amazon EC2
 
 ## Deploy Tachyon Cluster on Amazon EC2 via Vagrant
 
-[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster in the cloud at [AWS EC2 VPC](http://aws.amazon.com/vpc/).
+[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster in the cloud at [AWS EC2 VPC](http://aws.amazon.com/vpc/), and provision all nodes in parallel with [Ansible](http://www.ansible.com/home).
 
 A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant`
 directory:
@@ -22,7 +22,8 @@ vagrant
 │   ├── init.yml.docker
 │   └── openstack-config.yml
 ├── init.yml -> conf/init.yml.hdfs2
-|__ tachyon_version.yml
+├── tachyon_version.yml
+├── spark_version.yml
 ├── README.md
 ├── run_aws.sh
 └── ...
@@ -41,9 +42,11 @@ The `run_aws.sh` script allows you to launch a Tachyon VPC on Amazon EC2. It rea
 
 * **Choose EC2 Availability Zone**. You need to provide a `Availability Zone` for your VPC's network address range.
 
+* **Install Ansible**. [Installation Guide](http://docs.ansible.com/intro_installation.html#installation). Version 1.5 and higher is recommended for ssh speedup.
+
 ## Configure
 
-Configure Tachyon Version you want to deploy, refer to [this doc](Running-Specific-Tachyon-Commit-Via-Vagrant.html)
+Configure Version of Tachyon or Spark you want to deploy, refer to [this doc](Running-Specific-Version-Of-Tachyon-Or-Spark-Via-Vagrant.html)
 
 With the above EC2 information, fill them in `tachyon/deploy/vagrant/conf/ec2-config.yml`. Also ensure your shell environmen variables `AWS_ACCESS_KEY` and `AWS_SECRET_KEY` are set correctly.
 
@@ -76,6 +79,13 @@ For Docker provider, containers use DHCP, these addresses are not used.
 </td><td>IPv4 address string</td>
 </tr>
 </table>
+
+## Block Device Mapping
+
+To mount extra disks, you can define them through block device mapping in conf/ec2-config.yml. 
+
+After launching the cluster, all block devices will either be mounted to /mnt, or /disk0, /disk1, ... in sequence. Each of
+these directories maps to a unique block device with ext4 as filesystem.
 
 ## Launch Cluster
 

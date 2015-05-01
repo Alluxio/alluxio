@@ -272,6 +272,7 @@ public class WorkerStorage {
   private final InetSocketAddress mMasterAddress;
   private final long mStartTimeMs;
   private NetAddress mWorkerAddress;
+  private final WorkerSource mWorkerSource;
 
   private long mWorkerId;
 
@@ -334,6 +335,8 @@ public class WorkerStorage {
     int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
     mCheckpointExecutor =
         Executors.newFixedThreadPool(checkpointThreads, ThreadFactoryUtils.build("checkpoint-%d"));
+
+    mWorkerSource = new WorkerSource(this);
   }
 
   /**
@@ -624,12 +627,24 @@ public class WorkerStorage {
     return capacityBytesOnTiers;
   }
 
+  /** Get the total number of blocks
+   *
+   * @return the number of blocks
+   */
+  public int getNumberOfBlocks() {
+    int ret = 0;
+    for (StorageTier tier : mStorageTiers) {
+      ret += tier.getNumberOfBlocks();
+    }
+    return ret;
+  }
+
   /**
    * Get the worker start time (in UTC) in milliseconds.
    *
    * @return the worker start time in milliseconds
    */
-  public long getStarttimeMs() {
+  public long getStartTimeMs() {
     return mStartTimeMs;
   }
 
@@ -726,6 +741,14 @@ public class WorkerStorage {
     return new InetSocketAddress(mWorkerAddress.getMHost(), mWorkerAddress.getMPort());
   }
 
+  /** Get the WorkerSource instance
+   *
+   * @return the WorkerSource instance
+   */
+  public WorkerSource getWorkerSource() {
+    return mWorkerSource;
+  }
+
   /**
    * Heartbeat with the TachyonMaster. Send the removed block list and added block list to the
    * Master.
@@ -768,10 +791,6 @@ public class WorkerStorage {
           String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
       String tierDirsQuotaProp =
           String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, level);
-      int index = level;
-      if (index >= Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length) {
-        index = level - 1;
-      }
 
       StorageLevelAlias storageLevelAlias =
           mTachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
@@ -781,24 +800,27 @@ public class WorkerStorage {
         dirPaths[i] = dirPaths[i].trim();
       }
 
+      // TODO: Figure out in which scenarios just using 'level' will not work.
+      int indexQuota = Math.min(level, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length - 1);
       String tierDirsQuota =
-          mTachyonConf.get(tierDirsQuotaProp, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[index]);
+          mTachyonConf.get(tierDirsQuotaProp, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[indexQuota]);
 
       for (int i = 0; i < dirPaths.length; i ++) {
         dirPaths[i] = dirPaths[i].trim();
       }
       String[] dirCapacityStrings = tierDirsQuota.split(",");
+      // The storage directory quota for each storage directory
       long[] dirCapacities = new long[dirPaths.length];
-      for (int i = 0, j = 0; i < dirPaths.length; i ++) {
-        // The storage directory quota for each storage directory
+      for (int i = 0; i < dirPaths.length; i ++) {
+        // If not all dir quotas are specified, the last one will be used for the quota for
+        // remaining dirs.
+        int j = Math.min(i, dirCapacityStrings.length - 1);
         dirCapacities[i] = CommonUtils.parseSpaceSize(dirCapacityStrings[j].trim());
-        if (j < dirCapacityStrings.length - 1) {
-          j ++;
-        }
       }
       StorageTier curTier =
           new StorageTier(level, storageLevelAlias, dirPaths, dirCapacities, mDataFolder,
-              mUserFolder, nextStorageTier, null, mTachyonConf); // TODO add conf for UFS
+              mUserFolder, nextStorageTier, null, mTachyonConf, mWorkerSource); // TODO add conf for
+                                                                                // UFS
       curTier.initialize();
       mCapacityBytes += curTier.getCapacityBytes();
       mStorageTiers.set(level, curTier);
@@ -862,6 +884,7 @@ public class WorkerStorage {
         }
         if (result) {
           storageDir.deleteBlock(blockId);
+          mWorkerSource.incBlocksPromoted();
         }
         return result;
       } catch (IOException e) {

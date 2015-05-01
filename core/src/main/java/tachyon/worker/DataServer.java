@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -34,7 +34,7 @@ public interface DataServer extends Closeable {
         final BlocksLocker blockLocker, TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.getClass(Constants.WORKER_DATA_SEVRER, Constants.WORKER_DATA_SERVER_CLASS),
+            conf.getClass(Constants.WORKER_DATA_SERVER, Constants.WORKER_DATA_SERVER_CLASS),
             new Class[] { InetSocketAddress.class, BlocksLocker.class, TachyonConf.class },
             new Object[] { dataAddress, blockLocker, conf });
       } catch (Exception e) {
@@ -43,7 +43,18 @@ public interface DataServer extends Closeable {
     }
   }
 
+  /**
+   * Gets the port the DataServer is listening on.
+   *
+   * @return the port number
+   */
   int getPort();
 
+
+  /**
+   * Check if the DataServer is closed.
+   *
+   * @return true if the DataServer is closed, false otherwise
+   */
   boolean isClosed();
 }

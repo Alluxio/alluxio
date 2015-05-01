@@ -33,6 +33,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
+import tachyon.worker.WorkerSource;
 
 public class StorageTierTest {
 
@@ -65,15 +66,12 @@ public class StorageTierTest {
     for (int level = maxLevel - 1; level >= 0; level --) {
       String tierLevelAliasProp = "tachyon.worker.tieredstore.level" + level + ".alias";
       String tierLevelDirPath = "tachyon.worker.tieredstore.level" + level + ".dirs.path";
-      StorageLevelAlias storageLevelAlias = tachyonConf.getEnum(tierLevelAliasProp,
-          StorageLevelAlias.MEM);
+      StorageLevelAlias storageLevelAlias =
+          tachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
       String tierDirsCapacityProp = "tachyon.worker.tieredstore.level" + level + ".dirs.quota";
-      int index = level;
-      if (index >= Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length) {
-        index = level - 1;
-      }
+      int indexQuota = Math.min(level, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length - 1);
       String tierDirsCapacity = tachyonConf.get(tierDirsCapacityProp,
-          Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[index]);
+          Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[indexQuota]);
 
       String[] dirPaths = tachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
       for (int i = 0; i < dirPaths.length; i ++) {
@@ -81,16 +79,14 @@ public class StorageTierTest {
       }
       String[] strDirCapacities = tierDirsCapacity.split(",");
       long[] dirCapacities = new long[dirPaths.length];
-      for (int i = 0, j = 0; i < dirPaths.length; i ++) {
+      for (int i = 0; i < dirPaths.length; i ++) {
         // The storage directory quota for each storage directory
+        int j = Math.min(i, strDirCapacities.length - 1);
         dirCapacities[i] = CommonUtils.parseSpaceSize(strDirCapacities[j].trim());
-        if (j < strDirCapacities.length - 1) {
-          j ++;
-        }
       }
       StorageTier curTier =
           new StorageTier(level, storageLevelAlias, dirPaths, dirCapacities, "/data", "/user",
-              nextTier, null, tachyonConf);
+              nextTier, null, tachyonConf, new WorkerSource(null));
       mStorageTiers[level] = curTier;
       curTier.initialize();
       for (StorageDir dir : curTier.getStorageDirs()) {
@@ -102,8 +98,7 @@ public class StorageTierTest {
 
   private void createBlockFile(StorageDir dir, long blockId, int blockSize) throws IOException {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
-    BlockHandler bhSrc =
-        BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
+    BlockHandler bhSrc = BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
     dir.requestSpace(USER_ID, blockSize);
     dir.updateTempBlockAllocatedBytes(USER_ID, blockId, blockSize);
     try {
@@ -118,8 +113,8 @@ public class StorageTierTest {
   public void getStorageDirTest() throws IOException {
     long blockId = 1;
     List<Long> removedBlockIds = new ArrayList<Long>();
-    StorageDir dir = mStorageTiers[0].requestSpace(USER_ID, 100, new HashSet<Integer>(),
-        removedBlockIds);
+    StorageDir dir =
+        mStorageTiers[0].requestSpace(USER_ID, 100, new HashSet<Integer>(), removedBlockIds);
     createBlockFile(dir, blockId, 100);
     StorageDir dir1 = mStorageTiers[0].getStorageDirByBlockId(1);
     Assert.assertEquals(dir, dir1);
@@ -149,25 +144,25 @@ public class StorageTierTest {
     List<Long> removedBlockIds = new ArrayList<Long>();
     Assert.assertEquals(1000, mStorageTiers[0].getCapacityBytes());
     Assert.assertEquals(8000, mStorageTiers[1].getCapacityBytes());
-    StorageDir dir = mStorageTiers[0].requestSpace(USER_ID, 500, new HashSet<Integer>(),
-        removedBlockIds);
+    StorageDir dir =
+        mStorageTiers[0].requestSpace(USER_ID, 500, new HashSet<Integer>(), removedBlockIds);
     dir.updateTempBlockAllocatedBytes(USER_ID, blockId, 500);
     Assert.assertEquals(mStorageTiers[0].getStorageDirs()[0], dir);
     Assert.assertEquals(500, dir.getAvailableBytes());
     Assert.assertEquals(500, dir.getUsedBytes());
-    StorageDir dir1 = mStorageTiers[0].requestSpace(USER_ID, 501, new HashSet<Integer>(),
-        removedBlockIds);
+    StorageDir dir1 =
+        mStorageTiers[0].requestSpace(USER_ID, 501, new HashSet<Integer>(), removedBlockIds);
     Assert.assertEquals(null, dir1);
     createBlockFile(dir, blockId, 500);
-    boolean request = mStorageTiers[0].requestSpace(dir, USER_ID, 501, new HashSet<Integer>(),
-        removedBlockIds);
+    boolean request =
+        mStorageTiers[0].requestSpace(dir, USER_ID, 501, new HashSet<Integer>(), removedBlockIds);
     Assert.assertTrue(request);
     Assert.assertEquals(499, dir.getAvailableBytes());
     Assert.assertEquals(501, dir.getUsedBytes());
     Assert.assertTrue(mStorageTiers[1].containsBlock(blockId));
     Assert.assertEquals(500, mStorageTiers[1].getUsedBytes());
-    request = mStorageTiers[0].requestSpace(dir, USER_ID, 500, new HashSet<Integer>(),
-        removedBlockIds);
+    request =
+        mStorageTiers[0].requestSpace(dir, USER_ID, 500, new HashSet<Integer>(), removedBlockIds);
     Assert.assertEquals(false, request);
   }
 }

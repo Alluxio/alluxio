@@ -5,7 +5,7 @@ title: Running Tachyon on Linux Container
 
 ## Deploy Tachyon Cluster on Linux Container via Vagrant
 
-[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster locally inside [Linux container](http://www.docker.com/).
+[Vagrant](https://www.vagrantup.com/downloads.html) can spawn Tachyon cluster locally inside [Linux container](http://www.docker.com/), and provision all nodes in parallel with [Ansible](http://www.ansible.com/home).
 
 A set of pre-configured Vagrant recipe and shell scripts can be found at `tachyon/deploy/vagrant`
 directory:
@@ -22,7 +22,8 @@ vagrant
 │   ├── init.yml.docker
 │   └── openstack-config.yml
 ├── init.yml -> conf/init.yml.hdfs2
-|__ tachyon_version.yml
+├── tachyon_version.yml
+├── spark_version.yml
 ├── README.md
 ├── run_docker.sh
 └── ...
@@ -35,9 +36,11 @@ The `run_docker.sh` script allows you to launch a Tachyon inside containers. It 
 
 * **On Linux host, install Docker package**. 
 
+* **Install Ansible**. [Installation Guide](http://docs.ansible.com/intro_installation.html#installation). Version 1.5 and higher is recommended for ssh speedup.
+
 ## Configure
 
-Configure Tachyon Version you want to deploy, refer to [this doc](Running-Specific-Tachyon-Commit-Via-Vagrant.html)
+Configure Version of Tachyon or Spark you want to deploy, refer to [this doc](Running-Specific-Version-Of-Tachyon-Or-Spark-Via-Vagrant.html)
 
 Provide your desired Tachyon cluster configuration. A sample configuration can be found in `tachyon/deploy/vagrant/conf/init.yml.docker`. Link or copy it to `tachyon/deploy/vagrant/init.yml`. 
 

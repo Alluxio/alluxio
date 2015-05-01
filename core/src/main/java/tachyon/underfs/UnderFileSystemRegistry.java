@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -40,13 +40,13 @@ import tachyon.conf.TachyonConf;
  * New factories can be registered either using the {@linkplain ServiceLoader} based automatic
  * discovery mechanism or manually using the static {@link #register(UnderFileSystemFactory)}
  * method. The down-side of the automatic discovery mechanism is that the discovery order is not
- * controllable so if your implementation is designed as a replacement for one of the standard
- * implementations depending on the order in which the JVM discovers the services your own
+ * controllable. As a result if your implementation is designed as a replacement for one of the
+ * standard implementations, depending on the order in which the JVM discovers the services your own
  * implementation may not take priority. You can enable {@code DEBUG} level logging for this class
  * to see the order in which factories are discovered and which is selected when obtaining a
  * {@link UnderFileSystem} instance for a path. If this shows that your implementation is not
- * getting discovered or used then you may wish to use the manual registration approach.
- * <p/>
+ * getting discovered or used, you may wish to use the manual registration approach.
+ * </p>
  * <h4>Automatic Discovery</h4>
  * <p>
  * To use the {@linkplain ServiceLoader} based mechanism you need to have a file named
@@ -57,14 +57,14 @@ import tachyon.conf.TachyonConf;
  * factories as they are discovered if you wish to check that your implementation gets discovered.
  * </p>
  * <p>
- * Note that if you are bundling Tachyon plus your code in a shaded JAR using Maven make sure to use
- * the {@code ServicesResourceTransformer} as otherwise your services file will override the core
- * provided services file and leave the standard factories and under file system implementations
- * unavailable.
+ * Note that if you are bundling Tachyon plus your code in a shaded JAR using Maven, make sure to
+ * use the {@code ServicesResourceTransformer} as otherwise your services file will override the
+ * core provided services file and leave the standard factories and under file system
+ * implementations unavailable.
  * </p>
  * <h4>Manual Registration</h4>
  * <p>
- * To manually register a factory simply pass an instance of your factory to the
+ * To manually register a factory, simply pass an instance of your factory to the
  * {@link #register(UnderFileSystemFactory)} method. This can be useful when your factory cannot be
  * instantiated without arguments or in cases where automatic discovery does not give your factory
  * priority. Factories registered this way will be registered at the start of the factories list so
@@ -85,7 +85,7 @@ public final class UnderFileSystemRegistry {
 
   /**
    * Returns a read-only view of the available factories
-   * 
+   *
    * @return Read-only view of the available factories
    */
   public static List<UnderFileSystemFactory> available() {
@@ -94,15 +94,15 @@ public final class UnderFileSystemRegistry {
 
   /**
    * Creates a client for operations involved with the under file system.
-   * 
+   *
    * @param path Path
-   * @param conf Optional configuration object for the UFS, may be null
    * @param tachyonConf Tachyon Configuration
+   * @param ufsConf Optional configuration object for the UFS, may be null
    * @return Client for the under file system
    * @throws IllegalArgumentException Thrown if there is no under file system for the given path or
    *         if no under file system could successfully be created
    */
-  public static UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
+  public static UnderFileSystem create(String path, TachyonConf tachyonConf, Object ufsConf) {
     // Try to obtain the appropriate factory
     List<UnderFileSystemFactory> factories = findAll(path, tachyonConf);
     if (factories.isEmpty()) {
@@ -113,7 +113,7 @@ public final class UnderFileSystemRegistry {
     for (UnderFileSystemFactory factory : factories) {
       try {
         // Use the factory to create the actual client for the Under File System
-        return factory.create(path, tachyonConf, conf);
+        return factory.create(path, tachyonConf, ufsConf);
       } catch (Throwable e) {
         errors.add(e);
       }
@@ -126,7 +126,7 @@ public final class UnderFileSystemRegistry {
     StringBuilder errorStr = new StringBuilder();
     errorStr.append("All eligible Under File Systems were unable to create an instance for the "
         + "given path: ").append(path).append('\n');
-    for (Throwable e: errors) {
+    for (Throwable e : errors) {
       errorStr.append(e.getMessage()).append('\n');
     }
     throw new IllegalArgumentException(errorStr.toString());
@@ -134,16 +134,16 @@ public final class UnderFileSystemRegistry {
 
   /**
    * Finds the first Under File System factory that supports the given path
-   * 
+   *
    * @param path Path
-   * @param conf Tachyon configuration
+   * @param tachyonConf Tachyon configuration
    * @return Factory if available, null otherwise
    */
-  public static UnderFileSystemFactory find(String path, TachyonConf conf) {
+  public static UnderFileSystemFactory find(String path, TachyonConf tachyonConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     for (UnderFileSystemFactory factory : FACTORIES) {
-      if (factory.supportsPath(path, conf)) {
+      if (factory.supportsPath(path, tachyonConf)) {
         LOG.debug("Selected Under File System Factory implementation {} for path {}",
             factory.getClass(), path);
         return factory;
@@ -155,18 +155,18 @@ public final class UnderFileSystemRegistry {
   }
 
   /**
-   * Finds all the Under File System factory that support the given path
-   * 
+   * Finds all the Under File System factories that support the given path
+   *
    * @param path Path
-   * @param conf Tachyon Configuration
+   * @param tachyonConf Tachyon Configuration
    * @return List of factories that support the given path which may be an empty list
    */
-  public static List<UnderFileSystemFactory> findAll(String path, TachyonConf conf) {
+  public static List<UnderFileSystemFactory> findAll(String path, TachyonConf tachyonConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<UnderFileSystemFactory>();
     for (UnderFileSystemFactory factory : FACTORIES) {
-      if (factory.supportsPath(path, conf)) {
+      if (factory.supportsPath(path, tachyonConf)) {
         LOG.debug("Under File System Factory implementation {} is eligible for path {}",
             factory.getClass(), path);
         eligibleFactories.add(factory);
@@ -204,8 +204,8 @@ public final class UnderFileSystemRegistry {
    * it should be unnecessary to call this, however since ServiceLoader discovery order may be
    * susceptible to class loader behavioural differences there may be rare cases when you need to
    * manually register the desired factory.
-   * <p>
-   * 
+   * </p>
+   *
    * @param factory Factory to register
    */
   public static void register(UnderFileSystemFactory factory) {
@@ -240,7 +240,7 @@ public final class UnderFileSystemRegistry {
 
   /**
    * Unregisters an existing factory
-   * 
+   *
    * @param factory Factory to unregister
    */
   public static void unregister(UnderFileSystemFactory factory) {
