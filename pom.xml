@@ -143,9 +143,10 @@
   <modules>
     <module>common</module>
     <module>core</module>
-    <module>client</module>
-    <module>assembly</module>
     <module>underfs</module>
+    <module>client</module>
+    <module>examples</module>
+    <module>assembly</module>
   </modules>
 
   <build>
