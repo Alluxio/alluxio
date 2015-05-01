@@ -53,6 +53,7 @@ public final class NettyDataServer implements DataServer {
     }
   }
 
+  @Override
   public void close() throws IOException {
     mChannelFuture.channel().close().awaitUninterruptibly();
     mBootstrap.group().shutdownGracefully();
@@ -107,7 +108,10 @@ public final class NettyDataServer implements DataServer {
 
   /**
    * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and groups are
-   * preset. Current channel types supported are nio and epoll.
+   * preset.
+   *
+   * @param type The channel type. Current channel types supported are nio and epoll.
+   * @return an instance of ServerBootstrap
    */
   private ServerBootstrap createBootstrapOfType(final ChannelType type) {
     final ServerBootstrap boot = new ServerBootstrap();
