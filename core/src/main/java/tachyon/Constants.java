@@ -15,8 +15,8 @@
 
 package tachyon;
 
-//import tachyon.client.RemoteBlockReader;
-//import tachyon.worker.DataServer;
+import tachyon.client.RemoteBlockReader;
+import tachyon.worker.DataServer;
 
 /**
  * System wide constants
@@ -104,7 +104,6 @@ public class Constants {
   public static final String UNDERFS_HDFS_IMPL = "tachyon.underfs.hdfs.impl";
   public static final String ASYNC_ENABLED = "tachyon.async.enabled";
   public static final String MAX_COLUMNS = "tachyon.max.columns";
-  public static final String COLUMN_PREFIX = "COL_";
   public static final String IN_TEST_MODE = "tachyon.test.mode";
   public static final String HOST_RESOLUTION_TIMEOUT_MS = "tachyon.host.resolution.timeout.ms";
   public static final String UNDERFS_GLUSTERFS_IMPL = "tachyon.underfs.glusterfs.impl";
@@ -192,8 +191,8 @@ public class Constants {
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
   public static final String WORKER_DATA_SERVER = "tachyon.worker.data.server.class";
-  //public static final Class<? extends DataServer> WORKER_DATA_SERVER_CLASS =
-  //    tachyon.worker.netty.NettyDataServer.class;
+  public static final Class<? extends DataServer> WORKER_DATA_SERVER_CLASS =
+      tachyon.worker.netty.NettyDataServer.class;
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";
@@ -205,14 +204,9 @@ public class Constants {
       "tachyon.user.remote.read.buffer.size.byte";
   public static final String USER_DEFAULT_WRITE_TYPE = "tachyon.user.file.writetype.default";
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
-<<<<<<< HEAD:common/src/main/java/tachyon/Constants.java
-  //public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
-  //    tachyon.client.tcp.TCPRemoteBlockReader.class;
-=======
   public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
       tachyon.client.tcp.TCPRemoteBlockReader.class;
   public static final String USER_ENABLE_LOCAL_READ = "tachyon.user.localread.enable";
   public static final String USER_ENABLE_LOCAL_WRITE = "tachyon.user.localwrite.enable";
 
->>>>>>> master:core/src/main/java/tachyon/Constants.java
 }

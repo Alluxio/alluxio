@@ -142,14 +142,10 @@
 
   <modules>
     <module>common</module>
-<<<<<<< HEAD
-    <module>clients</module>
-    <module>underfs</module>
-=======
->>>>>>> master
     <module>core</module>
-    <module>integration-tests</module>
+    <module>client</module>
     <module>assembly</module>
+    <module>underfs</module>
   </modules>
 
   <build>
