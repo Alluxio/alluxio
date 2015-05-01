@@ -256,6 +256,8 @@ public class MasterInfo extends ImageWriter {
   private final AtomicInteger mUserCounter = new AtomicInteger(0);
   private final AtomicInteger mWorkerCounter = new AtomicInteger(0);
 
+  private final MasterSource mMasterSource;
+
   // Root Inode's id must be 1.
   private InodeFolder mRoot;
   private final Object mRootLock = new Object();
@@ -317,6 +319,7 @@ public class MasterInfo extends ImageWriter {
     mPinnedInodeFileIds = Collections.synchronizedSet(new HashSet<Integer>());
 
     mJournal.loadImage(this);
+    mMasterSource = new MasterSource(this);
   }
 
   /**
@@ -387,6 +390,7 @@ public class MasterInfo extends ImageWriter {
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);
       }
+      mMasterSource.incFilesCheckpointed();
       return new Pair<Boolean, Boolean>(true, needLog);
     }
   }
@@ -492,6 +496,7 @@ public class MasterInfo extends ImageWriter {
   int createFileInternal(boolean recursive, TachyonURI path, boolean directory, long blockSizeByte,
       long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
       BlockInfoException, TachyonException {
+    mMasterSource.incCreateFileOps();
     if (path.isRoot()) {
       LOG.info("FileAlreadyExistException: " + path);
       throw new FileAlreadyExistException(path.toString());
@@ -545,6 +550,7 @@ public class MasterInfo extends ImageWriter {
         mFileIdToInodes.put(dir.getId(), dir);
         currentInodeFolder = (InodeFolder) dir;
       }
+      mMasterSource.incFilesCreated(parentPath.length - pathIndex);
 
       // Create the final path component. First we need to make sure that there isn't already a file
       // here with that name. If there is an existing file that is a directory and we're creating a
@@ -578,6 +584,7 @@ public class MasterInfo extends ImageWriter {
       mFileIdToInodes.put(ret.getId(), ret);
       currentInodeFolder.addChild(ret);
       currentInodeFolder.setLastModificationTimeMs(creationTimeMs);
+      mMasterSource.incFilesCreated();
 
       LOG.debug("createFile: File Created: {} parent: ", ret, currentInodeFolder);
       return ret.getId();
@@ -604,6 +611,7 @@ public class MasterInfo extends ImageWriter {
    * @throws TachyonException
    */
   boolean deleteInternal(int fileId, boolean recursive, long opTimeMs) throws TachyonException {
+    mMasterSource.incDeleteFileOps();
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fileId);
       if (inode == null) {
@@ -673,6 +681,7 @@ public class MasterInfo extends ImageWriter {
         delInode.reverseId();
       }
 
+      mMasterSource.incFilesDeleted(delInodes.size());
       return true;
     }
   }
@@ -768,6 +777,7 @@ public class MasterInfo extends ImageWriter {
    */
   boolean renameInternal(int fileId, TachyonURI dstPath, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException {
+    mMasterSource.incRenameOps();
     synchronized (mRootLock) {
       TachyonURI srcPath = getPath(fileId);
       if (srcPath.equals(dstPath)) {
@@ -826,6 +836,7 @@ public class MasterInfo extends ImageWriter {
       srcInode.setName(dstComponents[dstComponents.length - 1]);
       ((InodeFolder) dstParentInode).addChild(srcInode);
       dstParentInode.setLastModificationTimeMs(opTimeMs);
+      mMasterSource.incFilesRenamed();
       return true;
     }
   }
@@ -1225,6 +1236,7 @@ public class MasterInfo extends ImageWriter {
    * @return the file info
    */
   public ClientFileInfo getClientFileInfo(int fid) {
+    mMasterSource.incGetFileStatusOps();
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fid);
       if (inode == null) {
@@ -1244,6 +1256,7 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    */
   public ClientFileInfo getClientFileInfo(TachyonURI path) throws InvalidPathException {
+    mMasterSource.incGetFileStatusOps();
     synchronized (mRootLock) {
       Inode inode = getInode(path);
       if (inode == null) {
@@ -1519,6 +1532,15 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
+   * Get the MasterSource instance
+   *
+   * @return the MasterSource instance
+   */
+  public MasterSource getMasterSource() {
+    return mMasterSource;
+  }
+
+  /**
    * Get a new user id
    *
    * @return a new user id
@@ -1546,6 +1568,26 @@ public class MasterInfo extends ImageWriter {
       return 1;
     }
     return ((InodeFolder) inode).getNumberOfChildren();
+  }
+
+  /**
+   * Get the total number of files.
+   *
+   * @return the number of files
+   */
+  public int getNumberOfFiles() {
+    synchronized (mRootLock) {
+      return mFileIdToInodes.size();
+    }
+  }
+
+  /**
+   * Get the total number of inodes.
+   *
+   * @return the number of inodes
+   */
+  public int getNumberOfPinnedFiles() {
+    return mPinnedInodeFileIds.size();
   }
 
   /**
@@ -2130,6 +2172,7 @@ public class MasterInfo extends ImageWriter {
     synchronized (mRootLock) {
       Inode inode = getInode(srcPath);
       if (inode == null) {
+        mMasterSource.incRenameOps();
         throw new FileDoesNotExistException("Failed to rename: " + srcPath + " does not exist");
       }
       return rename(inode.getId(), dstPath);
