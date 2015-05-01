@@ -26,9 +26,4 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-    </plugins>
-  </build>
 </project>
