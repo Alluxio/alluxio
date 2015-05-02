@@ -44,9 +44,9 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.underfs.UfsUtils;
 import tachyon.util.CommonUtils;
 import tachyon.util.ConfUtils;
-import tachyon.util.UfsUtils;
 
 /**
  * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
