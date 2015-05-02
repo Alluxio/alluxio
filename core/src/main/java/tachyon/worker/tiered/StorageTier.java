@@ -28,6 +28,7 @@ import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.Users;
+import tachyon.worker.WorkerSource;
 import tachyon.worker.allocation.AllocateStrategies;
 import tachyon.worker.allocation.AllocateStrategy;
 import tachyon.worker.allocation.AllocateStrategyType;
@@ -59,6 +60,8 @@ public class StorageTier {
   private final long mCapacityBytes;
   /** The TachyonConf configuration properties */
   private final TachyonConf mTachyonConf;
+  /** The WorkerSource instance in the metrics system */
+  private final WorkerSource mWorkerSource;
 
   /**
    * Creates a new StorageTier
@@ -71,11 +74,13 @@ public class StorageTier {
    * @param userTempFolder user temporary folder in the StorageDir
    * @param nextTier the successor StorageTier
    * @param conf configuration of StorageDir
+   * @param tachyonConf the TachyonConf configuration properties
+   * @param workerSource the WorkerSource instance in the metrics system
    * @throws IOException
    */
   public StorageTier(int storageLevel, StorageLevelAlias storageLevelAlias, String[] dirPaths,
       long[] dirCapacityBytes, String dataFolder, String userTempFolder, StorageTier nextTier,
-      Object conf, TachyonConf tachyonConf) throws IOException {
+      Object conf, TachyonConf tachyonConf, WorkerSource workerSource) throws IOException {
     mTachyonConf = tachyonConf;
     mLevel = storageLevel;
     int storageDirNum = dirPaths.length;
@@ -87,11 +92,12 @@ public class StorageTier {
       long storageDirId = StorageDirId.getStorageDirId(storageLevel, mAlias.getValue(), i);
       mDirs[i] =
           new StorageDir(storageDirId, dirPaths[i], dirCapacityBytes[i], dataFolder,
-              userTempFolder, conf, mTachyonConf);
+              userTempFolder, conf, mTachyonConf, workerSource);
       quotaBytes += dirCapacityBytes[i];
     }
     mCapacityBytes = quotaBytes;
     mNextTier = nextTier;
+    mWorkerSource = workerSource;
     mSpaceAllocator =
         AllocateStrategies.getAllocateStrategy(mTachyonConf.getEnum(
             Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocateStrategyType.MAX_FREE));
@@ -127,6 +133,19 @@ public class StorageTier {
    */
   public StorageTier getNextStorageTier() {
     return mNextTier;
+  }
+
+  /**
+   * Get the number of blocks in this StorageTier
+   *
+   * @return the number of blocks in this StorageTier
+   */
+  public int getNumberOfBlocks() {
+    int ret = 0;
+    for (StorageDir dir : mDirs) {
+      ret += dir.getNumberOfBlocks();
+    }
+    return ret;
   }
 
   /**
@@ -299,6 +318,7 @@ public class StorageTier {
                       removedBlockIds);
               dir.moveBlock(blockId, dstDir);
             }
+            mWorkerSource.incBlocksEvicted();
             LOG.debug("Evicted block Id:{}" + blockId);
           }
         }

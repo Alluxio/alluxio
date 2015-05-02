@@ -20,6 +20,7 @@ Security_Group: "test"
 Region: "us-east-1"
 Availability_Zone: "us-east-1b"
 
+# When using spark, we recommend "r3.large", compile spark needs 2G memory at least
 Instance_Type: "m1.small"
 
 # Block Device Mapping, modify this if you want your instance to have more than

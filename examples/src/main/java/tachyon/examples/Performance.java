@@ -528,7 +528,7 @@ public class Performance {
         String.format("Threads %d FilesPerThread %d TotalFiles %d "
             + "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d "
             + "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ", sThreads, sFiles / sThreads,
-            sFiles, sBlockSizeBytes / 1024, sBlocksPerFile, CommonUtils.getMB(sFileBytes),
+            sFiles, sBlockSizeBytes / 1024, sBlocksPerFile, sFileBytes / Constants.MB,
             fileBufferBytes / 1024, sBaseFileNumber);
 
     for (int k = 0; k < 10000000; k ++) {

@@ -12,33 +12,19 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.command;
 
-import java.io.IOException;
+package tachyon;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import tachyon.Constants;
-import tachyon.conf.TachyonConf;
+import tachyon.client.RemoteBlockReader;
+import tachyon.worker.DataServer;
 
 /**
- * Unit tests on tachyon.command.Utils.
- *
- * Note that the test case for validatePath() is already covered in getFilePath. Hence only
- * getFilePathTest is specified.
+ * Constants on server side
  */
-public class UtilsTest {
+public class ServerConstants {
 
-  @Test
-  public void getFilePathTest() throws IOException {
-    String[] paths =
-        new String[] {Constants.HEADER + "localhost:19998/dir",
-            Constants.HEADER_FT + "localhost:19998/dir", "/dir", "dir"};
-    String expected = "/dir";
-    for (String path : paths) {
-      String result = Utils.getFilePath(path, new TachyonConf());
-      Assert.assertEquals(expected, result);
-    }
-  }
+  public static final Class<? extends DataServer> WORKER_DATA_SERVER_CLASS =
+      tachyon.worker.netty.NettyDataServer.class;
+  public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
+      tachyon.client.tcp.TCPRemoteBlockReader.class;
 }

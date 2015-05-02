@@ -98,7 +98,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
             // stream couldn't read anything, skip went to EOF?
             fileData = "Unable to read file";
           } else {
-            fileData = CommonUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
+            fileData = Utils.convertByteArrayToStringWithoutEscape(data, 0, read);
           }
         }
       } finally {
