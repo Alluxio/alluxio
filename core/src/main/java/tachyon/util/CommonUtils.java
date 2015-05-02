@@ -262,17 +262,6 @@ public final class CommonUtils {
   }
 
   /**
-   * Get the name of the file at a path.
-   *
-   * @param path The path
-   * @return the name of the file
-   * @throws InvalidPathException
-   */
-  public static String getName(String path) throws InvalidPathException {
-    return FilenameUtils.getName(cleanPath(path));
-  }
-
-  /**
    * Get the parent of the file at a path.
    *
    * @param path The path
@@ -281,7 +270,7 @@ public final class CommonUtils {
    */
   public static String getParent(String path) throws InvalidPathException {
     String cleanedPath = cleanPath(path);
-    String name = getName(cleanedPath);
+    String name = FilenameUtils.getName(cleanedPath);
     String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
     if (parent.isEmpty()) {
       // The parent is the root path
@@ -305,30 +294,6 @@ public final class CommonUtils {
       return ret;
     }
     return path.split(TachyonURI.SEPARATOR);
-  }
-
-  /**
-   * Get the path without schema. e.g.,
-   * <p>
-   * tachyon://localhost:19998/ -> /
-   * <p>
-   * tachyon://localhost:19998/abc/d.txt -> /abc/d.txt
-   * <p>
-   * tachyon-ft://localhost:19998/abc/d.txt -> /abc/d.txt
-   *
-   * @param path the original path
-   * @return the path without the schema
-   */
-  public static String getPathWithoutSchema(String path) {
-    if (!path.contains("://")) {
-      return path;
-    }
-
-    path = path.substring(path.indexOf("://") + 3);
-    if (!path.contains(TachyonURI.SEPARATOR)) {
-      return TachyonURI.SEPARATOR;
-    }
-    return path.substring(path.indexOf(TachyonURI.SEPARATOR));
   }
 
   public static String getSizeFromBytes(long bytes) {
