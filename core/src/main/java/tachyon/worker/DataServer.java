@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.ServerConstants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
@@ -34,7 +35,7 @@ public interface DataServer extends Closeable {
         final BlocksLocker blockLocker, TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.getClass(Constants.WORKER_DATA_SERVER, Constants.WORKER_DATA_SERVER_CLASS),
+            conf.getClass(Constants.WORKER_DATA_SERVER, ServerConstants.WORKER_DATA_SERVER_CLASS),
             new Class[] { InetSocketAddress.class, BlocksLocker.class, TachyonConf.class },
             new Object[] { dataAddress, blockLocker, conf });
       } catch (Exception e) {
