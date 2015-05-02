@@ -397,10 +397,6 @@ public final class CommonUtils {
     }
   }
 
-  public static void temporaryLog(String msg) {
-    LOG.info("Temporary Log ============================== " + msg);
-  }
-
   public static String[] toStringArray(ArrayList<String> src) {
     String[] ret = new String[src.size()];
     return src.toArray(ret);

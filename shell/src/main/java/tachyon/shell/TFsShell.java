@@ -23,7 +23,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import com.google.common.io.Closer;
@@ -354,9 +357,14 @@ public class TFsShell implements Closeable {
         }
       }
       System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
-          CommonUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
+          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
     }
     return 0;
+  }
+
+  public static String convertMsToDate(long Millis) {
+    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
+    return formatter.format(new Date(Millis));
   }
 
   /**
@@ -387,7 +395,7 @@ public class TFsShell implements Closeable {
         }
       }
       System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
-          CommonUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
+          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
       if (file.isFolder) {
         lsr(new String[] {"lsr", file.getPath()});
       }
