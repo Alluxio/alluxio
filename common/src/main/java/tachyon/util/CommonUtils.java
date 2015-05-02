@@ -168,11 +168,9 @@ public final class CommonUtils {
       String path = paths[k].toString().trim();
       String trimmedPath;
       if (k == 0) {
-        trimmedPath =
-            CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
+        trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
       } else {
-        trimmedPath =
-            CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
+        trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
         if (trimmedPath == "") {
           continue;
         }
