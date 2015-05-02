@@ -107,39 +107,13 @@ public class TachyonConf {
 
   /**
    * Test constructor for TachyonConfTest class.
-   */
-  TachyonConf(boolean includeSystemProperties) {
-    loadDefault(includeSystemProperties);
-  }
-
-  @Override
-  public int hashCode() {
-    int hash = 0;
-    for (Object s : mProperties.keySet()) {
-      hash ^= s.hashCode();
-    }
-    return hash;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj instanceof TachyonConf) {
-      Properties props = ((TachyonConf) obj).getInternalProperties();
-      return mProperties.equals(props);
-    }
-    return false;
-  }
-
-  /**
+   * 
    * Here is the order of the sources to load the properties:
    *   -) System properties if desired
    *   -) Site specific properties via tachyon-site.properties file
    *   -) Default properties via tachyon-default.properties file
    */
-  protected void loadDefault(boolean includeSystemProperties) {
+  TachyonConf(boolean includeSystemProperties) {
     // Load default
     Properties defaultProps = new Properties();
 
@@ -193,6 +167,27 @@ public class TachyonConf {
     mProperties.putAll(defaultProps);
     mProperties.putAll(siteProps);
     mProperties.putAll(systemProps);
+  }
+
+  @Override
+  public int hashCode() {
+    int hash = 0;
+    for (Object s : mProperties.keySet()) {
+      hash ^= s.hashCode();
+    }
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj instanceof TachyonConf) {
+      Properties props = ((TachyonConf) obj).getInternalProperties();
+      return mProperties.equals(props);
+    }
+    return false;
   }
 
   /**
