@@ -14,8 +14,6 @@
  */
 package tachyon.util;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
@@ -24,27 +22,6 @@ import org.junit.Test;
 import tachyon.Constants;
 
 public class CommonUtilsTest {
-  @Test
-  public void getPathWithoutSchemaTest() {
-    List<String> schemas = new ArrayList<String>();
-    schemas.add("");
-    schemas.add("tachyon://abc:19998");
-    schemas.add("tachyon-ft://abc:19998");
-    schemas.add("tachyon://localhost:19998");
-    schemas.add("tachyon-ft://localhost:19998");
-    schemas.add("tachyon://127.0.0.1:19998");
-    schemas.add("tachyon-ft://127.0.0.1:19998");
-    for (int k = 0; k < schemas.size(); k ++) {
-      String schema = schemas.get(k);
-      if (!schema.equals("")) {
-        Assert.assertEquals("/", CommonUtils.getPathWithoutSchema(schema));
-      }
-      Assert.assertEquals("/", CommonUtils.getPathWithoutSchema(schema + "/"));
-      Assert.assertEquals("/123", CommonUtils.getPathWithoutSchema(schema + "/123"));
-      Assert.assertEquals("/ab/de.txt", CommonUtils.getPathWithoutSchema(schema + "/ab/de.txt"));
-    }
-  }
-
   @Test
   public void parseSpaceSizeTest() {
     long max = 10240;
