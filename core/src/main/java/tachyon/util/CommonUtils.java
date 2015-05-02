@@ -189,14 +189,6 @@ public final class CommonUtils {
     return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
   }
 
-  public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
-    StringBuilder sb = new StringBuilder(length);
-    for (int i = offset; i < length && i < data.length; i ++) {
-      sb.append((char) data[i]);
-    }
-    return sb.toString();
-  }
-
   public static String convertMsToClockTime(long Millis) {
     Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
 
@@ -239,26 +231,8 @@ public final class CommonUtils {
     return correctData;
   }
 
-  public static long getBlockIdFromFileName(String name) {
-    long fileId;
-    try {
-      fileId = Long.parseLong(name);
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Wrong file name: " + name);
-    }
-    return fileId;
-  }
-
   public static long getCurrentMs() {
     return System.currentTimeMillis();
-  }
-
-  public static long getCurrentNs() {
-    return System.nanoTime();
-  }
-
-  public static long getMB(long bytes) {
-    return bytes / Constants.MB;
   }
 
   /**
@@ -425,7 +399,7 @@ public final class CommonUtils {
   }
 
   public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
-    logger.info(message + " took " + (getCurrentNs() - startTimeNs) + " ns.");
+    logger.info(message + " took " + (System.nanoTime() - startTimeNs) + " ns.");
   }
 
   /**
