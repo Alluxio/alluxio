@@ -17,7 +17,6 @@ package tachyon.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
@@ -37,9 +36,7 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
-import tachyon.underfs.UnderFileSystem;
 
 import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;
@@ -400,17 +397,6 @@ public final class CommonUtils {
   public static String[] toStringArray(ArrayList<String> src) {
     String[] ret = new String[src.size()];
     return src.toArray(ret);
-  }
-
-  /**
-   * Create an empty file
-   *
-   * @throws IOException
-   */
-  public static void touch(String path, TachyonConf tachyonConf) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
-    OutputStream os = ufs.create(path);
-    os.close();
   }
 
   /**
