@@ -16,6 +16,7 @@
 package tachyon.underfs;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -202,6 +203,17 @@ public class UfsUtils {
         }
       }
     }
+  }
+
+  /**
+   * Create an empty file
+   *
+   * @throws IOException
+   */
+  public static void touch(String path, TachyonConf tachyonConf) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
+    OutputStream os = ufs.create(path);
+    os.close();
   }
 
   public static void main(String[] args) {
