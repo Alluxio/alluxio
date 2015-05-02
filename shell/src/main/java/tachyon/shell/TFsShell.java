@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.command;
+package tachyon.shell;
 
 import java.io.Closeable;
 import java.io.File;

@@ -145,6 +145,7 @@
     <module>core</module>
     <module>underfs</module>
     <module>client</module>
+    <module>shell</module>
     <module>examples</module>
     <module>assembly</module>
   </modules>
