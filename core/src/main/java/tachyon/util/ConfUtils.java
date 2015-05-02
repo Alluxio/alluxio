@@ -75,13 +75,9 @@ public class ConfUtils {
         LOG.error("Unable to load TachyonConf from Haddop configuration", ex);
         throw new RuntimeException(ex);
       }
-      if (tachyonConfProperties != null) {
-        return new TachyonConf(tachyonConfProperties);
-      } else {
-        return null;
-      }
-    } else {
-      return null;
+
+      return tachyonConfProperties != null ? new TachyonConf(tachyonConfProperties) : null;
     }
+    return null;
   }
 }
