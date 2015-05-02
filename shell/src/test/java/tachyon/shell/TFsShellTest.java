@@ -350,14 +350,14 @@ public class TFsShellTest {
     String format = "%-10s%-25s%-15s%-5s\n";
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(10),
-            CommonUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
+            TFsShell.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
             "/testRoot/testFileA");
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(0),
-            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
+            TFsShell.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(30),
-            CommonUtils.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory",
+            TFsShell.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory",
             "/testRoot/testFileC");
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -376,14 +376,14 @@ public class TFsShellTest {
     String format = "%-10s%-25s%-15s%-5s\n";
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(10),
-            CommonUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
+            TFsShell.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
             "/testRoot/testFileA");
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(0),
-            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
+            TFsShell.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(30),
-            CommonUtils.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory",
+            TFsShell.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory",
             "/testRoot/testFileC");
     Assert.assertEquals(expected, mOutput.toString());
   }
