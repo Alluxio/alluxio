@@ -22,7 +22,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
 
 public class CommonUtilsTest {
   @Test
