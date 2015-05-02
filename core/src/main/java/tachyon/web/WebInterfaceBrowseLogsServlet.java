@@ -29,9 +29,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
@@ -41,7 +38,6 @@ import tachyon.util.CommonUtils;
  */
 public class WebInterfaceBrowseLogsServlet extends HttpServlet {
   private static final long serialVersionUID = 6589358568781503724L;
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final transient TachyonConf mTachyonConf;
   private final String mBrowseJsp;
