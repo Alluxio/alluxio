@@ -15,9 +15,6 @@
 
 package tachyon;
 
-import tachyon.client.RemoteBlockReader;
-import tachyon.worker.DataServer;
-
 /**
  * System wide constants
  */
@@ -59,6 +56,9 @@ public class Constants {
   public static final int DEFAULT_WORKER_MAX_WORKER_THREADS = 2048;
 
   public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
+
+  public static final boolean DEFAULT_USER_ENABLE_LOCAL_READ = true;
+  public static final boolean DEFAULT_USER_ENABLE_LOCAL_WRITE = true;
 
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
 
@@ -114,6 +114,7 @@ public class Constants {
   public static final String ZOOKEEPER_LEADER_PATH = "tachyon.zookeeper.leader.path";
   public static final String UNDERFS_HADOOP_PREFIXS = "tachyon.underfs.hadoop.prefixes";
   public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.byte";
+  public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
 
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";
@@ -187,8 +188,6 @@ public class Constants {
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
   public static final String WORKER_DATA_SERVER = "tachyon.worker.data.server.class";
-  public static final Class<? extends DataServer> WORKER_DATA_SERVER_CLASS =
-      tachyon.worker.netty.NettyDataServer.class;
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";
@@ -200,7 +199,7 @@ public class Constants {
       "tachyon.user.remote.read.buffer.size.byte";
   public static final String USER_DEFAULT_WRITE_TYPE = "tachyon.user.file.writetype.default";
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
-  public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
-      tachyon.client.tcp.TCPRemoteBlockReader.class;
+  public static final String USER_ENABLE_LOCAL_READ = "tachyon.user.localread.enable";
+  public static final String USER_ENABLE_LOCAL_WRITE = "tachyon.user.localwrite.enable";
 
 }

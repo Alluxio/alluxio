@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.util;
+package tachyon.underfs;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -30,7 +30,8 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.underfs.UnderFileSystem;
+import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 
 /**
  * Utilities related to under filesystem
@@ -68,7 +69,7 @@ public class UfsUtils {
    * @param tachyonConf the instance of {@link tachyon.conf.TachyonConf} to be used.
    * @throws IOException
    */
-  public static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath,
+  private static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath,
       String excludePaths, TachyonConf tachyonConf) throws IOException {
     TachyonFS tfs = TachyonFS.get(tfsAddrRootPath, tachyonConf);
 
@@ -225,7 +226,7 @@ public class UfsUtils {
   public static void printUsage() {
     String cmd =
         "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-            + "tachyon.util.UfsUtils ";
+            + "tachyon.underfs.UfsUtils ";
 
     System.out.println("Usage: " + cmd + "<TachyonPath> <UfsPath> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");

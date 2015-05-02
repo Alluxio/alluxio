@@ -23,10 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
@@ -35,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 
@@ -189,47 +185,6 @@ public final class CommonUtils {
     return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
   }
 
-  public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
-    StringBuilder sb = new StringBuilder(length);
-    for (int i = offset; i < length && i < data.length; i ++) {
-      sb.append((char) data[i]);
-    }
-    return sb.toString();
-  }
-
-  public static String convertMsToClockTime(long Millis) {
-    Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
-
-    long days = Millis / Constants.DAY_MS;
-    long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
-    long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
-    long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
-
-    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
-        mins, secs);
-  }
-
-  public static String convertMsToDate(long Millis) {
-    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
-    return formatter.format(new Date(Millis));
-  }
-
-  public static String convertMsToShortClockTime(long Millis) {
-    Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
-
-    long days = Millis / Constants.DAY_MS;
-    long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
-    long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
-    long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
-
-    return String.format("%d d, %d h, %d m, and %d s", days, hours, mins, secs);
-  }
-
-  public static String convertMsToSimpleDate(long Millis) {
-    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy");
-    return formatter.format(new Date(Millis));
-  }
-
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
     // TODO this is a trick to fix the issue in thrift. Change the code to use
     // metadata directly when thrift fixes the issue.
@@ -239,37 +194,8 @@ public final class CommonUtils {
     return correctData;
   }
 
-  public static long getBlockIdFromFileName(String name) {
-    long fileId;
-    try {
-      fileId = Long.parseLong(name);
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Wrong file name: " + name);
-    }
-    return fileId;
-  }
-
   public static long getCurrentMs() {
     return System.currentTimeMillis();
-  }
-
-  public static long getCurrentNs() {
-    return System.nanoTime();
-  }
-
-  public static long getMB(long bytes) {
-    return bytes / Constants.MB;
-  }
-
-  /**
-   * Get the name of the file at a path.
-   *
-   * @param path The path
-   * @return the name of the file
-   * @throws InvalidPathException
-   */
-  public static String getName(String path) throws InvalidPathException {
-    return FilenameUtils.getName(cleanPath(path));
   }
 
   /**
@@ -281,7 +207,7 @@ public final class CommonUtils {
    */
   public static String getParent(String path) throws InvalidPathException {
     String cleanedPath = cleanPath(path);
-    String name = getName(cleanedPath);
+    String name = FilenameUtils.getName(cleanedPath);
     String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
     if (parent.isEmpty()) {
       // The parent is the root path
@@ -305,30 +231,6 @@ public final class CommonUtils {
       return ret;
     }
     return path.split(TachyonURI.SEPARATOR);
-  }
-
-  /**
-   * Get the path without schema. e.g.,
-   * <p>
-   * tachyon://localhost:19998/ -> /
-   * <p>
-   * tachyon://localhost:19998/abc/d.txt -> /abc/d.txt
-   * <p>
-   * tachyon-ft://localhost:19998/abc/d.txt -> /abc/d.txt
-   *
-   * @param path the original path
-   * @return the path without the schema
-   */
-  public static String getPathWithoutSchema(String path) {
-    if (!path.contains("://")) {
-      return path;
-    }
-
-    path = path.substring(path.indexOf("://") + 3);
-    if (!path.contains(TachyonURI.SEPARATOR)) {
-      return TachyonURI.SEPARATOR;
-    }
-    return path.substring(path.indexOf(TachyonURI.SEPARATOR));
   }
 
   public static String getSizeFromBytes(long bytes) {
@@ -460,7 +362,7 @@ public final class CommonUtils {
   }
 
   public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
-    logger.info(message + " took " + (getCurrentNs() - startTimeNs) + " ns.");
+    logger.info(message + " took " + (System.nanoTime() - startTimeNs) + " ns.");
   }
 
   /**

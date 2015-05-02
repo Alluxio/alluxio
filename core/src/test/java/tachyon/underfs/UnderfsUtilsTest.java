@@ -32,7 +32,6 @@ import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
-import tachyon.util.UfsUtils;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.

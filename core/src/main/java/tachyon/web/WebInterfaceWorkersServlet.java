@@ -59,8 +59,7 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
       mUsedPercent = (int) (100L * mUsedBytes / mCapacityBytes);
       mFreePercent = 100 - mUsedPercent;
       mUptimeClockTime =
-          CommonUtils.convertMsToShortClockTime(System.currentTimeMillis()
-              - workerInfo.getStarttimeMs());
+          Utils.convertMsToShortClockTime(System.currentTimeMillis() - workerInfo.getStarttimeMs());
     }
 
     public String getCapacity() {

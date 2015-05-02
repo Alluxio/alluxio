@@ -24,15 +24,17 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
-import tachyon.conf.TachyonConf;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.tiered.StorageDir;
 
 /**
- * Main logic of the read path. This class consumes {@link tachyon.worker.netty.BlockRequest}
- * messages and returns {@link tachyon.worker.netty.BlockResponse} messages.
+ * This class has the main logic of the read path to process
+ * {@link tachyon.worker.netty.BlockRequest} messages and return
+ * {@link tachyon.worker.netty.BlockResponse} messages.
  */
 @ChannelHandler.Sharable
 public final class DataServerHandler extends ChannelInboundHandlerAdapter {
@@ -40,7 +42,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
 
   private final BlocksLocker mLocker;
 
-  public DataServerHandler(final BlocksLocker locker, final TachyonConf tachyonConf) {
+  public DataServerHandler(final BlocksLocker locker) {
     mLocker = locker;
   }
 
@@ -95,34 +97,22 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
    * {@code fileLength - offset} is used.
    */
   private long returnLength(final long offset, final long len, final long fileLength) {
-    if (len == -1) {
-      return fileLength - offset;
-    } else {
-      return len;
-    }
+    return (len == -1) ? fileLength - offset : len;
   }
 
   private void validateBounds(final BlockRequest req, final long fileLength) {
-    if (req.getOffset() > fileLength) {
-      final String msg =
-          String.format("Offset(%d) is larger than file length(%d)", req.getOffset(), fileLength);
-      throw new IllegalArgumentException(msg);
-    }
-    if (req.getLength() != -1 && req.getOffset() + req.getLength() > fileLength) {
-      final String msg =
-          String.format("Offset(%d) plus length(%d) is larger than file length(%d)",
-              req.getOffset(), req.getLength(), fileLength);
-      throw new IllegalArgumentException(msg);
-    }
+    Preconditions.checkArgument(req.getOffset() <= fileLength,
+        "Offset(%s) is larger than file length(%s)", req.getOffset(), fileLength);
+    Preconditions.checkArgument(req.getLength() == -1
+        || req.getOffset() + req.getLength() <= fileLength,
+        "Offset(%s) plus length(%s) is larger than file length(%s)", req.getOffset(),
+        req.getLength(), fileLength);
   }
 
   private void validateInput(final BlockRequest req) {
-    if (req.getOffset() < 0) {
-      throw new IllegalArgumentException("Offset can not be negative: " + req.getOffset());
-    }
-    if (req.getLength() < 0 && req.getLength() != -1) {
-      String msg = "Length can not be negative except -1: " + req.getLength();
-      throw new IllegalArgumentException(msg);
-    }
+    Preconditions.checkArgument(req.getOffset() >= 0, "Offset can not be negative: %s",
+        req.getOffset());
+    Preconditions.checkArgument(req.getLength() >= 0 || req.getLength() == -1,
+        "Length can not be negative except -1: %s", req.getLength());
   }
 }

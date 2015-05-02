@@ -12,7 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.command;
+package tachyon.shell;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -541,6 +541,13 @@ public class TFsShellTest {
     Assert.assertNull(mTfs.getFile(testFolder1));
     Assert.assertNull(mTfs.getFile(testFolder2));
     Assert.assertNull(mTfs.getFile(testFile2));
+  }
+
+  @Test
+  public void tailEmptyFileTest() throws IOException {
+    TestUtils.createByteFile(mTfs, "/emptyFile", WriteType.MUST_CACHE, 0);
+    int ret = mFsShell.tail(new String[] {"tail", "/emptyFile"});
+    Assert.assertEquals(0, ret);
   }
 
   @Test
