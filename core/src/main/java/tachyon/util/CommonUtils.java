@@ -23,10 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
@@ -35,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 
@@ -187,39 +183,6 @@ public final class CommonUtils {
       trimmedPathList.add(trimmedPath);
     }
     return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
-  }
-
-  public static String convertMsToClockTime(long Millis) {
-    Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
-
-    long days = Millis / Constants.DAY_MS;
-    long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
-    long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
-    long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
-
-    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
-        mins, secs);
-  }
-
-  public static String convertMsToDate(long Millis) {
-    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
-    return formatter.format(new Date(Millis));
-  }
-
-  public static String convertMsToShortClockTime(long Millis) {
-    Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
-
-    long days = Millis / Constants.DAY_MS;
-    long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
-    long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
-    long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
-
-    return String.format("%d d, %d h, %d m, and %d s", days, hours, mins, secs);
-  }
-
-  public static String convertMsToSimpleDate(long Millis) {
-    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy");
-    return formatter.format(new Date(Millis));
   }
 
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {

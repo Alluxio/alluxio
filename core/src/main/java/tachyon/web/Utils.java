@@ -15,6 +15,14 @@
 
 package tachyon.web;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import com.google.common.base.Preconditions;
+
+import tachyon.Constants;
+
 public final class Utils {
 
   public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
@@ -23,5 +31,33 @@ public final class Utils {
       sb.append((char) data[i]);
     }
     return sb.toString();
+  }
+
+  public static String convertMsToClockTime(long Millis) {
+    Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
+
+    long days = Millis / Constants.DAY_MS;
+    long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
+    long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
+    long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
+
+    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
+        mins, secs);
+  }
+
+  public static String convertMsToDate(long Millis) {
+    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
+    return formatter.format(new Date(Millis));
+  }
+
+  public static String convertMsToShortClockTime(long Millis) {
+    Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
+
+    long days = Millis / Constants.DAY_MS;
+    long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
+    long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
+    long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
+
+    return String.format("%d d, %d h, %d m, and %d s", days, hours, mins, secs);
   }
 }
