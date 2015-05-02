@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.util;
+package tachyon.worker.netty;
 
 import java.util.concurrent.ThreadFactory;
 
@@ -24,10 +24,9 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-import tachyon.worker.netty.ChannelType;
+import tachyon.util.ThreadFactoryUtils;
 
 public final class NettyUtils {
-
   private NettyUtils() {}
 
   /**
