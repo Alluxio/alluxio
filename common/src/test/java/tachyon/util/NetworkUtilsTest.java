@@ -31,10 +31,10 @@ public class NetworkUtilsTest {
     Assert.assertEquals(NetworkUtils.replaceHostName(null), null);
 
     TachyonURI[] paths =
-        new TachyonURI[] { new TachyonURI("hdfs://localhost:9000/dir"),
+        new TachyonURI[] {new TachyonURI("hdfs://localhost:9000/dir"),
             new TachyonURI("hdfs://localhost/dir"), new TachyonURI("hdfs://localhost/"),
             new TachyonURI("hdfs://localhost"), new TachyonURI("file:///dir"),
-            new TachyonURI("/dir"), new TachyonURI("anythingElse") };
+            new TachyonURI("/dir"), new TachyonURI("anythingElse")};
 
     for (TachyonURI path : paths) {
       Assert.assertEquals(NetworkUtils.replaceHostName(path), path);

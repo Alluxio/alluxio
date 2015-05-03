@@ -25,9 +25,9 @@ import org.apache.hadoop.hdfs.MiniDFSCluster;
 
 import tachyon.conf.TachyonConf;
 import tachyon.TachyonURI;
+import tachyon.underfs.UfsUtils;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
-import tachyon.util.CommonUtils;
 
 /**
  * A local MiniDFSCluster for testing UnderFileSystemHdfs.
@@ -61,7 +61,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       dfs = cluster.getDFSClient();
       dfs.mkdirs(new Path("/1"));
 
-      CommonUtils.touch(cluster.getUnderFilesystemAddress() + "/1" + "/_format_"
+      UfsUtils.touch(cluster.getUnderFilesystemAddress() + "/1" + "/_format_"
           + System.currentTimeMillis(), tachyonConf);
       fs = dfs.listStatus(new Path("/1"));
       assert fs.length != 0;

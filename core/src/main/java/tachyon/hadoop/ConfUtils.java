@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.conf;
+package tachyon.hadoop;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 
 /**
  * Utility class for {@link tachyon.conf.TachyonConf}
@@ -70,9 +71,9 @@ public class ConfUtils {
       try {
         tachyonConfProperties = DefaultStringifier.load(source, Constants.TACHYON_CONF_SITE,
             Properties.class);
-      } catch (IOException ex) {
-        LOG.error("Unable to load TachyonConf from Haddop configuration", ex);
-        throw new RuntimeException(ex);
+      } catch (IOException e) {
+        LOG.error("Unable to load TachyonConf from Haddop configuration", e);
+        throw new RuntimeException(e);
       }
 
       return tachyonConfProperties != null ? new TachyonConf(tachyonConfProperties) : null;
