@@ -11,6 +11,9 @@
       shell: sudo mkdir -p /vagrant && user=`whoami` && sudo chown -R $user /vagrant
       when: not is_vb # vb sync the whole /vagrant directory
 
+    - name: prepare /vagrant/shared
+      shell: sudo mkdir -p /vagrant/shared && user=`whoami` && sudo chown -R $user /vagrant
+
     - name: sync files
       synchronize: src=../files dest=/vagrant
       when: not is_vb # vb sync the whole /vagrant directory
@@ -25,7 +28,7 @@
     - name: configure hosts
       script: host.sh
     - name: rename hostname from TachyonXXX to TachyonXXX.local in virtualbox
-      shell: sudo hostname `hostname`.local
+      shell: sudo hostname `hostname | cut -d'.' -f1`.local # if provision multiple times, won't become TachyonXXX.local.local.local
       when: is_vb
 
     - name: install java
@@ -33,6 +36,9 @@
 
     - name: install rsync
       shell: sudo yum install -y -q rsync
+
+    - name: install wget
+      command: sudo yum install -y -q wget
 
     - name: mkdir /tachyon
       shell: sudo mkdir -p /tachyon && user=`whoami` && sudo chown -R $user /tachyon
@@ -45,10 +51,11 @@
   tasks:
     - name: install maven
       script: maven.sh
+      when: compile_tachyon or compile_spark
 
     - name: install git
       command: sudo yum install -y -q git
-      when: tachyon_is_git or use_spark
+      when: tachyon_is_git or spark_is_git
 
     - name: clone tachyon repo
       git: repo={{ tachyon_repo }} dest=/tachyon version={{ tachyon_version }}
@@ -69,13 +76,24 @@
           --exclude=journal,
           --exclude=logs,
           --exclude=underFSStorage
-      when: (not is_vb) and (not tachyon_is_git)
+      when: (not is_vb) and tachyon_is_local
 
     - copy: src=../ufs/{{ ufs }}/compile_tachyon.sh dest=/tmp/compile_tachyon.sh
+      when: compile_tachyon
     - name: compile tachyon
       command: bash /tmp/compile_tachyon.sh
       async: 1200
       poll: 60
+      when: compile_tachyon
+
+    - name: prepare tachyon release
+      shell: if [ ! -f /vagrant/shared/{{ tachyon_dist }} ]; then \
+               version=`echo {{ tachyon_dist }} | cut -d'-' -f2`; \
+               wget -q https://github.com/amplab/tachyon/releases/download/v${version}/{{ tachyon_dist }} -P /vagrant/shared; \
+             fi && \
+             tar xzf /vagrant/shared/{{ tachyon_dist }} -C /tachyon --strip-components 1
+      ignore_errors: yes # tachyon dist is tared by bsdtar, when untar using gnutar, return code will be 1
+      when: tachyon_is_release
 
     - name: set tachyon/conf/workers tachyon/conf/slaves
       shell: cp /vagrant/files/workers /tachyon/conf/workers && cp /vagrant/files/workers /tachyon/conf/slaves
@@ -93,14 +111,22 @@
 
     - name: clone spark repo
       git: repo={{ spark_repo }} dest=/spark version={{ spark_version }}
-      when: use_spark
+      when: spark_is_git
+
+    - name: prepare spark release
+      shell: version=`echo {{ spark_dist }} | cut -d'-' -f2` && \
+             if [ ! -f /vagrant/shared/{{ spark_dist }} ]; then \
+               wget -q http://archive.apache.org/dist/spark/spark-${version}/{{ spark_dist }} -P /vagrant/shared; \
+             fi && \
+             tar xzf /vagrant/shared/{{ spark_dist }} -C /spark --strip-components 1
+      when: spark_is_release
 
     - name: set current tachyon version in spark/core/pom.xml
       shell: tachyon_version=`/tachyon/bin/tachyon version | cut -d':' -f2 | tr -d ' '` && \
              perl -0777 -i -pe \
              "s/(<artifactId>tachyon-client<\/artifactId>\n\s*)<version>.*/\1<version>${tachyon_version}<\/version>/g" \
              /spark/core/pom.xml
-      when: use_spark
+      when: compile_spark
 
     - name: set spark/conf/slaves
       command: cp /vagrant/files/workers /spark/conf/slaves
@@ -117,14 +143,14 @@
       when: use_spark
 
     - copy: src=../ufs/{{ ufs }}/compile_spark.sh dest=/tmp/compile_spark.sh
-      when: use_spark
+      when: compile_spark
     - name: compile spark and make-distribution
       command: bash /tmp/compile_spark.sh
       async: 18000
       poll: 60
-      when: use_spark
+      when: compile_spark
     - shell: cp -r /spark/conf /spark/dist/
-      when: use_spark
+      when: compile_spark
 
 - hosts: TachyonWorker*
   tasks:
@@ -135,17 +161,14 @@
           && rsync -avz TachyonMaster.local:'/tachyon/bin /tachyon/conf /tachyon/libexec' /tachyon
       when: not (is_vb and tachyon_is_local)
 
-    - name: rsync spark bin distribution from TachyonMaster
+    - name: rsync /spark/dist from TachyonMaster
       shell: rsync -avz TachyonMaster.local:/spark/dist/* /spark
-      when: use_spark
+      when: compile_spark
 
-- hosts: all
-  tasks:
-    - name: prepare /vagrant/shared
-      shell: sudo mkdir -p /vagrant/shared && user=`whoami` && sudo chown -R $user /vagrant
+    - name: rsync /spark from TachyonMaster
+      shell: rsync -avz TachyonMaster.local:/spark/* /spark
+      when: use_spark and (not compile_spark)
 
-    - name: install wget
-      command: sudo yum install -y -q wget
 
 # when is_vb, only master downloads ufs, others share throught /vagrant/shared
 - hosts: TachyonMaster
