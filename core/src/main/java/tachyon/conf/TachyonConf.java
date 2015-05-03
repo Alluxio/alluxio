@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.netty.ChannelType;
 
 /**
  * <p>
