@@ -70,9 +70,9 @@ public class ConfUtils {
       try {
         tachyonConfProperties = DefaultStringifier.load(source, Constants.TACHYON_CONF_SITE,
             Properties.class);
-      } catch (IOException ex) {
-        LOG.error("Unable to load TachyonConf from Haddop configuration", ex);
-        throw new RuntimeException(ex);
+      } catch (IOException e) {
+        LOG.error("Unable to load TachyonConf from Haddop configuration", e);
+        throw new RuntimeException(e);
       }
 
       return tachyonConfProperties != null ? new TachyonConf(tachyonConfProperties) : null;
