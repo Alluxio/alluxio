@@ -74,19 +74,27 @@ class TachyonVersion
     @yml = YAML.load_file(yaml_path)
 
     @type = @yml['Type']
+    @repo = ''
+    @version = ''
+    @dist = ''
     case @type
     when "Local"
       puts 'using local tachyon dir'
-      @repo = ''
-      @version = ''
     when "Github"
       @repo = @yml['Github']['Repo']
       @version = @yml['Github']['Version']
       puts "using github #{@repo}, version #{@version}"
+    when "Release"
+      @dist = @yml['Release']['Dist']
+      puts "using tachyon dist #{@dist}"
     else
-      puts "Unknown VersionType, Only {Github | Local} supported"
+      puts "Unknown VersionType"
       exit(1)
     end
+  end
+
+  def dist
+    return @dist
   end
 
   def type
@@ -104,20 +112,36 @@ class SparkVersion
     puts 'parsing spark_version.yml'
     @yml = YAML.load_file(yaml_path)
 
-    if @yml['Type'] == 'None'
+    @use_spark = true
+    @repo = ''
+    @version = ''
+    @dist = ''
+    @v_lt_1 = false
+    case @yml['Type']
+    when "None"
       puts 'No Spark will be set up'
-      @repo = ''
-      @version = ''
-      @v_lt_1 = true
       @use_spark = false
-    else
-      @use_spark = true
+    when "Github"
       @git = @yml['Github']
       @repo = @git['Repo']
       @version = @git['Version']
       @v_lt_1 = @git['Version_LessThan_1.0.0']
       puts "using github #{@repo}, version #{@version}"
+    when "Release"
+      @dist = @yml['Release']['Dist']
+      puts "using spark dist #{@dist}"
+    else
+      puts "Unknown VersionType"
+      exit(1)
     end
+  end
+
+  def type
+    return @yml['Type']
+  end
+
+  def dist
+    return @dist
   end
 
   def use_spark
