@@ -1,7 +1,7 @@
 # Type can be {None|Github|Release}
 # None means don't set up spark
 # Release means using binary distribution
-Type: Release
+Type: None
 
 Github:
   Repo: https://github.com/apache/spark
