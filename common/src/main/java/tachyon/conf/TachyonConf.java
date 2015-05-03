@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.netty.ChannelType;
 
 /**
  * <p>
@@ -107,46 +106,18 @@ public class TachyonConf {
 
   /**
    * Test constructor for TachyonConfTest class.
-   */
-  TachyonConf(boolean includeSystemProperties) {
-    loadDefault(includeSystemProperties);
-  }
-
-  @Override
-  public int hashCode() {
-    int hash = 0;
-    for (Object s : mProperties.keySet()) {
-      hash ^= s.hashCode();
-    }
-    return hash;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj instanceof TachyonConf) {
-      Properties props = ((TachyonConf) obj).getInternalProperties();
-      return mProperties.equals(props);
-    }
-    return false;
-  }
-
-  /**
+   * 
    * Here is the order of the sources to load the properties:
    *   -) System properties if desired
    *   -) Site specific properties via tachyon-site.properties file
    *   -) Default properties via tachyon-default.properties file
    */
-  protected void loadDefault(boolean includeSystemProperties) {
+  TachyonConf(boolean includeSystemProperties) {
     // Load default
     Properties defaultProps = new Properties();
 
     // Override runtime default
     defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(250));
-    defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.defaultType()
-        .toString());
     defaultProps.setProperty(Constants.WORKER_MIN_WORKER_THREADS,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
     defaultProps.setProperty(Constants.MASTER_MIN_WORKER_THREADS,
@@ -193,6 +164,27 @@ public class TachyonConf {
     mProperties.putAll(defaultProps);
     mProperties.putAll(siteProps);
     mProperties.putAll(systemProps);
+  }
+
+  @Override
+  public int hashCode() {
+    int hash = 0;
+    for (Object s : mProperties.keySet()) {
+      hash ^= s.hashCode();
+    }
+    return hash;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj instanceof TachyonConf) {
+      Properties props = ((TachyonConf) obj).getInternalProperties();
+      return mProperties.equals(props);
+    }
+    return false;
   }
 
   /**

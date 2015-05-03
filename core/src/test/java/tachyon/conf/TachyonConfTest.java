@@ -161,7 +161,8 @@ public class TachyonConfTest {
     Assert.assertTrue(dataServer.equals(ServerConstants.WORKER_DATA_SERVER_CLASS));
 
     ChannelType channelType =
-        sDefaultTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.NIO);
+        sDefaultTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL,
+            ChannelType.defaultType());
     Assert.assertTrue(channelType != null);
     Assert.assertTrue(channelType == ChannelType.defaultType());
 

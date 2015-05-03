@@ -31,12 +31,11 @@ import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.util.CommonUtils;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.
  */
-public class UnderfsUtilsTest {
+public class UfsUtilsTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private String mUnderfsAddress = null;
@@ -73,7 +72,7 @@ public class UnderfsUtilsTest {
       if (!mUfs.exists(inclusion)) {
         mUfs.mkdirs(mUnderfsAddress + inclusion, true);
       }
-      CommonUtils.touch(mUnderfsAddress + inclusion + "/1",
+      UfsUtils.touch(mUnderfsAddress + inclusion + "/1",
           mLocalTachyonCluster.getMasterTachyonConf());
     }
 

@@ -86,8 +86,8 @@ public final class NetworkUtils {
   /**
    * Gets a local IP address for the host this JVM is running on
    *
-   * @param timeout Timeout in milliseconds to use for checking that a possible local
-   *                IP is reachable
+   * @param timeout Timeout in milliseconds to use for checking that a possible local IP is
+   *        reachable
    * @return the local ip address, which is not a loopback address and is reachable
    */
   public static String getLocalIpAddress(TachyonConf conf) {
@@ -102,8 +102,8 @@ public final class NetworkUtils {
   /**
    * Gets a local IP address for the host this JVM is running on
    *
-   * @param timeout Timeout in milliseconds to use for checking that a possible local
-   *                IP is reachable
+   * @param timeout Timeout in milliseconds to use for checking that a possible local IP is
+   *        reachable
    * @return the local ip address, which is not a loopback address and is reachable
    */
   public static String getLocalIpAddress(int timeout) {
@@ -127,11 +127,9 @@ public final class NetworkUtils {
           while (addresses.hasMoreElements()) {
             address = addresses.nextElement();
 
-            // Address must not be link local or loopback
-            // AND it must be reachable
+            // Address must not be link local or loopback. And it must be reachable
             if (!address.isLinkLocalAddress() && !address.isLoopbackAddress()
-                && (address instanceof Inet4Address)
-                && address.isReachable(timeout)) {
+                && (address instanceof Inet4Address) && address.isReachable(timeout)) {
               sLocalIP = address.getHostAddress();
               return sLocalIP;
             }
@@ -170,9 +168,8 @@ public final class NetworkUtils {
         authority += ":" + path.getPort();
       }
       return new TachyonURI(path.getScheme(), authority, path.getPath());
-    } else {
-      return path;
     }
+    return path;
   }
 
   /**
