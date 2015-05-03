@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.worker.netty;
 
 import io.netty.channel.epoll.Epoll;
 
