@@ -8,13 +8,13 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import tachyon.ChannelType;
 import tachyon.Constants;
 import tachyon.ServerConstants;
 import tachyon.client.RemoteBlockReader;
 import tachyon.client.WriteType;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.DataServer;
+import tachyon.worker.netty.ChannelType;
 import tachyon.worker.netty.FileTransferType;
 
 /**

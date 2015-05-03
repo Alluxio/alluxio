@@ -20,10 +20,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
-import tachyon.ChannelType;
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
+import tachyon.worker.netty.ChannelType;
 
 /**
  * <p>
@@ -119,9 +119,6 @@ public class TachyonConf {
 
     // Override runtime default
     defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(250));
-    // TODO Remove this dependency to worker nettty channel.
-    defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.defaultType()
-        .toString());
     defaultProps.setProperty(Constants.WORKER_MIN_WORKER_THREADS,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
     defaultProps.setProperty(Constants.MASTER_MIN_WORKER_THREADS,

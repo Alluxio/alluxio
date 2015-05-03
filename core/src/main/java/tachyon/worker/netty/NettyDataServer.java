@@ -27,7 +27,6 @@ import io.netty.channel.ServerChannel;
 
 import com.google.common.base.Throwables;
 
-import tachyon.ChannelType;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.BlocksLocker;
