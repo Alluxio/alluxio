@@ -250,7 +250,7 @@ public class UnderStorageSystemInterfaceTest {
     String testDirSrcChild = CommonUtils.concatPath(testDirSrc, "testFile");
     String testDirDst = CommonUtils.concatPath(mUnderfsAddress, "testDirDst");
     String testDirDstChild = CommonUtils.concatPath(testDirDst, "testFile");
-    String testDirFinalDst = CommonUtils.concatPath(testDirDst, "TestDirSrc");
+    String testDirFinalDst = CommonUtils.concatPath(testDirDst, "testDirSrc");
     String testDirChildFinalDst = CommonUtils.concatPath(testDirFinalDst, "testFile");
     mUfs.mkdirs(testDirSrc, false);
     mUfs.mkdirs(testDirDst, false);
