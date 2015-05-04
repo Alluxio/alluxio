@@ -324,8 +324,9 @@ public class TachyonWorker implements Runnable {
     connectToUFS();
 
     mHeartbeatThread.start();
-    mWebServer.startWebServer();
     mWorkerMetricsSystem.start();
+    mWebServer.addHandler(mWorkerMetricSystem.getServletHandler());
+    mWebServer.startWebServer();
 
     LOG.info("The worker server started @ " + mWorkerAddress);
     mServer.serve();
