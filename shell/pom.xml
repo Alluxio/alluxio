@@ -23,14 +23,12 @@
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-client</artifactId>
       <version>${project.version}</version>
-      <scope>compile</scope>
     </dependency>
 
     <!-- Test Dependencies -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
