@@ -34,9 +34,11 @@ import tachyon.worker.BlockHandler;
 import tachyon.worker.nio.DataServerMessage;
 
 /**
- * When a user sends a {@link tachyon.worker.netty.BlockRequest}, the response back is of this type.
- * <p />
- * To serialize the response to network, {@link tachyon.worker.netty.BlockResponse.Encoder} is used.
+ * The response to a user-sent {@link tachyon.worker.netty.BlockRequest}.
+ * <p>
+ * Response is serialized before sent to network by
+ * {@link tachyon.worker.netty.BlockResponse.Encoder}
+ * </p>
  */
 public final class BlockResponse {
   /**
@@ -85,8 +87,8 @@ public final class BlockResponse {
         case TRANSFER: // intend to fall through as TRANSFER is the default type.
         default:
           if (handler.getChannel() instanceof FileChannel) {
-            out.add(new DefaultFileRegion((FileChannel) handler.getChannel(), msg.getOffset(),
-                msg.getLength()));
+            out.add(new DefaultFileRegion((FileChannel) handler.getChannel(), msg.getOffset(), msg
+                .getLength()));
           } else {
             handler.close();
             throw new Exception("Only FileChannel is supported!");
@@ -97,10 +99,10 @@ public final class BlockResponse {
   }
 
   /**
-   * Creates a {@link tachyon.worker.netty.BlockResponse} that represents a error case for the given
+   * Creates a {@link tachyon.worker.netty.BlockResponse} that indicates an error for the given
    * block.
    *
-   * @param blockId The Id of block to request
+   * @param blockId The Id of block requested
    * @return the new error BlockResponse created.
    */
   public static BlockResponse createErrorResponse(final long blockId) {

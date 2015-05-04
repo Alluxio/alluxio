@@ -115,6 +115,21 @@
         <version>2.2</version>
         <executions>
           <execution>
+            <id>shade-thrift</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <relocations>
+                <relocation>
+                  <pattern>org.apache.thrift</pattern>
+                  <shadedPattern>tachyon.org.apache.thrift</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+          <execution>
             <id>uber-jar</id>
             <phase>package</phase>
             <goals>

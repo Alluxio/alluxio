@@ -128,6 +128,7 @@
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <libthrift.version>0.9.1</libthrift.version>
     <cxf.version>2.7.0</cxf.version>
+    <metrics.version>3.1.0</metrics.version>
     <jetty.version>7.6.15.v20140411</jetty.version>
     <slf4j.version>1.7.2</slf4j.version>
     <powermock.version>1.6.1</powermock.version>
@@ -140,10 +141,13 @@
   </properties>
 
   <modules>
+    <module>common</module>
     <module>core</module>
-    <module>client</module>
-    <module>assembly</module>
     <module>underfs</module>
+    <module>client</module>
+    <module>shell</module>
+    <module>examples</module>
+    <module>assembly</module>
   </modules>
 
   <build>

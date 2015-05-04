@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 # To make sure all external storages specified in block device mapping are mounted with ext4
 
