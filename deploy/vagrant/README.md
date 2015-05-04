@@ -30,6 +30,8 @@ your local tachyon directory, or clone from a specific commit of a github repo.
 `tachyon/deploy/vagrant/spark_version.yml` is the configration file that sets whether you want to set up 
 spark, the git repo and version. **Attention**, spark-1.3 should match tachyon-0.5, later spark version matches tachyon versions >= tachyon-0.6.
 
+If you are using spark, better to set memory larger than 2G, otherwise, compiling spark may be blocked.
+
 `tachyon/deploy/vagrant/init.yml` is the configuration file that sets different cluster parameters.
 They are explained below.
 
