@@ -22,8 +22,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-import com.google.common.base.Throwables;
-
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
@@ -198,7 +196,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
     if (!createParent) {
       if (parentExists(path)) {
         // Parent directory exists
-        return mkdir(path);
+        return mkdirsInternal(path);
       } else {
         LOG.error("Cannot create directory " + path + " because parent does not exist");
         return false;
@@ -207,11 +205,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
     // Parent directories should be created
     if (parentExists(path)) {
       // Parent directory exists
-      return mkdir(path);
+      return mkdirsInternal(path);
     } else {
       String parentKey = getParentKey(path);
       // Recursively make the parent folders
-      return mkdirs(parentKey, true) && mkdir(path);
+      return mkdirs(parentKey, true) && mkdirsInternal(path);
     }
   }
 
@@ -286,15 +284,13 @@ public class S3UnderFileSystem extends UnderFileSystem {
     return copy(src, dst) && deleteInternal(src);
   }
 
+  // Not supported
   @Override
-  public void setConf(Object conf) {
-
-  }
+  public void setConf(Object conf) {}
 
   // Not supported
-  public void setPermission(String path, String posixPerm) throws IOException {
-
-  }
+  @Override
+  public void setPermission(String path, String posixPerm) throws IOException {}
 
   /**
    * Treating S3 as a file system, checks if the parent directory exists.
@@ -317,6 +313,26 @@ public class S3UnderFileSystem extends UnderFileSystem {
    */
   private String convertToFolderName(String key) {
     return key + FOLDER_SUFFIX;
+  }
+
+  /**
+   * Copies an object to another key.
+   * @param src the source key to copy.
+   * @param dst the destination key to copy to.
+   * @return true if the operation was successful, false otherwise
+   */
+  private boolean copy(String src, String dst) {
+    try {
+      src = stripPrefix(src);
+      dst = stripPrefix(dst);
+      LOG.info("Copying " + src + " to " + dst);
+      S3Object obj = new S3Object(dst);
+      mClient.copyObject(mBucketName, src, mBucketName, obj, false);
+      return true;
+    } catch (ServiceException se) {
+      LOG.error("Failed to rename file " + src + " to " + dst);
+      return false;
+    }
   }
 
   /**
@@ -419,46 +435,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Creates a directory flagged file with the key and folder suffix.
-   * @param key the key to create a folder
-   * @return true if the operation was successful, false otherwise
-   */
-  private boolean mkdir(String key) {
-    try {
-      String keyAsFolder = convertToFolderName(stripPrefix(key));
-      S3Object obj = new S3Object(keyAsFolder);
-      obj.setDataInputStream(new ByteArrayInputStream(new byte[0]));
-      obj.setContentLength(0);
-      obj.setContentType(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
-      mClient.putObject(mBucketName, obj);
-      return true;
-    } catch (ServiceException se) {
-      LOG.error("Failed to create directory: " + key, se);
-      return false;
-    }
-  }
-
-  /**
-   * Copies an object to another key.
-   * @param src the source key to copy.
-   * @param dst the destination key to copy to.
-   * @return true if the operation was successful, false otherwise
-   */
-  private boolean copy(String src, String dst) {
-    try {
-      src = stripPrefix(src);
-      dst = stripPrefix(dst);
-      LOG.info("Copying " + src + " to " + dst);
-      S3Object obj = new S3Object(dst);
-      mClient.copyObject(mBucketName, src, mBucketName, obj, false);
-      return true;
-    } catch (ServiceException se) {
-      LOG.error("Failed to rename file " + src + " to " + dst);
-      return false;
-    }
-  }
-
-  /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
    * folder suffix
    * @param path the key to list
@@ -484,6 +460,26 @@ public class S3UnderFileSystem extends UnderFileSystem {
     } catch (ServiceException se) {
       LOG.info("Failed to list path " + path);
       return null;
+    }
+  }
+
+  /**
+   * Creates a directory flagged file with the key and folder suffix.
+   * @param key the key to create a folder
+   * @return true if the operation was successful, false otherwise
+   */
+  private boolean mkdirsInternal(String key) {
+    try {
+      String keyAsFolder = convertToFolderName(stripPrefix(key));
+      S3Object obj = new S3Object(keyAsFolder);
+      obj.setDataInputStream(new ByteArrayInputStream(new byte[0]));
+      obj.setContentLength(0);
+      obj.setContentType(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
+      mClient.putObject(mBucketName, obj);
+      return true;
+    } catch (ServiceException se) {
+      LOG.error("Failed to create directory: " + key, se);
+      return false;
     }
   }
 
