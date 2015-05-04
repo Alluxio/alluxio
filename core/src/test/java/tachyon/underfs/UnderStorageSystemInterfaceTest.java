@@ -14,17 +14,23 @@
  */
 package tachyon.underfs;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
+
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
-
-import java.io.IOException;
+import tachyon.util.CommonUtils;
 
 public class UnderStorageSystemInterfaceTest {
+  private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private String mUnderfsAddress = null;
@@ -42,5 +48,35 @@ public class UnderStorageSystemInterfaceTest {
     TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
     mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS, null);
     mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR, masterConf);
+  }
+
+  // Tests that an empty file can be created
+  @Test
+  public void createEmptyTest() throws IOException {
+    String testFile = CommonUtils.concatPath(mUnderfsAddress, "testFile");
+    createEmptyFile(testFile);
+    Assert.assertTrue(mUfs.exists(testFile));
+  }
+
+  // Tests that a file can be created and validates the data written to it
+  @Test
+  public void createOpenTest() throws IOException {
+    String testFile = CommonUtils.concatPath(mUnderfsAddress, "testFile");
+    createTestBytesFile(testFile);
+    byte[] buf = new byte[TEST_BYTES.length];
+    int bytesRead = mUfs.open(testFile).read(buf);
+    Assert.assertTrue(bytesRead == TEST_BYTES.length);
+    Assert.assertTrue(Arrays.equals(buf, TEST_BYTES));
+  }
+
+  private void createEmptyFile(String path) throws IOException {
+    OutputStream o = mUfs.create(path);
+    o.close();
+  }
+
+  private void createTestBytesFile(String path) throws IOException {
+    OutputStream o = mUfs.create(path);
+    o.write(TEST_BYTES);
+    o.close();
   }
 }
