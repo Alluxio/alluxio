@@ -183,9 +183,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
     if (!isFolder(path)) {
       return null;
     }
-    System.out.println("List with : " + path);
     path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
-    System.out.println("List after : " + path);
     return listInternal(path, false);
   }
 
