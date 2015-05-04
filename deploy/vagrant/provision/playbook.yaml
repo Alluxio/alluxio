@@ -1,5 +1,8 @@
 - hosts: all
   tasks:
+    - name: be sure libselinux-python are installed
+      shell: sudo yum install -y libselinux-python
+
     - name: mount devices defined in block device mapping
       script: device.sh
       when: is_aws
@@ -21,12 +24,22 @@
 
     - name: configure hosts
       script: host.sh
+    - name: rename hostname from TachyonXXX to TachyonXXX.local in virtualbox
+      shell: sudo hostname `hostname`.local
+      when: is_vb
 
     - name: install java
       script: java.sh
 
     - name: install rsync
       shell: sudo yum install -y -q rsync
+
+    - name: mkdir /tachyon
+      shell: sudo mkdir -p /tachyon && user=`whoami` && sudo chown -R $user /tachyon
+
+    - name: mkdir /spark
+      shell: sudo mkdir -p /spark && user=`whoami` && sudo chown -R $user /spark
+      when: use_spark
 
 - hosts: TachyonMaster
   tasks:
@@ -35,16 +48,13 @@
 
     - name: install git
       command: sudo yum install -y -q git
-      when: is_git
+      when: tachyon_is_git or use_spark
 
-    - name: mkdir /tachyon
-      shell: sudo mkdir -p /tachyon && user=`whoami` && sudo chown -R $user /tachyon
+    - name: clone tachyon repo
+      git: repo={{ tachyon_repo }} dest=/tachyon version={{ tachyon_version }}
+      when: tachyon_is_git
 
-    - name: clone repo
-      git: repo={{ git_url }} dest=/tachyon version={{ git_hash }}
-      when: is_git
-
-    - name: clone local repo
+    - name: clone local tachyon repo
       synchronize:
         src: ../../../
         dest: /tachyon
@@ -59,35 +69,83 @@
           --exclude=journal,
           --exclude=logs,
           --exclude=underFSStorage
-      when: (not is_vb) and (not is_git)
+      when: (not is_vb) and (not tachyon_is_git)
 
+    - copy: src=../ufs/{{ ufs }}/compile_tachyon.sh dest=/tmp/compile_tachyon.sh
     - name: compile tachyon
-      script: ../ufs/{{ ufs }}/compile_tachyon.sh
+      command: bash /tmp/compile_tachyon.sh
+      async: 1200
+      poll: 60
 
-- hosts: TachyonWorker*
-  tasks:
-    - name: rsync tachyon bin distribution from TachyonMaster
-      shell: set -e \
-          && sudo mkdir -p /tachyon/core/target && user=`whoami` && sudo chown -R $user /tachyon \
-          && rsync -avz TachyonMaster.local:/tachyon/core/target/tachyon-*-jar-with-dependencies.jar /tachyon/core/target \
-          && rsync -avz TachyonMaster.local:'/tachyon/bin /tachyon/conf /tachyon/libexec' /tachyon
-      when: not is_vb
-
-- hosts: all
-  tasks:
-    - name: set tachyon/conf/workers
-      command: cp /vagrant/files/workers /tachyon/conf/workers
-
-    - name: prepare /vagrant/shared
-      shell: sudo mkdir -p /vagrant/shared && user=`whoami` && sudo chown -R $user /vagrant
-
-    - name: install wget
-      command: sudo yum install -y -q wget
+    - name: set tachyon/conf/workers tachyon/conf/slaves
+      shell: cp /vagrant/files/workers /tachyon/conf/workers && cp /vagrant/files/workers /tachyon/conf/slaves
 
     - name: set tachyon-env.sh
       script: ../ufs/{{ ufs }}/config_tachyon.sh
     - name: set TACHYON_SSH_FOREGROUND=""
       shell: sed -i 's/TACHYON_SSH_FOREGROUND="yes"/TACHYON_SSH_FOREGROUND=""/g' /tachyon/conf/tachyon-env.sh
+    - name: set TACHYON_JAR in libexec/tachyon-config.sh
+      shell: tachyon_version=`grep version /tachyon/pom.xml | \
+             head -n1 | tr -d ' ' | \
+             sed 's/<version>//g' | \
+             sed 's/<\/version>//g'` && \
+             sed -i "s/tachyon-.*-jar-with-dependencies.jar/tachyon-${tachyon_version}-jar-with-dependencies.jar/g" /tachyon/libexec/tachyon-config.sh
+
+    - name: clone spark repo
+      git: repo={{ spark_repo }} dest=/spark version={{ spark_version }}
+      when: use_spark
+
+    - name: set current tachyon version in spark/core/pom.xml
+      shell: tachyon_version=`/tachyon/bin/tachyon version | cut -d':' -f2 | tr -d ' '` && \
+             perl -0777 -i -pe \
+             "s/(<artifactId>tachyon-client<\/artifactId>\n\s*)<version>.*/\1<version>${tachyon_version}<\/version>/g" \
+             /spark/core/pom.xml
+      when: use_spark
+
+    - name: set spark/conf/slaves
+      command: cp /vagrant/files/workers /spark/conf/slaves
+      when: use_spark
+
+    - name: set spark-env.sh
+      shell: echo export SPARK_CLASSPATH=/tachyon/client/target/tachyon-client-*-jar-with-dependencies.jar:$SPARK_CLASSPATH >> /spark/conf/spark-env.sh
+      when: use_spark and spark_version_lessthan_1
+    - shell: echo export HADOOP_CONF_DIR=/hadoop/etc/hadoop >> /spark/conf/spark-env.sh
+      when: use_spark
+
+    - name: set spark/conf/core-site.xml
+      script: config_spark.sh
+      when: use_spark
+
+    - copy: src=../ufs/{{ ufs }}/compile_spark.sh dest=/tmp/compile_spark.sh
+      when: use_spark
+    - name: compile spark and make-distribution
+      command: bash /tmp/compile_spark.sh
+      async: 18000
+      poll: 60
+      when: use_spark
+    - shell: cp -r /spark/conf /spark/dist/
+      when: use_spark
+
+- hosts: TachyonWorker*
+  tasks:
+    - name: rsync tachyon bin distribution from TachyonMaster
+      shell: set -e \
+          && mkdir -p /tachyon/core/target \
+          && rsync -avz TachyonMaster.local:/tachyon/core/target/tachyon-*-jar-with-dependencies.jar /tachyon/core/target \
+          && rsync -avz TachyonMaster.local:'/tachyon/bin /tachyon/conf /tachyon/libexec' /tachyon
+      when: not (is_vb and tachyon_is_local)
+
+    - name: rsync spark bin distribution from TachyonMaster
+      shell: rsync -avz TachyonMaster.local:/spark/dist/* /spark
+      when: use_spark
+
+- hosts: all
+  tasks:
+    - name: prepare /vagrant/shared
+      shell: sudo mkdir -p /vagrant/shared && user=`whoami` && sudo chown -R $user /vagrant
+
+    - name: install wget
+      command: sudo yum install -y -q wget
 
 # when is_vb, only master downloads ufs, others share throught /vagrant/shared
 - hosts: TachyonMaster
@@ -115,3 +173,10 @@
 
     - name: start Tachyon
       script: start_tachyon_cluster.sh
+
+    - name: start spark
+      shell: /spark/sbin/start-all.sh
+      when: use_spark
+
+
+# vim:ft=ansible:

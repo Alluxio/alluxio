@@ -360,6 +360,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       return null;
     }
 
+    // TODO allow user to disable local read for this advanced API
     TachyonByteBuffer ret = readLocalByteBuffer(blockIndex);
     if (ret == null) {
       // TODO Make it local cache if the OpType is try cache.

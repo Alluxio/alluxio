@@ -59,9 +59,9 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.hadoop.ConfUtils;
 import tachyon.hadoop.TFS;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.util.ConfUtils;
 
 /**
  * Distributed i/o benchmark.

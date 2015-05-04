@@ -21,16 +21,16 @@ Dependencies:
 Please download and install Vagrant (at least version 1.6.5). 
 We use Ansible for provisioning, please install ansible according to http://docs.ansible.com/intro_installation.html. 
 Also, if you want to setup a local cluster on your host machine, you need virtualbox.
- 
-Once the dependencies are satisfied, starting an
-Tachyon cluster requires only `./run_vb.sh`. A two-VM cluster is then created. `vagrant
-destroy` command destroys the cluster.
 
-After `./run_vb.sh` or `./run_aws.sh` finishes, a purple line like 
-`>>> visit 54.200.126.199:19999 for Tachyon Web Console <<<` will be shown to tell you how to access the web console.
+## Configuration:
 
 `tachyon/deploy/vagrant/tachyon_version.yml` is the configration file that sets whether you want to use
 your local tachyon directory, or clone from a specific commit of a github repo.
+
+`tachyon/deploy/vagrant/spark_version.yml` is the configration file that sets whether you want to set up 
+spark, the git repo and version. **Attention**, spark-1.3 should match tachyon-0.5, later spark version matches tachyon versions >= tachyon-0.6.
+
+If you are using spark, better to set memory larger than 2G, otherwise, compiling spark may be blocked.
 
 `tachyon/deploy/vagrant/init.yml` is the configuration file that sets different cluster parameters.
 They are explained below.
@@ -66,6 +66,10 @@ For Docker provider, containers use DHCP, these addresses are not used.
 Run command `./run_vb.sh` to start VirtualBox VM. After VM is up, login to
 the VM as `root` and password as `vagrant`.
 
+A purple line like `>>> visit 54.200.126.199:19999 for Tachyon Web Console <<<` will be shown to tell you how to access the tachyon web console.
+
+If you choose to set up spark, A purple line like `>>> visit 54.200.126.199:8080 for Spark Web Console <<<` will be shown to tell you how to access the spark web console.
+
 ## AWS Provider
 
 Install aws vagrant plugin first. To date, 0.5.0 plugin is tested.
@@ -76,6 +80,10 @@ Then update configurations in `conf/ec2-config.yml` and shell environment variab
 and `AWS_SECRET_KEY`.
 
 Run `./run_aws.sh` to create EC2 VPC instances.
+
+A purple line like `>>> visit 54.200.126.199:19999 for Tachyon Web Console <<<` will be shown to tell you how to access the tachyon web console.
+
+If you choose to set up spark, A purple line like `>>> visit 54.200.126.199:8080 for Spark Web Console <<<` will be shown to tell you how to access the spark web console.
 
 ## OpenStack Provider
 
@@ -141,6 +149,16 @@ Then start the clusters.
 
 Once clusters are up running, tachyon is installed and configured. The tachyon source directory is
 mapped to `/tachyon` directory on each image. Editions are visible on the images.
+
+## Use Spark Cluster
+
+If you specify "Github" as "Type" in spark_version.yml, a spark cluster will be set up, with Tachyon as cache layer and hadoop as underlayer filesystem. 
+Spark is installed to `/spark`. You can `vagrant ssh TachyonMaster` to enter the cluster Master Node, then `/spark/bin/spark-shell` to enter spark-shell, 
+then you can try it out! 
+
+If you're new to spark, following these links, type in the codes, step by step:
+* https://github.com/apache/spark/blob/master/README.md
+* http://spark.apache.org/docs/latest/quick-start.html
 
 ## Destroy Tachyon Cluster
 

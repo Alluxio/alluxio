@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UfsUtils;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
@@ -78,7 +79,7 @@ public class Format {
         System.exit(-1);
       }
 
-      CommonUtils.touch(masterJournal + Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis(),
+      UfsUtils.touch(masterJournal + Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis(),
           tachyonConf);
     } else if (args[0].toUpperCase().equals("WORKER")) {
       String workerDataFolder =

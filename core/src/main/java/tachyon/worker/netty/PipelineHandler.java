@@ -41,6 +41,6 @@ public final class PipelineHandler extends ChannelInitializer<SocketChannel> {
     pipeline.addLast("nioChunkedWriter", new ChunkedWriteHandler());
     pipeline.addLast("blockRequestDecoder", new BlockRequest.Decoder());
     pipeline.addLast("blockResponseEncoder", new BlockResponse.Encoder(mTachyonConf));
-    pipeline.addLast("dataServerHandler", new DataServerHandler(mLocker, mTachyonConf));
+    pipeline.addLast("dataServerHandler", new DataServerHandler(mLocker));
   }
 }

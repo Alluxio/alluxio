@@ -25,6 +25,12 @@ def validate_provider(provider)
 end
 
 
+def gen_ssh_key
+  system "mkdir -p ./files && \
+          if [ ! -f ./files/id_rsa ]; then ssh-keygen -f ./files/id_rsa -t rsa -N ''; fi"
+end
+
+
 def config_hosts(name)
   system 'mkdir', '-p', './files'
   # copy ./files/workers in Host to /tachyon/conf/workers in Vagrant
@@ -64,17 +70,19 @@ require 'yaml'
 # parse tachyon_version.yml
 class TachyonVersion
   def initialize(yaml_path)
+    puts 'parsing tachyon_version.yml'
     @yml = YAML.load_file(yaml_path)
 
     @type = @yml['Type']
     case @type
     when "Local"
       puts 'using local tachyon dir'
+      @repo = ''
+      @version = ''
     when "Github"
       @repo = @yml['Github']['Repo']
-      @hash = @yml['Github']['Hash']
-      @url = "#{@repo}/commit/#{@hash}"
-      puts "using github commit #{@url}"
+      @version = @yml['Github']['Version']
+      puts "using github #{@repo}, version #{@version}"
     else
       puts "Unknown VersionType, Only {Github | Local} supported"
       exit(1)
@@ -85,7 +93,43 @@ class TachyonVersion
     return @type
   end
 
-  def repo_hash
-    return @repo, @hash
+  def repo_version
+    return @repo, @version
   end
 end
+
+# parse spark_version.yml
+class SparkVersion
+  def initialize(yaml_path)
+    puts 'parsing spark_version.yml'
+    @yml = YAML.load_file(yaml_path)
+
+    if @yml['Type'] == 'None'
+      puts 'No Spark will be set up'
+      @repo = ''
+      @version = ''
+      @v_lt_1 = true
+      @use_spark = false
+    else
+      @use_spark = true
+      @git = @yml['Github']
+      @repo = @git['Repo']
+      @version = @git['Version']
+      @v_lt_1 = @git['Version_LessThan_1.0.0']
+      puts "using github #{@repo}, version #{@version}"
+    end
+  end
+
+  def use_spark
+    return @use_spark
+  end
+
+  def repo_version
+    return @repo, @version
+  end
+
+  def v_lt_1
+    return @v_lt_1
+  end
+end
+

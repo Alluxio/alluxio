@@ -32,6 +32,7 @@ import tachyon.master.BlockInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
+import tachyon.worker.WorkerSource;
 import tachyon.worker.eviction.EvictLRU;
 import tachyon.worker.eviction.EvictPartialLRU;
 import tachyon.worker.eviction.EvictStrategy;
@@ -47,10 +48,10 @@ public class EvictStrategyTest {
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
     String workerDirFolder = tachyonHome + "/ramdisk";
     String[] dirPaths = "/dir1,/dir2,/dir3".split(",");
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i ++) {
       mStorageDirs[i] =
-          new StorageDir(i + 1, workerDirFolder + dirPaths[i], CAPACITY, "/data", "/user",
-              null, new TachyonConf());
+          new StorageDir(i + 1, workerDirFolder + dirPaths[i], CAPACITY, "/data", "/user", null,
+              new TachyonConf(), new WorkerSource(null));
       initializeStorageDir(mStorageDirs[i], USER_ID);
     }
   }
@@ -58,8 +59,7 @@ public class EvictStrategyTest {
   private void createBlockFile(StorageDir dir, long blockId, int blockSize) throws IOException {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
 
-    BlockHandler bhSrc =
-        BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
+    BlockHandler bhSrc = BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
     dir.requestSpace(USER_ID, blockSize);
     dir.updateTempBlockAllocatedBytes(USER_ID, blockId, blockSize);
     try {

@@ -23,9 +23,9 @@ import com.google.common.base.Supplier;
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UfsUtils;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.underfs.UnderFileSystemsUtils;
-import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 
 /**
@@ -81,7 +81,7 @@ public final class LocalTachyonMaster {
     mJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
 
     UnderFileSystemsUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
-    CommonUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(), tachyonConf);
+    UfsUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(), tachyonConf);
 
     tachyonConf.set(Constants.MASTER_HOSTNAME, mHostname);
     tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
