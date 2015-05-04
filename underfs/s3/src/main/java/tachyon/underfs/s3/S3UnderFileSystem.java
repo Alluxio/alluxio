@@ -77,7 +77,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public OutputStream create(String path) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
-      return new S3OutputStream(mBucketName, path, mClient);
+      return new S3OutputStream(mBucketName, stripPrefix(path), mClient);
     }
     return null;
   }
@@ -98,17 +98,20 @@ public class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     if (!recursive) {
+      if (isFolder(path) && listInternal(path, false).length != 0) {
+        return false;
+      }
       return deleteInternal(path);
     }
-
     // Get all relevant files
     String[] pathsToDelete = listInternal(path, true);
     for (String pathToDelete : pathsToDelete) {
       // If we fail to deleteInternal one file, stop
-      if (!deleteInternal(path + pathToDelete)) {
+      if (!deleteInternal(CommonUtils.concatPath(path, pathToDelete))) {
         return false;
       }
     }
+    deleteInternal(path);
     return true;
   }
 
@@ -170,11 +173,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    if (exists(path)) {
-      return !isFolder(path);
-    } else {
-      throw new FileNotFoundException(path);
-    }
+    return exists(path) && !isFolder(path);
   }
 
   @Override
@@ -212,14 +211,14 @@ public class S3UnderFileSystem extends UnderFileSystem {
     } else {
       String parentKey = getParentKey(path);
       // Recursively make the parent folders
-      return mkdirs(parentKey, true) && mkdir(parentKey);
+      return mkdirs(parentKey, true) && mkdir(path);
     }
   }
 
   @Override
   public InputStream open(String path) throws IOException {
     try {
-      path = path.substring(SCHEME.length() + mBucketName.length() + 1);
+      path = stripPrefix(path);
       return mClient.getObject(mBucketName, path).getDataInputStream();
     } catch (ServiceException se) {
       LOG.error("Failed to open file: " + path, se);
@@ -258,9 +257,9 @@ public class S3UnderFileSystem extends UnderFileSystem {
       }
       // Rename each child in the src folder to destination/srcfolder/child
       String [] children = list(src);
-      String parentName = getKeyName(getParentKey(src));
-      for (String childKey : children) {
-        if (!rename(childKey, CommonUtils.concatPath(dst, parentName))) {
+      String parentName = getKeyName(src);
+      for (String child : children) {
+        if (!rename(CommonUtils.concatPath(src, child), CommonUtils.concatPath(dst, parentName))) {
           return false;
         }
       }
@@ -273,11 +272,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
       if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
         return false;
       }
-      // Rename each child in the src folder to destination/srcfolder/child
+      // Rename each child in the src folder to destination/child
       String [] children = list(src);
-      String parentName = getKeyName(getParentKey(src));
-      for (String childKey: children) {
-        if (!rename(childKey, CommonUtils.concatPath(dst, parentName))) {
+      for (String child: children) {
+        if (!rename(CommonUtils.concatPath(src, child), dst)) {
           return false;
         }
       }
@@ -330,12 +328,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private boolean deleteInternal(String key) throws IOException {
     try {
       if (isFolder(key)) {
-        String keyAsFolder = convertToFolderName(key).substring(SCHEME.length()
-            + mBucketName.length() + 1);
+        String keyAsFolder = convertToFolderName(stripPrefix(key));
         mClient.deleteObject(mBucketName, keyAsFolder);
       } else {
-        mClient.deleteObject(mBucketName, key.substring(SCHEME.length()
-            + mBucketName.length() + 1));
+        mClient.deleteObject(mBucketName, stripPrefix(key));
       }
     } catch (ServiceException se) {
       LOG.error("Failed to delete " + key, se);
@@ -362,12 +358,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private StorageObject getObjectDetails(String key) {
     try {
       if (isFolder(key)) {
-        String keyAsFolder = convertToFolderName(key).substring(SCHEME.length()
-            + mBucketName.length() + 1);
+        String keyAsFolder = convertToFolderName(stripPrefix(key));
         return mClient.getObjectDetails(mBucketName, keyAsFolder);
       } else {
-        return mClient.getObjectDetails(mBucketName, key.substring(SCHEME.length()
-            + mBucketName.length() + 1));
+        return mClient.getObjectDetails(mBucketName, stripPrefix(key));
       }
     } catch (ServiceException se) {
       return null;
@@ -397,8 +391,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return true;
     }
     try {
-      String keyAsFolder = convertToFolderName(key).substring(SCHEME.length()
-          + mBucketName.length() + 1);
+      String keyAsFolder = convertToFolderName(stripPrefix(key));
       mClient.getObjectDetails(mBucketName, keyAsFolder);
       // If no exception is thrown, the key exists as a folder
       return true;
@@ -413,7 +406,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @return
    */
   private boolean isRoot(String key) {
-    return key.equals(SCHEME + mBucketName);
+    return
+        key.equals(SCHEME + mBucketName) || key.equals(SCHEME + mBucketName + PATH_SEPARATOR);
   }
 
   /**
@@ -423,8 +417,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    */
   private boolean mkdir(String key) {
     try {
-      String keyAsFolder =
-          convertToFolderName(key).substring(SCHEME.length() + mBucketName.length() + 1);
+      String keyAsFolder = convertToFolderName(stripPrefix(key));
       S3Object obj = new S3Object(keyAsFolder);
       obj.setDataInputStream(new ByteArrayInputStream(new byte[0]));
       obj.setContentLength(0);
@@ -439,8 +432,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   private boolean copy(String src, String dst) {
     try {
-      src = src.substring(SCHEME.length() + mBucketName.length() + 1);
-      dst = dst.substring(SCHEME.length() + mBucketName.length() + 1);
+      src = stripPrefix(src);
+      dst = stripPrefix(dst);
       LOG.info("Copying " + src + " to " + dst);
       S3Object obj = new S3Object(dst);
       mClient.copyObject(mBucketName, src, mBucketName, obj, false);
@@ -454,16 +447,31 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
       String separator = recursive ? "" : PATH_SEPARATOR;
-      path = path.substring(SCHEME.length() + mBucketName.length() + 1);
+      path = stripPrefix(path);
+      path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
       S3Object[] objs = mClient.listObjects(mBucketName, path, separator);
       String[] ret = new String[objs.length];
       for (int i = 0; i < objs.length; i ++) {
-        ret[i] = objs[i].getKey().substring(path.length());
+        String child = objs[i].getKey().substring(path.length());
+        child =
+            child.endsWith(FOLDER_SUFFIX) ? child.substring(0,
+                child.length() - FOLDER_SUFFIX.length()) : child;
+        ret[i] = child;
       }
       return ret;
     } catch (ServiceException se) {
       LOG.info("Failed to list path " + path);
       return null;
+    }
+  }
+
+  private String stripPrefix(String key) {
+    String prefix = SCHEME + mBucketName + PATH_SEPARATOR;
+    if (key.startsWith(prefix)) {
+      return key.substring(prefix.length());
+    } else {
+      LOG.warn("Attempted to strip key with invalid prefix: " + key);
+      return key;
     }
   }
 

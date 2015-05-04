@@ -35,7 +35,7 @@ public class S3OutputStream extends OutputStream {
 
   public S3OutputStream(String bucketName, String key, S3Service client) throws IOException {
     mBucketName = bucketName;
-    mKey = key.substring(6 + mBucketName.length() + 1);
+    mKey = key;
     mClient = client;
     mFile = new File("/tmp/" + Math.random() * 100);
     mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
