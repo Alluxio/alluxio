@@ -9,13 +9,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.ServerConstants;
-import tachyon.client.RemoteBlockReader;
-import tachyon.client.WriteType;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.DataServer;
-import tachyon.worker.netty.ChannelType;
-import tachyon.worker.netty.FileTransferType;
 
 /**
  * Unit test for TachyonConf class
@@ -155,23 +149,6 @@ public class TachyonConfTest {
     Assert.assertTrue(value != null);
     Assert.assertTrue(("/mnt/ramdisk").equals(value));
 
-    Class<? extends DataServer> dataServer =
-        sDefaultTachyonConf.getClass(Constants.WORKER_DATA_SERVER, null);
-    Assert.assertTrue(dataServer != null);
-    Assert.assertTrue(dataServer.equals(ServerConstants.WORKER_DATA_SERVER_CLASS));
-
-    ChannelType channelType =
-        sDefaultTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL,
-            ChannelType.defaultType());
-    Assert.assertTrue(channelType != null);
-    Assert.assertTrue(channelType == ChannelType.defaultType());
-
-    FileTransferType fileTransferType =
-        sDefaultTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE,
-            FileTransferType.MAPPED);
-    Assert.assertTrue(fileTransferType != null);
-    Assert.assertTrue(fileTransferType == FileTransferType.MAPPED);
-
     int intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PORT, 0);
     Assert.assertTrue(intValue == 29998);
 
@@ -208,11 +185,6 @@ public class TachyonConfTest {
 
   @Test
   public void testUserDefault() {
-    WriteType writeType =
-        sDefaultTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.CACHE_THROUGH);
-    Assert.assertTrue(writeType != null);
-    Assert.assertTrue(writeType == WriteType.CACHE_THROUGH);
-
     int intValue = sDefaultTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 0);
     Assert.assertTrue(intValue == 3);
 
@@ -227,11 +199,6 @@ public class TachyonConfTest {
 
     longValue = sDefaultTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, 0);
     Assert.assertTrue(longValue == 8 * Constants.MB);
-
-    Class<? extends RemoteBlockReader> reader =
-        sDefaultTachyonConf.getClass(Constants.USER_REMOTE_BLOCK_READER, null);
-    Assert.assertTrue(reader != null);
-    Assert.assertTrue(reader.equals(ServerConstants.USER_REMOTE_BLOCK_READER_CLASS));
   }
 
   @Test
