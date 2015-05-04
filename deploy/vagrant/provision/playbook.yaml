@@ -1,5 +1,8 @@
 - hosts: all
   tasks:
+    - name: be sure libselinux-python are installed
+      shell: sudo yum install -y libselinux-python
+
     - name: mount devices defined in block device mapping
       script: device.sh
       when: is_aws
@@ -21,6 +24,9 @@
 
     - name: configure hosts
       script: host.sh
+    - name: rename hostname from TachyonXXX to TachyonXXX.local in virtualbox
+      shell: sudo hostname `hostname`.local
+      when: is_vb
 
     - name: install java
       script: java.sh
@@ -111,10 +117,13 @@
       when: use_spark
 
     - copy: src=../ufs/{{ ufs }}/compile_spark.sh dest=/tmp/compile_spark.sh
+      when: use_spark
     - name: compile spark and make-distribution
       command: bash /tmp/compile_spark.sh
-      async: 1800
+      async: 18000
       poll: 60
+      when: use_spark
+    - shell: cp -r /spark/conf /spark/dist/
       when: use_spark
 
 - hosts: TachyonWorker*
@@ -124,7 +133,7 @@
           && mkdir -p /tachyon/core/target \
           && rsync -avz TachyonMaster.local:/tachyon/core/target/tachyon-*-jar-with-dependencies.jar /tachyon/core/target \
           && rsync -avz TachyonMaster.local:'/tachyon/bin /tachyon/conf /tachyon/libexec' /tachyon
-      when: not is_vb
+      when: not (is_vb and tachyon_is_local)
 
     - name: rsync spark bin distribution from TachyonMaster
       shell: rsync -avz TachyonMaster.local:/spark/dist/* /spark
