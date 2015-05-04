@@ -69,6 +69,60 @@ public class UnderStorageSystemInterfaceTest {
     Assert.assertTrue(Arrays.equals(buf, TEST_BYTES));
   }
 
+  // Tests a file can be deleted
+  @Test
+  public void deleteFileTest() throws IOException {
+    String testFile = CommonUtils.concatPath(mUnderfsAddress, "testFile");
+    createEmptyFile(testFile);
+    mUfs.delete(testFile, false);
+    Assert.assertFalse(mUfs.exists(testFile));
+  }
+
+  // Tests an empty directory can be deleted
+  // Tests a non empty directory will not be deleted if recursive is not specified
+  // Tests a non empty directory will be deleted if recursive is specified
+  @Test
+  public void deleteDirTest() throws IOException {
+    String testDirEmpty = CommonUtils.concatPath(mUnderfsAddress, "testDirEmpty");
+    String testDirNonEmpty = CommonUtils.concatPath(mUnderfsAddress, "testDirNonEmpty1");
+    String testDirNonEmptyChildDir = CommonUtils.concatPath(testDirNonEmpty, "testDirNonEmpty2");
+    String testDirNonEmptyChildFile = CommonUtils.concatPath(testDirNonEmpty, "testDirNonEmptyF");
+    String testDirNonEmptyChildDirFile = CommonUtils.concatPath(testDirNonEmptyChildDir,
+        "testDirNonEmptyChildDirF");
+    mUfs.mkdirs(testDirEmpty, false);
+    mUfs.mkdirs(testDirNonEmpty, false);
+    mUfs.mkdirs(testDirNonEmptyChildDir, false);
+    createEmptyFile(testDirNonEmptyChildFile);
+    createEmptyFile(testDirNonEmptyChildDirFile);
+    mUfs.delete(testDirEmpty, false);
+    Assert.assertFalse(mUfs.exists(testDirEmpty));
+    try {
+      mUfs.delete(testDirNonEmpty, false);
+    } catch (IOException ioe) {
+      // Some File systems may throw IOException
+    }
+    Assert.assertTrue(mUfs.exists(testDirNonEmpty));
+    mUfs.delete(testDirNonEmpty, true);
+    Assert.assertFalse(mUfs.exists(testDirNonEmpty));
+    Assert.assertFalse(mUfs.exists(testDirNonEmptyChildDir));
+    Assert.assertFalse(mUfs.exists(testDirNonEmptyChildFile));
+    Assert.assertFalse(mUfs.exists(testDirNonEmptyChildDirFile));
+  }
+
+  // Tests exists correctly returns true if the file exists and false if it does not
+  // Tests exists correctly returns true if the dir exists and false if it does not
+  @Test
+  public void testExists() throws IOException {
+    String testFile = CommonUtils.concatPath(mUnderfsAddress, "testFile");
+    Assert.assertFalse(mUfs.exists(testFile));
+    createEmptyFile(testFile);
+    Assert.assertTrue(mUfs.exists(testFile));
+    String testDir = CommonUtils.concatPath(mUnderfsAddress, "testDir");
+    Assert.assertFalse(mUfs.exists(testDir));
+    mUfs.mkdirs(testDir, false);
+    Assert.assertTrue(mUfs.exists(testDir));
+  }
+
   private void createEmptyFile(String path) throws IOException {
     OutputStream o = mUfs.create(path);
     o.close();
