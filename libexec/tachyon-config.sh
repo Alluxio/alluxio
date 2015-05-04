@@ -26,7 +26,7 @@ if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
   export TACHYON_HOME=${TACHYON_PREFIX}
   export TACHYON_CONF_DIR="$TACHYON_HOME/conf"
   export TACHYON_LOGS_DIR="$TACHYON_HOME/logs"
-  export TACHYON_JARS="$TACHYON_HOME/core/target/tachyon-${VERSION}-jar-with-dependencies.jar:$TACHYON_HOME/underfs/hdfs/target/tachyon-underfs-hdfs-${VERSION}.jar:$TACHYON_HOME/underfs/glusterfs/target/tachyon-underfs-glusterfs-${VERSION}.jar:$TACHYON_HOME/underfs/s3/target/tachyon-underfs-s3-${VERSION}.jar"
+  export TACHYON_JARS="$TACHYON_HOME/core/target/tachyon-${VERSION}-jar-with-dependencies.jar:$TACHYON_HOME/underfs/hdfs/target/tachyon-underfs-hdfs-${VERSION}.jar:$TACHYON_HOME/underfs/glusterfs/target/tachyon-underfs-glusterfs-${VERSION}.jar:$TACHYON_HOME/underfs/s3/target/tachyon-underfs-s3-${VERSION}.jar:$TACHYON_HOME/examples/target/tachyon-examples-${VERSION}.jar:$TACHYON_HOME/shell/target/tachyon-shell-${VERSION}.jar"
   export JAVA="$JAVA_HOME/bin/java"
 fi
 

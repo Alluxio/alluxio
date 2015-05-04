@@ -624,7 +624,7 @@ public final class StorageDir {
         cnt ++;
         long fileSize = mFs.getFileSize(path);
         LOG.debug("File {}: {} with size {} Bs.", cnt, path, fileSize);
-        long blockId = CommonUtils.getBlockIdFromFileName(name);
+        long blockId = getBlockIdFromFileName(name);
         boolean success = mSpaceCounter.requestSpaceBytes(fileSize);
         if (success) {
           addBlockId(blockId, fileSize, true);
@@ -634,6 +634,16 @@ public final class StorageDir {
         }
       }
     }
+  }
+
+  private long getBlockIdFromFileName(String name) {
+    long fileId;
+    try {
+      fileId = Long.parseLong(name);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Wrong file name: " + name);
+    }
+    return fileId;
   }
 
   /**

@@ -53,7 +53,7 @@ public final class UiFileInfo {
     private final boolean mIsDirectory;
 
     public LocalFileInfo(String name, String absolutePath, long size, long creationTimeMs,
-                         long lastModificationTimeMs, boolean isDirectory) {
+        long lastModificationTimeMs, boolean isDirectory) {
       mName = name;
       mAbsolutePath = absolutePath;
       mSize = size;
@@ -156,13 +156,12 @@ public final class UiFileInfo {
   public String getCreationTime() {
     if (mCreationTimeMs == LocalFileInfo.EMPTY_CREATION_TIME) {
       return "";
-    } else {
-      return CommonUtils.convertMsToDate(mCreationTimeMs);
     }
+    return Utils.convertMsToDate(mCreationTimeMs);
   }
 
   public String getModificationTime() {
-    return CommonUtils.convertMsToDate(mLastModificationTimeMs);
+    return Utils.convertMsToDate(mLastModificationTimeMs);
   }
 
   public int getDependencyId() {

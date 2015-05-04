@@ -27,9 +27,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.io.ByteStreams;
 
 import tachyon.Constants;
@@ -41,8 +38,6 @@ import tachyon.conf.TachyonConf;
  */
 public class WebInterfaceDownloadLocalServlet extends HttpServlet {
   private static final long serialVersionUID = 7260819317567193560L;
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final transient TachyonConf mTachyonConf;
 
