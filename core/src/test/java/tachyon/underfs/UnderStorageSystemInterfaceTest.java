@@ -123,6 +123,67 @@ public class UnderStorageSystemInterfaceTest {
     Assert.assertTrue(mUfs.exists(testDir));
   }
 
+  // Tests getFileSize correctly returns the file size
+  @Test
+  public void testGetFileSize() throws IOException {
+    String testFileEmpty = CommonUtils.concatPath(mUnderfsAddress, "testFileEmpty");
+    String testFileNonEmpty = CommonUtils.concatPath(mUnderfsAddress, "testFileNonEmpty");
+    createEmptyFile(testFileEmpty);
+    createTestBytesFile(testFileNonEmpty);
+    Assert.assertEquals(mUfs.getFileSize(testFileEmpty), 0);
+    Assert.assertEquals(mUfs.getFileSize(testFileNonEmpty), TEST_BYTES.length);
+  }
+
+  // Tests getModificationTimeMs returns a reasonably accurate time
+  @Test
+  public void testGetModTime() throws IOException {
+    long slack = 1000; // Some file systems may report nearest second.
+    long start = System.currentTimeMillis();
+    String testFile = CommonUtils.concatPath(mUnderfsAddress, "testFile");
+    createTestBytesFile(testFile);
+    long end = System.currentTimeMillis();
+    long modTime = mUfs.getModificationTimeMs(testFile);
+    Assert.assertTrue(modTime >= start - slack);
+    Assert.assertTrue(modTime <= end + slack);
+  }
+
+  // Tests if isFile correctly returns true for files and false otherwise
+  @Test
+  public void testIsFile() throws IOException {
+    String testFile = CommonUtils.concatPath(mUnderfsAddress, "testFile");
+    String testDir = CommonUtils.concatPath(mUnderfsAddress, "testDir");
+    Assert.assertFalse(mUfs.isFile(testFile));
+    createEmptyFile(testFile);
+    mUfs.mkdirs(testDir, false);
+    Assert.assertTrue(mUfs.isFile(testFile));
+    Assert.assertFalse(mUfs.isFile(testDir));
+  }
+
+  // Tests if list correctly returns file names
+  @Test
+  public void testList() throws IOException {
+    String testDirNonEmpty = CommonUtils.concatPath(mUnderfsAddress, "testDirNonEmpty1");
+    String testDirNonEmptyChildDir = CommonUtils.concatPath(testDirNonEmpty, "testDirNonEmpty2");
+    String testDirNonEmptyChildFile = CommonUtils.concatPath(testDirNonEmpty, "testDirNonEmptyF");
+    String testDirNonEmptyChildDirFile =
+        CommonUtils.concatPath(testDirNonEmptyChildDir, "testDirNonEmptyChildDirF");
+    mUfs.mkdirs(testDirNonEmpty, false);
+    mUfs.mkdirs(testDirNonEmptyChildDir, false);
+    createEmptyFile(testDirNonEmptyChildFile);
+    createEmptyFile(testDirNonEmptyChildDirFile);
+    String [] expectedResTopDir = new String[] {"testDirNonEmpty2", "testDirNonEmptyF"};
+    // Some file systems may prefix with a slash
+    String [] expectedResTopDir2 = new String[] {"/testDirNonEmpty2", "/testDirNonEmptyF"};
+    Arrays.sort(expectedResTopDir);
+    Arrays.sort(expectedResTopDir2);
+    String [] resTopDir = mUfs.list(testDirNonEmpty);
+    Arrays.sort(resTopDir);
+    Assert.assertTrue(Arrays.equals(expectedResTopDir, resTopDir)
+        || Arrays.equals(expectedResTopDir2, resTopDir));
+    Assert.assertTrue(mUfs.list(testDirNonEmptyChildDir)[0].equals("testDirNonEmptyChildDirF")
+        || mUfs.list(testDirNonEmptyChildDir)[0].equals("/testDirNonEmptyChildDirF"));
+  }
+
   private void createEmptyFile(String path) throws IOException {
     OutputStream o = mUfs.create(path);
     o.close();
