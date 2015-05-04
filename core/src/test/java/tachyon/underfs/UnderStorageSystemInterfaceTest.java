@@ -184,6 +184,88 @@ public class UnderStorageSystemInterfaceTest {
         || mUfs.list(testDirNonEmptyChildDir)[0].equals("/testDirNonEmptyChildDirF"));
   }
 
+  // Tests mkdirs correctly creates a directory
+  // Tests mkdirs correctly makes parent directories if createParent is specified
+  @Test
+  public void testMkdirs() throws IOException {
+    String testDirTop = CommonUtils.concatPath(mUnderfsAddress, "testDirTop");
+    String testDir1 = CommonUtils.concatPath(mUnderfsAddress, "1");
+    String testDir2 = CommonUtils.concatPath(testDir1, "2");
+    String testDir3 = CommonUtils.concatPath(testDir2, "3");
+    String testDirDeep = CommonUtils.concatPath(testDir3, "testDirDeep");
+    mUfs.mkdirs(testDirTop, false);
+    Assert.assertTrue(mUfs.exists(testDirTop));
+    mUfs.mkdirs(testDirDeep, true);
+    Assert.assertTrue(mUfs.exists(testDir1));
+    Assert.assertTrue(mUfs.exists(testDir2));
+    Assert.assertTrue(mUfs.exists(testDir3));
+    Assert.assertTrue(mUfs.exists(testDirDeep));
+  }
+
+  // Tests rename works file to new location
+  @Test
+  public void testRenameFile() throws IOException {
+    String testFileSrc = CommonUtils.concatPath(mUnderfsAddress, "testFileSrc");
+    String testFileDst = CommonUtils.concatPath(mUnderfsAddress, "testFileDst");
+    createEmptyFile(testFileSrc);
+    mUfs.rename(testFileSrc, testFileDst);
+    Assert.assertFalse(mUfs.exists(testFileSrc));
+    Assert.assertTrue(mUfs.exists(testFileDst));
+  }
+
+  // Tests rename works file to a folder if supported
+  @Test
+  public void testRenameFileToFolder() throws IOException {
+    String testFileSrc = CommonUtils.concatPath(mUnderfsAddress, "testFileSrc");
+    String testFileDst = CommonUtils.concatPath(mUnderfsAddress, "testDirDst");
+    String testFileFinalDst = CommonUtils.concatPath(testFileDst, "testFileSrc");
+    createEmptyFile(testFileSrc);
+    mUfs.mkdirs(testFileDst, false);
+    if (mUfs.rename(testFileSrc, testFileDst)) {
+      Assert.assertFalse(mUfs.exists(testFileSrc));
+      Assert.assertTrue(mUfs.exists(testFileFinalDst));
+    }
+  }
+
+  // Tests rename works folder to new location
+  @Test
+  public void testRenameFolder() throws IOException {
+    String testDirSrc = CommonUtils.concatPath(mUnderfsAddress, "testDirSrc");
+    String testDirSrcChild = CommonUtils.concatPath(testDirSrc, "testFile");
+    String testDirDst = CommonUtils.concatPath(mUnderfsAddress, "testDirDst");
+    String testDirDstChild = CommonUtils.concatPath(testDirDst, "testFile");
+    mUfs.mkdirs(testDirSrc, false);
+    createEmptyFile(testDirSrcChild);
+    mUfs.rename(testDirSrc, testDirDst);
+    Assert.assertFalse(mUfs.exists(testDirSrc));
+    Assert.assertFalse(mUfs.exists(testDirSrcChild));
+    Assert.assertTrue(mUfs.exists(testDirDst));
+    Assert.assertTrue(mUfs.exists(testDirDstChild));
+  }
+
+  // Tests rename works folder to another folder if supported
+  @Test
+  public void testRenameFolderToFolder() throws IOException {
+    String testDirSrc = CommonUtils.concatPath(mUnderfsAddress, "testDirSrc");
+    String testDirSrcChild = CommonUtils.concatPath(testDirSrc, "testFile");
+    String testDirDst = CommonUtils.concatPath(mUnderfsAddress, "testDirDst");
+    String testDirDstChild = CommonUtils.concatPath(testDirDst, "testFile");
+    String testDirFinalDst = CommonUtils.concatPath(testDirDst, "TestDirSrc");
+    String testDirChildFinalDst = CommonUtils.concatPath(testDirFinalDst, "testFile");
+    mUfs.mkdirs(testDirSrc, false);
+    mUfs.mkdirs(testDirDst, false);
+    createEmptyFile(testDirDstChild);
+    createEmptyFile(testDirSrcChild);
+    if (mUfs.rename(testDirSrc, testDirDst)) {
+      Assert.assertFalse(mUfs.exists(testDirSrc));
+      Assert.assertFalse(mUfs.exists(testDirSrcChild));
+      Assert.assertTrue(mUfs.exists(testDirDst));
+      Assert.assertTrue(mUfs.exists(testDirDstChild));
+      Assert.assertTrue(mUfs.exists(testDirFinalDst));
+      Assert.assertTrue(mUfs.exists(testDirChildFinalDst));
+    }
+  }
+
   private void createEmptyFile(String path) throws IOException {
     OutputStream o = mUfs.create(path);
     o.close();
