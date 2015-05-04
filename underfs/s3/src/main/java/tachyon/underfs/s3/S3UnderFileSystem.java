@@ -298,11 +298,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Treating S3 as a file system, checks if the parent directory exists.
-   * @param key
-   * @return
+   * @param key the key to check
+   * @return true if the parent exists or if the key is root, false otherwise
    */
   private boolean parentExists(String key) {
-    // Root does not have a parent
+    // Assume root always has a parent
     if (isRoot(key)) {
       return true;
     }
@@ -312,7 +312,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Appends the directory suffix to the key.
-   * @param key
+   * @param key the key to convert
    * @return key as a directory path
    */
   private String convertToFolderName(String key) {
@@ -320,12 +320,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Internal function to deleteInternal a key in S3
-   * @param key the key to deleteInternal
+   * Internal function to delete a key in S3
+   * @param key the key to delete
    * @return true if successful, false if an exception is thrown
-   * @throws IOException
    */
-  private boolean deleteInternal(String key) throws IOException {
+  private boolean deleteInternal(String key) {
     try {
       if (isFolder(key)) {
         String keyAsFolder = convertToFolderName(stripPrefix(key));
@@ -340,6 +339,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
     return true;
   }
 
+  /**
+   * Gets the last path element of the key, or null if it does not exist
+   * @param key the key to get the last path element of
+   * @return the last path element of the key
+   */
   private String getKeyName(String key) {
     int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
     if (separatorIndex >= 0) {
@@ -352,7 +356,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   /**
    * Gets the StorageObject representing the metadata of a key. If the key does not exist as a
    * file or folder, null is returned
-   * @param key
+   * @param key the key to get the object details of
    * @return StorageObject of the key, or null if the key does not exist as a file or folder.
    */
   private StorageObject getObjectDetails(String key) {
@@ -368,6 +372,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
   }
 
+  /**
+   * Gets the parent key of the input key, or null if no parent exists
+   * @param key the key to get the parent of
+   * @return the the parent key
+   */
   private String getParentKey(String key) {
     int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
     if (separatorIndex >= 0) {
@@ -380,9 +389,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
   /**
    * Determines if the key is represents a folder. If false is returned, it is not guaranteed that
    * the path exists.
-   * @param key
+   * @param key the key to check
    * @return S3Object containing metadata
-   * @throws IOException
    */
   private boolean isFolder(String key) {
     key = key.endsWith(PATH_SEPARATOR) ? key.substring(0, key.length() - 1) : key;
@@ -402,8 +410,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Checks if the key is the root.
-   * @param key
-   * @return
+   * @param key the key to check
+   * @return true if the key is the root, false otherwise
    */
   private boolean isRoot(String key) {
     return
@@ -412,8 +420,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Creates a directory flagged file with the key and folder suffix.
-   * @param key
-   * @return
+   * @param key the key to create a folder
+   * @return true if the operation was successful, false otherwise
    */
   private boolean mkdir(String key) {
     try {
@@ -430,6 +438,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
   }
 
+  /**
+   * Copies an object to another key.
+   * @param src the source key to copy.
+   * @param dst the destination key to copy to.
+   * @return true if the operation was successful, false otherwise
+   */
   private boolean copy(String src, String dst) {
     try {
       src = stripPrefix(src);
@@ -444,6 +458,14 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
   }
 
+  /**
+   * Lists the files in the given path, the paths will be their logical names and not contain the
+   * folder suffix
+   * @param path the key to list
+   * @param recursive if true will list children directories as well
+   * @return an array of the file and folder names in this directory
+   * @throws IOException
+   */
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
       String separator = recursive ? "" : PATH_SEPARATOR;
@@ -465,6 +487,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
   }
 
+  /**
+   * Strips the s3 bucket prefix from the path if it is present
+   * @param key the key to strip
+   * @return the key without the s3 bucket prefix
+   */
   private String stripPrefix(String key) {
     String prefix = SCHEME + mBucketName + PATH_SEPARATOR;
     if (key.startsWith(prefix)) {
@@ -472,19 +499,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
     } else {
       LOG.warn("Attempted to strip key with invalid prefix: " + key);
       return key;
-    }
-  }
-
-  /**
-   * Transforms JetS3t's Service Exceptions to IOExceptions
-   * @throws IOException
-   */
-  private void handleException(ServiceException se) throws IOException {
-    if (se.getCause() instanceof IOException) {
-      throw (IOException) se.getCause();
-    } else {
-      // Unexpected Service Exception
-      Throwables.propagate(se);
     }
   }
 }
