@@ -15,6 +15,7 @@
 
 package tachyon.underfs.s3;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,7 +29,7 @@ import org.jets3t.service.utils.Mimetypes;
 public class S3OutputStream extends OutputStream {
   private final String mBucketName;
   private final String mKey;
-  private final OutputStream mOut;
+  private final OutputStream mLocalOutputStream;
   private final File mFile;
   private final S3Service mClient;
 
@@ -37,22 +38,32 @@ public class S3OutputStream extends OutputStream {
     mKey = key.substring(6 + mBucketName.length() + 1);
     mClient = client;
     mFile = new File("/tmp/" + Math.random() * 100);
-    mOut = new FileOutputStream(mFile);
+    mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
   }
 
   @Override
   public void write(int b) throws IOException {
-    mOut.write(b);
+    mLocalOutputStream.write(b);
+  }
+
+  @Override
+  public void write(byte[] b) throws IOException {
+    mLocalOutputStream.write(b, 0, b.length);
+  }
+
+  @Override
+  public void write(byte[] b, int off, int len) throws IOException {
+    mLocalOutputStream.write(b, off, len);
   }
 
   @Override
   public void flush() throws IOException {
-    mOut.flush();
+    mLocalOutputStream.flush();
   }
 
   @Override
   public void close() throws IOException {
-    mOut.close();
+    mLocalOutputStream.close();
     S3Object obj = new S3Object(mKey);
     obj.setDataInputFile(mFile);
     obj.setContentLength(mFile.length());

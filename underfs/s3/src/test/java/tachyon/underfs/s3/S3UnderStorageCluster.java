@@ -55,8 +55,7 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   }
 
   @Override
-  public void shutdown() throws IOException {
-  }
+  public void shutdown() throws IOException {}
 
   @Override
   public void start() throws IOException {}
