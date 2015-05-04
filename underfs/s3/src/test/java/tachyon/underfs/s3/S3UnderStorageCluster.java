@@ -16,30 +16,33 @@
 package tachyon.underfs.s3;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 
 /**
- * This class will use Amazon S3 as the backing store.
+ * This class will use Amazon S3 as the backing store. Update awsAccessKey, awsSecretKey, and
+ * baseDirectory accordingly to enable this test.
  */
 public class S3UnderStorageCluster extends UnderFileSystemCluster {
 
   private final String awsAccessKey = "";
   private final String awsSecretKey = "";
+  private final String baseDirectory = ""; // s3n://my-test-bucket/tachyon-test
 
   public S3UnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
     System.setProperty("fs.s3n.awsAccessKeyId", awsAccessKey);
     System.setProperty("fs.s3n.awsSecretAccessKey", awsSecretKey);
-    mBaseDir = "s3n://calvin-s3-test/testdir" + Math.random() * 100;
+    mBaseDir = baseDirectory + UUID.randomUUID();
   }
 
   @Override
   public void cleanup() throws IOException {
     String oldDir = mBaseDir;
-    mBaseDir = "s3n://calvin-s3-test/testdir" + Math.random() * 100;
+    mBaseDir = baseDirectory + UUID.randomUUID();
     UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mTachyonConf);
     ufs.delete(oldDir, true);
   }
