@@ -325,7 +325,7 @@ public class TachyonWorker implements Runnable {
 
     mHeartbeatThread.start();
     mWorkerMetricsSystem.start();
-    mWebServer.addHandler(mWorkerMetricSystem.getServletHandler());
+    mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
     mWebServer.startWebServer();
 
     LOG.info("The worker server started @ " + mWorkerAddress);
