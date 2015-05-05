@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -29,8 +29,6 @@ import java.util.Date;
 import java.util.Random;
 import java.util.StringTokenizer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -56,6 +54,8 @@ import org.apache.hadoop.util.ToolRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -77,7 +77,7 @@ import tachyon.master.LocalTachyonCluster;
  * <li>io rate</li>
  * <li>io rate squared</li>
  * </ul>
- * 
+ *
  * Finally, the following information is appended to a local file
  * <ul>
  * <li>read or write test</li>
@@ -91,7 +91,7 @@ import tachyon.master.LocalTachyonCluster;
  */
 public class TestDFSIO implements Tool {
   // Constants for TestDFSIO
-  private static final Log LOG = LogFactory.getLog(TestDFSIO.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BUFFER_SIZE = 4096;
   private static final String BASE_FILE_NAME = "test_io_";
   private static final String DEFAULT_RES_FILE_NAME = "TestDFSIO_results.log";
@@ -559,7 +559,7 @@ public class TestDFSIO implements Tool {
    * Mapper class for random reads. The mapper chooses a position in the file and reads bufferSize
    * bytes starting at the chosen position. It stops after reading the totalSize bytes, specified
    * by size.
-   * 
+   *
    * There are three type of reads. 1) Random read always chooses a random position to read from:
    * skipSize = 0 2) Backward read reads file in reverse order : skipSize < 0 3) Skip-read skips
    * skipSize bytes after every read : skipSize > 0
@@ -613,7 +613,7 @@ public class TestDFSIO implements Tool {
     /**
      * Get next offset for reading. If current < 0 then choose initial offset according to the read
      * type.
-     * 
+     *
      * @param current offset
      * @return
      */
@@ -805,7 +805,7 @@ public class TestDFSIO implements Tool {
 
   /**
    * Returns size in bytes.
-   * 
+   *
    * @param arg = {d}[B|KB|MB|GB|TB]
    * @return
    */
