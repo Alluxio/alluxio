@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -32,7 +32,14 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NoWorkerException;
 
 /**
- * Unit tests for tachyon.MasterClient
+ * Though its name indicates that it provide the unit tests for {@link tachyon.master.MasterClient},
+ * this class is more like unit-testing the internal implementation of tachyon Master via a
+ * {@link MasterClient}, and thus it depends on many components in tachyon.master. As a result, we
+ * have MasterClient in tachyon-common and leave this class in tachyon-core.
+ *
+ * <p>
+ * TODO: Rename this class.
+ *
  */
 public class MasterClientTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -57,8 +64,8 @@ public class MasterClientTest {
   @Test
   public void openCloseTest() throws FileAlreadyExistException, InvalidPathException, TException,
       IOException {
-    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService,
-        mMasterTachyonConf);
+    MasterClient masterClient =
+        new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
@@ -77,8 +84,8 @@ public class MasterClientTest {
     // this test was created to show that a infi loop happens
     // the timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
-    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService,
-        mMasterTachyonConf);
+    MasterClient masterClient =
+        new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
     masterClient.user_getClientBlockInfo(Long.MAX_VALUE);
     masterClient.close();
   }
@@ -88,8 +95,8 @@ public class MasterClientTest {
     // this test was created to show that a infi loop happens
     // the timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
-    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService,
-        mMasterTachyonConf);
+    MasterClient masterClient =
+        new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
     masterClient.user_getWorker(false, "host.doesnotexist.fail");
     masterClient.close();
   }
