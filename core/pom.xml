@@ -156,7 +156,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-openstack</artifactId>
-      <version>${hadoop.version}</version>
+      <version>${hadoop-openstack.version}</version>
     </dependency>
   </dependencies>
 
