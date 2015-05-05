@@ -20,7 +20,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
@@ -177,9 +179,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public String[] list(String path) throws IOException {
     // Non recursive list
-    if (!isFolder(path)) {
-      return null;
-    }
     path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
     return listInternal(path, false);
   }
@@ -444,19 +443,41 @@ public class S3UnderFileSystem extends UnderFileSystem {
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
-      String separator = recursive ? "" : PATH_SEPARATOR;
       path = stripPrefix(path);
       path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
-      S3Object[] objs = mClient.listObjects(mBucketName, path, separator);
-      String[] ret = new String[objs.length];
-      for (int i = 0; i < objs.length; i ++) {
-        String child = objs[i].getKey().substring(path.length());
+      path = path.equals(PATH_SEPARATOR) ? "" : path;
+      // Gets all the objects under the path, because we have no idea if  there are non Tachyon
+      // managed "directories"
+      S3Object[] objs = mClient.listObjects(mBucketName, path, "");
+      if (recursive) {
+        String[] ret = new String[objs.length];
+        for (int i = 0; i < objs.length; i ++) {
+          // Remove parent portion of the key
+          String child = objs[i].getKey().substring(path.length());
+          // Prune the special folder suffix
+          child =
+              child.endsWith(FOLDER_SUFFIX) ? child.substring(0,
+                  child.length() - FOLDER_SUFFIX.length()) : child;
+          ret[i] = child;
+        }
+        return ret;
+      }
+      // Non recursive list
+      Set<String> children = new HashSet<String>();
+      for (S3Object obj : objs) {
+        // Remove parent portion of the key
+        String child = obj.getKey().substring(path.length());
+        // Remove any portion after the path delimiter
+        int childNameIndex = child.indexOf(PATH_SEPARATOR);
+        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+        // Prune the special folder suffix
         child =
             child.endsWith(FOLDER_SUFFIX) ? child.substring(0,
                 child.length() - FOLDER_SUFFIX.length()) : child;
-        ret[i] = child;
+        // Add to the set of children, the set will deduplicate.
+        children.add(child);
       }
-      return ret;
+      return children.toArray(new String[children.size()]);
     } catch (ServiceException se) {
       LOG.info("Failed to list path " + path);
       return null;
