@@ -89,12 +89,14 @@
         <configuration>
           <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
           <!-- Pull in integration tests from core module -->
+          <!-- Uncomment this section to actually run tests against S3.
           <dependenciesToScan>
             <dependency>org.tachyonproject:tachyon</dependency>
           </dependenciesToScan>
           <systemPropertyVariables>
             <ufs>tachyon.underfs.s3.S3UnderStorageCluster</ufs>
           </systemPropertyVariables>
+          !-->
         </configuration>
         <executions>
           <execution>
