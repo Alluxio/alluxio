@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -22,15 +22,21 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
+import tachyon.Constants;
+
 /**
  * Unit tests for tachyon.InodeFolder
  */
 public class InodeFolderTest {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   @Test
   public void addChildrenTest() {
     InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0, System.currentTimeMillis());
@@ -188,27 +194,27 @@ public class InodeFolderTest {
     Inode[] inodes = new Inode[nFiles];
     for (int i = 0; i < nFiles; i ++) {
       inodes[i] =
-          new InodeFile(String.format("testFile%d", i + 1), i + 2, 1, 1, System.currentTimeMillis());
+          new InodeFile(
+              String.format("testFile%d", i + 1), i + 2, 1, 1, System.currentTimeMillis());
       inodeFolder.addChild(inodes[i]);
     }
 
     Runtime runtime = Runtime.getRuntime();
-    System.out.println(String.format("Used Memory = %dB when number of files = %d",
-        runtime.totalMemory() - runtime.freeMemory(), nFiles));
+    LOG.info(String.format("Used Memory = %dB when number of files = %d", runtime.totalMemory()
+        - runtime.freeMemory(), nFiles));
 
     long start = System.currentTimeMillis();
     for (int i = 0; i < nFiles; i ++) {
       Assert.assertEquals(inodes[i], inodeFolder.getChild(i + 2));
     }
-    System.out.println(String.format("getChild(int fid) called sequentially %d times, cost %d ms",
-        nFiles, System.currentTimeMillis() - start));
+    LOG.info(String.format("getChild(int fid) called sequentially %d times, cost %d ms", nFiles,
+        System.currentTimeMillis() - start));
 
     start = System.currentTimeMillis();
     for (int i = 0; i < nFiles; i ++) {
       Assert.assertEquals(inodes[i], inodeFolder.getChild(String.format("testFile%d", i + 1)));
     }
-    System.out.println(String.format(
-        "getChild(String name) called sequentially %d times, cost %d ms", nFiles,
-        System.currentTimeMillis() - start));
+    LOG.info(String.format("getChild(String name) called sequentially %d times, cost %d ms",
+        nFiles, System.currentTimeMillis() - start));
   }
 }
