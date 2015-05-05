@@ -457,5 +457,17 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>contractTest</id>
+        <activation>
+          <property>
+            <name>test.profile</name>
+            <value>contractTest</value>
+          </property>
+        </activation>
+        <properties>
+          <hadoop.version>2.6.0</hadoop.version>
+        </properties>
+    </profile>
   </profiles>
 </project>
