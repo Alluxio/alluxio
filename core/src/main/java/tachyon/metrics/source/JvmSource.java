@@ -23,6 +23,7 @@ import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
  * A Source which collects JVM metrics, including JVM memory usage, GC counts, GC times, etc.
  */
 public class JvmSource implements Source {
+  private static final String JVM_SOURCE_NAME = "jvm";
   private MetricRegistry mMetricRegistry;
 
   /**
@@ -36,7 +37,7 @@ public class JvmSource implements Source {
 
   @Override
   public String getName() {
-    return "jvm";
+    return JVM_SOURCE_NAME;
   }
 
   @Override

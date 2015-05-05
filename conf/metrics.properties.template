@@ -76,7 +76,7 @@
 #*.sink.jmx.class=tachyon.metrics.sink.JmxSink
 
 # Enable ConsoleSink for all instances by class name
-*.sink.console.class=tachyon.metrics.sink.ConsoleSink
+#*.sink.console.class=tachyon.metrics.sink.ConsoleSink
 
 # Polling period for ConsoleSink
 #*.sink.console.period=10
