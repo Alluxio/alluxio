@@ -122,18 +122,12 @@
   </dependencies>
 
   <profiles>
+
     <profile>
       <id>default</id>
       <activation>
-        <property>
-          <name>test.profile</name>
-          <value>default</value>
-        </property>
         <activeByDefault>true</activeByDefault>
       </activation>
-      <properties>
-        <ufs></ufs>
-      </properties>
       <build>
         <plugins>
           <plugin>
@@ -164,15 +158,6 @@
 
     <profile>
       <id>contractTest</id>
-      <activation>
-        <property>
-          <name>test.profile</name>
-          <value>contractTest</value>
-        </property>
-      </activation>
-      <properties>
-        <ufs></ufs>
-      </properties>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
@@ -181,6 +166,7 @@
       </dependencies>
     </profile>
   </profiles>
+
   <build>
     <resources>
       <resource>
