@@ -206,9 +206,9 @@ elif [ "$COMMAND" == "formatWorker" ]; then
   CLASS=tachyon.Format
   PARAMETER=worker
 elif [ "$COMMAND" == "tfs" ]; then
-  CLASS=tachyon.command.TFsShell
+  CLASS=tachyon.shell.TFsShell
 elif [ "$COMMAND" == "loadufs" ]; then
-  CLASS=tachyon.util.UfsUtils
+  CLASS=tachyon.underfs.UfsUtils
 elif [ "$COMMAND" == "runTest" ]; then
   runTest "$@"
   exit $?

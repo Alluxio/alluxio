@@ -154,13 +154,10 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
 
-    request
-        .setAttribute(
-            "uptime",
-            CommonUtils.convertMsToClockTime(System.currentTimeMillis()
-                - mMasterInfo.getStarttimeMs()));
+    request.setAttribute("uptime",
+        Utils.convertMsToClockTime(System.currentTimeMillis() - mMasterInfo.getStarttimeMs()));
 
-    request.setAttribute("startTime", CommonUtils.convertMsToDate(mMasterInfo.getStarttimeMs()));
+    request.setAttribute("startTime", Utils.convertMsToDate(mMasterInfo.getStarttimeMs()));
 
     request.setAttribute("version", Version.VERSION);
 
