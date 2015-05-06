@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.hadoop;
+package tachyon.underfs.hdfs;
 
 import java.io.IOException;
 

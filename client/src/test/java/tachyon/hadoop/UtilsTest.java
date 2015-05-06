@@ -20,6 +20,8 @@ import org.apache.hadoop.fs.Path;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.underfs.hdfs.Utils;
+
 public final class UtilsTest {
 
   @Test
