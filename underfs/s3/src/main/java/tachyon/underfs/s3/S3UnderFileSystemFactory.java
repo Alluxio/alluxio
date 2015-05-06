@@ -33,8 +33,9 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Override
-  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
-    Preconditions.checkArgument(path != null, "path may not be null");
+  public UnderFileSystem create(String path, TachyonConf tachyonConf, Object unusedConf) {
+    Preconditions.checkNotNull(path);
+    Preconditions.checkNotNull(tachyonConf);
 
     if (addAndCheckAWSCredentials(tachyonConf)) {
       TachyonURI uri = new TachyonURI(path);
