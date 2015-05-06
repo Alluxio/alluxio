@@ -204,4 +204,6 @@ public class Constants {
   public static final String USER_ENABLE_LOCAL_READ = "tachyon.user.localread.enable";
   public static final String USER_ENABLE_LOCAL_WRITE = "tachyon.user.localwrite.enable";
 
+  public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
+  public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
 }
