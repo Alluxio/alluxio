@@ -124,13 +124,13 @@ public abstract class UnderFileSystem {
    *         address is "/" and the path starts with "/".
    */
   public static Pair<String, String> parse(TachyonURI path, TachyonConf tachyonConf) {
-    Preconditions.checkArgument(path != null, "path may not be null");
+    Preconditions.checkNotNull(path);
 
     if (path.hasScheme()) {
       String header = path.getScheme() + "://";
       String authority = (path.hasAuthority()) ? path.getAuthority() : "";
       if (header.equals(Constants.HEADER) || header.equals(Constants.HEADER_FT)
-          || isHadoopUnderFS(header, tachyonConf) || header.equals("s3n://")) {
+          || isHadoopUnderFS(header, tachyonConf) || header.equals(Constants.HEADER_S3N)) {
         if (path.getPath().isEmpty()) {
           return new Pair<String, String>(header + authority, TachyonURI.SEPARATOR);
         } else {
