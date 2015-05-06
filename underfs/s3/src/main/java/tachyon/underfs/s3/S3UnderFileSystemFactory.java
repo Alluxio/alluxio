@@ -52,11 +52,11 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   private boolean addAndCheckAWSCredentials(TachyonConf tachyonConf) {
-    String accessKeyConf = "fs.s3n.awsAccessKeyId";
+    String accessKeyConf = Constants.S3_ACCESS_KEY;
     if (System.getProperty(accessKeyConf) != null && tachyonConf.get(accessKeyConf, null) == null) {
       tachyonConf.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
-    String secretKeyConf = "fs.s3n.awsSecretAccessKey";
+    String secretKeyConf = Constants.S3_SECRET_KEY;
     if (System.getProperty(secretKeyConf) != null && tachyonConf.get(secretKeyConf, null) == null) {
       tachyonConf.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
