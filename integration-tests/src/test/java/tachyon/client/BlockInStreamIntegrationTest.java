@@ -23,13 +23,22 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TestUtils;
+import tachyon.client.BlockInStream;
+import tachyon.client.EmptyBlockInStream;
+import tachyon.client.InStream;
+import tachyon.client.LocalBlockInStream;
+import tachyon.client.ReadType;
+import tachyon.client.RemoteBlockInStream;
+import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
+import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
- * Unit tests for <code>tachyon.client.BlockInStream</code>.
+ * Integration tests for <code>tachyon.client.BlockInStream</code>.
  */
-public class BlockInStreamTest {
+public class BlockInStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int MEAN = (MIN_LEN + MAX_LEN) / 2;
@@ -49,23 +58,24 @@ public class BlockInStreamTest {
     sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
+    System.out.println(Constants.LOGGER_TYPE);
   }
-  
-  /** 
+
+  /**
    * Test disable local read
-   * @throws IOException 
+   * @throws IOException
    */
   @Test
   public void disableLocalReadTest() throws IOException {
     int fileId = TestUtils.createByteFile(sTfs, "/file_no_local_read", WriteType.TRY_CACHE, 10);
-    
+
     TachyonConf conf = sLocalTachyonCluster.getWorkerTachyonConf();
     conf.set(Constants.USER_ENABLE_LOCAL_READ, "false");
     TachyonFS sTfs1 = TachyonFS.get(conf);
     TachyonFile file1 = sTfs1.getFile(fileId);
     InStream is1 = file1.getInStream(ReadType.NO_CACHE);
     Assert.assertTrue(is1 instanceof RemoteBlockInStream); //local read is disabled
-    
+
     conf.set(Constants.USER_ENABLE_LOCAL_READ, "true");
     TachyonFS sTfs2 = TachyonFS.get(conf);
     TachyonFile file2 = sTfs2.getFile(fileId);
