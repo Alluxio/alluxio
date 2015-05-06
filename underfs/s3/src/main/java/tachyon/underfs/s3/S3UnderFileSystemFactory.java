@@ -48,7 +48,7 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path, TachyonConf tachyonConf) {
-    return path != null && path.startsWith("s3n://");
+    return path != null && path.startsWith(Constants.HEADER_S3N);
   }
 
   private boolean addAndCheckAWSCredentials(TachyonConf tachyonConf) {

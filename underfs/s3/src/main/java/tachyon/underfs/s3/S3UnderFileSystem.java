@@ -46,7 +46,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String FOLDER_SUFFIX = "_$folder$";
   private static final String PATH_SEPARATOR = "/";
-  private static final String SCHEME = "s3n://";
 
   private final S3Service mClient;
   private final String mBucketName;
@@ -425,12 +424,13 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Checks if the key is the root.
+   *
    * @param key the key to check
    * @return true if the key is the root, false otherwise
    */
   private boolean isRoot(String key) {
-    return
-        key.equals(SCHEME + mBucketName) || key.equals(SCHEME + mBucketName + PATH_SEPARATOR);
+    return key.equals(Constants.HEADER_S3N + mBucketName)
+        || key.equals(Constants.HEADER_S3N + mBucketName + PATH_SEPARATOR);
   }
 
   /**
@@ -510,7 +510,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @return the key without the s3 bucket prefix
    */
   private String stripPrefix(String key) {
-    String prefix = SCHEME + mBucketName + PATH_SEPARATOR;
+    String prefix = Constants.HEADER_S3N + mBucketName + PATH_SEPARATOR;
     if (key.startsWith(prefix)) {
       return key.substring(prefix.length());
     } else {
