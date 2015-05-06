@@ -27,9 +27,6 @@
 
     - name: configure hosts
       script: host.sh
-    - name: rename hostname from TachyonXXX to TachyonXXX.local in virtualbox
-      shell: sudo hostname `hostname | cut -d'.' -f1`.local # if provision multiple times, won't become TachyonXXX.local.local.local
-      when: is_vb
 
     - name: install java
       script: java.sh
@@ -135,7 +132,8 @@
     - name: set spark-env.sh
       shell: echo export SPARK_CLASSPATH=/tachyon/client/target/tachyon-client-*-jar-with-dependencies.jar:$SPARK_CLASSPATH >> /spark/conf/spark-env.sh
       when: use_spark and spark_version_lessthan_1
-    - shell: echo export HADOOP_CONF_DIR=/hadoop/etc/hadoop >> /spark/conf/spark-env.sh
+    - shell: echo export HADOOP_CONF_DIR=/hadoop/etc/hadoop >> /spark/conf/spark-env.sh && \
+             echo export SPARK_MASTER_IP="`tail -n1 /spark/conf/slaves`" >> /spark/conf/spark-env.sh
       when: use_spark
 
     - name: set spark/conf/core-site.xml
