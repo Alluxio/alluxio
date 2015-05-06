@@ -395,7 +395,6 @@
             <!-- Default local file Exclusions -->
             <exclude>**/underFSStorage/**</exclude>
             <exclude>**/journal/**</exclude>
-
           </excludes>
           <mapping>
             <java>SLASHSTAR_STYLE</java>
@@ -429,7 +428,6 @@
   </reporting>
 
   <profiles>
-
     <profile>
       <!-- Turn of doclint for java8 and later -->
       <id>doclint-java8-disable</id>
@@ -460,10 +458,9 @@
 
     <profile>
       <id>contractTest</id>
-        <properties>
-          <hadoop.version>2.6.0</hadoop.version>
-        </properties>
+      <properties>
+        <hadoop.version>2.6.0</hadoop.version>
+      </properties>
     </profile>
-
   </profiles>
 </project>
