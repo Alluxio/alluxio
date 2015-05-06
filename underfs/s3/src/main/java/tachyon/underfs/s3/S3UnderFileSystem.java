@@ -232,44 +232,14 @@ public class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public boolean rename(String src, String dst) throws IOException {
     if (!exists(src)) {
+      LOG.error("Unable to rename " + src + " to " + dst + " because source does not exist.");
       return false;
     }
     if (exists(dst)) {
-      if (!isFolder(dst)) {
-        LOG.error("Unable to rename " + src + " to " + dst + " because destination already "
-            + "exists as a file.");
-        return false;
-      }
-      String srcName = getKeyName(src);
-      // Destination is a folder, move source into dst
-      if (!isFolder(src)) {
-        // Source is a file
-        // Copy to destination
-        if (copy(src, CommonUtils.concatPath(dst, srcName))) {
-          // Delete original
-          return deleteInternal(src);
-        } else {
-          return false;
-        }
-      }
-      // Source and Destination are folders
-      // Rename the source folder first
-      String dstFolder = CommonUtils.concatPath(dst, convertToFolderName(srcName));
-      if (!copy(convertToFolderName(src), dstFolder)) {
-        return false;
-      }
-      // Rename each child in the src folder to destination/srcfolder/child
-      String [] children = list(src);
-      String parentName = getKeyName(src);
-      for (String child : children) {
-        if (!rename(CommonUtils.concatPath(src, child), CommonUtils.concatPath(dst, parentName))) {
-          return false;
-        }
-      }
-      // Delete everything under src
-      return delete(src, true);
+      LOG.error("Unable to rename " + src + " to " + dst + " because destination already exists.");
+      return false;
     }
-    // Destination does not exist
+    // Source exists and destination does not exist
     if (isFolder(src)) {
       // Rename the source folder first
       if (!copy(convertToFolderName(src), convertToFolderName(dst))) {
@@ -278,11 +248,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
       // Rename each child in the src folder to destination/child
       String [] children = list(src);
       for (String child: children) {
-        if (!rename(CommonUtils.concatPath(src, child), dst)) {
+        if (!rename(CommonUtils.concatPath(src, child), CommonUtils.concatPath(dst, child))) {
           return false;
         }
       }
-      // Delete everything under src
+      // Delete src and everything under src
       return delete(src, true);
     }
     // Source is a file and Destination does not exist
@@ -358,20 +328,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return false;
     }
     return true;
-  }
-
-  /**
-   * Gets the last path element of the key, or null if it does not exist
-   * @param key the key to get the last path element of
-   * @return the last path element of the key
-   */
-  private String getKeyName(String key) {
-    int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
-    if (separatorIndex >= 0) {
-      return key.substring(separatorIndex, key.length());
-    } else {
-      return null;
-    }
   }
 
   /**
@@ -452,7 +408,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       path = stripPrefixIfPresent(path);
       path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
       path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // Gets all the objects under the path, because we have no idea if  there are non Tachyon
+      // Gets all the objects under the path, because we have no idea if there are non Tachyon
       // managed "directories"
       S3Object[] objs = mClient.listObjects(mBucketName, path, "");
       if (recursive) {
@@ -485,7 +441,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException se) {
-      LOG.info("Failed to list path " + path);
+      LOG.error("Failed to list path " + path);
       return null;
     }
   }
