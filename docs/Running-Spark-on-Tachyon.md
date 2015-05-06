@@ -55,7 +55,7 @@ additionally add new entry in previously created `spark/conf/core-site.xml`:
 
     <property>
         <name>fs.tachyon-ft.impl</name>
-        <value>tachyon.hadoop.TFS</value>
+        <value>tachyon.hadoop.TFSFT</value>
     </property>
 
 Add the following line to `spark/conf/spark-env.sh`:
