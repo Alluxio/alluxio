@@ -84,6 +84,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
   // Same as create(path)
   @Override
   public OutputStream create(String path, int blockSizeByte) throws IOException {
+    LOG.warn("Create with block size is not supported with S3UnderFileSystem. Block size will be "
+        + "ignored.");
     return create(path);
   }
 
@@ -91,6 +93,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public OutputStream create(String path, short replication, int blockSizeByte)
       throws IOException {
+    LOG.warn("Create with block size and replication is not supported with S3UnderFileSystem."
+        + " Block size and replication will be ignored.");
     return create(path);
   }
 
@@ -107,11 +111,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
     for (String pathToDelete : pathsToDelete) {
       // If we fail to deleteInternal one file, stop
       if (!deleteInternal(CommonUtils.concatPath(path, pathToDelete))) {
+        LOG.error("Failed to delete path " + pathToDelete + ", aborting delete.");
         return false;
       }
     }
-    deleteInternal(path);
-    return true;
+    return deleteInternal(path);
   }
 
   @Override
@@ -129,18 +133,21 @@ public class S3UnderFileSystem extends UnderFileSystem {
   // Not supported
   @Override
   public Object getConf() {
+    LOG.warn("getConf is not supported when using S3UnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
+    LOG.warn("getFileLocations is not supported when using S3UnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path, long offset) throws IOException {
+    LOG.warn("getFileLocations is not supported when using S3UnderFileSystem, returning null.");
     return null;
   }
 

@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.UUID;
 
+import com.google.common.base.Preconditions;
+
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Object;
@@ -37,6 +39,8 @@ public class S3OutputStream extends OutputStream {
   private final S3Service mClient;
 
   public S3OutputStream(String bucketName, String key, S3Service client) throws IOException {
+    Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "
+        + "not be null or empty.");
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
