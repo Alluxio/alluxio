@@ -76,7 +76,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public OutputStream create(String path) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
-      return new S3OutputStream(mBucketName, stripPrefix(path), mClient);
+      return new S3OutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
     }
     return null;
   }
@@ -221,7 +221,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public InputStream open(String path) throws IOException {
     try {
-      path = stripPrefix(path);
+      path = stripPrefixIfPresent(path);
       return mClient.getObject(mBucketName, path).getDataInputStream();
     } catch (ServiceException se) {
       LOG.error("Failed to open file: " + path, se);
@@ -328,8 +328,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
    */
   private boolean copy(String src, String dst) {
     try {
-      src = stripPrefix(src);
-      dst = stripPrefix(dst);
+      src = stripPrefixIfPresent(src);
+      dst = stripPrefixIfPresent(dst);
       LOG.info("Copying " + src + " to " + dst);
       S3Object obj = new S3Object(dst);
       mClient.copyObject(mBucketName, src, mBucketName, obj, false);
@@ -348,10 +348,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private boolean deleteInternal(String key) {
     try {
       if (isFolder(key)) {
-        String keyAsFolder = convertToFolderName(stripPrefix(key));
+        String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
         mClient.deleteObject(mBucketName, keyAsFolder);
       } else {
-        mClient.deleteObject(mBucketName, stripPrefix(key));
+        mClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
       }
     } catch (ServiceException se) {
       LOG.error("Failed to delete " + key, se);
@@ -383,10 +383,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private StorageObject getObjectDetails(String key) {
     try {
       if (isFolder(key)) {
-        String keyAsFolder = convertToFolderName(stripPrefix(key));
+        String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
         return mClient.getObjectDetails(mBucketName, keyAsFolder);
       } else {
-        return mClient.getObjectDetails(mBucketName, stripPrefix(key));
+        return mClient.getObjectDetails(mBucketName, stripPrefixIfPresent(key));
       }
     } catch (ServiceException se) {
       return null;
@@ -408,8 +408,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Determines if the key is represents a folder. If false is returned, it is not guaranteed that
-   * the path exists.
+   * Determines if the key represents a folder. If false is returned, it is not guaranteed that the
+   * path exists.
    * @param key the key to check
    * @return S3Object containing metadata
    */
@@ -420,7 +420,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return true;
     }
     try {
-      String keyAsFolder = convertToFolderName(stripPrefix(key));
+      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
       mClient.getObjectDetails(mBucketName, keyAsFolder);
       // If no exception is thrown, the key exists as a folder
       return true;
@@ -449,7 +449,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
-      path = stripPrefix(path);
+      path = stripPrefixIfPresent(path);
       path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
       path = path.equals(PATH_SEPARATOR) ? "" : path;
       // Gets all the objects under the path, because we have no idea if  there are non Tachyon
@@ -497,7 +497,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    */
   private boolean mkdirsInternal(String key) {
     try {
-      String keyAsFolder = convertToFolderName(stripPrefix(key));
+      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
       S3Object obj = new S3Object(keyAsFolder);
       obj.setDataInputStream(new ByteArrayInputStream(new byte[0]));
       obj.setContentLength(0);
@@ -511,11 +511,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the s3 bucket prefix from the path if it is present
+   * Strips the s3 bucket prefix from the path if it is present. For example, for input key
+   * s3n://my-bucket-name/my-path/file, the output would be my-path/file.
    * @param key the key to strip
    * @return the key without the s3 bucket prefix
    */
-  private String stripPrefix(String key) {
+  private String stripPrefixIfPresent(String key) {
     String prefix = Constants.HEADER_S3N + mBucketName + PATH_SEPARATOR;
     if (key.startsWith(prefix)) {
       return key.substring(prefix.length());
