@@ -27,6 +27,8 @@ import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Object;
 import org.jets3t.service.utils.Mimetypes;
 
+import tachyon.util.CommonUtils;
+
 public class S3OutputStream extends OutputStream {
   private final String mBucketName;
   private final String mKey;
@@ -38,7 +40,7 @@ public class S3OutputStream extends OutputStream {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
-    mFile = new File("/tmp/" + UUID.randomUUID());
+    mFile = new File(CommonUtils.concatPath("/tmp", UUID.randomUUID()));
     mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
   }
 
