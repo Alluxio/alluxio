@@ -46,6 +46,8 @@ public class Constants {
   public static final String SCHEME_FT = "tachyon-ft";
   public static final String HEADER_FT = SCHEME_FT + "://";
 
+  public static final String HEADER_S3N = "s3n://";
+
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;
