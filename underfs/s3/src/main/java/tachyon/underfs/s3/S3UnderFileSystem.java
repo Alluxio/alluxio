@@ -102,6 +102,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
   public boolean delete(String path, boolean recursive) throws IOException {
     if (!recursive) {
       if (isFolder(path) && listInternal(path, false).length != 0) {
+        LOG.error("Unable to delete " + path + " because it is a non empty directory. Specify "
+            + "recursive as true in order to delete non empty directories.");
         return false;
       }
       return deleteInternal(path);
