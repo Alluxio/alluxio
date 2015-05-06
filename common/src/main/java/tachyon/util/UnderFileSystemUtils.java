@@ -4,28 +4,29 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.underfs;
+
+package tachyon.util;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 
 /**
  * Utility functions for working with {@link tachyon.underfs.UnderFileSystem}.
- * 
- * TODO May move this to non-testing code.
+ *
  */
-public final class UnderFileSystemsUtils {
-  private UnderFileSystemsUtils() {}
+public final class UnderFileSystemUtils {
+  private UnderFileSystemUtils() {}
 
   /**
    * Deletes the directory at the given path. If delete is unsuccessful, then this operation will
@@ -43,7 +44,8 @@ public final class UnderFileSystemsUtils {
    * Attempts to create the directory if it does not already exist. If unable to create the
    * directory, then a {@link java.io.IOException} is thrown.
    */
-  public static void mkdirIfNotExists(final String path, TachyonConf tachyonConf) throws IOException {
+  public static void mkdirIfNotExists(final String path, TachyonConf tachyonConf)
+      throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
 
     if (!ufs.exists(path)) {
@@ -52,4 +54,16 @@ public final class UnderFileSystemsUtils {
       }
     }
   }
+
+  /**
+   * Create an empty file
+   *
+   * @throws IOException
+   */
+  public static void touch(final String path, TachyonConf tachyonConf) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
+    OutputStream os = ufs.create(path);
+    os.close();
+  }
+
 }
