@@ -1,0 +1,14 @@
+- name: mkdir /spark
+  script: mkdir.sh
+
+- name: make sure /vagrant/shared exists to put {{ spark_dist }}
+  shell: mkdir -p /vagrant/shared
+
+- name: download spark release
+  shell: if [ ! -f /vagrant/shared/{{ spark_dist }} ]; then \
+           version=`echo {{ spark_dist }} | cut -d'-' -f2`; \
+           wget -q http://archive.apache.org/dist/spark/spark-${version}/{{ spark_dist }} -P /vagrant/shared; \
+         fi && \
+         tar xzf /vagrant/shared/{{ spark_dist }} -C /spark --strip-components 1
+
+# vim :set filetype=ansible.yaml:
