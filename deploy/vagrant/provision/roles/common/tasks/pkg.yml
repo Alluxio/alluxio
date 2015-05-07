@@ -1,0 +1,10 @@
+# Install necessary packages
+---
+
+- name: install libselinux-python
+  command: sudo yum install -y -q libselinux-python
+
+- name: install java
+  script: java.sh
+
+# vim: set filetype=ansible.yaml:
