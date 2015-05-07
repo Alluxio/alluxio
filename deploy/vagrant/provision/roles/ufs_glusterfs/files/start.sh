@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-nodes=`cat /tachyon/conf/workers`
+nodes=`cat /vagrant/files/workers`
 vol="tachyon_vol"
 brick=""
 
