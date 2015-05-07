@@ -24,8 +24,11 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 
 /**
- * This class will use Amazon S3 as the backing store. Update awsAccessKey, awsSecretKey, and
- * baseDirectory accordingly to enable this test.
+ * This class will use Amazon S3 as the backing store. The integration properties should be
+ * specified in the module's pom file. Each instance of the cluster will run with a separate base
+ * directory (user prefix + uuid). Each test will attempt to clean up their test directories, but
+ * in cases of complete failure (ie. jvm crashed) the directory will need to be cleaned up through
+ * manual means.
  */
 public class S3UnderStorageCluster extends UnderFileSystemCluster {
 

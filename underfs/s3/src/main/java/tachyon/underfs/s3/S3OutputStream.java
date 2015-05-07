@@ -31,6 +31,11 @@ import org.jets3t.service.utils.Mimetypes;
 
 import tachyon.util.CommonUtils;
 
+/**
+ * This class creates a streaming interface for writing a file in s3. The data will be persisted
+ * to a temporary directory on local disk and copied as a complete file when the close() method is
+ * called.
+ */
 public class S3OutputStream extends OutputStream {
   private final String mBucketName;
   private final String mKey;
