@@ -34,7 +34,7 @@ import tachyon.underfs.UnderFileSystemCluster;
 /**
  * Unit tests for <code>tachyon.client.FileOutStream</code>.
  */
-public class FileOutStreamTest {
+public class FileOutStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 32;

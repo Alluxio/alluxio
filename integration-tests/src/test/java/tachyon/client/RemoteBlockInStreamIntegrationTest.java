@@ -39,7 +39,7 @@ import tachyon.master.LocalTachyonCluster;
  * Unit tests for <code>tachyon.client.RemoteBlockInStream</code>.
  */
 @RunWith(Parameterized.class)
-public class RemoteBlockInStreamTest {
+public class RemoteBlockInStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
@@ -61,7 +61,7 @@ public class RemoteBlockInStreamTest {
     return list;
   }
 
-  public RemoteBlockInStreamTest(String[] classes) {
+  public RemoteBlockInStreamIntegrationTest(String[] classes) {
     mDataServerClass = classes[0];
     mRemoteReaderClass = classes[1];
   }
