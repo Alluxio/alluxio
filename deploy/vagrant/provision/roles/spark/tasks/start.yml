@@ -1,0 +1,4 @@
+- name: start spark
+  shell: /spark/sbin/start-all.sh
+
+# vim :set filetype=ansible.yaml:
