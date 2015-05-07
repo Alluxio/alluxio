@@ -1,0 +1,25 @@
+# Configure Tachyon, some configuration is related to ufs, so will reference scripts in roles/ufs_xxx
+---
+
+- name: set tachyon/conf/workers tachyon/conf/slaves
+  shell: cp /vagrant/files/workers /tachyon/conf/workers && \
+         cp /vagrant/files/workers /tachyon/conf/slaves
+
+- name: set tachyon-env.sh
+  script: roles/ufs_{{ ufs }}/files/config_tachyon.sh
+
+- name: let tachyon ssh to workers in parallel when start
+  shell: sed -i \
+           's/TACHYON_SSH_FOREGROUND="yes"/TACHYON_SSH_FOREGROUND=""/g' \
+           /tachyon/conf/tachyon-env.sh
+
+- name: set TACHYON_JAR in libexec/tachyon-config.sh
+  shell: tachyon_version=`grep version /tachyon/pom.xml | \
+           head -n1 | tr -d ' ' | \
+           sed 's/<version>//g' | \
+           sed 's/<\/version>//g'` && \
+         sed -i \
+           "s/tachyon-.*-jar-with-dependencies.jar/tachyon-${tachyon_version}-jar-with-dependencies.jar/g" \
+           /tachyon/libexec/tachyon-config.sh
+
+# vim :set filetype=ansible.yaml:

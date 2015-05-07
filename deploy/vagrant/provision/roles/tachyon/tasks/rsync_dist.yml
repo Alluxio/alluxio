@@ -1,0 +1,16 @@
+# For efficiency, only TachyonMaster will compile from source
+# other nodes rsync necessary runtime from TachyonMaster
+---
+
+- name: install rsync
+  command: sudo yum install -y -q rsync
+
+- name: mkdir /tachyon
+  script: mkdir.sh
+
+- name: rsync tachyon from TachyonMaster
+  shell: mkdir -p /tachyon/core/target && \
+         rsync -avz TachyonMaster.local:/tachyon/core/target/tachyon-*-jar-with-dependencies.jar /tachyon/core/target  && \
+         rsync -avz TachyonMaster.local:'/tachyon/bin /tachyon/conf /tachyon/libexec' /tachyon
+
+# vim :set filetype=ansible.yaml:
