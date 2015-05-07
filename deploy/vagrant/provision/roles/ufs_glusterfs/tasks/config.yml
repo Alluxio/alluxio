@@ -1,0 +1,6 @@
+- name: configure glusterfs
+  shell: sudo service glusterd start && \
+         mkdir -p /gfs_vol && \
+         mkdir -p /vol
+
+# vim :set filetype=ansible.yaml:
