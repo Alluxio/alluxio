@@ -29,21 +29,26 @@ import tachyon.underfs.UnderFileSystemCluster;
  */
 public class S3UnderStorageCluster extends UnderFileSystemCluster {
 
-  private final String awsAccessKey = "";
-  private final String awsSecretKey = "";
-  private final String baseDirectory = ""; // s3n://my-test-bucket/tachyon-test
+  private final static String INTEGRATION_S3_ACCESS_KEY = "accessKey";
+  private final static String INTEGRATION_S3_SECRET_KEY = "secretKey";
+  private final static String INTEGRATION_S3_BUCKET = "s3Bucket";
+
+  private String mS3Bucket;
 
   public S3UnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
+    String awsAccessKey = System.getProperty(INTEGRATION_S3_ACCESS_KEY);
+    String awsSecretKey = System.getProperty(INTEGRATION_S3_SECRET_KEY);
     System.setProperty(Constants.S3_ACCESS_KEY, awsAccessKey);
     System.setProperty(Constants.S3_SECRET_KEY, awsSecretKey);
-    mBaseDir = baseDirectory + UUID.randomUUID();
+    mS3Bucket = System.getProperty(INTEGRATION_S3_BUCKET);
+    mBaseDir = mS3Bucket + UUID.randomUUID();
   }
 
   @Override
   public void cleanup() throws IOException {
     String oldDir = mBaseDir;
-    mBaseDir = baseDirectory + UUID.randomUUID();
+    mBaseDir = mS3Bucket + UUID.randomUUID();
     UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mTachyonConf);
     ufs.delete(oldDir, true);
   }
