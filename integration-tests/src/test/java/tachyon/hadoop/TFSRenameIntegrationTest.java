@@ -29,7 +29,10 @@ import org.junit.Test;
 
 import tachyon.master.LocalTachyonCluster;
 
-public class TFSRenameTest {
+/**
+ * Integration tests for TFS rename.
+ */
+public class TFSRenameIntegrationTest {
 
   private static final int BLOCK_SIZE = 1024;
   private static LocalTachyonCluster sLocalTachyonCluster;
