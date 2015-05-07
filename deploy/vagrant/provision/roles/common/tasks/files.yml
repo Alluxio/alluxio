@@ -1,0 +1,13 @@
+# Make sure playbook.yml/../files directory is synced /vagrant/files on remote host
+---
+
+- name: mkdir /vagrant if not exist
+  shell: if [ ! -d /vagrant ]; then sudo mkdir /vagrant && chown -R `whoami` /vagrant; fi
+
+- name: install rsync
+  shell: sudo yum install -y -q rsync
+
+- name: sync files
+  synchronize: src="{{ files }}" dest=/vagrant
+
+# vim: set filetype=ansible.yaml:
