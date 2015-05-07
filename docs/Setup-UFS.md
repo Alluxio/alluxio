@@ -31,6 +31,11 @@ necessary credentials such as `fs.s3n.awsAccessKeyId` and `fs.s3n.awsSecretAcces
 the underfs address to a directory and bucket that already exist (you can create new buckets and
 directories from the S3 web interface).
 
+Tachyon comes with a native S3 client and the option to use the S3 client provided by hadoop. To
+enable the native S3 client, include the `underfs-s3` module and exclude the `underfs-hdfs` module.
+Alternatively, modify `tachyon.underfs.hadoop.prefixes` to exclude `s3n://`. To use the hadoop
+provided client, include the `underfs-hdfs` module and exclude the `underfs-s3` module.
+
 Some users have run into additional issues getting Tachyon working with S3. The `hadoop-client`
 package requires the `jets3t` package to use S3, but for some reason doesn't pull it in as a
 depedency. One way to fix this is to repackage Tachyon, adding jets3t as a dependency. For example,
