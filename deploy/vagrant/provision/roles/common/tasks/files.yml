@@ -2,7 +2,7 @@
 ---
 
 - name: mkdir /vagrant if not exist
-  shell: if [ ! -d /vagrant ]; then sudo mkdir /vagrant && chown -R `whoami` /vagrant; fi
+  shell: if [ ! -d /vagrant ]; then sudo mkdir /vagrant && sudo chown -R `whoami` /vagrant; fi
 
 - name: install rsync
   shell: sudo yum install -y -q rsync
