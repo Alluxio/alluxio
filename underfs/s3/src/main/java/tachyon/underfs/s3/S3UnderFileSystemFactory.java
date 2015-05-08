@@ -56,6 +56,12 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
     return path != null && path.startsWith(Constants.HEADER_S3N);
   }
 
+  /**
+   * This method adds AWS credentials from system properties to the Tachyon Conf if they are not
+   * already present.
+   * @param tachyonConf the conf to check and add credentials to
+   * @return true if both access and secret key are present, false otherwise
+   */
   private boolean addAndCheckAWSCredentials(TachyonConf tachyonConf) {
     String accessKeyConf = Constants.S3_ACCESS_KEY;
     if (System.getProperty(accessKeyConf) != null && tachyonConf.get(accessKeyConf, null) == null) {
