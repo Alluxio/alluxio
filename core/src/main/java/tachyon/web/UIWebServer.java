@@ -90,6 +90,15 @@ public abstract class UIWebServer {
     mServer.setHandler(handlers);
   }
 
+  public void addHandler(AbstractHandler handler) {
+    HandlerList handlers = new HandlerList();
+    handlers.addHandler(handler);
+    for (Handler h : mServer.getHandlers()) {
+      handlers.addHandler(h);
+    }
+    mServer.setHandler(handlers);
+  }
+
   public void setHandler(AbstractHandler handler) {
     mServer.setHandler(handler);
   }

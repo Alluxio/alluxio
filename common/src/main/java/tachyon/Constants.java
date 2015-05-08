@@ -46,6 +46,8 @@ public class Constants {
   public static final String SCHEME_FT = "tachyon-ft";
   public static final String HEADER_FT = SCHEME_FT + "://";
 
+  public static final String HEADER_S3N = "s3n://";
+
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;
@@ -203,4 +205,6 @@ public class Constants {
   public static final String USER_ENABLE_LOCAL_READ = "tachyon.user.localread.enable";
   public static final String USER_ENABLE_LOCAL_WRITE = "tachyon.user.localwrite.enable";
 
+  public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
+  public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
 }

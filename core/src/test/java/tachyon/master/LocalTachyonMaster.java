@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -23,16 +23,15 @@ import com.google.common.base.Supplier;
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.underfs.UfsUtils;
 import tachyon.underfs.UnderFileSystemCluster;
-import tachyon.underfs.UnderFileSystemsUtils;
 import tachyon.util.NetworkUtils;
+import tachyon.util.UnderFileSystemUtils;
 
 /**
  * Constructs an isolated master. Primary users of this class are the
  * {@link tachyon.master.LocalTachyonCluster} and
  * {@link tachyon.master.LocalTachyonClusterMultiMaster}.
- * 
+ *
  * Isolated is defined as having its own root directory, and port.
  */
 public final class LocalTachyonMaster {
@@ -64,8 +63,8 @@ public final class LocalTachyonMaster {
     mDataDir = path(mTachyonHome, "data");
     mLogDir = path(mTachyonHome, "logs");
 
-    UnderFileSystemsUtils.mkdirIfNotExists(mDataDir, tachyonConf);
-    UnderFileSystemsUtils.mkdirIfNotExists(mLogDir, tachyonConf);
+    UnderFileSystemUtils.mkdirIfNotExists(mDataDir, tachyonConf);
+    UnderFileSystemUtils.mkdirIfNotExists(mLogDir, tachyonConf);
 
     mHostname = NetworkUtils.getLocalHostName(250);
 
@@ -80,8 +79,8 @@ public final class LocalTachyonMaster {
     // miniDFSCluster
     mJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
 
-    UnderFileSystemsUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
-    UfsUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(), tachyonConf);
+    UnderFileSystemUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
+    UnderFileSystemUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(), tachyonConf);
 
     tachyonConf.set(Constants.MASTER_HOSTNAME, mHostname);
     tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
@@ -92,10 +91,10 @@ public final class LocalTachyonMaster {
 
     tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
     tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
-    
+
     // If tests fail to connect they should fail early rather than using the default ridiculously high retries
     tachyonConf.set(Constants.MASTER_RETRY_COUNT, "3");
-    
+
     // Since tests are always running on a single host keep the resolution timeout low as otherwise people
     // running with strange network configurations will see very slow tests
     tachyonConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
@@ -125,13 +124,13 @@ public final class LocalTachyonMaster {
 
   /**
    * Creates a new local tachyon master with a isolated home and port.
-   * 
+   *
    * @throws IOException unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create(TachyonConf tachyonConf) throws IOException {
     final String tachyonHome = uniquePath();
-    UnderFileSystemsUtils.deleteDir(tachyonHome, tachyonConf);
-    UnderFileSystemsUtils.mkdirIfNotExists(tachyonHome, tachyonConf);
+    UnderFileSystemUtils.deleteDir(tachyonHome, tachyonConf);
+    UnderFileSystemUtils.mkdirIfNotExists(tachyonHome, tachyonConf);
 
     // Update Tachyon home in the passed TachyonConf instance.
     tachyonConf.set(Constants.TACHYON_HOME, tachyonHome);
@@ -144,14 +143,14 @@ public final class LocalTachyonMaster {
    * before calling this method.
    * <p />
    * Clean is defined as
-   * 
+   *
    * <pre>
    * {@code
    *   UnderFileSystems.deleteDir(tachyonHome);
    *   UnderFileSystems.mkdirIfNotExists(tachyonHome);
    * }
    * </pre>
-   * 
+   *
    * @throws IOException unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create(final String tachyonHome, TachyonConf tachyonConf)
@@ -165,8 +164,8 @@ public final class LocalTachyonMaster {
 
   /**
    * Stops the master and cleans up client connections.
-   * 
-   * This method will not clean up {@link tachyon.underfs.UnderFileSystemsUtils} data. To do that you must
+   *
+   * This method will not clean up {@link tachyon.util.UnderFileSystemUtils} data. To do that you must
    * call {@link #cleanupUnderfs()}.
    */
   public void stop() throws Exception {

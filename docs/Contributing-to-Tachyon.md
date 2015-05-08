@@ -61,7 +61,8 @@ leverage the Scala shell, as discussed in this
 
 -   Run tests with a different Hadoop version: ``mvn -Dhadoop.version=2.2.0 clean test``
 
--   Run tests with Hadoop FileSystem contract tests: ``mvn -Dtest.profile=contractTest test``
+-   Run tests with Hadoop FileSystem contract tests (uses hadoop 2.6.0):
+``mvn -PcontractTest clean test``
 
 ### Coding Style
 
@@ -150,7 +151,7 @@ for beginners. For a tutorial, see the GitHub guides on
 You can generate an Eclipse configuration file by running:
 
     $ mvn clean install -DskipTests
-    $ mvn clean -Dtest.profile=contractTest -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
+    $ mvn clean -PcontractTest -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
 
 Then import the folder into Eclipse.
 
