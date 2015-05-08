@@ -52,6 +52,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               tachyon_dist: TachyonV.dist,
 
               spark_type: SparkV.type,
+              spark_repo: spark_repo,
               spark_version: spark_version,
               spark_version_lessthan_1: SparkV.v_lt_1,
               spark_dist: SparkV.dist,
