@@ -357,6 +357,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @return the the parent key
    */
   private String getParentKey(String key) {
+    // Root does not have a parent.
+    if (isRoot(key)) {
+      return null;
+    }
     int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
     if (separatorIndex >= 0) {
       return key.substring(0, separatorIndex);
