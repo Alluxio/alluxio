@@ -83,9 +83,9 @@
             <version>2.18.1</version>
             <configuration>
               <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
-              <dependenciesToScan>
-                <dependency>org.tachyonproject:tachyon</dependency>
-              </dependenciesToScan>
+              <!-- <dependenciesToScan> -->
+              <!--   <dependency>org.tachyonproject:tachyon</dependency> -->
+              <!-- </dependenciesToScan> -->
               <systemPropertyVariables>
                 <ufs>tachyon.underfs.glusterfs.GlusterFSCluster</ufs>
               </systemPropertyVariables>
