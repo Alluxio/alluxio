@@ -286,6 +286,7 @@ public class TachyonMaster {
             }
             mMasterMetricsSystem.registerSource(mMasterInfo.getMasterSource());
             mMasterMetricsSystem.start();
+            mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
             mWebServer.startWebServer();
             LOG.info("The master (leader) server started @ " + mMasterAddress);
             mMasterServiceServer.serve();
@@ -314,6 +315,7 @@ public class TachyonMaster {
 
       mMasterMetricsSystem.registerSource(mMasterInfo.getMasterSource());
       mMasterMetricsSystem.start();
+      mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
       mWebServer.startWebServer();
       LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
       mMasterServiceServer.serve();
