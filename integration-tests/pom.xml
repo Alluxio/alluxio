@@ -94,6 +94,14 @@
 
     <profile>
       <id>hdfsTest</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-underfs-hdfs</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
       <build>
         <plugins>
           <plugin>
@@ -147,7 +155,7 @@
       <dependencies>
         <dependency>
           <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-hdfs</artifactId>
+          <artifactId>tachyon-underfs-glusterfs</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
@@ -208,12 +216,6 @@
 
     <profile>
       <id>contractTest</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-minicluster</artifactId>
-        </dependency>
-      </dependencies>
     </profile>
   </profiles>
 
