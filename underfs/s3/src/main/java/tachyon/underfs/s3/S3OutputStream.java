@@ -43,12 +43,18 @@ import tachyon.util.CommonUtils;
 public class S3OutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Bucket name of the Tachyon S3 bucket */
   private final String mBucketName;
+  /** Key of the file when it is uploaded to S3 */
   private final String mKey;
+  /** The outputstream to a local file where the file will be buffered until closed */
   private final OutputStream mLocalOutputStream;
+  /** The local file that will be uploaded when the stream is closed */
   private final File mFile;
+  /** The JetS3t client for S3 operations */
   private final S3Service mClient;
 
+  /** Flag to indicate this stream has been closed, to ensure close is only done once */
   private boolean mClosed;
 
   public S3OutputStream(String bucketName, String key, S3Service client) throws IOException {
