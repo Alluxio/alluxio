@@ -74,9 +74,9 @@
         <configuration>
           <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
           <!-- Pull in integration tests from core module -->
-          <dependenciesToScan>
-            <dependency>org.tachyonproject:tachyon</dependency>
-          </dependenciesToScan>
+          <!-- <dependenciesToScan> -->
+          <!--   <dependency>org.tachyonproject:tachyon</dependency> -->
+          <!-- </dependenciesToScan> -->
           <systemPropertyVariables>
             <ufs>tachyon.underfs.hdfs.LocalMiniDFSCluster</ufs>
           </systemPropertyVariables>
