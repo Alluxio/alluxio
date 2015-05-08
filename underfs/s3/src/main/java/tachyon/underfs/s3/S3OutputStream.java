@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 import com.google.common.base.Preconditions;
@@ -28,7 +29,10 @@ import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Object;
 import org.jets3t.service.utils.Mimetypes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import tachyon.Constants;
 import tachyon.util.CommonUtils;
 
 /**
@@ -37,11 +41,15 @@ import tachyon.util.CommonUtils;
  * called.
  */
 public class S3OutputStream extends OutputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final String mBucketName;
   private final String mKey;
   private final OutputStream mLocalOutputStream;
   private final File mFile;
   private final S3Service mClient;
+
+  private boolean mClosed;
 
   public S3OutputStream(String bucketName, String key, S3Service client) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "
@@ -51,6 +59,7 @@ public class S3OutputStream extends OutputStream {
     mClient = client;
     mFile = new File(CommonUtils.concatPath("/tmp", UUID.randomUUID()));
     mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
+    mClosed = false;
   }
 
   @Override
@@ -75,15 +84,23 @@ public class S3OutputStream extends OutputStream {
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
     mLocalOutputStream.close();
-    S3Object obj = new S3Object(mKey);
-    obj.setDataInputFile(mFile);
-    obj.setContentLength(mFile.length());
-    obj.setContentEncoding(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
     try {
+      S3Object obj = new S3Object(mFile);
+      obj.setBucketName(mBucketName);
+      obj.setKey(mKey);
+      obj.setContentEncoding(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
       mClient.putObject(mBucketName, obj);
+      mFile.delete();
     } catch (ServiceException se) {
+      LOG.error("Failed to upload " + mKey + ". Temporary file @ " + mFile.getPath());
       throw new IOException(se);
+    } catch (NoSuchAlgorithmException nsae) {
+      throw new IOException(nsae);
     }
   }
 }
