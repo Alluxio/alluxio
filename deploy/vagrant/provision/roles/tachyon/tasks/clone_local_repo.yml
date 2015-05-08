@@ -6,7 +6,7 @@
 
 - name: clone local tachyon repo
   synchronize:
-    src: ../../../
+    src: ../../../../../../
     dest: /tachyon
     rsync_opts: >
       --exclude=.git,

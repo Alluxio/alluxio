@@ -1,6 +1,6 @@
 - hosts: all
   tasks:
-    - include: roles/common/tasks/main.yml files=../files
+    - include: roles/common/tasks/main.yml
 
     - include: roles/lib/tasks/mount.yml
       when: provider == "aws"
@@ -60,6 +60,7 @@
     - include: roles/tachyon/tasks/rsync_dist.yml
 
     - include: roles/spark/tasks/rsync_dist.yml
+      when: spark_type != "None"
 
 - hosts: TachyonMaster
   tasks:
@@ -68,4 +69,5 @@
     - include: roles/tachyon/tasks/start.yml
 
     - include: roles/spark/tasks/start.yml
+      when: spark_type != "None"
 

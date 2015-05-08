@@ -8,6 +8,6 @@
   shell: sudo yum install -y -q rsync
 
 - name: sync files
-  synchronize: src="{{ files }}" dest=/vagrant
+  synchronize: src="../../../../files" dest=/vagrant # files/ in the same directory as Vagrantfile
 
 # vim: set filetype=ansible.yaml:
