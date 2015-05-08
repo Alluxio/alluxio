@@ -40,19 +40,21 @@ public class MetricsSystemTest {
     MetricsSystem masterMetricsSystem = new MetricsSystem("master", mTachyonConf);
     masterMetricsSystem.start();
 
-    Assert.assertEquals(1, masterMetricsSystem.getSinks().size());
-    Assert.assertEquals(0, masterMetricsSystem.getSources().size());
-    masterMetricsSystem.registerSource(new MasterSource(null));
+    Assert.assertNotNull(masterMetricsSystem.getServletHandler());
+    Assert.assertEquals(2, masterMetricsSystem.getSinks().size());
     Assert.assertEquals(1, masterMetricsSystem.getSources().size());
+    masterMetricsSystem.registerSource(new MasterSource(null));
+    Assert.assertEquals(2, masterMetricsSystem.getSources().size());
     masterMetricsSystem.stop();
 
     MetricsSystem workerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
     workerMetricsSystem.start();
 
+    Assert.assertNotNull(workerMetricsSystem.getServletHandler());
     Assert.assertEquals(1, workerMetricsSystem.getSinks().size());
-    Assert.assertEquals(0, workerMetricsSystem.getSources().size());
-    workerMetricsSystem.registerSource(new WorkerSource(null));
     Assert.assertEquals(1, workerMetricsSystem.getSources().size());
+    workerMetricsSystem.registerSource(new WorkerSource(null));
+    Assert.assertEquals(2, workerMetricsSystem.getSources().size());
     workerMetricsSystem.stop();
   }
 }

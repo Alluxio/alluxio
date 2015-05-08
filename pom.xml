@@ -396,7 +396,6 @@
             <!-- Default local file Exclusions -->
             <exclude>**/underFSStorage/**</exclude>
             <exclude>**/journal/**</exclude>
-
           </excludes>
           <mapping>
             <java>SLASHSTAR_STYLE</java>
@@ -436,7 +435,6 @@
       <activation>
         <jdk>[1.8,)</jdk>
       </activation>
-
       <build>
         <plugins>
           <plugin>
@@ -457,6 +455,13 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+
+    <profile>
+      <id>contractTest</id>
+      <properties>
+        <hadoop.version>2.6.0</hadoop.version>
+      </properties>
     </profile>
   </profiles>
 </project>

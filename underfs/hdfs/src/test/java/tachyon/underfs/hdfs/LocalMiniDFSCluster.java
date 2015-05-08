@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -25,10 +25,9 @@ import org.apache.hadoop.hdfs.MiniDFSCluster;
 
 import tachyon.conf.TachyonConf;
 import tachyon.TachyonURI;
-import tachyon.underfs.UfsUtils;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
-
+import tachyon.util.UnderFileSystemUtils;
 /**
  * A local MiniDFSCluster for testing UnderFileSystemHdfs.
  */
@@ -61,7 +60,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       dfs = cluster.getDFSClient();
       dfs.mkdirs(new Path("/1"));
 
-      UfsUtils.touch(cluster.getUnderFilesystemAddress() + "/1" + "/_format_"
+      UnderFileSystemUtils.touch(cluster.getUnderFilesystemAddress() + "/1" + "/_format_"
           + System.currentTimeMillis(), tachyonConf);
       fs = dfs.listStatus(new Path("/1"));
       assert fs.length != 0;
@@ -93,7 +92,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * To intiaize the local minidfscluster with single namenode and datanode
-   * 
+   *
    * @param dfsBaseDirs The base directory for both namenode and datanode. The dfs.name.dir and
    *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
    * @param tachyonConf The {@link tachyon.conf.TachyonConf} instance.
@@ -104,7 +103,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * To initialize the local minidfscluster
-   * 
+   *
    * @param dfsBaseDirs The base directory for both namenode and datanode. The dfs.name.dir and
    *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
    * @param numDataNode The number of datanode
@@ -116,7 +115,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * To initialize the local minidfscluster
-   * 
+   *
    * @param dfsBaseDirs The base directory for both namenode and datanode. The dfs.name.dir and
    *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
    * @param numDataNode The number of datanode
@@ -167,7 +166,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * Get the specified or real namenode port
-   * 
+   *
    * @return port of namenode
    */
   public int getNameNodePort() {
@@ -176,7 +175,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * Get the namenode address for this minidfscluster
-   * 
+   *
    * @return namenode address
    */
   @Override
@@ -194,7 +193,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * To shutdown the minidfscluster in teardown phase.
-   * 
+   *
    * @throws IOException
    */
   @Override
@@ -208,7 +207,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * To start the minidfscluster before using it
-   * 
+   *
    * @throws IOException
    */
   @Override
