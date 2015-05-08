@@ -100,11 +100,6 @@
       <!--scope>test</scope-->
     </dependency>
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-openstack</artifactId>
-      <version>${hadoop-openstack.version}</version>
-    </dependency>
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
@@ -127,7 +122,25 @@
   </dependencies>
 
   <profiles>
-
+   <profile>
+      <id>swift</id>
+      <activation>
+        <property>
+          <name>swift.profile</name>
+          <value>swift</value>
+        </property>
+      </activation>
+      <properties>
+        <ufs></ufs>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-openstack</artifactId>
+           <version>${hadoop-openstack.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
     <profile>
       <id>default</id>
       <activation>
