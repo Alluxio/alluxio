@@ -36,8 +36,10 @@ public class S3UnderFileSystemTest {
 
   @Test
   public void convertToFolderNameTest() throws Exception {
-    String result = Whitebox.invokeMethod(sMockS3UnderFileSystem, "convertToFolderName", "test");
-    Assert.assertEquals(result, "test_$folder$");
+    String input1 = "test";
+    String result1 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "convertToFolderName", input1);
+
+    Assert.assertEquals(result1, "test_$folder$");
   }
 
   @Test
@@ -55,6 +57,38 @@ public class S3UnderFileSystemTest {
     Assert.assertEquals(result2, null);
     Assert.assertEquals(result3, "s3n://test-bucket/parent");
     Assert.assertEquals(result4, null);
+  }
+
+  @Test
+  public void isRootTest() throws Exception {
+    String input1 = "s3n://";
+    String input2 = "s3n://test-bucket";
+    String input3 = "s3n://test-bucket/";
+    String input4 = "s3n://test-bucket/file";
+    String input5 = "s3n://test-bucket/dir/file";
+    String input6 = "s3n://test-bucket-wrong/";
+    boolean result1 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input1);
+    boolean result2 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input2);
+    boolean result3 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input3);
+    boolean result4 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input4);
+    boolean result5 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input5);
+    boolean result6 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input6);
+
+    Assert.assertFalse(result1);
+    Assert.assertTrue(result2);
+    Assert.assertTrue(result3);
+    Assert.assertFalse(result4);
+    Assert.assertFalse(result5);
+    Assert.assertFalse(result6);
+  }
+
+  @Test
+  public void stripPrefixIfPresentTest() throws Exception {
+    String input1 = "s3n://test-bucket";
+    String input2 = "s3n://test-bucket/";
+    String input3 = "s3n://test-bucket/file";
+    String input4 = "s3n://test-bucket/dir/file";
+    String input4 = "s3n://test-bucket/dir/file";
   }
 
 }
