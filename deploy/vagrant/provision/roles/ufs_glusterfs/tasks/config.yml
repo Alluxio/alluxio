@@ -1,6 +1,8 @@
 - name: configure glusterfs
   shell: sudo service glusterd start && \
-         mkdir -p /gfs_vol && \
-         mkdir -p /vol
+         sudo mkdir -p /gfs_vol && \
+         sudo chown -R `whoami` /gfs_vol && \
+         sudo mkdir -p /vol && \
+         sudo chown -R `whoami` /vol
 
 # vim :set filetype=ansible.yaml:
