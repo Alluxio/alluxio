@@ -23,15 +23,6 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TestUtils;
-import tachyon.client.BlockInStream;
-import tachyon.client.EmptyBlockInStream;
-import tachyon.client.InStream;
-import tachyon.client.LocalBlockInStream;
-import tachyon.client.ReadType;
-import tachyon.client.RemoteBlockInStream;
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFile;
-import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
@@ -58,7 +49,6 @@ public class BlockInStreamIntegrationTest {
     sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
-    System.out.println(Constants.LOGGER_TYPE);
   }
 
   /**
