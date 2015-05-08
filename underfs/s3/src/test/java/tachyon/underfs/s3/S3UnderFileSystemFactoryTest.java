@@ -25,7 +25,7 @@ import tachyon.underfs.UnderFileSystemRegistry;
 /**
  * This test ensures the s3 ufs module correctly accepts paths that begin with s3n://
  */
-public class S3UnderFileSystemTest {
+public class S3UnderFileSystemFactoryTest {
   @Test
   public void factoryTest() {
     TachyonConf conf = new TachyonConf();
