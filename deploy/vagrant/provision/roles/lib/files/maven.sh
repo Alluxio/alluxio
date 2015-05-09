@@ -8,10 +8,9 @@ mkdir -p /vagrant/shared
 cd /vagrant/shared
 
 # install maven
-if [ ! -f epel-apache-maven.repo ]
-then
-    sudo yum install -y -q wget
-    wget -q http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo
+if [ ! -f epel-apache-maven.repo ]; then
+ sudo yum install -y -q wget
+ wget -q http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo
 fi
 
 sudo cp epel-apache-maven.repo $REPO
