@@ -101,6 +101,7 @@ create new directory `roles/ufs_{filesystem_name}` with structure:
 	|---- rsync_dist.yml        # only master will download/compile, how do slaves rsync the binary distribution from master
 	|---- start.yml             # how to start the ufs
 
+Then compose the task ymls in playbook.yml
 
 ### Add new framework on top of Tachyon
 
@@ -112,34 +113,46 @@ create new directory `roles/{framework_name}` with structure:
 	|-- files
 	|---- ...
 	|-- tasks
-	|---- download_release.yml   # if you how to download binary release of this framework
+	|---- download_release.yml   # if you want to support deploying releases instead of downloading src code and compile, this file specifies how to download binary release of this framework
 	|---- clone_remote_repo.yml  # how to git clone the repo
 	|---- compile.yml            # how to compile
 	|---- config.yml             # how to configure the framework
 	|---- rsync_dist.yml         # only master will download/compile, how do slaves rsync the binary distribution from master
 	|---- start.yml              # how to start the framework
+	
+Then compose the task ymls in playbook.yml
 
-For these two extension tasks, the interface is the combination of:
+**Interface**
+
+For these two extension tasks, the "Interface" is the combination of:
 
 1. directory structure
 2. name and semantic of the yml files 
 
 read existing roles/ufs_xxx and roles/spark, you'll understand the interface. 
 
-If you need to write bash to implement these interfaces, put them under files/, 
-if the implementation is related to ufs, put them under ufs_xxx/files, like `ufs_hadoop2/compile_tachyon.sh`, `ufs_hadoop2/compile_spark.sh`, etc. 
-then include the bash scripts with ansible's `script` module in roles/xxx/tasks/*.yml. 
+**Implementation**
 
-After coding your extension, you need to compose the components in playbook.yml, if you need to pass conditional
-variables, pass them in Vagrantfile in `ans.extra_vars`. 
+If you need to write bash to implement the interfaces, put them under files/.
+
+If the implementation is related to ufs, put them under ufs_xxx/files, like `ufs_hadoop2/compile_tachyon.sh`, `ufs_hadoop2/compile_spark.sh`, etc. 
+
+Then include the bash scripts with ansible's `script` module in roles/xxx/tasks/*.yml. 
+
+**Conditional Variable**
+
+If you need to use conditional variables when composing tasks in playbook.yml, pass them in `ans.extra_vars` in Vagrantfile.
 
 **Relative Path** 
 
-1. in the same role, directly using the name of bash scripts in `files/` in `script`, `synchronize`, `copy` modules in `tasks/` without considering relative path.
-2. relative paths in roles/xxx/tasks is relative to current task yml file, for example:
+1. when you want to use files under files directory in tasks directory of the same role, reference the file name directly. 
 
-in tasks, when including tasks in other roles, use path relative to current task file like `-- include: ../../xxx/tasks/xxx.yml`, e.x. roles/tachyon/tasks/compile.yml includes roles/lib/tasks/maven.yml, it should write
-`-- include: ../../lib/tasks/maven.yml`
+	e.x. If you want to use `roles/role1/files/shell1.sh` in `roles/role1/tasks/task1.yml`, directly write `shell1.sh` in modules like `script: shell1.sh`, `synchronize: shell1.sh`, `copy: shell1.sh`, etc. Ansible
+will take care of relative path referencing for you.
+
+2. other paths in roles/xxx/tasks is relative to current task yml file.
+	
+	e.x. If `roles/tachyon/tasks/compile.yml` want to include `roles/lib/tasks/maven.yml`, it should write `include: ../../lib/tasks/maven.yml`
 
 
 ## Start a cluster
