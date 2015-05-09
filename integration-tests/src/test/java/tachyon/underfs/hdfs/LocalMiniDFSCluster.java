@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.underfs.hdfs;
 
 import java.io.File;
@@ -28,8 +29,11 @@ import tachyon.TachyonURI;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.UnderFileSystemUtils;
+
 /**
- * A local MiniDFSCluster for testing UnderFileSystemHdfs.
+ * A local MiniDFSCluster for testing {@link HdfsUnderFileSystem}. This class emulates an HDFS
+ * cluster on the local machine, so {@code HdfsUnderFilesystem} can talk to this emulated HDFS
+ * cluster.
  */
 public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   /**
@@ -60,8 +64,9 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       dfs = cluster.getDFSClient();
       dfs.mkdirs(new Path("/1"));
 
-      UnderFileSystemUtils.touch(cluster.getUnderFilesystemAddress() + "/1" + "/_format_"
-          + System.currentTimeMillis(), tachyonConf);
+      UnderFileSystemUtils.touch(
+          cluster.getUnderFilesystemAddress() + "/1" + "/_format_" + System.currentTimeMillis(),
+          tachyonConf);
       fs = dfs.listStatus(new Path("/1"));
       assert fs.length != 0;
       System.out.println(fs[0].getPath().toUri());
