@@ -27,10 +27,8 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon</artifactId>
@@ -39,71 +37,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <profiles>
-    <profile>
-      <id>glusterfsTest</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.gluster</groupId>
-          <artifactId>glusterfs-hadoop</artifactId>
-          <version>${glusterfs-hadoop.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-client</artifactId>
-        </dependency>
-
-        <!-- Test Dependencies -->
-        <dependency>
-          <groupId>org.apache.thrift</groupId>
-          <artifactId>libthrift</artifactId>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>curator-test</artifactId>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.powermock</groupId>
-          <artifactId>powermock-module-junit4</artifactId>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.powermock</groupId>
-          <artifactId>powermock-api-mockito</artifactId>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.18.1</version>
-            <configuration>
-              <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
-              <dependenciesToScan>
-                <dependency>org.tachyonproject:tachyon</dependency>
-              </dependenciesToScan>
-              <systemPropertyVariables>
-                <ufs>tachyon.underfs.glusterfs.GlusterFSCluster</ufs>
-              </systemPropertyVariables>
-            </configuration>
-            <executions>
-              <execution>
-                <id>default-test</id>
-                <phase>test</phase>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>

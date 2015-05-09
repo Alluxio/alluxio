@@ -35,17 +35,28 @@ public class MetricsConfigTest {
     MetricsConfig config = new MetricsConfig(mFilePath);
 
     Properties masterProp = config.getInstanceProperties("master");
-    Assert.assertEquals(3, masterProp.size());
+    Assert.assertEquals(7, masterProp.size());
     Assert.assertEquals("tachyon.metrics.sink.ConsoleSink",
         masterProp.getProperty("sink.console.class"));
     Assert.assertEquals("20", masterProp.getProperty("sink.console.period"));
     Assert.assertEquals("minutes", masterProp.getProperty("sink.console.unit"));
+    Assert.assertEquals("tachyon.metrics.source.JvmSource",
+        masterProp.getProperty("source.jvm.class"));
+    Assert.assertEquals("tachyon.metrics.sink.JmxSink", masterProp.getProperty("sink.jmx.class"));
+    Assert.assertEquals("tachyon.metrics.sink.MetricsServlet",
+        masterProp.getProperty("sink.servlet.class"));
+    Assert.assertEquals("/metrics/json", masterProp.getProperty("sink.servlet.path"));
 
     Properties workerProp = config.getInstanceProperties("worker");
-    Assert.assertEquals(2, workerProp.size());
+    Assert.assertEquals(5, workerProp.size());
     Assert.assertEquals("tachyon.metrics.sink.ConsoleSink",
         workerProp.getProperty("sink.console.class"));
     Assert.assertEquals("15", workerProp.getProperty("sink.console.period"));
+    Assert.assertEquals("tachyon.metrics.source.JvmSource",
+        workerProp.getProperty("source.jvm.class"));
+    Assert.assertEquals("tachyon.metrics.sink.MetricsServlet",
+        workerProp.getProperty("sink.servlet.class"));
+    Assert.assertEquals("/metrics/json", workerProp.getProperty("sink.servlet.path"));
   }
 
   @Test
@@ -56,13 +67,28 @@ public class MetricsConfigTest {
     Assert.assertEquals(2, propertyCategories.size());
 
     Properties masterProp = config.getInstanceProperties("master");
+    Map<String, Properties> sourceProps =
+        config.subProperties(masterProp, MetricsSystem.SOURCE_REGEX);
+    Assert.assertEquals(1, sourceProps.size());
+    Assert.assertEquals("tachyon.metrics.source.JvmSource",
+        sourceProps.get("jvm").getProperty("class"));
 
     Map<String, Properties> sinkProps = config.subProperties(masterProp, MetricsSystem.SINK_REGEX);
-    Assert.assertEquals(1, sinkProps.size());
+    Assert.assertEquals(3, sinkProps.size());
+    Assert.assertTrue(sinkProps.containsKey("servlet"));
     Assert.assertTrue(sinkProps.containsKey("console"));
+    Assert.assertTrue(sinkProps.containsKey("jmx"));
+
+    Properties servletProp = sinkProps.get("servlet");
+    Assert.assertEquals(2, servletProp.size());
+    Assert.assertEquals("tachyon.metrics.sink.MetricsServlet", servletProp.getProperty("class"));
 
     Properties consoleProp = sinkProps.get("console");
     Assert.assertEquals(3, consoleProp.size());
     Assert.assertEquals("tachyon.metrics.sink.ConsoleSink", consoleProp.getProperty("class"));
+
+    Properties jmxProp = sinkProps.get("jmx");
+    Assert.assertEquals(1, jmxProp.size());
+    Assert.assertEquals("tachyon.metrics.sink.JmxSink", jmxProp.getProperty("class"));
   }
 }

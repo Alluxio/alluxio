@@ -6,9 +6,6 @@ NODES=`cat /tachyon/conf/workers`
 
 cd /vagrant/shared
 
-mkdir -p /tmp/hdfs-datanode
-mkdir -p /tmp/hadoop-tmpstore
-
 if [ ! -f hadoop-${HADOOP_VERSION}-bin.tar.gz ]
 then
     # download hadoop
