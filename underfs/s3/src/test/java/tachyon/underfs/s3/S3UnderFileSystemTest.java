@@ -57,9 +57,9 @@ public class S3UnderFileSystemTest {
     String result3 =
         Whitebox.invokeMethod(sMockS3UnderFileSystem, "getChildName", input31, input32);
 
-    Assert.assertEquals(result1, "child");
-    Assert.assertEquals(result2, "child");
-    Assert.assertEquals(result3, "s3n://test-bucket/child");
+    Assert.assertEquals("child", result1);
+    Assert.assertEquals("child", result2);
+    Assert.assertEquals("s3n://test-bucket/child", result3);
   }
 
   @Test
@@ -73,10 +73,10 @@ public class S3UnderFileSystemTest {
     String result3 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "getParentKey", input3);
     String result4 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "getParentKey", input4);
 
-    Assert.assertEquals(result1, "s3n://test-bucket");
-    Assert.assertEquals(result2, null);
-    Assert.assertEquals(result3, "s3n://test-bucket/parent");
-    Assert.assertEquals(result4, null);
+    Assert.assertEquals("s3n://test-bucket", result1);
+    Assert.assertEquals(null, result2);
+    Assert.assertEquals("s3n://test-bucket/parent", result3);
+    Assert.assertEquals(null, result4);
   }
 
   @Test
@@ -114,9 +114,9 @@ public class S3UnderFileSystemTest {
     String result3 =
         Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input3);
 
-    Assert.assertEquals(result1, "s3n://test-bucket/");
-    Assert.assertEquals(result2, "s3n://test-bucket/dir/file");
-    Assert.assertEquals(result3, "s3n://test-bucket/dir");
+    Assert.assertEquals("s3n://test-bucket/", result1);
+    Assert.assertEquals("s3n://test-bucket/dir/file", result2);
+    Assert.assertEquals("s3n://test-bucket/dir", result3);
   }
 
   @Test
@@ -134,12 +134,12 @@ public class S3UnderFileSystemTest {
     String result5 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input5);
     String result6 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input6);
 
-    Assert.assertEquals(result1, "s3n://test-bucket");
-    Assert.assertEquals(result2, "");
-    Assert.assertEquals(result3, "file");
-    Assert.assertEquals(result4, "dir/file");
-    Assert.assertEquals(result5, "s3n://test-bucket-wrong/dir/file");
-    Assert.assertEquals(result6, "dir/file");
+    Assert.assertEquals("s3n://test-bucket", result1);
+    Assert.assertEquals("", result2);
+    Assert.assertEquals("file", result3);
+    Assert.assertEquals("dir/file", result4);
+    Assert.assertEquals("s3n://test-bucket-wrong/dir/file", result5);
+    Assert.assertEquals("dir/file", result6);
   }
 
 }
