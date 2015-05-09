@@ -318,6 +318,13 @@ public class S3UnderFileSystem extends UnderFileSystem {
     return true;
   }
 
+  /**
+   * Gets the child name based on the parent name. If the parent is not valid, the entire child
+   * key will be returned
+   * @param child the key of the child
+   * @param parent the key of the parent
+   * @return the child key with the parent prefix removed
+   */
   private String getChildName(String child, String parent) {
     if (child.startsWith(parent)) {
       return child.substring(parent.length());
@@ -419,9 +426,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
           // Remove parent portion of the key
           String child = getChildName(objs[i].getKey(), path);
           // Prune the special folder suffix
-          child =
-              child.endsWith(FOLDER_SUFFIX) ? child.substring(0,
-                  child.length() - FOLDER_SUFFIX.length()) : child;
+          child = stripFolderSuffixIfPresent(child);
           ret[i] = child;
         }
         return ret;
@@ -435,9 +440,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
         int childNameIndex = child.indexOf(PATH_SEPARATOR);
         child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
         // Prune the special folder suffix
-        child =
-            child.endsWith(FOLDER_SUFFIX) ? child.substring(0,
-                child.length() - FOLDER_SUFFIX.length()) : child;
+        child = stripFolderSuffixIfPresent(child);
         // Add to the set of children, the set will deduplicate.
         children.add(child);
       }
@@ -480,6 +483,19 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
     String parentKey = getParentKey(key);
     return isFolder(parentKey);
+  }
+
+  /**
+   * Strip the folder suffix if it exists. This is a string manipulation utility and does not
+   * guarantee the existence of the folder.
+   * @param key the key to strip the suffix from
+   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
+   */
+  private String stripFolderSuffixIfPresent(String key) {
+    if (key.endsWith(FOLDER_SUFFIX)) {
+      return key.substring(0, key.length() - FOLDER_SUFFIX.length());
+    }
+    return key;
   }
 
   /**
