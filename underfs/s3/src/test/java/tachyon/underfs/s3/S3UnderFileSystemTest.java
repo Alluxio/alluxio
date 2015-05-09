@@ -88,7 +88,21 @@ public class S3UnderFileSystemTest {
     String input2 = "s3n://test-bucket/";
     String input3 = "s3n://test-bucket/file";
     String input4 = "s3n://test-bucket/dir/file";
-    String input4 = "s3n://test-bucket/dir/file";
+    String input5 = "s3n://test-bucket-wrong/dir/file";
+    String input6 = "dir/file";
+    String result1 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input1);
+    String result2 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input2);
+    String result3 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input3);
+    String result4 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input4);
+    String result5 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input5);
+    String result6 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input6);
+
+    Assert.assertEquals(result1, "s3n://test-bucket");
+    Assert.assertEquals(result2, "");
+    Assert.assertEquals(result3, "file");
+    Assert.assertEquals(result4, "dir/file");
+    Assert.assertEquals(result5, "s3n://test-bucket-wrong/dir/file");
+    Assert.assertEquals(result6, "dir/file");
   }
 
 }
