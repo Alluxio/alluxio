@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -15,6 +15,8 @@
 package tachyon.client;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -23,21 +25,21 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import tachyon.Constants;
 import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
 
 /**
- * Unit tests for <code>tachyon.client.FileInStream</code>.
+ * Integration tests for <code>tachyon.client.LocalBlockInStream</code>.
  */
-public class FileInStreamTest {
-  private static final int BLOCK_SIZE = 30;
-  private static final int MIN_LEN = BLOCK_SIZE + 1;
+public class LocalBlockInStreamIntegrationTest {
+  private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
-  private static final int MEAN = (MIN_LEN + MAX_LEN) / 2;
   private static final int DELTA = 33;
 
   private static LocalTachyonCluster sLocalTachyonCluster = null;
   private static TachyonFS sTfs = null;
+  private static Set<WriteType> sWriteCacheType;
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -49,9 +51,13 @@ public class FileInStreamTest {
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
-    sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, BLOCK_SIZE);
+    sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
+
+    sWriteCacheType = new HashSet<WriteType>();
+    sWriteCacheType.add(WriteType.MUST_CACHE);
+    sWriteCacheType.add(WriteType.CACHE_THROUGH);
   }
 
   /**
@@ -61,13 +67,16 @@ public class FileInStreamTest {
   public void readTest1() throws IOException {
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
+      for (WriteType op : sWriteCacheType) {
         int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is =
-            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof FileInStream);
+        InStream is = file.getInStream(ReadType.NO_CACHE);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
         byte[] ret = new byte[k];
         int value = is.read();
         int cnt = 0;
@@ -80,9 +89,14 @@ public class FileInStreamTest {
         Assert.assertEquals(cnt, k);
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
         is.close();
+        Assert.assertTrue(file.isInMemory());
 
-        is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof FileInStream);
+        is = file.getInStream(ReadType.CACHE);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
         ret = new byte[k];
         value = is.read();
         cnt = 0;
@@ -95,6 +109,7 @@ public class FileInStreamTest {
         Assert.assertEquals(cnt, k);
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
         is.close();
+        Assert.assertTrue(file.isInMemory());
       }
     }
   }
@@ -106,24 +121,33 @@ public class FileInStreamTest {
   public void readTest2() throws IOException {
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
+      for (WriteType op : sWriteCacheType) {
         int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is =
-            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof FileInStream);
+        InStream is = file.getInStream(ReadType.NO_CACHE);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
         byte[] ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
         is.close();
+        Assert.assertTrue(file.isInMemory());
 
-        is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof FileInStream);
+        is = file.getInStream(ReadType.CACHE);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
         is.close();
+        Assert.assertTrue(file.isInMemory());
       }
     }
   }
@@ -135,53 +159,33 @@ public class FileInStreamTest {
   public void readTest3() throws IOException {
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
+      for (WriteType op : sWriteCacheType) {
         int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is =
-            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof FileInStream);
+        InStream is = file.getInStream(ReadType.NO_CACHE);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
         byte[] ret = new byte[k / 2];
         Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k / 2, ret));
         is.close();
+        Assert.assertTrue(file.isInMemory());
 
-        is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof FileInStream);
+        is = file.getInStream(ReadType.CACHE);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
         is.close();
-      }
-    }
-  }
-
-  /**
-   * Test <code>void read(byte[] b, int off, int len)</code> for end of file.
-   */
-  @Test
-  public void readEndOfFileTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
-
-        TachyonFile file = sTfs.getFile(fileId);
-        InStream is =
-            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof FileInStream);
-        try {
-          byte[] ret = new byte[k / 2];
-          int readBytes = is.read(ret, 0, k / 2);
-          while (readBytes != -1) {
-            readBytes = is.read(ret);
-            Assert.assertTrue(0 != readBytes);
-          }
-          Assert.assertEquals(-1, readBytes);
-        } finally {
-          is.close();
-        }
+        Assert.assertTrue(file.isInMemory());
       }
     }
   }
@@ -189,19 +193,23 @@ public class FileInStreamTest {
   /**
    * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a negative
    * position.
-   * 
+   *
    * @throws IOException
    */
   @Test
   public void seekExceptionTest1() throws IOException {
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
+      for (WriteType op : sWriteCacheType) {
         int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is =
-            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        InStream is = file.getInStream(ReadType.NO_CACHE);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
 
         try {
           is.seek(-1);
@@ -217,22 +225,27 @@ public class FileInStreamTest {
 
   /**
    * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
-   * that is past EOF.
+   * that is past buffer limit.
    *
    * @throws IOException
    */
   @Test
   public void seekExceptionTest2() throws IOException {
     thrown.expect(IOException.class);
-    thrown.expectMessage("Seek position is past EOF");
+    thrown.expectMessage("Seek position is past buffer limit");
+
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
+      for (WriteType op : sWriteCacheType) {
         int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is =
-            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        InStream is = file.getInStream(ReadType.NO_CACHE);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
 
         is.seek(k + 1);
         is.close();
@@ -242,21 +255,24 @@ public class FileInStreamTest {
 
   /**
    * Test <code>void seek(long pos)</code>.
-   * 
+   *
    * @throws IOException
    */
   @Test
   public void seekTest() throws IOException {
     String uniqPath = TestUtils.uniqPath();
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
+      for (WriteType op : sWriteCacheType) {
         int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is =
-            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        InStream is = file.getInStream(ReadType.NO_CACHE);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
 
-        Assert.assertTrue(is instanceof FileInStream);
         is.seek(k / 3);
         Assert.assertEquals(k / 3, is.read());
         is.seek(k / 2);
@@ -274,23 +290,27 @@ public class FileInStreamTest {
   @Test
   public void skipTest() throws IOException {
     String uniqPath = TestUtils.uniqPath();
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
+      for (WriteType op : sWriteCacheType) {
         int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is =
-            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof FileInStream);
+        InStream is = file.getInStream(ReadType.CACHE);
+        Assert.assertTrue(is instanceof LocalBlockInStream);
         Assert.assertEquals(k / 2, is.skip(k / 2));
         Assert.assertEquals(k / 2, is.read());
         is.close();
+        Assert.assertTrue(file.isInMemory());
 
-        is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof FileInStream);
-        Assert.assertEquals(k / 3, is.skip(k / 3));
-        Assert.assertEquals(k / 3, is.read());
+        is = file.getInStream(ReadType.CACHE);
+        Assert.assertTrue(is instanceof LocalBlockInStream);
+        int t = k / 3;
+        Assert.assertEquals(t, is.skip(t));
+        Assert.assertEquals(t, is.read());
+        Assert.assertEquals(t, is.skip(t));
+        Assert.assertEquals(2 * t + 1, is.read());
         is.close();
+        Assert.assertTrue(file.isInMemory());
       }
     }
   }

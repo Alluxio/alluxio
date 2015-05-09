@@ -44,11 +44,18 @@ import tachyon.util.CommonUtils;
  */
 public class S3UnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  /** Suffix for an empty file to flag it as a directory */
   private static final String FOLDER_SUFFIX = "_$folder$";
+  /** Value used to indicate folder structure in S3 */
   private static final String PATH_SEPARATOR = "/";
 
+  /** Jets3t S3 client */
   private final S3Service mClient;
+  /** Bucket name of user's configured Tachyon bucket */
   private final String mBucketName;
+  /** Prefix of the bucket, for example s3n://my-bucket-name/ */
+  private final String mBucketPrefix;
 
   public S3UnderFileSystem(String bucketName, TachyonConf tachyonConf) {
     super(tachyonConf);
@@ -57,6 +64,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
             Constants.S3_SECRET_KEY, null));
     mBucketName = bucketName;
     mClient = new RestS3Service(awsCredentials);
+    mBucketPrefix = Constants.HEADER_S3N + mBucketName + PATH_SEPARATOR;
   }
 
   @Override
@@ -126,7 +134,13 @@ public class S3UnderFileSystem extends UnderFileSystem {
     return isRoot(path) || getObjectDetails(path) != null;
   }
 
-  // Largest size of one file is 5 TB
+  /**
+   * There is no concept of a block in S3, however the maximum allowed size of one file is
+   * currently 5 TB.
+   * @param path The file name
+   * @return 5 TB in bytes
+   * @throws IOException this implementation will not throw this exception, but subclasses may
+   */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
     return Constants.TB * 5;
@@ -505,9 +519,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @return the key without the s3 bucket prefix
    */
   private String stripPrefixIfPresent(String key) {
-    String prefix = Constants.HEADER_S3N + mBucketName + PATH_SEPARATOR;
-    if (key.startsWith(prefix)) {
-      return key.substring(prefix.length());
+    if (key.startsWith(mBucketPrefix)) {
+      return key.substring(mBucketPrefix.length());
     } else {
       LOG.warn("Attempted to strip key with invalid prefix: " + key);
       return key;

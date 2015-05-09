@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,7 @@ import com.codahale.metrics.MetricRegistry;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.metrics.sink.MetricsServlet;
 import tachyon.metrics.sink.Sink;
 import tachyon.metrics.source.Source;
 
@@ -53,6 +55,7 @@ public class MetricsSystem {
   private MetricsConfig mMetricsConfig;
   private boolean mRunning = false;
   private TachyonConf mTachyonConf;
+  private MetricsServlet mMetricsServlet;
 
   /**
    * Check if the poll period is smaller that the minimal poll period which is 1 second.
@@ -80,6 +83,19 @@ public class MetricsSystem {
     mInstance = instance;
     mTachyonConf = tachyonConf;
     mMetricsConfig = new MetricsConfig(mTachyonConf.get(Constants.METRICS_CONF_FILE, null));
+  }
+
+  /***
+   * Get the ServletContextHandler of the metrics servlet.
+   *
+   * @return the ServletContextHandler if the metrics system is running and the metrics servlet
+   *         exists, otherwise null.
+   */
+  public ServletContextHandler getServletHandler() {
+    if (mRunning && mMetricsServlet != null) {
+      return mMetricsServlet.getHandler();
+    }
+    return null;
   }
 
   /**
@@ -147,7 +163,11 @@ public class MetricsSystem {
               (Sink) Class.forName(classPath)
                   .getConstructor(Properties.class, MetricRegistry.class)
                   .newInstance(entry.getValue(), mMetricRegistry);
-          mSinks.add(sink);
+          if (entry.getKey().equals("servlet")) {
+            mMetricsServlet = (MetricsServlet) sink;
+          } else {
+            mSinks.add(sink);
+          }
         } catch (Exception e) {
           LOG.error("Sink class {} cannot be instantiated", classPath, e);
         }

@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -32,9 +32,9 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 
 /**
- * Unit tests for <code>tachyon.client.FileOutStream</code>.
+ * Integration tests for <code>tachyon.client.FileOutStream</code>.
  */
-public class FileOutStreamTest {
+public class FileOutStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 32;
@@ -62,7 +62,7 @@ public class FileOutStreamTest {
 
   /**
    * Checks that we wrote the file correctly by reading it every possible way
-   * 
+   *
    * @param filePath
    * @param op
    * @param fileLen
@@ -173,7 +173,7 @@ public class FileOutStreamTest {
   /**
    * Test writing to a file for longer than HEARTBEAT_INTERVAL_MS to make sure the userId doesn't
    * change. Tracks [TACHYON-171].
-   * 
+   *
    * @throws IOException
    * @throws InterruptedException
    */
