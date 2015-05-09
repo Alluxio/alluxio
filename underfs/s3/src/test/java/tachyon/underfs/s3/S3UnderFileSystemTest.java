@@ -32,6 +32,7 @@ public class S3UnderFileSystemTest {
   public static final void beforeClass() {
     sMockS3UnderFileSystem = PowerMockito.mock(S3UnderFileSystem.class);
     Whitebox.setInternalState(sMockS3UnderFileSystem, "mBucketName", "test-bucket");
+    Whitebox.setInternalState(sMockS3UnderFileSystem, "mBucketPrefix", "s3n://test-bucket/");
   }
 
   @Test
