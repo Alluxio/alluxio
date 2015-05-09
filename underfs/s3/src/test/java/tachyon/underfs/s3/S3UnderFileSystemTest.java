@@ -43,6 +43,26 @@ public class S3UnderFileSystemTest {
   }
 
   @Test
+  public void getChildNameTest() throws Exception {
+    String input11 = "s3n://test-bucket/child";
+    String input12 = "s3n://test-bucket/";
+    String input21 = "s3n://test-bucket/parent/child";
+    String input22 = "s3n://test-bucket/parent/";
+    String input31 = "s3n://test-bucket/child";
+    String input32 = "s3n://test-bucket/not-parent";
+    String result1 =
+        Whitebox.invokeMethod(sMockS3UnderFileSystem, "getChildName", input11, input12);
+    String result2 =
+        Whitebox.invokeMethod(sMockS3UnderFileSystem, "getChildName", input21, input22);
+    String result3 =
+        Whitebox.invokeMethod(sMockS3UnderFileSystem, "getChildName", input31, input32);
+
+    Assert.assertEquals(result1, "child");
+    Assert.assertEquals(result2, "child");
+    Assert.assertEquals(result3, "s3n://test-bucket/child");
+  }
+
+  @Test
   public void getParentKeyTest() throws Exception {
     String input1 = "s3n://test-bucket/parent-is-root";
     String input2 = "s3n://test-bucket/";
