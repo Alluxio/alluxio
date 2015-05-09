@@ -24,6 +24,21 @@
       <version>${metrics.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-json</artifactId>
+      <version>${metrics.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-jvm</artifactId>
+      <version>${metrics.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-graphite</artifactId>
+      <version>${metrics.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
       <version>4.0.23.Final</version>
@@ -106,53 +121,6 @@
     </dependency>
   </dependencies>
 
-  <profiles>
-
-    <profile>
-      <id>default</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.2</version>
-            <executions>
-              <execution>
-                <id>default-testCompile</id>
-                <phase>test-compile</phase>
-                <configuration>
-                  <testExcludes>
-                    <exclude>**/hadoop/contract/**</exclude>
-                  </testExcludes>
-                  <compilerArgs>
-                    <arg>-Xlint:-unchecked</arg>
-                  </compilerArgs>
-                </configuration>
-                <goals>
-                  <goal>testCompile</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>contractTest</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-minicluster</artifactId>
-        </dependency>
-      </dependencies>
-    </profile>
-
-  </profiles>
-
   <build>
     <resources>
       <resource>
@@ -176,6 +144,18 @@
             </configuration>
             <goals>
               <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-testCompile</id>
+            <phase>test-compile</phase>
+            <configuration>
+              <compilerArgs>
+                <arg>-Xlint:-unchecked</arg>
+              </compilerArgs>
+            </configuration>
+            <goals>
+              <goal>testCompile</goal>
             </goals>
           </execution>
         </executions>
