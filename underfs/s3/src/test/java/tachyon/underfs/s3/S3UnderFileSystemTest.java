@@ -60,7 +60,7 @@ public class S3UnderFileSystemTest {
 
     Assert.assertEquals("child", result1);
     Assert.assertEquals("child", result2);
-    Assert.assertEquals("s3n://test-bucket/child", result3);
+    Assert.assertNull(result3);
   }
 
   @Test
@@ -75,9 +75,9 @@ public class S3UnderFileSystemTest {
     String result4 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "getParentKey", input4);
 
     Assert.assertEquals("s3n://test-bucket", result1);
-    Assert.assertEquals(null, result2);
+    Assert.assertNull(result2);
     Assert.assertEquals("s3n://test-bucket/parent", result3);
-    Assert.assertEquals(null, result4);
+    Assert.assertNull(result4);
   }
 
   @Test

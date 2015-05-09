@@ -30,9 +30,13 @@ public class S3UnderFileSystemFactoryTest {
   public void factoryTest() {
     TachyonConf conf = new TachyonConf();
 
-    UnderFileSystemFactory factory =
-        UnderFileSystemRegistry.find("s3n://localhost/test/path", conf);
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("s3n://test-bucket/path", conf);
+    UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("s3://test-bucket/path", conf);
+
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for s3n paths when using this module", factory);
+    Assert.assertNull(
+        "A UnderFileSystemFactory should not exist for non s3n paths when using this module",
+        factory2);
   }
 }

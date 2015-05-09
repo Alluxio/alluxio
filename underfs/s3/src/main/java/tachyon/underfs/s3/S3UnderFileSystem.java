@@ -333,20 +333,18 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the child name based on the parent name. If the parent is not valid, the entire child
-   * key will be returned
+   * Gets the child name based on the parent name.
    * @param child the key of the child
    * @param parent the key of the parent
-   * @return the child key with the parent prefix removed
+   * @return the child key with the parent prefix removed, null if the parent prefix is invalid
    */
   private String getChildName(String child, String parent) {
     if (child.startsWith(parent)) {
       return child.substring(parent.length());
-    } else {
-      LOG.warn("Attempted to get childname with an invalid parent argument. Parent: " + parent
-          + " Child: " + child);
-      return child;
     }
+    LOG.error("Attempted to get childname with an invalid parent argument. Parent: " + parent
+        + " Child: " + child);
+    return null;
   }
 
   /**
@@ -379,11 +377,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return null;
     }
     int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
-    if (separatorIndex >= 0) {
-      return key.substring(0, separatorIndex);
-    } else {
+    if (separatorIndex < 0) {
       return null;
     }
+    return key.substring(0, separatorIndex);
   }
 
   /**
@@ -501,7 +498,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Strip the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder.
+   * guarantee the existence of the folder. This method will leave keys without a suffix
+   * unaltered.
    * @param key the key to strip the suffix from
    * @return the key with the suffix removed, or the key unaltered if the suffix is not present
    */
@@ -513,17 +511,17 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the s3 bucket prefix from the path if it is present. For example, for input key
-   * s3n://my-bucket-name/my-path/file, the output would be my-path/file.
+   * Strips the s3 bucket prefix from the key if it is present. For example, for input key
+   * s3n://my-bucket-name/my-path/file, the output would be my-path/file. This method will leave
+   * keys without a prefix unaltered, ie. my-path/file returns my-path/file.
    * @param key the key to strip
    * @return the key without the s3 bucket prefix
    */
   private String stripPrefixIfPresent(String key) {
     if (key.startsWith(mBucketPrefix)) {
       return key.substring(mBucketPrefix.length());
-    } else {
-      LOG.warn("Attempted to strip key with invalid prefix: " + key);
-      return key;
     }
+    LOG.warn("Attempted to strip key with invalid prefix: " + key);
+    return key;
   }
 }
