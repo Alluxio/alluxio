@@ -134,14 +134,6 @@ public class TachyonConf {
       throw new RuntimeException("Unable to load default Tachyon properties file.", e);
     }
 
-    // Update tachyon.master_address
-    String masterHostname = defaultProps.getProperty(Constants.MASTER_HOSTNAME);
-    String masterPort = defaultProps.getProperty(Constants.MASTER_PORT);
-    boolean useZk = Boolean.parseBoolean(defaultProps.getProperty(Constants.USE_ZOOKEEPER));
-    String masterAddress =
-        (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
-    defaultProps.setProperty(Constants.MASTER_ADDRESS, masterAddress);
-
     // Load site specific properties file
     Properties siteProps = new Properties();
     InputStream siteInputStream =
@@ -164,6 +156,14 @@ public class TachyonConf {
     mProperties.putAll(defaultProps);
     mProperties.putAll(siteProps);
     mProperties.putAll(systemProps);
+    
+    // Update tachyon.master_address
+    String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
+    String masterPort = mProperties.getProperty(Constants.MASTER_PORT);
+    boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.USE_ZOOKEEPER));
+    String masterAddress = (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":"
+        + masterPort;
+    mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
   }
 
   @Override

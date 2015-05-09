@@ -87,6 +87,11 @@ public final class MetricsConfig {
    * Loads and parses the metrics configuration file.
    */
   private void initialize() {
+    // Set the default properties. The MetricsServlet is enabled and the path is /metrics/json
+    // by default.
+    mProperties.setProperty("*.sink.servlet.class", "tachyon.metrics.sink.MetricsServlet");
+    mProperties.setProperty("*.sink.servlet.path", "/metrics/json");
+
     InputStream is = null;
     try {
       if (mConfigFile != null) {
