@@ -103,6 +103,23 @@ public class S3UnderFileSystemTest {
   }
 
   @Test
+  public void stripFolderSuffixIfPresentTest() throws Exception {
+    String input1 = "s3n://test-bucket/";
+    String input2 = "s3n://test-bucket/dir/file";
+    String input3 = "s3n://test-bucket/dir_$folder$";
+    String result1 =
+        Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input1);
+    String result2 =
+        Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input2);
+    String result3 =
+        Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input3);
+
+    Assert.assertEquals(result1, "s3n://test-bucket/");
+    Assert.assertEquals(result2, "s3n://test-bucket/dir/file");
+    Assert.assertEquals(result3, "s3n://test-bucket/dir");
+  }
+
+  @Test
   public void stripPrefixIfPresentTest() throws Exception {
     String input1 = "s3n://test-bucket";
     String input2 = "s3n://test-bucket/";
