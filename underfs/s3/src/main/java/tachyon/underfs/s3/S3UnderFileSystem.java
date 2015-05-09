@@ -270,20 +270,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
   public void setPermission(String path, String posixPerm) throws IOException {}
 
   /**
-   * Treating S3 as a file system, checks if the parent directory exists.
-   * @param key the key to check
-   * @return true if the parent exists or if the key is root, false otherwise
-   */
-  private boolean parentExists(String key) {
-    // Assume root always has a parent
-    if (isRoot(key)) {
-      return true;
-    }
-    String parentKey = getParentKey(key);
-    return isFolder(parentKey);
-  }
-
-  /**
    * Appends the directory suffix to the key.
    * @param key the key to convert
    * @return key as a directory path
@@ -330,6 +316,16 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return false;
     }
     return true;
+  }
+
+  private String getChildName(String child, String parent) {
+    if (child.startsWith(parent)) {
+      return child.substring(parent.length());
+    } else {
+      LOG.warn("Attempted to get childname with an invalid parent argument. Parent: " + parent
+          + " Child: " + child);
+      return child;
+    }
   }
 
   /**
@@ -421,7 +417,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
         String[] ret = new String[objs.length];
         for (int i = 0; i < objs.length; i ++) {
           // Remove parent portion of the key
-          String child = objs[i].getKey().substring(path.length());
+          String child = getChildName(objs[i].getKey(), path);
           // Prune the special folder suffix
           child =
               child.endsWith(FOLDER_SUFFIX) ? child.substring(0,
@@ -434,7 +430,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       Set<String> children = new HashSet<String>();
       for (S3Object obj : objs) {
         // Remove parent portion of the key
-        String child = obj.getKey().substring(path.length());
+        String child = getChildName(obj.getKey(), path);
         // Remove any portion after the path delimiter
         int childNameIndex = child.indexOf(PATH_SEPARATOR);
         child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
@@ -470,6 +466,20 @@ public class S3UnderFileSystem extends UnderFileSystem {
       LOG.error("Failed to create directory: " + key, se);
       return false;
     }
+  }
+
+  /**
+   * Treating S3 as a file system, checks if the parent directory exists.
+   * @param key the key to check
+   * @return true if the parent exists or if the key is root, false otherwise
+   */
+  private boolean parentExists(String key) {
+    // Assume root always has a parent
+    if (isRoot(key)) {
+      return true;
+    }
+    String parentKey = getParentKey(key);
+    return isFolder(parentKey);
   }
 
   /**
