@@ -2,9 +2,8 @@ NODES=`cat /vagrant/files/workers`
 
 # setup hadoop
 rm -f /hadoop/conf/slaves
-for i in ${NODES[@]}
-do 
-    echo $i >> /hadoop/conf/slaves
+for i in ${NODES[@]}; do
+ echo $i >> /hadoop/conf/slaves
 done
 
 # choose the last node as namenode

@@ -6,8 +6,8 @@
 
 - name: download tachyon release
   shell: if [ ! -f /vagrant/shared/{{ tachyon_dist }} ]; then \
-           version=`echo {{ tachyon_dist }} | cut -d'-' -f2`; \
-           wget -q https://github.com/amplab/tachyon/releases/download/v${version}/{{ tachyon_dist }} -P /vagrant/shared; \
+          version=`echo {{ tachyon_dist }} | cut -d'-' -f2`; \
+          wget -q https://github.com/amplab/tachyon/releases/download/v${version}/{{ tachyon_dist }} -P /vagrant/shared; \
          fi && \
          tar xzf /vagrant/shared/{{ tachyon_dist }} -C /tachyon --strip-components 1
   ignore_errors: yes # tachyon dist is tared by bsdtar, when untar using gnutar, return code will be 1
