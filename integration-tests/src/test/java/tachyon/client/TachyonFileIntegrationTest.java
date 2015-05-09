@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -31,9 +31,9 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
 
 /**
- * Unit tests for tachyon.client.TachyonFile.
+ * Integration tests for tachyon.client.TachyonFile.
  */
-public class TachyonFileTest {
+public class TachyonFileIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
   private static final int MAX_FILES = WORKER_CAPACITY_BYTES / USER_QUOTA_UNIT_BYTES;
@@ -66,7 +66,7 @@ public class TachyonFileTest {
 
   /**
    * Basic isInMemory Test.
-   * 
+   *
    * @throws IOException
    */
   @Test
@@ -103,7 +103,7 @@ public class TachyonFileTest {
 
   /**
    * Test LRU Cache Eviction.
-   * 
+   *
    * @throws IOException
    */
   @Test
@@ -143,7 +143,7 @@ public class TachyonFileTest {
 
   /**
    * Test LRU Cache Eviction + PIN.
-   * 
+   *
    * @throws IOException
    */
   @Test
