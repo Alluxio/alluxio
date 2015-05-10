@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -45,12 +45,13 @@ import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UfsUtils;
+import tachyon.underfs.hdfs.HdfsUnderFileSystemUtils;
 import tachyon.util.CommonUtils;
 
 /**
  * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
  * to {@link tachyon.client.TachyonFS} for most operations.
- * 
+ *
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
@@ -197,7 +198,7 @@ abstract class AbstractTFS extends FileSystem {
    * <p>
    * Opens an FSDataOutputStream at the indicated Path with write-progress reporting. Same as
    * create(), except fails if parent directory doesn't already exist.
-   * 
+   *
    * @param cPath the file name to open
    * @param overwrite if a file with this name already exists, then if true, the file will be
    *        overwritten, and if false an error will be thrown.
@@ -230,7 +231,7 @@ abstract class AbstractTFS extends FileSystem {
 
   /**
    * Attempts to delete the file or directory with the specified path.
-   * 
+   *
    * @param cPath path to delete
    * @param recursive if true, will attempt to delete all children of the path
    * @return true if one or more files/directories were deleted; false otherwise
@@ -344,11 +345,11 @@ abstract class AbstractTFS extends FileSystem {
   /**
    * Get the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means to
    * make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
-   * 
+   *
    * @Override on this method.
-   * 
+   *
    * @return schema hadoop should map to.
-   * 
+   *
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
    */
@@ -356,7 +357,7 @@ abstract class AbstractTFS extends FileSystem {
 
   /**
    * Returns an object implementing the Tachyon-specific client API.
-   * 
+   *
    * @return null if initialize() hasn't been called.
    */
   public TachyonFS getTachyonFS() {
@@ -381,7 +382,7 @@ abstract class AbstractTFS extends FileSystem {
   public void initialize(URI uri, Configuration conf) throws IOException {
     super.initialize(uri, conf);
     LOG.info("initialize(" + uri + ", " + conf + "). Connecting to Tachyon: " + uri.toString());
-    Utils.addS3Credentials(conf);
+    HdfsUnderFileSystemUtils.addS3Credentials(conf);
     setConf(conf);
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
 
@@ -404,7 +405,7 @@ abstract class AbstractTFS extends FileSystem {
   /**
    * Determines if zookeeper should be used for the FileSystem. This method should only be used for
    * {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
-   * 
+   *
    * @return true if zookeeper should be used
    */
   protected abstract boolean isZookeeperMode();
