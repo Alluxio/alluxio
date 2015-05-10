@@ -207,6 +207,9 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    if (path == null) {
+      return false;
+    }
     if (isFolder(path)) {
       return true;
     }
@@ -284,20 +287,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
   public void setPermission(String path, String posixPerm) throws IOException {}
 
   /**
-   * Treating S3 as a file system, checks if the parent directory exists.
-   * @param key the key to check
-   * @return true if the parent exists or if the key is root, false otherwise
-   */
-  private boolean parentExists(String key) {
-    // Assume root always has a parent
-    if (isRoot(key)) {
-      return true;
-    }
-    String parentKey = getParentKey(key);
-    return isFolder(parentKey);
-  }
-
-  /**
    * Appends the directory suffix to the key.
    * @param key the key to convert
    * @return key as a directory path
@@ -347,6 +336,21 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
+   * Gets the child name based on the parent name.
+   * @param child the key of the child
+   * @param parent the key of the parent
+   * @return the child key with the parent prefix removed, null if the parent prefix is invalid
+   */
+  private String getChildName(String child, String parent) {
+    if (child.startsWith(parent)) {
+      return child.substring(parent.length());
+    }
+    LOG.error("Attempted to get childname with an invalid parent argument. Parent: " + parent
+        + " Child: " + child);
+    return null;
+  }
+
+  /**
    * Gets the StorageObject representing the metadata of a key. If the key does not exist as a
    * file or folder, null is returned
    * @param key the key to get the object details of
@@ -371,12 +375,15 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @return the the parent key
    */
   private String getParentKey(String key) {
-    int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
-    if (separatorIndex >= 0) {
-      return key.substring(0, separatorIndex);
-    } else {
+    // Root does not have a parent.
+    if (isRoot(key)) {
       return null;
     }
+    int separatorIndex = key.lastIndexOf(PATH_SEPARATOR);
+    if (separatorIndex < 0) {
+      return null;
+    }
+    return key.substring(0, separatorIndex);
   }
 
   /**
@@ -431,11 +438,9 @@ public class S3UnderFileSystem extends UnderFileSystem {
         String[] ret = new String[objs.length];
         for (int i = 0; i < objs.length; i ++) {
           // Remove parent portion of the key
-          String child = objs[i].getKey().substring(path.length());
+          String child = getChildName(objs[i].getKey(), path);
           // Prune the special folder suffix
-          child =
-              child.endsWith(FOLDER_SUFFIX) ? child.substring(0,
-                  child.length() - FOLDER_SUFFIX.length()) : child;
+          child = stripFolderSuffixIfPresent(child);
           ret[i] = child;
         }
         return ret;
@@ -444,14 +449,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
       Set<String> children = new HashSet<String>();
       for (S3Object obj : objs) {
         // Remove parent portion of the key
-        String child = obj.getKey().substring(path.length());
+        String child = getChildName(obj.getKey(), path);
         // Remove any portion after the path delimiter
         int childNameIndex = child.indexOf(PATH_SEPARATOR);
         child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
         // Prune the special folder suffix
-        child =
-            child.endsWith(FOLDER_SUFFIX) ? child.substring(0,
-                child.length() - FOLDER_SUFFIX.length()) : child;
+        child = stripFolderSuffixIfPresent(child);
         // Add to the set of children, the set will deduplicate.
         children.add(child);
       }
@@ -483,17 +486,45 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the s3 bucket prefix from the path if it is present. For example, for input key
-   * s3n://my-bucket-name/my-path/file, the output would be my-path/file.
+   * Treating S3 as a file system, checks if the parent directory exists.
+   * @param key the key to check
+   * @return true if the parent exists or if the key is root, false otherwise
+   */
+  private boolean parentExists(String key) {
+    // Assume root always has a parent
+    if (isRoot(key)) {
+      return true;
+    }
+    String parentKey = getParentKey(key);
+    return parentKey != null && isFolder(parentKey);
+  }
+
+  /**
+   * Strip the folder suffix if it exists. This is a string manipulation utility and does not
+   * guarantee the existence of the folder. This method will leave keys without a suffix
+   * unaltered.
+   * @param key the key to strip the suffix from
+   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
+   */
+  private String stripFolderSuffixIfPresent(String key) {
+    if (key.endsWith(FOLDER_SUFFIX)) {
+      return key.substring(0, key.length() - FOLDER_SUFFIX.length());
+    }
+    return key;
+  }
+
+  /**
+   * Strips the s3 bucket prefix from the key if it is present. For example, for input key
+   * s3n://my-bucket-name/my-path/file, the output would be my-path/file. This method will leave
+   * keys without a prefix unaltered, ie. my-path/file returns my-path/file.
    * @param key the key to strip
    * @return the key without the s3 bucket prefix
    */
   private String stripPrefixIfPresent(String key) {
     if (key.startsWith(mBucketPrefix)) {
       return key.substring(mBucketPrefix.length());
-    } else {
-      LOG.warn("Attempted to strip key with invalid prefix: " + key);
-      return key;
     }
+    LOG.warn("Attempted to strip key with invalid prefix: " + key);
+    return key;
   }
 }
