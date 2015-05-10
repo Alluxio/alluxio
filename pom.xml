@@ -148,6 +148,7 @@
     <module>client</module>
     <module>shell</module>
     <module>examples</module>
+    <module>integration-tests</module>
     <module>assembly</module>
   </modules>
 
