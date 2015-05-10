@@ -207,6 +207,9 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    if (path == null) {
+      return false;
+    }
     if (isFolder(path)) {
       return true;
     }
@@ -493,7 +496,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return true;
     }
     String parentKey = getParentKey(key);
-    return isFolder(parentKey);
+    return parentKey != null && isFolder(parentKey);
   }
 
   /**
