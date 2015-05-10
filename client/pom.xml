@@ -76,10 +76,6 @@
           <groupId>org.codehaus.jackson</groupId>
           <artifactId>jackson-xc</artifactId>
         </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -114,10 +110,6 @@
           <artifactId>tachyon</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
     </dependency>
 
     <!-- Test Dependencies -->
