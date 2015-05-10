@@ -23,7 +23,6 @@
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-client</artifactId>
       <version>${project.version}</version>
-      <scope>compile</scope>
     </dependency>
   </dependencies>
 </project>

@@ -53,14 +53,12 @@
       <artifactId>jetty-jsp</artifactId>
       <version>${jetty.version}</version>
       <type>jar</type>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
       <version>${jetty.version}</version>
       <type>jar</type>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
