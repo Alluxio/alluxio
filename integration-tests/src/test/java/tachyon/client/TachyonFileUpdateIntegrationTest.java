@@ -33,7 +33,7 @@ import tachyon.master.LocalTachyonCluster;
 /**
  * These set of tests are to verify that updates to files are rejected.
  */
-public final class TachyonFileUpdateTest {
+public final class TachyonFileUpdateIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
 
   private static final int USER_QUOTA_UNIT_BYTES = 100;
@@ -142,7 +142,7 @@ public final class TachyonFileUpdateTest {
 
   /**
    * Main body of the test. IOExceptions should not be caught inside the code that way the
-   * {@link #run(tachyon.client.TachyonFileUpdateTest.Write)} method can verify them.
+   * {@link #run(tachyon.client.TachyonFileUpdateIntegrationTest.Write)} method can verify them.
    */
   private interface Write {
     void apply(TachyonFile file, WriteType type, int numRuns) throws IOException;
@@ -153,7 +153,7 @@ public final class TachyonFileUpdateTest {
    * {@code /class-name/method-name/nano-time/write-type}
    */
   private static String testPath(final Object postfix) {
-    String dir = TachyonFileUpdateTest.class.getSimpleName();
+    String dir = TachyonFileUpdateIntegrationTest.class.getSimpleName();
     String name = new Throwable().getStackTrace()[2].getMethodName();
 
     return join(dir, name, System.nanoTime(), postfix);

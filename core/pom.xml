@@ -185,7 +185,6 @@
     </profile>
 
   </profiles>
-
   <build>
     <resources>
       <resource>
@@ -209,6 +208,18 @@
             </configuration>
             <goals>
               <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-testCompile</id>
+            <phase>test-compile</phase>
+            <configuration>
+              <compilerArgs>
+                <arg>-Xlint:-unchecked</arg>
+              </compilerArgs>
+            </configuration>
+            <goals>
+              <goal>testCompile</goal>
             </goals>
           </execution>
         </executions>
