@@ -31,7 +31,7 @@ import tachyon.underfs.UnderFileSystemRegistry;
 /**
  * Unit tests for {@code GlusterFSUnderFileSystem}
  */
-public class GlusterFSUnderFileSystemTest {
+public class GlusterFSUnderFileSystemFactoryTest {
   private UnderFileSystem mGfs = null;
   private String mMount = null;
   private String mVolume = null;
@@ -58,11 +58,14 @@ public class GlusterFSUnderFileSystemTest {
 
   @Test
   public void factoryTest() {
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mTachyonConf);
-    Assert.assertNotNull("A UnderFileSystemFactory should exist for Gluster FS paths when using this module", factory);
+    UnderFileSystemFactory factory =
+        UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mTachyonConf);
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist for Gluster FS paths when using this module",
+        factory);
 
     factory = UnderFileSystemRegistry.find("tachyon://localhost/test/path", mTachyonConf);
-    Assert.assertNull("A UnderFileSystemFactory should not exist for unsupported paths when using" +
-        " this module.", factory);
+    Assert.assertNull("A UnderFileSystemFactory should not exist for unsupported paths when using"
+        + " this module.", factory);
   }
 }
