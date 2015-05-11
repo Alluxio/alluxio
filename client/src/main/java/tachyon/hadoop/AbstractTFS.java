@@ -44,7 +44,7 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.underfs.UfsUtils;
+import tachyon.client.UfsUtils;
 import tachyon.underfs.hdfs.HdfsUnderFileSystemUtils;
 import tachyon.util.CommonUtils;
 
