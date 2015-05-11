@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -17,7 +17,6 @@ package tachyon.worker;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,9 +38,9 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
- * Unit tests for tachyon.WorkerServiceHandler
+ * Integration tests for tachyon.WorkerServiceHandler
  */
-public class WorkerServiceHandlerTest {
+public class WorkerServiceHandlerIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
@@ -70,7 +69,8 @@ public class WorkerServiceHandlerTest {
   }
 
   @Test
-  public void cancelBlockTest() throws TException, IOException {
+  public void cancelBlockTest() throws Exception {
+    //public void cancelBlockTest() throws TException, IOException {
     final long userId = 1L;
     final long blockId = 12345L;
     String filename = mWorkerServiceHandler.requestBlockLocation(userId, blockId,
@@ -87,7 +87,7 @@ public class WorkerServiceHandlerTest {
   }
 
   @Test
-  public void cacheBlockTest() throws TException, IOException {
+  public void cacheBlockTest() throws Exception {
     final long userId = 1L;
     final int fileId = mTfs.createFile(new TachyonURI("/testFile1"));
     final long blockId0 = mTfs.getBlockId(fileId, 0);
@@ -118,7 +118,7 @@ public class WorkerServiceHandlerTest {
   }
 
   @Test
-  public void evictionTest() throws IOException, TException {
+  public void evictionTest() throws Exception {
     int fileId1 =
         TestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 3);
@@ -150,7 +150,7 @@ public class WorkerServiceHandlerTest {
   }
 
   @Test
-  public void requestSpaceTest() throws TException, IOException {
+  public void requestSpaceTest() throws Exception {
     final long userId = 1L;
     final long blockId1 = 12345L;
     final long blockId2 = 12346L;
@@ -178,11 +178,11 @@ public class WorkerServiceHandlerTest {
     }
     Assert.assertEquals(new OutOfSpaceException(String.format("Failed to allocate space for block!"
         + " blockId(%d) sizeBytes(%d)", blockId2, WORKER_CAPACITY_BYTES + 1)), exception);
-    
+
   }
 
   @Test
-  public void totalOverCapacityRequestSpaceTest() throws TException {
+  public void totalOverCapacityRequestSpaceTest() throws Exception {
     final long userId1 = 1L;
     final long blockId1 = 12345L;
     final long userId2 = 2L;

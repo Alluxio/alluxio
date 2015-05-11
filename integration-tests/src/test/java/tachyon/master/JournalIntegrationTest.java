@@ -41,7 +41,7 @@ import tachyon.underfs.UnderFileSystem;
  * Test master journal, including image and edit log. Most tests will test edit log first, followed
  * by the image.
  */
-public class JournalTest {
+public class JournalIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private TachyonURI mRootUri = new TachyonURI(TachyonURI.SEPARATOR);
