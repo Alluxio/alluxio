@@ -13,16 +13,15 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.client;
 
-import tachyon.worker.DataServer;
 
 /**
  * Constants on server side
  */
-public class ServerConstants {
+public class ClientConstants {
 
-  public static final Class<? extends DataServer> WORKER_DATA_SERVER_CLASS =
-      tachyon.worker.netty.NettyDataServer.class;
-
+  public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
+      tachyon.client.tcp.TCPRemoteBlockReader.class;
 }
+
