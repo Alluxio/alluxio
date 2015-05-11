@@ -106,7 +106,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     config.set("fs.hdfs.impl.disable.cache",
         System.getProperty("fs.hdfs.impl.disable.cache", "false"));
     
-    Utils.addKey(config, tachyonConf, Constants.UNDERFS_HADOOP_CONFIGURATION);
+    HdfsUnderFileSystemUtils.addKey(config, tachyonConf, Constants.UNDERFS_HADOOP_CONFIGURATION);
   }
 
   @Override
