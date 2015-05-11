@@ -26,6 +26,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
@@ -120,13 +121,13 @@ public class WorkerServiceHandlerIntegrationTest {
   @Test
   public void evictionTest() throws Exception {
     int fileId1 =
-        TestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE,
+        TachyonFSTestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 3);
     Assert.assertTrue(fileId1 >= 0);
     ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
     int fileId2 =
-        TestUtils.createByteFile(mTfs, "/file2", WriteType.MUST_CACHE,
+        TachyonFSTestUtils.createByteFile(mTfs, "/file2", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 3);
     Assert.assertTrue(fileId2 >= 0);
     fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
@@ -134,7 +135,7 @@ public class WorkerServiceHandlerIntegrationTest {
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
     Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
     int fileId3 =
-        TestUtils.createByteFile(mTfs, "/file3", WriteType.MUST_CACHE,
+        TachyonFSTestUtils.createByteFile(mTfs, "/file3", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 2);
 
     CommonUtils.sleepMs(null,

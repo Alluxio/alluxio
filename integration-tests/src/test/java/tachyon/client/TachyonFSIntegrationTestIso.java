@@ -50,8 +50,8 @@ public class TachyonFSIntegrationTestIso {
 
   @Before
   public final void before() throws IOException {
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
-        Constants.GB);
+    mLocalTachyonCluster =
+        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
@@ -80,14 +80,15 @@ public class TachyonFSIntegrationTestIso {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
     for (int k = 0; k < numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH, fileSize));
+      fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH,
+          fileSize));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
     }
-    fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + numOfFiles, WriteType.CACHE_THROUGH,
-        fileSize));
+    fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
+        WriteType.CACHE_THROUGH, fileSize));
 
     CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf));
     tFile = mTfs.getFile(fileIds.get(0));
@@ -106,15 +107,16 @@ public class TachyonFSIntegrationTestIso {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
     for (int k = 0; k < numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH, fileSize));
+      fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH,
+          fileSize));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
       Assert.assertNotNull(tFile.readByteBuffer(0));
     }
-    fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + numOfFiles, WriteType.CACHE_THROUGH,
-        fileSize));
+    fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
+        WriteType.CACHE_THROUGH, fileSize));
 
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
@@ -133,7 +135,8 @@ public class TachyonFSIntegrationTestIso {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
     for (int k = 0; k < numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH, fileSize));
+      fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH,
+          fileSize));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
@@ -142,8 +145,8 @@ public class TachyonFSIntegrationTestIso {
         Assert.assertNotNull(tFile.readByteBuffer(0));
       }
     }
-    fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + numOfFiles, WriteType.CACHE_THROUGH,
-        fileSize));
+    fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
+        WriteType.CACHE_THROUGH, fileSize));
 
     for (int k = 0; k <= numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
@@ -164,7 +167,8 @@ public class TachyonFSIntegrationTestIso {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
     for (int k = 0; k <= numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH, fileSize));
+      fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH,
+          fileSize));
     }
     for (int k = 0; k <= numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
@@ -190,7 +194,8 @@ public class TachyonFSIntegrationTestIso {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
     for (int k = 0; k < numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH, fileSize));
+      fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH,
+          fileSize));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
@@ -199,8 +204,8 @@ public class TachyonFSIntegrationTestIso {
       Assert.assertNotNull(tBuf);
       tBuf.close();
     }
-    fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + numOfFiles, WriteType.CACHE_THROUGH,
-        fileSize));
+    fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
+        WriteType.CACHE_THROUGH, fileSize));
 
     CommonUtils.sleepMs(null, getSleepMs());
     tFile = mTfs.getFile(fileIds.get(0));
@@ -219,7 +224,8 @@ public class TachyonFSIntegrationTestIso {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
     for (int k = 0; k < numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH, fileSize));
+      fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH,
+          fileSize));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
@@ -230,8 +236,8 @@ public class TachyonFSIntegrationTestIso {
       Assert.assertNotNull(tBuf);
       tBuf.close();
     }
-    fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + numOfFiles, WriteType.CACHE_THROUGH,
-        fileSize));
+    fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
+        WriteType.CACHE_THROUGH, fileSize));
 
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
@@ -250,7 +256,8 @@ public class TachyonFSIntegrationTestIso {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
     for (int k = 0; k < numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH, fileSize));
+      fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH,
+          fileSize));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
@@ -262,8 +269,8 @@ public class TachyonFSIntegrationTestIso {
       tBuf1.close();
       tBuf2.close();
     }
-    fileIds.add(TestUtils.createByteFile(mTfs, uniqPath + numOfFiles, WriteType.CACHE_THROUGH,
-        fileSize));
+    fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
+        WriteType.CACHE_THROUGH, fileSize));
 
     CommonUtils.sleepMs(null, getSleepMs());
     tFile = mTfs.getFile(fileIds.get(0));
