@@ -42,9 +42,9 @@ import tachyon.worker.tiered.StorageDir;
 import tachyon.underfs.UnderFileSystem;
 
 /**
- * Unit tests for tachyon.worker.WorkerStorage
+ * Integration tests for tachyon.worker.WorkerStorage
  */
-public class WorkerStorageTest {
+public class WorkerStorageIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 100000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 

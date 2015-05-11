@@ -30,7 +30,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 
-public class PinTest {
+public class PinIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
   private TachyonFS mTfs = null;
