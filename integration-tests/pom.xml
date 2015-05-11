@@ -32,6 +32,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <!-- Explicitly set dependency on hadoop-minicluster to suppress a runtime
            error for accessing hadoop-core -->
       <groupId>org.apache.hadoop</groupId>
@@ -261,7 +266,7 @@
                 <!-- Change "mySecreteKey" to your secrete key for this test -->
                 <secretKey>mySecretKey</secretKey>
                 <!-- Change "s3n://my-bucket/tachyon-test" to the name of your
-                     S3 bucket for this test --> 
+                     S3 bucket for this test -->
                 <s3Bucket>s3n://my-bucket/tachyon-test</s3Bucket>
               </systemPropertyVariables>
             </configuration>
