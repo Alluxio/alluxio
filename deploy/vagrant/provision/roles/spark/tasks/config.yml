@@ -1,0 +1,15 @@
+- name: set spark/conf/slaves
+  shell: cp /vagrant/files/workers /spark/conf/slaves
+
+- name: include tachyon jar in SPARK_CLASSPATH
+  shell: echo export SPARK_CLASSPATH=/tachyon/client/target/tachyon-client-*-jar-with-dependencies.jar:$SPARK_CLASSPATH >> /spark/conf/spark-env.sh
+  when: spark_version_lessthan_1
+
+- name: set spark-env.sh
+  shell: echo export HADOOP_CONF_DIR=/hadoop/etc/hadoop >> /spark/conf/spark-env.sh && \
+         echo export SPARK_MASTER_IP="`tail -n1 /spark/conf/slaves`" >> /spark/conf/spark-env.sh
+ 
+- name: set spark/conf/core-site.xml
+  script: config_core_site.sh
+  
+# vim :set filetype=ansible.yaml:

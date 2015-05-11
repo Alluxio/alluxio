@@ -1,0 +1,14 @@
+# Clone remote git repo, like github
+#  can specify version, which is either branch or commit hash
+---
+
+- name: install git
+  shell: sudo yum install -y -q git
+
+- name: mkdir /tachyon
+  script: mkdir.sh
+
+- name: clone tachyon from {{ tachyon_repo }} {{ tachyon_version }}
+  git: repo={{ tachyon_repo }} dest=/tachyon version={{ tachyon_version }}
+
+# vim :set filetype=ansible.yaml:
