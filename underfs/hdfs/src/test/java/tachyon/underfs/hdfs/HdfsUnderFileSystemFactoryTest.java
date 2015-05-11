@@ -22,23 +22,27 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemFactory;
 import tachyon.underfs.UnderFileSystemRegistry;
 
-public class HdfsUnderFileSystemTest {
+public class HdfsUnderFileSystemFactoryTest {
 
   @Test
   public void factoryTest() {
     TachyonConf conf = new TachyonConf();
 
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("hdfs://localhost/test/path", conf);
-    Assert.assertNotNull("A UnderFileSystemFactory should exist for HDFS paths when using this module", factory);
+    UnderFileSystemFactory factory =
+        UnderFileSystemRegistry.find("hdfs://localhost/test/path", conf);
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist for HDFS paths when using this module", factory);
 
     factory = UnderFileSystemRegistry.find("s3://localhost/test/path", conf);
-    Assert.assertNotNull("A UnderFileSystemFactory should exist for S3 paths when using this module", factory);
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist for S3 paths when using this module", factory);
 
     factory = UnderFileSystemRegistry.find("s3n://localhost/test/path", conf);
-    Assert.assertNotNull("A UnderFileSystemFactory should exist for S3 paths when using this module", factory);
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist for S3 paths when using this module", factory);
 
     factory = UnderFileSystemRegistry.find("tachyon://localhost:19999/test", conf);
-    Assert.assertNull("A UnderFileSystemFactory should not exist for non supported paths when " +
-        "using this module", factory);
+    Assert.assertNull("A UnderFileSystemFactory should not exist for non supported paths when "
+        + "using this module", factory);
   }
 }
