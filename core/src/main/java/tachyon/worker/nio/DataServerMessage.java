@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.TachyonByteBuffer;
 
 /**
  * The message type used to send data request and response for remote data.
@@ -124,7 +123,6 @@ public class DataServerMessage {
         ret.mBlockId = blockId;
         ret.mOffset = offset;
         ret.mLength = len;
-        ret.mTachyonData = null;
         ret.mData = data;
         ret.mIsMessageReady = true;
         ret.generateHeader();
@@ -160,8 +158,6 @@ public class DataServerMessage {
 
   private int mLockId = -1;
 
-  private TachyonByteBuffer mTachyonData = null;
-
   private ByteBuffer mData = null;
 
   /**
@@ -187,15 +183,6 @@ public class DataServerMessage {
    * Close the message.
    */
   public void close() {
-    if (mMessageType == DATA_SERVER_RESPONSE_MESSAGE) {
-      try {
-        if (mTachyonData != null) {
-          mTachyonData.close();
-        }
-      } catch (Exception e) {
-        LOG.error(e.getMessage());
-      }
-    }
   }
 
   /**
