@@ -27,6 +27,7 @@ import tachyon.TestUtils;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
@@ -74,11 +75,11 @@ public class TieredStoreIntegrationTest {
   @Test
   public void blockEvict() throws IOException, InterruptedException {
     int fileId1 =
-        TestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
     int fileId2 =
-        TestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
     int fileId3 =
-        TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
 
     TachyonFile file1 = mTFS.getFile(fileId1);
     TachyonFile file2 = mTFS.getFile(fileId2);
@@ -89,9 +90,9 @@ public class TieredStoreIntegrationTest {
     Assert.assertEquals(file3.isInMemory(), true);
 
     int fileId4 =
-        TestUtils.createByteFile(mTFS, "/root/test4", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test4", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
     int fileId5 =
-        TestUtils.createByteFile(mTFS, "/root/test5", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test5", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
 
     CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
 
@@ -108,11 +109,11 @@ public class TieredStoreIntegrationTest {
   @Test
   public void promoteBlock() throws IOException, InterruptedException {
     int fileId1 =
-        TestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
     int fileId2 =
-        TestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
     int fileId3 =
-        TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
 
     CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
 

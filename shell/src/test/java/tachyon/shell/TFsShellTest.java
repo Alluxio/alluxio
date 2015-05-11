@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -38,6 +38,7 @@ import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
+import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
@@ -97,7 +98,7 @@ public class TFsShellTest {
 
   @Test
   public void catTest() throws IOException {
-    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.cat(new String[] {"cat", "/testFile"});
     byte expect[] = TestUtils.getIncreasingByteArray(10);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
@@ -184,7 +185,7 @@ public class TFsShellTest {
 
   @Test
   public void copyToLocalLargeTest() throws IOException {
-    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, SIZE_BYTES);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, SIZE_BYTES);
     mFsShell.copyToLocal(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
@@ -199,7 +200,7 @@ public class TFsShellTest {
 
   @Test
   public void copyToLocalTest() throws IOException {
-    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.copyToLocal(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
@@ -221,9 +222,9 @@ public class TFsShellTest {
 
   @Test
   public void countTest() throws IOException {
-    TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    TestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
-    TestUtils.createByteFile(mTfs, "/testRoot/testFileB", WriteType.MUST_CACHE, 30);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB", WriteType.MUST_CACHE, 30);
     mFsShell.count(new String[] {"count", "/testRoot"});
     String expected = "";
     String format = "%-25s%-25s%-15s\n";
@@ -241,7 +242,7 @@ public class TFsShellTest {
 
   @Test
   public void fileinfoTest() throws IOException {
-    int fileId = TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    int fileId = TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.fileinfo(new String[] {"fileinfo", "/testFile"});
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
     Assert.assertNotNull(tFile);
@@ -318,7 +319,7 @@ public class TFsShellTest {
 
   @Test
   public void locationTest() throws IOException {
-    int fileId = TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    int fileId = TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.location(new String[] {"location", "/testFile"});
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
     Assert.assertNotNull(tFile);
@@ -337,13 +338,13 @@ public class TFsShellTest {
 
   @Test
   public void lsrTest() throws IOException {
-    int fileIdA = TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    int fileIdA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     TachyonFile[] files = new TachyonFile[4];
     files[0] = mTfs.getFile(fileIdA);
-    TestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
     files[1] = mTfs.getFile(new TachyonURI("/testRoot/testDir"));
     files[2] = mTfs.getFile(new TachyonURI("/testRoot/testDir/testFileB"));
-    int fileIdC = TestUtils.createByteFile(mTfs, "/testRoot/testFileC", WriteType.THROUGH, 30);
+    int fileIdC = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileC", WriteType.THROUGH, 30);
     files[3] = mTfs.getFile(fileIdC);
     mFsShell.ls(new String[] {"count", "/testRoot"});
     String expected = "";
@@ -364,12 +365,12 @@ public class TFsShellTest {
 
   @Test
   public void lsTest() throws IOException {
-    int fileIdA = TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    int fileIdA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     TachyonFile[] files = new TachyonFile[3];
     files[0] = mTfs.getFile(fileIdA);
-    TestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
     files[1] = mTfs.getFile(new TachyonURI("/testRoot/testDir"));
-    int fileIdC = TestUtils.createByteFile(mTfs, "/testRoot/testFileC", WriteType.THROUGH, 30);
+    int fileIdC = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileC", WriteType.THROUGH, 30);
     files[2] = mTfs.getFile(fileIdC);
     mFsShell.ls(new String[] {"count", "/testRoot"});
     String expected = "";
@@ -545,14 +546,14 @@ public class TFsShellTest {
 
   @Test
   public void tailEmptyFileTest() throws IOException {
-    TestUtils.createByteFile(mTfs, "/emptyFile", WriteType.MUST_CACHE, 0);
+    TachyonFSTestUtils.createByteFile(mTfs, "/emptyFile", WriteType.MUST_CACHE, 0);
     int ret = mFsShell.tail(new String[] {"tail", "/emptyFile"});
     Assert.assertEquals(0, ret);
   }
 
   @Test
   public void tailLargeFileTest() throws IOException {
-    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 2048);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 2048);
     mFsShell.tail(new String[] {"tail", "/testFile"});
     byte expect[] = TestUtils.getIncreasingByteArray(1024, 1024);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
@@ -566,7 +567,7 @@ public class TFsShellTest {
 
   @Test
   public void tailSmallFileTest() throws IOException {
-    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.tail(new String[] {"tail", "/testFile"});
     byte expect[] = TestUtils.getIncreasingByteArray(10);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
@@ -599,7 +600,7 @@ public class TFsShellTest {
 
   @Test
   public void freeTest() throws IOException {
-    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.free(new String[] {"free", "/testFile"});
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(tachyonConf) * 2 + 10);
@@ -608,9 +609,9 @@ public class TFsShellTest {
 
   @Test
   public void duTest() throws IOException {
-    TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    TestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
-    TestUtils.createByteFile(mTfs, "/testRoot/testDir/testDir/testFileC", WriteType.MUST_CACHE, 30);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testDir/testFileC", WriteType.MUST_CACHE, 30);
 
     String expected = "";
     // du a non-existing file

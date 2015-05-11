@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -33,6 +33,7 @@ import tachyon.TestUtils;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
@@ -78,7 +79,7 @@ public class WorkerStorageIntegrationTest {
   }
 
   private void swapoutOrphanBlocksFileTestUtil(int filesize) throws Exception {
-    int fid = TestUtils.createByteFile(mTfs, "/xyz", WriteType.MUST_CACHE, filesize);
+    int fid = TachyonFSTestUtils.createByteFile(mTfs, "/xyz", WriteType.MUST_CACHE, filesize);
     long bid = mTfs.getBlockId(fid, 0);
     mLocalTachyonCluster.stopWorker();
     // If you call mTfs.delete(fid, true), this will throw a
@@ -106,13 +107,13 @@ public class WorkerStorageIntegrationTest {
 
   /**
    * To test the cacheBlock method when multi clients cache the same block.
-   * 
+   *
    * @throws IOException
    */
   @Test
   public void cacheBlockTest() throws Exception {
     int fileLen = USER_QUOTA_UNIT_BYTES + 4;
-    int fid = TestUtils.createByteFile(mTfs, "/cacheBlockTest", WriteType.THROUGH, fileLen);
+    int fid = TachyonFSTestUtils.createByteFile(mTfs, "/cacheBlockTest", WriteType.THROUGH, fileLen);
     long usedBytes = mLocalTachyonCluster.getMasterInfo().getWorkersInfo().get(0).getUsedBytes();
     Assert.assertEquals(0, usedBytes);
     TachyonFS tfs1 = mLocalTachyonCluster.getClient();
@@ -131,7 +132,7 @@ public class WorkerStorageIntegrationTest {
 
   /**
    * To test swapout the small file which is bigger than 64K
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -141,7 +142,7 @@ public class WorkerStorageIntegrationTest {
 
   /**
    * To test swapout the small file which is less than 64K
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -151,7 +152,7 @@ public class WorkerStorageIntegrationTest {
 
   /**
    * To test initial WorkerStorage with unknown block files
-   * 
+   *
    * @throws Exception
    */
   @Test

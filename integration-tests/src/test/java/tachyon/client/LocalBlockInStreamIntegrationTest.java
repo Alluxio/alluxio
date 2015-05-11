@@ -68,7 +68,8 @@ public class LocalBlockInStreamIntegrationTest {
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
-        int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+        int fileId =
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
@@ -122,7 +123,8 @@ public class LocalBlockInStreamIntegrationTest {
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
-        int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+        int fileId =
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
@@ -160,7 +162,8 @@ public class LocalBlockInStreamIntegrationTest {
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
-        int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+        int fileId =
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
@@ -201,7 +204,8 @@ public class LocalBlockInStreamIntegrationTest {
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
-        int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+        int fileId =
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
@@ -237,7 +241,8 @@ public class LocalBlockInStreamIntegrationTest {
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
-        int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+        int fileId =
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
@@ -263,7 +268,8 @@ public class LocalBlockInStreamIntegrationTest {
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
-        int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+        int fileId =
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
@@ -292,7 +298,8 @@ public class LocalBlockInStreamIntegrationTest {
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
-        int fileId = TestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+        int fileId =
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.CACHE);

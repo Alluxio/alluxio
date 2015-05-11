@@ -26,6 +26,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
@@ -89,7 +90,7 @@ public class BlockHandlerLocalIntegrationTest {
 
   @Test
   public void readExceptionTest() throws IOException {
-    int fileId = TestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
+    int fileId = TachyonFSTestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
     TachyonFile file = mTfs.getFile(fileId);
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);
@@ -116,7 +117,7 @@ public class BlockHandlerLocalIntegrationTest {
 
   @Test
   public void readTest() throws IOException {
-    int fileId = TestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
+    int fileId = TachyonFSTestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
     TachyonFile file = mTfs.getFile(fileId);
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);

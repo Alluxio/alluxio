@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -28,6 +28,7 @@ import tachyon.Pair;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFSTestUtils;
 import tachyon.util.CommonUtils;
 
 /**
@@ -57,7 +58,7 @@ public class MasterFaultToleranceTest {
 
   /**
    * Create 10 files in the folder
-   * 
+   *
    * @param folderName the folder name to create
    * @param answer the results, the mapping from file id to file path
    * @throws IOException
@@ -79,13 +80,13 @@ public class MasterFaultToleranceTest {
 
   /**
    * Tells if the results can match the answer
-   * 
+   *
    * @param answer the correct results
    * @throws IOException
    */
   private void faultTestDataCheck(List<Pair<Integer, TachyonURI>> answer) throws IOException {
     TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
-    List<String> files = TestUtils.listFiles(tfs, TachyonURI.SEPARATOR);
+    List<String> files = TachyonFSTestUtils.listFiles(tfs, TachyonURI.SEPARATOR);
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
       Assert.assertEquals(answer.get(k).getSecond().toString(),
@@ -128,7 +129,7 @@ public class MasterFaultToleranceTest {
       TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
       tfs.createFile(new TachyonURI(TachyonURI.SEPARATOR + k), 1024);
     }
-    List<String> files = TestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
+    List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Assert.assertEquals(clients, files.size());
     for (int k = 0; k < clients; k ++) {
       Assert.assertEquals(TachyonURI.SEPARATOR + k, files.get(k));

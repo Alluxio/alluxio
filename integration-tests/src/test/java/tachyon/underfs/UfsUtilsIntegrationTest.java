@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -29,6 +29,7 @@ import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFSTestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
@@ -83,7 +84,7 @@ public class UfsUtilsIntegrationTest {
     List<String> paths = null;
     for (String exclusion : exclusions) {
       try {
-        paths = TestUtils.listFiles(mTfs, exclusion);
+        paths = TachyonFSTestUtils.listFiles(mTfs, exclusion);
         fail("NO FileDoesNotExistException is expected here");
       } catch (IOException ioe) {
         Assert.assertNotNull(ioe);
@@ -92,7 +93,7 @@ public class UfsUtilsIntegrationTest {
     }
 
     for (String inclusion : inclusions) {
-      paths = TestUtils.listFiles(mTfs, inclusion);
+      paths = TachyonFSTestUtils.listFiles(mTfs, inclusion);
       Assert.assertNotNull(paths);
     }
   }
