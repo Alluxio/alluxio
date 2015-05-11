@@ -19,7 +19,7 @@
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon</artifactId>
+      <artifactId>tachyon-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -30,25 +30,8 @@
 
     <!-- Test Dependencies -->
     <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon</artifactId>
-      <version>${project.version}</version>
-      <classifier>tests</classifier>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
