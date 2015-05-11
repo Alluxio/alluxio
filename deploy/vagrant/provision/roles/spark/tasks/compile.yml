@@ -1,0 +1,22 @@
+- include: ../../lib/tasks/maven.yml
+
+- name: set current tachyon version in spark/core/pom.xml
+  shell: tachyon_version=`/tachyon/bin/tachyon version | cut -d':' -f2 | tr -d ' '` && \
+         perl -0777 -i -pe \
+         "s/(<artifactId>tachyon-client<\/artifactId>\n\s*)<version>.*/\1<version>${tachyon_version}<\/version>/g" \
+         /spark/core/pom.xml
+
+- copy: src=roles/ufs_{{ ufs }}/files/compile_spark.sh dest=/tmp/compile_spark.sh
+
+- name: compile spark and make-distribution
+  shell: bash /tmp/compile_spark.sh
+  async: 18000
+  poll: 60
+
+- name: replace /spark with /spark/dist
+  shell: tar czf /tmp/spark.tar -C /spark/dist . && \
+         rm -rf /spark/* && \
+         tar xzf /tmp/spark.tar -C /spark && \
+         rm -f /tmp/spark.tar
+
+# vim :set filetype=ansible.yaml:
