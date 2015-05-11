@@ -91,7 +91,7 @@ public class MasterClientTest {
   }
 
   @Test(timeout = 3000, expected = NoWorkerException.class)
-  public void user_getWorkerReturnsWhenNotLocal() throws TException, IOException {
+  public void user_getWorkerReturnsWhenNotLocal() throws Exception {
     // this test was created to show that a infi loop happens
     // the timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
