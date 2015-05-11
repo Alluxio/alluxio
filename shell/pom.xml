@@ -32,8 +32,17 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <!-- TODO: remove this dependency for TestUtils -->
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <!-- TODO: consider better way to reference LocalTachyonCluster -->
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-integration-tests</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
       <scope>test</scope>

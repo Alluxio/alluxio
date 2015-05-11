@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -23,13 +23,13 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
- * Class for convenience methods used by TFsShell.
+ * Class for convenience methods used by {@link TFsShell}.
  */
-public class Utils {
+public class TFsShellUtils {
   /**
    * Removes Constants.HEADER / Constants.HEADER_FT and hostname:port information from a path,
    * leaving only the local file path.
-   * 
+   *
    * @param path The path to obtain the local path from
    * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to be used.
    * @return The local path in string format
@@ -49,7 +49,7 @@ public class Utils {
   /**
    * Validates the path, verifying that it contains the <code>Constants.HEADER </code> or
    * <code>Constants.HEADER_FT</code> and a hostname:port specified.
-   * 
+   *
    * @param path The path to be verified.
    * @param tachyonConf The instance of {@link tachyon.conf.TachyonConf} to be used.
    * @return the verified path in a form like tachyon://host:port/dir. If only the "/dir" or "dir"
