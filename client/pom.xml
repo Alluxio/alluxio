@@ -23,7 +23,6 @@
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon</artifactId>
       <version>${project.version}</version>
-      <scope>compile</scope>
       <exclusions>
         <exclusion>
           <groupId>org.eclipse.jetty</groupId>
@@ -77,10 +76,6 @@
           <groupId>org.codehaus.jackson</groupId>
           <artifactId>jackson-xc</artifactId>
         </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -115,6 +110,23 @@
           <artifactId>tachyon</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <!-- Test Dependencies -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
