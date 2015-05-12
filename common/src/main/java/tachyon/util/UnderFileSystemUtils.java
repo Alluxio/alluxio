@@ -18,9 +18,6 @@ package tachyon.util;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.apache.hadoop.conf.Configuration;
-
-import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 
@@ -67,20 +64,5 @@ public final class UnderFileSystemUtils {
     UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
     OutputStream os = ufs.create(path);
     os.close();
-  }
-
-  /**
-   * Add S3 keys to the given Hadoop Configuration object if the user has specified them using
-   * System properties, and they're not already set.
-   */
-  public static void addS3Credentials(Configuration conf) {
-    String accessKeyConf = Constants.S3_ACCESS_KEY;
-    if (System.getProperty(accessKeyConf) != null && conf.get(accessKeyConf) == null) {
-      conf.set(accessKeyConf, System.getProperty(accessKeyConf));
-    }
-    String secretKeyConf = Constants.S3_SECRET_KEY;
-    if (System.getProperty(secretKeyConf) != null && conf.get(secretKeyConf) == null) {
-      conf.set(secretKeyConf, System.getProperty(secretKeyConf));
-    }
   }
 }
