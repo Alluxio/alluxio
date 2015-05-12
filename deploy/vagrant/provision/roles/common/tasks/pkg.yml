@@ -2,7 +2,8 @@
 ---
 
 - name: install libselinux-python
-  command: sudo yum install -y -q libselinux-python
+  yum: name=libselinux-python
+  sudo: yes
 
 - name: install java
   script: java.sh

@@ -2,12 +2,16 @@
 ---
 
 - name: mkdir /vagrant if not exist
-  shell: if [ ! -d /vagrant ]; then sudo mkdir /vagrant && sudo chown -R `whoami` /vagrant; fi
+  script: mkdir_vagrant.sh
 
 - name: install rsync
-  shell: sudo yum install -y -q rsync
+  yum: name=rsync
+  sudo: yes
 
+# src is files/ in the same directory as Vagrantfile
 - name: sync files
-  synchronize: src="../../../../files" dest=/vagrant # files/ in the same directory as Vagrantfile
+  synchronize: >
+    src="../../../../files" 
+    dest=/vagrant 
 
 # vim: set filetype=ansible.yaml:

@@ -2,24 +2,18 @@
 ---
 
 - name: set tachyon/conf/workers tachyon/conf/slaves
-  shell: cp /vagrant/files/workers /tachyon/conf/workers && \
-         cp /vagrant/files/workers /tachyon/conf/slaves
+  script: slave.sh
 
 - name: set tachyon-env.sh
   script: roles/ufs_{{ ufs }}/files/config_tachyon.sh
 
 - name: let tachyon ssh to workers in parallel when start
-  shell: sed -i \
-           's/TACHYON_SSH_FOREGROUND="yes"/TACHYON_SSH_FOREGROUND=""/g' \
-           /tachyon/conf/tachyon-env.sh
+  replace: >
+    dest=/tachyon/conf/tachyon-env.sh
+    regexp='TACHYON_SSH_FOREGROUND="yes"'
+    replace='TACHYON_SSH_FOREGROUND=""'
 
 - name: set TACHYON_JAR in libexec/tachyon-config.sh
-  shell: tachyon_version=`grep version /tachyon/pom.xml | \
-           head -n1 | tr -d ' ' | \
-           sed 's/<version>//g' | \
-           sed 's/<\/version>//g'` && \
-         sed -i \
-           "s/tachyon-.*-jar-with-dependencies.jar/tachyon-${tachyon_version}-jar-with-dependencies.jar/g" \
-           /tachyon/libexec/tachyon-config.sh
+  script: tachyon_jar.sh
 
 # vim :set filetype=ansible.yaml:

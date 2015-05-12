@@ -1,6 +1,4 @@
 - name: Start tachyon
-  shell: cd /tachyon/bin  && \
-         ./tachyon format && \
-         ./tachyon-start.sh all SudoMount
+  script: start.sh
 
 # vim :set filetype=ansible.yaml:
