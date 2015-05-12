@@ -1,8 +1,8 @@
 - name: install wget
-  shell: sudo yum install -y -q wget
+  yum: name=wget
+  sudo: yes
   
 - name: download glusterfs
-  shell: sudo wget -P /etc/yum.repos.d http://download.gluster.org/pub/gluster/glusterfs/LATEST/RHEL/glusterfs-epel.repo && \
-         sudo yum install -q -y glusterfs-server glusterfs-client
+  script: down.sh
 
 # vim :set filetype=ansible.yaml:
