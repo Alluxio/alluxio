@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -26,14 +26,15 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
 
 /**
- * Unit tests for <code>tachyon.client.BlockHandlerLocal</code>.
+ * Integration tests for <code>tachyon.client.BlockHandlerLocal</code>.
  */
-public class BlockHandlerLocalTest {
+public class BlockHandlerLocalIntegrationTest {
   private static LocalTachyonCluster mLocalTachyonCluster = null;
   private static TachyonFS mTfs = null;
 
@@ -89,7 +90,7 @@ public class BlockHandlerLocalTest {
 
   @Test
   public void readExceptionTest() throws IOException {
-    int fileId = TestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
+    int fileId = TachyonFSTestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
     TachyonFile file = mTfs.getFile(fileId);
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);
@@ -116,7 +117,7 @@ public class BlockHandlerLocalTest {
 
   @Test
   public void readTest() throws IOException {
-    int fileId = TestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
+    int fileId = TachyonFSTestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
     TachyonFile file = mTfs.getFile(fileId);
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);

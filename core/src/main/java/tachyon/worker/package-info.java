@@ -45,11 +45,11 @@
  * is the default. To support both, a {@link tachyon.worker.DataServer} interface is used that just
  * defines how to start/stop, and get port details; to start, object init is used.
  * 
- * The current read protocol is defined in {@link tachyon.worker.nio.DataServerMessage}. This has
+ * The current read protocol is defined in {@link tachyon.worker.DataServerMessage}. This has
  * two different types: read
- * {@link tachyon.worker.nio.DataServerMessage#createBlockRequestMessage(long, long, long)} and
+ * {@link tachyon.worker.DataServerMessage#createBlockRequestMessage(long, long, long)} and
  * write
- * {@link tachyon.worker.nio.DataServerMessage#createBlockResponseMessage(boolean, long, long,
+ * {@link tachyon.worker.DataServerMessage#createBlockResponseMessage(boolean, long, long,
  * long, ByteBuffer)}.
  * Side note, the netty implementation does not use this class, but has defined two classes for
  * the read and write case: {@link tachyon.worker.netty.BlockRequest},

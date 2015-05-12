@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -27,6 +27,7 @@ import tachyon.TestUtils;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
@@ -34,9 +35,9 @@ import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
 
 /**
- * Unit tests for tachyon.worker.tiered.StorageTier.
+ * Integration tests for {@link tachyon.worker.tiered.StorageTier}.
  */
-public class TieredStoreTest {
+public class TieredStoreIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
   private static final int DISK_CAPACITY_BYTES = 10000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
@@ -74,11 +75,11 @@ public class TieredStoreTest {
   @Test
   public void blockEvict() throws IOException, InterruptedException {
     int fileId1 =
-        TestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
     int fileId2 =
-        TestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
     int fileId3 =
-        TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
 
     TachyonFile file1 = mTFS.getFile(fileId1);
     TachyonFile file2 = mTFS.getFile(fileId2);
@@ -89,9 +90,9 @@ public class TieredStoreTest {
     Assert.assertEquals(file3.isInMemory(), true);
 
     int fileId4 =
-        TestUtils.createByteFile(mTFS, "/root/test4", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test4", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
     int fileId5 =
-        TestUtils.createByteFile(mTFS, "/root/test5", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test5", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
 
     CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
 
@@ -108,11 +109,11 @@ public class TieredStoreTest {
   @Test
   public void promoteBlock() throws IOException, InterruptedException {
     int fileId1 =
-        TestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
     int fileId2 =
-        TestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
     int fileId3 =
-        TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
 
     CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
 

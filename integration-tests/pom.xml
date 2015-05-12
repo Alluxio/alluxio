@@ -32,6 +32,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <!-- Explicitly set dependency on hadoop-minicluster to suppress a runtime
            error for accessing hadoop-core -->
       <groupId>org.apache.hadoop</groupId>
@@ -44,8 +49,18 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-client</artifactId>
+      <artifactId>tachyon</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -53,7 +68,7 @@
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon</artifactId>
       <version>${project.version}</version>
-      <classifier>tests</classifier>
+      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -261,7 +276,7 @@
                 <!-- Change "mySecreteKey" to your secrete key for this test -->
                 <secretKey>mySecretKey</secretKey>
                 <!-- Change "s3n://my-bucket/tachyon-test" to the name of your
-                     S3 bucket for this test --> 
+                     S3 bucket for this test -->
                 <s3Bucket>s3n://my-bucket/tachyon-test</s3Bucket>
               </systemPropertyVariables>
             </configuration>
@@ -313,6 +328,30 @@
           <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
           <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
         </configuration>
+      </plugin>
+      <plugin>
+        <!-- TODO: test-jar is generated only to expose LocalTachyonCluster. We
+             should remove this when this class can be exposed in a better way. -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+            </manifest>
+          </archive>
+          <excludes>
+            <exclude>**/log4j.properties</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

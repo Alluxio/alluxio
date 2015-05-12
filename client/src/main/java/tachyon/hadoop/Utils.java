@@ -17,6 +17,7 @@ package tachyon.hadoop;
 
 import java.io.IOException;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileSplit;
@@ -106,5 +107,26 @@ public final class Utils {
       LOG.error(e.getMessage());
     }
     return sb.toString();
+  }
+
+
+  /**
+   * TODO: This function is duplicated from tachyon.underfs.hdfs.HdfsUnderFileSystemUtils, to avoid
+   * making module tachyon-client depending on tachyon-underfs. Remove duplication in the future.
+   *
+   * <p>
+   * Add S3 keys to the given Hadoop Configuration object if the user has specified them using
+   * System properties, and they're not already set.
+   *
+   */
+  public static void addS3Credentials(Configuration conf) {
+    String accessKeyConf = Constants.S3_ACCESS_KEY;
+    if (System.getProperty(accessKeyConf) != null && conf.get(accessKeyConf) == null) {
+      conf.set(accessKeyConf, System.getProperty(accessKeyConf));
+    }
+    String secretKeyConf = Constants.S3_SECRET_KEY;
+    if (System.getProperty(secretKeyConf) != null && conf.get(secretKeyConf) == null) {
+      conf.set(secretKeyConf, System.getProperty(secretKeyConf));
+    }
   }
 }
