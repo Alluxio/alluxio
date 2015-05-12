@@ -21,6 +21,6 @@ if [[ "$?" == "0" ]]; then
  master=`cat ${HERE}/.vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory | grep Master | cut -d' ' -f2 | cut -d'=' -f2`
  purple='\033[1;35m'
  no_color='\033[0m'
- echo -e ">>> ${purple}visit $master:19999 for Tachyon Web Console${no_color} <<<"
- echo -e ">>> ${purple}visit $master:8080  for Spark   Web Console${no_color} <<<"
+ echo -e ">>> ${purple}TachyonMaster public IP is ${master}${no_color} <<<"
+ echo -e ">>> ${purple}visit default port of the web UI of what you deployed${no_color} <<<"
 fi

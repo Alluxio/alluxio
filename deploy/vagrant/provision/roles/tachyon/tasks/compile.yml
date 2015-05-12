@@ -4,7 +4,9 @@
 - include: ../../lib/tasks/maven.yml
 
 # compile_tachyon.sh defined in ufs_xxx/files
-- copy: src=roles/ufs_{{ ufs }}/files/compile_tachyon.sh dest=/tmp/compile_tachyon.sh
+- copy: >
+    src=roles/ufs_{{ ufs }}/files/compile_tachyon.sh 
+    dest=/tmp/compile_tachyon.sh
 
 - name: compile tachyon
   command: bash /tmp/compile_tachyon.sh

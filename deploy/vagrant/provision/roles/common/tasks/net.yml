@@ -6,6 +6,6 @@
   script: ssh.sh
 
 - name: configure hosts
-  shell: cat /vagrant/files/hosts | sudo tee -a /etc/hosts
+  script: host.sh
 
 # vim :set filetype=ansible.yaml:
