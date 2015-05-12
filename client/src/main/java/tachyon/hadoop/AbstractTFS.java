@@ -45,8 +45,8 @@ import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.client.UfsUtils;
-import tachyon.underfs.hdfs.HdfsUnderFileSystemUtils;
 import tachyon.util.CommonUtils;
+import tachyon.util.UnderFileSystemUtils;
 
 /**
  * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
@@ -382,7 +382,7 @@ abstract class AbstractTFS extends FileSystem {
   public void initialize(URI uri, Configuration conf) throws IOException {
     super.initialize(uri, conf);
     LOG.info("initialize(" + uri + ", " + conf + "). Connecting to Tachyon: " + uri.toString());
-    HdfsUnderFileSystemUtils.addS3Credentials(conf);
+    UnderFileSystemUtils.addS3Credentials(conf);
     setConf(conf);
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
 

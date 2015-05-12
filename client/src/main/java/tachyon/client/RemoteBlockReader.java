@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.ServerConstants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 

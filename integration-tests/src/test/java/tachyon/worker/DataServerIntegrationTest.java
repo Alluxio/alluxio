@@ -42,7 +42,6 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
-import tachyon.worker.nio.DataServerMessage;
 
 /**
  * Integration tests for tachyon.worker.DataServer.
