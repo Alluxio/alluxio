@@ -232,7 +232,7 @@ public class DataServerMessage {
    *
    * @return The id of the block's locker
    */
-  int getLockId() {
+  public int getLockId() {
     return mLockId;
   }
 
@@ -343,7 +343,7 @@ public class DataServerMessage {
    *
    * @param lockId The id of the block's locker
    */
-  void setLockId(int lockId) {
+  public void setLockId(int lockId) {
     mLockId = lockId;
   }
 }

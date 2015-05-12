@@ -67,12 +67,18 @@
                   </excludes>
                 </filter>
               </filters>
+              <!-- Comment the following for this PR as tachyon-core now depends on unshaded
+                   client jar.
+                   TODO: Fix the client pom to generate both shaded (for
+                   external users) and unshaded (for core jar) -->
+              <!--
               <relocations>
                 <relocation>
                   <pattern>org.apache.thrift</pattern>
                   <shadedPattern>tachyon.org.apache.thrift</shadedPattern>
                 </relocation>
               </relocations>
+              -->
             </configuration>
           </execution>
           <execution>
