@@ -6,7 +6,11 @@
       when: provider == "aws"
 
     - name: open PasswordAuthentication of sshd for openstack
-      shell: sudo sed -i -e "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+      replace: >
+        dest=/etc/ssh/sshd_config
+        regexp='PasswordAuthentication no'
+        replace='PasswordAuthentication yes'
+      sudo: yes
       when: provider == "os"
 
     # tachyon starts workers at `hostname -f`, in vb, hostname is set by vagrant to TachyonMaster, TachyonWorker1
