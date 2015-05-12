@@ -80,9 +80,9 @@ later) and Tachyon (0.4.1 or later).  Please refer to
 [Spark Doc](http://spark.apache.org/docs/latest/programming-guide.html) on the benefit of this
 feature.
 
-Your Spark programs need to set two parameters, `spark.tachyonStore.url` and
-`spark.tachyonStore.baseDir`. `spark.tachyonStore.url` (by default `tachyon://localhost:19998`) is
-the URL of the Tachyon filesystem in the TachyonStore. `spark.tachyonStore.baseDir` (by default
+Your Spark programs need to set two parameters, `spark.externalBlockStore.url` and
+`spark.externalBlockStore.baseDir`. `spark.externalBlockStore.url` (by default `tachyon://localhost:19998`) is
+the URL of the Tachyon filesystem in the TachyonStore. `spark.externalBlockStore.baseDir` (by default
 `java.io.tmpdir`) is the base directory in the Tachyon File System that will store the RDDs. It can
 be a comma-separated list of multiple directories in Tachyon.
 
@@ -93,7 +93,7 @@ is an example with Spark shell:
     $ val rdd = sc.textFile(inputPath)
     $ rdd.persist(StorageLevel.OFF_HEAP)
 
-Take a look at the `spark.tachyonStore.baseDir` on Tachyon's WebUI (the default URI is
+Take a look at the `spark.externalBlockStore.baseDir` on Tachyon's WebUI (the default URI is
 [http://localhost:19999](http://localhost:19999)), when the Spark application is running. There
 should be a bunch of files there; they are RDD blocks. Currently, the files will be cleaned up when
 the spark application finishes.
