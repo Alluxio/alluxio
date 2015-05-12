@@ -21,6 +21,11 @@
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-client</artifactId>
       <version>${project.version}</version>
     </dependency>

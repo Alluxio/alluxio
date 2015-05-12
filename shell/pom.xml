@@ -32,6 +32,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <!-- TODO: remove this dependency for TestUtils -->
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon</artifactId>
