@@ -4,19 +4,18 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 
-package tachyon.underfs;
+package tachyon.client;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -29,8 +28,8 @@ import tachyon.Pair;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 
@@ -62,7 +61,7 @@ public class UfsUtils {
   /**
    * Load files under path "ufsAddrRootPath" (excluding excludePathPrefix relative to the path) to
    * the given tfs under a given destination path.
-   * 
+   *
    * @param tfsAddrRootPath the mTachyonFS address and path to load the src files, like
    *        "tachyon://host:port/dest".
    * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/src".
@@ -82,7 +81,7 @@ public class UfsUtils {
   /**
    * Load files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix) to the given tfs
    * under the given tfsRootPath directory.
-   * 
+   *
    * @param tfs the mTachyonFS handler created out of address like "tachyon://host:port"
    * @param tachyonPath the destination point in mTachyonFS to load the under FS path onto
    * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/dir".
@@ -205,17 +204,6 @@ public class UfsUtils {
     }
   }
 
-  /**
-   * Create an empty file
-   *
-   * @throws IOException
-   */
-  public static void touch(String path, TachyonConf tachyonConf) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
-    OutputStream os = ufs.create(path);
-    os.close();
-  }
-
   public static void main(String[] args) {
     if (!(args.length == 2 || args.length == 3)) {
       printUsage();
@@ -238,7 +226,7 @@ public class UfsUtils {
   public static void printUsage() {
     String cmd =
         "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-            + "tachyon.underfs.UfsUtils ";
+            + "tachyon.client.UfsUtils ";
 
     System.out.println("Usage: " + cmd + "<TachyonPath> <UfsPath> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");

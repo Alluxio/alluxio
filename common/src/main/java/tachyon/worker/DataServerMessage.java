@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.nio;
+package tachyon.worker;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.TachyonByteBuffer;
 
 /**
  * The message type used to send data request and response for remote data.
@@ -124,7 +123,6 @@ public class DataServerMessage {
         ret.mBlockId = blockId;
         ret.mOffset = offset;
         ret.mLength = len;
-        ret.mTachyonData = null;
         ret.mData = data;
         ret.mIsMessageReady = true;
         ret.generateHeader();
@@ -160,8 +158,6 @@ public class DataServerMessage {
 
   private int mLockId = -1;
 
-  private TachyonByteBuffer mTachyonData = null;
-
   private ByteBuffer mData = null;
 
   /**
@@ -187,15 +183,6 @@ public class DataServerMessage {
    * Close the message.
    */
   public void close() {
-    if (mMessageType == DATA_SERVER_RESPONSE_MESSAGE) {
-      try {
-        if (mTachyonData != null) {
-          mTachyonData.close();
-        }
-      } catch (Exception e) {
-        LOG.error(e.getMessage());
-      }
-    }
   }
 
   /**
@@ -245,7 +232,7 @@ public class DataServerMessage {
    *
    * @return The id of the block's locker
    */
-  int getLockId() {
+  public int getLockId() {
     return mLockId;
   }
 
@@ -356,7 +343,7 @@ public class DataServerMessage {
    *
    * @param lockId The id of the block's locker
    */
-  void setLockId(int lockId) {
+  public void setLockId(int lockId) {
     mLockId = lockId;
   }
 }

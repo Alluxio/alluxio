@@ -33,7 +33,7 @@ import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
 
-public class CapacityUsageTest {
+public class CapacityUsageIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 20 * Constants.MB;
   private static final int DISK_CAPACITY_BYTES = Constants.GB;
   private static final int USER_QUOTA_UNIT_BYTES = Constants.MB;

@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.ServerConstants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
@@ -34,7 +33,7 @@ public interface RemoteBlockReader {
     public static RemoteBlockReader createRemoteBlockReader(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(conf.getClass(Constants.USER_REMOTE_BLOCK_READER,
-            ServerConstants.USER_REMOTE_BLOCK_READER_CLASS), null, null);
+            ClientConstants.USER_REMOTE_BLOCK_READER_CLASS), null, null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
