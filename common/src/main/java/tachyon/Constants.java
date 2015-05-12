@@ -207,5 +207,5 @@ public class Constants {
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
 
-  public static final String MASTER_INFO_COL = "COL_";
+  public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 }
