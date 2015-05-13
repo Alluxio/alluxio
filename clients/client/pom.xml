@@ -21,6 +21,11 @@
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-client-unshaded</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -43,6 +48,7 @@
               <artifactSet>
                 <includes>
                   <include>org.tachyonproject:tachyon-common</include>
+                  <include>org.tachyonproject:tachyon-client-unshaded</include>
                   <include>org.apache.thrift:tachyon.org.apache.thrift</include>
                 </includes>
               </artifactSet>
