@@ -88,12 +88,12 @@ public class S3UnderFileSystemTest {
     String input4 = "s3n://test-bucket/file";
     String input5 = "s3n://test-bucket/dir/file";
     String input6 = "s3n://test-bucket-wrong/";
-    boolean result1 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input1);
-    boolean result2 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input2);
-    boolean result3 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input3);
-    boolean result4 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input4);
-    boolean result5 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input5);
-    boolean result6 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input6);
+    Boolean result1 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input1);
+    Boolean result2 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input2);
+    Boolean result3 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input3);
+    Boolean result4 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input4);
+    Boolean result5 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input5);
+    Boolean result6 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input6);
 
     Assert.assertFalse(result1);
     Assert.assertTrue(result2);

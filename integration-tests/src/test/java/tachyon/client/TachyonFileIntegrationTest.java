@@ -72,29 +72,29 @@ public class TachyonFileIntegrationTest {
   @Test
   public void isInMemoryTest() throws IOException {
     int fileId =
-        TestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
+        TachyonFSTestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
     TachyonFile file = mTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
 
     fileId =
-        TestUtils.createByteFile(mTfs, "/file2", WriteType.CACHE_THROUGH, USER_QUOTA_UNIT_BYTES);
+        TachyonFSTestUtils.createByteFile(mTfs, "/file2", WriteType.CACHE_THROUGH, USER_QUOTA_UNIT_BYTES);
     file = mTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
 
-    fileId = TestUtils.createByteFile(mTfs, "/file3", WriteType.THROUGH, USER_QUOTA_UNIT_BYTES);
+    fileId = TachyonFSTestUtils.createByteFile(mTfs, "/file3", WriteType.THROUGH, USER_QUOTA_UNIT_BYTES);
     file = mTfs.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
     Assert.assertTrue(file.recache());
     Assert.assertTrue(file.isInMemory());
 
     fileId =
-        TestUtils.createByteFile(mTfs, "/file4", WriteType.THROUGH, WORKER_CAPACITY_BYTES + 1);
+        TachyonFSTestUtils.createByteFile(mTfs, "/file4", WriteType.THROUGH, WORKER_CAPACITY_BYTES + 1);
     file = mTfs.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
     Assert.assertFalse(file.recache());
     Assert.assertFalse(file.isInMemory());
 
-    fileId = TestUtils.createByteFile(mTfs, "/file5", WriteType.THROUGH, WORKER_CAPACITY_BYTES);
+    fileId = TachyonFSTestUtils.createByteFile(mTfs, "/file5", WriteType.THROUGH, WORKER_CAPACITY_BYTES);
     file = mTfs.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
     Assert.assertTrue(file.recache());
@@ -110,7 +110,7 @@ public class TachyonFileIntegrationTest {
   public void isInMemoryTest2() throws IOException {
     for (int k = 0; k < MAX_FILES; k ++) {
       int fileId =
-          TestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
+          TachyonFSTestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
       TachyonFile file = mTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
     }
@@ -125,7 +125,7 @@ public class TachyonFileIntegrationTest {
 
     for (int k = MAX_FILES; k < MAX_FILES + 1; k ++) {
       int fileId =
-          TestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
+          TachyonFSTestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
       TachyonFile file = mTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
     }
@@ -153,13 +153,13 @@ public class TachyonFileIntegrationTest {
     mTfs.pinFile(mTfs.getFileId(pin));
 
     int fileId =
-        TestUtils.createByteFile(mTfs, "/pin/file", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
+        TachyonFSTestUtils.createByteFile(mTfs, "/pin/file", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
     TachyonFile file = mTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
 
     for (int k = 0; k < MAX_FILES; k ++) {
       fileId =
-          TestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
+          TachyonFSTestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
       file = mTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
     }
@@ -184,7 +184,7 @@ public class TachyonFileIntegrationTest {
   public void readLocalTest() throws IOException {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       int fileId =
-          TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + WriteType.MUST_CACHE,
+          TachyonFSTestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + WriteType.MUST_CACHE,
               WriteType.MUST_CACHE, k);
 
       TachyonFile file = mTfs.getFile(fileId);
@@ -204,7 +204,7 @@ public class TachyonFileIntegrationTest {
   @Test
   public void readRemoteTest() throws IOException {
     int fileId =
-        TestUtils.createByteFile(mTfs, "/root/testFile", WriteType.MUST_CACHE,
+        TachyonFSTestUtils.createByteFile(mTfs, "/root/testFile", WriteType.MUST_CACHE,
             USER_QUOTA_UNIT_BYTES);
 
     TachyonFile file = mTfs.getFile(fileId);

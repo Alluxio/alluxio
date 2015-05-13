@@ -1,0 +1,7 @@
+- name: make sure /hadoop exist
+  script: mkdir.sh
+
+- name: download hadoop release
+  script: download_release.sh
+
+# vim :set filetype=ansible.yaml:
