@@ -15,29 +15,36 @@
 
 package tachyon.metrics;
 
+import java.util.Properties;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterSource;
 import tachyon.worker.WorkerSource;
 
 public class MetricsSystemTest {
-  private String mFilePath;
+  private MetricsConfig mMetricsConfig;
   private TachyonConf mTachyonConf;
 
   @Before
   public final void Before() {
-    mFilePath = getClass().getClassLoader().getResource("test_metrics.properties").getFile();
     mTachyonConf = new TachyonConf();
-    mTachyonConf.set(Constants.METRICS_CONF_FILE, mFilePath);
+    Properties metricsProps = new Properties();
+    metricsProps.setProperty("*.sink.console.class", "tachyon.metrics.sink.ConsoleSink");
+    metricsProps.setProperty("*.sink.console.period", "15");
+    metricsProps.setProperty("*.source.jvm.class", "tachyon.metrics.source.JvmSource");
+    metricsProps.setProperty("master.sink.console.period", "20");
+    metricsProps.setProperty("master.sink.console.unit", "minutes");
+    metricsProps.setProperty("master.sink.jmx.class", "tachyon.metrics.sink.JmxSink");
+    mMetricsConfig = new MetricsConfig(metricsProps);
   }
 
   @Test
   public void metricsSystemTest() {
-    MetricsSystem masterMetricsSystem = new MetricsSystem("master", mTachyonConf);
+    MetricsSystem masterMetricsSystem = new MetricsSystem("master", mMetricsConfig, mTachyonConf);
     masterMetricsSystem.start();
 
     Assert.assertNotNull(masterMetricsSystem.getServletHandler());
@@ -47,7 +54,7 @@ public class MetricsSystemTest {
     Assert.assertEquals(2, masterMetricsSystem.getSources().size());
     masterMetricsSystem.stop();
 
-    MetricsSystem workerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
+    MetricsSystem workerMetricsSystem = new MetricsSystem("worker", mMetricsConfig, mTachyonConf);
     workerMetricsSystem.start();
 
     Assert.assertNotNull(workerMetricsSystem.getServletHandler());
