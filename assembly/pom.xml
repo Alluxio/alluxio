@@ -20,12 +20,17 @@
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon</artifactId>
+      <artifactId>tachyon-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-client-unshaded</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -41,6 +46,16 @@
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-underfs-s3</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-examples</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-shell</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
