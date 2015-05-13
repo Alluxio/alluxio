@@ -143,7 +143,7 @@
   <modules>
     <module>common</module>
     <module>underfs</module>
-    <module>client</module>
+    <module>clients</module>
     <module>core</module>
     <module>shell</module>
     <module>examples</module>
