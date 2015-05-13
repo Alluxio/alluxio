@@ -85,6 +85,19 @@ public class MetricsSystem {
     mMetricsConfig = new MetricsConfig(mTachyonConf.get(Constants.METRICS_CONF_FILE, null));
   }
 
+  /**
+   * Creates a MetricsSystem.
+   *
+   * @param instance the instance name.
+   * @param metricsConfig the MetricsConfig object.
+   * @param tachyonConf the {@link TachyonConf} instance for configuration properties.
+   */
+  public MetricsSystem(String instance, MetricsConfig metricsConfig, TachyonConf tachyonConf) {
+    mInstance = instance;
+    mMetricsConfig = metricsConfig;
+    mTachyonConf = tachyonConf;
+  }
+
   /***
    * Get the ServletContextHandler of the metrics servlet.
    *
