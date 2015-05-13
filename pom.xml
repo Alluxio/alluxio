@@ -138,7 +138,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
     <test.output.redirect>true</test.output.redirect>
-    <hadoop-openstack.version>2.4.0</hadoop-openstack.version>
+    <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
   </properties>
 
   <modules>
