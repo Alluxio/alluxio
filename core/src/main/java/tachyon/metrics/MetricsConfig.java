@@ -45,7 +45,16 @@ public final class MetricsConfig {
   public MetricsConfig(String configFile) {
     mConfigFile = configFile;
     mProperties = new Properties();
-    initialize();
+    setDefaultProperties();
+    loadConfigFile();
+    parseConfiguration();
+  }
+
+  public MetricsConfig(Properties properties) {
+    mProperties = new Properties();
+    setDefaultProperties();
+    mProperties.putAll(properties);
+    parseConfiguration();
   }
 
   private void addDefaultProperties(Properties prop, Properties defaultProp) {
@@ -84,14 +93,9 @@ public final class MetricsConfig {
   }
 
   /**
-   * Loads and parses the metrics configuration file.
+   * Loads the metrics configuration file.
    */
-  private void initialize() {
-    // Set the default properties. The MetricsServlet is enabled and the path is /metrics/json
-    // by default.
-    mProperties.setProperty("*.sink.servlet.class", "tachyon.metrics.sink.MetricsServlet");
-    mProperties.setProperty("*.sink.servlet.path", "/metrics/json");
-
+  private void loadConfigFile() {
     InputStream is = null;
     try {
       if (mConfigFile != null) {
@@ -113,8 +117,12 @@ public final class MetricsConfig {
         }
       }
     }
+  }
 
-    // Parses the configuration and maps the instance name to its properties.
+  /**
+   * Parses the configuration and maps the instance name to its properties.
+   */
+  private void parseConfiguration() {
     mPropertyCategories = subProperties(mProperties, INSTANCE_REGEX);
     if (mPropertyCategories.containsKey(DEFAULT_PREFIX)) {
       Properties defaultProperties = mPropertyCategories.get(DEFAULT_PREFIX);
@@ -124,6 +132,15 @@ public final class MetricsConfig {
         }
       }
     }
+  }
+
+  /**
+   * Set the default properties. The MetricsServlet is enabled and the path is /metrics/json
+   * by default.
+   */
+  private void setDefaultProperties() {
+    mProperties.setProperty("*.sink.servlet.class", "tachyon.metrics.sink.MetricsServlet");
+    mProperties.setProperty("*.sink.servlet.path", "/metrics/json");
   }
 
   /**
