@@ -64,29 +64,8 @@ public class StorageTierTest {
     mStorageTiers = new StorageTier[maxLevel];
     StorageTier nextTier = null;
     for (int level = maxLevel - 1; level >= 0; level --) {
-      String tierLevelAliasProp = "tachyon.worker.tieredstore.level" + level + ".alias";
-      String tierLevelDirPath = "tachyon.worker.tieredstore.level" + level + ".dirs.path";
-      StorageLevelAlias storageLevelAlias =
-          tachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
-      String tierDirsCapacityProp = "tachyon.worker.tieredstore.level" + level + ".dirs.quota";
-      int indexQuota = Math.min(level, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length - 1);
-      String tierDirsCapacity = tachyonConf.get(tierDirsCapacityProp,
-          Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[indexQuota]);
-
-      String[] dirPaths = tachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
-      for (int i = 0; i < dirPaths.length; i ++) {
-        dirPaths[i] = dirPaths[i].trim();
-      }
-      String[] strDirCapacities = tierDirsCapacity.split(",");
-      long[] dirCapacities = new long[dirPaths.length];
-      for (int i = 0; i < dirPaths.length; i ++) {
-        // The storage directory quota for each storage directory
-        int j = Math.min(i, strDirCapacities.length - 1);
-        dirCapacities[i] = CommonUtils.parseSpaceSize(strDirCapacities[j].trim());
-      }
       StorageTier curTier =
-          new StorageTier(level, storageLevelAlias, dirPaths, dirCapacities, "/data", "/user",
-              nextTier, null, tachyonConf, new WorkerSource(null));
+          new StorageTier(level, tachyonConf, nextTier, new WorkerSource(null));
       mStorageTiers[level] = curTier;
       curTier.initialize();
       for (StorageDir dir : curTier.getStorageDirs()) {
