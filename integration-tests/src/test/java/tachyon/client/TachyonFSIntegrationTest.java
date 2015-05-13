@@ -188,7 +188,7 @@ public class TachyonFSIntegrationTest {
 
     for (int k = 0; k < 5; k ++) {
       TachyonURI fileURI = new TachyonURI(uniqPath + k);
-      int fileId = TestUtils.createByteFile(sTfs, fileURI, WriteType.MUST_CACHE, writeBytes);
+      int fileId = TachyonFSTestUtils.createByteFile(sTfs, fileURI, WriteType.MUST_CACHE, writeBytes);
       TachyonFile file = sTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
       Assert.assertTrue(sTfs.exist(fileURI));
@@ -216,7 +216,7 @@ public class TachyonFSIntegrationTest {
     String uniqPath = TestUtils.uniqPath();
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     TachyonURI uri = new TachyonURI(uniqPath);
-    int fileId = TestUtils.createByteFile(sTfs, uri, WriteType.MUST_CACHE, writeBytes);
+    int fileId = TachyonFSTestUtils.createByteFile(sTfs, uri, WriteType.MUST_CACHE, writeBytes);
     TachyonFile file = sTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
     Assert.assertTrue(sTfs.exist(uri));
@@ -229,7 +229,7 @@ public class TachyonFSIntegrationTest {
     String uniqPath = TestUtils.uniqPath();
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     TachyonURI uri = new TachyonURI(uniqPath);
-    int fileId = TestUtils.createByteFile(sTfs, uri, WriteType.MUST_CACHE, writeBytes);
+    int fileId = TachyonFSTestUtils.createByteFile(sTfs, uri, WriteType.MUST_CACHE, writeBytes);
     TachyonFile file = sTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
     Assert.assertTrue(sTfs.exist(uri));

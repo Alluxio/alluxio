@@ -844,7 +844,7 @@ public class TFsShell implements Closeable {
    * Creates a new TachyonFS and registers it with {@link #mCloser}
    */
   private TachyonFS createFS(final TachyonURI path) throws IOException {
-    String qualifiedPath = Utils.validatePath(path.toString(), mTachyonConf);
+    String qualifiedPath = TFsShellUtils.validatePath(path.toString(), mTachyonConf);
     TachyonFS tachyonFS = TachyonFS.get(new TachyonURI(qualifiedPath), mTachyonConf);
     return mCloser.register(tachyonFS);
   }
