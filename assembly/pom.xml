@@ -23,6 +23,26 @@
       <artifactId>tachyon</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-client-unshaded</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-hdfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-glusterfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-s3</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
