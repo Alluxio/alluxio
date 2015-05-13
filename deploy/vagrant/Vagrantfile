@@ -40,32 +40,24 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # Provision when the machine is master
       if i == Total
         n.vm.provision :ansible do |ans|
-          ans.playbook = "provision/playbook.yaml"
+          ans.playbook = "provision/playbook.yml"
           ans.limit = "all" # to let "- hosts: all" work in playbooks
           tachyon_repo, tachyon_version = TachyonV.repo_version
           spark_repo, spark_version = SparkV.repo_version
           is_vb = Provider == "vb"
           ans.extra_vars = {
-              tachyon_is_release: TachyonV.type == "Release",
-              tachyon_is_git: TachyonV.type == "Github",
-              tachyon_is_local: TachyonV.type == "Local",
+              tachyon_type: TachyonV.type,
               tachyon_repo: tachyon_repo, 
               tachyon_version: tachyon_version,
-              compile_tachyon: TachyonV.type != "Release",
               tachyon_dist: TachyonV.dist,
 
-              use_spark: SparkV.use_spark,
-              spark_is_release: SparkV.type == "Release",
-              spark_is_git: SparkV.type == "Github",
+              spark_type: SparkV.type,
               spark_repo: spark_repo,
               spark_version: spark_version,
               spark_version_lessthan_1: SparkV.v_lt_1,
-              compile_spark: SparkV.use_spark && SparkV.type != "Release",
               spark_dist: SparkV.dist,
 
-              is_os: Provider == "openstack",
-              is_aws: Provider == "aws",
-              is_vb: is_vb,
+              provider: Provider,
               ufs: Ufs,
           }
           # ans.verbose = "vvvv"

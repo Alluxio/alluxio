@@ -37,6 +37,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
+import tachyon.worker.DataServerMessage;
 import tachyon.worker.tiered.StorageDir;
 
 /**

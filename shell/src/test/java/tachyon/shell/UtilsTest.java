@@ -37,7 +37,7 @@ public class UtilsTest {
             Constants.HEADER_FT + "localhost:19998/dir", "/dir", "dir"};
     String expected = "/dir";
     for (String path : paths) {
-      String result = Utils.getFilePath(path, new TachyonConf());
+      String result = TFsShellUtils.getFilePath(path, new TachyonConf());
       Assert.assertEquals(expected, result);
     }
   }

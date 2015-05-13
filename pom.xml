@@ -142,9 +142,9 @@
 
   <modules>
     <module>common</module>
-    <module>core</module>
     <module>underfs</module>
     <module>client</module>
+    <module>core</module>
     <module>shell</module>
     <module>examples</module>
     <module>integration-tests</module>
@@ -198,6 +198,11 @@
             <artifactId>slf4j-api</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>${slf4j.version}</version>
       </dependency>
 
       <!-- Test Dependencies -->

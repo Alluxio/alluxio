@@ -1,0 +1,4 @@
+- name: configure glusterfs
+  script: config.yml
+
+# vim :set filetype=ansible.yaml:

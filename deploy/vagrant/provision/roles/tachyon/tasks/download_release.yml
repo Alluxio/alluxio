@@ -1,0 +1,11 @@
+- name: mkdir /tachyon
+  script: mkdir.sh
+
+- name: set env ANSIBLE_TACHYON_DIST
+  shell: echo ANSIBLE_TACHYON_DIST={{ tachyon_dist }} >> /tmp/tachyon_dist.sh
+
+- name: download tachyon release
+  script: down_release.sh
+  ignore_errors: yes # tachyon dist is tared by bsdtar, when untar using gnutar, return code will be 1
+
+# vim :set filetype=ansible.yaml:
