@@ -12,7 +12,7 @@
   <description>Parent POM for Tachyon clients</description>
 
   <modules>
-    <module>internal</module>
+    <module>unshaded</module>
     <module>client</module>
   </modules>
 

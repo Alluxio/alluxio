@@ -8,7 +8,7 @@
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-client</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Project Client - Distribution </name>
+  <name>Tachyon Project Clients - Distribution </name>
   <description>Distribution of Tachyon client module with shaded packages in jar</description>
 
   <properties>
@@ -46,16 +46,6 @@
                   <include>org.apache.thrift:tachyon.org.apache.thrift</include>
                 </includes>
               </artifactSet>
-              <filters>
-                <filter>
-                  <artifact>*:* </artifact>
-                  <excludes>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                  </excludes>
-                </filter>
-              </filters>
               <relocations>
                 <relocation>
                   <pattern>org.apache.thrift</pattern>
