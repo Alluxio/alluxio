@@ -28,6 +28,7 @@ import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.Users;
+import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.allocation.AllocateStrategies;
 import tachyon.worker.allocation.AllocateStrategy;
@@ -67,33 +68,52 @@ public class StorageTier {
    * Creates a new StorageTier
    *
    * @param storageLevel the level of the StorageTier
-   * @param storageLevelAlias the alias of the StorageTier's storage level
-   * @param dirPaths paths of StorageDirs in the StorageTier
-   * @param dirCapacityBytes capacities of StorageDirs in the StorageTier
-   * @param dataFolder data folder in the StorageDir
-   * @param userTempFolder user temporary folder in the StorageDir
-   * @param nextTier the successor StorageTier
-   * @param conf configuration of StorageDir
    * @param tachyonConf the TachyonConf configuration properties
+   * @param nextTier the successor StorageTier
+   * @param conf configuration of UFS in StorageDir
    * @param workerSource the WorkerSource instance in the metrics system
    * @throws IOException
    */
-  public StorageTier(int storageLevel, StorageLevelAlias storageLevelAlias, String[] dirPaths,
-      long[] dirCapacityBytes, String dataFolder, String userTempFolder, StorageTier nextTier,
-      Object conf, TachyonConf tachyonConf, WorkerSource workerSource) throws IOException {
+  public StorageTier(int level, TachyonConf tachyonConf, StorageTier nextTier,
+      WorkerSource workerSource) throws IOException {
+    mLevel = level;
     mTachyonConf = tachyonConf;
-    mLevel = storageLevel;
-    int storageDirNum = dirPaths.length;
-    mAlias = storageLevelAlias;
-    mDirs = new StorageDir[storageDirNum];
-
+    String tierLevelAliasProp =
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level);
+    mAlias = mTachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
+    String tierLevelDirPath =
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
+    String[] dirPaths = mTachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+    for (int i = 0; i < dirPaths.length; i ++) {
+      dirPaths[i] = dirPaths[i].trim();
+    }
+    String tierDirsQuotaProp =
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, level);
+    // TODO: Figure out in which scenarios just using 'level' will not work.
+    int indexQuota = Math.min(level, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length - 1);
+    String[] tierDirsQuota =
+        mTachyonConf.get(tierDirsQuotaProp, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[indexQuota])
+        .split(",");
+    // The storage directory quota for each storage directory
+    long[] dirCapacities = new long[dirPaths.length];
+    for (int i = 0; i < dirPaths.length; i ++) {
+      // If not all dir quotas are specified, the last one will be used for remaining dirs.
+      int index = Math.min(i, tierDirsQuota.length - 1);
+      dirCapacities[i] = CommonUtils.parseSpaceSize(tierDirsQuota[index].trim());
+    }
+    String dataFolder =
+        tachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+    String userTempFolder = 
+        tachyonConf.get(Constants.WORKER_USER_TEMP_RELATIVE_FOLDER, "users");
+    mDirs = new StorageDir[dirPaths.length];
     long quotaBytes = 0;
     for (int i = 0; i < dirPaths.length; i ++) {
-      long storageDirId = StorageDirId.getStorageDirId(storageLevel, mAlias.getValue(), i);
+      long storageDirId = StorageDirId.getStorageDirId(level, mAlias.getValue(), i);
+      // TODO add conf for UFS
       mDirs[i] =
-          new StorageDir(storageDirId, dirPaths[i], dirCapacityBytes[i], dataFolder,
-              userTempFolder, conf, mTachyonConf, workerSource);
-      quotaBytes += dirCapacityBytes[i];
+          new StorageDir(storageDirId, dirPaths[i], dirCapacities[i], dataFolder,
+              CommonUtils.concatPath(dataFolder, userTempFolder), null, tachyonConf, workerSource);
+      quotaBytes += dirCapacities[i];
     }
     mCapacityBytes = quotaBytes;
     mNextTier = nextTier;

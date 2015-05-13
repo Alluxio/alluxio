@@ -785,42 +785,8 @@ public class WorkerStorage {
     }
     StorageTier nextStorageTier = null;
     for (int level = maxStorageLevels - 1; level >= 0; level --) {
-      String tierLevelAliasProp =
-          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level);
-      String tierLevelDirPath =
-          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
-      String tierDirsQuotaProp =
-          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, level);
-
-      StorageLevelAlias storageLevelAlias =
-          mTachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
-
-      String[] dirPaths = mTachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
-      for (int i = 0; i < dirPaths.length; i ++) {
-        dirPaths[i] = dirPaths[i].trim();
-      }
-
-      // TODO: Figure out in which scenarios just using 'level' will not work.
-      int indexQuota = Math.min(level, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length - 1);
-      String tierDirsQuota =
-          mTachyonConf.get(tierDirsQuotaProp, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[indexQuota]);
-
-      for (int i = 0; i < dirPaths.length; i ++) {
-        dirPaths[i] = dirPaths[i].trim();
-      }
-      String[] dirCapacityStrings = tierDirsQuota.split(",");
-      // The storage directory quota for each storage directory
-      long[] dirCapacities = new long[dirPaths.length];
-      for (int i = 0; i < dirPaths.length; i ++) {
-        // If not all dir quotas are specified, the last one will be used for the quota for
-        // remaining dirs.
-        int j = Math.min(i, dirCapacityStrings.length - 1);
-        dirCapacities[i] = CommonUtils.parseSpaceSize(dirCapacityStrings[j].trim());
-      }
       StorageTier curTier =
-          new StorageTier(level, storageLevelAlias, dirPaths, dirCapacities, mDataFolder,
-              mUserFolder, nextStorageTier, null, mTachyonConf, mWorkerSource); // TODO add conf for
-                                                                                // UFS
+          new StorageTier(level, mTachyonConf, nextStorageTier, mWorkerSource);
       curTier.initialize();
       mCapacityBytes += curTier.getCapacityBytes();
       mStorageTiers.set(level, curTier);
