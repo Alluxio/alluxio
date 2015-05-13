@@ -67,10 +67,9 @@ public class StorageTier {
   /**
    * Creates a new StorageTier
    *
-   * @param storageLevel the level of the StorageTier
+   * @param level the level of the StorageTier
    * @param tachyonConf the TachyonConf configuration properties
    * @param nextTier the successor StorageTier
-   * @param conf configuration of UFS in StorageDir
    * @param workerSource the WorkerSource instance in the metrics system
    * @throws IOException
    */
@@ -80,10 +79,10 @@ public class StorageTier {
     mTachyonConf = tachyonConf;
     String tierLevelAliasProp =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level);
-    mAlias = mTachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
+    mAlias = tachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
     String tierLevelDirPath =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
-    String[] dirPaths = mTachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+    String[] dirPaths = tachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
     for (int i = 0; i < dirPaths.length; i ++) {
       dirPaths[i] = dirPaths[i].trim();
     }
@@ -92,7 +91,7 @@ public class StorageTier {
     // TODO: Figure out in which scenarios just using 'level' will not work.
     int indexQuota = Math.min(level, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA.length - 1);
     String[] tierDirsQuota =
-        mTachyonConf.get(tierDirsQuotaProp, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[indexQuota])
+        tachyonConf.get(tierDirsQuotaProp, Constants.DEFAULT_STORAGE_TIER_DIR_QUOTA[indexQuota])
         .split(",");
     // The storage directory quota for each storage directory
     long[] dirCapacities = new long[dirPaths.length];
@@ -119,11 +118,11 @@ public class StorageTier {
     mNextTier = nextTier;
     mWorkerSource = workerSource;
     mSpaceAllocator =
-        AllocateStrategies.getAllocateStrategy(mTachyonConf.getEnum(
+        AllocateStrategies.getAllocateStrategy(tachyonConf.getEnum(
             Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocateStrategyType.MAX_FREE));
     mBlockEvictor =
         EvictStrategies.getEvictStrategy(
-            mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictStrategyType.LRU),
+            tachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictStrategyType.LRU),
             isLastTier());
   }
 
