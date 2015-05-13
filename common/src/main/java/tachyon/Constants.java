@@ -164,6 +164,10 @@ public class Constants {
   public static final String WORKER_NETTY_SEND_BUFFER = "tachyon.worker.network.netty.buffer.send";
   public static final String WORKER_NETTY_RECEIVE_BUFFER =
       "tachyon.worker.network.netty.buffer.receive";
+  public static final String WORKER_NETTY_SHUTDOWN_QUIET_PERIOD =
+      "tachyon.worker.network.netty.shutdown.quiet.period";
+  public static final String WORKER_NETTY_SHUTDOWN_TIMEOUT =
+      "tachyon.worker.network.netty.shutdown.timeout";
   public static final String WORKER_EVICT_STRATEGY_TYPE = "tachyon.worker.evict.strategy";
   public static final String WORKER_ALLOCATE_STRATEGY_TYPE = "tachyon.worker.allocate.strategy";
   public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =

@@ -17,6 +17,7 @@ package tachyon.worker.netty;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -54,9 +55,11 @@ public final class NettyDataServer implements DataServer {
 
   @Override
   public void close() throws IOException {
+    int quietPeriodSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, 2);
+    int timeoutSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, 15);
     mChannelFuture.channel().close().awaitUninterruptibly();
-    mBootstrap.group().shutdownGracefully();
-    mBootstrap.childGroup().shutdownGracefully();
+    mBootstrap.group().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS);
+    mBootstrap.childGroup().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS);
   }
 
   private ServerBootstrap createBootstrap() {
