@@ -55,8 +55,8 @@ public final class NettyDataServer implements DataServer {
 
   @Override
   public void close() throws IOException {
-    int quietPeriodSecs = mTachyonConf.getInt("tachyon.worker.netty.quiet.period", 2);
-    int timeoutSecs = mTachyonConf.getInt("tachyon.worker.netty.timeout", 15);
+    int quietPeriodSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, 2);
+    int timeoutSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, 15);
     mChannelFuture.channel().close().awaitUninterruptibly();
     mBootstrap.group().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS);
     mBootstrap.childGroup().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS);
