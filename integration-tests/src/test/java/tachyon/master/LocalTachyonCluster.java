@@ -207,8 +207,10 @@ public final class LocalTachyonCluster {
     mWorkerConf.set(Constants.WORKER_MIN_WORKER_THREADS, Integer.toString(1));
     mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, Integer.toString(100));
     mWorkerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, Integer.toString(2));
-    mWorkerConf.set("tachyon.worker.netty.quiet.period", "0");
-    mWorkerConf.set("tachyon.worker.netty.timeout", "0");
+
+    // Perform immediate shutdown of data server. Graceful shutdown is unnecessary and slow
+    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
+    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise people
     // running with strange network configurations will see very slow tests
