@@ -82,7 +82,7 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
 
-    <!-- Dependencies we will shade -->
+    <!-- Other Tachyon dependencies -->
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-common</artifactId>
@@ -93,6 +93,40 @@
       <artifactId>tachyon-client-unshaded</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-hdfs</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-common</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-glusterfs</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-common</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-s3</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-common</artifactId>
+        </exclusion>
+      </exclusions>     
+    </dependency>
+
   </dependencies>
 
   <build>
