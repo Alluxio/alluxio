@@ -143,9 +143,9 @@
 
   <modules>
     <module>common</module>
-    <module>core</module>
     <module>underfs</module>
     <module>client</module>
+    <module>core</module>
     <module>shell</module>
     <module>examples</module>
     <module>integration-tests</module>
