@@ -45,12 +45,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-test</artifactId>
+      <artifactId>hadoop-minicluster</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -123,11 +118,6 @@
       <id>hdfsTest</id>
       <dependencies>
         <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-minicluster</artifactId>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
           <groupId>org.tachyonproject</groupId>
           <artifactId>tachyon-underfs-hdfs</artifactId>
           <version>${project.version}</version>
@@ -185,11 +175,6 @@
     <profile>
       <id>glusterfsTest</id>
       <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-minicluster</artifactId>
-          <scope>test</scope>
-        </dependency>
         <dependency>
           <groupId>org.tachyonproject</groupId>
           <artifactId>tachyon-underfs-glusterfs</artifactId>
