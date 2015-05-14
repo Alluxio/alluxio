@@ -64,8 +64,7 @@ public class StorageTierTest {
     mStorageTiers = new StorageTier[maxLevel];
     StorageTier nextTier = null;
     for (int level = maxLevel - 1; level >= 0; level --) {
-      StorageTier curTier =
-          new StorageTier(level, tachyonConf, nextTier, new WorkerSource(null));
+      StorageTier curTier = new StorageTier(level, tachyonConf, nextTier, new WorkerSource(null));
       mStorageTiers[level] = curTier;
       curTier.initialize();
       for (StorageDir dir : curTier.getStorageDirs()) {
