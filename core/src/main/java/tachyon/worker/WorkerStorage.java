@@ -785,8 +785,7 @@ public class WorkerStorage {
     }
     StorageTier nextStorageTier = null;
     for (int level = maxStorageLevels - 1; level >= 0; level --) {
-      StorageTier curTier =
-          new StorageTier(level, mTachyonConf, nextStorageTier, mWorkerSource);
+      StorageTier curTier = new StorageTier(level, mTachyonConf, nextStorageTier, mWorkerSource);
       curTier.initialize();
       mCapacityBytes += curTier.getCapacityBytes();
       mStorageTiers.set(level, curTier);
