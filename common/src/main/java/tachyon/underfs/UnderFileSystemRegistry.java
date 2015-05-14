@@ -127,7 +127,7 @@ public final class UnderFileSystemRegistry {
     errorStr.append("All eligible Under File Systems were unable to create an instance for the "
         + "given path: ").append(path).append('\n');
     for (Throwable e : errors) {
-      errorStr.append(e.getMessage()).append('\n');
+      errorStr.append(e).append('\n');
     }
     throw new IllegalArgumentException(errorStr.toString());
   }

@@ -114,13 +114,9 @@ You should find that a tachyon folder has been created.
 
 ## OpenStack Swift and IBM SoftLayer object store
 
-To enable an access to Swift, Tachyon has to be compiled with Swift profile
+Swift module depends on Hadoop version 2.3.0 or later and can be configured via  `hadoop-openstack.version`  in the main pom.xml. It is strongly advised  to compile Tachyon with  the same Hadoop version as  `hadoop-openstack.version`.  For example, to compile Tachyon with Swift and Hadoop 2.4.0 use 
 
-    $ mvn -Pswift clean package
-
-Swift profile depends on Hadoop version 2.3.0 or later and can be configured via  `hadoop-openstack.version`  in the main pom.xml. It is strongly advised  to compile Tachyon with  the same Hadoop version as  `hadoop-openstack.version`.  For example, to compile Tachyon with Swift and Hadoop 2.4.0 use 
-
-    $ mvn -Dhadoop.version=2.4.0 -Pswift clean package
+    $ mvn -Dhadoop.version=2.4.0 clean package
 
 ### Configuration
 

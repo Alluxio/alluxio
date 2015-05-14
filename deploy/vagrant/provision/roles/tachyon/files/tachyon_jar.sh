@@ -5,4 +5,4 @@ tachyon_version=`grep version /tachyon/pom.xml | \
                  sed 's/<version>//g'          | \
                  sed 's/<\/version>//g'`
 
-sed -i "s/tachyon-.*-jar-with-dependencies.jar/tachyon-${tachyon_version}-jar-with-dependencies.jar/g" /tachyon/libexec/tachyon-config.sh
+sed -i "s/tachyon-assemblies-.*-jar-with-dependencies.jar/tachyon-assemblies-${tachyon_version}-jar-with-dependencies.jar/g" /tachyon/libexec/tachyon-config.sh

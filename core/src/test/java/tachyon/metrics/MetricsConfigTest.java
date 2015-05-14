@@ -23,16 +23,22 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class MetricsConfigTest {
-  private String mFilePath;
+  private Properties mMetricsProps;
 
   @Before
   public final void Before() {
-    mFilePath = getClass().getClassLoader().getResource("test_metrics.properties").getFile();
+    mMetricsProps = new Properties();
+    mMetricsProps.setProperty("*.sink.console.class", "tachyon.metrics.sink.ConsoleSink");
+    mMetricsProps.setProperty("*.sink.console.period", "15");
+    mMetricsProps.setProperty("*.source.jvm.class", "tachyon.metrics.source.JvmSource");
+    mMetricsProps.setProperty("master.sink.console.period", "20");
+    mMetricsProps.setProperty("master.sink.console.unit", "minutes");
+    mMetricsProps.setProperty("master.sink.jmx.class", "tachyon.metrics.sink.JmxSink");
   }
 
   @Test
   public void setPropertiesTest() {
-    MetricsConfig config = new MetricsConfig(mFilePath);
+    MetricsConfig config = new MetricsConfig(mMetricsProps);
 
     Properties masterProp = config.getInstanceProperties("master");
     Assert.assertEquals(7, masterProp.size());
@@ -61,7 +67,7 @@ public class MetricsConfigTest {
 
   @Test
   public void subPropertiesTest() {
-    MetricsConfig config = new MetricsConfig(mFilePath);
+    MetricsConfig config = new MetricsConfig(mMetricsProps);
 
     Map<String, Properties> propertyCategories = config.getPropertyCategories();
     Assert.assertEquals(2, propertyCategories.size());
