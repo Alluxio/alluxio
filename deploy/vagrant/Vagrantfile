@@ -8,7 +8,6 @@ require "./core/EnvSetup"
 @cmd = YAML.load_file('conf/init.yml')
 puts @cmd.inspect
 
-Ufs = @cmd['Ufs']
 Total = @cmd['Total']
 Provider = @cmd['Provider']
 Memory = @cmd['Memory']
@@ -19,6 +18,7 @@ validate_provider(Provider)
 # load version configuration from tachyon_version.yml
 TachyonV = TachyonVersion.new('conf/tachyon_version.yml')
 SparkV = SparkVersion.new('conf/spark_version.yml')
+UfsV = UfsVersion.new('conf/ufs_version.yml')
 
 require "./core/config_#{Provider}"
 
@@ -56,9 +56,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               spark_version: spark_version,
               spark_version_lessthan_1: SparkV.v_lt_1,
               spark_dist: SparkV.dist,
+              spark_profile: UfsV.hadoop.spark_profile,
+
+              hadoop_tarball_url: UfsV.hadoop.tarball_url,
+              hadoop_version: UfsV.hadoop.version,
 
               provider: Provider,
-              ufs: Ufs,
+              ufs: UfsV.type,
           }
           # ans.verbose = "vvvv"
           if is_vb
