@@ -5,7 +5,7 @@ require 'yaml'
 require "./core/EnvSetup"
 
 # load configuration from init.yml
-@cmd = YAML.load_file('init.yml')
+@cmd = YAML.load_file('conf/init.yml')
 puts @cmd.inspect
 
 Ufs = @cmd['Ufs']
@@ -17,8 +17,8 @@ Addr = @cmd['Addresses']
 validate_provider(Provider)
 
 # load version configuration from tachyon_version.yml
-TachyonV = TachyonVersion.new('tachyon_version.yml')
-SparkV = SparkVersion.new('spark_version.yml')
+TachyonV = TachyonVersion.new('conf/tachyon_version.yml')
+SparkV = SparkVersion.new('conf/spark_version.yml')
 
 require "./core/config_#{Provider}"
 
