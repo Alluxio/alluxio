@@ -20,27 +20,8 @@
   <dependencies>
     <!-- Test Dependencies -->
     <dependency>
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
-      <version>1.5</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>3.0.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <!-- Explicitly set dependency on hadoop-minicluster to suppress a runtime
-           error for accessing hadoop-core -->
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-minicluster</artifactId>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -49,13 +30,33 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libthrift</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-minicluster</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <!-- To suppress javassist/NotFoundException in MasterFaultToleranceTest -->
       <groupId>org.powermock</groupId>
       <artifactId>powermock-module-junit4</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
