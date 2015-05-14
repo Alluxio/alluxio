@@ -6,7 +6,7 @@
     <artifactId>tachyon-parent</artifactId>
     <version>0.7.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon</artifactId>
+  <artifactId>tachyon-servers</artifactId>
   <packaging>jar</packaging>
   <name>Tachyon Project Servers</name>
   <description>Implementation of Tachyon Servers (i.e., Master and Worker) to form a Reliable Memory Centric Distributed Storage System</description>
