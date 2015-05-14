@@ -143,7 +143,7 @@
   <modules>
     <module>common</module>
     <module>underfs</module>
-    <module>client</module>
+    <module>clients</module>
     <module>core</module>
     <module>shell</module>
     <module>examples</module>
@@ -154,6 +154,17 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <!-- using older version to map dependency version from Hadoop -->
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>14.0.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.0</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
@@ -201,6 +212,11 @@
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
         <artifactId>slf4j-log4j12</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
@@ -225,9 +241,9 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-module-junit4</artifactId>
-        <version>${powermock.version}</version>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-test</artifactId>
+        <version>${hadoop.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -236,9 +252,25 @@
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
-
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-core</artifactId>
+        <version>${powermock.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-module-junit4</artifactId>
+        <version>${powermock.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-reflect</artifactId>
+        <version>${powermock.version}</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
-
   </dependencyManagement>
 
   <build>
