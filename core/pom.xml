@@ -20,7 +20,12 @@
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-client</artifactId>
+      <artifactId>tachyon-client-unshaded</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -114,22 +119,6 @@
   </dependencies>
 
   <profiles>
-    <profile>
-      <id>swift</id>
-      <activation>
-         <property>
-           <name>swift</name>
-           <value>swift</value>
-        </property>
-      </activation>
-     <dependencies>
-       <dependency>
-         <groupId>org.apache.hadoop</groupId>
-         <artifactId>hadoop-openstack</artifactId>
-         <version>${hadoop-openstack.version}</version>
-       </dependency>
-    </dependencies>
-   </profile>
    <profile>
       <id>default</id>
       <activation>
@@ -210,36 +199,6 @@
             <goals>
               <goal>testCompile</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>2.2</version>
-        <executions>
-          <execution>
-            <id>uber-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
-              <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-              </transformers>
-              <filters>
-                <filter>
-                  <artifact>*:* </artifact>
-                  <excludes>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                  </excludes>
-                </filter>
-              </filters>
-            </configuration>
           </execution>
         </executions>
       </plugin>

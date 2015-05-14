@@ -1,25 +1,31 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.tachyonproject</groupId>
-    <artifactId>tachyon-underfs</artifactId>
+    <artifactId>tachyon-clients</artifactId>
     <version>0.7.0-SNAPSHOT</version>
   </parent>
-  <artifactId>tachyon-underfs-s3</artifactId>
-  <name>Tachyon Under File System - S3</name>
-  <description>S3 Under File System implementation</description>
+  <groupId>org.tachyonproject</groupId>
+  <artifactId>tachyon-client-unshaded</artifactId>
+  <packaging>jar</packaging>
+  <name>Tachyon Project Clients - Implementation</name>
+  <description>Implementation of Tachyon client module</description>
 
   <properties>
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+    <failIfNoTests>false</failIfNoTests>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -30,16 +36,17 @@
       <artifactId>tachyon-common</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>net.java.dev.jets3t</groupId>
-      <artifactId>jets3t</artifactId>
-      <version>0.9.3</version>
-    </dependency>
 
     <!-- Test Dependencies -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.10.8</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -49,7 +56,12 @@
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
-      <artifactId>powermock-reflect</artifactId>
+      <artifactId>powermock-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
