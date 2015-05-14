@@ -254,7 +254,6 @@ public abstract class UnderFileSystem {
    * Gets the list of locations of the indicated path.
    *
    * @param path The file name
-   * @param offset Offset in bytes
    * @return The list of locations
    * @throws IOException
    */
