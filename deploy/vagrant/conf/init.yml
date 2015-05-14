@@ -1,5 +1,3 @@
-# Ufs = {glusterfs|hadoop2|hadoop1}
-Ufs: 'hadoop2'
 # Provider = {vb|docker|aws}
 Provider: 'vb'
 # Memory is the amount memory allocated to each VM
