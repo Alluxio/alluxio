@@ -1,5 +1,5 @@
 # EC2 login Keypair
-# To get it, refer to information at 
+# To get it, refer to information at
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
 Keypair: "aws-east"
 

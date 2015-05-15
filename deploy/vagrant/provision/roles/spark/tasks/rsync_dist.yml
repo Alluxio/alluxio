@@ -6,5 +6,5 @@
 
 - name: rsync spark runtime from TachyonMaster
   shell: rsync -avz TachyonMaster.local:/spark/* /spark
-  
+
 # vim :set filetype=ansible.yaml:

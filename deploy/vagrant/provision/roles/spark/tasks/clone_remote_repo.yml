@@ -7,8 +7,8 @@
 
 - name: clone spark repo
   git: >
-    repo={{ spark_repo }} 
-    dest=/spark 
+    repo={{ spark_repo }}
+    dest=/spark
     version={{ spark_version }}
 
 # vim :set filetype=ansible.yaml:
