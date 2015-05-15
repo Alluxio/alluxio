@@ -23,7 +23,7 @@ import tachyon.underfs.UnderFileSystemFactory;
 import tachyon.underfs.UnderFileSystemRegistry;
 
 /**
- * This test ensures the s3 ufs module correctly accepts paths that begin with s3n://
+ * This test ensures the local ufs module correctly accepts paths that begin with / or file://
  */
 public class LocalUnderFileSystemFactoryTest {
   @Test
@@ -31,12 +31,15 @@ public class LocalUnderFileSystemFactoryTest {
     TachyonConf conf = new TachyonConf();
 
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/local/test/path", conf);
-    UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("hdfs://test-bucket/path", conf);
+    UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("file://local/test/path", conf);
+    UnderFileSystemFactory factory3 = UnderFileSystemRegistry.find("hdfs://test-bucket/path", conf);
 
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for local paths when using this module", factory);
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist for local paths when using this module", factory2);
     Assert.assertNull(
         "A UnderFileSystemFactory should not exist for non local paths when using this module",
-        factory2);
+        factory3);
   }
 }

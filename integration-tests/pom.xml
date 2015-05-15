@@ -66,6 +66,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <!-- TODO: Remove dependency on tachyon-servers test-jar for TestUtils -->
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-servers</artifactId>
       <version>${project.version}</version>
