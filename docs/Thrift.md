@@ -127,11 +127,11 @@ Download and install Apache Thrift source
 
 Tachyon defines a .thrift in:
 
-    ./core/src/thrift/tachyon.thrift
+    ./common/src/thrift/tachyon.thrift
 
 And generates java files from it in:
 
-    ./core/src/main/java/tachyon/thrift/
+    ./common/src/main/java/tachyon/thrift/
 
 To generate the java files on your own, type:
 
