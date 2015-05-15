@@ -2,7 +2,7 @@
 Type: Local
 
 # github repo and version(can be branch, commit hash)
-Github: 
+Github:
   Repo: https://github.com/amplab/tachyon
   Version: branch-0.5
 
