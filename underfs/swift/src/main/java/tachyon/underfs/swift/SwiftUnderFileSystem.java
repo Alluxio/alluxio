@@ -31,13 +31,11 @@ import tachyon.underfs.hdfs.HdfsUnderFileSystem;
 public class SwiftUnderFileSystem extends HdfsUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-
   public SwiftUnderFileSystem(String fsDefaultName, TachyonConf tachyonConf, Object conf) {
     super(fsDefaultName, tachyonConf, conf);
     LOG.debug("Swift constuctor method");
   }
 
-  
   /**
    * Prepares the Hadoop configuration necessary to successfully obtain a {@link FileSystem}
    * instance that can access the provided path
@@ -59,5 +57,4 @@ public class SwiftUnderFileSystem extends HdfsUnderFileSystem {
     config.addResource(new Path(config.get(Constants.UNDERFS_HADOOP_CONFIGURATION)));
     super.prepareConfiguration(path, tachyonConf, config);
   }
-
 }
