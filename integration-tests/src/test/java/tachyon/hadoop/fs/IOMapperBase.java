@@ -128,8 +128,9 @@ public abstract class IOMapperBase<T> extends Configured implements
     try {
       statValue = doIO(reporter, name, longValue);
     } finally {
-      if (mStream != null)
+      if (mStream != null) {
         mStream.close();
+      }
     }
     long tEnd = System.currentTimeMillis();
     long execTime = tEnd - tStart;

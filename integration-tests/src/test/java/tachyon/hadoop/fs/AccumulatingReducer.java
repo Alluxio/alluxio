@@ -71,8 +71,9 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
     // concatenate strings
     if (field.startsWith(VALUE_TYPE_STRING)) {
       StringBuffer sSum = new StringBuffer();
-      while (values.hasNext())
+      while (values.hasNext()) {
         sSum.append(values.next().toString()).append(";");
+      }
       output.collect(key, new Text(sSum.toString()));
       reporter.setStatus("finished " + field + " ::host = " + mHostname);
       return;
@@ -80,8 +81,9 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
     // sum long values
     if (field.startsWith(VALUE_TYPE_FLOAT)) {
       float fSum = 0;
-      while (values.hasNext())
+      while (values.hasNext()) {
         fSum += Float.parseFloat(values.next().toString());
+      }
       output.collect(key, new Text(String.valueOf(fSum)));
       reporter.setStatus("finished " + field + " ::host = " + mHostname);
       return;
