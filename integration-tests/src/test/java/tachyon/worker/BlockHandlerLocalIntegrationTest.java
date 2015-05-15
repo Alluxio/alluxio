@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.worker;
 
 import java.io.IOException;
@@ -35,19 +36,19 @@ import tachyon.master.LocalTachyonCluster;
  * Integration tests for <code>tachyon.client.BlockHandlerLocal</code>.
  */
 public class BlockHandlerLocalIntegrationTest {
-  private static LocalTachyonCluster mLocalTachyonCluster = null;
-  private static TachyonFS mTfs = null;
+  private static LocalTachyonCluster sLocalTachyonCluster = null;
+  private static TachyonFS sTFS = null;
 
   @AfterClass
   public static final void afterClass() throws Exception {
-    mLocalTachyonCluster.stop();
+    sLocalTachyonCluster.stop();
   }
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
-    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
-    mLocalTachyonCluster.start();
-    mTfs = mLocalTachyonCluster.getClient();
+    sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
+    sLocalTachyonCluster.start();
+    sTFS = sLocalTachyonCluster.getClient();
   }
 
   @Test
@@ -55,14 +56,14 @@ public class BlockHandlerLocalIntegrationTest {
     ByteBuffer buf = ByteBuffer.allocateDirect(100);
     buf.put(TestUtils.getIncreasingByteArray(100));
 
-    int fileId = mTfs.createFile(new TachyonURI(TestUtils.uniqPath()));
-    long blockId = mTfs.getBlockId(fileId, 0);
-    String filename = mTfs.getLocalBlockTemporaryPath(blockId, 100);
+    int fileId = sTFS.createFile(new TachyonURI(TestUtils.uniqPath()));
+    long blockId = sTFS.getBlockId(fileId, 0);
+    String filename = sTFS.getLocalBlockTemporaryPath(blockId, 100);
     BlockHandler handler = BlockHandler.get(filename);
     try {
       handler.append(0, buf);
-      mTfs.cacheBlock(blockId);
-      TachyonFile file = mTfs.getFile(fileId);
+      sTFS.cacheBlock(blockId);
+      TachyonFile file = sTFS.getFile(fileId);
       long fileLen = file.length();
       Assert.assertEquals(100, fileLen);
     } finally {
@@ -72,15 +73,15 @@ public class BlockHandlerLocalIntegrationTest {
 
   @Test
   public void heapByteBufferwriteTest() throws IOException {
-    int fileId = mTfs.createFile(new TachyonURI(TestUtils.uniqPath()));
-    long blockId = mTfs.getBlockId(fileId, 0);
-    String filename = mTfs.getLocalBlockTemporaryPath(blockId, 100);
+    int fileId = sTFS.createFile(new TachyonURI(TestUtils.uniqPath()));
+    long blockId = sTFS.getBlockId(fileId, 0);
+    String filename = sTFS.getLocalBlockTemporaryPath(blockId, 100);
     BlockHandler handler = BlockHandler.get(filename);
     byte[] buf = TestUtils.getIncreasingByteArray(100);
     try {
       handler.append(0, ByteBuffer.wrap(buf));
-      mTfs.cacheBlock(blockId);
-      TachyonFile file = mTfs.getFile(fileId);
+      sTFS.cacheBlock(blockId);
+      TachyonFile file = sTFS.getFile(fileId);
       long fileLen = file.length();
       Assert.assertEquals(100, fileLen);
     } finally {
@@ -90,8 +91,8 @@ public class BlockHandlerLocalIntegrationTest {
 
   @Test
   public void readExceptionTest() throws IOException {
-    int fileId = TachyonFSTestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
-    TachyonFile file = mTfs.getFile(fileId);
+    int fileId = TachyonFSTestUtils.createByteFile(sTFS, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
+    TachyonFile file = sTFS.getFile(fileId);
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);
     try {
@@ -117,8 +118,8 @@ public class BlockHandlerLocalIntegrationTest {
 
   @Test
   public void readTest() throws IOException {
-    int fileId = TachyonFSTestUtils.createByteFile(mTfs, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
-    TachyonFile file = mTfs.getFile(fileId);
+    int fileId = TachyonFSTestUtils.createByteFile(sTFS, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
+    TachyonFile file = sTFS.getFile(fileId);
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);
     try {

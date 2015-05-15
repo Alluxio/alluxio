@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.worker;
 
 import java.io.File;
@@ -29,7 +30,6 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.TestUtils;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
@@ -57,7 +57,7 @@ public class WorkerStorageIntegrationTest {
   private ExecutorService mExecutorService;
 
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  public ExpectedException mThrown = ExpectedException.none();
 
   @After
   public final void after() throws Exception {
@@ -160,8 +160,8 @@ public class WorkerStorageIntegrationTest {
     TachyonConf workerConf = mLocalTachyonCluster.getWorkerTachyonConf();
     String dirPath = workerConf.get("tachyon.worker.tieredstore.level0.dirs.path", null);
     String dataFolder = CommonUtils.concatPath(dirPath, mWorkerDataFolder);
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Wrong file name: xyz");
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("Wrong file name: xyz");
     mLocalTachyonCluster.stopWorker();
     // try a non-numerical file name
     File unknownFile = new File(dataFolder + TachyonURI.SEPARATOR + "xyz");
