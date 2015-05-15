@@ -70,9 +70,6 @@ public class Constants {
 
   public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
-  public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
-  public static final boolean DEBUG = Boolean.valueOf(System.getProperty("tachyon.debug", "false"));
-
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
    * Version 2 [0.5.0] Starts to use JSON. <br>
@@ -94,6 +91,8 @@ public class Constants {
   public static final String[] DEFAULT_STORAGE_TIER_DIR_QUOTA = "512MB,64GB,1TB".split(",");
 
   public static final String TACHYON_HOME = "tachyon.home";
+  public static final String TACHYON_DEBUG = "tachyon.debug";
+  public static final String TACHYON_LOGGER_TYPE = "tachyon.logger.type";
   public static final String WEB_RESOURCES = "tachyon.web.resources";
   public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
   public static final String LOGS_DIR = "tachyon.logs.dir";
@@ -213,4 +212,8 @@ public class Constants {
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
+
+  public static final String LOGGER_TYPE = System.getProperty(TACHYON_LOGGER_TYPE, "");
+  public static final boolean DEBUG = Boolean.valueOf(System.getProperty(TACHYON_DEBUG, "false"));
+
 }
