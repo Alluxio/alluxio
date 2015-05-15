@@ -1,2 +1,6 @@
 cd /spark
-./make-distribution.sh -Phadoop-2.4 -Dhadoop.version=2.4.1 >/spark/make-distribution.log 2>&1
+if [[ "$SPARK_PROFILE" == "" ]]; then
+  ./make-distribution.sh -Dhadoop.version=${HADOOP_VERSION} >/spark/make-distribution.log 2>&1
+else
+  ./make-distribution.sh -Phadoop-${SPARK_PROFILE} -Dhadoop.version=${HADOOP_VERSION} >/spark/make-distribution.log 2>&1
+fi
