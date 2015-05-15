@@ -19,6 +19,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -65,21 +66,26 @@ public class WorkerClient implements Closeable {
   private boolean mIsLocal = false;
   private final ExecutorService mExecutorService;
   private Future<?> mHeartbeat;
+  private HeartbeatExecutor mHeartbeatExecutor;
 
   private final TachyonConf mTachyonConf;
+  private final List<Long> mClientMetrics;
 
   /**
    * Create a WorkerClient, with a given MasterClient.
    *
    * @param masterClient
    * @param executorService
+   * @param conf
+   * @param clientMetrics
    * @throws IOException
    */
-  public WorkerClient(MasterClient masterClient, ExecutorService executorService, TachyonConf conf)
-      throws IOException {
+  public WorkerClient(MasterClient masterClient, ExecutorService executorService,
+      TachyonConf conf, List<Long> clientMetrics) throws IOException {
     mMasterClient = masterClient;
     mExecutorService = executorService;
     mTachyonConf = conf;
+    mClientMetrics = clientMetrics;
   }
 
   /**
@@ -190,6 +196,8 @@ public class WorkerClient implements Closeable {
   public synchronized void close() {
     if (mConnected) {
       try {
+        // Heartbeat to send the client metrics.
+        mHeartbeatExecutor.heartbeat();
         mProtocol.getTransport().close();
       } finally {
         if (mHeartbeat != null) {
@@ -240,13 +248,13 @@ public class WorkerClient implements Closeable {
       mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(host, port)));
       mClient = new WorkerService.Client(mProtocol);
 
-      HeartbeatExecutor heartBeater =
-          new WorkerClientHeartbeatExecutor(this, mMasterClient.getUserId());
+      mHeartbeatExecutor =
+          new WorkerClientHeartbeatExecutor(this, mMasterClient.getUserId(), mClientMetrics);
       String threadName = "worker-heartbeat-" + mWorkerAddress;
       int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
           Constants.SECOND_MS);
       mHeartbeat =
-          mExecutorService.submit(new HeartbeatThread(threadName, heartBeater, interval));
+          mExecutorService.submit(new HeartbeatThread(threadName, mHeartbeatExecutor, interval));
 
       try {
         mProtocol.getTransport().open();
@@ -431,11 +439,17 @@ public class WorkerClient implements Closeable {
    * @param userId The id of the user
    * @throws IOException
    */
-  public synchronized void userHeartbeat(long userId) throws IOException {
+  public synchronized void userHeartbeat(long userId, List<Long> metrics) throws IOException {
     mustConnect();
 
     try {
-      mClient.userHeartbeat(userId);
+      synchronized (metrics) {
+        mClient.userHeartbeat(userId, metrics);
+        for (int i = Constants.CLIENT_METRICS_VERSION_INDEX + 1; i < Constants.CLIENT_METRICS_SIZE;
+             i++) {
+          metrics.set(i, 0L);
+        }
+      }
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

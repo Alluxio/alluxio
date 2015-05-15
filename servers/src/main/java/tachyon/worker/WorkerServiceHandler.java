@@ -16,6 +16,7 @@
 package tachyon.worker;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.thrift.TException;
 
@@ -116,7 +117,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void userHeartbeat(long userId) throws TException {
-    mWorkerStorage.userHeartbeat(userId);
+  public void userHeartbeat(long userId, List<Long> metrics) throws TException {
+    mWorkerStorage.userHeartbeat(userId, metrics);
   }
 }

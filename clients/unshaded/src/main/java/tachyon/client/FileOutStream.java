@@ -43,6 +43,7 @@ public class FileOutStream extends OutStream {
   private long mCurrentBlockLeftByte;
   private List<BlockOutStream> mPreviousBlockOutStreams;
   private long mCachedBytes;
+  private long mBytesWrittenUfs;
 
   private OutputStream mCheckpointOutputStream = null;
   private String mUnderFsFile = null;
@@ -69,6 +70,7 @@ public class FileOutStream extends OutStream {
     mCurrentBlockLeftByte = 0;
     mPreviousBlockOutStreams = new ArrayList<BlockOutStream>();
     mCachedBytes = 0;
+    mBytesWrittenUfs = 0;
 
     if (mWriteType.isThrough()) {
       mUnderFsFile = CommonUtils.concatPath(mTachyonFS.createAndGetUserUfsTempFolder(ufsConf),
@@ -108,6 +110,9 @@ public class FileOutStream extends OutStream {
         mCheckpointOutputStream.close();
         mTachyonFS.addCheckpoint(mFile.mFileId);
         canComplete = true;
+        if (mBytesWrittenUfs > 0) {
+          mTachyonFS.incBytesWrittenUfs(mBytesWrittenUfs);
+        }
       }
     }
 
@@ -122,6 +127,10 @@ public class FileOutStream extends OutStream {
             bos.close();
           }
           canComplete = true;
+          if (mCachedBytes > 0) {
+            mTachyonFS.incBytesWrittenLocal(mCachedBytes);
+            mTachyonFS.incBlocksWrittenLocal(mPreviousBlockOutStreams.size());
+          }
         }
       } catch (IOException ioe) {
         if (mWriteType.isMustCache()) {
@@ -216,6 +225,7 @@ public class FileOutStream extends OutStream {
 
     if (mWriteType.isThrough()) {
       mCheckpointOutputStream.write(b, off, len);
+      mBytesWrittenUfs += len;
     }
   }
 
@@ -242,6 +252,7 @@ public class FileOutStream extends OutStream {
 
     if (mWriteType.isThrough()) {
       mCheckpointOutputStream.write(b);
+      mBytesWrittenUfs ++;
     }
   }
 }
