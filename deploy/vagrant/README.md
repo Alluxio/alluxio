@@ -25,23 +25,20 @@ configurations to initialize Hadoop (both 1.x and 2.x) and GlusterFS.
 
 ## Configuration:
 
-`tachyon/deploy/vagrant/tachyon_version.yml` is the configration file that sets whether you want to use
+`tachyon/deploy/vagrant/conf/tachyon_version.yml` is the configration file that sets whether you want to use
 your local tachyon directory, or clone from a specific commit of a github repo.
 
-`tachyon/deploy/vagrant/spark_version.yml` is the configration file that sets whether you want to set up 
+`tachyon/deploy/vagrant/conf/spark_version.yml` is the configration file that sets whether you want to set up 
 spark, the git repo and version. **Attention**, spark-1.3 should match tachyon-0.5, later spark version matches tachyon versions >= tachyon-0.6.
 
 If you are using spark, better to set memory larger than 2G, otherwise, compiling spark may be blocked.
 
-`tachyon/deploy/vagrant/init.yml` is the configuration file that sets different cluster parameters.
+`tachyon/deploy/vagrant/conf/init.yml` is the configuration file that sets different cluster parameters.
 They are explained below.
 
 <table class="table">
 <tr>
     <th>Parameter</th><th>Description</th><th>Values</th>
-</tr>
-<tr>
-    <td>Ufs</td><td>Tachyon Underfilesystem</td><td>glusterfs|hadoop2|hadoop1</td>
 </tr>
 <tr>
     <td>Provider</td><td>Vagrant Providers</td><td>vb|aws|openstack|docker</td>
@@ -199,7 +196,7 @@ password as `vagrant`.
 
 ### Examples of Running VirtualBox Clusters Using Glusterfs as Underfilesystem
 
-A sample `conf/init.yml.glusterfs` is provided. Copy or link it to `init.yml`. Make sure parameter
+Edit `conf/init.yml`. Make sure parameter
 `Ufs` is `glusterfs` and `Provider` is `vb`. Change the rest of parameters to what you want if
 necessary.
 
@@ -209,7 +206,7 @@ Then start the clusters.
 
 ### Examples of Running AWS Clusters Using HDFS 2.4 as Underfilesystem
 
-A sample `conf/init.yml.aws` is provided. Copy or link it to `init.yml`. Make sure parameter `Ufs`
+Edit `conf/init.yml`. Make sure parameter `Ufs`
 is `hadoop2` and `Provider` is `aws`. Change the rest of parameters, especially network addresses,
 to what you want if necessary.
 
@@ -220,7 +217,7 @@ Then start the clusters.
 
 ### Examples of Running OpenStack Compute Node Clusters Using HDFS 2.4 as Underfilesystem
 
-A sample `conf/init.yml.openstack` is provided. Copy or link it to `init.yml`. Make sure parameter
+Edit `conf/init.yml`. Make sure parameter
 `Ufs` is `hadoop2` and `Provider` is `openstack`. The `Addresses` are currently not used.
 
 Then start the clusters.
@@ -230,7 +227,7 @@ Then start the clusters.
 
 ### Examples of Running Docker containers Using HDFS 2.4 as Underfilesystem
 
-A sample `conf/init.yml.docker` is provided. Copy or link it to `init.yml`. Make sure parameter
+Edit `conf/init.yml`. Make sure parameter
 `Ufs` is `hadoop2` and `Provider` is `docker`. The `Addresses` are currently not used.
 
 Then start the clusters.

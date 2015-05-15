@@ -1,10 +1,12 @@
-HADOOP_VERSION="2.4.1"
+#!/usr/bin/env bash
 
-if [ ! -f /vagrant/shared/hadoop-${HADOOP_VERSION}.tar.gz ]; then
+# get last field of url cut by '/'
+TARBALL_NAME=${TARBALL_URL##*/}
+
+if [ ! -f "/vagrant/shared/$TARBALL_NAME" ]; then
  # download hadoop
- echo "Downloading hadoop ${HADOOP_VERSION} ..." 
  sudo yum install -y -q wget
- wget -q http://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz -P /vagrant/shared
+ wget -q "$TARBALL_URL" -P /vagrant/shared
 fi
 
-tar xzf /vagrant/shared/hadoop-${HADOOP_VERSION}.tar.gz -C /hadoop --strip-components 1
+tar xzf "/vagrant/shared/$TARBALL_NAME" -C /hadoop --strip-components 1
