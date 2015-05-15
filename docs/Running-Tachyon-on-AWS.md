@@ -14,22 +14,17 @@ directory:
 vagrant
 ├── conf
 │   ├── ec2-config.yml
-│   ├── init.yml.aws
-│   ├── init.yml.glusterfs
-│   ├── init.yml.hdfs1
-│   ├── init.yml.hdfs2
-│   ├── init.yml.os
-│   ├── init.yml.docker
+│   ├── init.yml
 │   └── openstack-config.yml
-├── init.yml -> conf/init.yml.hdfs2
-├── tachyon_version.yml
-├── spark_version.yml
+│   └── tachyon_version.yml
+│   └── spark_version.yml
+│   └── ufs_version.yml
 ├── README.md
 ├── run_aws.sh
 └── ...
 </pre>
 
-The `run_aws.sh` script allows you to launch a Tachyon VPC on Amazon EC2. It reads `ec2` configurations from `tachyon/deploy/vagrant/conf/ec2-config.yml`, your shell environmen variables `AWS_ACCESS_KEY` and `AWS_SECRET_KEY`, and Tachyon cluster configuration from `tachyon/deploy/vagrant/init.yml`, then the script automatically creates the cluster, sets up under filesystem, and starts Tachyon master and workers on the cluster for you.
+The `run_aws.sh` script allows you to launch a Tachyon VPC on Amazon EC2. It reads `ec2` configurations from `tachyon/deploy/vagrant/conf/ec2-config.yml`, your shell environmen variables `AWS_ACCESS_KEY` and `AWS_SECRET_KEY`, and Tachyon cluster configuration from `tachyon/deploy/vagrant/conf/init.yml`, then the script automatically creates the cluster, sets up under filesystem, and starts Tachyon master and workers on the cluster for you.
 
 `run_aws.sh` is designed to create multiple clusters. Node of each cluster is tagged so multiple people can use their own Tachyon cluster with the same EC2 account.
 
@@ -46,20 +41,17 @@ The `run_aws.sh` script allows you to launch a Tachyon VPC on Amazon EC2. It rea
 
 ## Configure
 
-Configure Version of Tachyon or Spark you want to deploy, refer to [this doc](Running-Specific-Version-Of-Tachyon-Or-Spark-Via-Vagrant.html)
+Configure version of softwares you want to deploy, refer to [this doc](Running-Specific-Version-Of-Tachyon-Or-Spark-Via-Vagrant.html)
 
 With the above EC2 information, fill them in `tachyon/deploy/vagrant/conf/ec2-config.yml`. Also ensure your shell environmen variables `AWS_ACCESS_KEY` and `AWS_SECRET_KEY` are set correctly.
 
-Next, you provide your desired Tachyon cluster configuration. A sample configuration can be found in `tachyon/deploy/vagrant/conf/init.yml.aws`. Link or copy it to `tachyon/deploy/vagrant/init.yml`. Make sure the IP addresses are in the range of your `Availability Zone` and are not used by others.
+Edit `conf/init.yml`. Make sure the IP addresses are in the range of your `Availability Zone` and are not used by others.
 
-The parameters in `tachyon/deploy/vagrant/init.yml` are explained as the following.
+The parameters in `tachyon/deploy/vagrant/conf/init.yml` are explained as the following.
 
 <table class="table">
 <tr>
     <th>Parameter</th><th>Description</th><th>Values</th>
-</tr>
-<tr>
-    <td>Ufs</td><td>Tachyon Underfilesystem</td><td>glusterfs|hadoop2|hadoop1</td>
 </tr>
 <tr>
     <td>Provider</td><td>Vagrant Providers</td><td>vb|aws|openstack|docker</td>

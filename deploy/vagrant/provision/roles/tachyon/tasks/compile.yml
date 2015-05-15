@@ -9,7 +9,9 @@
     dest=/tmp/compile_tachyon.sh
 
 - name: compile tachyon
-  command: bash /tmp/compile_tachyon.sh
+  shell: bash /tmp/compile_tachyon.sh
+  environment:
+    HADOOP_VERSION: "{{ hadoop_version }}"
   async: 1200
   poll: 60
 
