@@ -50,11 +50,8 @@ public class ValidateConf {
       LOG.error(e.getMessage(), e);
     }
 
-    // There are two properties that are defined in tachyon-default.properties but not declared in
-    // Tachyon.Constants.
+    // Tachyon version is a valid conf entry but not defined in tachyon.Constants
     validProperties.add("tachyon.version");
-    validProperties.add("tachyon.debug");
-    validProperties.add("tachyon.logger.type");
 
     // There are three properties that are auto-generated in WorkerStorage based on corresponding
     // format strings defined in tachyon.Constants. Here we transform each format string to a regexp
