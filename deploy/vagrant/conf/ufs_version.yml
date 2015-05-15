@@ -1,4 +1,4 @@
-# hadoop1 | hadoop2 | glusterfs
+# hadoop1 | hadoop2 | glusterfs | s3
 Type: hadoop2
 
 Hadoop:
@@ -13,3 +13,8 @@ Hadoop:
   # e.x. 2.4 for hadoop 2.4.1
   # if you don't compile spark, this can be empty
   SparkProfile: 2.4
+
+S3:
+  Bucket:
+  AccessKeyID:
+  SecretAccessKey:
