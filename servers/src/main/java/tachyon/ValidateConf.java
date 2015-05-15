@@ -55,6 +55,7 @@ public class ValidateConf {
     // Tachyon.Constants.
     validProperties.add("tachyon.version");
     validProperties.add("tachyon.debug");
+    validProperties.add("tachyon.logger.type");
 
     // There are three properties that are auto-generated in WorkerStorage based on corresponding
     // format strings defined in Tachyon.Constants. Here we transform each format string to a regexp
