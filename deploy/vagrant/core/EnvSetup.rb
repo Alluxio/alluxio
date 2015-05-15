@@ -186,7 +186,11 @@ class HadoopVersion
   end
 
   def tarball_url
-    return @url_template[@type] % {Version: @version}
+    if @type == ''
+      return ''
+    else
+      return @url_template[@type] % {Version: @version}
+    end
   end
 
   def version
