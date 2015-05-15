@@ -21,11 +21,11 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 public class HdfsUnderFileSystemUtils {
-
   /**
-   * Replace default key with user provided key 
-   * @param conf
-   * @param key
+   * Replace default key with user provided key
+   * @param conf configuration to replace the key in
+   * @param tachyonConf Tachyon configuration with the key
+   * @param key the key to replace
    */
   public static void addKey(Configuration conf, TachyonConf tachyonConf, String key) {
     if (System.getProperty(key) != null && conf.get(key) == null) {
