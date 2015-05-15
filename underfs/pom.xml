@@ -15,6 +15,7 @@
     <module>local</module>
     <module>hdfs</module>
     <module>glusterfs</module>
+    <module>swift</module>
     <module>s3</module>
   </modules>
 

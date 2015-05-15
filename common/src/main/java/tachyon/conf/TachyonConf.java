@@ -220,6 +220,10 @@ public class TachyonConf {
     return updated;
   }
 
+  public boolean containsKey(String key) {
+    return mProperties.containsKey(key);
+  }
+
   public int getInt(String key, final int defaultValue) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);

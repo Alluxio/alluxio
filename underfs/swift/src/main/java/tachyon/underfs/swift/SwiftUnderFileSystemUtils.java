@@ -13,14 +13,13 @@
  * the License.
  */
 
-package tachyon.underfs.hdfs;
+package tachyon.underfs.swift;
 
 import org.apache.hadoop.conf.Configuration;
 
-import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
-public class HdfsUnderFileSystemUtils {
+public class SwiftUnderFileSystemUtils {
 
   /**
    * Replace default key with user provided key 
@@ -34,20 +33,4 @@ public class HdfsUnderFileSystemUtils {
       conf.set(key, tachyonConf.get(key, null));
     }
   }
-
-  /**
-   * Add S3 keys to the given Hadoop Configuration object if the user has specified them using
-   * System properties, and they're not already set.
-   */
-  public static void addS3Credentials(Configuration conf) {
-    String accessKeyConf = Constants.S3_ACCESS_KEY;
-    if (System.getProperty(accessKeyConf) != null && conf.get(accessKeyConf) == null) {
-      conf.set(accessKeyConf, System.getProperty(accessKeyConf));
-    }
-    String secretKeyConf = Constants.S3_SECRET_KEY;
-    if (System.getProperty(secretKeyConf) != null && conf.get(secretKeyConf) == null) {
-      conf.set(secretKeyConf, System.getProperty(secretKeyConf));
-    }
-  }
-
 }
