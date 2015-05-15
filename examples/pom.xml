@@ -29,7 +29,7 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon</artifactId>
+      <artifactId>tachyon-servers</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
