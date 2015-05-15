@@ -36,7 +36,7 @@ public interface UnderFileSystemFactory {
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, Object)} can succeed for this path
+   * {@link #create(String, TachyonConf, Object)} can succeed for this path
    *
    * @param path File path
    * @param tachyonConf Tachyon configuration
