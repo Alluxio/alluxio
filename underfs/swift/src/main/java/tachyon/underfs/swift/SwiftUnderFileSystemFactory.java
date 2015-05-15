@@ -39,6 +39,5 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
       return true;
     }
     return false;
-    
   }
 }

@@ -28,8 +28,9 @@ public class SwiftUnderFileSystemTest {
   public void factoryTest() {
     TachyonConf conf = new TachyonConf();
     
-    UnderFileSystemFactory factory =  UnderFileSystemRegistry.find("swift://localhost/test/path", conf);
-    Assert.assertNotNull("A UnderFileSystemFactory should exist for Swift paths when using this module", factory);
+    UnderFileSystemFactory factory =  UnderFileSystemRegistry.find("swift://localhost/test/path",
+    		conf);
+    Assert.assertNotNull("UnderFileSystemFactory: Swift paths should exists", factory);
     
   }
 }
