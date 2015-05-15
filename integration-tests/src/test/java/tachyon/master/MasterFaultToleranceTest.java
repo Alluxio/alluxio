@@ -74,7 +74,8 @@ public class MasterFaultToleranceTest {
 
     for (int k = 0; k < 10; k ++) {
       TachyonURI path =
-          new TachyonURI(folderName + TachyonURI.SEPARATOR + folderName.toString().substring(1) + k);
+          new TachyonURI(
+              folderName + TachyonURI.SEPARATOR + folderName.toString().substring(1) + k);
       answer.add(new Pair<Integer, TachyonURI>(tfs.createFile(path), path));
     }
   }

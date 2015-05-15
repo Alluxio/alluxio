@@ -17,11 +17,10 @@ package tachyon.underfs.glusterfs;
 
 import java.io.IOException;
 
-import tachyon.Constants;
-import tachyon.conf.TachyonConf;
-
 import org.apache.commons.lang3.StringUtils;
 
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
 
 public class GlusterFSCluster extends UnderFileSystemCluster {

@@ -15,8 +15,6 @@
 
 package tachyon.client;
 
-import static org.junit.Assert.fail;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -85,7 +83,7 @@ public class UfsUtilsIntegrationTest {
     for (String exclusion : exclusions) {
       try {
         paths = TachyonFSTestUtils.listFiles(mTfs, exclusion);
-        fail("NO FileDoesNotExistException is expected here");
+        Assert.fail("NO FileDoesNotExistException is expected here");
       } catch (IOException ioe) {
         Assert.assertNotNull(ioe);
       }

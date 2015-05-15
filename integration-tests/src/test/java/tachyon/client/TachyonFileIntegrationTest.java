@@ -54,13 +54,13 @@ public class TachyonFileIntegrationTest {
 
   @Before
   public final void before() throws IOException {
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
-        Constants.GB);
+    mLocalTachyonCluster =
+        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
 
-    TachyonConf masterConf =  mLocalTachyonCluster.getMasterTachyonConf();
+    TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
     int userCapacityBytes = WORKER_CAPACITY_BYTES / 4;
     masterConf.set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(userCapacityBytes));
   }
@@ -73,29 +73,34 @@ public class TachyonFileIntegrationTest {
   @Test
   public void isInMemoryTest() throws IOException {
     int fileId =
-        TachyonFSTestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
+        TachyonFSTestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE,
+            USER_QUOTA_UNIT_BYTES);
     TachyonFile file = mTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
 
     fileId =
-        TachyonFSTestUtils.createByteFile(mTfs, "/file2", WriteType.CACHE_THROUGH, USER_QUOTA_UNIT_BYTES);
+        TachyonFSTestUtils.createByteFile(mTfs, "/file2", WriteType.CACHE_THROUGH,
+            USER_QUOTA_UNIT_BYTES);
     file = mTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
 
-    fileId = TachyonFSTestUtils.createByteFile(mTfs, "/file3", WriteType.THROUGH, USER_QUOTA_UNIT_BYTES);
+    fileId =
+        TachyonFSTestUtils.createByteFile(mTfs, "/file3", WriteType.THROUGH, USER_QUOTA_UNIT_BYTES);
     file = mTfs.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
     Assert.assertTrue(file.recache());
     Assert.assertTrue(file.isInMemory());
 
     fileId =
-        TachyonFSTestUtils.createByteFile(mTfs, "/file4", WriteType.THROUGH, WORKER_CAPACITY_BYTES + 1);
+        TachyonFSTestUtils.createByteFile(mTfs, "/file4", WriteType.THROUGH,
+            WORKER_CAPACITY_BYTES + 1);
     file = mTfs.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
     Assert.assertFalse(file.recache());
     Assert.assertFalse(file.isInMemory());
 
-    fileId = TachyonFSTestUtils.createByteFile(mTfs, "/file5", WriteType.THROUGH, WORKER_CAPACITY_BYTES);
+    fileId =
+        TachyonFSTestUtils.createByteFile(mTfs, "/file5", WriteType.THROUGH, WORKER_CAPACITY_BYTES);
     file = mTfs.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
     Assert.assertTrue(file.recache());
@@ -111,13 +116,14 @@ public class TachyonFileIntegrationTest {
   public void isInMemoryTest2() throws IOException {
     for (int k = 0; k < MAX_FILES; k ++) {
       int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
+          TachyonFSTestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE,
+              USER_QUOTA_UNIT_BYTES);
       TachyonFile file = mTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null,
-        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+    CommonUtils
+        .sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
 
     for (int k = 0; k < MAX_FILES; k ++) {
       TachyonFile file = mTfs.getFile(new TachyonURI("/file" + k));
@@ -126,12 +132,14 @@ public class TachyonFileIntegrationTest {
 
     for (int k = MAX_FILES; k < MAX_FILES + 1; k ++) {
       int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
+          TachyonFSTestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE,
+              USER_QUOTA_UNIT_BYTES);
       TachyonFile file = mTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+    CommonUtils
+        .sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
 
     TachyonFile file = mTfs.getFile(new TachyonURI("/file" + 0));
     Assert.assertFalse(file.isInMemory());
@@ -154,19 +162,21 @@ public class TachyonFileIntegrationTest {
     mTfs.pinFile(mTfs.getFileId(pin));
 
     int fileId =
-        TachyonFSTestUtils.createByteFile(mTfs, "/pin/file", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
+        TachyonFSTestUtils.createByteFile(mTfs, "/pin/file", WriteType.MUST_CACHE,
+            USER_QUOTA_UNIT_BYTES);
     TachyonFile file = mTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
 
     for (int k = 0; k < MAX_FILES; k ++) {
       fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
+          TachyonFSTestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE,
+              USER_QUOTA_UNIT_BYTES);
       file = mTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
     }
 
-    CommonUtils.sleepMs(null,
-        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+    CommonUtils
+        .sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
 
     file = mTfs.getFile(new TachyonURI("/pin/file"));
     Assert.assertTrue(file.isInMemory());
@@ -185,8 +195,8 @@ public class TachyonFileIntegrationTest {
   public void readLocalTest() throws IOException {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + WriteType.MUST_CACHE,
-              WriteType.MUST_CACHE, k);
+          TachyonFSTestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_"
+              + WriteType.MUST_CACHE, WriteType.MUST_CACHE, k);
 
       TachyonFile file = mTfs.getFile(fileId);
       Assert.assertEquals(1, file.getNumberOfBlocks());
