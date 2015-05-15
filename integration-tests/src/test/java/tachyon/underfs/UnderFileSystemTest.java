@@ -98,7 +98,8 @@ public final class UnderFileSystemTest {
     Assume.assumeTrue(UnderFileSystemRegistry.available().size() == 1);
 
     // Requires additional modules
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("hdfs://localhost/test/path", mTachyonConf);
+    UnderFileSystemFactory factory =
+        UnderFileSystemRegistry.find("hdfs://localhost/test/path", mTachyonConf);
     Assert.assertNull(
         "No UnderFileSystemFactory should exist for HDFS paths as it requires a separate module",
         factory);
@@ -114,9 +115,7 @@ public final class UnderFileSystemTest {
         factory);
 
     factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mTachyonConf);
-    Assert
-        .assertNull(
-            "No UnderFileSystemFactory should exist for Gluster FS paths as it requires a separate module",
-            factory);
+    Assert.assertNull("No UnderFileSystemFactory should exist for Gluster FS paths as it requires"
+        + " a separate module", factory);
   }
 }

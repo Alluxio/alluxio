@@ -309,7 +309,8 @@ public class MasterInfoTest {
           mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, Constants.DEFAULT_JOURNAL_FOLDER);
       Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
       MasterInfo info =
-          new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
+          new MasterInfo(
+              new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
       info.init();
       for (TachyonURI path : mMasterInfo.ls(new TachyonURI("/"), true)) {
         Assert.assertEquals(mMasterInfo.getFileId(path), info.getFileId(path));
@@ -348,7 +349,8 @@ public class MasterInfoTest {
     int numFiles = mMasterInfo.ls(ROOT_PATH, true).size();
 
     ConcurrentRenamer concurrentRenamer =
-        new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2, TachyonURI.EMPTY_URI);
+        new ConcurrentRenamer(
+            DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2, TachyonURI.EMPTY_URI);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles, mMasterInfo.ls(ROOT_PATH2, true).size());
@@ -394,14 +396,14 @@ public class MasterInfoTest {
       FileDoesNotExistException, TachyonException {
     // long sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mMasterInfo.mkdirs(new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0"),
-          true);
+      mMasterInfo.mkdirs(new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k)
+          .join("0"), true);
     }
     // System.out.println(System.currentTimeMillis() - sMs);
     // sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mMasterInfo.getClientFileInfo(new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k)
-          .join("0"));
+      mMasterInfo.getClientFileInfo(new TachyonURI("/testFile").join(
+          Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0"));
     }
     // System.out.println(System.currentTimeMillis() - sMs);
   }

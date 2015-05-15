@@ -96,7 +96,8 @@ public class WorkerStorageIntegrationTest {
       UnderFileSystem ufs = UnderFileSystem.get(orpahnblock,
           mLocalTachyonCluster.getMasterTachyonConf());
       StorageDir storageDir = ws.getStorageDirByBlockId(bid);
-      Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", storageDir != null);
+      Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder",
+          storageDir != null);
       Assert.assertTrue("UFS hasn't the orphan block file ", ufs.exists(orpahnblock));
       Assert.assertTrue("Orpahblock file size is changed",
           ufs.getFileSize(orpahnblock) == filesize);
@@ -113,7 +114,8 @@ public class WorkerStorageIntegrationTest {
   @Test
   public void cacheBlockTest() throws Exception {
     int fileLen = USER_QUOTA_UNIT_BYTES + 4;
-    int fid = TachyonFSTestUtils.createByteFile(mTfs, "/cacheBlockTest", WriteType.THROUGH, fileLen);
+    int fid =
+        TachyonFSTestUtils.createByteFile(mTfs, "/cacheBlockTest", WriteType.THROUGH, fileLen);
     long usedBytes = mLocalTachyonCluster.getMasterInfo().getWorkersInfo().get(0).getUsedBytes();
     Assert.assertEquals(0, usedBytes);
     TachyonFS tfs1 = mLocalTachyonCluster.getClient();

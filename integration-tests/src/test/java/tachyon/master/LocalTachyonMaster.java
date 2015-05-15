@@ -58,7 +58,8 @@ public final class LocalTachyonMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
-  private LocalTachyonMaster(final String tachyonHome, TachyonConf tachyonConf) throws IOException {
+  private LocalTachyonMaster(final String tachyonHome, TachyonConf tachyonConf)
+      throws IOException {
     mTachyonHome = tachyonHome;
 
     mDataDir = path(mTachyonHome, "data");
@@ -81,7 +82,8 @@ public final class LocalTachyonMaster {
     mJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
 
     UnderFileSystemUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
-    UnderFileSystemUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(), tachyonConf);
+    UnderFileSystemUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(),
+        tachyonConf);
 
     tachyonConf.set(Constants.MASTER_HOSTNAME, mHostname);
     tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
@@ -93,11 +95,12 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
     tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
 
-    // If tests fail to connect they should fail early rather than using the default ridiculously high retries
+    // If tests fail to connect they should fail early rather than using the default ridiculously
+    // high retries
     tachyonConf.set(Constants.MASTER_RETRY_COUNT, "3");
 
-    // Since tests are always running on a single host keep the resolution timeout low as otherwise people
-    // running with strange network configurations will see very slow tests
+    // Since tests are always running on a single host keep the resolution timeout low as otherwise
+    // people running with strange network configurations will see very slow tests
     tachyonConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     tachyonConf.set(Constants.WEB_THREAD_COUNT, "1");
@@ -166,8 +169,8 @@ public final class LocalTachyonMaster {
   /**
    * Stops the master and cleans up client connections.
    *
-   * This method will not clean up {@link tachyon.util.UnderFileSystemUtils} data. To do that you must
-   * call {@link #cleanupUnderfs()}.
+   * This method will not clean up {@link tachyon.util.UnderFileSystemUtils} data. To do that you
+   * must call {@link #cleanupUnderfs()}.
    */
   public void stop() throws Exception {
     clearClients();

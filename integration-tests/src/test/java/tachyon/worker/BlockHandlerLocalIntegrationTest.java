@@ -91,7 +91,8 @@ public class BlockHandlerLocalIntegrationTest {
 
   @Test
   public void readExceptionTest() throws IOException {
-    int fileId = TachyonFSTestUtils.createByteFile(sTFS, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
+    int fileId =
+        TachyonFSTestUtils.createByteFile(sTFS, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
     TachyonFile file = sTFS.getFile(fileId);
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);
@@ -118,7 +119,8 @@ public class BlockHandlerLocalIntegrationTest {
 
   @Test
   public void readTest() throws IOException {
-    int fileId = TachyonFSTestUtils.createByteFile(sTFS, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
+    int fileId =
+        TachyonFSTestUtils.createByteFile(sTFS, TestUtils.uniqPath(), WriteType.MUST_CACHE, 100);
     TachyonFile file = sTFS.getFile(fileId);
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);
