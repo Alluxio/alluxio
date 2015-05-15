@@ -115,8 +115,8 @@ You should find that a tachyon folder has been created.
 
 Besides the above under file system, Tachyon can run on top of other under file system. In order
 to do so, a user should create a new underfs submodule with a
-[UnderFileSystem](https://github.com/amplab/tachyon/blob/master/core/src/main/java/tachyon/underfs/UnderFileSystem.java)
+[UnderFileSystem](https://github.com/amplab/tachyon/blob/master/common/src/main/java/tachyon/underfs/UnderFileSystem.java)
 interface and a corresponding
-[UnderFileSystemFactory](https://github.com/amplab/tachyon/blob/master/core/src/main/java/tachyon/underfs/UnderFileSystemFactory.java).
+[UnderFileSystemFactory](https://github.com/amplab/tachyon/blob/master/common/src/main/java/tachyon/underfs/UnderFileSystemFactory.java).
 Finally, a META-INF/services file should be included so the implementation will be registered. The
-[HDFS Submodule](https://github.com/amplab/tachyon/tree/underfs/hdfs) is an example of a complete submodule.
+[HDFS Submodule](https://github.com/amplab/tachyon/tree/master/underfs/hdfs) is an example of a complete submodule.
