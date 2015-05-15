@@ -12,9 +12,9 @@
 # Also, We can not just check whether devicenames can be found in `df` to determine whether they have been mounted
 # because devicenames may be changed silently by kernel
 
-# But user specified devicenames should be defined according to 
+# But user specified devicenames should be defined according to
 #  http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/device_naming.html
-# they should start with /dev/sd* or /dev/xvd* or /dev/hd*, so this script will view items matching one of these 
+# they should start with /dev/sd* or /dev/xvd* or /dev/hd*, so this script will view items matching one of these
 # three patterns and not ending in "da"(this is revserved by default) as devices specified in block device mapping
 # Next, determine those of them that are not mounted yet
 

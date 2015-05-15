@@ -1,7 +1,7 @@
 - name: install wget
   yum: name=wget
   sudo: yes
-  
+
 - name: download glusterfs
   script: down.sh
 
