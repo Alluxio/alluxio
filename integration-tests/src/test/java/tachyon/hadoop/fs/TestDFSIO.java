@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.hadoop.fs;
 
 import java.io.BufferedReader;
@@ -98,7 +99,7 @@ public class TestDFSIO implements Tool {
   private static final long MEGA = ByteMultiple.MB.value();
   private static final int DEFAULT_NR_BYTES = 16384;
   private static final int DEFAULT_NR_FILES = 4;
-  private static boolean generateReportFile = false;
+  private static boolean sGenerateReportFile = false;
   private static final String USAGE = "Usage: " + TestDFSIO.class.getSimpleName()
       + " [genericOptions]" + " -read [-random | -backward | -skip [-skipSize Size]] |"
       + " -write | -append | -clean" + " [-compression codecClassName]" + " [-nrFiles N]"
@@ -107,9 +108,9 @@ public class TestDFSIO implements Tool {
 
   // Constants for Tachyon
   private static final int BLOCK_SIZE = 8192;
-  private Configuration config;
-  private static LocalTachyonCluster mLocalTachyonCluster = null;
-  private static URI mLocalTachyonClusterUri = null;
+  private Configuration mConfig;
+  private static LocalTachyonCluster sLocalTachyonCluster = null;
+  private static URI sLocalTachyonClusterUri = null;
 
   static {
     Configuration.addDefaultResource("hdfs-default.xml");
@@ -123,30 +124,30 @@ public class TestDFSIO implements Tool {
         TEST_TYPE_APPEND("append"), TEST_TYPE_READ_RANDOM("random read"),
         TEST_TYPE_READ_BACKWARD("backward read"), TEST_TYPE_READ_SKIP("skip read");
 
-    private String type;
+    private String mType;
 
     private TestType(String t) {
-      type = t;
+      mType = t;
     }
 
     @Override
     // String
     public String toString() {
-      return type;
+      return mType;
     }
   }
 
   static enum ByteMultiple {
     B(1L), KB(0x400L), MB(0x100000L), GB(0x40000000L), TB(0x10000000000L);
 
-    private long multiplier;
+    private long mMultiplier;
 
     private ByteMultiple(long mult) {
-      multiplier = mult;
+      mMultiplier = mult;
     }
 
     long value() {
-      return multiplier;
+      return mMultiplier;
     }
 
     static ByteMultiple parseString(String sMultiple) {
@@ -168,7 +169,7 @@ public class TestDFSIO implements Tool {
   }
 
   public TestDFSIO() {
-    this.config = new Configuration();
+    this.mConfig = new Configuration();
   }
 
   private static String getBaseDir(Configuration conf) {
@@ -199,29 +200,29 @@ public class TestDFSIO implements Tool {
     return new Path(getBaseDir(conf), "io_data");
   }
 
-  private static TestDFSIO bench;
+  private static TestDFSIO sBench;
 
   @BeforeClass
   public static void beforeClass() throws Exception {
     // Init TestDFSIO
-    bench = new TestDFSIO();
-    bench.getConf().setBoolean("dfs.support.append", true);
+    sBench = new TestDFSIO();
+    sBench.getConf().setBoolean("dfs.support.append", true);
 
     // Start local Tachyon cluster
-    mLocalTachyonCluster = new LocalTachyonCluster(500000, 100000, BLOCK_SIZE);
-    mLocalTachyonCluster.start();
+    sLocalTachyonCluster = new LocalTachyonCluster(500000, 100000, BLOCK_SIZE);
+    sLocalTachyonCluster.start();
 
-    mLocalTachyonClusterUri = URI.create(mLocalTachyonCluster.getMasterUri());
-    bench.getConf().set("fs.defaultFS", mLocalTachyonClusterUri.toString());
-    bench.getConf().set("fs.default.name", mLocalTachyonClusterUri.toString());
-    bench.getConf().set("fs." + Constants.SCHEME + ".impl", TFS.class.getName());
+    sLocalTachyonClusterUri = URI.create(sLocalTachyonCluster.getMasterUri());
+    sBench.getConf().set("fs.defaultFS", sLocalTachyonClusterUri.toString());
+    sBench.getConf().set("fs.default.name", sLocalTachyonClusterUri.toString());
+    sBench.getConf().set("fs." + Constants.SCHEME + ".impl", TFS.class.getName());
 
     // Store TachyonConf in Hadoop Configuration
-    TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    ConfUtils.storeToHadoopConfiguration(tachyonConf, bench.getConf());
+    TachyonConf tachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
+    ConfUtils.storeToHadoopConfiguration(tachyonConf, sBench.getConf());
 
-    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
-    bench.createControlFile(fs, DEFAULT_NR_BYTES, DEFAULT_NR_FILES);
+    FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+    sBench.createControlFile(fs, DEFAULT_NR_BYTES, DEFAULT_NR_FILES);
 
     /** Check write here, as it is required for other tests */
     testWrite();
@@ -229,82 +230,82 @@ public class TestDFSIO implements Tool {
 
   @AfterClass
   public static void afterClass() throws Exception {
-    if (mLocalTachyonCluster == null)
+    if (sLocalTachyonCluster == null)
       return;
 
     // Clear TestDFSIO
-    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
-    bench.cleanup(fs);
+    FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
+    sBench.cleanup(fs);
 
     // Stop local Tachyon cluster
-    mLocalTachyonCluster.stop();
+    sLocalTachyonCluster.stop();
   }
 
   public static void testWrite() throws Exception {
-    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
+    FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    bench.writeTest(fs);
+    sBench.writeTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
-    bench.analyzeResult(fs, TestType.TEST_TYPE_WRITE, execTime);
+    sBench.analyzeResult(fs, TestType.TEST_TYPE_WRITE, execTime);
   }
 
   @Test(timeout = 25000)
   public void testRead() throws Exception {
-    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
+    FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    bench.readTest(fs);
+    sBench.readTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
-    bench.analyzeResult(fs, TestType.TEST_TYPE_READ, execTime);
+    sBench.analyzeResult(fs, TestType.TEST_TYPE_READ, execTime);
   }
 
   @Test(timeout = 25000)
   public void testReadRandom() throws Exception {
-    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
+    FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    bench.getConf().setLong("test.io.skip.size", 0);
-    bench.randomReadTest(fs);
+    sBench.getConf().setLong("test.io.skip.size", 0);
+    sBench.randomReadTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
-    bench.analyzeResult(fs, TestType.TEST_TYPE_READ_RANDOM, execTime);
+    sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_RANDOM, execTime);
   }
 
   @Test(timeout = 25000)
   public void testReadBackward() throws Exception {
-    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
+    FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    bench.getConf().setLong("test.io.skip.size", -DEFAULT_BUFFER_SIZE);
-    bench.randomReadTest(fs);
+    sBench.getConf().setLong("test.io.skip.size", -DEFAULT_BUFFER_SIZE);
+    sBench.randomReadTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
-    bench.analyzeResult(fs, TestType.TEST_TYPE_READ_BACKWARD, execTime);
+    sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_BACKWARD, execTime);
   }
 
   @Test(timeout = 20000)
   public void testReadSkip() throws Exception {
-    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
+    FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    bench.getConf().setLong("test.io.skip.size", 1);
-    bench.randomReadTest(fs);
+    sBench.getConf().setLong("test.io.skip.size", 1);
+    sBench.randomReadTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
-    bench.analyzeResult(fs, TestType.TEST_TYPE_READ_SKIP, execTime);
+    sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_SKIP, execTime);
   }
 
   @Test(timeout = 25000)
   public void testReadLargeSkip() throws Exception {
-    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
+    FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    bench.getConf().setLong("test.io.skip.size", 5000);
-    bench.randomReadTest(fs);
+    sBench.getConf().setLong("test.io.skip.size", 5000);
+    sBench.randomReadTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
-    bench.analyzeResult(fs, TestType.TEST_TYPE_READ_SKIP, execTime);
+    sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_SKIP, execTime);
   }
 
   // TODO: Should active this unit test after TACHYON-25 has been solved
   // @Test (timeout = 25000)
   public void testAppend() throws Exception {
-    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
+    FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    bench.appendTest(fs);
+    sBench.appendTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
-    bench.analyzeResult(fs, TestType.TEST_TYPE_APPEND, execTime);
+    sBench.analyzeResult(fs, TestType.TEST_TYPE_APPEND, execTime);
   }
 
   @SuppressWarnings("deprecation")
@@ -312,7 +313,7 @@ public class TestDFSIO implements Tool {
       int nrFiles) throws IOException {
     LOG.info("creating control file: " + nrBytes + " bytes, " + nrFiles + " files");
 
-    Path controlDir = getControlDir(config);
+    Path controlDir = getControlDir(mConfig);
 
     if (!fs.exists(controlDir)) {
 
@@ -324,7 +325,7 @@ public class TestDFSIO implements Tool {
         SequenceFile.Writer writer = null;
         try {
           writer =
-              SequenceFile.createWriter(fs, config, controlFile, Text.class, LongWritable.class,
+              SequenceFile.createWriter(fs, mConfig, controlFile, Text.class, LongWritable.class,
                   CompressionType.NONE);
           writer.append(new Text(name), new LongWritable(nrBytes));
         } catch (Exception e) {
@@ -356,7 +357,7 @@ public class TestDFSIO implements Tool {
    * </ul>
    */
   private abstract static class IOStatMapper extends IOMapperBase<Long> {
-    protected CompressionCodec compressionCodec;
+    protected CompressionCodec mCompressionCodec;
 
     IOStatMapper() {}
 
@@ -379,7 +380,7 @@ public class TestDFSIO implements Tool {
       }
 
       if (codec != null) {
-        compressionCodec = (CompressionCodec) ReflectionUtils.newInstance(codec, getConf());
+        mCompressionCodec = (CompressionCodec) ReflectionUtils.newInstance(codec, getConf());
       }
     }
 
@@ -421,8 +422,8 @@ public class TestDFSIO implements Tool {
     public Closeable getIOStream(String name) throws IOException {
       // create file
       OutputStream out = mFS.create(new Path(getDataDir(getConf()), name), true, mBufferSize);
-      if (compressionCodec != null)
-        out = compressionCodec.createOutputStream(out);
+      if (mCompressionCodec != null)
+        out = mCompressionCodec.createOutputStream(out);
       LOG.info("out = " + out.getClass().getName());
       return out;
     }
@@ -445,8 +446,8 @@ public class TestDFSIO implements Tool {
   }
 
   private void writeTest(FileSystem fs) throws IOException {
-    Path writeDir = getWriteDir(config);
-    fs.delete(getDataDir(config), true);
+    Path writeDir = getWriteDir(mConfig);
+    fs.delete(getDataDir(mConfig), true);
     fs.delete(writeDir, true);
 
     runIOTest(WriteMapper.class, writeDir);
@@ -454,9 +455,9 @@ public class TestDFSIO implements Tool {
 
   private void runIOTest(Class<? extends Mapper<Text, LongWritable, Text, Text>> mapperClass,
       Path outputDir) throws IOException {
-    JobConf job = new JobConf(config, TestDFSIO.class);
+    JobConf job = new JobConf(mConfig, TestDFSIO.class);
 
-    FileInputFormat.setInputPaths(job, getControlDir(config));
+    FileInputFormat.setInputPaths(job, getControlDir(mConfig));
     job.setInputFormat(SequenceFileInputFormat.class);
 
     job.setMapperClass(mapperClass);
@@ -484,8 +485,8 @@ public class TestDFSIO implements Tool {
     public Closeable getIOStream(String name) throws IOException {
       // open file for append
       OutputStream out = mFS.append(new Path(getDataDir(getConf()), name), mBufferSize);
-      if (compressionCodec != null)
-        out = compressionCodec.createOutputStream(out);
+      if (mCompressionCodec != null)
+        out = mCompressionCodec.createOutputStream(out);
       LOG.info("out = " + out.getClass().getName());
       return out;
     }
@@ -508,7 +509,7 @@ public class TestDFSIO implements Tool {
   }
 
   private void appendTest(FileSystem fs) throws IOException {
-    Path appendDir = getAppendDir(config);
+    Path appendDir = getAppendDir(mConfig);
     fs.delete(appendDir, true);
     runIOTest(AppendMapper.class, appendDir);
   }
@@ -525,8 +526,8 @@ public class TestDFSIO implements Tool {
     public Closeable getIOStream(String name) throws IOException {
       // open file
       InputStream in = mFS.open(new Path(getDataDir(getConf()), name));
-      if (compressionCodec != null)
-        in = compressionCodec.createInputStream(in);
+      if (mCompressionCodec != null)
+        in = mCompressionCodec.createInputStream(in);
       LOG.info("in = " + in.getClass().getName());
       return in;
     }
@@ -550,7 +551,7 @@ public class TestDFSIO implements Tool {
   }
 
   private void readTest(FileSystem fs) throws IOException {
-    Path readDir = getReadDir(config);
+    Path readDir = getReadDir(mConfig);
     fs.delete(readDir, true);
     runIOTest(ReadMapper.class, readDir);
   }
@@ -565,31 +566,31 @@ public class TestDFSIO implements Tool {
    * skipSize bytes after every read : skipSize > 0
    */
   public static class RandomReadMapper extends IOStatMapper {
-    private Random rnd;
-    private long fileSize;
-    private long skipSize;
+    private Random mRnd;
+    private long mFileSize;
+    private long mSkipSize;
 
     @Override
     // Mapper
     public void configure(JobConf conf) {
       super.configure(conf);
-      skipSize = conf.getLong("test.io.skip.size", 0);
+      mSkipSize = conf.getLong("test.io.skip.size", 0);
     }
 
     public RandomReadMapper() {
-      rnd = new Random();
+      mRnd = new Random();
     }
 
     @Override
     // IOMapperBase
     public Closeable getIOStream(String name) throws IOException {
       Path filePath = new Path(getDataDir(getConf()), name);
-      this.fileSize = mFS.getFileStatus(filePath).getLen();
+      this.mFileSize = mFS.getFileStatus(filePath).getLen();
       InputStream in = mFS.open(filePath);
-      if (compressionCodec != null)
-        in = new FSDataInputStream(compressionCodec.createInputStream(in));
+      if (mCompressionCodec != null)
+        in = new FSDataInputStream(mCompressionCodec.createInputStream(in));
       LOG.info("in = " + in.getClass().getName());
-      LOG.info("skipSize = " + skipSize);
+      LOG.info("skipSize = " + mSkipSize);
       return in;
     }
 
@@ -618,17 +619,17 @@ public class TestDFSIO implements Tool {
      * @return
      */
     private long nextOffset(long current) {
-      if (skipSize == 0)
-        return rnd.nextInt((int) (fileSize));
-      if (skipSize > 0)
-        return (current < 0) ? 0 : (current + mBufferSize + skipSize);
+      if (mSkipSize == 0)
+        return mRnd.nextInt((int) (mFileSize));
+      if (mSkipSize > 0)
+        return (current < 0) ? 0 : (current + mBufferSize + mSkipSize);
       // skipSize < 0
-      return (current < 0) ? Math.max(0, fileSize - mBufferSize) : Math.max(0, current + skipSize);
+      return (current < 0) ? Math.max(0, mFileSize - mBufferSize) : Math.max(0, current + mSkipSize);
     }
   }
 
   private void randomReadTest(FileSystem fs) throws IOException {
-    Path readDir = getRandomReadDir(config);
+    Path readDir = getRandomReadDir(mConfig);
     fs.delete(readDir, true);
     runIOTest(RandomReadMapper.class, readDir);
   }
@@ -684,7 +685,7 @@ public class TestDFSIO implements Tool {
     String compressionClass = null;
     boolean isSequential = false;
     String version = TestDFSIO.class.getSimpleName() + ".1.7";
-    generateReportFile = true;
+    sGenerateReportFile = true;
 
     LOG.info(version);
     if (args.length == 0) {
@@ -744,17 +745,17 @@ public class TestDFSIO implements Tool {
     LOG.info("bufferSize = " + bufferSize);
     if (skipSize > 0)
       LOG.info("skipSize = " + skipSize);
-    LOG.info("baseDir = " + getBaseDir(config));
+    LOG.info("baseDir = " + getBaseDir(mConfig));
 
     if (compressionClass != null) {
-      config.set("test.io.compression.class", compressionClass);
+      mConfig.set("test.io.compression.class", compressionClass);
       LOG.info("compressionClass = " + compressionClass);
     }
 
-    config.setInt("test.io.file.buffer.size", bufferSize);
-    config.setLong("test.io.skip.size", skipSize);
-    config.setBoolean("dfs.support.append", true);
-    FileSystem fs = FileSystem.get(config);
+    mConfig.setInt("test.io.file.buffer.size", bufferSize);
+    mConfig.setLong("test.io.skip.size", skipSize);
+    mConfig.setBoolean("dfs.support.append", true);
+    FileSystem fs = FileSystem.get(mConfig);
 
     if (isSequential) {
       long tStart = System.currentTimeMillis();
@@ -794,13 +795,13 @@ public class TestDFSIO implements Tool {
   @Override
   // Configurable
   public Configuration getConf() {
-    return this.config;
+    return this.mConfig;
   }
 
   @Override
   // Configurable
   public void setConf(Configuration conf) {
-    this.config = conf;
+    this.mConfig = conf;
   }
 
   /**
@@ -868,11 +869,11 @@ public class TestDFSIO implements Tool {
 
     PrintStream res = null;
     try {
-      if (generateReportFile)
+      if (sGenerateReportFile)
         res = new PrintStream(new FileOutputStream(new File(resFileName), true));
       for (int i = 0; i < resultLines.length; i ++) {
         LOG.info(resultLines[i]);
-        if (generateReportFile)
+        if (sGenerateReportFile)
           res.println(resultLines[i]);
         else
           System.out.println(resultLines[i]);
@@ -886,15 +887,15 @@ public class TestDFSIO implements Tool {
   private Path getReduceFilePath(TestType testType) {
     switch (testType) {
       case TEST_TYPE_WRITE:
-        return new Path(getWriteDir(config), "part-00000");
+        return new Path(getWriteDir(mConfig), "part-00000");
       case TEST_TYPE_APPEND:
-        return new Path(getAppendDir(config), "part-00000");
+        return new Path(getAppendDir(mConfig), "part-00000");
       case TEST_TYPE_READ:
-        return new Path(getReadDir(config), "part-00000");
+        return new Path(getReadDir(mConfig), "part-00000");
       case TEST_TYPE_READ_RANDOM:
       case TEST_TYPE_READ_BACKWARD:
       case TEST_TYPE_READ_SKIP:
-        return new Path(getRandomReadDir(config), "part-00000");
+        return new Path(getRandomReadDir(mConfig), "part-00000");
     }
     return null;
   }
@@ -905,6 +906,6 @@ public class TestDFSIO implements Tool {
 
   private void cleanup(FileSystem fs) throws IOException {
     LOG.info("Cleaning up test files");
-    fs.delete(new Path(getBaseDir(config)), true);
+    fs.delete(new Path(getBaseDir(mConfig)), true);
   }
 }
