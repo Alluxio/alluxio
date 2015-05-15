@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -33,7 +33,7 @@ public class ExponentialBackoffRetryTest {
   }
 
   public static final class MockExponentialBackoffRetry extends ExponentialBackoffRetry {
-    private int retryCount = 0;
+    private int mRetryCount = 0;
 
     public MockExponentialBackoffRetry(int baseSleepTimeMs, int maxSleepMs, int maxRetries) {
       super(baseSleepTimeMs, maxSleepMs, maxRetries);
@@ -41,11 +41,11 @@ public class ExponentialBackoffRetryTest {
 
     @Override
     public int getRetryCount() {
-      return retryCount;
+      return mRetryCount;
     }
 
     public void setRetryCount(int retryCount) {
-      this.retryCount = retryCount;
+      this.mRetryCount = retryCount;
     }
   }
 }
