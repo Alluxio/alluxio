@@ -14,22 +14,17 @@ directory:
 vagrant
 ├── conf
 │   ├── ec2-config.yml
-│   ├── init.yml.aws
-│   ├── init.yml.glusterfs
-│   ├── init.yml.hdfs1
-│   ├── init.yml.hdfs2
-│   ├── init.yml.os
-│   ├── init.yml.docker
+│   ├── init.yml
+│   ├── spark_version.yml
+│   ├── tachyon_version.yml
+│   ├── ufs_version.yml
 │   └── openstack-config.yml
-├── init.yml -> conf/init.yml.hdfs2
-├── tachyon_version.yml
-├── spark_version.yml
 ├── README.md
 ├── run_docker.sh
 └── ...
 </pre>
 
-The `run_docker.sh` script allows you to launch a Tachyon inside containers. It reads Tachyon cluster configuration from `tachyon/deploy/vagrant/init.yml`, then the script automatically creates the cluster, sets up under filesystem, and starts Tachyon master and workers on the cluster for you.
+The `run_docker.sh` script allows you to launch a Tachyon inside containers. It reads Tachyon cluster configuration from `tachyon/deploy/vagrant/conf/init.yml`, then the script automatically creates the cluster, sets up under filesystem, and starts Tachyon master and workers on the cluster for you.
 
 ## Prerequisite
 * **Install Vagrant**. You can download and install [Vagrant](https://www.vagrantup.com/downloads.html). Version 1.6.5 and higher is required
@@ -40,11 +35,9 @@ The `run_docker.sh` script allows you to launch a Tachyon inside containers. It 
 
 ## Configure
 
-Configure Version of Tachyon or Spark you want to deploy, refer to [this doc](Running-Specific-Version-Of-Tachyon-Or-Spark-Via-Vagrant.html)
+Configure version of softwares you want to deploy, refer to [this doc](Running-Specific-Version-Of-Tachyon-Or-Spark-Via-Vagrant.html)
 
-Provide your desired Tachyon cluster configuration. A sample configuration can be found in `tachyon/deploy/vagrant/conf/init.yml.docker`. Link or copy it to `tachyon/deploy/vagrant/init.yml`. 
-
-The parameters in `tachyon/deploy/vagrant/init.yml` are explained as the following.
+Provide your desired Tachyon cluster configuration. Edit `conf/init.yml`. The parameters in `tachyon/deploy/vagrant/conf/init.yml` are explained as the following.
 
 <table class="table">
 <tr>

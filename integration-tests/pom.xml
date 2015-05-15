@@ -66,6 +66,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <!-- TODO: Remove dependency on tachyon-servers test-jar for TestUtils -->
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-servers</artifactId>
       <version>${project.version}</version>
@@ -75,6 +76,12 @@
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-common</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-local</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

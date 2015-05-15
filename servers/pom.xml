@@ -117,6 +117,12 @@
       <artifactId>powermock-api-mockito</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-local</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

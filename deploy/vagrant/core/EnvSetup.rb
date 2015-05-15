@@ -157,3 +157,69 @@ class SparkVersion
   end
 end
 
+class HadoopVersion
+  def initialize(yml)
+    apache_url = "http://archive.apache.org/dist/hadoop/common/hadoop-%{Version}/hadoop-%{Version}.tar.gz"
+    cdh_url = "https://repository.cloudera.com/cloudera/cloudera-repos/org/apache/hadoop/hadoop-dist/%{Version}/hadoop-dist-%{Version}.tar.gz"
+    @url_template = {
+      "apache" => apache_url,
+      "cdh"    => cdh_url,
+    }
+
+    @type = ''
+    @version = ''
+    @spark_profile = ''
+    if yml == nil
+      return
+    end
+    @type = yml['Type']
+    if @type == nil
+      puts 'ERROR: Hadoop:Type is not set'
+      exit(1)
+    end
+    @version = yml['Version']
+    if @version == nil
+      puts 'ERROR: Hadoop:Version is not set'
+      exit(1)
+    end
+    @spark_profile = yml['SparkProfile'] or @spark_profile
+  end
+
+  def tarball_url
+    return @url_template[@type] % {Version: @version}
+  end
+
+  def version
+    return @version
+  end
+
+  def spark_profile
+    return @spark_profile
+  end
+end
+
+class UfsVersion
+  def initialize(yaml_path)
+    @yml = YAML.load_file(yaml_path)
+    puts @yml
+
+    @hadoop = HadoopVersion.new(nil)
+
+    case @yml['Type']
+    when 'hadoop1', 'hadoop2'
+      @hadoop = HadoopVersion.new(@yml['Hadoop'])
+    when 'glusterfs'
+    else
+      puts 'unsupported ufs'
+      exit(1)
+    end
+  end
+
+  def type
+    return @yml['Type']
+  end
+
+  def hadoop
+    return @hadoop
+  end
+end

@@ -3,7 +3,7 @@ layout: global
 title: Deploy Specific Version Of Either Tachyon Or Spark Via Vagrant
 ---
 
-In deploy/vagrant/tachyon_version.yml:
+## deploy/vagrant/conf/tachyon_version.yml:
 
     # {Github | Local | Release}
     Type: Local
@@ -36,7 +36,7 @@ Parameters explained:
 </tr>
 </table>
 
-Similarly, configure deploy/vagrant/spark_version.yml to deploy spark or not:
+## deploy/vagrant/conf/spark_version.yml
 
     # Type can be {None|Github|Release}
     # None means don't set up spark
@@ -51,7 +51,29 @@ Similarly, configure deploy/vagrant/spark_version.yml to deploy spark or not:
     Release: 
       Dist: spark-1.3.1-bin-hadoop1.tgz
 
+Parameters' meanings are similar to those of tachyon_version.yml.
+
 The deployed Spark will use Tachyon as Cache layer and Hadoop as underlayer filesystem. 
+
+## deploy/vagrant/conf/ufs_version.yml
+
+    # hadoop1 | hadoop2 | glusterfs
+    Type: hadoop2
+
+    Hadoop:
+      # apache: http://archive.apache.org/dist/hadoop/common/hadoop-${Version}/hadoop-${Version}.tar.gz
+      # cdh: https://repository.cloudera.com/cloudera/cloudera-repos/org/apache/hadoop/hadoop-dist/${Version}/hadoop-dist-${Version}.tar.gz
+      # apache | cdh
+      Type: cdh
+      # e.x. 2.4.1, 2.0.0-cdh4.7.1
+      Version: 2.0.0-cdh4.7.1
+      # for some version of hadoop, profile is needed when compiling spark
+      # https://spark.apache.org/docs/latest/building-spark.html#specifying-the-hadoop-version
+      # e.x. 2.4 for hadoop 2.4.1
+      # if you don't compile spark, this can be empty
+      SparkProfile:
+
+Parameter meaning has been explained in comments of the yml.
 
 After configuration, follow [Running-Tachyon-on-VirtualBox](Running-Tachyon-on-VirtualBox.html) or
 [Running-Tachyon-on-Container](Running-Tachyon-on-Container.html) or [Running-Tachyon-on-AWS](Running-Tachyon-on-AWS.html)

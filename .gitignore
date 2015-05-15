@@ -11,7 +11,6 @@ conf/tachyon-env.sh
 data/
 dependency-reduced-pom.xml
 deploy/vagrant/.vagrant/
-deploy/vagrant/conf/
 deploy/vagrant/files/
 deploy/vagrant/shared/
 docs/_site

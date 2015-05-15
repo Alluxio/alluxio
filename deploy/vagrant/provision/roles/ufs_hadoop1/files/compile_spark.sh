@@ -1,2 +1,2 @@
 cd /spark
-./make-distribution.sh -Dhadoop.version=1.0.4 >/spark/make-distribution.log 2>&1
+./make-distribution.sh -Dhadoop.version=${HADOOP_VERSION} >/spark/make-distribution.log 2>&1
