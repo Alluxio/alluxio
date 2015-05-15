@@ -9,8 +9,8 @@
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-common</artifactId>
   <packaging>jar</packaging>
-  <description>Tachyon Project Common</description>
-  <name>Tachyon Project Common</name>
+  <name>Tachyon Common</name>
+  <description>Common utilities shared by different tachyon moduels</description>
 
   <properties>
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>

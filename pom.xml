@@ -4,8 +4,8 @@
   <artifactId>tachyon-parent</artifactId>
   <version>0.7.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <description>Tachyon Project Parent</description>
-  <name>Tachyon Project Parent</name>
+  <name>Tachyon Parent</name>
+  <description>Parent POM of Tachyon project: a Reliable Memory Centric Distributed Storage System</description>
   <url>http://tachyonproject.org/</url>
   <licenses>
     <license>
