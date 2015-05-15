@@ -73,7 +73,7 @@ public class TachyonConfTest {
 
     String value = sDefaultTachyonConf.get(Constants.WEB_RESOURCES, null);
     Assert.assertTrue(value != null);
-    Assert.assertTrue((tachyonHome + "/core/src/main/webapp").equals(value));
+    Assert.assertTrue((tachyonHome + "/servers/src/main/webapp").equals(value));
 
     value = sDefaultTachyonConf.get(Constants.UNDERFS_HDFS_IMPL, null);
     Assert.assertTrue(value != null);
