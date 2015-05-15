@@ -17,7 +17,7 @@
     # and they are set to "127.0.0.1" in /etc/hosts
     # so, although worker starts at TachyonWorker1, TachyonMaster can not access it because
     # only TachyonMaster.local, TachyonWorker#.local can be accessed among each other in cluster
-    # AWS provides hostname that will be resolved to the private network ip that is the same as TachyonMaster, 
+    # AWS provides hostname that will be resolved to the private network ip that is the same as TachyonMaster,
     # TachyonWorker1, etc.
     - name: set hostname from TachyonXXX to TachyonXXX.local
       shell: sudo hostname `hostname | cut -d'.' -f1`.local # in case provisioning happens more than once

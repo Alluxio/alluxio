@@ -11,8 +11,8 @@
 
 - name: clone tachyon from {{ tachyon_repo }} {{ tachyon_version }}
   git: >
-    repo={{ tachyon_repo }} 
-    dest=/tachyon 
+    repo={{ tachyon_repo }}
+    dest=/tachyon
     version={{ tachyon_version }}
 
 # vim :set filetype=ansible.yaml:

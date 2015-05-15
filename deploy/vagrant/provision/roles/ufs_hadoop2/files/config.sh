@@ -43,19 +43,19 @@ cat > /hadoop/etc/hadoop/yarn-site.xml << EOF
 <configuration>
 <property>
 <name>yarn.resourcemanager.resourcetracker.address</name>
-<value>${namenode}:8025</value>  
+<value>${namenode}:8025</value>
 </property>
 <property>
  <name>yarn.resourcemanager.scheduler.address</name>
- <value>${namenode}:8030</value>  
+ <value>${namenode}:8030</value>
 </property>
 <property>
  <name>yarn.resourcemanager.address</name>
- <value>${namenode}:8050</value>  
+ <value>${namenode}:8050</value>
 </property>
 <property>
  <name>yarn.resourcemanager.admin.address</name>
- <value>${namenode}:8041</value>  
+ <value>${namenode}:8041</value>
 </property>
 <property>
 <name>yarn.resourcemanager.hostname</name>
