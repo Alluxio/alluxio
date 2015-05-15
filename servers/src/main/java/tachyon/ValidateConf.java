@@ -88,6 +88,7 @@ public class ValidateConf {
     if (!validate()) {
       System.exit(-1);
     }
+    System.out.println("All configuration entries are valid.");
     System.exit(0);
   }
 
