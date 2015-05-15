@@ -4,14 +4,15 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.hadoop.fs;
 
 import java.io.Closeable;
@@ -34,32 +35,32 @@ import org.apache.hadoop.mapred.Reporter;
  * {@link #collectStats(org.apache.hadoop.mapred.OutputCollector, String,long, Object)} should be
  * overloaded in derived classes to define the IO operation and the statistics data to be collected
  * by subsequent reducers.
- * 
+ *
  */
 public abstract class IOMapperBase<T> extends Configured implements
     Mapper<Text, LongWritable, Text, Text> {
 
-  protected byte[] buffer;
-  protected int bufferSize;
-  protected FileSystem fs;
-  protected String hostName;
-  protected Closeable stream;
+  protected byte[] mBuffer;
+  protected int mBufferSize;
+  protected FileSystem mFS;
+  protected String mHostname;
+  protected Closeable mStream;
 
   public IOMapperBase() {}
 
   public void configure(JobConf conf) {
     setConf(conf);
     try {
-      fs = FileSystem.get(conf);
+      mFS = FileSystem.get(conf);
     } catch (Exception e) {
       throw new RuntimeException("Cannot create file system.", e);
     }
-    bufferSize = conf.getInt("test.io.file.buffer.size", 4096);
-    buffer = new byte[bufferSize];
+    mBufferSize = conf.getInt("test.io.file.buffer.size", 4096);
+    mBuffer = new byte[mBufferSize];
     try {
-      hostName = InetAddress.getLocalHost().getHostName();
+      mHostname = InetAddress.getLocalHost().getHostName();
     } catch (Exception e) {
-      hostName = "localhost";
+      mHostname = "localhost";
     }
   }
 
@@ -67,7 +68,7 @@ public abstract class IOMapperBase<T> extends Configured implements
 
   /**
    * Perform io operation, usually read or write.
-   * 
+   *
    * @param reporter
    * @param name file name
    * @param value offset within the file
@@ -80,7 +81,7 @@ public abstract class IOMapperBase<T> extends Configured implements
   /**
    * Create an input or output stream based on the specified file. Subclasses should override this
    * method to provide an actual stream.
-   * 
+   *
    * @param name file name
    * @return the stream
    * @throws java.io.IOException
@@ -91,7 +92,7 @@ public abstract class IOMapperBase<T> extends Configured implements
 
   /**
    * Collect stat data to be combined by a subsequent reducer.
-   * 
+   *
    * @param output
    * @param name file name
    * @param execTime IO execution time
@@ -107,7 +108,7 @@ public abstract class IOMapperBase<T> extends Configured implements
    * <p>
    * The map task is to get the <tt>key</tt>, which contains the file name, and the <tt>value</tt>,
    * which is the offset within the file.
-   * 
+   *
    * The parameters are passed to the abstract method
    * {@link #doIO(org.apache.hadoop.mapred.Reporter, String,long)}, which performs the io operation,
    * usually read or write data, and then
@@ -119,21 +120,21 @@ public abstract class IOMapperBase<T> extends Configured implements
     String name = key.toString();
     long longValue = value.get();
 
-    reporter.setStatus("starting " + name + " ::host = " + hostName);
+    reporter.setStatus("starting " + name + " ::host = " + mHostname);
 
-    this.stream = getIOStream(name);
+    this.mStream = getIOStream(name);
     T statValue = null;
     long tStart = System.currentTimeMillis();
     try {
       statValue = doIO(reporter, name, longValue);
     } finally {
-      if (stream != null)
-        stream.close();
+      if (mStream != null)
+        mStream.close();
     }
     long tEnd = System.currentTimeMillis();
     long execTime = tEnd - tStart;
     collectStats(output, name, execTime, statValue);
 
-    reporter.setStatus("finished " + name + " ::host = " + hostName);
+    reporter.setStatus("finished " + name + " ::host = " + mHostname);
   }
 }

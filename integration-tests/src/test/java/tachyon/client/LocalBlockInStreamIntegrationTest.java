@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.client;
 
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class LocalBlockInStreamIntegrationTest {
   private static Set<WriteType> sWriteCacheType;
 
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  public ExpectedException mThrown = ExpectedException.none();
 
   @AfterClass
   public static final void afterClass() throws Exception {
@@ -235,8 +236,8 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest2() throws IOException {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Seek position is past buffer limit");
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Seek position is past buffer limit");
 
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {

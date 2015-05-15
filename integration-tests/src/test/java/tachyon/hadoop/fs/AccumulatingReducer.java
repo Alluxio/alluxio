@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.hadoop.fs;
 
 import java.io.IOException;
@@ -50,22 +51,22 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
   static final String VALUE_TYPE_STRING = "s:";
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  protected String hostName;
+  protected String mHostname;
 
   public AccumulatingReducer() {
     try {
-      hostName = java.net.InetAddress.getLocalHost().getHostName();
+      mHostname = java.net.InetAddress.getLocalHost().getHostName();
     } catch (Exception e) {
-      hostName = "localhost";
+      mHostname = "localhost";
     }
-    LOG.info("Starting AccumulatingReducer on " + hostName);
+    LOG.info("Starting AccumulatingReducer on " + mHostname);
   }
 
   public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> output,
       Reporter reporter) throws IOException {
     String field = key.toString();
 
-    reporter.setStatus("starting " + field + " ::host = " + hostName);
+    reporter.setStatus("starting " + field + " ::host = " + mHostname);
 
     // concatenate strings
     if (field.startsWith(VALUE_TYPE_STRING)) {
@@ -73,7 +74,7 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
       while (values.hasNext())
         sSum.append(values.next().toString()).append(";");
       output.collect(key, new Text(sSum.toString()));
-      reporter.setStatus("finished " + field + " ::host = " + hostName);
+      reporter.setStatus("finished " + field + " ::host = " + mHostname);
       return;
     }
     // sum long values
@@ -82,7 +83,7 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
       while (values.hasNext())
         fSum += Float.parseFloat(values.next().toString());
       output.collect(key, new Text(String.valueOf(fSum)));
-      reporter.setStatus("finished " + field + " ::host = " + hostName);
+      reporter.setStatus("finished " + field + " ::host = " + mHostname);
       return;
     }
     // sum long values
@@ -93,6 +94,6 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
       }
       output.collect(key, new Text(String.valueOf(lSum)));
     }
-    reporter.setStatus("finished " + field + " ::host = " + hostName);
+    reporter.setStatus("finished " + field + " ::host = " + mHostname);
   }
 }
