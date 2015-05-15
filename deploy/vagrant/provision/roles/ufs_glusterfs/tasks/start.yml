@@ -1,4 +1,4 @@
 - name: start glusterfs
   script: start.sh
-  
+
 # vim :set filetype=ansible.yaml:
