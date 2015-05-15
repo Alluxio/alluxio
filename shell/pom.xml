@@ -8,8 +8,8 @@
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-shell</artifactId>
   <packaging>jar</packaging>
-  <description>Tachyon Project Shell: A Linux shell-like interface to manage Tachyon</description>
-  <name>Tachyon Project Shell</name>
+  <name>Tachyon Shell</name>
+  <description>A Linux shell-like interface to interact with Tachyon</description>
 
   <properties>
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
