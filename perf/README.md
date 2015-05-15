@@ -3,6 +3,18 @@ Tachyon-Perf
 
 A general performance test framework for [Tachyon](http://tachyon-project.org/).
 
+##Compile
+
+If you want to test Tachyon's UnderFileSystem, for example, S3UnderFileSystem, you need to add the following
+dependencies to perf/pom.xml:
+
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-s3</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
 ##Run Tachyon-Perf Tests
 The following steps show how to run a Tachyon-Perf test. 
 
