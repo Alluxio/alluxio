@@ -67,7 +67,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  public ExpectedException mThrown = ExpectedException.none();
 
   @After
   public final void after() throws Exception {
@@ -415,8 +415,8 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest2() throws IOException {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Seek position is past block size");
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Seek position is past block size");
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;

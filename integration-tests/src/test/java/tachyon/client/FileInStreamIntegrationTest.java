@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.client;
 
 import java.io.IOException;
@@ -40,7 +41,7 @@ public class FileInStreamIntegrationTest {
   private static TachyonFS sTfs = null;
 
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  public ExpectedException mThrown = ExpectedException.none();
 
   @AfterClass
   public static final void afterClass() throws Exception {
@@ -228,8 +229,8 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest2() throws IOException {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Seek position is past EOF");
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Seek position is past EOF");
     String uniqPath = TestUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
