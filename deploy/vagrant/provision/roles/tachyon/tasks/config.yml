@@ -6,6 +6,10 @@
 
 - name: set tachyon-env.sh
   script: roles/ufs_{{ ufs }}/files/config_tachyon.sh
+  environment:
+    S3_BUCKET: "{{ s3_bucket }}"
+    S3_ID: "{{ s3_id }}"
+    S3_KEY: "{{ s3_key }}"
 
 - name: let tachyon ssh to workers in parallel when start
   replace: >
