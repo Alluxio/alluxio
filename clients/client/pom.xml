@@ -8,7 +8,7 @@
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-client</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Project Clients - Distribution </name>
+  <name>Tachyon Clients - Distribution</name>
   <description>Distribution of Tachyon client module with shaded packages in jar</description>
 
   <properties>
@@ -116,7 +116,7 @@
           <groupId>org.tachyonproject</groupId>
           <artifactId>tachyon-common</artifactId>
         </exclusion>
-      </exclusions>     
+      </exclusions>
     </dependency>
 
   </dependencies>

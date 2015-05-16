@@ -19,11 +19,11 @@ public class TachyonConfTest {
   private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,s3://,s3n://,glusterfs:///";
 
   private static TachyonConf sDefaultTachyonConf;
-  private static final Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
+  private static Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
 
   private TachyonConf mCustomPropsTachyonConf;
   private TachyonConf mSystemPropsTachyonConf;
-  
+
   @AfterClass
   public static void afterClass() {
     System.clearProperty(Constants.MASTER_HOSTNAME);
@@ -42,7 +42,7 @@ public class TachyonConfTest {
     sTestProperties.put("recursive", "${multiplesubs}");
     sTestProperties.put("home.port", "8080");
     sTestProperties.put("complex.address", "tachyon://${home}:${home.port}");
-    
+
     // initialize the system properties
     System.setProperty(Constants.MASTER_HOSTNAME, "master");
     System.setProperty(Constants.MASTER_PORT, "20001");
@@ -73,7 +73,7 @@ public class TachyonConfTest {
 
     String value = sDefaultTachyonConf.get(Constants.WEB_RESOURCES, null);
     Assert.assertTrue(value != null);
-    Assert.assertTrue((tachyonHome + "/core/src/main/webapp").equals(value));
+    Assert.assertTrue((tachyonHome + "/servers/src/main/webapp").equals(value));
 
     value = sDefaultTachyonConf.get(Constants.UNDERFS_HDFS_IMPL, null);
     Assert.assertTrue(value != null);
@@ -248,7 +248,7 @@ public class TachyonConfTest {
     String recursive = mCustomPropsTachyonConf.get("recursive", null);
     Assert.assertTrue(multiplesubs.equals(recursive));
   }
-  
+
   @Test
   public void testSystemVariableSubstitutionSample() {
     String masterAddress = mSystemPropsTachyonConf.get(Constants.MASTER_ADDRESS, null);

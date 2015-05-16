@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.hadoop.contract;
 
 import java.io.IOException;
@@ -37,7 +38,7 @@ public class TachyonFSContract extends AbstractFSContract {
   public static final String CONTRACT_XML = "contract/tachyonfs.xml";
   public static final String SYSPROP_TEST_BUILD_DATA = "test.build.data";
   public static final String DEFAULT_TEST_BUILD_DATA_DIR = "test/build/data";
-  private FileSystem fs;
+  private FileSystem mFS;
 
   public TachyonFSContract(Configuration conf) {
     super(conf);
@@ -64,12 +65,12 @@ public class TachyonFSContract extends AbstractFSContract {
     localcluster.start();
     URI uri = URI.create(localcluster.getMasterUri());
 
-    fs = FileSystem.get(uri, conf);
+    mFS = FileSystem.get(uri, conf);
   }
 
   @Override
   public FileSystem getTestFileSystem() throws IOException {
-    return fs;
+    return mFS;
   }
 
   @Override
@@ -79,7 +80,7 @@ public class TachyonFSContract extends AbstractFSContract {
 
   @Override
   public Path getTestPath() {
-    Path path = fs.makeQualified(new Path(getTestDataDir()));
+    Path path = mFS.makeQualified(new Path(getTestDataDir()));
     return path;
   }
 

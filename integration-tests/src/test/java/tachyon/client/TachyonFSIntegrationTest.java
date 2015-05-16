@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.client;
 
 import java.io.IOException;
@@ -188,7 +189,8 @@ public class TachyonFSIntegrationTest {
 
     for (int k = 0; k < 5; k ++) {
       TachyonURI fileURI = new TachyonURI(uniqPath + k);
-      int fileId = TachyonFSTestUtils.createByteFile(sTfs, fileURI, WriteType.MUST_CACHE, writeBytes);
+      int fileId =
+          TachyonFSTestUtils.createByteFile(sTfs, fileURI, WriteType.MUST_CACHE, writeBytes);
       TachyonFile file = sTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
       Assert.assertTrue(sTfs.exist(fileURI));
@@ -359,7 +361,8 @@ public class TachyonFSIntegrationTest {
     String[] originUrls =
         new String[] {"tachyon://127.0.0.1:19998", "tachyon-ft://127.0.0.1:19998",};
     String[] resultUrls =
-        new String[] {"tachyon://localhost/127.0.0.1:19998", "tachyon-ft://localhost/127.0.0.1:19998",};
+        new String[] {"tachyon://localhost/127.0.0.1:19998",
+            "tachyon-ft://localhost/127.0.0.1:19998",};
     for (int i = 0, n = originUrls.length; i < n; i ++) {
       String originUrl = originUrls[i];
       String resultUrl = resultUrls[i];
