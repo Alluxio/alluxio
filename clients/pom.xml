@@ -8,7 +8,7 @@
   </parent>
   <artifactId>tachyon-clients</artifactId>
   <packaging>pom</packaging>
-  <name>Tachyon Project Clients</name>
+  <name>Tachyon Clients</name>
   <description>Parent POM for Tachyon clients</description>
 
   <modules>

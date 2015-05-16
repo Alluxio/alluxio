@@ -32,9 +32,9 @@ import tachyon.underfs.UnderFileSystemCluster;
  */
 public class S3UnderStorageCluster extends UnderFileSystemCluster {
 
-  private final static String INTEGRATION_S3_ACCESS_KEY = "accessKey";
-  private final static String INTEGRATION_S3_SECRET_KEY = "secretKey";
-  private final static String INTEGRATION_S3_BUCKET = "s3Bucket";
+  private static final String INTEGRATION_S3_ACCESS_KEY = "accessKey";
+  private static final String INTEGRATION_S3_SECRET_KEY = "secretKey";
+  private static final String INTEGRATION_S3_BUCKET = "s3Bucket";
 
   private String mS3Bucket;
 

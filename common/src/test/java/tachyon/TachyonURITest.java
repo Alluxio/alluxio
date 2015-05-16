@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon;
 
 import org.junit.Assert;
@@ -163,7 +164,8 @@ public class TachyonURITest {
     testParentChild("foo://bar boo:80/foo", "foo://bar boo:80/bar", "/foo");
     testParentChild("c:/foo", "foo://bar boo:80/bar", "c:/foo");
     testParentChild("c:/foo", "foo://bar boo:80/d:/bar", "c:/foo");
-    testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/d:/bar", "foo://bar boo:80/c:/foo");
+    testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/d:/bar",
+        "foo://bar boo:80/c:/foo");
   }
 
   @Test
@@ -194,7 +196,8 @@ public class TachyonURITest {
     TachyonURI[] uriFromDifferentConstructor =
         new TachyonURI[] {new TachyonURI("tachyon://127.0.0.1:8080/a/b/c.txt"),
             new TachyonURI("tachyon", "127.0.0.1:8080", "/a/b/c.txt"),
-            new TachyonURI(new TachyonURI("tachyon://127.0.0.1:8080/a"), new TachyonURI("b/c.txt"))};
+            new TachyonURI(
+                new TachyonURI("tachyon://127.0.0.1:8080/a"), new TachyonURI("b/c.txt"))};
     for (int i = 0; i < uriFromDifferentConstructor.length - 1; i ++) {
       Assert.assertTrue(uriFromDifferentConstructor[i].equals(uriFromDifferentConstructor[i + 1]));
     }
@@ -203,7 +206,8 @@ public class TachyonURITest {
   @Test
   public void getAuthorityTests() {
     String[] authorities =
-        new String[] {"localhost", "localhost:8080", "127.0.0.1", "127.0.0.1:8080", "localhost", null};
+        new String[] {"localhost", "localhost:8080", "127.0.0.1", "127.0.0.1:8080", "localhost",
+            null};
     for (String authority : authorities) {
       TachyonURI uri = new TachyonURI("file", authority, "/a/b");
       Assert.assertEquals(authority, uri.getAuthority());
@@ -370,11 +374,11 @@ public class TachyonURITest {
     Assert.assertEquals(new TachyonURI("C:\\\\a\\b"),
         new TachyonURI("C:\\\\a").join(new TachyonURI("\\b")));
 
-    final String pathWithSpecialChar = "����,��b����$o\u0005����[\u000F| \u009E=B����";
+    final String pathWithSpecialChar = "����,��b����$o����[| =B����";
     Assert.assertEquals(new TachyonURI("/" + pathWithSpecialChar),
             new TachyonURI("/").join(pathWithSpecialChar));
 
-    final String pathWithSpecialCharAndColon = "����,��b����$o\u0005����[\u000F| \u009E=B��:��";
+    final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
     Assert.assertEquals(new TachyonURI("/" + pathWithSpecialCharAndColon),
         new TachyonURI("/").join(pathWithSpecialCharAndColon));
   }

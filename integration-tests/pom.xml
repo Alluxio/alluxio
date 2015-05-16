@@ -8,8 +8,8 @@
   </parent>
   <artifactId>tachyon-integration-tests</artifactId>
   <packaging>jar</packaging>
-  <name>Tachyon Project Integration Tests</name>
-  <description>Parent POM for integration test modules</description>
+  <name>Tachyon Integration Tests</name>
+  <description>Integration tests on other Tachyon modules</description>
 
   <properties>
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>

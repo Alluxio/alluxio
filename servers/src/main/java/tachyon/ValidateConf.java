@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.conf.TachyonConf;
-import tachyon.Constants;
 
 /**
  * Validate the TachyonConf object.
@@ -38,7 +37,7 @@ public class ValidateConf {
     Constants constants = new Constants();
     Set<String> validProperties = new HashSet<String>();
     try {
-      // Iterate over the array of Field objects in tachyon.Conatants by reflection
+      // Iterate over the array of Field objects in tachyon.Constants by reflection
       for (Field field : constants.getClass().getDeclaredFields()) {
         if (field.getType().isAssignableFrom(String.class)) {
           String name = (String) field.get(constants);
@@ -51,15 +50,13 @@ public class ValidateConf {
       LOG.error(e.getMessage(), e);
     }
 
-    // There are two properties that are defined in tachyon-default.properties but not declared in
-    // Tachyon.Constants.
+    // Tachyon version is a valid conf entry but not defined in tachyon.Constants
     validProperties.add("tachyon.version");
-    validProperties.add("tachyon.debug");
 
     // There are three properties that are auto-generated in WorkerStorage based on corresponding
-    // format strings defined in Tachyon.Constants. Here we transform each format string to a regexp
+    // format strings defined in tachyon.Constants. Here we transform each format string to a regexp
     // to check if a property name follows the format. E.g.,
-    // "tachyon.worker.tieredstore.leve%d.alias" is transformed to
+    // "tachyon.worker.tieredstore.level%d.alias" is transformed to
     // "tachyon\.worker\.tieredstore\.level\d+\.alias".
     Pattern aliasPattern =
         Pattern.compile(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT.replace("%d", "\\d+")
@@ -91,6 +88,7 @@ public class ValidateConf {
     if (!validate()) {
       System.exit(-1);
     }
+    System.out.println("All configuration entries are valid.");
     System.exit(0);
   }
 
