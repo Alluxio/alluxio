@@ -4,20 +4,16 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.hadoop;
 
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+package tachyon.hadoop;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +28,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.MockClassLoader;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -138,16 +136,16 @@ public class TFSTest {
   }
 
   private void mockTachyonFSGet() throws IOException {
-    mockStatic(TachyonFS.class);
-    TachyonFS tachyonFS = mock(TachyonFS.class);
-    when(TachyonFS.get(eq(mTachyonConf))).thenReturn(tachyonFS);
+    PowerMockito.mockStatic(TachyonFS.class);
+    TachyonFS tachyonFS = Mockito.mock(TachyonFS.class);
+    Mockito.when(TachyonFS.get(Matchers.eq(mTachyonConf))).thenReturn(tachyonFS);
   }
 
   private void mockUserGroupInformation() throws IOException {
     // need to mock out since FileSystem.get calls UGI, which some times has issues on some systems
-    mockStatic(UserGroupInformation.class);
-    final UserGroupInformation ugi = mock(UserGroupInformation.class);
-    when(ugi.getCurrentUser()).thenReturn(ugi);
+    PowerMockito.mockStatic(UserGroupInformation.class);
+    final UserGroupInformation ugi = Mockito.mock(UserGroupInformation.class);
+    Mockito.when(ugi.getCurrentUser()).thenReturn(ugi);
   }
 
   @Before

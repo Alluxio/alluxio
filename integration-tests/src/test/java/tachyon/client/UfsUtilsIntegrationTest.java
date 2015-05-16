@@ -12,9 +12,8 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package tachyon.client;
 
-import static org.junit.Assert.fail;
+package tachyon.client;
 
 import java.io.IOException;
 import java.util.List;
@@ -84,7 +83,7 @@ public class UfsUtilsIntegrationTest {
     for (String exclusion : exclusions) {
       try {
         paths = TachyonFSTestUtils.listFiles(mTfs, exclusion);
-        fail("NO FileDoesNotExistException is expected here");
+        Assert.fail("NO FileDoesNotExistException is expected here");
       } catch (IOException ioe) {
         Assert.assertNotNull(ioe);
       }
