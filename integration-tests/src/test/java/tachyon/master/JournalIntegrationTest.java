@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.master;
 
 import java.io.IOException;
@@ -205,7 +206,7 @@ public class JournalIntegrationTest {
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
-      mMasterTachyonConf);
+        mMasterTachyonConf);
     info.init();
     Assert.assertEquals(31, info.ls(mRootUri, true).size());
     Assert.assertTrue(info.getFileId(mRootUri) != -1);
@@ -517,7 +518,8 @@ public class JournalIntegrationTest {
     RenameTestUtil();
   }
 
-  private void RenameTestUtil() throws IOException, InvalidPathException, FileDoesNotExistException {
+  private void RenameTestUtil()
+      throws IOException, InvalidPathException, FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
@@ -542,8 +544,8 @@ public class JournalIntegrationTest {
   @Test
   public void TableTest() throws Exception {
     mTfs.createRawTable(new TachyonURI("/xyz"), 10);
-    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().
-        getClientFileInfo(new TachyonURI("/xyz"));
+    ClientFileInfo fInfo =
+        mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
     mLocalTachyonCluster.stopTFS();
     TableTest(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();

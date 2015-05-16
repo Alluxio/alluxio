@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.hadoop;
 
 import java.io.IOException;
@@ -44,24 +45,24 @@ public class HdfsFileInputStreamIntegrationTest {
   private static final int FILE_LEN = 255;
   private static final int BUFFER_SIZE = 50;
 
-  private static LocalTachyonCluster mLocalTachyonCluster = null;
-  private static TachyonFS mTfs = null;
+  private static LocalTachyonCluster sLocalTachyonCluster = null;
+  private static TachyonFS sTFS = null;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;
 
   @AfterClass
   public static final void afterClass() throws Exception {
-    mLocalTachyonCluster.stop();
+    sLocalTachyonCluster.stop();
   }
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES,
+    sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
-    mLocalTachyonCluster.start();
-    mTfs = mLocalTachyonCluster.getClient();
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile2", WriteType.THROUGH, FILE_LEN);
+    sLocalTachyonCluster.start();
+    sTFS = sLocalTachyonCluster.getClient();
+    TachyonFSTestUtils.createByteFile(sTFS, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
+    TachyonFSTestUtils.createByteFile(sTFS, "/testFile2", WriteType.THROUGH, FILE_LEN);
   }
 
   @After
@@ -72,15 +73,15 @@ public class HdfsFileInputStreamIntegrationTest {
 
   @Before
   public final void before() throws IOException {
-    ClientFileInfo fileInfo = mTfs.getFileStatus(-1, new TachyonURI("/testFile1"));
-    mInMemInputStream = new HdfsFileInputStream(mTfs, fileInfo.getId(),
+    ClientFileInfo fileInfo = sTFS.getFileStatus(-1, new TachyonURI("/testFile1"));
+    mInMemInputStream = new HdfsFileInputStream(sTFS, fileInfo.getId(),
         new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE,
-        mLocalTachyonCluster.getMasterTachyonConf());
+        sLocalTachyonCluster.getMasterTachyonConf());
 
-    fileInfo = mTfs.getFileStatus(-1, new TachyonURI("/testFile2"));
-    mUfsInputStream = new HdfsFileInputStream(mTfs, fileInfo.getId(),
+    fileInfo = sTFS.getFileStatus(-1, new TachyonURI("/testFile2"));
+    mUfsInputStream = new HdfsFileInputStream(sTFS, fileInfo.getId(),
         new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE,
-        mLocalTachyonCluster.getMasterTachyonConf());
+        sLocalTachyonCluster.getMasterTachyonConf());
   }
 
   /**
