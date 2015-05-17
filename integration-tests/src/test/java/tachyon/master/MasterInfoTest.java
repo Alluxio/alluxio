@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.master;
 
 import java.io.ByteArrayOutputStream;
@@ -52,19 +53,19 @@ import tachyon.thrift.TachyonException;
  */
 public class MasterInfoTest {
   class ConcurrentCreator implements Callable<Void> {
-    private int depth;
-    private int concurrencyDepth;
-    private TachyonURI initPath;
+    private int mDepth;
+    private int mConcurrencyDepth;
+    private TachyonURI mInitPath;
 
     ConcurrentCreator(int depth, int concurrencyDepth, TachyonURI initPath) {
-      this.depth = depth;
-      this.concurrencyDepth = concurrencyDepth;
-      this.initPath = initPath;
+      this.mDepth = depth;
+      this.mConcurrencyDepth = concurrencyDepth;
+      this.mInitPath = initPath;
     }
 
     @Override
     public Void call() throws Exception {
-      exec(this.depth, this.concurrencyDepth, this.initPath);
+      exec(this.mDepth, this.mConcurrencyDepth, this.mInitPath);
       return null;
     }
 
@@ -100,19 +101,19 @@ public class MasterInfoTest {
   }
 
   class ConcurrentDeleter implements Callable<Void> {
-    private int depth;
-    private int concurrencyDepth;
-    private TachyonURI initPath;
+    private int mDepth;
+    private int mConcurrencyDepth;
+    private TachyonURI mInitPath;
 
     ConcurrentDeleter(int depth, int concurrencyDepth, TachyonURI initPath) {
-      this.depth = depth;
-      this.concurrencyDepth = concurrencyDepth;
-      this.initPath = initPath;
+      this.mDepth = depth;
+      this.mConcurrencyDepth = concurrencyDepth;
+      this.mInitPath = initPath;
     }
 
     @Override
     public Void call() throws Exception {
-      exec(this.depth, this.concurrencyDepth, this.initPath);
+      exec(this.mDepth, this.mConcurrencyDepth, this.mInitPath);
       return null;
     }
 
@@ -153,37 +154,37 @@ public class MasterInfoTest {
   }
 
   class ConcurrentRenamer implements Callable<Void> {
-    private int depth;
-    private int concurrencyDepth;
-    private TachyonURI rootPath;
-    private TachyonURI rootPath2;
-    private TachyonURI initPath;
+    private int mDepth;
+    private int mConcurrencyDepth;
+    private TachyonURI mRootPath;
+    private TachyonURI mRootPath2;
+    private TachyonURI mInitPath;
 
     ConcurrentRenamer(int depth, int concurrencyDepth, TachyonURI rootPath, TachyonURI rootPath2,
         TachyonURI initPath) {
-      this.depth = depth;
-      this.concurrencyDepth = concurrencyDepth;
-      this.rootPath = rootPath;
-      this.rootPath2 = rootPath2;
-      this.initPath = initPath;
+      this.mDepth = depth;
+      this.mConcurrencyDepth = concurrencyDepth;
+      this.mRootPath = rootPath;
+      this.mRootPath2 = rootPath2;
+      this.mInitPath = initPath;
     }
 
     @Override
     public Void call() throws Exception {
-      exec(this.depth, this.concurrencyDepth, this.initPath);
+      exec(this.mDepth, this.mConcurrencyDepth, this.mInitPath);
       return null;
     }
 
     public void exec(int depth, int concurrencyDepth, TachyonURI path) throws Exception {
       if (depth < 1) {
         return;
-      } else if (depth == 1 || (depth < this.depth && path.hashCode() % 10 < 3)) {
+      } else if (depth == 1 || (depth < this.mDepth && path.hashCode() % 10 < 3)) {
         // Sometimes we want to try renaming a path when we're not all the way down, which is what
         // the second condition is for. We have to create the path in the destination up till what
         // we're renaming. This might already exist, so createFile could throw a
         // FileAlreadyExistException, which we silently handle.
-        TachyonURI srcPath = this.rootPath.join(path);
-        TachyonURI dstPath = this.rootPath2.join(path);
+        TachyonURI srcPath = this.mRootPath.join(path);
+        TachyonURI dstPath = this.mRootPath2.join(path);
         int fileId = mMasterInfo.getFileId(srcPath);
         try {
           mMasterInfo.mkdirs(dstPath.getParent(), true);
@@ -200,8 +201,8 @@ public class MasterInfoTest {
         ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           Callable<Void> call =
-              (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, this.rootPath,
-                  this.rootPath2, path.join(Integer.toString(i))));
+              (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, this.mRootPath,
+                  this.mRootPath2, path.join(Integer.toString(i))));
           futures.add(executor.submit(call));
         }
         for (Future<Void> f : futures) {
@@ -308,7 +309,8 @@ public class MasterInfoTest {
           mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, Constants.DEFAULT_JOURNAL_FOLDER);
       Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
       MasterInfo info =
-          new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
+          new MasterInfo(
+              new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
       info.init();
       for (TachyonURI path : mMasterInfo.ls(new TachyonURI("/"), true)) {
         Assert.assertEquals(mMasterInfo.getFileId(path), info.getFileId(path));
@@ -347,7 +349,8 @@ public class MasterInfoTest {
     int numFiles = mMasterInfo.ls(ROOT_PATH, true).size();
 
     ConcurrentRenamer concurrentRenamer =
-        new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2, TachyonURI.EMPTY_URI);
+        new ConcurrentRenamer(
+            DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2, TachyonURI.EMPTY_URI);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles, mMasterInfo.ls(ROOT_PATH2, true).size());
@@ -393,14 +396,14 @@ public class MasterInfoTest {
       FileDoesNotExistException, TachyonException {
     // long sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mMasterInfo.mkdirs(new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0"),
-          true);
+      mMasterInfo.mkdirs(new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k)
+          .join("0"), true);
     }
     // System.out.println(System.currentTimeMillis() - sMs);
     // sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mMasterInfo.getClientFileInfo(new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k)
-          .join("0"));
+      mMasterInfo.getClientFileInfo(new TachyonURI("/testFile").join(
+          Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0"));
     }
     // System.out.println(System.currentTimeMillis() - sMs);
   }

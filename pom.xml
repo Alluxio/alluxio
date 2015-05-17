@@ -4,8 +4,8 @@
   <artifactId>tachyon-parent</artifactId>
   <version>0.7.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <description>Tachyon Project Parent</description>
-  <name>Tachyon Project Parent</name>
+  <name>Tachyon Parent</name>
+  <description>Parent POM of Tachyon project: a Reliable Memory Centric Distributed Storage System</description>
   <url>http://tachyonproject.org/</url>
   <licenses>
     <license>
@@ -138,6 +138,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
     <test.output.redirect>true</test.output.redirect>
+    <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
   </properties>
 
   <modules>
@@ -365,13 +366,8 @@
         <version>2.13</version>
         <configuration>
           <configLocation>${checkstyle.path}tachyon_checks.xml</configLocation>
-          <!-- TODO: This is needed to excuse Tachyon Configuration members' name from being -->
-          <!-- checked because the members are define using all upper case. -->
-          <!-- Once the new configuration is implemented we wil remove this exception -->
-          <suppressionsLocation>
-            ${checkstyle.path}tachyon_checkstyle_suppressions.xml
-          </suppressionsLocation>
-          <excludes>**/tachyon/thrift/**,**/tachyon/perf/thrift/**</excludes>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <excludes>**/tachyon/thrift/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>

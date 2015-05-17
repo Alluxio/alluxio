@@ -4,8 +4,8 @@
 
 - name: set spark/conf/slaves and set spark-env.sh
   script: spark_env.sh
- 
+
 - name: set spark/conf/core-site.xml
   script: config_core_site.sh
-  
+
 # vim :set filetype=ansible.yaml:

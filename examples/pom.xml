@@ -8,8 +8,8 @@
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-examples</artifactId>
   <packaging>jar</packaging>
-  <description>Tachyon Project Examples</description>
-  <name>Tachyon Project Examples</name>
+  <name>Tachyon Examples</name>
+  <description>Example applications of Tachyon</description>
 
   <properties>
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
