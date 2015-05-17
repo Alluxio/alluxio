@@ -172,8 +172,8 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
     mMasterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "64");
 
-    // Since tests are always running on a single host keep the resolution timeout low as otherwise people
-    // running with strange network configurations will see very slow tests
+    // Since tests are always running on a single host keep the resolution timeout low as otherwise
+    // people running with strange network configurations will see very slow tests
     mMasterConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     // Lower the number of threads that the cluster will spin off.
@@ -212,8 +212,8 @@ public final class LocalTachyonCluster {
     mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
     mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
-    // Since tests are always running on a single host keep the resolution timeout low as otherwise people
-    // running with strange network configurations will see very slow tests
+    // Since tests are always running on a single host keep the resolution timeout low as otherwise
+    // people running with strange network configurations will see very slow tests
     mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     mWorkerConf.set("tachyon.worker.tieredstore.level0.alias", "MEM");

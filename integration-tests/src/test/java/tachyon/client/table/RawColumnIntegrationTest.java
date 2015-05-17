@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.client.table;
 
 import java.io.IOException;
@@ -55,8 +56,8 @@ public class RawColumnIntegrationTest {
       for (int pid = 0; pid < 5; pid ++) {
         Assert.assertTrue(column.createPartition(pid));
         TachyonFile file = column.getPartition(pid);
-        Assert.assertEquals("/table" + TachyonURI.SEPARATOR + Constants.MASTER_COLUMN_FILE_PREFIX + col
-            + TachyonURI.SEPARATOR + pid, file.getPath());
+        Assert.assertEquals("/table" + TachyonURI.SEPARATOR + Constants.MASTER_COLUMN_FILE_PREFIX
+            + col + TachyonURI.SEPARATOR + pid, file.getPath());
       }
       Assert.assertEquals(5, column.partitions());
     }

@@ -11,4 +11,3 @@ if [ ! -f $DIST ]; then
 fi
 
 tar xzf $DIST -C /tachyon --strip-components 1
-
