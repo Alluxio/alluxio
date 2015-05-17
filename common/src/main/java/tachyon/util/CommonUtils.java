@@ -360,6 +360,10 @@ public final class CommonUtils {
     logger.info(message + " took " + (System.nanoTime() - startTimeNs) + " ns.");
   }
 
+  public static void putIntByteBuffer(ByteBuffer buf, int b) {
+    buf.put((byte) (b & 0xFF));
+  }
+
   /**
    * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
    * of the folder containing the 'file'.

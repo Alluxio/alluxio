@@ -238,7 +238,7 @@ public class BlockOutStream extends OutStream {
       mBuffer.clear();
     }
 
-    mBuffer.put((byte) (b & 0xFF));
+    CommonUtils.putIntByteBuffer(mBuffer, b);
     mWrittenBytes ++;
   }
 }
