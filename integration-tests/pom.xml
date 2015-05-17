@@ -158,22 +158,11 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.14</version>
             <configuration>
-              <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
               <systemPropertyVariables>
                 <ufs>tachyon.underfs.hdfs.LocalMiniDFSCluster</ufs>
               </systemPropertyVariables>
             </configuration>
-            <executions>
-              <execution>
-                <id>default-test</id>
-                <phase>test</phase>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
@@ -222,22 +211,11 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.14</version>
             <configuration>
-              <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
               <systemPropertyVariables>
                 <ufs>tachyon.underfs.glusterfs.GlusterFSCluster</ufs>
               </systemPropertyVariables>
             </configuration>
-            <executions>
-              <execution>
-                <id>default-test</id>
-                <phase>test</phase>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
@@ -280,9 +258,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.14</version>
             <configuration>
-              <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
               <systemPropertyVariables>
                 <ufs>tachyon.underfs.s3.S3UnderStorageCluster</ufs>
                 <!-- Change "myAccessKey" to your access key for this test -->
@@ -294,15 +270,6 @@
                 <s3Bucket>s3n://my-bucket/tachyon-test</s3Bucket>
               </systemPropertyVariables>
             </configuration>
-            <executions>
-              <execution>
-                <id>default-test</id>
-                <phase>test</phase>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
