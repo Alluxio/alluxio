@@ -26,19 +26,19 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TaskConfigurationTest {
-  private final String J_TMP_DIR = System.getProperty("java.io.tmpdir");
+  private final String mJavaTmpDir = System.getProperty("java.io.tmpdir");
 
   @After
   public final void after() {
-    File xmlFile = new File(J_TMP_DIR + "/tachyon-perf-test/conf/testsuite/Foo.xml");
+    File xmlFile = new File(mJavaTmpDir + "/tachyon-perf-test/conf/testsuite/Foo.xml");
     xmlFile.delete();
   }
 
   @Before
   public final void before() throws IOException {
-    File tmpDir = new File(J_TMP_DIR + "/tachyon-perf-test/conf/testsuite");
+    File tmpDir = new File(mJavaTmpDir + "/tachyon-perf-test/conf/testsuite");
     tmpDir.mkdirs();
-    File xmlFile = new File(J_TMP_DIR + "/tachyon-perf-test/conf/testsuite/Foo.xml");
+    File xmlFile = new File(mJavaTmpDir + "/tachyon-perf-test/conf/testsuite/Foo.xml");
     xmlFile.delete();
     BufferedWriter fout = new BufferedWriter(new FileWriter(xmlFile));
     fout.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -50,13 +50,13 @@ public class TaskConfigurationTest {
     fout.write("</configuration>\n");
     fout.close();
 
-    System.setProperty("tachyon.perf.home", J_TMP_DIR + "/tachyon-perf-test");
+    System.setProperty("tachyon.perf.home", mJavaTmpDir + "/tachyon-perf-test");
   }
 
   @Test
   public void parseFileTest() throws Exception {
     TaskConfiguration taskConf =
-        new TaskConfiguration(J_TMP_DIR + "/tachyon-perf-test/conf/testsuite/Foo.xml");
+        new TaskConfiguration(mJavaTmpDir + "/tachyon-perf-test/conf/testsuite/Foo.xml");
     Assert.assertEquals(1, taskConf.getAllProperties().size());
     Assert.assertEquals("yyy", taskConf.getProperty("xxx"));
   }

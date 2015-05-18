@@ -29,19 +29,19 @@ import tachyon.perf.benchmark.foo.FooTaskContext;
 import tachyon.perf.benchmark.foo.FooTotalReport;
 
 public class BasicTest {
-  private final String J_TMP_DIR = System.getProperty("java.io.tmpdir");
+  private final String mJavaTmpDir = System.getProperty("java.io.tmpdir");
 
   @After
   public final void after() {
-    File xmlFile = new File(J_TMP_DIR + "/tachyon-perf-test/conf/test-case.xml");
+    File xmlFile = new File(mJavaTmpDir + "/tachyon-perf-test/conf/test-case.xml");
     xmlFile.delete();
   }
 
   @Before
   public final void before() throws IOException {
-    File tmpDir = new File(J_TMP_DIR + "/tachyon-perf-test/conf");
+    File tmpDir = new File(mJavaTmpDir + "/tachyon-perf-test/conf");
     tmpDir.mkdirs();
-    File xmlFile = new File(J_TMP_DIR + "/tachyon-perf-test/conf/test-case.xml");
+    File xmlFile = new File(mJavaTmpDir + "/tachyon-perf-test/conf/test-case.xml");
     xmlFile.delete();
     BufferedWriter fout = new BufferedWriter(new FileWriter(xmlFile));
     fout.write("<testCases>\n");
@@ -55,7 +55,7 @@ public class BasicTest {
     fout.write("</testCases>\n");
     fout.close();
 
-    System.setProperty("tachyon.perf.home", J_TMP_DIR + "/tachyon-perf-test");
+    System.setProperty("tachyon.perf.home", mJavaTmpDir + "/tachyon-perf-test");
   }
 
   @Test

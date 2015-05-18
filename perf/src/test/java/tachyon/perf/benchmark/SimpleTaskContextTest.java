@@ -28,17 +28,17 @@ import tachyon.perf.basic.PerfThread;
 import tachyon.perf.basic.TaskConfiguration;
 
 public class SimpleTaskContextTest {
-  private final String J_TMP_DIR = System.getProperty("java.io.tmpdir");
+  private final String mJavaTmpDir = System.getProperty("java.io.tmpdir");
 
   @After
   public final void after() {
-    File contextFile = new File(J_TMP_DIR + "/tachyon-perf-test/context-test");
+    File contextFile = new File(mJavaTmpDir + "/tachyon-perf-test/context-test");
     contextFile.delete();
   }
 
   @Before
   public final void before() throws IOException {
-    File tmpDir = new File(J_TMP_DIR + "/tachyon-perf-test");
+    File tmpDir = new File(mJavaTmpDir + "/tachyon-perf-test");
     tmpDir.mkdirs();
   }
 
@@ -48,7 +48,7 @@ public class SimpleTaskContextTest {
     SimpleTaskContext context1 = new SimpleTaskContext();
     context1.initialSet(0, "", "Foo", taskConf);
     context1.setFromThread(new PerfThread[1]);
-    File contextFile = new File(J_TMP_DIR + "/tachyon-perf-test/context-test");
+    File contextFile = new File(mJavaTmpDir + "/tachyon-perf-test/context-test");
     context1.writeToFile(contextFile);
     SimpleTaskContext context2 = new SimpleTaskContext();
     context2.loadFromFile(contextFile);
