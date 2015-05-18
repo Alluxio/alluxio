@@ -15,6 +15,8 @@ dependencies to perf/pom.xml:
       <scope>compile</scope>
     </dependency>
 
+LocalUnderFileSystem and HdfsUnderFileSystem are already added as default.
+
 ##Run Tachyon-Perf Tests
 The following steps show how to run a Tachyon-Perf test. 
 
