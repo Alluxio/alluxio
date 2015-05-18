@@ -31,7 +31,9 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.json.MetricsModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
+/**
+ * A sink that exposes metrics data in JSON format by HTTP.
+ */
 public class MetricsServlet implements Sink {
   private static final String SERVLET_KEY_PATH = "path";
 
