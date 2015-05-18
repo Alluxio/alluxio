@@ -197,7 +197,9 @@ public class WorkerClient implements Closeable {
     if (mConnected) {
       try {
         // Heartbeat to send the client metrics.
-        mHeartbeatExecutor.heartbeat();
+        if (mHeartbeat != null) {
+          mHeartbeatExecutor.heartbeat();
+        }
         mProtocol.getTransport().close();
       } finally {
         if (mHeartbeat != null) {
