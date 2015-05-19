@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # create tachyon env
 /bin/cp /tachyon/conf/tachyon-env.sh.template /tachyon/conf/tachyon-env.sh
 
