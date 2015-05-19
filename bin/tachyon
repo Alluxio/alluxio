@@ -174,7 +174,7 @@ PARAMETER=""
 if [ "$COMMAND" == "format" ]; then
   if [ $# -eq 1 ]; then
     if [ "$1" == "-s" ]; then
-      if [ -e $TACHYON_UNDERFS_ADDRESS ] || [[ $TACHYON_UNDERFS_ADDRESS == hdfs://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == s3://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == glusterfs://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == swift://* ]]; then
+      if [ -e $TACHYON_UNDERFS_ADDRESS ] || [[ $TACHYON_UNDERFS_ADDRESS == hdfs://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == s3://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == s3n://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == glusterfs://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == swift://* ]]; then
         # already exists, hdfs, or s3, don't format
         exit 0
       else
