@@ -128,7 +128,7 @@ driver. The configuration template included in the `/conf/core-sites.xml.templat
 three example sections: local Swift based on Keystone authentication model, local Swift based on
 temp authentication model, and SoftLayer public object store. The general structure of the parameters
 are `fs.swift.service.<PROFILE>.<PARAMETER>` where `<PROFILE>` is any name that will be later used
-as a part of the Swift URL. For example, if `<PROFILE>` is “swift1” than Swift URL would be
+as a part of the Swift URL. For example, if `<PROFILE>` is “swift1” then the Swift URL would be
 
     swift://<SWIFT CONTAINER>.swift1/
 
@@ -154,13 +154,13 @@ please configure `tachyon.underfs.hadoop.configuration` accordingly.
 ### Local file system usage
 
 By default, Tachyon uses local file system to store certain temporary files. In deployments where
-local file system is not exists, both `tachyon.master.journal.folder` and
-`tachyon.master.temporary.folder` has to be configured with `swift://` name space.
+local file system does not exist, both `tachyon.master.journal.folder` and
+`tachyon.master.temporary.folder` have to be configured with `swift://` name space.
 
 ### Accessing IBM SoftLayer object store
 
 Using the Swift module also makes the IBM SoftLayer object store an option as an under storage system for
-Tachyon. To access SoftLayer there is need in additional preliminary step. Up to date, hadoop-openstack
+Tachyon. To access SoftLayer there is an additional preliminary step. Up to date, hadoop-openstack
 implements Keystone authentication model, which is not suitable for SoftLayer object store. There is
 a pending [patch](https://issues.apache.org/jira/browse/HADOOP-10420) to extend hadoop-openstack
 project with additional type of authentication, which is also good for accessing SoftLayer object
