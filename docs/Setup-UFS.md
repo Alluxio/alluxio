@@ -112,7 +112,7 @@ Sync the configuration to all nodes.
 You should find that a tachyon folder has been created.
 
 
-## OpenStack Swift and IBM SoftLayer object store
+## OpenStack Swift and IBM SoftLayer object store (Alpha)
 
 Swift module depends on Hadoop version 2.3.0 or later and can be configured via
 `hadoop-openstack.version` in the main pom.xml. It is strongly advised to compile Tachyon with
@@ -126,48 +126,55 @@ and Hadoop 2.4.0 use.
 After the built is successful, there is need to configure `core-sites.xml` required by the Swift
 driver. The configuration template included in the `/conf/core-sites.xml.template` and it contains
 three example sections: local Swift based on Keystone authentication model, local Swift based on
-temp authentication model , SoftLayer public object store. The general structure of the parameters
+temp authentication model, and SoftLayer public object store. The general structure of the parameters
 are `fs.swift.service.<PROFILE>.<PARAMETER>` where `<PROFILE>` is any name that will be later used
-as a part of the  Swift URL. For example, if `<PROFILE>` is “swift1” than Swift URL would be
+as a part of the Swift URL. For example, if `<PROFILE>` is “swift1” then the Swift URL would be
 
     swift://<SWIFT CONTAINER>.swift1/
 
-Edit `core-sites.xml` and update `fs.swift.service.<PROFILE>.auth.url`.For Swift based on temp auth
-or for SoftLayer update : `fs.swift.service.<PROFILE>.apikey`, `fs.swift.service.<PROFILE>.username`.
-For Keystone update: `fs.swift.service.<PROFILE>.region`, `fs.swift.service.<PROFILE>.tenant`,
-`fs.swift.service.<PROFILE>.password`,  `fs.swift.service.<PROFILE>.username`.
+Edit `core-sites.xml` and update `fs.swift.service.<PROFILE>.auth.url`. For Swift based on temp auth
+or SoftLayer, update:
 
-We left to configure `TACHYON_UNDERFS_ADDRESS`  so that Tachyon will use Swift file system.
+    fs.swift.service.<PROFILE>.apikey, fs.swift.service.<PROFILE>.username
+
+For Keystone update:
+
+    fs.swift.service.<PROFILE>.region, fs.swift.service.<PROFILE>.tenant,
+    fs.swift.service.<PROFILE>.password, fs.swift.service.<PROFILE>.username
+
+We also need to configure `TACHYON_UNDERFS_ADDRESS` so that Tachyon will use Swift file system.
 For example
 
     TACHYON_UNDERFS_ADDRESS=swift://testcont.swift1
 
 Where `testcont` is the existing Swift container and `swift1` is a profile in `core-sites.xml`.
-By default, Tachyon uses `/conf` directory to load `core-sites.xml`.  To specify different location,
+By default, Tachyon uses `/conf` directory to load `core-sites.xml`. To specify a different location,
 please configure `tachyon.underfs.hadoop.configuration` accordingly.
 
 ### Local file system usage
 
 By default, Tachyon uses local file system to store certain temporary files. In deployments where
-local file system is not exists, both  `tachyon.master.journal.folder` and
-`tachyon.master.temporary.folder` has to be configured with `swift://` name space.
+local file system does not exist, both `tachyon.master.journal.folder` and
+`tachyon.master.temporary.folder` have to be configured with `swift://` name space.
 
 ### Accessing IBM SoftLayer object store
 
-To access SoftLayer there is need in additional preliminary step. Up to date, hadoop-openstack
+Using the Swift module also makes the IBM SoftLayer object store an option as an under storage system for
+Tachyon. To access SoftLayer there is an additional preliminary step. Up to date, hadoop-openstack
 implements Keystone authentication model, which is not suitable for SoftLayer object store. There is
-a pending patch (https://issues.apache.org/jira/browse/HADOOP-10420 ) to extend hadoop-openstack
+a pending [patch](https://issues.apache.org/jira/browse/HADOOP-10420) to extend hadoop-openstack
 project with additional type of authentication, which is also good for accessing SoftLayer object
 store.  As a temporary solution we would like to explain how to apply this patch on Hadoop and then
 build Tachyon with enablement to access SoftLayer object store. Hadoop can be any version from 2.4.0
 and up.
 
 Hadoop patch for SoftLayer object store. We demonstrate version 2.4.0
+
 1.	Download hadoop-2.4.0-src.tar.gz and extract it under hadoop-2.4.0 folder
-2.	Download  https://issues.apache.org/jira/secure/attachment/12662347/HADOOP-10420-007.patch and save it under hadoop-2.4.0/ folder.
-3.	Check that changes are visible and can be applied , by executing: git apply --stat HADOOP-10420-007.patch or git apply --check HADOOP-10420-007.patch from /hadoop-2.4.0 folder.
+2.	Download https://issues.apache.org/jira/secure/attachment/12662347/HADOOP-10420-007.patch and save it under hadoop-2.4.0/ folder.
+3.	Check that changes are visible and can be applied, by executing: git apply --stat HADOOP-10420-007.patch or git apply --check HADOOP-10420-007.patch from /hadoop-2.4.0 folder.
 4.	Apply the path git apply HADOOP-10420-007.patch
-5.	Navigate to /hadoop-2.4.0/hadoop-tools/hadoop-openstack folder and execute : mvn -DskipTests install
+5.	Navigate to /hadoop-2.4.0/hadoop-tools/hadoop-openstack folder and execute: `mvn -DskipTests install`
 6.	Build Tachyon as described above.
 
 # Add other underlayer storage system
