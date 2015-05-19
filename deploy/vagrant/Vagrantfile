@@ -58,11 +58,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               spark_dist: SparkV.dist,
               spark_profile: UfsV.hadoop.spark_profile,
 
+              ufs: UfsV.type,
+
               hadoop_tarball_url: UfsV.hadoop.tarball_url,
               hadoop_version: UfsV.hadoop.version,
 
+              s3_id:       UfsV.s3.id,
+              s3_key:      UfsV.s3.key,
+              s3_bucket:          UfsV.s3.bucket,
+
               provider: Provider,
-              ufs: UfsV.type,
           }
           # ans.verbose = "vvvv"
           if is_vb

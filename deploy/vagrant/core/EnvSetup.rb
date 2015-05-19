@@ -186,7 +186,11 @@ class HadoopVersion
   end
 
   def tarball_url
-    return @url_template[@type] % {Version: @version}
+    if @type == ''
+      return ''
+    else
+      return @url_template[@type] % {Version: @version}
+    end
   end
 
   def version
@@ -198,16 +202,59 @@ class HadoopVersion
   end
 end
 
+class S3Version
+  def initialize(yml)
+    @bucket = ''
+    @id = ''
+    @key = ''
+
+    if yml == nil
+      return
+    end
+
+    @bucket = yml['Bucket']
+    if @bucket == nil
+      puts 'ERROR: S3:Bucket is not set'
+      exit(1)
+    end
+    @id = yml['AccessKeyID']
+    if @id == nil
+      puts 'ERROR: S3:AccessKeyID is not set'
+      exit(1)
+    end
+    @key = yml['SecretAccessKey']
+    if @key == nil
+      puts 'ERROR: S3:SecretAccessKey is not set'
+      exit(1)
+    end
+  end
+
+  def id
+    return @id
+  end
+
+  def key
+    return @key
+  end
+
+  def bucket
+    return @bucket
+  end
+end
+
 class UfsVersion
   def initialize(yaml_path)
     @yml = YAML.load_file(yaml_path)
     puts @yml
 
     @hadoop = HadoopVersion.new(nil)
+    @s3 = S3Version.new(nil)
 
     case @yml['Type']
     when 'hadoop1', 'hadoop2'
       @hadoop = HadoopVersion.new(@yml['Hadoop'])
+    when 's3'
+      @s3 = S3Version.new(@yml['S3'])
     when 'glusterfs'
     else
       puts 'unsupported ufs'
@@ -221,5 +268,9 @@ class UfsVersion
 
   def hadoop
     return @hadoop
+  end
+
+  def s3
+    return @s3
   end
 end
