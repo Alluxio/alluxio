@@ -10,13 +10,14 @@ There are two types of configuration parameters for Tachyon:
 
 # Configuration properties
 
-Tachyon introduces default and site specific configuration properties files to set the configuration properties.
+Tachyon introduces default and site specific configuration properties files to set the configuration
+properties.
 
-Each site deployment and application client can override the default via tachyon.site.properties file.
-This file has to be located in the classpath of the Java VM where Tachyon is running.
+Each site deployment and application client can override the default via tachyon.site.properties
+file. This file has to be located in the classpath of the Java VM where Tachyon is running.
 
-The easiest way is to put the site properties file in a directory specified by `$TACHYON_CONF_DIR`, which by default is
-set to `$TACHYON_HOME/conf`.
+The easiest way is to put the site properties file in a directory specified by `$TACHYON_CONF_DIR`,
+which by default is set to `$TACHYON_HOME/conf`.
 
 The Tachyon configuration properties fall into four categories: Master, Worker, Common (Master and
 Worker), and User configurations.
@@ -120,7 +121,8 @@ The common configuration contains constants which specify paths and the log appe
 <tr>
   <td>tachyon.underfs.hadoop.prefixes</td>
   <td>hdfs:// s3:// s3n:// glusterfs:///</td>
-  <td>Optionally specify which prefixes should run through the Apache Hadoop's implementation of UnderFileSystem.  The delimiter is any whitespace and/or ','</td>
+  <td>Optionally specify which prefixes should run through the Apache Hadoop's implementation of
+    UnderFileSystem. The delimiter is any whitespace and/or ','</td>
 </tr>
 <tr>
   <td>tachyon.master.retry</td>
@@ -135,7 +137,11 @@ The common configuration contains constants which specify paths and the log appe
 <tr>
   <td>tachyon.host.resolution.timeout.ms</td>
   <td>5000</td>
-  <td>During startup of Master and Worker processes Tachyon needs to ensure that they are listening on externally visible and reachable host names.  To do this Tachyon will automatically attempt to select an appropriate host name if one was not explicitly specified.  This represents the maximum amount of time spent waiting to determine if a candidate host name is resolvable over the network.</td>
+  <td>During startup of Master and Worker processes Tachyon needs to ensure that they are listening
+    on externally visible and reachable host names.  To do this Tachyon will automatically attempt
+    to select an appropriate host name if one was not explicitly specified.  This represents the
+    maximum amount of time spent waiting to determine if a candidate host name is resolvable over
+    the network.</td>
 </tr>
 </table>
 
@@ -159,7 +165,9 @@ number.
 <tr>
   <td>tachyon.master.hostname.listening</td>
   <td></td>
-  <td>(optional) The address the master will listen on. If set to the wildcard address, "*", the master will listen on all addresses. If unspecified, the master will listen on the address specified for `tachyon.master.hostname`.</td>
+  <td>(optional) The address the master will listen on. If set to the wildcard address, "*", the
+    master will listen on all addresses. If unspecified, the master will listen on the address
+    specified for `tachyon.master.hostname`.</td>
 </tr>
 <tr>
   <td>tachyon.master.port</td>
@@ -174,7 +182,8 @@ number.
 <tr>
   <td>tachyon.master.whitelist</td>
   <td>/</td>
-  <td>The comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Tachyon will try to cache the cacheable file when it is read for the first time.</td>
+  <td>The comma-separated list of prefixes of the paths which are cacheable, separated by
+    semi-colons. Tachyon will try to cache the cacheable file when it is read for the first time.</td>
 </tr>
 <tr>
   <td>tachyon.master.worker.timeout.ms</td>
@@ -278,7 +287,8 @@ number.
 <tr>
   <td>tachyon.worker.network.netty.file.transfer</td>
   <td>MAPPED</td>
-  <td>When returning files to the user, select how the data is transferred; valid options are MAPPED (uses java MappedByteBuffer) and TRANSFER (uses Java FileChannel.transferTo).</td>
+  <td>When returning files to the user, select how the data is transferred; valid options are
+    MAPPED (uses java MappedByteBuffer) and TRANSFER (uses Java FileChannel.transferTo).</td>
 </tr>
 <tr>
   <td>tachyon.worker.network.netty.watermark.high</td>
@@ -288,12 +298,14 @@ number.
 <tr>
   <td>tachyon.worker.network.netty.watermark.low</td>
   <td>8192</td>
-  <td>Once the high watermark limit is reached, the queue must be flushed down to the low watermark before switching back to writable.</td>
+  <td>Once the high watermark limit is reached, the queue must be flushed down to the low watermark
+    before switching back to writable.</td>
 </tr>
 <tr>
   <td>tachyon.worker.network.netty.backlog</td>
   <td>128 on linux</td>
-  <td>How many requests can be queued up before new requests are rejected; this value is platform dependent.</td>
+  <td>How many requests can be queued up before new requests are rejected; this value is platform
+    dependent.</td>
 </tr>
 <tr>
   <td>tachyon.worker.network.netty.buffer.send</td>
@@ -336,7 +348,11 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.file.writetype.default</td>
   <td>CACHE_THROUGH</td>
-  <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.  Valid options are MUST_CACHE (write must cache), TRY_CACHE (write will try to cache), CACHE_THROUGH (try to cache, write to UnderFS synchronously), THROUGH (no cache, write to UnderFS synchronously), ASYNC_THROUGH (must cache and write to UnderFS asynchronously, or synchronous write to UnderFS).</td>
+  <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.
+    Valid options are MUST_CACHE (write must cache), TRY_CACHE (write will try to cache),
+    CACHE_THROUGH (try to cache, write to UnderFS synchronously), THROUGH (no cache, write to
+    UnderFS synchronously), ASYNC_THROUGH (must cache and write to UnderFS asynchronously, or
+    synchronous write to UnderFS).</td>
 </tr>
 <tr>
   <td>tachyon.user.quota.unit.bytes</td>
