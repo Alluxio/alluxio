@@ -378,15 +378,15 @@ tachyon-site.properties file is not available in nodes where the MR is running.
 
 To support this, the MR application client needs to do these steps:
 
-1. Get the TachyonConf instance from call to TachyonConf.get().
+1. Get the TachyonConf instance by calling `TachyonConf.get()`.
 2. Store the encoded TachyonConf object into Hadoop MR job’s Configuration using `ConfUtils.storeToHadoopConfiguration` call.
 3. During initialization of the TFS, it will check if the key exists from the job’s Configuration
 and if it does it will merge the override properties to the current TachyonConf instance via `ConfUtil.loadFromHadoopConfiguration`.
 
 # System environment properties
 
-The system environment variables is configured using the configuration file, which responsible for
-setting system properties, is located under `conf/tachyon-env.sh`.
+The system environment variables are configured using the configuration file
+(located under `conf/tachyon-env.sh`), which is responsible for setting system properties.
 
 The location of the `tachyon-env.sh` can be set by environment variable `TACHYON_CONF_DIR`.
 
@@ -394,11 +394,11 @@ These variables should be set as variables under the `TACHYON_JAVA_OPTS` definit
 
 A template is provided with the zip: `conf/tachyon-env.sh.template`.
 
-Additional Java VM options can be added to `TACHYON_MASTER_JAVA_OPTS` for Master and
+Additional Java VM options can be added to `TACHYON_MASTER_JAVA_OPTS` for Master, and
 `TACHYON_WORKER_JAVA_OPTS` for Worker configuration. In the template file, `TACHYON_JAVA_OPTS` is
 included in both `TACHYON_MASTER_JAVA_OPTS` and `TACHYON_WORKER_JAVA_OPTS`.
 
-For example if you would like to enable Java remote debugging at port 7001 in the Master you can modify
+For example, if you would like to enable Java remote debugging at port 7001 in the Master, you can modify
 `TACHYON_MASTER_JAVA_OPTS` like this:
 
 `export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"`
