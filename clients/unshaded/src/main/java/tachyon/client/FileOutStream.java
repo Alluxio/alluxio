@@ -43,7 +43,6 @@ public class FileOutStream extends OutStream {
   private long mCurrentBlockLeftByte;
   private List<BlockOutStream> mPreviousBlockOutStreams;
   private long mCachedBytes;
-  private long mBytesWrittenUfs;
 
   private OutputStream mCheckpointOutputStream = null;
   private String mUnderFsFile = null;
@@ -70,7 +69,6 @@ public class FileOutStream extends OutStream {
     mCurrentBlockLeftByte = 0;
     mPreviousBlockOutStreams = new ArrayList<BlockOutStream>();
     mCachedBytes = 0;
-    mBytesWrittenUfs = 0;
 
     if (mWriteType.isThrough()) {
       mUnderFsFile = CommonUtils.concatPath(mTachyonFS.createAndGetUserUfsTempFolder(ufsConf),
@@ -97,6 +95,7 @@ public class FileOutStream extends OutStream {
     }
     if (mCurrentBlockOutStream != null) {
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
+      mTachyonFS.incBlocksWrittenLocal(1);
     }
 
     Boolean canComplete = false;
@@ -110,9 +109,6 @@ public class FileOutStream extends OutStream {
         mCheckpointOutputStream.close();
         mTachyonFS.addCheckpoint(mFile.mFileId);
         canComplete = true;
-        if (mBytesWrittenUfs > 0) {
-          mTachyonFS.incBytesWrittenUfs(mBytesWrittenUfs);
-        }
       }
     }
 
@@ -127,10 +123,6 @@ public class FileOutStream extends OutStream {
             bos.close();
           }
           canComplete = true;
-          if (mCachedBytes > 0) {
-            mTachyonFS.incBytesWrittenLocal(mCachedBytes);
-            mTachyonFS.incBlocksWrittenLocal(mPreviousBlockOutStreams.size());
-          }
         }
       } catch (IOException ioe) {
         if (mWriteType.isMustCache()) {
@@ -165,6 +157,7 @@ public class FileOutStream extends OutStream {
         throw new IOException("The current block still has space left, no need to get new block");
       }
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
+      mTachyonFS.incBlocksWrittenLocal(1);
     }
 
     if (mWriteType.isCache()) {
@@ -204,12 +197,14 @@ public class FileOutStream extends OutStream {
             mCurrentBlockOutStream.write(b, tOff, tLen);
             mCurrentBlockLeftByte -= tLen;
             mCachedBytes += tLen;
+            mTachyonFS.incBytesWrittenLocal(tLen);
             tLen = 0;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) mCurrentBlockLeftByte);
             tOff += mCurrentBlockLeftByte;
             tLen -= mCurrentBlockLeftByte;
             mCachedBytes += mCurrentBlockLeftByte;
+            mTachyonFS.incBytesWrittenLocal(mCurrentBlockLeftByte);
             mCurrentBlockLeftByte = 0;
           }
         }
@@ -225,7 +220,7 @@ public class FileOutStream extends OutStream {
 
     if (mWriteType.isThrough()) {
       mCheckpointOutputStream.write(b, off, len);
-      mBytesWrittenUfs += len;
+      mTachyonFS.incBytesWrittenUfs(len);
     }
   }
 
@@ -240,6 +235,7 @@ public class FileOutStream extends OutStream {
         mCurrentBlockOutStream.write(b);
         mCurrentBlockLeftByte --;
         mCachedBytes ++;
+        mTachyonFS.incBytesWrittenLocal(1);
       } catch (IOException e) {
         if (mWriteType.isMustCache()) {
           LOG.error(e.getMessage(), e);
@@ -252,7 +248,7 @@ public class FileOutStream extends OutStream {
 
     if (mWriteType.isThrough()) {
       mCheckpointOutputStream.write(b);
-      mBytesWrittenUfs ++;
+      mTachyonFS.incBytesWrittenUfs(1);
     }
   }
 }
