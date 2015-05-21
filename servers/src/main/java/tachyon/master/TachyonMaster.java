@@ -97,13 +97,25 @@ public class TachyonMaster {
     mTachyonConf = tachyonConf;
 
     int port = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    //HOSTNAME may be be different in complex setups
-    //so it's probably better to run on a wildcard IP, listening on all interfaces
-    InetSocketAddress address = new InetSocketAddress(port);
     int webPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT, Constants.DEFAULT_MASTER_WEB_PORT);
 
-    TachyonConf.assertValidPort(address, mTachyonConf);
+    TachyonConf.assertValidPort(port, mTachyonConf);
     TachyonConf.assertValidPort(webPort, mTachyonConf);
+
+    String hostName = mTachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
+    // The master listens to the MASTER_HOSTNAME_LISTENING configuration option.
+    // MASTER_HOSTNAME_LISTENING defaults to MASTER_HOSTNAME if unspecified. If set to
+    // MASTER_HOSTNAME_LISTENING_WILDCARD, server listens to all addresses.
+    String hostnameListening =
+        mTachyonConf.get(Constants.MASTER_HOSTNAME_LISTENING, hostName);
+
+    InetSocketAddress address = new InetSocketAddress(hostName, port);
+    InetSocketAddress addressListening;
+    if (hostnameListening.equals(Constants.MASTER_HOSTNAME_LISTENING_WILDCARD)) {
+      addressListening = new InetSocketAddress(port);
+    } else {
+      addressListening = new InetSocketAddress(hostnameListening, port);
+    }
 
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
 
@@ -126,7 +138,7 @@ public class TachyonMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      mServerTServerSocket = new TServerSocket(address);
+      mServerTServerSocket = new TServerSocket(addressListening);
       mPort = NetworkUtils.getPort(mServerTServerSocket);
 
       String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
