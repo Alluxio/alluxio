@@ -16,6 +16,7 @@
 package tachyon.master;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -81,5 +82,23 @@ public class MasterHostnameListeningTest {
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
     masterClient.close();
+  }
+
+  @Test
+  public void connectDifferentAddressTest() throws IOException {
+    startCluster(null);
+
+    // Connect to master on loopback, while master is listening on local hostname.
+    InetSocketAddress address =
+        new InetSocketAddress("127.0.0.1", mMasterInfo.getMasterAddress().getPort());
+    MasterClient masterClient = new MasterClient(address, mExecutorService, mMasterTachyonConf);
+    try {
+      masterClient.connect();
+      Assert.fail("Client should not have successfully connected to master.");
+    } catch (IOException ie) {
+      // This is expected, since master is NOT listening on loopback.
+    } finally {
+      masterClient.close();
+    }
   }
 }
