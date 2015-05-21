@@ -159,13 +159,17 @@ public final class LocalTachyonCluster {
   }
 
   public void start() throws IOException {
+    start(new TachyonConf());
+  }
+
+  public void start(TachyonConf tachyonConf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";
 
     mLocalhostName = NetworkUtils.getLocalHostName(100);
 
-    mMasterConf = new TachyonConf();
+    mMasterConf = tachyonConf;
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
     mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
