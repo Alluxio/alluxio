@@ -157,6 +157,11 @@ number.
   <td>The externally visible hostname of Tachyon's master address.</td>
 </tr>
 <tr>
+  <td>tachyon.master.hostname.listening</td>
+  <td></td>
+  <td>(optional) The address the master will listen on. If set to the wildcard address, "*", the master will listen on all addresses. If unspecified, the master will listen on the address specified for `tachyon.master.hostname`.</td>
+</tr>
+<tr>
   <td>tachyon.master.port</td>
   <td>19998</td>
   <td>The port Tachyon's master node runs on.</td>
