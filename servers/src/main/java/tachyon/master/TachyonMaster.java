@@ -102,14 +102,14 @@ public class TachyonMaster {
     TachyonConf.assertValidPort(port, mTachyonConf);
     TachyonConf.assertValidPort(webPort, mTachyonConf);
 
-    String hostName = mTachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
+    String hostnameExternal = mTachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
     // The master listens to the MASTER_HOSTNAME_LISTENING configuration option.
     // MASTER_HOSTNAME_LISTENING defaults to MASTER_HOSTNAME if unspecified. If set to
     // MASTER_HOSTNAME_LISTENING_WILDCARD, server listens to all addresses.
     String hostnameListening =
-        mTachyonConf.get(Constants.MASTER_HOSTNAME_LISTENING, hostName);
+        mTachyonConf.get(Constants.MASTER_HOSTNAME_LISTENING, hostnameExternal);
 
-    InetSocketAddress address = new InetSocketAddress(hostName, port);
+    InetSocketAddress address = new InetSocketAddress(hostnameExternal, port);
     InetSocketAddress addressListening;
     if (hostnameListening.equals(Constants.MASTER_HOSTNAME_LISTENING_WILDCARD)) {
       addressListening = new InetSocketAddress(port);
