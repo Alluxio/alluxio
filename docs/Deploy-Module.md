@@ -7,15 +7,18 @@ title: Index For Deploy Module
 In Tachyon source tree, there is a `deploy` directory which contains `docker` and `vagrant` modules.
 
 ## Docker
-The `docker` module helps you create a two nodes Tachyon cluster with hadoop as underfs, in the form of docker image. 
+The `docker` module helps you create a two nodes Tachyon cluster with hadoop as underfs, in the form of docker image.
 
 Please refer to `deploy/docker/README.md` for more info.
 
 ## Vagrant
-The `vagrant` module makes deploying a Tachyon cluster with hadoop or glusterfs as underfs, even with Spark run on top of Tachyon, in **just one command** with **simple yaml configuration**. 
 
-No matter you want a local test environment in **virtualbox**, or you want to build a **docker** image, even you need to deploy to **AWS** or **OpenStack**, use the same work flow like `./run_xxx.sh`,
-whenever you want to destroy the deployment, just `vagrant destroy`, that's all!
+The `vagrant` module makes deploying a Tachyon cluster with hadoop or glusterfs as underfs, even
+with Spark run on top of Tachyon, in **just one command** with **simple yaml configuration**.
+
+No matter you want a local test environment in **virtualbox**, or you want to build a **docker**
+image, even you need to deploy to **AWS** or **OpenStack**, use the same work flow like
+`./run_xxx.sh`, whenever you want to destroy the deployment, just `vagrant destroy`, that's all!
 
 Versions of the full software stack like spark/tachyon/hadoop are configurable through yaml files, for example:
 
