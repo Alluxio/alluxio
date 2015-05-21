@@ -15,24 +15,16 @@
 
 package tachyon.master;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.NoWorkerException;
 import tachyon.util.NetworkUtils;
 
 /**
