@@ -208,6 +208,15 @@ public class TachyonWorker implements Runnable {
     }
     mWorkerAddress =
         new NetAddress(workerAddress.getAddress().getCanonicalHostName(), mPort, mDataPort);
+
+    // Connect to UFS before initializing the workerStorage.
+    try {
+      connectToUFS();
+    } catch (IOException ioe) {
+      LOG.error(ioe.getMessage(), ioe);
+      throw Throwables.propagate(ioe);
+    }
+
     mWorkerStorage.initialize(mWorkerAddress);
 
     mWebServer =
@@ -321,8 +330,6 @@ public class TachyonWorker implements Runnable {
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() throws IOException {
-    connectToUFS();
-
     mHeartbeatThread.start();
     mWorkerMetricsSystem.start();
     mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
