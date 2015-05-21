@@ -5,8 +5,8 @@ title: Configuration Settings
 
 There are two types of configuration parameters for Tachyon:
 
-1. Configuration properties, which is used to configure the runtime setting of Tachyon
-2. System environment properties, which controls the Tachyon Java VM options
+1. Configuration properties, which are used to configure the runtime settings of Tachyon
+2. System environment properties, which control the Tachyon Java VM options
 
 # Configuration properties
 
@@ -15,7 +15,7 @@ Tachyon introduces default and site specific configuration properties files to s
 Each site deployment and application client can override the default via tachyon.site.properties file.
 This file has to be located in the classpath of the Java VM where Tachyon is running.
 
-The easiest way is to put the site properties file in a directory specified by `$TACHYON_CONF_DIR`, which is by default is
+The easiest way is to put the site properties file in a directory specified by `$TACHYON_CONF_DIR`, which by default is
 set to `$TACHYON_HOME/conf`.
 
 The Tachyon configuration properties fall into four categories: Master, Worker, Common (Master and
@@ -60,7 +60,7 @@ The common configuration contains constants which specify paths and the log appe
 <tr>
   <td>tachyon.usezookeeper</td>
   <td>false</td>
-  <td>If setup master fault tolerant mode using ZooKeeper.</td>
+  <td>If true, setup master fault tolerant mode using ZooKeeper.</td>
 </tr>
 <tr>
   <td>tachyon.zookeeper.address</td>
@@ -90,7 +90,7 @@ The common configuration contains constants which specify paths and the log appe
 <tr>
   <td>tachyon.table.metadata.byte</td>
   <td>5242880</td>
-  <td>Maximum amount of bytes allowed to be store as RawTable metadata, must be set on the server side</td>
+  <td>Maximum allowable size (in bytes) of RawTable metadata, must be set on the server side</td>
 </tr>
 <tr>
   <td>fs.s3n.awsAccessKeyId</td>
@@ -115,7 +115,7 @@ The common configuration contains constants which specify paths and the log appe
 <tr>
   <td>tachyon.underfs.glusterfs.mapred.system.dir</td>
   <td>glusterfs:///mapred/system</td>
-  <td>Optionally specify subdirectory under GLusterfs for intermediary MapReduce data.</td>
+  <td>Optionally specify subdirectory under Glusterfs for intermediary MapReduce data.</td>
 </tr>
 <tr>
   <td>tachyon.underfs.hadoop.prefixes</td>
