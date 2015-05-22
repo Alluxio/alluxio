@@ -508,5 +508,12 @@
         <hadoop.version>2.6.0</hadoop.version>
       </properties>
     </profile>
+
+    <profile>
+      <id>hdfsTest</id>
+      <properties>
+        <hadoop.version>2.6.0</hadoop.version>
+      </properties>
+    </profile>
   </profiles>
 </project>
