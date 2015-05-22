@@ -31,7 +31,7 @@ import tachyon.util.NetworkUtils;
 /**
  * Simple tests for the MASTER_HOSTNAME_LISTENING configuration option.
  */
-public class MasterHostnameListeningTest {
+public class MasterHostnameListeningIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);

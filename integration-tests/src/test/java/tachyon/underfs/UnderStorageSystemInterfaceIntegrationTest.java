@@ -30,7 +30,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
 
-public class UnderStorageSystemInterfaceTest {
+public class UnderStorageSystemInterfaceIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
