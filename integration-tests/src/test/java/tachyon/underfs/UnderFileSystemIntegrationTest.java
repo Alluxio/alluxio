@@ -27,7 +27,7 @@ import tachyon.TachyonURI;
 /**
  * Unit tests for {@link UnderFileSystem}
  */
-public final class UnderFileSystemTest {
+public final class UnderFileSystemIntegrationTest {
   private TachyonConf mTachyonConf;
 
   @Before
