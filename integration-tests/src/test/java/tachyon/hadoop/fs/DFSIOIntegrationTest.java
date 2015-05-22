@@ -90,17 +90,17 @@ import tachyon.master.LocalTachyonCluster;
  * <li>standard deviation of i/o rate</li>
  * </ul>
  */
-public class TestDFSIO implements Tool {
-  // Constants for TestDFSIO
+public class DFSIOIntegrationTest implements Tool {
+  // Constants for DFSIOIntegrationTest
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BUFFER_SIZE = 4096;
   private static final String BASE_FILE_NAME = "test_io_";
-  private static final String DEFAULT_RES_FILE_NAME = "TestDFSIO_results.log";
+  private static final String DEFAULT_RES_FILE_NAME = "DFSIOIntegrationTest_results.log";
   private static final long MEGA = ByteMultiple.MB.value();
   private static final int DEFAULT_NR_BYTES = 16384;
   private static final int DEFAULT_NR_FILES = 4;
   private static boolean sGenerateReportFile = false;
-  private static final String USAGE = "Usage: " + TestDFSIO.class.getSimpleName()
+  private static final String USAGE = "Usage: " + DFSIOIntegrationTest.class.getSimpleName()
       + " [genericOptions]" + " -read [-random | -backward | -skip [-skipSize Size]] |"
       + " -write | -append | -clean" + " [-compression codecClassName]" + " [-nrFiles N]"
       + " [-size Size[B|KB|MB|GB|TB]]" + " [-resFile resultFileName] [-bufferSize Bytes]"
@@ -174,12 +174,12 @@ public class TestDFSIO implements Tool {
     }
   }
 
-  public TestDFSIO() {
+  public DFSIOIntegrationTest() {
     this.mConfig = new Configuration();
   }
 
   private static String getBaseDir(Configuration conf) {
-    return conf.get("test.dfsio.build.data", "/benchmarks/TestDFSIO");
+    return conf.get("test.dfsio.build.data", "/benchmarks/DFSIOIntegrationTest");
   }
 
   private static Path getControlDir(Configuration conf) {
@@ -206,12 +206,12 @@ public class TestDFSIO implements Tool {
     return new Path(getBaseDir(conf), "io_data");
   }
 
-  private static TestDFSIO sBench;
+  private static DFSIOIntegrationTest sBench;
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    // Init TestDFSIO
-    sBench = new TestDFSIO();
+    // Init DFSIOIntegrationTest
+    sBench = new DFSIOIntegrationTest();
     sBench.getConf().setBoolean("dfs.support.append", true);
 
     // Start local Tachyon cluster
@@ -240,7 +240,7 @@ public class TestDFSIO implements Tool {
       return;
     }
 
-    // Clear TestDFSIO
+    // Clear DFSIOIntegrationTest
     FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     sBench.cleanup(fs);
 
@@ -464,7 +464,7 @@ public class TestDFSIO implements Tool {
 
   private void runIOTest(Class<? extends Mapper<Text, LongWritable, Text, Text>> mapperClass,
       Path outputDir) throws IOException {
-    JobConf job = new JobConf(mConfig, TestDFSIO.class);
+    JobConf job = new JobConf(mConfig, DFSIOIntegrationTest.class);
 
     FileInputFormat.setInputPaths(job, getControlDir(mConfig));
     job.setInputFormat(SequenceFileInputFormat.class);
@@ -677,7 +677,7 @@ public class TestDFSIO implements Tool {
   }
 
   public static void main(String[] args) {
-    TestDFSIO bench = new TestDFSIO();
+    DFSIOIntegrationTest bench = new DFSIOIntegrationTest();
     int res = -1;
     try {
       res = ToolRunner.run(bench, args);
@@ -702,7 +702,7 @@ public class TestDFSIO implements Tool {
     String resFileName = DEFAULT_RES_FILE_NAME;
     String compressionClass = null;
     boolean isSequential = false;
-    String version = TestDFSIO.class.getSimpleName() + ".1.7";
+    String version = DFSIOIntegrationTest.class.getSimpleName() + ".1.7";
     sGenerateReportFile = true;
 
     LOG.info(version);
@@ -889,7 +889,7 @@ public class TestDFSIO implements Tool {
     double med = rate / 1000 / tasks;
     double stdDev = Math.sqrt(Math.abs(sqrate / 1000 / tasks - med * med));
     String[] resultLines =
-        {"----- TestDFSIO ----- : " + testType,
+        {"----- DFSIOIntegrationTest ----- : " + testType,
             "           Date & time: " + new Date(System.currentTimeMillis()),
             "       Number of files: " + tasks, "Total MBytes processed: " + toMB(size),
             "     Throughput mb/sec: " + size * 1000.0 / (time * MEGA),
