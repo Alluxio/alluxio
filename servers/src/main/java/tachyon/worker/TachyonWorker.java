@@ -213,7 +213,7 @@ public class TachyonWorker implements Runnable {
     try {
       connectToUFS();
     } catch (IOException ioe) {
-      LOG.error(ioe.getMessage(), ioe);
+      LOG.error("Worker @ " + workerAddress + " failed to connect to the under file system", ioe);
       throw Throwables.propagate(ioe);
     }
 
