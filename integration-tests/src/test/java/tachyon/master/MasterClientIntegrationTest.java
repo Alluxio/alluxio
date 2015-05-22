@@ -42,7 +42,7 @@ import tachyon.thrift.NoWorkerException;
  * TODO: Rename this class.
  *
  */
-public class MasterClientTest {
+public class MasterClientIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
