@@ -19,7 +19,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractContractOpenTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 
-public class TestTachyonFSContractOpen extends AbstractContractOpenTest {
+public class TachyonFSContractOpenIntegrationTest extends AbstractContractOpenTest {
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
     return new TachyonFSContract(conf);
