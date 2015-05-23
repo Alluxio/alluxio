@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 import com.google.common.base.Preconditions;
