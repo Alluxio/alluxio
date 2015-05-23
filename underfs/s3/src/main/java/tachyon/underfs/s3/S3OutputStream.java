@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
@@ -47,12 +49,15 @@ public class S3OutputStream extends OutputStream {
   private final String mBucketName;
   /** Key of the file when it is uploaded to S3 */
   private final String mKey;
-  /** The outputstream to a local file where the file will be buffered until closed */
-  private final OutputStream mLocalOutputStream;
   /** The local file that will be uploaded when the stream is closed */
   private final File mFile;
   /** The JetS3t client for S3 operations */
   private final S3Service mClient;
+
+  /** The outputstream to a local file where the file will be buffered until closed */
+  private OutputStream mLocalOutputStream;
+  /** The MD5 hash of the file */
+  private MessageDigest mHash;
 
   /** Flag to indicate this stream has been closed, to ensure close is only done once */
   private boolean mClosed;
@@ -64,7 +69,13 @@ public class S3OutputStream extends OutputStream {
     mKey = key;
     mClient = client;
     mFile = new File(CommonUtils.concatPath("/tmp", UUID.randomUUID()));
-    mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
+    try {
+      mHash = MessageDigest.getInstance("MD5");
+      mLocalOutputStream = new BufferedOutputStream(new DigestOutputStream(new FileOutputStream
+          (mFile), mHash));
+    } catch (Exception e) {
+      //
+    }
     mClosed = false;
   }
 
@@ -100,6 +111,7 @@ public class S3OutputStream extends OutputStream {
       obj.setBucketName(mBucketName);
       obj.setKey(mKey);
       obj.setContentEncoding(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
+      obj.setMd5Hash(mHash.digest());
       mClient.putObject(mBucketName, obj);
       mFile.delete();
     } catch (ServiceException se) {
