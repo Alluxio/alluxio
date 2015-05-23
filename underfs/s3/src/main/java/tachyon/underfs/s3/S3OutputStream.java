@@ -107,9 +107,10 @@ public class S3OutputStream extends OutputStream {
     mClosed = true;
     mLocalOutputStream.close();
     try {
-      S3Object obj = new S3Object(mFile);
+      S3Object obj = new S3Object(mKey);
       obj.setBucketName(mBucketName);
-      obj.setKey(mKey);
+      obj.setDataInputFile(mFile);
+      obj.setContentLength(mFile.length());
       obj.setContentEncoding(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
       obj.setMd5Hash(mHash.digest());
       mClient.putObject(mBucketName, obj);
@@ -117,8 +118,6 @@ public class S3OutputStream extends OutputStream {
     } catch (ServiceException se) {
       LOG.error("Failed to upload " + mKey + ". Temporary file @ " + mFile.getPath());
       throw new IOException(se);
-    } catch (NoSuchAlgorithmException nsae) {
-      throw new IOException(nsae);
     }
   }
 }
