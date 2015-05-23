@@ -110,7 +110,7 @@ You should find that a tachyon folder has been created.
 
 Besides the above under file system, Tachyon can run on top of other under file system. In order
 to do so, a user should implement this
-[UnderFileSystem](https://github.com/amplab/tachyon/blob/master/core/src/main/java/tachyon/UnderFileSystem.java)
+[UnderFileSystem](https://github.com/amplab/tachyon/blob/branch-0.6/core/src/main/java/tachyon/UnderFileSystem.java)
 interface. Here are the implementations of
-[HDFS](https://github.com/amplab/tachyon/blob/master/core/src/main/java/tachyon/UnderFileSystemHdfs.java)
-and [Local File System](https://github.com/amplab/tachyon/blob/master/core/src/main/java/tachyon/UnderFileSystemSingleLocal.java).
+[HDFS](https://github.com/amplab/tachyon/blob/branch-0.6/core/src/main/java/tachyon/UnderFileSystemHdfs.java)
+and [Local File System](https://github.com/amplab/tachyon/blob/branch-0.6/core/src/main/java/tachyon/UnderFileSystemSingleLocal.java).
