@@ -71,8 +71,8 @@ public class S3OutputStream extends OutputStream {
     mFile = new File(CommonUtils.concatPath("/tmp", UUID.randomUUID()));
     try {
       mHash = MessageDigest.getInstance("MD5");
-      mLocalOutputStream = new BufferedOutputStream(new DigestOutputStream(new FileOutputStream
-          (mFile), mHash));
+      mLocalOutputStream =
+          new BufferedOutputStream(new DigestOutputStream(new FileOutputStream(mFile), mHash));
     } catch (NoSuchAlgorithmException nsae) {
       LOG.warn("Algorithm not available for MD5 hash.", nsae);
       mHash = null;
