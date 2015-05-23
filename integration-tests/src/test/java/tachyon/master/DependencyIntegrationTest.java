@@ -34,7 +34,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
-public class DependencyTest {
+public class DependencyIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private String mMasterValue = "localhost";
   private String mPortValue = "8080";

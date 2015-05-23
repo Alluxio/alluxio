@@ -82,10 +82,10 @@ public final class UnderFileSystemTest {
   public void coreFactoryTest() {
     // Supported in core
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/test/path", mTachyonConf);
-    Assert.assertNotNull("A UnderFileSystemFactory should exist for local file paths", factory);
+    Assert.assertNull("An UnderFileSystemFactory should not exist for local file paths", factory);
 
     factory = UnderFileSystemRegistry.find("file:///test/path", mTachyonConf);
-    Assert.assertNotNull("A UnderFileSystemFactory should exist for local file paths", factory);
+    Assert.assertNull("An UnderFileSystemFactory should not exist for local file paths", factory);
   }
 
   @Test

@@ -16,10 +16,10 @@
 package tachyon.hadoop.contract;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractContractCreateTest;
+import org.apache.hadoop.fs.contract.AbstractContractSeekTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 
-public class TestTachyonFSContractCreate extends AbstractContractCreateTest {
+public class TachyonFSContractSeekIntegrationTest extends AbstractContractSeekTest {
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
     return new TachyonFSContract(conf);

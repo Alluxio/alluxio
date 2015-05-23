@@ -51,7 +51,7 @@ import tachyon.thrift.TachyonException;
 /**
  * Unit tests for tachyon.MasterInfo
  */
-public class MasterInfoTest {
+public class MasterInfoIntegrationTest {
   class ConcurrentCreator implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
