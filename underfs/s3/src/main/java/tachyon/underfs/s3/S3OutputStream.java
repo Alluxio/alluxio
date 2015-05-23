@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 import com.google.common.base.Preconditions;
@@ -72,8 +73,10 @@ public class S3OutputStream extends OutputStream {
       mHash = MessageDigest.getInstance("MD5");
       mLocalOutputStream = new BufferedOutputStream(new DigestOutputStream(new FileOutputStream
           (mFile), mHash));
-    } catch (Exception e) {
-      //
+    } catch (NoSuchAlgorithmException nsae) {
+      LOG.warn("Algorithm not available for MD5 hash.", nsae);
+      mHash = null;
+      mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
     }
     mClosed = false;
   }
@@ -111,7 +114,11 @@ public class S3OutputStream extends OutputStream {
       obj.setDataInputFile(mFile);
       obj.setContentLength(mFile.length());
       obj.setContentEncoding(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
-      obj.setMd5Hash(mHash.digest());
+      if (mHash != null) {
+        obj.setMd5Hash(mHash.digest());
+      } else {
+        LOG.warn("MD5 was not computed for: " + mKey);
+      }
       mClient.putObject(mBucketName, obj);
       mFile.delete();
     } catch (ServiceException se) {
