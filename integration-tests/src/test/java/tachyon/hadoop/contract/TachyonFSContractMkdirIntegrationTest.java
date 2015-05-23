@@ -19,7 +19,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractContractMkdirTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 
-public class TestTachyonFSContractMkdir extends AbstractContractMkdirTest {
+public class TachyonFSContractMkdirIntegrationTest extends AbstractContractMkdirTest {
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
     return new TachyonFSContract(conf);

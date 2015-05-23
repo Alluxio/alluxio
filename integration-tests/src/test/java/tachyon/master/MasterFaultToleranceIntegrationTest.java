@@ -35,7 +35,7 @@ import tachyon.util.CommonUtils;
 /**
  * Local Tachyon cluster with multiple master for unit tests.
  */
-public class MasterFaultToleranceTest {
+public class MasterFaultToleranceIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static final int MASTERS = 5;
 

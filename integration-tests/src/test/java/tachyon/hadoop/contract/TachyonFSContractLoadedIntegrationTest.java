@@ -15,13 +15,30 @@
 
 package tachyon.hadoop.contract;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractContractSeekTest;
-import org.apache.hadoop.fs.contract.AbstractFSContract;
+import java.net.URL;
 
-public class TestTachyonFSContractSeek extends AbstractContractSeekTest {
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.contract.AbstractFSContract;
+import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
+import org.junit.Test;
+
+public class TachyonFSContractLoadedIntegrationTest extends AbstractFSContractTestBase {
+
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
     return new TachyonFSContract(conf);
+  }
+
+  @Test
+  public void testContractWorks() throws Throwable {
+    String key = getContract().getConfKey(SUPPORTS_ATOMIC_RENAME);
+    assertNotNull("not set: " + key, getContract().getConf().get(key));
+    assertFalse("true: " + key, getContract().isSupported(SUPPORTS_ATOMIC_RENAME, false));
+  }
+
+  @Test
+  public void testContractResourceOnClasspath() throws Throwable {
+    URL url = this.getClass().getClassLoader().getResource(TachyonFSContract.CONTRACT_XML);
+    assertNotNull("could not find contract resource", url);
   }
 }

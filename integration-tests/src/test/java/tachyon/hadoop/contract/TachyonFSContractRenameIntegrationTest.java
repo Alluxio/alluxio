@@ -16,10 +16,10 @@
 package tachyon.hadoop.contract;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractContractDeleteTest;
+import org.apache.hadoop.fs.contract.AbstractContractRenameTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 
-public class TestTachyonFSContractDelete extends AbstractContractDeleteTest {
+public class TachyonFSContractRenameIntegrationTest extends AbstractContractRenameTest {
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
     return new TachyonFSContract(conf);

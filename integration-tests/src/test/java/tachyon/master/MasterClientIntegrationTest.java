@@ -33,16 +33,16 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NoWorkerException;
 
 /**
- * Though its name indicates that it provide the unit tests for {@link tachyon.master.MasterClient},
+ * Though its name indicates that it provides the tests for {@link tachyon.master.MasterClient},
  * this class is more like unit-testing the internal implementation of tachyon Master via a
  * {@link MasterClient}, and thus it depends on many components in tachyon.master. As a result, we
- * have MasterClient in tachyon-common and leave this class in tachyon-core.
+ * place MasterClient in tachyon-common and this test in tachyon-integration-tests.
  *
  * <p>
  * TODO: Rename this class.
  *
  */
-public class MasterClientTest {
+public class MasterClientIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
@@ -63,8 +63,7 @@ public class MasterClientTest {
   }
 
   @Test
-  public void openCloseTest() throws FileAlreadyExistException, InvalidPathException, TException,
-      IOException {
+  public void openCloseTest() throws TException, IOException {
     MasterClient masterClient =
         new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
     Assert.assertFalse(masterClient.isConnected());
@@ -82,8 +81,8 @@ public class MasterClientTest {
 
   @Test(timeout = 3000, expected = FileNotFoundException.class)
   public void user_getClientBlockInfoReturnsOnError() throws TException, IOException {
-    // this test was created to show that a infi loop happens
-    // the timeout will protect against this, and the change was to throw a IOException
+    // This test was created to show that an infinite loop occurs.
+    // The timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
     MasterClient masterClient =
         new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
@@ -93,8 +92,8 @@ public class MasterClientTest {
 
   @Test(timeout = 3000, expected = NoWorkerException.class)
   public void user_getWorkerReturnsWhenNotLocal() throws Exception {
-    // this test was created to show that a infi loop happens
-    // the timeout will protect against this, and the change was to throw a IOException
+    // This test was created to show that an infinite loop occurs.
+    // The timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
     MasterClient masterClient =
         new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
