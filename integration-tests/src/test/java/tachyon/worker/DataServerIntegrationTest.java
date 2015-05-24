@@ -106,10 +106,11 @@ public class DataServerIntegrationTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
-        Constants.GB);
-    mLocalTachyonCluster.start();
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
+    mLocalTachyonCluster =
+        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
+    mLocalTachyonCluster.start(tachyonConf);
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mTFS = mLocalTachyonCluster.getClient();
   }
