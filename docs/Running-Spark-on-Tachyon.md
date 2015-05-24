@@ -5,10 +5,10 @@ title: Running Spark on Tachyon
 
 ## Compatibility
 
-If you plan to use Tachyon as an off-heap store for Spark, the following version pairings will
-work together out-of-the-box. If you plan to use a different version than the default supported
-version, please recompile Spark with the right version of tachyon-client by changing the version
-in `spark/core/pom.xml`.
+If you plan to run Spark on Tachyon, the following version pairings will work together
+out-of-the-box. If you plan to use a different version than the default supported version, please
+recompile Spark with the right version of tachyon-client by changing the version in
+`spark/core/pom.xml`.
 
 <table class="table">
 <tr><th>Spark Version</th><th>Tachyon Version</th></tr>
@@ -71,9 +71,9 @@ If you are invoking spark job using sbt or from other frameworks like play using
     val conf = new SparkConf()
     val sc = new SparkContext(conf)
     sc.hadoopConfiguration.set("fs.tachyon.impl", "tachyon.hadoop.TFS")
-    
 
-If you are running tachyon in fault tolerant mode with zookeeper and the hadoop cluster is a 1.x cluster, 
+
+If you are running tachyon in fault tolerant mode with zookeeper and the hadoop cluster is a 1.x cluster,
 additionally add new entry in previously created `spark/conf/core-site.xml`:
 
     <property>
