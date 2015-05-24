@@ -49,10 +49,6 @@ public class TieredStoreIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.worker.tieredstore.level.max");
-    System.clearProperty("tachyon.worker.tieredstore.level1.alias");
-    System.clearProperty("tachyon.worker.tieredstore.level1.dirs.path");
-    System.clearProperty("tachyon.worker.tieredstore.level1.dirs.quota");
   }
 
   @Before
