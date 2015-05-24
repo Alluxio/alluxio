@@ -143,9 +143,10 @@ public class JournalIntegrationTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set("fs.hdfs.impl.disable.cache", "true");
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 100, Constants.GB);
-    mLocalTachyonCluster.start();
+    mLocalTachyonCluster.start(tachyonConf);
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
