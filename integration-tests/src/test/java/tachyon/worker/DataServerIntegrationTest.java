@@ -75,7 +75,6 @@ public class DataServerIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty(Constants.WORKER_DATA_SERVER);
   }
 
   /**

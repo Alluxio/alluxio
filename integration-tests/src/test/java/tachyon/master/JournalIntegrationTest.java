@@ -138,7 +138,6 @@ public class JournalIntegrationTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     mExecutorService.shutdown();
-    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Before
