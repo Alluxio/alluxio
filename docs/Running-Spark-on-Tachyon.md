@@ -5,11 +5,34 @@ title: Running Spark on Tachyon
 
 ## Compatibility
 
-By default, Spark 1.0.x is bundled with Tachyon 0.4.1. If you run a different version Tachyon,
-please recompile Spark with the right version of Tachyon, by changing the Tachyon version in
-spark/core/pom.xml.
+If you plan to run Spark on Tachyon, the following version pairings will work together
+out-of-the-box. If you plan to use a different version than the default supported version, please
+recompile Spark with the right version of tachyon-client by changing the version in
+`spark/core/pom.xml`.
 
-Spark1.1.x and Spark1.2.x is bundled with Tachyon 0.5.0.
+<table class="table">
+<tr><th>Spark Version</th><th>Tachyon Version</th></tr>
+<tr>
+  <td> 1.0.x and Below </td>
+  <td> v0.4.1 </td>
+</tr>
+<tr>
+  <td> 1.1.x </td>
+  <td> v0.5.0 </td>
+</tr>
+<tr>
+  <td> 1.2.x </td>
+  <td> v0.5.0 </td>
+</tr>
+<tr>
+  <td> 1.3.x </td>
+  <td> v0.5.0 </td>
+</tr>
+<tr>
+  <td> 1.4.x and Above </td>
+  <td> v0.6.4 </td>
+</tr>
+</table>
 
 ## Input/Output data with Tachyon
 
@@ -48,9 +71,9 @@ If you are invoking spark job using sbt or from other frameworks like play using
     val conf = new SparkConf()
     val sc = new SparkContext(conf)
     sc.hadoopConfiguration.set("fs.tachyon.impl", "tachyon.hadoop.TFS")
-    
 
-If you are running tachyon in fault tolerant mode with zookeeper and the hadoop cluster is a 1.x cluster, 
+
+If you are running tachyon in fault tolerant mode with zookeeper and the hadoop cluster is a 1.x cluster,
 additionally add new entry in previously created `spark/conf/core-site.xml`:
 
     <property>
