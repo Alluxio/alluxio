@@ -315,7 +315,8 @@ public class StorageTier {
       Pair<StorageDir, List<BlockInfo>> evictInfo =
           mBlockEvictor.getDirCandidate(dirs, pinList, requestSizeBytes);
       if (evictInfo == null) {
-        // Nothing to evict. The blocks may have been deleted. Try to allocate space again.
+        // Nothing to evict. But some blocks may be deleted meanwhile, so retry to allocate
+        // space again, if still failed, return null.
         return mSpaceAllocator.getStorageDir(dirs, userId, requestSizeBytes);
       }
       dirSelected = evictInfo.getFirst();
@@ -339,8 +340,6 @@ public class StorageTier {
       }
       if (dirSelected.requestSpace(userId, requestSizeBytes)) {
         return dirSelected;
-      } else {
-        LOG.warn("Request space failed! storageLevel:{}", mLevel);
       }
     }
     LOG.warn("No StorageDir is allocated! requestSize:{} storageLevel:{} used:{} capacity:{}",
