@@ -15,7 +15,9 @@
 
 package tachyon.worker.eviction;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -32,12 +34,11 @@ import tachyon.worker.tiered.StorageDir;
  */
 public abstract class EvictLRUBase implements EvictStrategy {
   private final boolean mLastTier;
-  protected final Multimap<StorageDir, Long> mEvictingBlockIds;
+  private final Multimap<StorageDir, Long> mEvictingBlockIds;
 
   protected EvictLRUBase(boolean lastTier) {
     mLastTier = lastTier;
-    mEvictingBlockIds = Multimaps
-        .synchronizedMultimap(HashMultimap.<StorageDir, Long>create());
+    mEvictingBlockIds = Multimaps.synchronizedMultimap(HashMultimap.<StorageDir, Long>create());
   }
 
   /**
@@ -52,21 +53,25 @@ public abstract class EvictLRUBase implements EvictStrategy {
   }
 
   /**
-   * Clean the Id of blocks that have been evicted from evicting list in each StorageDir
+   * Clean the blocks that have been evicted from evicting list in each StorageDir
    */
   protected void cleanEvictingBlockIds() {
+    List<Pair<StorageDir, Long>> outdatedBlocks = new ArrayList<Pair<StorageDir, Long>>();
     for (Entry<StorageDir, Long> block : mEvictingBlockIds.entries()) {
       StorageDir dir = block.getKey();
       long blockId = block.getValue();
-      // If the block has been evicted, remove it from list
+      // If the block has been evicted, mark it outdated
       if (!dir.containsBlock(blockId)) {
-        mEvictingBlockIds.remove(dir, blockId);
+        outdatedBlocks.add(new Pair<StorageDir, Long>(dir, blockId));
       }
+    }
+    for (Pair<StorageDir, Long> block : outdatedBlocks) {
+      mEvictingBlockIds.remove(block.getFirst(), block.getSecond());
     }
   }
 
   /**
-   * Update the Id of blocks that are being evicted in each StorageDir
+   * Update the blocks that are being evicted in each StorageDir
    * 
    * @param blockList The list of blocks that will be added in to evicting list
    */
@@ -74,12 +79,14 @@ public abstract class EvictLRUBase implements EvictStrategy {
     for (BlockInfo block : blockList) {
       StorageDir dir = block.getStorageDir();
       long blockId = block.getBlockId();
-      mEvictingBlockIds.put(dir, blockId);
+      if (dir.containsBlock(blockId)) {
+        mEvictingBlockIds.put(dir, blockId);
+      }
     }
   }
 
   /**
-   * Get the oldest access information of a StorageDir
+   * Get the oldest access information from a StorageDir
    *
    * @param curDir current StorageDir
    * @param toEvictBlockIds the Ids of blocks that have been selected to evict

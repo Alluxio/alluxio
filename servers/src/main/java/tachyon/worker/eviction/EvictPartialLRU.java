@@ -39,6 +39,8 @@ public final class EvictPartialLRU extends EvictLRUBase {
     List<BlockInfo> blockInfoList = new ArrayList<BlockInfo>();
     Set<StorageDir> ignoredDirs = new HashSet<StorageDir>();
     StorageDir dirSelected = getDirWithMaxFreeSpace(requestBytes, storageDirs, ignoredDirs);
+
+    cleanEvictingBlockIds();
     while (dirSelected != null) {
       Set<Long> blockIdSet = new HashSet<Long>();
       long sizeToEvict = 0;
@@ -55,6 +57,7 @@ public final class EvictPartialLRU extends EvictLRUBase {
         }
       }
       if (sizeToEvict + dirSelected.getAvailableBytes() >= requestBytes) {
+        updateEvictingBlockIds(blockInfoList);
         return new Pair<StorageDir, List<BlockInfo>>(dirSelected, blockInfoList);
       }
       ignoredDirs.add(dirSelected);
