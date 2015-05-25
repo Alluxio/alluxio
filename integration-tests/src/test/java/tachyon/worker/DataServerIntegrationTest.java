@@ -75,6 +75,7 @@ public class DataServerIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
+    System.clearProperty(Constants.WORKER_DATA_SERVER);
   }
 
   /**
@@ -105,11 +106,10 @@ public class DataServerIntegrationTest {
 
   @Before
   public final void before() throws IOException {
-    TachyonConf tachyonConf = new TachyonConf();
-    tachyonConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    mLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    mLocalTachyonCluster.start(tachyonConf);
+    System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
+    mLocalTachyonCluster.start();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mTFS = mLocalTachyonCluster.getClient();
   }
