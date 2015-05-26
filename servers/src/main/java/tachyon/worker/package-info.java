@@ -52,7 +52,7 @@
  * {@link tachyon.worker.DataServerMessage#createBlockResponseMessage(boolean, long, long,
  * long, ByteBuffer)}.
  * Side note, the netty implementation does not use this class, but has defined two classes for
- * the read and write case: {@link tachyon.worker.netty.BlockRequest},
+ * the read and write case: {@link tachyon.worker.netty.protocol.RPCBlockRequest},
  * {@link tachyon.worker.netty.BlockResponse}; theses classes are network compatible.
  */
 package tachyon.worker;

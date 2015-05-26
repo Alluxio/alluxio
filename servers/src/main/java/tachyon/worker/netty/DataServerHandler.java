@@ -36,8 +36,8 @@ import tachyon.worker.tiered.StorageDir;
 
 /**
  * This class has the main logic of the read path to process
- * {@link tachyon.worker.netty.BlockRequest} messages and return
- * {@link tachyon.worker.netty.BlockResponse} messages.
+ * {@link tachyon.worker.netty.protocol.RPCRequest} messages and return
+ * {@link tachyon.worker.netty.protocol.RPCResponse} messages.
  */
 @ChannelHandler.Sharable
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
