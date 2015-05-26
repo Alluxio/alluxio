@@ -69,7 +69,7 @@ public class WorkerClient implements Closeable {
   private HeartbeatExecutor mHeartbeatExecutor;
 
   private final TachyonConf mTachyonConf;
-  private final List<Long> mClientMetrics;
+  private final ClientMetrics mClientMetrics;
 
   /**
    * Create a WorkerClient, with a given MasterClient.
@@ -81,7 +81,7 @@ public class WorkerClient implements Closeable {
    * @throws IOException
    */
   public WorkerClient(MasterClient masterClient, ExecutorService executorService,
-      TachyonConf conf, List<Long> clientMetrics) throws IOException {
+      TachyonConf conf, ClientMetrics clientMetrics) throws IOException {
     mMasterClient = masterClient;
     mExecutorService = executorService;
     mTachyonConf = conf;
@@ -441,17 +441,11 @@ public class WorkerClient implements Closeable {
    * @param userId The id of the user
    * @throws IOException
    */
-  public synchronized void userHeartbeat(long userId, List<Long> metrics) throws IOException {
+  public synchronized void userHeartbeat(long userId, ClientMetrics metrics) throws IOException {
     mustConnect();
 
     try {
-      synchronized (metrics) {
-        mClient.userHeartbeat(userId, metrics);
-        for (int i = Constants.CLIENT_METRICS_VERSION_INDEX + 1; i < Constants.CLIENT_METRICS_SIZE;
-             i++) {
-          metrics.set(i, 0L);
-        }
-      }
+      mClient.userHeartbeat(userId, metrics.getHeartbeatData());
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

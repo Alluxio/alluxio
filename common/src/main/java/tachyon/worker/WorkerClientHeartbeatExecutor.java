@@ -16,7 +16,6 @@
 package tachyon.worker;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.google.common.base.Throwables;
 
@@ -29,10 +28,10 @@ import tachyon.HeartbeatExecutor;
 class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   private final WorkerClient mWorkerClient;
   private final long mUserId;
-  private final List<Long> mClientMetrics;
+  private final ClientMetrics mClientMetrics;
 
   public WorkerClientHeartbeatExecutor(WorkerClient workerClient, long userId,
-      List<Long> clientMetrics) {
+      ClientMetrics clientMetrics) {
     mWorkerClient = workerClient;
     mUserId = userId;
     mClientMetrics = clientMetrics;

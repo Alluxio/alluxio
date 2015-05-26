@@ -49,7 +49,7 @@ public class LocalBlockInStream extends BlockInStream {
     if (!mClosed) {
       mTachyonBuffer.close();
       if (mBytesReadLocal > 0) {
-        mTachyonFS.incBlocksReadLocal(1);
+        mTachyonFS.getClientMetrics().incBlocksReadLocal(1);
       }
     }
     mClosed = true;
@@ -62,7 +62,7 @@ public class LocalBlockInStream extends BlockInStream {
       return -1;
     }
     mBytesReadLocal ++;
-    mTachyonFS.incBytesReadLocal(1);
+    mTachyonFS.getClientMetrics().incBytesReadLocal(1);
     return mBuffer.get() & 0xFF;
   }
 
@@ -88,7 +88,7 @@ public class LocalBlockInStream extends BlockInStream {
     }
     mBuffer.get(b, off, ret);
     mBytesReadLocal += ret;
-    mTachyonFS.incBytesReadLocal(ret);
+    mTachyonFS.getClientMetrics().incBytesReadLocal(ret);
     return ret;
   }
 

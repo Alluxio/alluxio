@@ -19,8 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -51,6 +49,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
 
 /**
@@ -181,13 +180,10 @@ public class TachyonFS extends AbstractTachyonFS {
   private final AtomicInteger mBlockLockId = new AtomicInteger(0);
 
   private TachyonURI mRootUri = null;
-  private List<Long> mClientMetrics = new ArrayList<Long>(Collections.nCopies(
-      Constants.CLIENT_METRICS_SIZE, 0L));
+  private ClientMetrics mClientMetrics = new ClientMetrics();
 
   private TachyonFS(TachyonConf tachyonConf) throws IOException {
     super(tachyonConf);
-
-    mClientMetrics.set(Constants.CLIENT_METRICS_VERSION_INDEX, Constants.CLIENT_METRICS_VERSION);
 
     String masterHost =
         tachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(tachyonConf));
@@ -462,6 +458,15 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized ClientDependencyInfo getClientDependencyInfo(int depId) throws IOException {
     return mMasterClient.getClientDependencyInfo(depId);
+  }
+
+  /**
+   * Get the user's ClientMetrics.
+   *
+   * @return the ClientMetrics object.
+   */
+  ClientMetrics getClientMetrics() {
+    return mClientMetrics;
   }
 
   /**
@@ -740,62 +745,6 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized boolean hasLocalWorker() throws IOException {
     return mWorkerClient.isLocal();
-  }
-
-  void incBlocksReadLocal(long n) {
-    synchronized (mClientMetrics) {
-      mClientMetrics.set(Constants.BLOCKS_READ_LOCAL_INDEX,
-          mClientMetrics.get(Constants.BLOCKS_READ_LOCAL_INDEX) + n);
-    }
-  }
-
-  void incBlocksReadRemote(long n) {
-    synchronized (mClientMetrics) {
-      mClientMetrics.set(Constants.BLOCKS_READ_REMOTE_INDEX,
-          mClientMetrics.get(Constants.BLOCKS_READ_REMOTE_INDEX) + n);
-    }
-  }
-
-  void incBlocksWrittenLocal(long n) {
-    synchronized (mClientMetrics) {
-      mClientMetrics.set(Constants.BLOCKS_WRITTEN_LOCAL_INDEX,
-          mClientMetrics.get(Constants.BLOCKS_WRITTEN_LOCAL_INDEX) + n);
-    }
-  }
-
-  void incBytesReadLocal(long n) {
-    synchronized (mClientMetrics) {
-      mClientMetrics.set(Constants.BYTES_READ_LOCAL_INDEX,
-          mClientMetrics.get(Constants.BYTES_READ_LOCAL_INDEX) + n);
-    }
-  }
-
-  void incBytesReadRemote(long n) {
-    synchronized (mClientMetrics) {
-      mClientMetrics.set(Constants.BYTES_READ_REMOTE_INDEX,
-          mClientMetrics.get(Constants.BYTES_READ_REMOTE_INDEX) + n);
-    }
-  }
-
-  void incBytesReadUfs(long n) {
-    synchronized (mClientMetrics) {
-      mClientMetrics.set(Constants.BYTES_READ_UFS_INDEX,
-          mClientMetrics.get(Constants.BYTES_READ_UFS_INDEX) + n);
-    }
-  }
-
-  void incBytesWrittenLocal(long n) {
-    synchronized (mClientMetrics) {
-      mClientMetrics.set(Constants.BYTES_WRITTEN_LOCAL_INDEX,
-          mClientMetrics.get(Constants.BYTES_WRITTEN_LOCAL_INDEX) + n);
-    }
-  }
-
-  void incBytesWrittenUfs(long n) {
-    synchronized (mClientMetrics) {
-      mClientMetrics.set(Constants.BYTES_WRITTEN_UFS_INDEX,
-          mClientMetrics.get(Constants.BYTES_WRITTEN_UFS_INDEX) + n);
-    }
   }
 
   /**
