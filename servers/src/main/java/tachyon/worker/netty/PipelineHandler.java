@@ -18,10 +18,14 @@ package tachyon.worker.netty;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
 import tachyon.conf.TachyonConf;
 import tachyon.worker.BlocksLocker;
+import tachyon.worker.netty.protocol.RPCMessage;
+import tachyon.worker.netty.protocol.RPCMessageDecoder;
 
 /**
  * Adds the block server's pipeline into the channel.
@@ -39,7 +43,8 @@ public final class PipelineHandler extends ChannelInitializer<SocketChannel> {
   protected void initChannel(SocketChannel ch) throws Exception {
     ChannelPipeline pipeline = ch.pipeline();
     pipeline.addLast("nioChunkedWriter", new ChunkedWriteHandler());
-    pipeline.addLast("blockRequestDecoder", new BlockRequest.Decoder());
+    pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());
+    pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
     pipeline.addLast("blockResponseEncoder", new BlockResponse.Encoder(mTachyonConf));
     pipeline.addLast("dataServerHandler", new DataServerHandler(mLocker));
   }

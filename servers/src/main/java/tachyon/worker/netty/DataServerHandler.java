@@ -21,6 +21,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,8 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
+import tachyon.worker.netty.protocol.RPCBlockRequest;
+import tachyon.worker.netty.protocol.RPCMessage;
 import tachyon.worker.tiered.StorageDir;
 
 /**
@@ -37,7 +40,7 @@ import tachyon.worker.tiered.StorageDir;
  * {@link tachyon.worker.netty.BlockResponse} messages.
  */
 @ChannelHandler.Sharable
-public final class DataServerHandler extends ChannelInboundHandlerAdapter {
+public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final BlocksLocker mLocker;
@@ -47,9 +50,8 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
   }
 
   @Override
-  public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-    // pipeline will make sure this is true
-    final BlockRequest req = (BlockRequest) msg;
+  public void channelRead0(final ChannelHandlerContext ctx, final RPCMessage msg) throws Exception {
+    final RPCBlockRequest req = (RPCBlockRequest) msg;
 
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
@@ -59,7 +61,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
 
     BlockHandler handler = null;
     try {
-      validateInput(req);
+      req.validate();
       handler = storageDir.getBlockHandler(blockId);
 
       final long fileLength = handler.getLength();
@@ -100,19 +102,12 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     return (len == -1) ? fileLength - offset : len;
   }
 
-  private void validateBounds(final BlockRequest req, final long fileLength) {
+  private void validateBounds(final RPCBlockRequest req, final long fileLength) {
     Preconditions.checkArgument(req.getOffset() <= fileLength,
         "Offset(%s) is larger than file length(%s)", req.getOffset(), fileLength);
     Preconditions.checkArgument(req.getLength() == -1
         || req.getOffset() + req.getLength() <= fileLength,
         "Offset(%s) plus length(%s) is larger than file length(%s)", req.getOffset(),
         req.getLength(), fileLength);
-  }
-
-  private void validateInput(final BlockRequest req) {
-    Preconditions.checkArgument(req.getOffset() >= 0, "Offset can not be negative: %s",
-        req.getOffset());
-    Preconditions.checkArgument(req.getLength() >= 0 || req.getLength() == -1,
-        "Length can not be negative except -1: %s", req.getLength());
   }
 }

@@ -17,12 +17,17 @@ package tachyon.worker.netty;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.primitives.Longs;
+import com.google.common.primitives.Shorts;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
-import com.google.common.primitives.Longs;
-import com.google.common.primitives.Shorts;
+import tachyon.Constants;
 
 /**
  * Request from the client for a given block. To go from netty to this object,
@@ -34,6 +39,7 @@ public final class BlockRequest {
    */
   public static final class Decoder extends ByteToMessageDecoder {
     private static final int MESSAGE_LENGTH = Shorts.BYTES + Longs.BYTES * 3;
+    private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
     @Override
     protected void decode(final ChannelHandlerContext ctx, final ByteBuf in, final List<Object> out)
@@ -41,6 +47,10 @@ public final class BlockRequest {
       if (in.readableBytes() < MESSAGE_LENGTH) {
         return;
       }
+
+      // These two fields are hard coded for now.
+      long frameLength = in.readLong(); // frame length
+      int msgType = in.readInt(); // RPC message type
 
       // read the type and ignore it. Currently only one type exists
       in.readShort(); // == DataServerMessage.DATA_SERVER_REQUEST_MESSAGE;
