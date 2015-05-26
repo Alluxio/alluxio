@@ -38,7 +38,7 @@ import tachyon.worker.BlockHandler;
 import tachyon.worker.DataServerMessage;
 
 /**
- * The response to a user-sent {@link tachyon.worker.netty.BlockRequest}.
+ * The response to a user-sent {@link tachyon.worker.netty.protocol.RPCBlockRequest}.
  * <p>
  * Response is serialized before sent to network by
  * {@link tachyon.worker.netty.BlockResponse.Encoder}
