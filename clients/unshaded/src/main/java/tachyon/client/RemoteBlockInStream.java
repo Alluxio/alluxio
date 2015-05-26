@@ -168,7 +168,7 @@ public class RemoteBlockInStream extends BlockInStream {
       mCheckpointInputStream.close();
     }
     if (mBytesReadRemote > 0) {
-      mTachyonFS.incBlocksReadRemote(1);
+      mTachyonFS.getClientMetrics().incBlocksReadRemote(1);
     }
     mClosed = true;
   }
@@ -227,7 +227,7 @@ public class RemoteBlockInStream extends BlockInStream {
       mBlockPos += bytesToRead;
     }
     mBytesReadRemote += len - bytesLeft;
-    mTachyonFS.incBytesReadRemote(len - bytesLeft);
+    mTachyonFS.getClientMetrics().incBytesReadRemote(len - bytesLeft);
 
     if (bytesLeft > 0) {
       // Unable to read from worker memory, reading this block from underfs in the future.
@@ -253,7 +253,7 @@ public class RemoteBlockInStream extends BlockInStream {
         bytesLeft -= readBytes;
         mBlockPos += readBytes;
         mCheckpointPos += readBytes;
-        mTachyonFS.incBytesReadUfs(readBytes);
+        mTachyonFS.getClientMetrics().incBytesReadUfs(readBytes);
       }
     }
     return len;
