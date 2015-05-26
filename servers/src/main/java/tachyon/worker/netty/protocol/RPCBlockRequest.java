@@ -26,7 +26,7 @@ import io.netty.buffer.ByteBuf;
 
 import tachyon.Constants;
 
-public class RPCBlockRequest extends RPCMessage {
+public class RPCBlockRequest extends RPCRequest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockId;
