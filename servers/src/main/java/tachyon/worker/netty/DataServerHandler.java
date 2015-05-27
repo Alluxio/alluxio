@@ -66,6 +66,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     switch (msg.getType()) {
       case RPC_BLOCK_REQUEST:
         handleBlockRequest(ctx, (RPCBlockRequest) msg);
+        break;
       default:
         throw new IllegalArgumentException("No handler implementation for rpc msg type: "
             + msg.getType());
