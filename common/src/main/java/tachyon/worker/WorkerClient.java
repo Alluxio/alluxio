@@ -19,7 +19,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -251,7 +250,7 @@ public class WorkerClient implements Closeable {
       mClient = new WorkerService.Client(mProtocol);
 
       mHeartbeatExecutor =
-          new WorkerClientHeartbeatExecutor(this, mMasterClient.getUserId(), mClientMetrics);
+          new WorkerClientHeartbeatExecutor(this, mMasterClient.getUserId());
       String threadName = "worker-heartbeat-" + mWorkerAddress;
       int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
           Constants.SECOND_MS);
@@ -441,11 +440,11 @@ public class WorkerClient implements Closeable {
    * @param userId The id of the user
    * @throws IOException
    */
-  public synchronized void userHeartbeat(long userId, ClientMetrics metrics) throws IOException {
+  public synchronized void userHeartbeat(long userId) throws IOException {
     mustConnect();
 
     try {
-      mClient.userHeartbeat(userId, metrics.getHeartbeatData());
+      mClient.userHeartbeat(userId, mClientMetrics.getHeartbeatData());
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

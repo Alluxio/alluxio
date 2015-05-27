@@ -28,19 +28,16 @@ import tachyon.HeartbeatExecutor;
 class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   private final WorkerClient mWorkerClient;
   private final long mUserId;
-  private final ClientMetrics mClientMetrics;
 
-  public WorkerClientHeartbeatExecutor(WorkerClient workerClient, long userId,
-      ClientMetrics clientMetrics) {
+  public WorkerClientHeartbeatExecutor(WorkerClient workerClient, long userId) {
     mWorkerClient = workerClient;
     mUserId = userId;
-    mClientMetrics = clientMetrics;
   }
 
   @Override
   public void heartbeat() {
     try {
-      mWorkerClient.userHeartbeat(mUserId, mClientMetrics);
+      mWorkerClient.userHeartbeat(mUserId);
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
