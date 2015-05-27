@@ -15,36 +15,46 @@
 
 package tachyon.worker.netty.protocol;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.nio.ByteBuffer;
 
-import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 
 import io.netty.buffer.ByteBuf;
 
-import tachyon.Constants;
 import tachyon.worker.DataServerMessage;
+import tachyon.worker.netty.protocol.buffer.DataBuffer;
+import tachyon.worker.netty.protocol.buffer.DataByteBuffer;
 
-public class RPCBlockRequest extends RPCRequest {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
+public class RPCBlockResponse extends RPCResponse {
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
+  private final DataBuffer mData;
 
-  private RPCBlockRequest(long blockId, long offset, long length) {
+  public RPCBlockResponse(long blockId, long offset, long length, DataBuffer data) {
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
+    mData = data;
   }
 
   public Type getType() {
-    return Type.RPC_BLOCK_REQUEST;
+    return Type.RPC_BLOCK_RESPONSE;
   }
 
-  public static RPCBlockRequest decode(ByteBuf in) {
+  /**
+   * Creates a {@link tachyon.worker.netty.protocol.RPCBlockResponse} that indicates an error for
+   * the given block.
+   *
+   * @param blockId The Id of block requested
+   * @return the new error BlockResponse created.
+   */
+  public static RPCBlockResponse createErrorResponse(final long blockId) {
+    return new RPCBlockResponse(-blockId, 0, 0, null);
+  }
+
+  public static RPCBlockResponse decode(ByteBuf in) {
     int readableBytes = in.readableBytes();
 
     // TODO: remove this short when client also uses netty.
@@ -52,7 +62,13 @@ public class RPCBlockRequest extends RPCRequest {
     long blockId = in.readLong();
     long offset = in.readLong();
     long length = in.readLong();
-    return new RPCBlockRequest(blockId, offset, length);
+    DataBuffer data = null;
+    if (length > 0) {
+      ByteBuffer buffer = ByteBuffer.allocate((int) length);
+      in.readBytes(buffer);
+      data = new DataByteBuffer(buffer, (int) length);
+    }
+    return new RPCBlockResponse(blockId, offset, length, data);
   }
 
   @Override
@@ -64,22 +80,15 @@ public class RPCBlockRequest extends RPCRequest {
   @Override
   public void encode(ByteBuf out) {
     // TODO: remove this short when client also uses netty.
-    out.writeShort(DataServerMessage.DATA_SERVER_REQUEST_MESSAGE);
+    out.writeShort(DataServerMessage.DATA_SERVER_RESPONSE_MESSAGE);
     out.writeLong(mBlockId);
     out.writeLong(mOffset);
     out.writeLong(mLength);
   }
 
   @Override
-  public void validate() {
-    Preconditions.checkArgument(mOffset >= 0, "Offset can not be negative: %s", mOffset);
-    Preconditions.checkArgument(mLength >= 0 || mLength == -1,
-        "Length can not be negative except -1: %s", mLength);
-  }
-
-  @Override
-  public String toString() {
-    return "RPCBlockRequest(" + mBlockId + ", " + mOffset + ", " + mLength + ")";
+  public DataBuffer getPayloadDataBuffer() {
+    return mData;
   }
 
   public long getBlockId() {

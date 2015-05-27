@@ -22,15 +22,17 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
+import tachyon.worker.netty.protocol.buffer.DataBuffer;
+
 public abstract class RPCMessage implements EncodedMessage {
 
   // The possible types of RPC messages.
-  public static enum Type implements EncodedMessage {
-    RPC_BLOCK_REQUEST(0);
+  public enum Type implements EncodedMessage {
+    RPC_BLOCK_REQUEST(0), RPC_BLOCK_RESPONSE(1);
 
     private final int mId;
 
-    private Type(int id) {
+    Type(int id) {
       mId = id;
     }
 
@@ -51,14 +53,30 @@ public abstract class RPCMessage implements EncodedMessage {
       switch (id) {
         case 0:
           return RPC_BLOCK_REQUEST;
+        case 1:
+          return RPC_BLOCK_RESPONSE;
         default:
           throw new IllegalArgumentException("Unknown RPCMessage type id. id: " + id);
       }
     }
   }
 
+  // Returns the type of the message.
+  public abstract Type getType();
+
   // Validate the message. Throws an Exception if the message is invalid.
   public void validate() {}
+
+  // Returns true if the message has a payload.
+  // The encoder will send the payload with a more efficient method.
+  public boolean hasPayload() {
+    return getPayloadDataBuffer() != null;
+  }
+
+  // Returns the data buffer of the payload.
+  public DataBuffer getPayloadDataBuffer() {
+    return null;
+  }
 
   // Creates a decoder that splits up the incoming ByteBuf into new ByteBuf's according to a
   // length field in the input.
@@ -76,6 +94,8 @@ public abstract class RPCMessage implements EncodedMessage {
     switch (type) {
       case RPC_BLOCK_REQUEST:
         return RPCBlockRequest.decode(in);
+      case RPC_BLOCK_RESPONSE:
+        return RPCBlockResponse.decode(in);
       default:
         throw new IllegalArgumentException("Unknown RPCMessage type. type: " + type);
     }
