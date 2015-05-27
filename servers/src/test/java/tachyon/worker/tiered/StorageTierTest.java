@@ -78,8 +78,6 @@ public class StorageTierTest {
   private void createBlockFile(StorageDir dir, long blockId, int blockSize) throws IOException {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
     BlockHandler bhSrc = BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
-    dir.requestSpace(USER_ID, blockSize);
-    dir.updateTempBlockAllocatedBytes(USER_ID, blockId, blockSize);
     try {
       bhSrc.append(0, ByteBuffer.wrap(buf));
     } finally {
@@ -94,7 +92,9 @@ public class StorageTierTest {
     List<Long> removedBlockIds = new ArrayList<Long>();
     StorageDir dir =
         mStorageTiers[0].requestSpace(USER_ID, 100, new HashSet<Integer>(), removedBlockIds);
+    dir.updateTempBlockAllocatedBytes(USER_ID, blockId, 100);
     createBlockFile(dir, blockId, 100);
+    Assert.assertEquals(100, mStorageTiers[0].getUsedBytes());
     StorageDir dir1 = mStorageTiers[0].getStorageDirByBlockId(1);
     Assert.assertEquals(dir, dir1);
     dir1 = mStorageTiers[0].getStorageDirByBlockId(2);
@@ -133,6 +133,7 @@ public class StorageTierTest {
         mStorageTiers[0].requestSpace(USER_ID, 501, new HashSet<Integer>(), removedBlockIds);
     Assert.assertEquals(null, dir1);
     createBlockFile(dir, blockId, 500);
+    Assert.assertEquals(500, mStorageTiers[0].getUsedBytes());
     boolean request =
         mStorageTiers[0].requestSpace(dir, USER_ID, 501, new HashSet<Integer>(), removedBlockIds);
     Assert.assertTrue(request);
