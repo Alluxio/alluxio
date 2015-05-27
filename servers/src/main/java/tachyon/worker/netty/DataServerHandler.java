@@ -15,24 +15,30 @@
 
 package tachyon.worker.netty;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
-import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.netty.protocol.RPCBlockRequest;
+import tachyon.worker.netty.protocol.RPCBlockResponse;
 import tachyon.worker.netty.protocol.RPCMessage;
+import tachyon.worker.netty.protocol.buffer.DataBuffer;
+import tachyon.worker.netty.protocol.buffer.DataByteBuffer;
+import tachyon.worker.netty.protocol.buffer.DataFileChannel;
 import tachyon.worker.tiered.StorageDir;
 
 /**
@@ -46,16 +52,34 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
 
   private final BlocksLocker mLocker;
   private final TachyonConf mTachyonConf;
+  private final FileTransferType mTransferType;
 
   public DataServerHandler(final BlocksLocker locker, TachyonConf tachyonConf) {
     mLocker = locker;
     mTachyonConf = tachyonConf;
+    mTransferType =
+        mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.TRANSFER);
   }
 
   @Override
   public void channelRead0(final ChannelHandlerContext ctx, final RPCMessage msg) throws Exception {
-    final RPCBlockRequest req = (RPCBlockRequest) msg;
+    switch (msg.getType()) {
+      case RPC_BLOCK_REQUEST:
+        handleBlockRequest(ctx, (RPCBlockRequest) msg);
+      default:
+        throw new IllegalArgumentException("No handler implementation for rpc msg type: "
+            + msg.getType());
+    }
+  }
 
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    LOG.warn("Exception thrown while processing request", cause);
+    ctx.close();
+  }
+
+  private void handleBlockRequest(final ChannelHandlerContext ctx, final RPCBlockRequest req)
+      throws Exception {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
@@ -71,7 +95,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
       ChannelFuture future =
-          ctx.writeAndFlush(new BlockResponse(blockId, offset, readLength, handler));
+          ctx.writeAndFlush(new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req,
+              handler, (int) readLength)));
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(handler));
       storageDir.accessBlock(blockId);
@@ -80,7 +105,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     } catch (Exception e) {
       // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);
-      BlockResponse resp = BlockResponse.createErrorResponse(blockId);
+      RPCBlockResponse resp = RPCBlockResponse.createErrorResponse(blockId);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       if (handler != null) {
@@ -89,12 +114,6 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     } finally {
       mLocker.unlock(blockId, lockId);
     }
-  }
-
-  @Override
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    LOG.warn("Exception thrown while processing request", cause);
-    ctx.close();
   }
 
   /**
@@ -112,5 +131,24 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         || req.getOffset() + req.getLength() <= fileLength,
         "Offset(%s) plus length(%s) is larger than file length(%s)", req.getOffset(),
         req.getLength(), fileLength);
+  }
+
+  // Returns the appropriate DataBuffer representing the data to send, depending on the
+  // configurable transfer type.
+  private DataBuffer getDataBuffer(RPCBlockRequest req, BlockHandler handler, int readLength)
+      throws Exception {
+    switch (mTransferType) {
+      case MAPPED:
+        ByteBuffer data = handler.read(req.getOffset(), readLength);
+        return new DataByteBuffer(data, readLength);
+      case TRANSFER: // intend to fall through as TRANSFER is the default type.
+      default:
+        if (handler.getChannel() instanceof FileChannel) {
+          return new DataFileChannel((FileChannel) handler.getChannel(), (int) req.getOffset(),
+              readLength);
+        }
+        handler.close();
+        throw new Exception("Only FileChannel is supported!");
+    }
   }
 }
