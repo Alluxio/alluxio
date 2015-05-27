@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.netty.protocol.RPCBlockRequest;
@@ -44,9 +45,11 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final BlocksLocker mLocker;
+  private final TachyonConf mTachyonConf;
 
-  public DataServerHandler(final BlocksLocker locker) {
+  public DataServerHandler(final BlocksLocker locker, TachyonConf tachyonConf) {
     mLocker = locker;
+    mTachyonConf = tachyonConf;
   }
 
   @Override
