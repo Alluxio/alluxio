@@ -48,7 +48,7 @@ public class RPCBlockResponse extends RPCResponse {
    * the given block.
    *
    * @param blockId The Id of block requested
-   * @return the new error BlockResponse created.
+   * @return the new error RPCBlockResponse created.
    */
   public static RPCBlockResponse createErrorResponse(final long blockId) {
     return new RPCBlockResponse(-blockId, 0, 0, null);
