@@ -202,7 +202,7 @@ public class DataServerMessage {
     mHeader.clear();
 
     // These two fields are hard coded for now, until the client is converted to use netty.
-    mHeader.putLong(38); // frame length
+    mHeader.putLong(HEADER_LENGTH); // frame length
     mHeader.putInt(0); // RPC message type
 
     mHeader.putShort(mMessageType);
