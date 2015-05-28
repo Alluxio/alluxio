@@ -49,8 +49,14 @@ public abstract class RPCMessage implements EncodedMessage {
       out.writeInt(mId);
     }
 
-    // Returns the type represented by the id from the input ByteBuf.
-    // This must be updated to add new message types.
+    /**
+     * Returns the type represented by the id from the input ByteBuf.
+     *
+     * This must be updated to add new message types.
+     *
+     * @param in The input ByteBuf to decode into a type
+     * @return The decoded message type
+     */
     public static Type decode(ByteBuf in) {
       int id = in.readInt();
       switch (id) {
@@ -64,35 +70,61 @@ public abstract class RPCMessage implements EncodedMessage {
     }
   }
 
-  // Returns the type of the message.
+  /**
+   * Returns the type of the message.
+   *
+   * @return the message type
+   */
   public abstract Type getType();
 
-  // Validate the message. Throws an Exception if the message is invalid.
+  /**
+   * Validate the message. Throws an Exception if the message is invalid.
+   */
   public void validate() {}
 
-  // Returns true if the message has a payload.
-  // The encoder will send the payload with a more efficient method.
+  /**
+   * Returns true if the message has a payload. The encoder will send the payload with a more
+   * efficient method.
+   *
+   * @return true if the message has a payload, false otherwise.
+   */
   public boolean hasPayload() {
     return getPayloadDataBuffer() != null;
   }
 
-  // Returns the data buffer of the payload.
+  /**
+   * Returns the data buffer of the payload.
+   *
+   * @return The DataBuffer representing the payload.
+   */
   public DataBuffer getPayloadDataBuffer() {
     return null;
   }
 
-  // Creates a decoder that splits up the incoming ByteBuf into new ByteBuf's according to a
-  // length field in the input.
-  // The encoding scheme is: [(long) frame length][message payload]
-  // The frame length is NOT included in the output ByteBuf.
+  /**
+   * Creates a decoder that splits up the incoming ByteBuf into new ByteBuf's according to a length
+   * field in the input.
+   *
+   * The encoding scheme is: [(long) frame length][message payload]
+   * The frame length is NOT included in the output ByteBuf.
+   *
+   * @return the frame decoder for Netty
+   */
   public static ByteToMessageDecoder createFrameDecoder() {
     // maxFrameLength, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip
     return new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, Longs.BYTES, -Longs.BYTES,
         Longs.BYTES);
   }
 
-  // Returns the message of message type 'type', decoded from the input ByteBuf.
-  // This must be updated to add new message types.
+  /**
+   * Returns the message of message type 'type', decoded from the input ByteBuf.
+   *
+   * This must be updated to add new message types.
+   *
+   * @param type The type of message to decode
+   * @param in the input ByteBuf
+   * @return the decoded RPCMessage
+   */
   public static RPCMessage decodeMessage(RPCMessage.Type type, ByteBuf in) {
     switch (type) {
       case RPC_BLOCK_REQUEST:

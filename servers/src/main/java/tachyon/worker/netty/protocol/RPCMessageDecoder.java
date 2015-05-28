@@ -27,6 +27,11 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 
 import tachyon.Constants;
 
+/**
+ * Simple Netty decoder which converts the input ByteBuf into an RPCMessage.
+ * The frame decoder should have already run earlier in the Netty pipeline, and split up the stream
+ * into individual encoded messages.
+ */
 @ChannelHandler.Sharable
 public class RPCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
