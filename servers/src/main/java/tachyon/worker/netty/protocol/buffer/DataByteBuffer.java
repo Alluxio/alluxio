@@ -19,10 +19,18 @@ import java.nio.ByteBuffer;
 
 import io.netty.buffer.Unpooled;
 
+/**
+ * A DataBuffer with the underlying data being a {@link ByteBuffer}.
+ */
 public class DataByteBuffer extends DataBuffer {
   private final ByteBuffer mBuffer;
   private final int mLength;
 
+  /**
+   *
+   * @param buffer The ByteBuffer representing the data
+   * @param length The length of the ByteBuffer
+   */
   public DataByteBuffer(ByteBuffer buffer, int length) {
     mBuffer = buffer;
     mLength = length;

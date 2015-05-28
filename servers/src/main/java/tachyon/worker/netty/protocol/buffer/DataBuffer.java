@@ -15,11 +15,22 @@
 
 package tachyon.worker.netty.protocol.buffer;
 
+/**
+ * This class is a simple wrapper for the optional data that an RPCMessage may have. This allows
+ * subclasses to support different representations of the data.
+ */
 public abstract class DataBuffer {
-  // Returns an object for writing to a netty channel.
-  // Must be ByteBuf or FileRegion.
+  /**
+   * Returns an object for writing to a netty channel.
+   *
+   * @return the object to output to Netty. Must be ByteBuf or FileRegion.
+   */
   public abstract Object getNettyOutput();
 
-  // Returns the length of the data.
+  /**
+   * Returns the length of the data.
+   *
+   * @return the length of the data in bytes.
+   */
   public abstract int getLength();
 }
