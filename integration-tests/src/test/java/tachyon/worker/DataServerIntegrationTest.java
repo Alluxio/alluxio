@@ -33,6 +33,7 @@ import org.junit.runners.Parameterized;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
+import tachyon.client.RemoteBlockReader;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.WriteType;
@@ -205,6 +206,21 @@ public class DataServerIntegrationTest {
     ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     DataServerMessage recvMsg = request(block);
     assertValid(recvMsg, length, block.getBlockId(), 0, length);
+  }
+
+  @Test
+  public void readThroughClientTest()
+      throws InvalidPathException, FileAlreadyExistException, IOException {
+    final int length = 10;
+    int fileId = TachyonFSTestUtils.createByteFile(mTFS, "/testFile", WriteType.MUST_CACHE, length);
+    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+
+    RemoteBlockReader client =
+        RemoteBlockReader.Factory.createRemoteBlockReader(mWorkerTachyonConf);
+    ByteBuffer result = client.readRemoteBlock(block.getLocations().get(0).mHost,
+        block.getLocations().get(0).mSecondaryPort, block.getBlockId(), 0, length);
+
+    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(length), result);
   }
 
   @Test
