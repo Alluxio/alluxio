@@ -17,6 +17,7 @@ package tachyon.worker.eviction;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -56,17 +57,14 @@ public abstract class EvictLRUBase implements EvictStrategy {
    * Clean the blocks that have been evicted from evicting list in each StorageDir
    */
   protected void cleanEvictingBlockIds() {
-    List<Pair<StorageDir, Long>> outdatedBlocks = new ArrayList<Pair<StorageDir, Long>>();
-    for (Entry<StorageDir, Long> block : mEvictingBlockIds.entries()) {
+    Iterator<Entry<StorageDir, Long>> iterator = mEvictingBlockIds.entries().iterator();
+    while (iterator.hasNext()) {
+      Entry<StorageDir, Long> block = iterator.next();
       StorageDir dir = block.getKey();
       long blockId = block.getValue();
-      // If the block has been evicted, mark it outdated
       if (!dir.containsBlock(blockId)) {
-        outdatedBlocks.add(new Pair<StorageDir, Long>(dir, blockId));
+        iterator.remove();
       }
-    }
-    for (Pair<StorageDir, Long> block : outdatedBlocks) {
-      mEvictingBlockIds.remove(block.getFirst(), block.getSecond());
     }
   }
 
