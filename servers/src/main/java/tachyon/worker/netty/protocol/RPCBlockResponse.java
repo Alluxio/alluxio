@@ -85,8 +85,8 @@ public class RPCBlockResponse extends RPCResponse {
     out.writeLong(mBlockId);
     out.writeLong(mOffset);
     out.writeLong(mLength);
-    // The actual payload is not encoded here, since the {@link RPC} will transfer it in a more
-    // efficient way.
+    // The actual payload is not encoded here, since the RPCMessageEncoder will transfer it in a
+    // more efficient way.
   }
 
   @Override
