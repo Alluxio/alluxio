@@ -26,6 +26,9 @@ import tachyon.worker.DataServerMessage;
 import tachyon.worker.netty.protocol.buffer.DataBuffer;
 import tachyon.worker.netty.protocol.buffer.DataByteBuffer;
 
+/**
+ * This represents the response of a {@link RPCBlockRequest}.
+ */
 public class RPCBlockResponse extends RPCResponse {
   private final long mBlockId;
   private final long mOffset;
@@ -55,8 +58,6 @@ public class RPCBlockResponse extends RPCResponse {
   }
 
   public static RPCBlockResponse decode(ByteBuf in) {
-    int readableBytes = in.readableBytes();
-
     // TODO: remove this short when client also uses netty.
     in.readShort();
     long blockId = in.readLong();
@@ -84,6 +85,8 @@ public class RPCBlockResponse extends RPCResponse {
     out.writeLong(mBlockId);
     out.writeLong(mOffset);
     out.writeLong(mLength);
+    // The actual payload is not encoded here, since the {@link RPC} will transfer it in a more
+    // efficient way.
   }
 
   @Override

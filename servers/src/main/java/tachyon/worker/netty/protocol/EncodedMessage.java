@@ -21,9 +21,17 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
 public interface EncodedMessage {
 
-  // Returns the number bytes for the encoded message.
-  public int getEncodedLength();
+  /**
+   * Returns the number bytes for the encoded message.
+   *
+   * @return the length of the encoded message, in bytes.
+   */
+  int getEncodedLength();
 
-  // Writes the encoded message to the output ByteBuf.
-  public void encode(ByteBuf out);
+  /**
+   * Writes the encoded message to the output ByteBuf.
+   *
+   * @param out the output ByteBuf where the message should be encoded.
+   */
+  void encode(ByteBuf out);
 }

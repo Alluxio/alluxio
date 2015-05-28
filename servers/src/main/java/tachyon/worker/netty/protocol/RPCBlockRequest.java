@@ -27,6 +27,9 @@ import io.netty.buffer.ByteBuf;
 import tachyon.Constants;
 import tachyon.worker.DataServerMessage;
 
+/**
+ * This represents an RPC request to read a block from a DataServer.
+ */
 public class RPCBlockRequest extends RPCRequest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -45,8 +48,6 @@ public class RPCBlockRequest extends RPCRequest {
   }
 
   public static RPCBlockRequest decode(ByteBuf in) {
-    int readableBytes = in.readableBytes();
-
     // TODO: remove this short when client also uses netty.
     in.readShort();
     long blockId = in.readLong();

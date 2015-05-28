@@ -32,6 +32,9 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import tachyon.Constants;
 import tachyon.worker.netty.protocol.buffer.DataBuffer;
 
+/**
+ * Simple Netty encoder for RPCMessages.
+ */
 @ChannelHandler.Sharable
 public class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

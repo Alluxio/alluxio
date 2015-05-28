@@ -134,8 +134,18 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         req.getLength(), fileLength);
   }
 
-  // Returns the appropriate DataBuffer representing the data to send, depending on the
-  // configurable transfer type.
+
+
+  /**
+   * Returns the appropriate DataBuffer representing the data to send, depending on the
+   * configurable transfer type.
+   *
+   * @param req The initiating RPCBlockRequest
+   * @param handler The BlockHandler for the block to read
+   * @param readLength The length, in bytes, of the data to read from the block
+   * @return a DataBuffer representing the data
+   * @throws Exception
+   */
   private DataBuffer getDataBuffer(RPCBlockRequest req, BlockHandler handler, int readLength)
       throws Exception {
     switch (mTransferType) {
