@@ -19,11 +19,20 @@ import java.nio.channels.FileChannel;
 
 import io.netty.channel.DefaultFileRegion;
 
+/**
+ * A DataBuffer with the underlying data being a {@link FileChannel}.
+ */
 public class DataFileChannel extends DataBuffer {
   private final FileChannel mFileChannel;
   private final int mOffset;
   private final int mLength;
 
+  /**
+   *
+   * @param fileChannel The FileChannel representing the data
+   * @param offset The offset into the FileChannel
+   * @param length The length of the data to read
+   */
   public DataFileChannel(FileChannel fileChannel, int offset, int length) {
     mFileChannel = fileChannel;
     mOffset = offset;
