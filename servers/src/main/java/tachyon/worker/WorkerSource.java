@@ -38,6 +38,24 @@ public class WorkerSource implements Source {
   private final Counter mBlocksPromoted =
       mMetricRegistry.counter(MetricRegistry.name("BlocksPromoted"));
 
+  // metrics from client
+  private final Counter mBlocksReadLocal = mMetricRegistry.counter(MetricRegistry
+      .name("BlocksReadLocal"));
+  private final Counter mBlocksReadRemote = mMetricRegistry.counter(MetricRegistry
+      .name("BlocksReadRemote"));
+  private final Counter mBlocksWrittenLocal = mMetricRegistry.counter(MetricRegistry
+      .name("BlocksWrittenLocal"));
+  private final Counter mBytesReadLocal = mMetricRegistry.counter(MetricRegistry
+      .name("BytesReadLocal"));
+  private final Counter mBytesReadRemote = mMetricRegistry.counter(MetricRegistry
+      .name("BytesReadRemote"));
+  private final Counter mBytesReadUfs = mMetricRegistry.counter(MetricRegistry
+      .name("BytesReadUfs"));
+  private final Counter mBytesWrittenLocal = mMetricRegistry.counter(MetricRegistry
+      .name("BytesWrittenLocal"));
+  private final Counter mBytesWrittenUfs = mMetricRegistry.counter(MetricRegistry
+      .name("BytesWrittenUfs"));
+
   public WorkerSource(final WorkerStorage workerStorage) {
     mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
       @Override
@@ -96,5 +114,37 @@ public class WorkerSource implements Source {
 
   public void incBlocksPromoted() {
     mBlocksPromoted.inc();
+  }
+
+  public void incBlocksReadLocal(long n) {
+    mBlocksReadLocal.inc(n);
+  }
+
+  public void incBlocksReadRemote(long n) {
+    mBlocksReadRemote.inc(n);
+  }
+
+  public void incBlocksWrittenLocal(long n) {
+    mBlocksWrittenLocal.inc(n);
+  }
+
+  public void incBytesReadLocal(long n) {
+    mBytesReadLocal.inc(n);
+  }
+
+  public void incBytesReadRemote(long n) {
+    mBytesReadRemote.inc(n);
+  }
+
+  public void incBytesReadUfs(long n) {
+    mBytesReadUfs.inc(n);
+  }
+
+  public void incBytesWrittenLocal(long n) {
+    mBytesWrittenLocal.inc(n);
+  }
+
+  public void incBytesWrittenUfs(long n) {
+    mBytesWrittenUfs.inc(n);
   }
 }

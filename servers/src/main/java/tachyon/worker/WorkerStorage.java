@@ -1067,7 +1067,17 @@ public class WorkerStorage {
    *
    * @param userId The id of the user
    */
-  public void userHeartbeat(long userId) {
+  public void userHeartbeat(long userId, List<Long> metrics) {
     mUsers.userHeartbeat(userId);
+    if (metrics.get(Constants.CLIENT_METRICS_VERSION_INDEX) == Constants.CLIENT_METRICS_VERSION) {
+      mWorkerSource.incBlocksReadLocal(metrics.get(Constants.BLOCKS_READ_LOCAL_INDEX));
+      mWorkerSource.incBlocksReadRemote(metrics.get(Constants.BLOCKS_READ_REMOTE_INDEX));
+      mWorkerSource.incBlocksWrittenLocal(metrics.get(Constants.BLOCKS_WRITTEN_LOCAL_INDEX));
+      mWorkerSource.incBytesReadLocal(metrics.get(Constants.BYTES_READ_LOCAL_INDEX));
+      mWorkerSource.incBytesReadRemote(metrics.get(Constants.BYTES_READ_REMOTE_INDEX));
+      mWorkerSource.incBytesReadUfs(metrics.get(Constants.BYTES_READ_UFS_INDEX));
+      mWorkerSource.incBytesWrittenLocal(metrics.get(Constants.BYTES_WRITTEN_LOCAL_INDEX));
+      mWorkerSource.incBytesWrittenUfs(metrics.get(Constants.BYTES_WRITTEN_UFS_INDEX));
+    }
   }
 }

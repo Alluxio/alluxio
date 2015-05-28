@@ -95,6 +95,7 @@ public class FileOutStream extends OutStream {
     }
     if (mCurrentBlockOutStream != null) {
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
+      mTachyonFS.getClientMetrics().incBlocksWrittenLocal(1);
     }
 
     Boolean canComplete = false;
@@ -156,6 +157,7 @@ public class FileOutStream extends OutStream {
         throw new IOException("The current block still has space left, no need to get new block");
       }
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
+      mTachyonFS.getClientMetrics().incBlocksWrittenLocal(1);
     }
 
     if (mWriteType.isCache()) {
@@ -195,12 +197,14 @@ public class FileOutStream extends OutStream {
             mCurrentBlockOutStream.write(b, tOff, tLen);
             mCurrentBlockLeftByte -= tLen;
             mCachedBytes += tLen;
+            mTachyonFS.getClientMetrics().incBytesWrittenLocal(tLen);
             tLen = 0;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) mCurrentBlockLeftByte);
             tOff += mCurrentBlockLeftByte;
             tLen -= mCurrentBlockLeftByte;
             mCachedBytes += mCurrentBlockLeftByte;
+            mTachyonFS.getClientMetrics().incBytesWrittenLocal(mCurrentBlockLeftByte);
             mCurrentBlockLeftByte = 0;
           }
         }
@@ -216,6 +220,7 @@ public class FileOutStream extends OutStream {
 
     if (mWriteType.isThrough()) {
       mCheckpointOutputStream.write(b, off, len);
+      mTachyonFS.getClientMetrics().incBytesWrittenUfs(len);
     }
   }
 
@@ -230,6 +235,7 @@ public class FileOutStream extends OutStream {
         mCurrentBlockOutStream.write(b);
         mCurrentBlockLeftByte --;
         mCachedBytes ++;
+        mTachyonFS.getClientMetrics().incBytesWrittenLocal(1);
       } catch (IOException e) {
         if (mWriteType.isMustCache()) {
           LOG.error(e.getMessage(), e);
@@ -242,6 +248,7 @@ public class FileOutStream extends OutStream {
 
     if (mWriteType.isThrough()) {
       mCheckpointOutputStream.write(b);
+      mTachyonFS.getClientMetrics().incBytesWrittenUfs(1);
     }
   }
 }

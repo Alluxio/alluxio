@@ -123,11 +123,13 @@ public class WorkerService {
     public boolean unlockBlock(long blockId, long userId) throws org.apache.thrift.TException;
 
     /**
-     * Local user send heartbeat to local worker to keep its temporary folder.
+     * Local user send heartbeat to local worker to keep its temporary folder. It also sends client
+     * metrics to the worker.
      * 
      * @param userId
+     * @param metrics
      */
-    public void userHeartbeat(long userId) throws org.apache.thrift.TException;
+    public void userHeartbeat(long userId, List<Long> metrics) throws org.apache.thrift.TException;
 
   }
 
@@ -155,7 +157,7 @@ public class WorkerService {
 
     public void unlockBlock(long blockId, long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void userHeartbeat(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void userHeartbeat(long userId, List<Long> metrics, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -462,16 +464,17 @@ public class WorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "unlockBlock failed: unknown result");
     }
 
-    public void userHeartbeat(long userId) throws org.apache.thrift.TException
+    public void userHeartbeat(long userId, List<Long> metrics) throws org.apache.thrift.TException
     {
-      send_userHeartbeat(userId);
+      send_userHeartbeat(userId, metrics);
       recv_userHeartbeat();
     }
 
-    public void send_userHeartbeat(long userId) throws org.apache.thrift.TException
+    public void send_userHeartbeat(long userId, List<Long> metrics) throws org.apache.thrift.TException
     {
       userHeartbeat_args args = new userHeartbeat_args();
       args.setUserId(userId);
+      args.setMetrics(metrics);
       sendBase("userHeartbeat", args);
     }
 
@@ -879,24 +882,27 @@ public class WorkerService {
       }
     }
 
-    public void userHeartbeat(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void userHeartbeat(long userId, List<Long> metrics, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      userHeartbeat_call method_call = new userHeartbeat_call(userId, resultHandler, this, ___protocolFactory, ___transport);
+      userHeartbeat_call method_call = new userHeartbeat_call(userId, metrics, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class userHeartbeat_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long userId;
-      public userHeartbeat_call(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private List<Long> metrics;
+      public userHeartbeat_call(long userId, List<Long> metrics, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.userId = userId;
+        this.metrics = metrics;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("userHeartbeat", org.apache.thrift.protocol.TMessageType.CALL, 0));
         userHeartbeat_args args = new userHeartbeat_args();
         args.setUserId(userId);
+        args.setMetrics(metrics);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1212,7 +1218,7 @@ public class WorkerService {
 
       public userHeartbeat_result getResult(I iface, userHeartbeat_args args) throws org.apache.thrift.TException {
         userHeartbeat_result result = new userHeartbeat_result();
-        iface.userHeartbeat(args.userId);
+        iface.userHeartbeat(args.userId, args.metrics);
         return result;
       }
     }
@@ -1913,7 +1919,7 @@ public class WorkerService {
       }
 
       public void start(I iface, userHeartbeat_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.userHeartbeat(args.userId,resultHandler);
+        iface.userHeartbeat(args.userId, args.metrics,resultHandler);
       }
     }
 
@@ -11241,6 +11247,7 @@ public class WorkerService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("userHeartbeat_args");
 
     private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField METRICS_FIELD_DESC = new org.apache.thrift.protocol.TField("metrics", org.apache.thrift.protocol.TType.LIST, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -11249,10 +11256,12 @@ public class WorkerService {
     }
 
     public long userId; // required
+    public List<Long> metrics; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      USER_ID((short)1, "userId");
+      USER_ID((short)1, "userId"),
+      METRICS((short)2, "metrics");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -11269,6 +11278,8 @@ public class WorkerService {
         switch(fieldId) {
           case 1: // USER_ID
             return USER_ID;
+          case 2: // METRICS
+            return METRICS;
           default:
             return null;
         }
@@ -11316,6 +11327,9 @@ public class WorkerService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.METRICS, new org.apache.thrift.meta_data.FieldMetaData("metrics", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(userHeartbeat_args.class, metaDataMap);
     }
@@ -11324,11 +11338,13 @@ public class WorkerService {
     }
 
     public userHeartbeat_args(
-      long userId)
+      long userId,
+      List<Long> metrics)
     {
       this();
       this.userId = userId;
       setUserIdIsSet(true);
+      this.metrics = metrics;
     }
 
     /**
@@ -11337,6 +11353,10 @@ public class WorkerService {
     public userHeartbeat_args(userHeartbeat_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.userId = other.userId;
+      if (other.isSetMetrics()) {
+        List<Long> __this__metrics = new ArrayList<Long>(other.metrics);
+        this.metrics = __this__metrics;
+      }
     }
 
     public userHeartbeat_args deepCopy() {
@@ -11347,6 +11367,7 @@ public class WorkerService {
     public void clear() {
       setUserIdIsSet(false);
       this.userId = 0;
+      this.metrics = null;
     }
 
     public long getUserId() {
@@ -11372,6 +11393,45 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USERID_ISSET_ID, value);
     }
 
+    public int getMetricsSize() {
+      return (this.metrics == null) ? 0 : this.metrics.size();
+    }
+
+    public java.util.Iterator<Long> getMetricsIterator() {
+      return (this.metrics == null) ? null : this.metrics.iterator();
+    }
+
+    public void addToMetrics(long elem) {
+      if (this.metrics == null) {
+        this.metrics = new ArrayList<Long>();
+      }
+      this.metrics.add(elem);
+    }
+
+    public List<Long> getMetrics() {
+      return this.metrics;
+    }
+
+    public userHeartbeat_args setMetrics(List<Long> metrics) {
+      this.metrics = metrics;
+      return this;
+    }
+
+    public void unsetMetrics() {
+      this.metrics = null;
+    }
+
+    /** Returns true if field metrics is set (has been assigned a value) and false otherwise */
+    public boolean isSetMetrics() {
+      return this.metrics != null;
+    }
+
+    public void setMetricsIsSet(boolean value) {
+      if (!value) {
+        this.metrics = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case USER_ID:
@@ -11382,6 +11442,14 @@ public class WorkerService {
         }
         break;
 
+      case METRICS:
+        if (value == null) {
+          unsetMetrics();
+        } else {
+          setMetrics((List<Long>)value);
+        }
+        break;
+
       }
     }
 
@@ -11389,6 +11457,9 @@ public class WorkerService {
       switch (field) {
       case USER_ID:
         return Long.valueOf(getUserId());
+
+      case METRICS:
+        return getMetrics();
 
       }
       throw new IllegalStateException();
@@ -11403,6 +11474,8 @@ public class WorkerService {
       switch (field) {
       case USER_ID:
         return isSetUserId();
+      case METRICS:
+        return isSetMetrics();
       }
       throw new IllegalStateException();
     }
@@ -11426,6 +11499,15 @@ public class WorkerService {
         if (!(this_present_userId && that_present_userId))
           return false;
         if (this.userId != that.userId)
+          return false;
+      }
+
+      boolean this_present_metrics = true && this.isSetMetrics();
+      boolean that_present_metrics = true && that.isSetMetrics();
+      if (this_present_metrics || that_present_metrics) {
+        if (!(this_present_metrics && that_present_metrics))
+          return false;
+        if (!this.metrics.equals(that.metrics))
           return false;
       }
 
@@ -11455,6 +11537,16 @@ public class WorkerService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetMetrics()).compareTo(other.isSetMetrics());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetMetrics()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metrics, other.metrics);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -11477,6 +11569,14 @@ public class WorkerService {
 
       sb.append("userId:");
       sb.append(this.userId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("metrics:");
+      if (this.metrics == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.metrics);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -11531,6 +11631,24 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // METRICS
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list180 = iprot.readListBegin();
+                  struct.metrics = new ArrayList<Long>(_list180.size);
+                  for (int _i181 = 0; _i181 < _list180.size; ++_i181)
+                  {
+                    long _elem182;
+                    _elem182 = iprot.readI64();
+                    struct.metrics.add(_elem182);
+                  }
+                  iprot.readListEnd();
+                }
+                struct.setMetricsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -11549,6 +11667,18 @@ public class WorkerService {
         oprot.writeFieldBegin(USER_ID_FIELD_DESC);
         oprot.writeI64(struct.userId);
         oprot.writeFieldEnd();
+        if (struct.metrics != null) {
+          oprot.writeFieldBegin(METRICS_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.metrics.size()));
+            for (long _iter183 : struct.metrics)
+            {
+              oprot.writeI64(_iter183);
+            }
+            oprot.writeListEnd();
+          }
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -11570,19 +11700,44 @@ public class WorkerService {
         if (struct.isSetUserId()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetMetrics()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetUserId()) {
           oprot.writeI64(struct.userId);
+        }
+        if (struct.isSetMetrics()) {
+          {
+            oprot.writeI32(struct.metrics.size());
+            for (long _iter184 : struct.metrics)
+            {
+              oprot.writeI64(_iter184);
+            }
+          }
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, userHeartbeat_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.userId = iprot.readI64();
           struct.setUserIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          {
+            org.apache.thrift.protocol.TList _list185 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+            struct.metrics = new ArrayList<Long>(_list185.size);
+            for (int _i186 = 0; _i186 < _list185.size; ++_i186)
+            {
+              long _elem187;
+              _elem187 = iprot.readI64();
+              struct.metrics.add(_elem187);
+            }
+          }
+          struct.setMetricsIsSet(true);
         }
       }
     }
