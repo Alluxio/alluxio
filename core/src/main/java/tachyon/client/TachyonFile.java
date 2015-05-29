@@ -338,6 +338,35 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
+   * Get the owner of the file.
+   * 
+   * @return owner of the file. The string could be empty if there is no notion of owner of a file
+   *         in a filesystem or if it could not be determined (rare).
+   */
+  public String getOwner() throws IOException {
+    return getUnCachedFileStatus().getOwner();
+  }
+
+  /**
+   * Get the group associated with the file.
+   * 
+   * @return group for the file. The string could be empty if there is no notion of group of a file
+   *         in a filesystem or if it could not be determined (rare).
+   */
+  public String getGroup() throws IOException {
+    return getUnCachedFileStatus().getGroup();
+  }
+
+  /**
+   * Get a short permission associated with the file.
+   * 
+   * @return a short permission.
+   */
+  public short getPermission() throws IOException {
+    return (short) getUnCachedFileStatus().getPermission();
+  }
+
+  /**
    * Promote block back to top layer after access
    * 
    * @param blockIndex the index of the block

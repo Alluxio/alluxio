@@ -850,6 +850,48 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
+   * Set owner of a path (i.e. a file or a directory). The parameters username and groupname cannot
+   * both be null.
+   * 
+   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+   *        Otherwise, the method uses the path parameter.
+   * @param path The path of the file / folder. It could be empty if id is not -1.
+   * @param username If it is null, the original username remains unchanged.
+   * @param groupname If it is null, the original groupname remains unchanged.
+   * @param recursive If fileId or path represents a folder, change the folder owner recursively
+   * @return true if setOwner successfully, false otherwise.
+   * @throws IOException
+   */
+  @Override
+  public synchronized boolean setOwner(int fileId, TachyonURI path, String username,
+      String groupname, boolean recursive) throws IOException {
+    if (username == null && groupname == null) {
+      throw new IOException("username == null && groupname == null");
+    }
+    validateUri(path);
+    return mMasterClient.user_setOwner(fileId, path.getPath(), username, groupname, recursive);
+  }
+
+  /**
+   * Set permission of a path.
+   * 
+   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+   *        Otherwise, the method uses the path parameter.
+   * @param path The path of the file / folder. It could be empty if id is not -1.
+   * @param short permission, e.g. 777
+   * @param recursive If fileId or path represents a folder, 
+   *        change the folder permission recursively
+   * @return true if setPermission successfully, false otherwise.
+   * @throws IOException
+   */
+  @Override
+  public synchronized boolean setPermission(int fileId, TachyonURI path, short permission,
+      boolean recursive) throws IOException {
+    validateUri(path);
+    return mMasterClient.user_setPermission(fileId, path.getPath(), permission, recursive);
+  }
+
+  /**
    * Promote block file back to the top StorageTier, after the block file is accessed.
    * 
    * @param blockId the id of the block

@@ -196,4 +196,10 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   public void setPermission(String path, String posixPerm) throws IOException {
     CommonUtils.changeLocalFilePermission(path, posixPerm);
   }
+
+  @Override
+  public void setOwner(String path, String username, String groupname) throws IOException {
+    CommonUtils.changeLocalFileOwner(path, username, groupname);
+  }
+
 }

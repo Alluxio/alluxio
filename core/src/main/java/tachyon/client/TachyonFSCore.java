@@ -97,15 +97,47 @@ interface TachyonFSCore extends Closeable {
    */
   boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
 
- /**
-  * Memory free of a file or folder
-  * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
-  *        Otherwise, the method uses the path parameter.
-  * @param path The path of the file / folder. It could be empty iff id is not -1.
-  * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
-  *        or not
-  * @return true if in-memory free successfully, false otherwise.
-  * @throws IOException
-  */
+  /**
+   * Memory free of a file or folder
+   * 
+   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+   *        Otherwise, the method uses the path parameter.
+   * @param path The path of the file / folder. It could be empty if id is not -1.
+   * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
+   *        or not
+   * @return true if in-memory free successfully, false otherwise.
+   * @throws IOException
+   */
   boolean freepath(int fileId, TachyonURI path, boolean recursive) throws IOException;
+
+  /**
+   * Set owner of a path (i.e. a file or a directory). The parameters username and groupname cannot
+   * both be null.
+   * 
+   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+   *        Otherwise, the method uses the path parameter.
+   * @param path The path of the file / folder. It could be empty if id is not -1.
+   * @param username If it is null, the original username remains unchanged.
+   * @param groupname If it is null, the original groupname remains unchanged.
+   * @param recursive If fileId or path represents a folder, change the folder owner recursively
+   * @return true if setOwner successfully, false otherwise.
+   * @throws IOException
+   */
+  boolean setOwner(int fileId, TachyonURI path, String username, String groupname, 
+      boolean recursive) throws IOException;
+
+  /**
+   * Set permission of a path.
+   * 
+   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+   *        Otherwise, the method uses the path parameter.
+   * @param path The path of the file / folder. It could be empty if id is not -1.
+   * @param short permission, e.g. 777
+   * @param recursive If fileId or path represents a folder, change the folder permission
+   *        recursively
+   * @return true if setPermission successfully, false otherwise.
+   * @throws IOException
+   */
+  boolean setPermission(int fileId, TachyonURI path, short permission, boolean recursive)
+      throws IOException;
 }
