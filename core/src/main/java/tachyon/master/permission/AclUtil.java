@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -15,27 +15,17 @@
 
 package tachyon.master.permission;
 
-import org.apache.hadoop.conf.Configuration;
+import java.io.IOException;
 
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.master.Inode.InodeType;
 import tachyon.master.permission.AclEntry.AclPermission;
+import tachyon.master.permission.AclEntry.AclType;
+import tachyon.security.UserGroup;
 
 public class AclUtil {
   private static final AclPermission[] ACL_PERMISSIONS = AclPermission.values();
-  // ACL enable key, the default value of this key is true
-  public static final String ACL_ENABLE_KEY = "tfs.permission.enable";
-
-  // umask key
-  public static final String UMASK_KEY = "tfs.permission.umask";
-
-  // Default value of umask
-  public static final int DEFAULT_UMASK = 0022;
-
-  // Default permission of directory
-  public static final short DEFAULT_DIR_PERMISSION = 0777;
-
-  // Default permission of file
-  public static final short DEFAULT_FILE_PERMISSION = 0666;
-
   /**
    * Get user permission from a short
    * @param n, short permission, e.g. 777
@@ -82,16 +72,98 @@ public class AclUtil {
   }
 
   /**
+   * Format permission expression from a short
+   * @param n, a short permission, e.g. 00777
+   * @return a String: "rwxrwxrwx"
+   */
+  public static String formatPermission(short n) {
+    return toUserPermission(n).mValue + toGroupPermission(n).mValue + toOtherPermission(n).mValue;
+  }
+
+  /**
    * Get umask from configuration
    * @param conf
    * @return umask
    */
-  public static short getUMask(Configuration conf) {
-    int umask = DEFAULT_UMASK;
+  public static short getUMask(TachyonConf conf) {
+    int umask = Constants.DEFAULT_FS_PERMISSIONS_UMASK;
     if (conf != null) {
-      umask = conf.getInt(UMASK_KEY, DEFAULT_UMASK);
+      umask = conf.getInt(Constants.FS_PERMISSIONS_UMASK_KEY,
+          Constants.DEFAULT_FS_PERMISSIONS_UMASK);
     }
-
     return (short)umask;
+  }
+
+  /**
+   * Get the default Acl information for InodeFile or InodeFolder
+   * @param isFolder
+   * @return Acl
+   */
+  public static Acl getAcl(InodeType type) {
+    TachyonConf conf = new TachyonConf();
+    UserGroup ugi = null;
+    try {
+      ugi = UserGroup.getTachyonLoginUser();
+    } catch (IOException ioe) {
+      throw new RuntimeException("can't get the ugi info", ioe);
+    }
+    return getAcl(ugi.getShortUserName(), conf.get(Constants.FS_PERMISSIONS_SUPERGROUP,
+        Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT), conf, type);
+  }
+
+  /**
+   * Get the Acl information for InodeFile or InodeFolder
+   * @param owner
+   * @param group
+   * @param umask
+   * @param isFolder
+   * @return Acl
+   */
+  public static Acl getAcl(String owner, String group, short umask, InodeType type) {
+    Acl acl = null;
+    switch (type) {
+      case FILE:
+        acl = getAcl(owner, group, Constants.DEFAULT_FILE_PERMISSION);
+        break;
+      case FOLDER:
+        acl = getAcl(owner, group, Constants.DEFAULT_DIR_PERMISSION);
+        break;
+      default:
+        throw new IllegalArgumentException("unknown inodeType :" + type.name());
+    }
+    acl.umask(umask);
+    return acl;
+  }
+
+  /**
+   * Get the Acl information for InodeFile or InodeFolder
+   * @param owner
+   * @param group
+   * @param conf
+   * @param isFolder
+   * @return Acl
+   */
+  public static Acl getAcl(String owner, String group, TachyonConf conf, InodeType type) {
+    return getAcl(owner, group, getUMask(conf), type);
+  }
+
+  public static Acl getAcl(String owner, String group, short perm) {
+    AclEntry userEntry = new AclEntry.Builder().setType(AclType.USER)
+        .setName(owner)
+        .setPermission(AclUtil.toUserPermission(perm))
+        .build();
+
+    AclEntry groupEntry = new AclEntry.Builder().setType(AclType.GROUP)
+        .setName(group)
+        .setPermission(AclUtil.toGroupPermission(perm))
+        .build();
+    AclEntry otherEntry = new AclEntry.Builder().setType(AclType.OTHER)
+        .setPermission(AclUtil.toOtherPermission(perm))
+        .build();
+    
+    return new Acl.Builder().setUserEntry(userEntry)
+        .setGroupEntry(groupEntry)
+        .setOtherEntry(otherEntry)
+        .build();
   }
 }

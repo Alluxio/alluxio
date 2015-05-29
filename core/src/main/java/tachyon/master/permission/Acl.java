@@ -21,7 +21,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 
+import tachyon.conf.TachyonConf;
 import tachyon.master.permission.AclEntry.AclPermission;
+import tachyon.master.permission.AclEntry.AclType;
 
 /**
  * This class contains three {@link AclEntry}: mUserEntry, mGroupEntry, and mOtherEntry.
@@ -112,6 +114,14 @@ public class Acl {
     return (short)s;
   }
 
+  /**
+   * Get a string permission format
+   * @return string .ex rwxr-x--x
+   */
+  public String getPermission() {
+    return mUserEntry.getPermission().mValue + mGroupEntry.getPermission().mValue
+        + mOtherEntry.getPermission().mValue;
+  }
 
   public AclPermission getUserPermission() {
     return mUserEntry.getPermission();
@@ -144,7 +154,7 @@ public class Acl {
    *
    * @param conf
    */
-  public void umask(Configuration conf) {
+  public void umask(TachyonConf conf) {
     umask(AclUtil.getUMask(conf));
   }
 
