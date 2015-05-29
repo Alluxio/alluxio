@@ -15,6 +15,7 @@
 
 package tachyon.worker.netty;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -62,7 +63,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   }
 
   @Override
-  public void channelRead0(final ChannelHandlerContext ctx, final RPCMessage msg) throws Exception {
+  public void channelRead0(final ChannelHandlerContext ctx, final RPCMessage msg)
+      throws IOException {
     switch (msg.getType()) {
       case RPC_BLOCK_REQUEST:
         handleBlockRequest(ctx, (RPCBlockRequest) msg);
@@ -80,7 +82,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   }
 
   private void handleBlockRequest(final ChannelHandlerContext ctx, final RPCBlockRequest req)
-      throws Exception {
+      throws IOException {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
@@ -97,7 +99,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       final long readLength = returnLength(offset, len, fileLength);
       ChannelFuture future =
           ctx.writeAndFlush(new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req,
-              handler, (int) readLength)));
+              handler, readLength)));
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(handler));
       storageDir.accessBlock(blockId);
@@ -144,22 +146,23 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
    * @param handler The BlockHandler for the block to read
    * @param readLength The length, in bytes, of the data to read from the block
    * @return a DataBuffer representing the data
-   * @throws Exception
+   * @throws IOException
+   * @throws IllegalArgumentException
    */
-  private DataBuffer getDataBuffer(RPCBlockRequest req, BlockHandler handler, int readLength)
-      throws Exception {
+  private DataBuffer getDataBuffer(RPCBlockRequest req, BlockHandler handler, long readLength)
+      throws IOException, IllegalArgumentException {
     switch (mTransferType) {
       case MAPPED:
-        ByteBuffer data = handler.read(req.getOffset(), readLength);
+        ByteBuffer data = handler.read(req.getOffset(), (int) readLength);
         return new DataByteBuffer(data, readLength);
       case TRANSFER: // intend to fall through as TRANSFER is the default type.
       default:
         if (handler.getChannel() instanceof FileChannel) {
-          return new DataFileChannel((FileChannel) handler.getChannel(), (int) req.getOffset(),
+          return new DataFileChannel((FileChannel) handler.getChannel(), req.getOffset(),
               readLength);
         }
         handler.close();
-        throw new Exception("Only FileChannel is supported!");
+        throw new IllegalArgumentException("Only FileChannel is supported!");
     }
   }
 }

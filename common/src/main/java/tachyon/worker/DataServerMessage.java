@@ -304,6 +304,8 @@ public class DataServerMessage {
         long frameLength = mHeader.getLong(); // frame length
         int msgRPCType = mHeader.getInt(); // RPC message type
 
+        // TODO: this msgType will be replaced by the newer msgRPCType when the client is converted
+        // to netty.
         short msgType = mHeader.getShort();
         assert (mMessageType == msgType);
         mBlockId = mHeader.getLong();
