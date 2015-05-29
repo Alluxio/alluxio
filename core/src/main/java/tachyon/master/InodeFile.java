@@ -24,6 +24,8 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
+import tachyon.master.permission.Acl;
+import tachyon.master.permission.AclUtil;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -54,9 +56,12 @@ public class InodeFile extends Inode {
     final String ufsPath = ele.getString("ufsPath");
     final int dependencyId = ele.getInt("depId");
     final long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
-
-    InodeFile inode = new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
-
+    final String owner = ele.getString("owner");
+    final String group = ele.getString("group");
+    final short permission = ele.getShort("permission");
+    InodeFile inode =
+        new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs,
+            AclUtil.getAcl(owner, group, permission));
     try {
       inode.setLength(length);
     } catch (Exception e) {
@@ -91,7 +96,12 @@ public class InodeFile extends Inode {
    * @param creationTimeMs The creation time of the file, in milliseconds
    */
   public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs) {
-    super(name, id, parentId, false, creationTimeMs);
+    this(name, id, parentId, blockSizeByte, creationTimeMs, AclUtil.getAcl(InodeType.FILE));
+  }
+
+  public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs,
+      Acl acl) {
+    super(name, id, parentId, false, creationTimeMs, acl);
     mBlockSizeByte = blockSizeByte;
     mDependencyId = -1;
   }
@@ -164,7 +174,9 @@ public class InodeFile extends Inode {
     ret.dependencyId = mDependencyId;
     ret.inMemoryPercentage = getInMemoryPercentage();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
-
+    ret.owner = getAcl().getUserName();
+    ret.group = getAcl().getGroupName();
+    ret.permission = getAcl().toShort();
     return ret;
   }
 
@@ -478,7 +490,9 @@ public class InodeFile extends Inode {
             .withParameter("length", getLength()).withParameter("complete", isComplete())
             .withParameter("pin", isPinned()).withParameter("cache", isCache())
             .withParameter("ufsPath", getUfsPath()).withParameter("depId", getDependencyId())
-            .withParameter("lastModificationTimeMs", getLastModificationTimeMs());
+            .withParameter("lastModificationTimeMs", getLastModificationTimeMs())
+            .withParameter("owner", mAcl.getUserName()).withParameter("group", mAcl.getGroupName())
+            .withParameter("permission", mAcl.toShort());
 
     writeElement(objWriter, dos, ele);
   }

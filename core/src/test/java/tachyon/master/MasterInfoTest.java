@@ -30,6 +30,7 @@ import java.util.concurrent.Future;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,6 +39,10 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.master.Inode.InodeType;
+import tachyon.master.permission.AclUtil;
+import tachyon.security.UserGroup;
+import tachyon.thrift.AccessControlException;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
@@ -55,15 +60,19 @@ public class MasterInfoTest {
     private int depth;
     private int concurrencyDepth;
     private TachyonURI initPath;
+    private UserGroup caller;
 
-    ConcurrentCreator(int depth, int concurrencyDepth, TachyonURI initPath) {
+    ConcurrentCreator(int depth, int concurrencyDepth, TachyonURI initPath,
+        UserGroup caller) {
       this.depth = depth;
       this.concurrencyDepth = concurrencyDepth;
       this.initPath = initPath;
+      this.caller = caller;
     }
 
     @Override
     public Void call() throws Exception {
+      mLocalTachyonCluster.setAuthenticationUser(caller);
       exec(this.depth, this.concurrencyDepth, this.initPath);
       return null;
     }
@@ -84,7 +93,7 @@ public class MasterInfoTest {
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           Callable<Void> call =
               (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
-                  path.join(Integer.toString(i))));
+                  path.join(Integer.toString(i)), caller));
           futures.add(executor.submit(call));
         }
         for (Future<Void> f : futures) {
@@ -103,15 +112,19 @@ public class MasterInfoTest {
     private int depth;
     private int concurrencyDepth;
     private TachyonURI initPath;
+    private UserGroup caller;
 
-    ConcurrentDeleter(int depth, int concurrencyDepth, TachyonURI initPath) {
+    ConcurrentDeleter(int depth, int concurrencyDepth, TachyonURI initPath,
+        UserGroup caller) {
       this.depth = depth;
       this.concurrencyDepth = concurrencyDepth;
       this.initPath = initPath;
+      this.caller = caller;
     }
 
     @Override
     public Void call() throws Exception {
+      mLocalTachyonCluster.setAuthenticationUser(caller);
       exec(this.depth, this.concurrencyDepth, this.initPath);
       return null;
     }
@@ -135,7 +148,7 @@ public class MasterInfoTest {
           for (int i = 0; i < FILES_PER_NODE; i ++) {
             Callable<Void> call =
                 (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1, path.join(Integer
-                    .toString(i))));
+                    .toString(i)), caller));
             futures.add(executor.submit(call));
           }
           for (Future<Void> f : futures) {
@@ -158,18 +171,21 @@ public class MasterInfoTest {
     private TachyonURI rootPath;
     private TachyonURI rootPath2;
     private TachyonURI initPath;
+    private UserGroup caller;
 
     ConcurrentRenamer(int depth, int concurrencyDepth, TachyonURI rootPath, TachyonURI rootPath2,
-        TachyonURI initPath) {
+        TachyonURI initPath, UserGroup caller) {
       this.depth = depth;
       this.concurrencyDepth = concurrencyDepth;
       this.rootPath = rootPath;
       this.rootPath2 = rootPath2;
       this.initPath = initPath;
+      this.caller = caller;
     }
 
     @Override
     public Void call() throws Exception {
+      mLocalTachyonCluster.setAuthenticationUser(caller);
       exec(this.depth, this.concurrencyDepth, this.initPath);
       return null;
     }
@@ -201,7 +217,7 @@ public class MasterInfoTest {
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           Callable<Void> call =
               (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, this.rootPath,
-                  this.rootPath2, path.join(Integer.toString(i))));
+                  this.rootPath2, path.join(Integer.toString(i)), caller));
           futures.add(executor.submit(call));
         }
         for (Future<Void> f : futures) {
@@ -234,10 +250,12 @@ public class MasterInfoTest {
 
   private TachyonConf mMasterTachyonConf;
 
+  private UserGroup mloginUser;
+
   @Test
-  public void addCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,
+  public void addCheckpoaddCheckpointTestintTest() throws FileDoesNotExistException, SuspectedFileSizeException,
       FileAlreadyExistException, InvalidPathException, BlockInfoException, FileNotFoundException,
-      TachyonException {
+      AccessControlException, TachyonException {
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
@@ -263,11 +281,12 @@ public class MasterInfoTest {
     mExecutorService = Executors.newFixedThreadPool(2);
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mloginUser = UserGroup.getTachyonLoginUser();
   }
 
   @Test
   public void clientFileInfoDirectoryTest() throws InvalidPathException, FileDoesNotExistException,
-      FileAlreadyExistException, TachyonException {
+      FileAlreadyExistException, AccessControlException, TachyonException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals("testFolder", fileInfo.getName());
@@ -282,7 +301,7 @@ public class MasterInfoTest {
 
   @Test
   public void clientFileInfoEmptyFileTest() throws InvalidPathException, FileDoesNotExistException,
-      FileAlreadyExistException, BlockInfoException, TachyonException {
+      FileAlreadyExistException, BlockInfoException, AccessControlException, TachyonException {
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
@@ -301,7 +320,7 @@ public class MasterInfoTest {
     // Makes sure the file id's are the same between a master info and the journal it creates
     for (int i = 0; i < 5; i ++) {
       ConcurrentCreator concurrentCreator =
-          new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+          new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, mloginUser);
       concurrentCreator.call();
 
       String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
@@ -321,18 +340,18 @@ public class MasterInfoTest {
   @Test
   public void concurrentCreateTest() throws Exception {
     ConcurrentCreator concurrentCreator =
-        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, mloginUser);
     concurrentCreator.call();
   }
 
   @Test
   public void concurrentDeleteTest() throws Exception {
     ConcurrentCreator concurrentCreator =
-        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, mloginUser);
     concurrentCreator.call();
 
     ConcurrentDeleter concurrentDeleter =
-        new ConcurrentDeleter(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+        new ConcurrentDeleter(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, mloginUser);
     concurrentDeleter.call();
 
     Assert.assertEquals(1, mMasterInfo.ls(new TachyonURI("/"), true).size());
@@ -341,13 +360,14 @@ public class MasterInfoTest {
   @Test
   public void concurrentRenameTest() throws Exception {
     ConcurrentCreator concurrentCreator =
-        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, mloginUser);
     concurrentCreator.call();
 
     int numFiles = mMasterInfo.ls(ROOT_PATH, true).size();
 
     ConcurrentRenamer concurrentRenamer =
-        new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2, TachyonURI.EMPTY_URI);
+        new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2,
+            TachyonURI.EMPTY_URI, mloginUser);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles, mMasterInfo.ls(ROOT_PATH2, true).size());
@@ -355,14 +375,14 @@ public class MasterInfoTest {
 
   @Test(expected = FileAlreadyExistException.class)
   public void createAlreadyExistFileTest() throws InvalidPathException, FileAlreadyExistException,
-      BlockInfoException, TachyonException {
+      BlockInfoException, AccessControlException, TachyonException {
     mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     mMasterInfo.mkdirs(new TachyonURI("/testFile"), true);
   }
 
   @Test
   public void createDirectoryTest() throws InvalidPathException, FileAlreadyExistException,
-      FileDoesNotExistException, TachyonException {
+      FileDoesNotExistException, AccessControlException, TachyonException {
     mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true);
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertTrue(fileInfo.isFolder);
@@ -370,19 +390,19 @@ public class MasterInfoTest {
 
   @Test(expected = InvalidPathException.class)
   public void createFileInvalidPathTest() throws InvalidPathException, FileAlreadyExistException,
-      BlockInfoException, TachyonException {
+      BlockInfoException, AccessControlException, TachyonException {
     mMasterInfo.createFile(new TachyonURI("testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
   }
 
   @Test(expected = FileAlreadyExistException.class)
   public void createFileInvalidPathTest2() throws InvalidPathException, FileAlreadyExistException,
-      BlockInfoException, TachyonException {
+      BlockInfoException, AccessControlException, TachyonException {
     mMasterInfo.createFile(new TachyonURI("/"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
   }
 
   @Test(expected = InvalidPathException.class)
   public void createFileInvalidPathTest3() throws InvalidPathException, FileAlreadyExistException,
-      BlockInfoException, TachyonException {
+      BlockInfoException, AccessControlException, TachyonException {
     mMasterInfo.createFile(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     mMasterInfo.createFile(new TachyonURI("/testFile1/testFile2"),
         Constants.DEFAULT_BLOCK_SIZE_BYTE);
@@ -390,7 +410,7 @@ public class MasterInfoTest {
 
   @Test
   public void createFilePerfTest() throws FileAlreadyExistException, InvalidPathException,
-      FileDoesNotExistException, TachyonException {
+      FileDoesNotExistException, AccessControlException, TachyonException {
     // long sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
       mMasterInfo.mkdirs(new TachyonURI("/testFile").join(MasterInfo.COL + k).join("0"), true);
@@ -405,21 +425,21 @@ public class MasterInfoTest {
 
   @Test
   public void createFileTest() throws InvalidPathException, FileAlreadyExistException,
-      FileDoesNotExistException, BlockInfoException, TachyonException {
+      FileDoesNotExistException, BlockInfoException, AccessControlException, TachyonException {
     mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     Assert.assertFalse(mMasterInfo.getClientFileInfo(new TachyonURI("/testFile")).isFolder);
   }
 
   @Test
   public void createRawTableTest() throws InvalidPathException, FileAlreadyExistException,
-      TableColumnException, FileDoesNotExistException, TachyonException {
+      TableColumnException, FileDoesNotExistException, AccessControlException, TachyonException {
     mMasterInfo.createRawTable(new TachyonURI("/testTable"), 1, (ByteBuffer) null);
     Assert.assertTrue(mMasterInfo.getClientFileInfo(new TachyonURI("/testTable")).isFolder);
   }
 
   @Test
   public void deleteDirectoryWithDirectoriesTest() throws InvalidPathException,
-      FileAlreadyExistException, TachyonException, BlockInfoException {
+      FileAlreadyExistException, AccessControlException, TachyonException, BlockInfoException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder/testFolder2"), true));
     int fileId =
@@ -443,7 +463,7 @@ public class MasterInfoTest {
 
   @Test
   public void deleteDirectoryWithDirectoriesTest2() throws InvalidPathException,
-      FileAlreadyExistException, TachyonException, BlockInfoException {
+      FileAlreadyExistException, AccessControlException, TachyonException, BlockInfoException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder/testFolder2"), true));
     int fileId =
@@ -467,7 +487,7 @@ public class MasterInfoTest {
 
   @Test
   public void deleteDirectoryWithFilesTest() throws InvalidPathException,
-      FileAlreadyExistException, TachyonException, BlockInfoException {
+      FileAlreadyExistException, AccessControlException, TachyonException, BlockInfoException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFolder/testFile"),
@@ -481,7 +501,7 @@ public class MasterInfoTest {
 
   @Test
   public void deleteDirectoryWithFilesTest2() throws InvalidPathException,
-      FileAlreadyExistException, TachyonException, BlockInfoException {
+      FileAlreadyExistException, AccessControlException, TachyonException, BlockInfoException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFolder/testFile"),
@@ -495,7 +515,7 @@ public class MasterInfoTest {
 
   @Test
   public void deleteEmptyDirectoryTest() throws InvalidPathException, FileAlreadyExistException,
-      TachyonException {
+      AccessControlException, TachyonException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     Assert.assertEquals(2, mMasterInfo.getFileId(new TachyonURI("/testFolder")));
     Assert.assertTrue(mMasterInfo.delete(new TachyonURI("/testFolder"), true));
@@ -504,7 +524,7 @@ public class MasterInfoTest {
 
   @Test
   public void deleteFileTest() throws InvalidPathException, FileAlreadyExistException,
-      TachyonException, BlockInfoException {
+      TachyonException, AccessControlException, BlockInfoException {
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     Assert.assertEquals(fileId, mMasterInfo.getFileId(new TachyonURI("/testFile")));
@@ -514,7 +534,7 @@ public class MasterInfoTest {
 
   @Test
   public void deleteRootTest() throws InvalidPathException, FileAlreadyExistException,
-      TachyonException, BlockInfoException {
+      AccessControlException, TachyonException, BlockInfoException {
     Assert.assertFalse(mMasterInfo.delete(new TachyonURI("/"), true));
     Assert.assertFalse(mMasterInfo.delete(new TachyonURI("/"), false));
   }
@@ -527,7 +547,7 @@ public class MasterInfoTest {
   @Test
   public void lastModificationTimeAddCheckpointTest() throws FileDoesNotExistException,
       SuspectedFileSizeException, FileAlreadyExistException, InvalidPathException,
-      BlockInfoException, FileNotFoundException, TachyonException {
+      BlockInfoException, FileNotFoundException, AccessControlException, TachyonException {
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     long opTimeMs = System.currentTimeMillis();
@@ -539,7 +559,7 @@ public class MasterInfoTest {
   @Test
   public void lastModificationTimeCompleteFileTest() throws FileDoesNotExistException,
       SuspectedFileSizeException, FileAlreadyExistException, InvalidPathException,
-      BlockInfoException, FileNotFoundException, TachyonException {
+      BlockInfoException, FileNotFoundException, AccessControlException, TachyonException {
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     long opTimeMs = System.currentTimeMillis();
@@ -550,18 +570,20 @@ public class MasterInfoTest {
 
   @Test
   public void lastModificationTimeCreateFileTest() throws InvalidPathException,
-      FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
+      FileAlreadyExistException, FileDoesNotExistException,AccessControlException,
+      TachyonException, BlockInfoException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     long opTimeMs = System.currentTimeMillis();
     mMasterInfo._createFile(false, new TachyonURI("/testFolder/testFile"), false,
-        Constants.DEFAULT_BLOCK_SIZE_BYTE, opTimeMs);
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, opTimeMs, AclUtil.getAcl(InodeType.FILE));
     ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }
 
   @Test
   public void lastModificationTimeDeleteTest() throws InvalidPathException,
-      FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
+      FileAlreadyExistException, FileDoesNotExistException, AccessControlException,
+      TachyonException, BlockInfoException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFolder/testFile"),
@@ -576,7 +598,8 @@ public class MasterInfoTest {
 
   @Test
   public void lastModificationTimeRenameTest() throws InvalidPathException,
-      FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
+      FileAlreadyExistException, FileDoesNotExistException, AccessControlException,
+      TachyonException, BlockInfoException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFolder/testFile1"),
@@ -590,7 +613,7 @@ public class MasterInfoTest {
 
   @Test
   public void listFilesTest() throws InvalidPathException, FileDoesNotExistException,
-      FileAlreadyExistException, BlockInfoException, TachyonException {
+      FileAlreadyExistException, BlockInfoException, AccessControlException, TachyonException {
     HashSet<Integer> ids = new HashSet<Integer>();
     HashSet<Integer> dirIds = new HashSet<Integer>();
     for (int i = 0; i < 10; i ++) {
@@ -611,7 +634,7 @@ public class MasterInfoTest {
 
   @Test
   public void lsTest() throws FileAlreadyExistException, InvalidPathException, TachyonException,
-      BlockInfoException, FileDoesNotExistException {
+      BlockInfoException, FileDoesNotExistException, AccessControlException{
     for (int i = 0; i < 10; i ++) {
       mMasterInfo.mkdirs(new TachyonURI("/i" + i), true);
       for (int j = 0; j < 10; j ++) {
@@ -631,13 +654,14 @@ public class MasterInfoTest {
 
   @Test(expected = TableColumnException.class)
   public void negativeColumnTest() throws InvalidPathException, FileAlreadyExistException,
-      TableColumnException, TachyonException {
+      TableColumnException, AccessControlException, TachyonException {
     mMasterInfo.createRawTable(new TachyonURI("/testTable"), -1, (ByteBuffer) null);
   }
 
   @Test(expected = FileNotFoundException.class)
   public void notFileCheckpointTest() throws FileNotFoundException, SuspectedFileSizeException,
-      FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
+      FileAlreadyExistException, InvalidPathException, BlockInfoException, AccessControlException,
+      TachyonException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFile"), true));
     mMasterInfo.addCheckpoint(-1, mMasterInfo.getFileId(new TachyonURI("/testFile")), 0,
         new TachyonURI("/testPath"));
@@ -645,23 +669,22 @@ public class MasterInfoTest {
 
   @Test
   public void renameExistingDstTest() throws InvalidPathException, FileAlreadyExistException,
-      FileDoesNotExistException, TachyonException, BlockInfoException {
+      FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
     mMasterInfo.createFile(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     mMasterInfo.createFile(new TachyonURI("/testFile2"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    Assert.assertFalse(mMasterInfo.rename(new TachyonURI("/testFile1"),
-        new TachyonURI("/testFile2")));
+    mMasterInfo.rename(new TachyonURI("/testFile1"),new TachyonURI("/testFile2"));
   }
 
   @Test(expected = FileDoesNotExistException.class)
   public void renameNonexistentTest() throws InvalidPathException, FileAlreadyExistException,
-      FileDoesNotExistException, TachyonException, BlockInfoException {
+      FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
     mMasterInfo.createFile(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     mMasterInfo.rename(new TachyonURI("/testFile2"), new TachyonURI("/testFile3"));
   }
 
   @Test(expected = InvalidPathException.class)
   public void renameToDeeper() throws InvalidPathException, FileAlreadyExistException,
-      FileDoesNotExistException, TachyonException, BlockInfoException {
+      FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
     mMasterInfo.mkdirs(new TachyonURI("/testDir1/testDir2"), true);
     mMasterInfo.createFile(new TachyonURI("/testDir1/testDir2/testDir3/testFile3"),
         Constants.DEFAULT_BLOCK_SIZE_BYTE);
@@ -671,9 +694,94 @@ public class MasterInfoTest {
 
   @Test(expected = TableColumnException.class)
   public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistException,
-      TableColumnException, TachyonException {
+      TableColumnException, AccessControlException, TachyonException {
     int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS, 1000);
     mMasterInfo.createRawTable(new TachyonURI("/testTable"), maxColumns + 1, (ByteBuffer) null);
+  }
+
+  @Test
+  public void setOwnerTest() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
+    TachyonURI path = new TachyonURI("/testDir1/testFile1");
+    mMasterInfo.createFile(path, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(path);
+    String testOwner = "testOwner";
+    String testGroup = "testGroup";
+    String owner = fileInfo.getOwner();
+    String group = fileInfo.getGroup();
+    Assert.assertNotEquals(testOwner, owner);
+    Assert.assertNotEquals(testGroup, group);
+    /**change the owner, not affect the group */
+    mMasterInfo.setOwner(path, testOwner, null, false);
+    fileInfo = mMasterInfo.getClientFileInfo(path);
+    Assert.assertEquals(testOwner, fileInfo.getOwner());
+    Assert.assertEquals(group, fileInfo.getGroup());
+
+    /**change the owner and the group */
+    String testOwner2 = "testOwner2";
+    mMasterInfo.setOwner(path, testOwner2, testGroup, false);
+    fileInfo = mMasterInfo.getClientFileInfo(path);
+    Assert.assertEquals(testOwner2, fileInfo.getOwner());
+    Assert.assertEquals(testGroup, fileInfo.getGroup());
+  }
+
+  @Test
+  public void setOwnerRecursiveTest() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
+    TachyonURI path1 = new TachyonURI("/testDir1");
+    TachyonURI path2 = new TachyonURI("/testDir1/testFile1");
+    mMasterInfo.mkdirs(path1, true);
+    mMasterInfo.createFile(path2, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+
+    String testOwner = "testOwner";
+    String testGroup = "testGroup";
+
+    ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo(path1);
+    ClientFileInfo fileInfo2 = mMasterInfo.getClientFileInfo(path2);
+    Assert.assertNotEquals(testOwner, fileInfo1.getOwner());
+    Assert.assertNotEquals(testGroup, fileInfo1.getGroup());
+    Assert.assertNotEquals(testOwner, fileInfo2.getOwner());
+    Assert.assertNotEquals(testGroup, fileInfo2.getGroup());
+
+
+    mMasterInfo.setOwner(path1, testOwner, testGroup, true);
+    fileInfo1 = mMasterInfo.getClientFileInfo(path1);
+    fileInfo2 = mMasterInfo.getClientFileInfo(path2);
+    Assert.assertEquals(testOwner, fileInfo1.getOwner());
+    Assert.assertEquals(testGroup, fileInfo1.getGroup());
+    Assert.assertEquals(testOwner, fileInfo2.getOwner());
+    Assert.assertEquals(testGroup, fileInfo2.getGroup());
+  }
+
+  @Test
+  public void setPermissionTest() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
+    TachyonURI path = new TachyonURI("/testDir1/testFile1");
+    mMasterInfo.createFile(path, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(path);
+    int perm = 0123;
+    Assert.assertTrue(perm != fileInfo.getPermission());
+    mMasterInfo.setPermission(path, (short)perm, false);
+    Assert.assertTrue(perm == mMasterInfo.getClientFileInfo(path).getPermission());
+  }
+
+  @Test
+  public void setPermissionRecursiveTest() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, AccessControlException, TachyonException, BlockInfoException {
+    TachyonURI path1 = new TachyonURI("/testDir1");
+    TachyonURI path2 = new TachyonURI("/testDir1/testFile1");
+    int perm = 0123;
+    mMasterInfo.mkdirs(path1, true);
+    mMasterInfo.createFile(path2, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+
+    ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo(path1);
+    ClientFileInfo fileInfo2 = mMasterInfo.getClientFileInfo(path2);
+    Assert.assertTrue(perm != fileInfo1.getPermission());
+    Assert.assertTrue(perm != fileInfo2.getPermission());
+
+    mMasterInfo.setPermission(path1, (short)perm, true);
+    Assert.assertTrue(perm == mMasterInfo.getClientFileInfo(path1).getPermission());
+    Assert.assertTrue(perm == mMasterInfo.getClientFileInfo(path2).getPermission());
   }
 
   @Test

@@ -101,6 +101,14 @@ abstract class JsonObject {
     return this.get(name, Number.class).longValue();
   }
 
+  /**
+   * Deserializes the parameter as a short. Use of this function is necessary when dealing with
+   * shorts such as short permission (eg. 00777)
+   */
+  public Short getShort(String name) {
+    return this.get(name, Number.class).shortValue();
+  }
+
   public String getString(String name) {
     return this.get(name, String.class);
   }

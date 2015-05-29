@@ -33,6 +33,10 @@ import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
+import tachyon.master.Inode.InodeType;
+import tachyon.master.permission.Acl;
+import tachyon.master.permission.AclUtil;
+import tachyon.thrift.AccessControlException;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -54,7 +58,7 @@ public class JournalTest {
    * @throws Exception
    */
   @Test
-  public void AddBlockTest() throws Exception {
+  public void AddBlockTeAddBlockTestst() throws Exception {
     TachyonURI uri = new TachyonURI("/xyz");
     mTfs.createFile(uri, 64);
     TachyonFile file = mTfs.getFile(uri);
@@ -72,7 +76,7 @@ public class JournalTest {
   }
 
   private void AddBlockTestUtil(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
-      FileDoesNotExistException {
+      FileDoesNotExistException,AccessControlException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
@@ -110,7 +114,7 @@ public class JournalTest {
   }
 
   private void AddCheckpointTestUtil(ClientFileInfo fileInfo, ClientFileInfo ckFileInfo)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
@@ -285,7 +289,7 @@ public class JournalTest {
   }
 
   private void FileTestUtil(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
-      FileDoesNotExistException {
+      FileDoesNotExistException, AccessControlException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
@@ -321,7 +325,7 @@ public class JournalTest {
   }
 
   private void PinTestUtil(ClientFileInfo folder, ClientFileInfo file0, ClientFileInfo file1)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
@@ -360,7 +364,7 @@ public class JournalTest {
   }
 
   private void FolderTest(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
-      FileDoesNotExistException {
+      FileDoesNotExistException, AccessControlException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
@@ -468,7 +472,7 @@ public class JournalTest {
     log.setMaxLogSize(100);
     for (int i = 0; i < 124; i ++) {
       log.createFile(false, new TachyonURI("/sth" + i), false, Constants.DEFAULT_BLOCK_SIZE_BYTE,
-          System.currentTimeMillis());
+          System.currentTimeMillis(), AclUtil.getAcl(InodeType.FILE));
       log.flush();
     }
     log.close();
@@ -549,7 +553,7 @@ public class JournalTest {
   }
 
   private void TableTest(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
-      FileDoesNotExistException {
+      FileDoesNotExistException,AccessControlException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
