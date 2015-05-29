@@ -220,6 +220,7 @@ public class TachyonWorker implements Runnable {
       mServerTServerSocket = new TServerSocket(workerAddress);
       mPort = NetworkUtils.getPort(mServerTServerSocket);
 
+      // TODO: auth worker server???
       mServer =
           new TThreadPoolServer(new TThreadPoolServer.Args(mServerTServerSocket)
               .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads)

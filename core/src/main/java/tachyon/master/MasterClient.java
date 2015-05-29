@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,11 +28,14 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import javax.security.sasl.SaslException;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
+
 import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +51,10 @@ import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
+import tachyon.security.UserGroup;
+import tachyon.security.authentication.AuthenticationFactory;
+import tachyon.security.authentication.PlainSaslHelper;
+import tachyon.thrift.AccessControlException;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -66,7 +74,6 @@ import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
 
 /**
  * The master server client side.
@@ -177,9 +184,7 @@ public final class MasterClient implements Closeable {
       LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect master @ "
           + mMasterAddress);
 
-      mProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(
-              NetworkUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
+      mProtocol = new TBinaryProtocol(createTransport());
       mClient = new MasterService.Client(mProtocol);
       try {
         mProtocol.getTransport().open();
@@ -220,6 +225,50 @@ public final class MasterClient implements Closeable {
         + (retry.getRetryCount()) + " attempts", lastException);
   }
 
+  /**
+   * Create transport per the connection options Supported transport options are: - SASL based
+   * transports over + Kerberos + Delegation token + SSL + non-SSL - Raw (non-SASL) socket
+   * 
+   * Kerberos and Delegation token supports SASL QOP configurations
+   * 
+   * @throws TTransportException
+   */
+  private TTransport createTransport() throws IOException {
+    TTransport tTransport = null;
+    String authTypeStr =
+        mTachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
+            AuthenticationFactory.AuthTypes.NOSASL.getAuthName());
+    try {
+      if (authTypeStr.equalsIgnoreCase(AuthenticationFactory.AuthTypes.KERBEROS.getAuthName())) {
+        // TODO: Kerboros
+      } else if (authTypeStr.equalsIgnoreCase(
+          AuthenticationFactory.AuthTypes.SIMPLE.getAuthName())) {
+        String username = getUserName();
+
+        if (mTachyonConf.getBoolean(Constants.TACHYON_SECURITY_USE_SSL, false)) {
+          // TODO: ssl
+        } else {
+          tTransport = AuthenticationFactory.createTSocket(mMasterAddress);
+        }
+        // Overlay the SASL transport on top of the base socket transport (SSL or non-SSL)
+        tTransport = PlainSaslHelper.getPlainTransport(username, "noPassword", tTransport);
+      } else if (authTypeStr.equalsIgnoreCase(
+          AuthenticationFactory.AuthTypes.NOSASL.getAuthName())) {
+        tTransport = new TFramedTransport(AuthenticationFactory.createTSocket(mMasterAddress));
+      }
+    } catch (SaslException e) {
+      throw e;
+    }
+    return tTransport;
+  }
+
+  private String getUserName() throws IOException {
+    // TODO: high layer user
+
+    // Login user
+    return UserGroup.getTachyonLoginUser().getShortUserName();
+  }
+
   public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
     while (!mIsShutdown) {
       connect();
@@ -250,6 +299,8 @@ public final class MasterClient implements Closeable {
       try {
         return mClient.getFileStatus(fileId, path);
       } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -312,6 +363,8 @@ public final class MasterClient implements Closeable {
       } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -389,7 +442,6 @@ public final class MasterClient implements Closeable {
 
     while (!mIsShutdown) {
       connect();
-
       try {
         return mClient.user_createFile(path, ufsPath, blockSizeByte, recursive);
       } catch (FileAlreadyExistException e) {
@@ -401,6 +453,8 @@ public final class MasterClient implements Closeable {
       } catch (SuspectedFileSizeException e) {
         throw new IOException(e);
       } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -461,6 +515,8 @@ public final class MasterClient implements Closeable {
       try {
         return mClient.user_delete(fileId, path, recursive);
       } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -617,6 +673,8 @@ public final class MasterClient implements Closeable {
         throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
+      } catch (AccessControlException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -639,6 +697,8 @@ public final class MasterClient implements Closeable {
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -689,6 +749,8 @@ public final class MasterClient implements Closeable {
         return;
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
+      } catch (AccessControlException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -732,7 +794,8 @@ public final class MasterClient implements Closeable {
   }
 
   public synchronized void worker_cacheBlock(long workerId, long usedBytesOnTier, long storageDirId,
-      long blockId, long length) throws IOException, FileDoesNotExistException, BlockInfoException {
+      long blockId, long length) throws IOException, FileDoesNotExistException,
+      BlockInfoException {
     while (!mIsShutdown) {
       connect();
 
@@ -826,5 +889,49 @@ public final class MasterClient implements Closeable {
       }
     }
     return -1;
+  }
+
+  public synchronized boolean user_setOwner(int fileId, String path, String username,
+      String groupname, boolean recursive) throws IOException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_setOwner(fileId, path, username, groupname, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return false;
+  }
+
+  public synchronized boolean user_setPermission(int fileId, String path, short permission,
+      boolean recursive) throws IOException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_setPermission(fileId, path, permission, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (AccessControlException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return false;
   }
 }
