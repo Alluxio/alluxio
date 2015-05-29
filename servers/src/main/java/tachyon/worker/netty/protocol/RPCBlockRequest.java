@@ -47,6 +47,12 @@ public class RPCBlockRequest extends RPCRequest {
     return Type.RPC_BLOCK_REQUEST;
   }
 
+  /**
+   * Decode the input {@link ByteBuf} into a {@link RPCBlockRequest} object and return it.
+   *
+   * @param in the input {@link ByteBuf}
+   * @return The decoded RPCBlockRequest object
+   */
   public static RPCBlockRequest decode(ByteBuf in) {
     // TODO: remove this short when client also uses netty.
     in.readShort();
@@ -59,6 +65,7 @@ public class RPCBlockRequest extends RPCRequest {
   @Override
   public int getEncodedLength() {
     // TODO: adjust the length when client also uses netty.
+    // 3 longs (mBLockId, mOffset, mLength) + 1 short (DATA_SERVER_REQUEST_MESSAGE)
     return Longs.BYTES * 3 + Shorts.BYTES;
   }
 
