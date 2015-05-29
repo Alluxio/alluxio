@@ -32,5 +32,5 @@ public abstract class DataBuffer {
    *
    * @return the length of the data in bytes.
    */
-  public abstract int getLength();
+  public abstract long getLength();
 }

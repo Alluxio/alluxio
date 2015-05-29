@@ -16,8 +16,6 @@
 package tachyon.worker.netty.protocol;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
 public interface EncodedMessage {
 

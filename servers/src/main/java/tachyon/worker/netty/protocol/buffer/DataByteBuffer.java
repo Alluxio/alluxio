@@ -24,14 +24,14 @@ import io.netty.buffer.Unpooled;
  */
 public class DataByteBuffer extends DataBuffer {
   private final ByteBuffer mBuffer;
-  private final int mLength;
+  private final long mLength;
 
   /**
    *
    * @param buffer The ByteBuffer representing the data
    * @param length The length of the ByteBuffer
    */
-  public DataByteBuffer(ByteBuffer buffer, int length) {
+  public DataByteBuffer(ByteBuffer buffer, long length) {
     mBuffer = buffer;
     mLength = length;
   }
@@ -42,7 +42,7 @@ public class DataByteBuffer extends DataBuffer {
   }
 
   @Override
-  public int getLength() {
+  public long getLength() {
     return mLength;
   }
 }

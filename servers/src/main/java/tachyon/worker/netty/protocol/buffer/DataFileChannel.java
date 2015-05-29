@@ -24,8 +24,8 @@ import io.netty.channel.DefaultFileRegion;
  */
 public class DataFileChannel extends DataBuffer {
   private final FileChannel mFileChannel;
-  private final int mOffset;
-  private final int mLength;
+  private final long mOffset;
+  private final long mLength;
 
   /**
    *
@@ -33,7 +33,7 @@ public class DataFileChannel extends DataBuffer {
    * @param offset The offset into the FileChannel
    * @param length The length of the data to read
    */
-  public DataFileChannel(FileChannel fileChannel, int offset, int length) {
+  public DataFileChannel(FileChannel fileChannel, long offset, long length) {
     mFileChannel = fileChannel;
     mOffset = offset;
     mLength = length;
@@ -45,7 +45,7 @@ public class DataFileChannel extends DataBuffer {
   }
 
   @Override
-  public int getLength() {
+  public long getLength() {
     return mLength;
   }
 }

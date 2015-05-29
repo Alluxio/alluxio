@@ -44,7 +44,7 @@ public class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage> {
       throws Exception {
     RPCRequest.Type type = in.getType();
 
-    int bodyBytes = 0;
+    long bodyBytes = 0;
     DataBuffer payload = null;
 
     if (in.hasPayload()) {
