@@ -30,6 +30,7 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
+import tachyon.thrift.AccessControlException;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -75,7 +76,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException,
-      TException {
+  AccessControlException, TException {
     if (fileId != -1) {
       return mMasterInfo.getClientFileInfo(fileId);
 
@@ -91,7 +92,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public List<ClientFileInfo> liststatus(String path) throws InvalidPathException,
-      FileDoesNotExistException, TException {
+      FileDoesNotExistException, AccessControlException, TException {
     return mMasterInfo.getFilesInfo(new TachyonURI(path));
   }
 
@@ -126,7 +127,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public int user_createFile(String path, String ufsPath, long blockSizeByte, boolean recursive)
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
-      SuspectedFileSizeException, TachyonException, TException {
+      SuspectedFileSizeException, TachyonException, AccessControlException, TException {
     if (!ufsPath.isEmpty()) {
       UnderFileSystem underfs = UnderFileSystem.get(ufsPath, mMasterInfo.getTachyonConf());
       try {
@@ -160,7 +161,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public boolean user_delete(int fileId, String path, boolean recursive) throws TachyonException,
-      TException {
+      AccessControlException, TException {
     if (fileId != -1) {
       return mMasterInfo.delete(fileId, recursive);
     }
@@ -239,7 +240,7 @@ public class MasterServiceHandler implements MasterService.Iface {
     }
     return ret;
   }
-  
+
   @Override
   public void user_heartbeat() throws TException {
     return;
@@ -247,14 +248,14 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException,
-      InvalidPathException, TachyonException, TException {
+      InvalidPathException, AccessControlException, TachyonException, TException {
     return mMasterInfo.mkdirs(new TachyonURI(path), recursive);
   }
 
   @Override
   public boolean user_rename(int fileId, String srcPath, String dstPath)
       throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException,
-      TException {
+      AccessControlException, TException {
     if (fileId != -1) {
       return mMasterInfo.rename(fileId, new TachyonURI(dstPath));
     }
@@ -275,7 +276,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public void user_setPinned(int fileId, boolean pinned) throws FileDoesNotExistException,
-      TException {
+      AccessControlException, TException {
     mMasterInfo.setPinned(fileId, pinned);
   }
 
@@ -325,5 +326,25 @@ public class MasterServiceHandler implements MasterService.Iface {
           throws BlockInfoException, TException {
     return mMasterInfo.registerWorker(workerNetAddress, totalBytesOnTiers, usedBytesOnTiers,
         currentBlockIds);
+  }
+
+  @Override
+  public boolean user_setPermission(int fileId, String path, int permission,
+      boolean recursive) throws FileDoesNotExistException, InvalidPathException,
+      AccessControlException, TachyonException, TException {
+    if (fileId != -1) {
+      return mMasterInfo.setPermission(fileId, (short)permission, recursive);
+    }
+    return mMasterInfo.setPermission(new TachyonURI(path), (short)permission, recursive);
+  }
+
+  @Override
+  public boolean user_setOwner(int fileId, String path, String username,
+      String groupname, boolean recursive) throws FileDoesNotExistException,
+      InvalidPathException, AccessControlException, TachyonException, TException {
+    if (fileId != -1) {
+      return mMasterInfo.setOwner(fileId, username, groupname, recursive);
+    }
+    return mMasterInfo.setOwner(new TachyonURI(path), username, groupname, recursive);
   }
 }

@@ -13,22 +13,12 @@
  * the License.
  */
 
-package tachyon.master.permission;
+package tachyon.conf;
 
-import java.io.IOException;
+public interface Configurable {
+  /** Set the configuration to be used by this object. */
+  public void setConf(TachyonConf conf);
 
-public class AccessControlException extends IOException {
-  private static final long serialVersionUID = 1L;
-
-  public AccessControlException() {
-    super("Permission denied.");
-  }
-
-  public AccessControlException(String s) {
-    super(s);
-  }
-
-  public AccessControlException(Throwable cause) {
-    super(cause);
-  }
+  /** Return the configuration used by this object. */
+  public TachyonConf getConf();
 }

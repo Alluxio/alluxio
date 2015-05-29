@@ -43,6 +43,9 @@ struct ClientFileInfo {
   13: i32 dependencyId
   14: i32 inMemoryPercentage
   15: i64 lastModificationTimeMs
+  16: string owner
+  17: string group
+  18: i32 permission
 }
 
 struct ClientDependencyInfo {
@@ -72,6 +75,7 @@ struct Command {
   1: CommandType mCommandType
   2: list<i64> mData
 }
+
 
 exception BlockInfoException {
   1: string message
@@ -121,6 +125,10 @@ exception DependencyDoesNotExistException {
   1: string message
 }
 
+exception AccessControlException {
+  1: string message
+}
+
 service MasterService {
   bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 length, 4: string checkpointPath)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
@@ -129,7 +137,7 @@ service MasterService {
   list<ClientWorkerInfo> getWorkersInfo()
 
   list<ClientFileInfo> liststatus(1: string path)
-    throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
+    throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF, 3: AccessControlException eAC)
 
   // Services to Workers
   /**
@@ -183,7 +191,7 @@ service MasterService {
 
   i32 user_createFile(1: string path, 2: string ufsPath, 3: i64 blockSizeByte, 4: bool recursive)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: BlockInfoException eB,
-      4: SuspectedFileSizeException eS, 5: TachyonException eT)
+      4: SuspectedFileSizeException eS, 5: TachyonException eT, 6: AccessControlException eAC)
 
   i64 user_createNewBlock(1: i32 fileId)
     throws (1: FileDoesNotExistException e)
@@ -203,7 +211,7 @@ service MasterService {
     throws (1: NoWorkerException e)
 
   ClientFileInfo getFileStatus(1: i32 fileId, 2: string path)
-    throws (1: InvalidPathException eI)
+    throws (1: InvalidPathException eI, 2: AccessControlException eA)
 
   /**
    * Get block's ClientBlockInfo.
@@ -221,22 +229,31 @@ service MasterService {
    * Delete file
    */
   bool user_delete(1: i32 fileId, 2: string path, 3: bool recursive)
-    throws (1: TachyonException e)
+    throws (1: TachyonException e, 2: AccessControlException eAC)
 
   bool user_rename(1: i32 fileId, 2: string srcPath, 3: string dstPath)
     throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF,
-      3: InvalidPathException eI)
+      3: InvalidPathException eI, 4: AccessControlException eAC)
 
   void user_setPinned(1: i32 fileId, 2: bool pinned)
-    throws (1: FileDoesNotExistException e)
+    throws (1: FileDoesNotExistException eF, 2:AccessControlException eA)
 
   bool user_mkdirs(1: string path, 2: bool recursive)
-    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TachyonException eT)
+    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TachyonException eT, 4: AccessControlException eAC)
 
   i32 user_createRawTable(1: string path, 2: i32 columns, 3: binary metadata)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TableColumnException eT,
       4: TachyonException eTa)
+  /**
+   * ACL based control
+   */
+  bool user_setPermission(1: i32 fileId, 2: string path, 3: i32 permission, 4: bool recursive)
+    throws(1:TachyonException eA, 2: FileDoesNotExistException eF,
+      3: InvalidPathException eI, 4: AccessControlException eAC)
 
+  bool user_setOwner(1: i32 fileId, 2: string path, 3: string username, 4: string groupname, 5: bool recursive)
+    throws(1:TachyonException eA, 2: FileDoesNotExistException eF,
+      3: InvalidPathException eI, 4: AccessControlException eAC)
   /**
    * Return 0 if does not contain the Table, return fileId if it exists.
    */

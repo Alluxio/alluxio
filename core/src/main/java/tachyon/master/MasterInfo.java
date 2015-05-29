@@ -39,13 +39,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
@@ -58,6 +59,14 @@ import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystem.SpaceType;
 import tachyon.conf.TachyonConf;
+import tachyon.master.Inode.InodeType;
+import tachyon.master.permission.Acl;
+import tachyon.master.permission.AclEntry.AclPermission;
+import tachyon.master.permission.AclUtil;
+import tachyon.master.permission.FsPermissionChecker;
+import tachyon.security.UserGroup;
+import tachyon.security.authentication.TSetUserProcessor;
+import tachyon.thrift.AccessControlException;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -291,6 +300,9 @@ public class MasterInfo extends ImageWriter {
 
   private final TachyonConf mTachyonConf;
   private final String mUFSDataFolder;
+  private final UserGroup mFsOwner;
+  private final String mSupergroup;
+  private boolean mPermissionEnabled;
 
   public MasterInfo(InetSocketAddress address, Journal journal, ExecutorService executorService,
       TachyonConf tachyonConf) throws IOException {
@@ -300,7 +312,13 @@ public class MasterInfo extends ImageWriter {
 
     mRawTables = new RawTables(mTachyonConf);
 
-    mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1, System.currentTimeMillis());
+    mFsOwner = UserGroup.getTachyonLoginUser();
+    mSupergroup = tachyonConf.get(Constants.FS_PERMISSIONS_SUPERGROUP,
+        Constants.FS_PERMISSIONS_SUPERGROUP_DEFAULT);
+    mPermissionEnabled = tachyonConf.getBoolean(Constants.FS_PERMISSIONS_ENABLED_KEY,
+        Constants.FS_PERMISSIONS_ENABLED_DEFAULT);
+    mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1,System.currentTimeMillis(),
+        AclUtil.getAcl(mFsOwner.getShortUserName(), mSupergroup, mTachyonConf, InodeType.FOLDER));
     mFileIdToInodes.put(mRoot.getId(), mRoot);
 
     mMasterAddress = address;
@@ -315,6 +333,15 @@ public class MasterInfo extends ImageWriter {
     mPinnedInodeFileIds = Collections.synchronizedSet(new HashSet<Integer>());
 
     mJournal.loadImage(this);
+  }
+
+  private UserGroup getRemoteUser() {
+    return TSetUserProcessor.getRemoteUser();
+  }
+
+  private FsPermissionChecker getPermissionChecker() throws AccessControlException {
+    return new FsPermissionChecker(mFsOwner.getShortUserName(), mSupergroup,
+        getRemoteUser());
   }
 
   /**
@@ -481,6 +508,7 @@ public class MasterInfo extends ImageWriter {
    * @param directory If true, creates an InodeFolder instead of an Inode
    * @param blockSizeByte If it's a file, the block size for the Inode
    * @param creationTimeMs The time the file was created
+   * @param acl the acl of the inode
    * @return the id of the inode created at the given path
    * @throws FileAlreadyExistException
    * @throws InvalidPathException
@@ -488,8 +516,8 @@ public class MasterInfo extends ImageWriter {
    * @throws TachyonException
    */
   int _createFile(boolean recursive, TachyonURI path, boolean directory, long blockSizeByte,
-      long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
-      BlockInfoException, TachyonException {
+      long creationTimeMs, Acl acl) throws FileAlreadyExistException, InvalidPathException,
+      BlockInfoException, AccessControlException, TachyonException {
     if (path.isRoot()) {
       LOG.info("FileAlreadyExistException: " + path);
       throw new FileAlreadyExistException(path.toString());
@@ -531,12 +559,20 @@ public class MasterInfo extends ImageWriter {
         throw new InvalidPathException("Could not traverse to parent folder of path " + path
             + ". Component " + pathNames[pathIndex - 1] + " is not a directory.");
       }
+
+      /**
+       * permission checker
+       */
+      checkAncestorAccess(path, AclPermission.WRITE);
+
       InodeFolder currentInodeFolder = (InodeFolder) inodeTraversal.getFirst();
       // Fill in the directories that were missing.
       for (int k = pathIndex; k < parentPath.length; k ++) {
         Inode dir =
             new InodeFolder(pathNames[k], mInodeCounter.incrementAndGet(),
-                currentInodeFolder.getId(), creationTimeMs);
+                currentInodeFolder.getId(), creationTimeMs,
+                AclUtil.getAcl(acl.getUserName(), acl.getGroupName(), mTachyonConf,
+                InodeType.FOLDER));
         dir.setPinned(currentInodeFolder.isPinned());
         currentInodeFolder.addChild(dir);
         currentInodeFolder.setLastModificationTimeMs(creationTimeMs);
@@ -555,15 +591,16 @@ public class MasterInfo extends ImageWriter {
         LOG.info("FileAlreadyExistException: " + path);
         throw new FileAlreadyExistException(path.toString());
       }
+
       if (directory) {
         ret =
             new InodeFolder(name, mInodeCounter.incrementAndGet(), currentInodeFolder.getId(),
-                creationTimeMs);
+                creationTimeMs, acl);
         ret.setPinned(currentInodeFolder.isPinned());
       } else {
         ret =
             new InodeFile(name, mInodeCounter.incrementAndGet(), currentInodeFolder.getId(),
-                blockSizeByte, creationTimeMs);
+                blockSizeByte, creationTimeMs, acl);
         ret.setPinned(currentInodeFolder.isPinned());
         if (ret.isPinned()) {
           mPinnedInodeFileIds.add(ret.getId());
@@ -600,7 +637,8 @@ public class MasterInfo extends ImageWriter {
    * @return true if the deletion succeeded and false otherwise.
    * @throws TachyonException
    */
-  boolean _delete(int fileId, boolean recursive, long opTimeMs) throws TachyonException {
+  boolean _delete(int fileId, boolean recursive, long opTimeMs)
+      throws AccessControlException, TachyonException {
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fileId);
       if (inode == null) {
@@ -617,6 +655,8 @@ public class MasterInfo extends ImageWriter {
         // The root cannot be deleted.
         return false;
       }
+
+      checkPathAccess(getPath(inode), AclPermission.WRITE);
 
       List<Inode> delInodes = new ArrayList<Inode>();
       delInodes.add(inode);
@@ -764,7 +804,7 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException if the source path is a prefix of the destination
    */
   public boolean _rename(int fileId, TachyonURI dstPath, long opTimeMs)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException {
     synchronized (mRootLock) {
       TachyonURI srcPath = getPath(fileId);
       if (srcPath.equals(dstPath)) {
@@ -773,6 +813,16 @@ public class MasterInfo extends ImageWriter {
       if (srcPath.isRoot() || dstPath.isRoot()) {
         return false;
       }
+      /*
+       * To check 'w'permission or the existing src
+       */
+      checkPathAccess(srcPath, AclPermission.WRITE);
+      /*
+       * To check 'w' permission of parent for src and ancesstor dst directory
+       */
+      checkParentAccess(srcPath, AclPermission.WRITE);
+      checkAncestorAccess(dstPath, AclPermission.WRITE);
+
       String[] srcComponents = CommonUtils.getPathComponents(srcPath.toString());
       String[] dstComponents = CommonUtils.getPathComponents(dstPath.toString());
       // We can't rename a path to one of its subpaths, so we check for that, by making sure
@@ -827,7 +877,8 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
-  void _setPinned(int fileId, boolean pinned, long opTimeMs) throws FileDoesNotExistException {
+  void _setPinned(int fileId, boolean pinned, long opTimeMs) throws FileDoesNotExistException,
+      AccessControlException {
     LOG.info("setPinned(" + fileId + ", " + pinned + ")");
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fileId);
@@ -835,6 +886,8 @@ public class MasterInfo extends ImageWriter {
       if (inode == null) {
         throw new FileDoesNotExistException("Failed to find inode" + fileId);
       }
+
+      checkOwner(getPath(inode));
 
       _recomputePinnedFiles(inode, Optional.of(pinned), opTimeMs);
     }
@@ -1000,23 +1053,29 @@ public class MasterInfo extends ImageWriter {
    * @throws TachyonException
    */
   public int createFile(boolean recursive, TachyonURI path, boolean directory, long blockSizeByte)
-      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
+      AccessControlException, TachyonException {
     long creationTimeMs = System.currentTimeMillis();
+    Acl acl = AclUtil.getAcl(getRemoteUser().getShortUserName(),
+        mSupergroup, mTachyonConf,
+        directory ? InodeType.FOLDER : InodeType.FILE);
     synchronized (mRootLock) {
-      int ret = _createFile(recursive, path, directory, blockSizeByte, creationTimeMs);
-      mJournal.getEditLog().createFile(recursive, path, directory, blockSizeByte, creationTimeMs);
+      int ret = _createFile(recursive, path, directory, blockSizeByte, creationTimeMs, acl);
+      mJournal.getEditLog().createFile(recursive, path, directory, blockSizeByte,
+          creationTimeMs, acl);
       mJournal.getEditLog().flush();
       return ret;
     }
   }
 
   public int createFile(TachyonURI path, long blockSizeByte) throws FileAlreadyExistException,
-      InvalidPathException, BlockInfoException, TachyonException {
+      InvalidPathException, BlockInfoException, AccessControlException, TachyonException {
     return createFile(true, path, false, blockSizeByte);
   }
 
   public int createFile(TachyonURI path, long blockSizeByte, boolean recursive)
-      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
+      AccessControlException, TachyonException {
     return createFile(recursive, path, false, blockSizeByte);
   }
 
@@ -1056,7 +1115,7 @@ public class MasterInfo extends ImageWriter {
    */
   public int createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException,
-      TachyonException {
+      AccessControlException, TachyonException {
     LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
 
     int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
@@ -1087,7 +1146,8 @@ public class MasterInfo extends ImageWriter {
    * @return succeed or not
    * @throws TachyonException
    */
-  public boolean delete(int fileId, boolean recursive) throws TachyonException {
+  public boolean delete(int fileId, boolean recursive)
+      throws TachyonException, AccessControlException {
     long opTimeMs = System.currentTimeMillis();
     synchronized (mRootLock) {
       boolean ret = _delete(fileId, recursive, opTimeMs);
@@ -1105,7 +1165,8 @@ public class MasterInfo extends ImageWriter {
    * @return succeed or not
    * @throws TachyonException
    */
-  public boolean delete(TachyonURI path, boolean recursive) throws TachyonException {
+  public boolean delete(TachyonURI path, boolean recursive)
+      throws TachyonException, AccessControlException {
     LOG.info("delete(" + path + ")");
     synchronized (mRootLock) {
       Inode inode = null;
@@ -1220,7 +1281,7 @@ public class MasterInfo extends ImageWriter {
    * @param fid The id of the file
    * @return the file info
    */
-  public ClientFileInfo getClientFileInfo(int fid) {
+  public ClientFileInfo getClientFileInfo(int fid) throws AccessControlException {
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fid);
       if (inode == null) {
@@ -1228,6 +1289,7 @@ public class MasterInfo extends ImageWriter {
         info.id = -1;
         return info;
       }
+      checkPathAccess(getPath(inode), AclPermission.READ);
       return inode.generateClientFileInfo(getPath(inode).toString());
     }
   }
@@ -1239,7 +1301,8 @@ public class MasterInfo extends ImageWriter {
    * @return the file info
    * @throws InvalidPathException
    */
-  public ClientFileInfo getClientFileInfo(TachyonURI path) throws InvalidPathException {
+  public ClientFileInfo getClientFileInfo(TachyonURI path)
+      throws AccessControlException, InvalidPathException {
     synchronized (mRootLock) {
       Inode inode = getInode(path);
       if (inode == null) {
@@ -1247,6 +1310,7 @@ public class MasterInfo extends ImageWriter {
         info.id = -1;
         return info;
       }
+      checkPathAccess(path, AclPermission.READ);
       return inode.generateClientFileInfo(path.toString());
     }
   }
@@ -1373,20 +1437,23 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    */
   public List<ClientFileInfo> getFilesInfo(TachyonURI path) throws FileDoesNotExistException,
-      InvalidPathException {
+      InvalidPathException, AccessControlException {
     List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
-
-    Inode inode = getInode(path);
-    if (inode == null) {
-      throw new FileDoesNotExistException(path.toString());
-    }
-
-    if (inode.isDirectory()) {
-      for (Inode child : ((InodeFolder) inode).getChildren()) {
-        ret.add(child.generateClientFileInfo(CommonUtils.concat(path, child.getName())));
+    synchronized (mRootLock) {
+      Inode inode = getInode(path);
+      if (inode == null) {
+        throw new FileDoesNotExistException(path.toString());
       }
-    } else {
-      ret.add(inode.generateClientFileInfo(path.toString()));
+
+      checkPathAccess(path, AclPermission.READ);
+
+      if (inode.isDirectory()) {
+        for (Inode child : ((InodeFolder) inode).getChildren()) {
+          ret.add(child.generateClientFileInfo(CommonUtils.concat(path, child.getName())));
+        }
+      } else {
+        ret.add(inode.generateClientFileInfo(path.toString()));
+      }
     }
     return ret;
   }
@@ -1819,10 +1886,14 @@ public class MasterInfo extends ImageWriter {
   }
 
   public void init() throws IOException {
-    mCheckpointInfo.updateEditTransactionCounter(mJournal.loadEditLog(this));
-
-    mJournal.createImage(this);
-    mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
+    synchronized (mRoot) {
+      boolean originPermissionEnable = mPermissionEnabled;
+      mPermissionEnabled = false;//turn off permission check for editlog loading
+      mCheckpointInfo.updateEditTransactionCounter(mJournal.loadEditLog(this));
+      mJournal.createImage(this);
+      mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
+      mPermissionEnabled = originPermissionEnable;
+    }
     mHeartbeat =
         mExecutorService.submit(new HeartbeatThread("Master Heartbeat",
             new MasterInfoHeartbeatExecutor(), mTachyonConf.getInt(
@@ -1978,7 +2049,7 @@ public class MasterInfo extends ImageWriter {
    * @throws TachyonException
    */
   public boolean mkdirs(TachyonURI path, boolean recursive) throws FileAlreadyExistException,
-      InvalidPathException, TachyonException {
+      InvalidPathException, AccessControlException, TachyonException {
     try {
       return createFile(recursive, path, true, 0) > 0;
     } catch (BlockInfoException e) {
@@ -2102,7 +2173,7 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    */
   public boolean rename(int fileId, TachyonURI dstPath) throws FileDoesNotExistException,
-      InvalidPathException {
+      FileAlreadyExistException, AccessControlException, InvalidPathException {
     long opTimeMs = System.currentTimeMillis();
     synchronized (mRootLock) {
       boolean ret = _rename(fileId, dstPath, opTimeMs);
@@ -2122,7 +2193,7 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    */
   public boolean rename(TachyonURI srcPath, TachyonURI dstPath) throws FileDoesNotExistException,
-      InvalidPathException {
+      FileAlreadyExistException, AccessControlException, InvalidPathException {
     synchronized (mRootLock) {
       Inode inode = getInode(srcPath);
       if (inode == null) {
@@ -2132,6 +2203,140 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
+  /**
+   * Set owner of a path based on the file's ID.
+   * @param fileId The id of the file to set
+   * @param username
+   * @param groupname
+   * @param recursive If fileId or path represents a folder, change the folder owner recursively
+   * @return true if the set succeeded, false otherwise
+   * @throws TachyonException
+   */
+  public boolean setOwner(int fileId,String username, String groupname,
+      boolean recursive) throws FileDoesNotExistException, AccessControlException,
+      TachyonException {
+    long opTimeMs = System.currentTimeMillis();
+    synchronized (mRootLock) {
+      Inode inode = mFileIdToInodes.get(fileId);
+      if (inode == null) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
+      }
+      if (recursive) {
+        if (!inode.isDirectory()) {
+          throw new AccessControlException("Failed to recursive setOwner on a file: "
+                                           + getPath(inode));
+        }
+        Queue<Inode> queue = new LinkedList<Inode>();
+        queue.addAll(((InodeFolder) inode).getChildren());
+
+        while (!queue.isEmpty()) {
+          Inode qinode = queue.poll();
+          if (qinode.isDirectory()) {
+            queue.addAll(((InodeFolder) qinode).getChildren());
+          }
+          _setOwner(qinode, username, groupname);
+        }
+      }
+      _setOwner(inode, username, groupname);
+    }
+    mJournal.getEditLog().chown(fileId, username, groupname, recursive, opTimeMs);
+    mJournal.getEditLog().flush();
+    return true;
+  }
+
+  /**
+   * Set owner of a path based on the path
+   */
+  public boolean setOwner(TachyonURI path, String username, String groupname,
+      boolean recursive) throws FileDoesNotExistException, InvalidPathException,
+      AccessControlException, TachyonException {
+    synchronized (mRootLock) {
+      Inode inode = getInode(path);
+      if (inode == null) {
+        throw new FileDoesNotExistException("Failed to setOwner: " + path + " does not exist");
+      }
+      return setOwner(inode.getId(), username, groupname, recursive);
+    }
+  }
+
+  public void _setOwner(Inode inode, String username, String groupname)
+      throws AccessControlException {
+    checkOwner(getPath(inode));
+    Acl newAcl = new Acl(inode.getAcl());
+    if (username != null) {
+      newAcl.setUserOwner(username);
+    }
+    if (groupname != null) {
+      newAcl.setGroupOwner(groupname);
+    }
+    inode.setAcl(newAcl);
+  }
+
+  /**
+   * Set permission based on fileId
+   * @param fileId The id of the file / folder.
+   * @param short permission, e.g. 777
+   * @param recursive If fileId represents a folder, change the folder permission recursively
+   * @return true if setPermission successfully, false otherwise.
+   * @throws IOException
+   */
+  public boolean setPermission(int fileId, short permission,boolean recursive)
+      throws FileDoesNotExistException, AccessControlException, TachyonException {
+    long opTimeMs = System.currentTimeMillis();
+    synchronized (mRootLock) {
+      Inode inode = mFileIdToInodes.get(fileId);
+      if (inode == null) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
+      }
+      if (recursive) {
+        if (!inode.isDirectory()) {
+          throw new AccessControlException("Failed to recursive setPermission on a file: "
+                                           + getPath(inode));
+        }
+        Queue<Inode> queue = new LinkedList<Inode>();
+        queue.addAll(((InodeFolder) inode).getChildren());
+
+        while (!queue.isEmpty()) {
+          Inode qinode = queue.poll();
+          if (qinode.isDirectory()) {
+            queue.addAll(((InodeFolder) qinode).getChildren());
+          }
+          _setPermission(qinode, permission);
+        }
+      }
+      _setPermission(inode, permission);
+    }
+    mJournal.getEditLog().chmod(fileId, permission, recursive, opTimeMs);
+    mJournal.getEditLog().flush();
+    return true;
+  }
+
+  /**
+   * Set permission based on path
+   * @param path The path of the file
+   * @param short permission, e.g. 777
+   * @param recursive If path represents a folder, change the folder permission recursively
+   * @return true if setPermission successfully, false otherwise.
+   * @throws IOException
+   */
+  public boolean setPermission(TachyonURI path, short permission,boolean recursive)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      TachyonException {
+    synchronized (mRootLock) {
+      Inode inode = getInode(path);
+      if (inode == null) {
+        throw new FileDoesNotExistException("Failed to setPermission: " + path + " does not exist");
+      }
+      return setPermission(inode.getId(), permission, recursive);
+    }
+  }
+
+  public void _setPermission(Inode inode, short permission) throws AccessControlException {
+    checkOwner(getPath(inode));
+    Acl newAcl = new Acl(inode.getAcl());
+    newAcl.setPermission(permission);
+    inode.setAcl(newAcl);
+  }
   /**
    * Logs a lost file and sets it to be recovered.
    *
@@ -2183,7 +2388,8 @@ public class MasterInfo extends ImageWriter {
   }
 
   /** Sets the isPinned flag on the given inode and all of its children. */
-  public void setPinned(int fileId, boolean pinned) throws FileDoesNotExistException {
+  public void setPinned(int fileId, boolean pinned) throws AccessControlException,
+      FileDoesNotExistException {
     long opTimeMs = System.currentTimeMillis();
     synchronized (mRootLock) {
       _setPinned(fileId, pinned, opTimeMs);
@@ -2483,5 +2689,72 @@ public class MasterInfo extends ImageWriter {
    */
   TachyonConf getTachyonConf() {
     return mTachyonConf;
+  }
+
+  private void checkOwner(TachyonURI path)
+      throws AccessControlException {
+    if (mPermissionEnabled) {
+      getPermissionChecker().check(resolve(mRoot, path), true, null, null, null);
+    }
+  }
+
+  private void checkPathAccess(TachyonURI path, AclPermission access)
+      throws AccessControlException {
+    if (mPermissionEnabled) {
+      getPermissionChecker().check(resolve(mRoot, path), false, null, null, access);
+    }
+  }
+
+  private void checkAncestorAccess(TachyonURI path, AclPermission access)
+      throws AccessControlException {
+    if (mPermissionEnabled) {
+      getPermissionChecker().check(resolve(mRoot, path), false, access, null, null);
+    }
+  }
+
+  private void checkParentAccess(TachyonURI path, AclPermission access)
+      throws AccessControlException {
+    if (mPermissionEnabled) {
+      getPermissionChecker().check(resolve(mRoot, path), false, null, access, null);
+    }
+  }
+
+  /**
+   * Retrieve InodesInPath from startingFolder and path.
+   * the number of INodes is equal to the number of path array.
+   *
+   * Example:
+   * Given the path /c1/c2/c3 where only /c1/c2 exists, resulting in the
+   * following parameter path "/c1/c2/c3" and "/" as starting
+   * directory
+
+   * fill the array with InodesInpath [rootINode,c1,c2,null]
+   *
+   * @param startingFolder the starting directory
+   * @param path
+   * @return the specified number of existing INodes in the path
+   */
+  public static InodesInPath resolve(final InodeFolder startingFolder, TachyonURI path) {
+    try {
+      String[] pathByNameArr = CommonUtils.getPathComponents(path.toString());
+      Preconditions.checkArgument(startingFolder.getName().equals(pathByNameArr[0]));
+      Inode[] inodes = new Inode[pathByNameArr.length];
+      int inodeNum = 0;
+      Inode curNode = startingFolder;
+
+      while (inodeNum < pathByNameArr.length && curNode != null) {
+        final boolean lastComp = (inodeNum == pathByNameArr.length - 1);
+        final boolean isDir = curNode.isDirectory();
+        inodes[inodeNum++] = curNode;
+        if (lastComp || !isDir) {
+          break;
+        }
+        InodeFolder tmpNode = (InodeFolder)curNode;
+        curNode = tmpNode.getChild(pathByNameArr[inodeNum]);
+      }
+      return new InodesInPath(inodes, pathByNameArr);
+    } catch (InvalidPathException e) {
+      throw new RuntimeException("resolve path :" + path.toString() + " error");
+    }
   }
 }

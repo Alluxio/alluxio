@@ -23,6 +23,9 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.master.permission.Acl;
+import tachyon.master.permission.AclUtil;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -210,5 +213,20 @@ public class InodeFolderTest {
     System.out.println(String.format(
         "getChild(String name) called sequentially %d times, cost %d ms", nFiles,
         System.currentTimeMillis() - start));
+  }
+
+  @Test
+  public void setAclTest() {
+    Acl acl = AclUtil.getAcl("test1", "test1", (short)0755);
+    InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis(), acl);
+    Assert.assertEquals(inodeFile.getAcl().getUserName(), "test1");
+    Assert.assertEquals(inodeFile.getAcl().getGroupName(), "test1");
+    Assert.assertEquals(inodeFile.getAcl().toShort(), 0755);
+    inodeFile.getAcl().setGroupOwner("test3");
+    inodeFile.getAcl().setUserOwner("test2");
+    inodeFile.getAcl().setPermission((short)0777);
+    Assert.assertEquals(inodeFile.getAcl().getUserName(), "test2");
+    Assert.assertEquals(inodeFile.getAcl().getGroupName(), "test3");
+    Assert.assertEquals(inodeFile.getAcl().toShort(), 0777);
   }
 }

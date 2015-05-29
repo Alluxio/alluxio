@@ -315,9 +315,39 @@ abstract class AbstractTFS extends FileSystem {
 
     FileStatus ret =
         new FileStatus(file.length(), file.isDirectory(), file.getDiskReplication(),
-            file.getBlockSizeByte(), file.getCreationTimeMs(), file.getCreationTimeMs(), null,
-            null, null, new Path(mTachyonHeader + tPath));
+            file.getBlockSizeByte(), file.getCreationTimeMs(), file.getCreationTimeMs(),
+            new FsPermission(file.getPermission()), file.getOwner(), file.getGroup(), new Path(
+                mTachyonHeader + tPath));
     return ret;
+  }
+
+  /**
+   * Set owner of a path (i.e. a file or a directory). The parameters username and groupname cannot
+   * both be null.
+   * 
+   * @param p The path
+   * @param username If it is null, the original username remains unchanged.
+   * @param groupname If it is null, the original groupname remains unchanged.
+   */
+  @Override
+  public void setOwner(Path p, final String username, final String groupname) throws IOException {
+    LOG.info("chown owner:" + username + " group:" + groupname + " on " + p);
+    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(p));
+    fromHdfsToTachyon(tPath);
+    mTFS.setOwner(tPath, username, groupname, false);
+  }
+
+  /**
+   * Set permission of a path.
+   * 
+   * @param p The path
+   * @param permission
+   */
+  public void setPermission(Path p, FsPermission permission) throws IOException {
+    LOG.info("chmod perm:" + permission.toString() + " on " + p);
+    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(p));
+    fromHdfsToTachyon(tPath);
+    mTFS.setPermission(tPath, permission.toShort(), false);
   }
 
   /**
@@ -406,8 +436,9 @@ abstract class AbstractTFS extends FileSystem {
       // TODO replicate 3 with the number of disk replications.
       ret[k] =
           new FileStatus(info.getLength(), info.isFolder, 3, info.getBlockSizeByte(),
-              info.getCreationTimeMs(), info.getCreationTimeMs(), null, null, null, new Path(
-                  mTachyonHeader + info.getPath()));
+              info.getCreationTimeMs(), info.getCreationTimeMs(),
+              new FsPermission((short)info.getPermission()), info.getOwner(),
+              info.getGroup(), new Path(mTachyonHeader + info.getPath()));
     }
     return ret;
   }
@@ -427,8 +458,8 @@ abstract class AbstractTFS extends FileSystem {
     fromHdfsToTachyon(path);
     int fileId = mTFS.getFileId(path);
 
-    return new FSDataInputStream(new HdfsFileInputStream(mTFS, fileId,
-        Utils.getHDFSPath(path, mUnderFSAddress), getConf(), bufferSize, mTachyonConf));
+    return new FSDataInputStream(new HdfsFileInputStream(mTFS, fileId, Utils.getHDFSPath(path,
+        mUnderFSAddress), getConf(), bufferSize, mTachyonConf));
   }
 
   @Override

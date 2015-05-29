@@ -391,4 +391,17 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       throw e;
     }
   }
+
+  @Override
+  public void setOwner(String path, String username, String groupname) throws IOException {
+    try {
+      LOG.debug("Changing file Owner " + path + " for username: " + username + " groupname: "
+          + groupname);
+      mFs.setOwner(new Path(path), username, groupname);
+    } catch (IOException e) {
+      LOG.error("Fail to change owner " + path + " for username: " + username + " groupname: "
+          + groupname, e);
+      throw e;
+    }
+  }
 }

@@ -32,6 +32,8 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
+import tachyon.master.permission.Acl;
+import tachyon.master.permission.AclUtil;
 import tachyon.thrift.ClientFileInfo;
 
 /**
@@ -56,6 +58,9 @@ public class InodeFolder extends Inode {
     final int parentId = ele.getInt("parentId");
     List<Integer> childrenIds = ele.get("childrenIds", new TypeReference<List<Integer>>() {});
     final long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
+    final String owner = ele.getString("owner");
+    final String group = ele.getString("group");
+    final short permission = ele.getShort("permission");
     int numberOfChildren = childrenIds.size();
     Inode[] children = new Inode[numberOfChildren];
     for (int k = 0; k < numberOfChildren; k ++) {
@@ -79,8 +84,9 @@ public class InodeFolder extends Inode {
           throw new IOException("Invalid element type " + ele);
       }
     }
-
-    InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
+    InodeFolder folder =
+        new InodeFolder(fileName, fileId, parentId, creationTimeMs, AclUtil.getAcl(owner, group,
+            permission));
     folder.setPinned(isPinned);
     folder.addChildren(children);
     folder.setLastModificationTimeMs(lastModificationTimeMs);
@@ -99,7 +105,11 @@ public class InodeFolder extends Inode {
    * @param creationTimeMs The creation time of the folder, in milliseconds
    */
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
-    super(name, id, parentId, true, creationTimeMs);
+    this(name, id, parentId, creationTimeMs, AclUtil.getAcl(InodeType.FOLDER));
+  }
+
+  public InodeFolder(String name, int id, int parentId, long creationTimeMs, Acl acl) {
+    super(name, id, parentId, true, creationTimeMs, acl);
   }
 
   /**
@@ -147,6 +157,9 @@ public class InodeFolder extends Inode {
     ret.blockIds = null;
     ret.dependencyId = -1;
     ret.lastModificationTimeMs = getLastModificationTimeMs();
+    ret.owner = mAcl.getUserName();
+    ret.group = mAcl.getGroupName();
+    ret.permission = mAcl.toShort();
 
     return ret;
   }
@@ -242,7 +255,9 @@ public class InodeFolder extends Inode {
             .withParameter("creationTimeMs", getCreationTimeMs()).withParameter("id", getId())
             .withParameter("name", getName()).withParameter("parentId", getParentId())
             .withParameter("pinned", isPinned()).withParameter("childrenIds", getChildrenIds())
-            .withParameter("lastModificationTimeMs", getLastModificationTimeMs());
+            .withParameter("lastModificationTimeMs", getLastModificationTimeMs())
+            .withParameter("owner", mAcl.getUserName()).withParameter("group", mAcl.getGroupName())
+            .withParameter("permission", mAcl.toShort());
 
     writeElement(objWriter, dos, ele);
 

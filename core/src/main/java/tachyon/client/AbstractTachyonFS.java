@@ -137,16 +137,74 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
     return rename(-1, srcPath, dstPath);
   }
 
- /**
-  * Frees the in-memory blocks of file/folder denoted by the path
-  *
-  * @param path the file/folder path
-  * @param recursive if free the path recursively
-  * @return true if the memory free succeed (including the case that the path does not exist in the
-  *         first place), false otherwise.
-  * @throws IOException
-  */
+  /**
+   * Frees the in-memory blocks of file/folder denoted by the path
+   * 
+   * @param path the file/folder path
+   * @param recursive if free the path recursively
+   * @return true if the memory free succeed (including the case that the path does not exist in the
+   *         first place), false otherwise.
+   * @throws IOException
+   */
   public synchronized boolean freepath(TachyonURI path, boolean recursive) throws IOException {
     return freepath(-1, path, recursive);
+  }
+
+  /**
+   * Set owner of a fileId(i.e. a file or a directory).
+   * The parameters username and groupname cannot both be null
+   * @param fileId the file id
+   * @param username If it is null, the original username remains unchanged.
+   * @param groupname If it is null, the original groupname remains unchanged.
+   * @param recursive If fileId represents a folder, change the folder owner recursively
+   * @return true if setOwner successfully, false otherwise.
+   * @throws IOException
+   */
+  public synchronized boolean setOwner(int fileId, String username, String groupname,
+      boolean recursive) throws IOException {
+    return setOwner(fileId, TachyonURI.EMPTY_URI, username, groupname, recursive);
+  }
+
+  /**
+   * Set owner of a path(i.e. a file or a directory).
+   * The parameters username and groupname cannot both be null
+   * @param fileId the file id
+   * @param username If it is null, the original username remains unchanged.
+   * @param groupname If it is null, the original groupname remains unchanged.
+   * @param recursive If path represents a folder, change the folder owner recursively
+   * @return true if setOwner successfully, false otherwise.
+   * @throws IOException
+   */
+  public synchronized boolean setOwner(TachyonURI path, String username, String groupname,
+      boolean recursive) throws IOException {
+    return setOwner(-1, path, username, groupname, recursive);
+  }
+
+  /**
+   * Set permission of a fildId(i.e. a file or a directory)
+   * 
+   * @param fileId The id of the file / folder
+   * @param short permission, e.g. 777
+   * @param recursive If fileId represents a folder, change the folder permission recursively
+   * @return true if setPermission successfully, false otherwise.
+   * @throws IOException
+   */
+  public synchronized boolean setPermission(int fileId, short permission, boolean recursive)
+      throws IOException {
+    return setPermission(fileId, TachyonURI.EMPTY_URI, permission, recursive);
+  }
+
+  /**
+   * Set permission of a path(i.e. a file or a directory)
+   * 
+   * @param path The path of the file / folder
+   * @param short permission, e.g. 777
+   * @param recursive If path represents a folder, change the folder permission recursively
+   * @return true if setPermission successfully, false otherwise.
+   * @throws IOException
+   */
+  public synchronized boolean setPermission(TachyonURI path, short permission, boolean recursive)
+      throws IOException {
+    return setPermission(-1, path, permission, recursive);
   }
 }

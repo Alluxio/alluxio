@@ -13,10 +13,42 @@
  * the License.
  */
 
-package tachyon.master;
+package tachyon.security;
 
-/** Type of EditLog entry. */
-enum EditLogOperationType {
-  ADD_BLOCK, ADD_CHECKPOINT, CREATE_FILE, COMPLETE_FILE, SET_PINNED, RENAME, DELETE,
-  CREATE_RAW_TABLE, UPDATE_RAW_TABLE_METADATA, CREATE_DEPENDENCY, CHOWN, CHMOD
+import java.security.Principal;
+
+public class User implements Principal {
+  private String mName;
+
+  // TODO: add attributes and methods for supporting Kerbores
+
+  public User(String mName) {
+    this.mName = mName;
+  }
+
+  @Override
+  public String getName() {
+    return mName;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    } else if (o == null || getClass() != o.getClass()) {
+      return false;
+    } else {
+      return mName.equals(((User) o).mName);
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return mName.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return mName;
+  }
 }

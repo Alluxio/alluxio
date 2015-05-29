@@ -29,6 +29,8 @@ import org.junit.Test;
 import tachyon.conf.TachyonConf;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
+import tachyon.master.permission.Acl;
+import tachyon.master.permission.AclUtil;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -216,6 +218,21 @@ public class InodeFileTest {
     Assert.assertTrue(inodeFile.isPinned());
     inodeFile.setPinned(false);
     Assert.assertFalse(inodeFile.isPinned());
+  }
+
+  @Test
+  public void setAclTest() {
+    Acl acl = AclUtil.getAcl("test1", "test1", (short)0644);
+    InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis(), acl);
+    Assert.assertEquals(inodeFile.getAcl().getUserName(), "test1");
+    Assert.assertEquals(inodeFile.getAcl().getGroupName(), "test1");
+    Assert.assertEquals(inodeFile.getAcl().toShort(), 0644);
+    inodeFile.getAcl().setGroupOwner("test3");
+    inodeFile.getAcl().setUserOwner("test2");
+    inodeFile.getAcl().setPermission((short)0600);
+    Assert.assertEquals(inodeFile.getAcl().getUserName(), "test2");
+    Assert.assertEquals(inodeFile.getAcl().getGroupName(), "test3");
+    Assert.assertEquals(inodeFile.getAcl().toShort(), 0600);
   }
 
   @Test(expected = BlockInfoException.class)

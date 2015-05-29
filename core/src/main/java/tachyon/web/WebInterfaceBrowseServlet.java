@@ -38,6 +38,7 @@ import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.master.BlockInfo;
 import tachyon.master.MasterInfo;
+import tachyon.thrift.AccessControlException;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -221,6 +222,10 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
           + ie.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
+    } catch (AccessControlException ace) {
+      request.setAttribute("fatalError", "Error: Access denied " + ace.getLocalizedMessage());
+      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+      return;
     }
 
     List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(filesInfo.size());
@@ -280,7 +285,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws InvalidPathException
    */
   private void setPathDirectories(TachyonURI path, HttpServletRequest request)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException {
     if (path.isRoot()) {
       request.setAttribute("pathInfos", new UiFileInfo[0]);
       return;

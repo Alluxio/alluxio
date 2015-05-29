@@ -36,6 +36,7 @@ import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterInfo;
+import tachyon.thrift.AccessControlException;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -82,6 +83,10 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
     } catch (InvalidPathException ipe) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + ipe.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+    } catch (AccessControlException ace) {
+      request.setAttribute("fatalError", "Error: Access denied " + ace.getLocalizedMessage());
+      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+      return;
     }
   }
 

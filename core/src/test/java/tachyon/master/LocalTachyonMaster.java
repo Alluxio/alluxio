@@ -32,7 +32,7 @@ import tachyon.util.NetworkUtils;
  * Constructs an isolated master. Primary users of this class are the
  * {@link tachyon.master.LocalTachyonCluster} and
  * {@link tachyon.master.LocalTachyonClusterMultiMaster}.
- * 
+ *
  * Isolated is defined as having its own root directory, and port.
  */
 public final class LocalTachyonMaster {
@@ -92,7 +92,7 @@ public final class LocalTachyonMaster {
 
     tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
     tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
-    
+
     // If tests fail to connect they should fail early rather than using the default ridiculously high retries
     tachyonConf.set(Constants.MASTER_RETRY_COUNT, "3");
 

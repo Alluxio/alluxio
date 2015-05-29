@@ -16,19 +16,28 @@
 package tachyon.master;
 
 import tachyon.master.permission.Acl;
+import tachyon.master.permission.AclUtil;
 import tachyon.thrift.ClientFileInfo;
 
 /**
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode extends ImageWriter implements Comparable<Inode> {
+  /**
+   * InodeType, used to present file or folder
+   */
+  public enum InodeType {
+    FILE,
+    FOLDER;
+  }
+  
   private final long mCreationTimeMs;
   protected final boolean mIsFolder;
 
   private int mId;
   private String mName;
   private int mParentId;
-  private Acl mAcl;
+  protected Acl mAcl;
 
   /**
    * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
@@ -46,15 +55,17 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
    * @param parentId the parent of the inode. -1 if there is no parent.
    * @param isFolder if the inode presents a folder
    * @param creationTimeMs the creation time of the inode.
+   * @param acl the acl of the inode
    */
-  protected Inode(String name, int id, int parentId, boolean isFolder, long creationTimeMs) {
+  protected Inode(String name, int id, int parentId, boolean isFolder, long creationTimeMs, 
+      Acl acl) {
     mCreationTimeMs = creationTimeMs;
     mIsFolder = isFolder;
-
     mId = id;
     mName = name;
     mParentId = parentId;
     mLastModificationTimeMs = creationTimeMs;
+    mAcl = acl;
   }
 
   @Override
@@ -201,7 +212,9 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   @Override
   public synchronized String toString() {
     return new StringBuilder("Inode(").append("ID:").append(mId).append(", NAME:").append(mName)
-        .append(", PARENT_ID:").append(mParentId).append(", CREATION_TIME_MS:")
+        .append(", PARENT_ID:").append(mParentId).append(", CREATION_TIME_MS:").append(", owner:")
+        .append(mAcl.getUserName()).append(", group:").append(mAcl.getGroupName())
+        .append(", permission:").append(AclUtil.formatPermission(mAcl.toShort()))
         .append(mCreationTimeMs).append(", PINNED:").append(mPinned)
         .append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs).append(")")
         .toString();

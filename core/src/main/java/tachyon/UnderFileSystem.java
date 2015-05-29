@@ -224,4 +224,14 @@ public abstract class UnderFileSystem {
    * @throws IOException
    */
   public abstract void setPermission(String path, String posixPerm) throws IOException;
+
+  /**
+   * Set owner of a path (i.e. a file or a directory). The parameters username and groupname cannot
+   * both be null.
+   * 
+   * @param p The path
+   * @param username If it is null, the original username remains unchanged.
+   * @param groupname If it is null, the original groupname remains unchanged.
+   */
+  public abstract void setOwner(String path, String username, String groupname) throws IOException;
 }

@@ -14,11 +14,12 @@
  */
 package tachyon.master.permission;
 
-import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.master.permission.AclEntry.AclPermission;
 import tachyon.master.permission.AclEntry.AclType;
 
@@ -75,8 +76,8 @@ public class AclTest {
     Assert.assertEquals(AclPermission.READ, acl.getOtherPermission());
     Assert.assertEquals(0664, acl.toShort());
 
-    Configuration conf = new Configuration();
-    conf.setInt(AclUtil.UMASK_KEY, 0022);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.FS_PERMISSIONS_UMASK_KEY, String.format("%d", 0022));
     acl.umask(conf);
     // after umask 0022, 0664 should change to 0644
     Assert.assertEquals(AclPermission.READ_WRITE, acl.getUserPermission());
