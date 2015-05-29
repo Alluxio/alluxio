@@ -80,8 +80,8 @@ public class RPCBlockRequest extends RPCRequest {
 
   @Override
   public void validate() {
-    Preconditions.checkArgument(mOffset >= 0, "Offset can not be negative: %s", mOffset);
-    Preconditions.checkArgument(mLength >= 0 || mLength == -1,
+    Preconditions.checkState(mOffset >= 0, "Offset can not be negative: %s", mOffset);
+    Preconditions.checkState(mLength >= 0 || mLength == -1,
         "Length can not be negative except -1: %s", mLength);
   }
 
