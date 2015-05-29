@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -28,20 +28,21 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Closer;
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
+import tachyon.util.Shell.ExitCodeException;
 
 import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;
@@ -51,7 +52,6 @@ import sun.nio.ch.DirectBuffer;
  */
 public final class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger("");
-
   /**
    * Change local file's permission.
    *
@@ -61,47 +61,36 @@ public final class CommonUtils {
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
     // TODO switch to java's Files.setPosixFilePermissions() if java 6 support is dropped
-    List<String> commands = new ArrayList<String>();
-    commands.add("/bin/chmod");
-    commands.add(perms);
-    File file = new File(filePath);
-    commands.add(file.getAbsolutePath());
-
     try {
-      ProcessBuilder builder = new ProcessBuilder(commands);
-      Process process = builder.start();
-
-      process.waitFor();
-
-      redirectIO(process);
-
-      if (process.exitValue() != 0) {
-        throw new IOException("Can not change the file " + file.getAbsolutePath()
-            + " 's permission to be " + perms);
-      }
-    } catch (InterruptedException e) {
-      LOG.error(e.getMessage());
+      Shell.execCommand(Shell.getSetPermissionCommand(perms, new File(filePath), false));
+    } catch (ExitCodeException e) {
+      LOG.error("Can not change the file " + filePath
+            + " 's permission to be " + perms, e);
       throw new IOException(e);
     }
   }
 
   /**
-   * Blocking operation that copies the processes stdout/stderr to this JVM's stdout/stderr.
+   * Change local file's ownership.
+   *
+   * @param filePath that will change ownership
+   * @param user
+   * @param group
+   * @throws IOException
    */
-  private static void redirectIO(final Process process) throws IOException {
-    // Because chmod doesn't have a lot of error or output messages, its safe to process the output
-    // after the process is done. As of java 7, you can have the process redirect to System.out
-    // and System.err without forking a process.
-    // TODO when java 6 support is dropped, switch to
-    // http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html#inheritIO()
-    Closer closer = Closer.create();
+  public static void changeLocalFileOwner(String filePath, String user, String group)
+      throws IOException {
+    if (user == null && group == null) {
+      throw new IOException("user == null && group == null");
+    }
+    String owner = (user == null ? "" : user) + (group == null ? "" : ":" + group);
     try {
-      ByteStreams.copy(closer.register(process.getInputStream()), System.out);
-      ByteStreams.copy(closer.register(process.getErrorStream()), System.err);
-    } catch (Throwable e) {
-      throw closer.rethrow(e);
-    } finally {
-      closer.close();
+      Shell.execCommand(Shell.getSetOwnerCommand(owner, new File(filePath)));
+    } catch (ExitCodeException e) {
+      // if we didn't get the group - just return empty list;
+      LOG.error("got exception trying to change ownership for user:" + user + " group:" + group
+          + " on " + filePath, e);
+      throw new IOException("got exception trying to change ownership", e);
     }
   }
 
@@ -116,9 +105,35 @@ public final class CommonUtils {
   }
 
   /**
+   * Get the current user's group list from Unix by running the command 'groups'
+   * NOTE. For non-existing user it will return EMPTY list
+   * @param user user name
+   * @return the groups list that the <code>user</code> belongs to. The primary
+   *         group is returned first.
+   * @throws IOException if encounter any error when running the command
+   */
+  public static List<String> getUnixGroups(final String user) throws IOException {
+    String result = "";
+    List<String> groups = Lists.newArrayList();
+    try {
+      result = Shell.execCommand(Shell.getGroupsForUserCommand(user));
+    } catch (ExitCodeException e) {
+      // if we didn't get the group - just return empty list;
+      LOG.warn("got exception trying to get groups for user " + user + ": " + e.getMessage());
+      return groups;
+    }
+
+    StringTokenizer tokenizer = new StringTokenizer(result, Shell.TOKEN_SEPARATOR_REGEX);
+    while (tokenizer.hasMoreTokens()) {
+      groups.add(tokenizer.nextToken());
+    }
+    return groups;
+  }
+
+  /**
    * Force to unmap direct buffer if the buffer is no longer used. It is unsafe operation and
    * currently a walk-around to avoid huge memory occupation caused by memory map.
-   * 
+   *
    * @param buffer the byte buffer to be unmapped
    */
   public static void cleanDirectBuffer(ByteBuffer buffer) {
@@ -522,7 +537,7 @@ public final class CommonUtils {
   }
   /**
    * Creates new instance of a class by calling a constructor that receives ctorClassArgs arguments
-   * 
+   *
    * @param cls the class to create
    * @param ctorClassArgs parameters type list of the constructor to initiate, if null default
    * constructor will be called 
