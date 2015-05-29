@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import tachyon.TachyonURI;
 import tachyon.master.MasterInfo;
+import tachyon.thrift.AccessControlException;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.InvalidPathException;
 
@@ -67,6 +68,10 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
         }
       } catch (InvalidPathException ipe) {
         request.setAttribute("fatalError", "Error: Invalid Path " + ipe.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        return;
+      } catch (AccessControlException ace) {
+        request.setAttribute("fatalError", "Error: Access denied " + ace.getLocalizedMessage());
         getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
         return;
       }
