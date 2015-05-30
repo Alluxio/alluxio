@@ -218,4 +218,16 @@ public class Constants {
   public static final String LOGGER_TYPE = System.getProperty(TACHYON_LOGGER_TYPE, "");
   public static final boolean DEBUG = Boolean.valueOf(System.getProperty(TACHYON_DEBUG, "false"));
 
+  public static final long CLIENT_METRICS_VERSION = 1L;
+  public static final int CLIENT_METRICS_SIZE = 9;
+  public static final int CLIENT_METRICS_VERSION_INDEX = 0;
+  public static final int BLOCKS_READ_LOCAL_INDEX = 1;
+  public static final int BLOCKS_READ_REMOTE_INDEX = 2;
+  public static final int BLOCKS_WRITTEN_LOCAL_INDEX = 3;
+  public static final int BYTES_READ_LOCAL_INDEX = 4;
+  public static final int BYTES_READ_REMOTE_INDEX = 5;
+  public static final int BYTES_READ_UFS_INDEX = 6;
+  public static final int BYTES_WRITTEN_LOCAL_INDEX = 7;
+  public static final int BYTES_WRITTEN_UFS_INDEX = 8;
+
 }

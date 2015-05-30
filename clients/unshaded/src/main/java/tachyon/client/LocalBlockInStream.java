@@ -26,6 +26,7 @@ import tachyon.conf.TachyonConf;
 public class LocalBlockInStream extends BlockInStream {
   private TachyonByteBuffer mTachyonBuffer = null;
   private ByteBuffer mBuffer = null;
+  private long mBytesReadLocal = 0;
 
   /**
    * @param file the file the block belongs to
@@ -47,6 +48,9 @@ public class LocalBlockInStream extends BlockInStream {
   public void close() throws IOException {
     if (!mClosed) {
       mTachyonBuffer.close();
+      if (mBytesReadLocal > 0) {
+        mTachyonFS.getClientMetrics().incBlocksReadLocal(1);
+      }
     }
     mClosed = true;
   }
@@ -57,6 +61,8 @@ public class LocalBlockInStream extends BlockInStream {
       close();
       return -1;
     }
+    mBytesReadLocal ++;
+    mTachyonFS.getClientMetrics().incBytesReadLocal(1);
     return mBuffer.get() & 0xFF;
   }
 
@@ -81,6 +87,8 @@ public class LocalBlockInStream extends BlockInStream {
       return -1;
     }
     mBuffer.get(b, off, ret);
+    mBytesReadLocal += ret;
+    mTachyonFS.getClientMetrics().incBytesReadLocal(ret);
     return ret;
   }
 

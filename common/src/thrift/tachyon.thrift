@@ -340,7 +340,8 @@ service WorkerService {
   bool unlockBlock(1: i64 blockId, 2: i64 userId)
 
   /**
-   * Local user send heartbeat to local worker to keep its temporary folder.
+   * Local user send heartbeat to local worker to keep its temporary folder. It also sends client
+   * metrics to the worker.
    */
-  void userHeartbeat(1: i64 userId)
+  void userHeartbeat(1: i64 userId, 2: list<i64> metrics)
 }
