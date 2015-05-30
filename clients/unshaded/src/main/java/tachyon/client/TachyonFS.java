@@ -49,6 +49,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
 
 /**
@@ -179,6 +180,7 @@ public class TachyonFS extends AbstractTachyonFS {
   private final AtomicInteger mBlockLockId = new AtomicInteger(0);
 
   private TachyonURI mRootUri = null;
+  private ClientMetrics mClientMetrics = new ClientMetrics();
 
   private TachyonFS(TachyonConf tachyonConf) throws IOException {
     super(tachyonConf);
@@ -194,7 +196,8 @@ public class TachyonFS extends AbstractTachyonFS {
     mMasterClient =
         mCloser.register(new MasterClient(mMasterAddress, mExecutorService, mTachyonConf));
     mWorkerClient =
-        mCloser.register(new WorkerClient(mMasterClient, mExecutorService, mTachyonConf));
+        mCloser.register(new WorkerClient(mMasterClient, mExecutorService, mTachyonConf,
+            mClientMetrics));
     mUserFailedSpaceRequestLimits =
         mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS,
             Constants.DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS);
@@ -455,6 +458,15 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized ClientDependencyInfo getClientDependencyInfo(int depId) throws IOException {
     return mMasterClient.getClientDependencyInfo(depId);
+  }
+
+  /**
+   * Get the user's ClientMetrics.
+   *
+   * @return the ClientMetrics object.
+   */
+  ClientMetrics getClientMetrics() {
+    return mClientMetrics;
   }
 
   /**

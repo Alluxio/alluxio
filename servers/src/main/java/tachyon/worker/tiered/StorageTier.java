@@ -312,40 +312,34 @@ public class StorageTier {
     }
 
     if (mSpaceAllocator.fitInPossible(dirs, requestSizeBytes)) {
-      // Max retry times when requesting space from current StorageTier
-      int failedSpaceRequestsLimit =
-          mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 3);
-      for (int attempt = 0; attempt < failedSpaceRequestsLimit; attempt ++) {
-        Pair<StorageDir, List<BlockInfo>> evictInfo =
-            mBlockEvictor.getDirCandidate(dirs, pinList, requestSizeBytes);
-        if (evictInfo == null) {
-          // Nothing to evict. The blocks may have been deleted. Try to allocate space again.
-          return mSpaceAllocator.getStorageDir(dirs, userId, requestSizeBytes);
-        }
-        dirSelected = evictInfo.getFirst();
-        List<BlockInfo> blocksInfoList = evictInfo.getSecond();
-        for (BlockInfo blockInfo : blocksInfoList) {
-          StorageDir dir = blockInfo.getStorageDir();
-          if (!dir.isBlockLocked(blockInfo.getBlockId())) { // pinList is not updated
-            long blockId = blockInfo.getBlockId();
-            if (isLastTier()) {
-              dir.deleteBlock(blockId);
-              removedBlockIds.add(blockId);
-            } else {
-              StorageDir dstDir =
-                  mNextTier.requestSpace(Users.MIGRATE_DATA_USER_ID, blockInfo.getSize(), pinList,
-                      removedBlockIds);
-              dir.moveBlock(blockId, dstDir);
-            }
-            mWorkerSource.incBlocksEvicted();
-            LOG.debug("Evicted block Id:{}" + blockId);
+      Pair<StorageDir, List<BlockInfo>> evictInfo =
+          mBlockEvictor.getDirCandidate(dirs, pinList, requestSizeBytes);
+      if (evictInfo == null) {
+        // Nothing to evict. But some blocks may be deleted meanwhile, so retry to allocate
+        // space again, if still failed, return null.
+        return mSpaceAllocator.getStorageDir(dirs, userId, requestSizeBytes);
+      }
+      dirSelected = evictInfo.getFirst();
+      List<BlockInfo> blocksInfoList = evictInfo.getSecond();
+      for (BlockInfo blockInfo : blocksInfoList) {
+        StorageDir dir = blockInfo.getStorageDir();
+        if (!dir.isBlockLocked(blockInfo.getBlockId())) { // pinList is not updated
+          long blockId = blockInfo.getBlockId();
+          if (isLastTier()) {
+            dir.deleteBlock(blockId);
+            removedBlockIds.add(blockId);
+          } else {
+            StorageDir dstDir =
+                mNextTier.requestSpace(Users.MIGRATE_DATA_USER_ID, blockInfo.getSize(), pinList,
+                    removedBlockIds);
+            dir.moveBlock(blockId, dstDir);
           }
+          mWorkerSource.incBlocksEvicted();
+          LOG.debug("Evicted block Id:{}" + blockId);
         }
-        if (dirSelected.requestSpace(userId, requestSizeBytes)) {
-          return dirSelected;
-        } else {
-          LOG.warn("Request space failed! attempt:{} storageLevel:{}", attempt, mLevel);
-        }
+      }
+      if (dirSelected.requestSpace(userId, requestSizeBytes)) {
+        return dirSelected;
       }
     }
     LOG.warn("No StorageDir is allocated! requestSize:{} storageLevel:{} used:{} capacity:{}",
