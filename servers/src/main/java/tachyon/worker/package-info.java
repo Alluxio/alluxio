@@ -49,11 +49,11 @@
  * two different types: read
  * {@link tachyon.worker.DataServerMessage#createBlockRequestMessage(long, long, long)} and
  * write
- * {@link tachyon.worker.DataServerMessage#createBlockResponseMessage(boolean, long, long,
- * long, ByteBuffer)}.
+ * {@link tachyon.worker.DataServerMessage#createBlockResponseMessage(boolean, long,
+ * java.nio.ByteBuffer)}.
  * Side note, the netty implementation does not use this class, but has defined two classes for
- * the read and write case: {@link tachyon.worker.netty.BlockRequest},
- * {@link tachyon.worker.netty.BlockResponse}; theses classes are network compatible.
+ * the read and write case: {@link tachyon.worker.netty.protocol.RPCBlockRequest},
+ * {@link tachyon.worker.netty.protocol.RPCBlockResponse}; theses classes are network compatible.
  */
 package tachyon.worker;
 
