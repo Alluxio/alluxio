@@ -35,7 +35,8 @@ public class DataServerMessage {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static final int HEADER_LENGTH = 26;
+  // TODO: convert client to netty to better deal with headers.
+  private static final int HEADER_LENGTH = 38;
 
   /**
    * Create a default block request message, just allocate the message header, and no attribute is
@@ -199,6 +200,11 @@ public class DataServerMessage {
 
   private void generateHeader() {
     mHeader.clear();
+
+    // These two fields are hard coded for now, until the client is converted to use netty.
+    mHeader.putLong(HEADER_LENGTH); // frame length
+    mHeader.putInt(0); // RPC message type
+
     mHeader.putShort(mMessageType);
     mHeader.putLong(mBlockId);
     mHeader.putLong(mOffset);
@@ -293,6 +299,13 @@ public class DataServerMessage {
       numRead = socketChannel.read(mHeader);
       if (mHeader.remaining() == 0) {
         mHeader.flip();
+
+        // These two fields are hard coded for now, until the client is converted to use netty.
+        long frameLength = mHeader.getLong(); // frame length
+        int msgRPCType = mHeader.getInt(); // RPC message type
+
+        // TODO: this msgType will be replaced by the newer msgRPCType when the client is converted
+        // to netty.
         short msgType = mHeader.getShort();
         assert (mMessageType == msgType);
         mBlockId = mHeader.getLong();
