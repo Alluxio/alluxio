@@ -15,6 +15,8 @@
 
 package tachyon.worker.netty.protocol.buffer;
 
+import java.nio.ByteBuffer;
+
 /**
  * This class is a simple wrapper for the optional data that an RPCMessage may have. This allows
  * subclasses to support different representations of the data.
@@ -33,4 +35,6 @@ public abstract class DataBuffer {
    * @return the length of the data in bytes.
    */
   public abstract long getLength();
+
+  public abstract ByteBuffer getReadOnlyByteBuffer();
 }
