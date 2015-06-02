@@ -235,4 +235,7 @@ public class Constants {
   public static final String TACHYON_SECURITY_GROUPS_CACHE_SECS =
       "tachyon.security.groups.cache.secs";
   public static final long TACHYON_SECURITY_GROUPS_CACHE_SECS_DEFAULT = 300;
+  /** Security - Authentication */
+  public static final String TACHYON_SECURITY_AUTHENTICATION = "tachyon.security.authentication";
+  public static final String TACHYON_SECURITY_USE_SSL = "tachyon.security.use.ssl";
 }

@@ -20,17 +20,19 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+
+import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
@@ -38,6 +40,7 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.metrics.MetricsSystem;
+import tachyon.security.AuthenticationFactory;
 import tachyon.thrift.MasterService;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
@@ -138,7 +141,7 @@ public class TachyonMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      mServerTServerSocket = new TServerSocket(addressListening);
+      mServerTServerSocket = createTServerSocket(address);
       mPort = NetworkUtils.getPort(mServerTServerSocket);
 
       String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
@@ -174,6 +177,15 @@ public class TachyonMaster {
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
+    }
+  }
+  
+  private TServerSocket createTServerSocket(InetSocketAddress address) throws TTransportException {
+    if (mTachyonConf.getBoolean(Constants.TACHYON_SECURITY_USE_SSL, false)) {
+      // TODO: ssl
+      throw new UnsupportedOperationException("SSL is not supported now");
+    } else {
+      return AuthenticationFactory.createTServerSocket(address);
     }
   }
 
@@ -251,22 +263,30 @@ public class TachyonMaster {
       mEditLogProcessor.stop();
     }
     mMasterInfo.init();
-
+    //TODO: auth http connection
     mWebServer =
         new MasterUIWebServer("Tachyon Master Server", new InetSocketAddress(
             NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo, mTachyonConf);
-
-    mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
-    MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
-        new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
-
-    mMasterServiceServer =
-        new TThreadPoolServer(new TThreadPoolServer.Args(mServerTServerSocket)
-            .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
-            .processor(masterServiceProcessor).transportFactory(new TFramedTransport.Factory())
-            .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+    // auth thrift RPC
+    mMasterServiceServer = createMasterServiceServer();
 
     mIsStarted = true;
+  }
+
+  private TServer createMasterServiceServer() {
+    AuthenticationFactory factory = new AuthenticationFactory(mTachyonConf);
+    // processor
+    mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
+    TProcessorFactory processorFactory = factory.getAuthProcFactory(mMasterServiceHandler);
+
+    // transport
+    TTransportFactory tTransportFactory = factory.getAuthTransFactory();
+
+    // create server
+    return new TThreadPoolServer(new TThreadPoolServer.Args(mServerTServerSocket)
+        .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
+        .processorFactory(processorFactory).transportFactory(tTransportFactory)
+        .protocolFactory(new TBinaryProtocol.Factory(true, true)));
   }
 
   /**
