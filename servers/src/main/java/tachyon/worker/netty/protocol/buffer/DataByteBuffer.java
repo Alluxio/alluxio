@@ -45,4 +45,11 @@ public class DataByteBuffer extends DataBuffer {
   public long getLength() {
     return mLength;
   }
+
+  @Override
+  public ByteBuffer getReadOnlyByteBuffer() {
+    ByteBuffer buffer = mBuffer.asReadOnlyBuffer();
+    buffer.position(0);
+    return buffer;
+  }
 }
