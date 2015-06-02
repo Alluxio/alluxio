@@ -36,5 +36,10 @@ public abstract class DataBuffer {
    */
   public abstract long getLength();
 
+  /**
+   * Returns a {@link ByteBuffer} for read-only access to the data.
+   *
+   * @return a read-only ByteBuffer representing the data
+   */
   public abstract ByteBuffer getReadOnlyByteBuffer();
 }
