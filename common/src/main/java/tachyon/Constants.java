@@ -230,4 +230,9 @@ public class Constants {
   public static final int BYTES_WRITTEN_LOCAL_INDEX = 7;
   public static final int BYTES_WRITTEN_UFS_INDEX = 8;
 
+  /** Security - group Mapping */
+  public static final String TACHYON_SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
+  public static final String TACHYON_SECURITY_GROUPS_CACHE_SECS =
+      "tachyon.security.groups.cache.secs";
+  public static final long TACHYON_SECURITY_GROUPS_CACHE_SECS_DEFAULT = 300;
 }

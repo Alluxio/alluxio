@@ -24,19 +24,22 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
+
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Closer;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Closer;
-
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.thrift.InvalidPathException;
+import tachyon.util.Shell.ExitCodeException;
 
 import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;
@@ -56,28 +59,63 @@ public final class CommonUtils {
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
     // TODO switch to java's Files.setPosixFilePermissions() if java 6 support is dropped
-    List<String> commands = new ArrayList<String>();
-    commands.add("/bin/chmod");
-    commands.add(perms);
-    File file = new File(filePath);
-    commands.add(file.getAbsolutePath());
-
     try {
-      ProcessBuilder builder = new ProcessBuilder(commands);
-      Process process = builder.start();
-
-      process.waitFor();
-
-      redirectIO(process);
-
-      if (process.exitValue() != 0) {
-        throw new IOException("Can not change the file " + file.getAbsolutePath()
-            + " 's permission to be " + perms);
-      }
-    } catch (InterruptedException e) {
-      LOG.error(e.getMessage());
+      Shell.execCommand(Shell.getSetPermissionCommand(perms, new File(filePath), false));
+    } catch (ExitCodeException e) {
+      LOG.error("Can not change the file " + filePath
+            + " 's permission to be " + perms, e);
       throw new IOException(e);
     }
+  }
+
+  /**
+   * Change local file's ownership.
+   *
+   * @param filePath that will change ownership
+   * @param user
+   * @param group
+   * @throws IOException
+   */
+  public static void changeLocalFileOwner(String filePath, String user, String group)
+      throws IOException {
+    if (user == null && group == null) {
+      throw new IOException("user == null && group == null");
+    }
+    String owner = (user == null ? "" : user) + (group == null ? "" : ":" + group);
+    try {
+      Shell.execCommand(Shell.getSetOwnerCommand(owner, new File(filePath)));
+    } catch (ExitCodeException e) {
+      // if we didn't get the group - just return empty list;
+      LOG.error("got exception trying to change ownership for user:" + user + " group:" + group
+          + " on " + filePath, e);
+      throw new IOException("got exception trying to change ownership", e);
+    }
+  }
+
+  /**
+   * Get the current user's group list from Unix by running the command 'groups'
+   * NOTE. For non-existing user it will return EMPTY list
+   * @param user user name
+   * @return the groups list that the <code>user</code> belongs to. The primary
+   *         group is returned first.
+   * @throws IOException if encounter any error when running the command
+   */
+  public static List<String> getUnixGroups(final String user) throws IOException {
+    String result = "";
+    List<String> groups = Lists.newArrayList();
+    try {
+      result = Shell.execCommand(Shell.getGroupsForUserCommand(user));
+    } catch (ExitCodeException e) {
+      // if we didn't get the group - just return empty list;
+      LOG.warn("got exception trying to get groups for user " + user + ": " + e.getMessage());
+      return groups;
+    }
+
+    StringTokenizer tokenizer = new StringTokenizer(result, Shell.TOKEN_SEPARATOR_REGEX);
+    while (tokenizer.hasMoreTokens()) {
+      groups.add(tokenizer.nextToken());
+    }
+    return groups;
   }
 
   /**
