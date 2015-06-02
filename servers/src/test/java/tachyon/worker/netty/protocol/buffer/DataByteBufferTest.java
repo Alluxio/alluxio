@@ -24,14 +24,16 @@ import org.junit.Test;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.FileRegion;
 
-public class DataByteBufferTest {
-  public static final int LENGTH = 5;
+import tachyon.TestUtils;
 
-  public ByteBuffer mBuffer = null;
+public class DataByteBufferTest {
+  private static final int LENGTH = 5;
+
+  private ByteBuffer mBuffer = null;
 
   @Before
   public final void before() {
-    mBuffer = ByteBuffer.allocate(LENGTH);
+    mBuffer = TestUtils.getIncreasingByteBuffer(LENGTH);
   }
 
   @Test
@@ -45,5 +47,13 @@ public class DataByteBufferTest {
   public void lengthTest() {
     DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
     Assert.assertEquals(LENGTH, data.getLength());
+  }
+
+  @Test
+  public void readOnlyByteBufferTest() {
+    DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
+    ByteBuffer readOnlyBuffer = data.getReadOnlyByteBuffer();
+    Assert.assertTrue(readOnlyBuffer.isReadOnly());
+    Assert.assertEquals(mBuffer, readOnlyBuffer);
   }
 }
