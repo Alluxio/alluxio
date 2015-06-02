@@ -57,7 +57,10 @@ public class DataFileChannel extends DataBuffer {
     try {
       mFileChannel.position(mOffset);
       int bytesRead = 0;
-      while ((bytesRead = mFileChannel.read(buffer)) >= 0);
+      long bytesRemaining = mLength;
+      while (bytesRemaining > 0 && (bytesRead = mFileChannel.read(buffer)) >= 0) {
+        bytesRemaining -= bytesRead;
+      }
     } catch (IOException ioe) {
       return null;
     }
