@@ -15,7 +15,6 @@
 
 package tachyon.master;
 
-import tachyon.master.permission.Acl;
 import tachyon.thrift.ClientFileInfo;
 
 /**
@@ -28,7 +27,6 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   private int mId;
   private String mName;
   private int mParentId;
-  private Acl mAcl;
 
   /**
    * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
@@ -207,22 +205,5 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
         .append(mCreationTimeMs).append(", PINNED:").append(mPinned)
         .append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs).append(")")
         .toString();
-  }
-
-  /**
-   * Get the acl of the inode
-   *
-   */
-  public synchronized Acl getAcl() {
-    return mAcl;
-  }
-
-  /**
-   * Set the acl of the inode
-   *
-   * @param acl
-   */
-  public synchronized void setAcl(Acl acl) {
-    mAcl = acl;
   }
 }
