@@ -12,12 +12,12 @@
   <description>Integration tests on other Tachyon modules</description>
 
   <modules>
-    <module>tachyon-integration-test-cases</module>
-    <module>tachyon-integration-tests-local</module>
-    <module>tachyon-integration-tests-hdfs</module>
-    <module>tachyon-integration-tests-s3</module>
-    <module>tachyon-integration-tests-glusterfs</module>
-    <module>tachyon-integration-hadoop-contract</module>
+    <module>test-cases</module>
+    <module>local</module>
+    <module>hdfs</module>
+    <module>s3</module>
+    <module>glusterfs</module>
+    <module>hadoop-contract</module>
   </modules>
 
   <properties>

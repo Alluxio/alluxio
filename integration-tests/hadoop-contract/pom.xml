@@ -78,7 +78,8 @@
                     <requireProperty>
                       <property>hadoop.version</property>
                       <message>hadoop.version must be set</message>
-                      <regex>2\.([6-9]|[1-9]\d).*</regex>
+                      <!-- Need Hadoop 2.6 or higher -->
+                      <regex>(2\.([6-9]|[1-9]\d+)|[3-9]\d*).*</regex>
                       <regexMessage>hadoop.version must be at least 2.6.0 to run HDFS contract
                         tests</regexMessage>
                     </requireProperty>
