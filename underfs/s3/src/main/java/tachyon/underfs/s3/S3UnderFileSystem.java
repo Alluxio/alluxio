@@ -57,7 +57,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   /** Prefix of the bucket, for example s3n://my-bucket-name/ */
   private final String mBucketPrefix;
 
-  public S3UnderFileSystem(String bucketName, TachyonConf tachyonConf) {
+  public S3UnderFileSystem(String bucketName, TachyonConf tachyonConf) throws ServiceException {
     super(tachyonConf);
     AWSCredentials awsCredentials =
         new AWSCredentials(tachyonConf.get(Constants.S3_ACCESS_KEY, null), tachyonConf.get(
