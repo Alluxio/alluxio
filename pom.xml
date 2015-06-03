@@ -349,6 +349,12 @@
         <version>2.9</version>
         <executions>
           <execution>
+            <id>aggregate</id>
+            <goals>
+              <goal>aggregate</goal>
+            </goals>
+          </execution>
+          <execution>
             <id>attach-javadoc</id>
             <goals>
               <goal>jar</goal>
