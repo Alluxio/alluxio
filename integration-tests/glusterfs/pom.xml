@@ -14,6 +14,10 @@
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+
+    <!-- Use these to set your GlusterFS environment for testing -->
+    <glusterfs.mounts />
+    <glusterfs.volumes />
   </properties>
 
   <dependencies>
@@ -49,6 +53,37 @@
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <version>1.4</version>
+            <executions>
+              <execution>
+                <id>enforce-glusterfs-settings</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireProperty>
+                      <property>glusterfs.mounts</property>
+                      <message>Property glusterfs.mounts must be set to provide your Gluster FS Mounts</message>
+                      <regex>.+</regex>
+                      <regexMessage>Property glusterfs.mounts must be set to provide your Gluster FS Mounts</regexMessage>
+                    </requireProperty>
+                    <requireProperty>
+                      <property>glusterfs.volumes</property>
+                      <message>Property glusterfs.mounts must be set to provide your Gluster FS Volumes</message>
+                      <regex>.+</regex>
+                      <regexMessage>Property glusterfs.mounts must be set to provide your Gluster FS Volumes</regexMessage>
+                    </requireProperty>
+                  </rules>
+                  <fail>true</fail>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <version>2.18.1</version>
             <configuration>
@@ -59,6 +94,8 @@
               </dependenciesToScan>
               <systemPropertyVariables>
                 <ufs>tachyon.underfs.glusterfs.GlusterFSCluster</ufs>
+                <glusterfs.mounts>${glusterfs.mounts}</glusterfs.mounts>
+                <glusterfs.volumes>${glusterfs.volumes}</glusterfs.volumes>
               </systemPropertyVariables>
             </configuration>
             <executions>
