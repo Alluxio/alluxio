@@ -1,0 +1,57 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.tachyonproject</groupId>
+    <artifactId>tachyon-integration-tests</artifactId>
+    <version>0.7.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>tachyon-integration-tests-hdfs</artifactId>
+  <name>Tachyon Integration Tests - HDFS</name>
+  <description>Runs the Tachyon Integration tests using HDFS as the under file system</description>
+
+  <properties>
+    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-integration-test-cases</artifactId>
+      <version>${project.version}</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.18.1</version>
+        <configuration>
+          <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
+          <!-- Pull in integration tests from test-cases module -->
+          <dependenciesToScan>
+            <dependency>org.tachyonproject:tachyon-integration-test-cases</dependency>
+          </dependenciesToScan>
+          <systemPropertyVariables>
+            <ufs>tachyon.underfs.hdfs.LocalMiniDFSCluster</ufs>
+          </systemPropertyVariables>
+        </configuration>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
