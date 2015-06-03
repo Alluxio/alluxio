@@ -19,10 +19,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
-import org.jets3t.service.impl.rest.httpclient.HttpMethodReleaseInputStream;
 import org.jets3t.service.model.S3Object;
 
 public class S3InputStream extends InputStream {
@@ -33,7 +31,6 @@ public class S3InputStream extends InputStream {
 
   private S3Object mObject;
   private BufferedInputStream mInputStream;
-  private HttpMethodReleaseInputStream mHttpStream;
   private long mPos;
 
   S3InputStream(String bucketName, String key, S3Service client) throws ServiceException {
@@ -41,13 +38,12 @@ public class S3InputStream extends InputStream {
     mKey = key;
     mClient = client;
     mObject = mClient.getObject(mBucketName, mKey);
-    mHttpStream = (HttpMethodReleaseInputStream) mObject.getDataInputStream();
     mInputStream = new BufferedInputStream(mObject.getDataInputStream());
   }
 
   @Override
   public void close() throws IOException {
-    closeInnerStream();
+    mInputStream.close();
   }
 
   public int read() throws IOException {
@@ -71,7 +67,7 @@ public class S3InputStream extends InputStream {
     if (mInputStream.available() >= n) {
       return mInputStream.skip(n);
     }
-    closeInnerStream();
+    mInputStream.close();
     mPos += n;
     try {
       mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
@@ -80,10 +76,5 @@ public class S3InputStream extends InputStream {
       throw new IOException(se);
     }
     return n;
-  }
-
-  private void closeInnerStream() throws IOException {
-    ((CloseableHttpResponse) mHttpStream.getHttpResponse()).close();
-    mInputStream.close();
   }
 }
