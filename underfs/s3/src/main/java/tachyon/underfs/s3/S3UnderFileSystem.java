@@ -241,7 +241,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   public InputStream open(String path) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
-      return mClient.getObject(mBucketName, path).getDataInputStream();
+      return new S3InputStream(mBucketName, path, mClient);
     } catch (ServiceException se) {
       LOG.error("Failed to open file: " + path, se);
       return null;
