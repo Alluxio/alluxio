@@ -15,13 +15,13 @@
 
 package tachyon.underfs.s3;
 
-import org.jets3t.service.S3Service;
-import org.jets3t.service.ServiceException;
-import org.jets3t.service.model.S3Object;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.jets3t.service.S3Service;
+import org.jets3t.service.ServiceException;
+import org.jets3t.service.model.S3Object;
 
 public class S3InputStream extends InputStream {
 
@@ -31,7 +31,7 @@ public class S3InputStream extends InputStream {
 
   private S3Object mObject;
   private BufferedInputStream mInputStream;
-  private long pos;
+  private long mPos;
 
   S3InputStream(String bucketName, String key, S3Service client) throws ServiceException {
     mBucketName = bucketName;
@@ -44,7 +44,7 @@ public class S3InputStream extends InputStream {
   public int read() throws IOException {
     int ret = mInputStream.read();
     if (ret != -1) {
-      pos ++;
+      mPos++;
     }
     return ret;
   }
@@ -52,7 +52,7 @@ public class S3InputStream extends InputStream {
   public int read(byte[] b, int off, int len) throws IOException {
     int ret = mInputStream.read(b, off, len);
     if (ret != -1) {
-      pos += ret;
+      mPos += ret;
     }
     return ret;
   }
@@ -62,9 +62,9 @@ public class S3InputStream extends InputStream {
     if (mInputStream.available() >= n) {
       return mInputStream.skip(n);
     }
-    pos += n;
+    mPos += n;
     try {
-      mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, pos, null);
+      mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
       mInputStream = new BufferedInputStream(mObject.getDataInputStream());
     } catch (ServiceException se) {
       throw new IOException(se);
