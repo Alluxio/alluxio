@@ -61,6 +61,24 @@ public class RPCMessageIntegrationTest {
   private static final long OFFSET = 22;
   private static final long LENGTH = 33;
 
+  // This channel initializer sets up a simple pipeline with the encoder and decoder.
+  private static class PipelineInitializer extends ChannelInitializer<SocketChannel> {
+    private MessageSavingHandler mHandler = null;
+
+    public PipelineInitializer(MessageSavingHandler handler) {
+      mHandler = handler;
+    }
+
+    @Override
+    protected void initChannel(SocketChannel ch) throws Exception {
+      ChannelPipeline pipeline = ch.pipeline();
+      pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());
+      pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
+      pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
+      pipeline.addLast("handler", mHandler);
+    }
+  }
+
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -155,24 +173,6 @@ public class RPCMessageIntegrationTest {
     os.close();
 
     return new FileInputStream(f).getChannel();
-  }
-
-  // This channel initializer sets up a simple pipeline with the encoder and decoder.
-  private static class PipelineInitializer extends ChannelInitializer<SocketChannel> {
-    private MessageSavingHandler mHandler = null;
-
-    public PipelineInitializer(MessageSavingHandler handler) {
-      mHandler = handler;
-    }
-
-    @Override
-    protected void initChannel(SocketChannel ch) throws Exception {
-      ChannelPipeline pipeline = ch.pipeline();
-      pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());
-      pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
-      pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
-      pipeline.addLast("handler", mHandler);
-    }
   }
 
   // This encodes and decodes the 'msg' by sending it through the client and server pipelines.
