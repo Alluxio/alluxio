@@ -38,9 +38,9 @@
           <dependenciesToScan>
             <dependency>org.tachyonproject:tachyon-integration-test-cases</dependency>
           </dependenciesToScan>
-          <!-- <systemPropertyVariables>
-            <ufs>tachyon.underfs.hdfs.LocalMiniDFSCluster</ufs>
-          </systemPropertyVariables> -->
+          <systemPropertyVariables>
+            <ufs>tachyon.LocalFilesystemCluster</ufs>
+          </systemPropertyVariables>
         </configuration>
         <executions>
           <execution>

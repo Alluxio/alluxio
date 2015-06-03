@@ -15,6 +15,9 @@
     <module>tachyon-integration-test-cases</module>
     <module>tachyon-integration-tests-local</module>
     <module>tachyon-integration-tests-hdfs</module>
+    <module>tachyon-integration-tests-s3</module>
+    <module>tachyon-integration-tests-glusterfs</module>
+    <module>tachyon-integration-hadoop-contract</module>
   </modules>
 
   <properties>
@@ -23,6 +26,9 @@
     <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
   </properties>
 
+  <!-- Need to define common dependencies in the parent because when we declare a test scoped dependency 
+    on the test-cases module the test scoped dependencies here won't be transitively pulled in so by defining 
+    them in the parent we ensure all the sub-modules receive the basic set of dependencies -->
   <dependencies>
     <!-- Test Dependencies -->
     <dependency>
@@ -47,11 +53,6 @@
     <dependency>
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-minicluster</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
