@@ -50,6 +50,15 @@ public abstract class RPCMessage implements EncodedMessage {
     }
 
     /**
+     * Returns the int identifier of the type.
+     *
+     * @return the int id of the type
+     */
+    public int getId() {
+      return mId;
+    }
+
+    /**
      * Returns the type represented by the id from the input ByteBuf.
      *
      * This must be updated to add new message types.

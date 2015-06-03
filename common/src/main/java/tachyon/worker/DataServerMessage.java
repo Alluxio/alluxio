@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.worker.netty.protocol.RPCMessage;
 
 /**
  * The message type used to send data request and response for remote data.
@@ -74,6 +75,7 @@ public class DataServerMessage {
    */
   public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len) {
     DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
+    ret.mRPCMessageType = RPCMessage.Type.RPC_BLOCK_REQUEST.getId();
 
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
     ret.mBlockId = blockId;
@@ -117,6 +119,7 @@ public class DataServerMessage {
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
       long offset, long len, ByteBuffer data) {
     DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
+    ret.mRPCMessageType = RPCMessage.Type.RPC_BLOCK_RESPONSE.getId();
 
     if (toSend) {
       if (data != null) {
@@ -161,6 +164,10 @@ public class DataServerMessage {
 
   private ByteBuffer mData = null;
 
+  // This is the new message type. This will replace the old type when the client is converted
+  // to Netty.
+  private int mRPCMessageType;
+
   /**
    * New a DataServerMessage. Notice that it's not ready.
    *
@@ -202,8 +209,12 @@ public class DataServerMessage {
     mHeader.clear();
 
     // These two fields are hard coded for now, until the client is converted to use netty.
-    mHeader.putLong(HEADER_LENGTH); // frame length
-    mHeader.putInt(0); // RPC message type
+    if (mMessageType == DATA_SERVER_REQUEST_MESSAGE) {
+      mHeader.putLong(HEADER_LENGTH); // frame length
+    } else {
+      mHeader.putLong(HEADER_LENGTH + mLength); // frame length
+    }
+    mHeader.putInt(mRPCMessageType); // RPC message type
 
     mHeader.putShort(mMessageType);
     mHeader.putLong(mBlockId);
