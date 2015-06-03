@@ -23,13 +23,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -43,11 +37,12 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
 import tachyon.Constants;
 import tachyon.TestUtils;
@@ -89,8 +84,8 @@ public class RPCMessageIntegrationTest {
     bootstrap.channel(NioServerSocketChannel.class);
     bootstrap.childHandler(new PipelineInitializer(sIncomingHandler));
 
-    InetSocketAddress address = new InetSocketAddress(NetworkUtils.getLocalHostName(100),
-        Constants.DEFAULT_MASTER_PORT);
+    InetSocketAddress address =
+        new InetSocketAddress(NetworkUtils.getLocalHostName(100), Constants.DEFAULT_MASTER_PORT);
     ChannelFuture cf = bootstrap.bind(address).syncUninterruptibly();
     sLocalAddress = cf.channel().localAddress();
 
@@ -144,8 +139,8 @@ public class RPCMessageIntegrationTest {
       Assert.assertNull(expected.getPayloadDataBuffer());
       Assert.assertNull(actual.getPayloadDataBuffer());
     } else {
-      Assert.assertTrue(TestUtils.equalIncreasingByteBuffer((int) OFFSET, (int) LENGTH,
-          actual.getPayloadDataBuffer().getReadOnlyByteBuffer()));
+      Assert.assertTrue(TestUtils.equalIncreasingByteBuffer((int) OFFSET, (int) LENGTH, actual
+          .getPayloadDataBuffer().getReadOnlyByteBuffer()));
     }
   }
 
@@ -199,8 +194,8 @@ public class RPCMessageIntegrationTest {
   @Test
   public void RPCBlockResponseTest() {
     ByteBuffer payload = TestUtils.getIncreasingByteBuffer((int) OFFSET, (int) LENGTH);
-    RPCBlockResponse msg = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH,
-        new DataByteBuffer(payload, LENGTH));
+    RPCBlockResponse msg =
+        new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload, LENGTH));
     RPCBlockResponse decoded = (RPCBlockResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
