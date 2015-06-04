@@ -15,12 +15,19 @@
 
 package tachyon.worker.eviction;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+
 import tachyon.Pair;
-import tachyon.master.BlockInfo;
+import tachyon.worker.tiered.BlockInfo;
 import tachyon.worker.tiered.StorageDir;
 
 /**
@@ -28,9 +35,11 @@ import tachyon.worker.tiered.StorageDir;
  */
 public abstract class EvictLRUBase implements EvictStrategy {
   private final boolean mLastTier;
+  private final Multimap<StorageDir, Long> mEvictingBlockIds;
 
   protected EvictLRUBase(boolean lastTier) {
     mLastTier = lastTier;
+    mEvictingBlockIds = Multimaps.synchronizedMultimap(HashMultimap.<StorageDir, Long>create());
   }
 
   /**
@@ -41,11 +50,41 @@ public abstract class EvictLRUBase implements EvictStrategy {
    * @return true if the block can be evicted, false otherwise
    */
   protected boolean blockEvictable(long blockId, Set<Integer> pinList) {
-    return !mLastTier || !pinList.contains(BlockInfo.computeInodeId(blockId));
+    return !mLastTier || !pinList.contains(tachyon.master.BlockInfo.computeInodeId(blockId));
   }
 
   /**
-   * Get the oldest access information of a StorageDir
+   * Clean the blocks that have been evicted from evicting list in each StorageDir
+   */
+  protected void cleanEvictingBlockIds() {
+    Iterator<Entry<StorageDir, Long>> iterator = mEvictingBlockIds.entries().iterator();
+    while (iterator.hasNext()) {
+      Entry<StorageDir, Long> block = iterator.next();
+      StorageDir dir = block.getKey();
+      long blockId = block.getValue();
+      if (!dir.containsBlock(blockId)) {
+        iterator.remove();
+      }
+    }
+  }
+
+  /**
+   * Update the blocks that are being evicted in each StorageDir
+   * 
+   * @param blockList The list of blocks that will be added in to evicting list
+   */
+  protected void updateEvictingBlockIds(Collection<BlockInfo> blockList) {
+    for (BlockInfo block : blockList) {
+      StorageDir dir = block.getStorageDir();
+      long blockId = block.getBlockId();
+      if (dir.containsBlock(blockId)) {
+        mEvictingBlockIds.put(dir, blockId);
+      }
+    }
+  }
+
+  /**
+   * Get the oldest access information from a StorageDir
    *
    * @param curDir current StorageDir
    * @param toEvictBlockIds the Ids of blocks that have been selected to evict
@@ -54,21 +93,23 @@ public abstract class EvictLRUBase implements EvictStrategy {
    */
   protected Pair<Long, Long> getLRUBlock(StorageDir curDir, Collection<Long> toEvictBlockIds,
       Set<Integer> pinList) {
-    long blockId = -1;
+    long lruBlockId = -1;
     long oldestTime = Long.MAX_VALUE;
-    Set<Entry<Long, Long>> accessTimes = curDir.getLastBlockAccessTimeMs();
+    Set<Long> evictingBlockIds = (Set<Long>) mEvictingBlockIds.get(curDir);
 
-    for (Entry<Long, Long> accessTime : accessTimes) {
-      if (toEvictBlockIds.contains(accessTime.getKey())) {
+    for (Entry<Long, Long> accessInfo : curDir.getLastBlockAccessTimeMs()) {
+      long blockId = accessInfo.getKey();
+      long accessTime = accessInfo.getValue();
+      if (toEvictBlockIds.contains(blockId) || evictingBlockIds.contains(blockId)) {
         continue;
       }
-      if (accessTime.getValue() < oldestTime && !curDir.isBlockLocked(accessTime.getKey())
-          && blockEvictable(accessTime.getKey(), pinList)) {
-        oldestTime = accessTime.getValue();
-        blockId = accessTime.getKey();
+      if (accessTime < oldestTime && !curDir.isBlockLocked(blockId)
+          && blockEvictable(blockId, pinList)) {
+        lruBlockId = blockId;
+        oldestTime = accessTime;
       }
     }
 
-    return new Pair<Long, Long>(blockId, oldestTime);
+    return new Pair<Long, Long>(lruBlockId, oldestTime);
   }
 }
