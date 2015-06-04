@@ -25,7 +25,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import tachyon.util.ThreadFactoryUtils;
-import tachyon.worker.netty.ChannelType;
 
 public final class NettyUtils {
   private NettyUtils() {}
