@@ -23,6 +23,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -117,8 +118,8 @@ public class RPCMessageIntegrationTest {
   @AfterClass
   public static void afterClass() {
     // Shut everything down.
-    sEventClient.shutdownGracefully();
-    sEventServer.shutdownGracefully();
+    sEventClient.shutdownGracefully(0, 0, TimeUnit.SECONDS);
+    sEventServer.shutdownGracefully(0, 0, TimeUnit.SECONDS);
     sEventClient.terminationFuture().syncUninterruptibly();
     sEventServer.terminationFuture().syncUninterruptibly();
   }
