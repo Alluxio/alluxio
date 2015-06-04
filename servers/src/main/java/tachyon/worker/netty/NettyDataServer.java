@@ -73,9 +73,9 @@ public final class NettyDataServer implements DataServer {
     // set write buffer
     // this is the default, but its recommended to set it in case of change in future netty.
     boot.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK,
-        (int)mTachyonConf.getBytes(Constants.WORKER_NETTY_WATERMARK_HIGH, 32 * 1024));
+        (int) mTachyonConf.getBytes(Constants.WORKER_NETTY_WATERMARK_HIGH, 32 * 1024));
     boot.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK,
-        (int)mTachyonConf.getBytes(Constants.WORKER_NETTY_WATERMARK_LOW, 8 * 1024));
+        (int) mTachyonConf.getBytes(Constants.WORKER_NETTY_WATERMARK_LOW, 8 * 1024));
 
     // more buffer settings
     final int optBacklog = mTachyonConf.getInt(Constants.WORKER_NETTY_BACKLOG, -1);
