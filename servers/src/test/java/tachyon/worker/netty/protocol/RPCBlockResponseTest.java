@@ -15,6 +15,8 @@
 
 package tachyon.worker.netty.protocol;
 
+import java.nio.ByteBuffer;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,19 +24,22 @@ import org.junit.Test;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
+import tachyon.worker.netty.protocol.buffer.DataByteBuffer;
+
 public class RPCBlockResponseTest {
-  public static final long BLOCK_ID = 1;
-  public static final long OFFSET = 2;
+  private static final long BLOCK_ID = 1;
+  private static final long OFFSET = 2;
   // The RPCMessageEncoder sends the payload separately from the message, so these unit tests only
   // test the message encoding part. Therefore, the 'length' should be 0.
-  public static final long LENGTH = 0;
+  private static final long LENGTH = 0;
 
   private ByteBuf mBuffer = null;
 
-  private void assertValid(long blockId, long offset, long length, RPCBlockResponse req) {
-    Assert.assertEquals(blockId, req.getBlockId());
-    Assert.assertEquals(offset, req.getOffset());
-    Assert.assertEquals(length, req.getLength());
+  private void assertValid(long blockId, long offset, long length, RPCBlockResponse resp) {
+    Assert.assertEquals(RPCMessage.Type.RPC_BLOCK_RESPONSE, resp.getType());
+    Assert.assertEquals(blockId, resp.getBlockId());
+    Assert.assertEquals(offset, resp.getOffset());
+    Assert.assertEquals(length, resp.getLength());
   }
 
   private void assertValid(RPCBlockResponse req) {
@@ -71,5 +76,14 @@ public class RPCBlockResponseTest {
   public void validateTest() {
     RPCBlockResponse req = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, null);
     assertValid(req);
+  }
+
+  @Test
+  public void getPayloadDataBufferTest() {
+    int length = 10;
+    DataByteBuffer payload = new DataByteBuffer(ByteBuffer.allocate(length), length);
+    RPCBlockResponse req = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, payload);
+    assertValid(req);
+    Assert.assertEquals(payload, req.getPayloadDataBuffer());
   }
 }

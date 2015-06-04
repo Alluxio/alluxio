@@ -23,13 +23,14 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 public class RPCBlockRequestTest {
-  public static final long BLOCK_ID = 11;
-  public static final long OFFSET = 22;
-  public static final long LENGTH = 33;
+  private static final long BLOCK_ID = 11;
+  private static final long OFFSET = 22;
+  private static final long LENGTH = 33;
 
-  public ByteBuf mBuffer = null;
+  private ByteBuf mBuffer = null;
 
   private void assertValid(long blockId, long offset, long length, RPCBlockRequest req) {
+    Assert.assertEquals(RPCMessage.Type.RPC_BLOCK_REQUEST, req.getType());
     Assert.assertEquals(blockId, req.getBlockId());
     Assert.assertEquals(offset, req.getOffset());
     Assert.assertEquals(length, req.getLength());
