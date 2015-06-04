@@ -47,8 +47,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 import tachyon.Constants;
 import tachyon.TestUtils;
-import tachyon.network.protocol.buffer.DataByteBuffer;
-import tachyon.network.protocol.buffer.DataFileChannel;
+import tachyon.network.protocol.databuffer.DataByteBuffer;
+import tachyon.network.protocol.databuffer.DataFileChannel;
 import tachyon.util.NetworkUtils;
 
 /**

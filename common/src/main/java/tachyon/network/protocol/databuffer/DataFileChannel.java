@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.network.protocol.buffer;
+package tachyon.network.protocol.databuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

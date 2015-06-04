@@ -30,7 +30,7 @@ import io.netty.channel.FileRegion;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
 import tachyon.Constants;
-import tachyon.network.protocol.buffer.DataBuffer;
+import tachyon.network.protocol.databuffer.DataBuffer;
 
 /**
  * Simple Netty encoder for RPCMessages.

@@ -13,43 +13,33 @@
  * the License.
  */
 
-package tachyon.network.protocol.buffer;
+package tachyon.network.protocol.databuffer;
 
 import java.nio.ByteBuffer;
 
-import io.netty.buffer.Unpooled;
-
 /**
- * A DataBuffer with the underlying data being a {@link ByteBuffer}.
+ * This class is a simple wrapper for the optional data that an RPCMessage may have. This allows
+ * subclasses to support different representations of the data.
  */
-public class DataByteBuffer extends DataBuffer {
-  private final ByteBuffer mBuffer;
-  private final long mLength;
+public abstract class DataBuffer {
+  /**
+   * Returns an object for writing to a netty channel.
+   *
+   * @return the object to output to Netty. Must be ByteBuf or FileRegion.
+   */
+  public abstract Object getNettyOutput();
 
   /**
+   * Returns the length of the data.
    *
-   * @param buffer The ByteBuffer representing the data
-   * @param length The length of the ByteBuffer
+   * @return the length of the data in bytes.
    */
-  public DataByteBuffer(ByteBuffer buffer, long length) {
-    mBuffer = buffer;
-    mLength = length;
-  }
+  public abstract long getLength();
 
-  @Override
-  public Object getNettyOutput() {
-    return Unpooled.wrappedBuffer(mBuffer);
-  }
-
-  @Override
-  public long getLength() {
-    return mLength;
-  }
-
-  @Override
-  public ByteBuffer getReadOnlyByteBuffer() {
-    ByteBuffer buffer = mBuffer.asReadOnlyBuffer();
-    buffer.position(0);
-    return buffer;
-  }
+  /**
+   * Returns a {@link ByteBuffer} for read-only access to the data.
+   *
+   * @return a read-only ByteBuffer representing the data
+   */
+  public abstract ByteBuffer getReadOnlyByteBuffer();
 }
