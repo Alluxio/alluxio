@@ -27,7 +27,8 @@ import org.jets3t.service.model.S3Object;
  * This class is a wrapper around the input stream returned by
  * {@link org.jets3t.service.model.S3Object} getDataInputStream. The main purpose is to provide a
  * faster skip method, as the underlying implementation will read and discard bytes until the
- * number to skip has been reached.
+ * number to skip has been reached. This input stream returns 0 when calling read with an
+ * empty buffer.
  */
 public class S3InputStream extends InputStream {
 
@@ -42,7 +43,7 @@ public class S3InputStream extends InputStream {
   private S3Object mObject;
   /** The underlying input stream */
   private BufferedInputStream mInputStream;
-  /** Position of the stream */
+  /** Position of the S3InputStream stream */
   private long mPos;
 
   S3InputStream(String bucketName, String key, S3Service client) throws ServiceException {
@@ -58,14 +59,16 @@ public class S3InputStream extends InputStream {
     mInputStream.close();
   }
 
+  @Override
   public int read() throws IOException {
     int ret = mInputStream.read();
     if (ret != -1) {
-      mPos++;
+      mPos ++;
     }
     return ret;
   }
 
+  @Override
   public int read(byte[] b, int off, int len) throws IOException {
     int ret = mInputStream.read(b, off, len);
     if (ret != -1) {
@@ -74,6 +77,15 @@ public class S3InputStream extends InputStream {
     return ret;
   }
 
+  /**
+   * This method leverages the ability to open a stream from S3 from a given offset. When the
+   * underlying stream has fewer bytes buffered than the skip request, the stream is closed, and
+   * a new stream is opened starting at the requested offset.
+   *
+   * @param n number of bytes to skip
+   * @return the number of bytes skipped
+   * @throws IOException if an error occurs when requesting from S3
+   */
   @Override
   public long skip(long n) throws IOException {
     if (mInputStream.available() >= n) {
