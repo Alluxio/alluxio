@@ -19,7 +19,8 @@ or release you have checked out or downloaded.
 In this directory you will find textfiles formatted using Markdown, with an ".md" suffix. You can
 read those text files directly if you want. Start with index.md.
 
-Before running `jekyll`, please run `mvn javadoc:javadoc` or `mvn site:site` to generate Java Doc.
+Before running `jekyll`, please run `mvn javadoc:javadoc` followed by `mvn javadoc:aggregate` or 
+`mvn site:site` to generate Java Doc.
 
 To make things quite a bit prettier and make the links easier to follow, generate the html version
 of the documentation based on the src directory by running `jekyll` in the docs directory. Use the
