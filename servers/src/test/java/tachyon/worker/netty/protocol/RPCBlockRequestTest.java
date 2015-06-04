@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+
 import tachyon.network.protocol.RPCBlockRequest;
 import tachyon.network.protocol.RPCMessage;
 
