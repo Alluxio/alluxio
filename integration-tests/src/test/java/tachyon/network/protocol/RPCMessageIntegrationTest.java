@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol;
+package tachyon.network.protocol;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,11 +47,6 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 import tachyon.Constants;
 import tachyon.TestUtils;
-import tachyon.network.protocol.RPCBlockRequest;
-import tachyon.network.protocol.RPCBlockResponse;
-import tachyon.network.protocol.RPCMessage;
-import tachyon.network.protocol.RPCMessageDecoder;
-import tachyon.network.protocol.RPCMessageEncoder;
 import tachyon.util.NetworkUtils;
 import tachyon.network.protocol.buffer.DataByteBuffer;
 import tachyon.network.protocol.buffer.DataFileChannel;
