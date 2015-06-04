@@ -25,7 +25,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.FileRegion;
 
 import tachyon.TestUtils;
-import tachyon.network.protocol.buffer.DataByteBuffer;
 
 public class DataByteBufferTest {
   private static final int LENGTH = 5;
