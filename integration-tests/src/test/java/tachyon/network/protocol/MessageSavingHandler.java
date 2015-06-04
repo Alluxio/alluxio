@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol;
+package tachyon.network.protocol;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -23,8 +23,6 @@ import org.junit.Assert;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-
-import tachyon.network.protocol.RPCMessage;
 
 /**
  * This is a simple handler for the channel pipelines. This simply saves the message it receives.
