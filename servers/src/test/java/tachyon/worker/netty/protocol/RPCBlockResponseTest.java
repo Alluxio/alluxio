@@ -42,11 +42,11 @@ public class RPCBlockResponseTest {
     Assert.assertEquals(length, resp.getLength());
   }
 
-  private void assertValid(RPCBlockResponse req) {
+  private void assertValid(RPCBlockResponse resp) {
     try {
-      req.validate();
+      resp.validate();
     } catch (Exception e) {
-      Assert.fail("request should be valid.");
+      Assert.fail("response should be valid.");
     }
   }
 
@@ -57,33 +57,33 @@ public class RPCBlockResponseTest {
 
   @Test
   public void encodedLengthTest() {
-    RPCBlockResponse req = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, null);
-    int encodedLength = req.getEncodedLength();
-    req.encode(mBuffer);
+    RPCBlockResponse resp = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, null);
+    int encodedLength = resp.getEncodedLength();
+    resp.encode(mBuffer);
     Assert.assertEquals(encodedLength, mBuffer.readableBytes());
   }
 
   @Test
   public void encodeDecodeTest() {
-    RPCBlockResponse req = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, null);
-    req.encode(mBuffer);
-    RPCBlockResponse req2 = RPCBlockResponse.decode(mBuffer);
-    assertValid(BLOCK_ID, OFFSET, LENGTH, req);
-    assertValid(BLOCK_ID, OFFSET, LENGTH, req2);
+    RPCBlockResponse resp = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, null);
+    resp.encode(mBuffer);
+    RPCBlockResponse resp2 = RPCBlockResponse.decode(mBuffer);
+    assertValid(BLOCK_ID, OFFSET, LENGTH, resp);
+    assertValid(BLOCK_ID, OFFSET, LENGTH, resp2);
   }
 
   @Test
   public void validateTest() {
-    RPCBlockResponse req = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, null);
-    assertValid(req);
+    RPCBlockResponse resp = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, null);
+    assertValid(resp);
   }
 
   @Test
   public void getPayloadDataBufferTest() {
     int length = 10;
     DataByteBuffer payload = new DataByteBuffer(ByteBuffer.allocate(length), length);
-    RPCBlockResponse req = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, payload);
-    assertValid(req);
-    Assert.assertEquals(payload, req.getPayloadDataBuffer());
+    RPCBlockResponse resp = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, payload);
+    assertValid(resp);
+    Assert.assertEquals(payload, resp.getPayloadDataBuffer());
   }
 }
