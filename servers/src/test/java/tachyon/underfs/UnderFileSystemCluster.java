@@ -99,7 +99,7 @@ public abstract class UnderFileSystemCluster {
   protected final TachyonConf mTachyonConf;
 
   /**
-   * This method is only for unit-test {@link tachyon.client.FileOutStreamTest} temporarily
+   * This method is only used by the {@link tachyon.client.FileOutStreamIntegrationTest} unit-test
    *
    * @return true if reads on end of file return negative otherwise false
    */

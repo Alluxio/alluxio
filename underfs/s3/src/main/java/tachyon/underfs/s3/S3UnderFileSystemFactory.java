@@ -47,7 +47,8 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
       try {
         return new S3UnderFileSystem(uri.getHost(), tachyonConf);
       } catch (ServiceException se) {
-        // Do nothing, will fail after.
+        LOG.error("Failed to create S3UnderFileSystem.", se);
+        throw Throwables.propagate(se);
       }
     }
 
