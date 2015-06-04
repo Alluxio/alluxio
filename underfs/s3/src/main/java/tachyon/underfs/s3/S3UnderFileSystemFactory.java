@@ -20,6 +20,7 @@ import java.io.IOException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
+import org.jets3t.service.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +44,17 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
 
     if (addAndCheckAWSCredentials(tachyonConf)) {
       TachyonURI uri = new TachyonURI(path);
-      return new S3UnderFileSystem(uri.getHost(), tachyonConf);
-    } else {
-      String err = "AWS Credentials not available, cannot create S3 Under File System.";
-      LOG.error(err);
-      throw Throwables.propagate(new IOException(err));
+      try {
+        return new S3UnderFileSystem(uri.getHost(), tachyonConf);
+      } catch (ServiceException se) {
+        LOG.error("Failed to create S3UnderFileSystem.", se);
+        throw Throwables.propagate(se);
+      }
     }
+
+    String err = "AWS Credentials not available, cannot create S3 Under File System.";
+    LOG.error(err);
+    throw Throwables.propagate(new IOException(err));
   }
 
   @Override
