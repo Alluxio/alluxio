@@ -82,6 +82,7 @@ public class DataServerIntegrationTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty(Constants.WORKER_DATA_SERVER);
+    System.clearProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE);
   }
 
   /**
@@ -113,9 +114,7 @@ public class DataServerIntegrationTest {
   @Before
   public final void before() throws IOException {
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    if (!mNettyTransferType.equals(UNUSED_TRANSFER_TYPE)) {
-      System.setProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    }
+    System.setProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     mLocalTachyonCluster.start();
