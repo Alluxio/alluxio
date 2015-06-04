@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol.buffer;
+package tachyon.network.protocol.buffer;
 
 import java.io.File;
 import java.io.FileInputStream;
