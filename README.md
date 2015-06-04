@@ -4,10 +4,10 @@ Tachyon
 The master branch is in version 0.7.0-SNAPSHOT:
 
 - [Tachyon Homepage](http://www.tachyonproject.org)
-- [Releases](https://github.com/amplab/tachyon/tags)
-- [Tachyon JIRA](https://tachyon.atlassian.net/browse/TACHYON)
 - [Contribute to Tachyon](http://tachyon-project.org/master/Contributing-to-Tachyon.html) and
 [Beginner's Tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner%20AND%20status%20%3D%20Open)
+- [Releases](https://github.com/amplab/tachyon/tags)
+- [Tachyon JIRA](https://tachyon.atlassian.net/browse/TACHYON)
 - [Master Branch Document](http://tachyon-project.org/master/)
 - [User Group](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
 - [Meetup Group](http://www.meetup.com/Tachyon)
