@@ -39,9 +39,9 @@ import tachyon.worker.BlocksLocker;
 import tachyon.network.protocol.RPCBlockRequest;
 import tachyon.network.protocol.RPCBlockResponse;
 import tachyon.network.protocol.RPCMessage;
-import tachyon.network.protocol.buffer.DataBuffer;
-import tachyon.network.protocol.buffer.DataByteBuffer;
-import tachyon.network.protocol.buffer.DataFileChannel;
+import tachyon.network.protocol.databuffer.DataBuffer;
+import tachyon.network.protocol.databuffer.DataByteBuffer;
+import tachyon.network.protocol.databuffer.DataFileChannel;
 import tachyon.worker.tiered.StorageDir;
 
 /**

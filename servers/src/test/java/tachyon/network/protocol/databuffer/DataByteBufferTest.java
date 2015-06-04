@@ -13,67 +13,47 @@
  * the License.
  */
 
-package tachyon.network.protocol.buffer;
+package tachyon.network.protocol.databuffer;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.FileRegion;
 
 import tachyon.TestUtils;
 
-public class DataFileChannelTest {
-  private static final int OFFSET = 1;
+public class DataByteBufferTest {
   private static final int LENGTH = 5;
 
-  @Rule
-  public TemporaryFolder mFolder = new TemporaryFolder();
-
-  private FileChannel mChannel = null;
+  private ByteBuffer mBuffer = null;
 
   @Before
-  public final void before() throws IOException {
-    // Create a temporary file for the FileChannel.
-    File f = mFolder.newFile("temp.txt");
-    String path = f.getAbsolutePath();
-
-    FileOutputStream os = new FileOutputStream(path);
-    os.write(TestUtils.getIncreasingByteArray(OFFSET + LENGTH));
-    os.close();
-
-    FileInputStream is = new FileInputStream(f);
-    mChannel = is.getChannel();
+  public final void before() {
+    mBuffer = TestUtils.getIncreasingByteBuffer(LENGTH);
   }
 
   @Test
   public void nettyOutputTest() {
-    DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);
+    DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
     Object output = data.getNettyOutput();
     Assert.assertTrue(output instanceof ByteBuf || output instanceof FileRegion);
   }
 
   @Test
   public void lengthTest() {
-    DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);
+    DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
     Assert.assertEquals(LENGTH, data.getLength());
   }
 
   @Test
   public void readOnlyByteBufferTest() {
-    DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);
+    DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
     ByteBuffer readOnlyBuffer = data.getReadOnlyByteBuffer();
     Assert.assertTrue(readOnlyBuffer.isReadOnly());
-    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(OFFSET, LENGTH), readOnlyBuffer);
+    Assert.assertEquals(mBuffer, readOnlyBuffer);
   }
 }

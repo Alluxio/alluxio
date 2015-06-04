@@ -23,8 +23,8 @@ import com.google.common.primitives.Shorts;
 import io.netty.buffer.ByteBuf;
 
 import tachyon.worker.DataServerMessage;
-import tachyon.network.protocol.buffer.DataBuffer;
-import tachyon.network.protocol.buffer.DataByteBuffer;
+import tachyon.network.protocol.databuffer.DataBuffer;
+import tachyon.network.protocol.databuffer.DataByteBuffer;
 
 /**
  * This represents the response of a {@link RPCBlockRequest}.
