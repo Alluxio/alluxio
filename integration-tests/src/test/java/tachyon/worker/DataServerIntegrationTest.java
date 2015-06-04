@@ -52,30 +52,37 @@ public class DataServerIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
+  private static final String UNUSED_TRANSFER_TYPE = "UNUSED";
+
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
-    // creates a new instance of DataServerTest for each network type
+    // Creates a new instance of DataServerTest for each network type and transfer type.
+    // The transfer type is only applicable to the netty DataServer.
     List<Object[]> list = new ArrayList<Object[]>();
-    list.add(new Object[] { "tachyon.worker.netty.NettyDataServer" });
-    list.add(new Object[] { "tachyon.worker.nio.NIODataServer" });
+    list.add(new Object[] { "tachyon.worker.netty.NettyDataServer", "MAPPED" });
+    list.add(new Object[] { "tachyon.worker.netty.NettyDataServer", "TRANSFER" });
+    list.add(new Object[] { "tachyon.worker.nio.NIODataServer", UNUSED_TRANSFER_TYPE });
     return list;
   }
 
   private final String mDataServerClass;
+  private final String mNettyTransferType;
   private LocalTachyonCluster mLocalTachyonCluster = null;
 
   private TachyonFS mTFS = null;
 
   private TachyonConf mWorkerTachyonConf;
 
-  public DataServerIntegrationTest(String className) {
+  public DataServerIntegrationTest(String className, String nettyTransferType) {
     mDataServerClass = className;
+    mNettyTransferType = nettyTransferType;
   }
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty(Constants.WORKER_DATA_SERVER);
+    System.clearProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE);
   }
 
   /**
@@ -107,6 +114,7 @@ public class DataServerIntegrationTest {
   @Before
   public final void before() throws IOException {
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
+    System.setProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     mLocalTachyonCluster.start();
