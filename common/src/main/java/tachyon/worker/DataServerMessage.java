@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.worker.netty.protocol.RPCMessage;
+import tachyon.network.protocol.RPCMessage;
 
 /**
  * The message type used to send data request and response for remote data.

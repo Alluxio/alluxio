@@ -32,20 +32,22 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.network.protocol.RPCRequest;
+import tachyon.network.protocol.RPCResponse;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
-import tachyon.worker.netty.protocol.RPCBlockRequest;
-import tachyon.worker.netty.protocol.RPCBlockResponse;
-import tachyon.worker.netty.protocol.RPCMessage;
-import tachyon.worker.netty.protocol.buffer.DataBuffer;
-import tachyon.worker.netty.protocol.buffer.DataByteBuffer;
-import tachyon.worker.netty.protocol.buffer.DataFileChannel;
+import tachyon.network.protocol.RPCBlockRequest;
+import tachyon.network.protocol.RPCBlockResponse;
+import tachyon.network.protocol.RPCMessage;
+import tachyon.network.protocol.buffer.DataBuffer;
+import tachyon.network.protocol.buffer.DataByteBuffer;
+import tachyon.network.protocol.buffer.DataFileChannel;
 import tachyon.worker.tiered.StorageDir;
 
 /**
  * This class has the main logic of the read path to process
- * {@link tachyon.worker.netty.protocol.RPCRequest} messages and return
- * {@link tachyon.worker.netty.protocol.RPCResponse} messages.
+ * {@link RPCRequest} messages and return
+ * {@link RPCResponse} messages.
  */
 @ChannelHandler.Sharable
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {

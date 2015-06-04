@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol;
+package tachyon.network.protocol;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -22,7 +22,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
-import tachyon.worker.netty.protocol.buffer.DataBuffer;
+import tachyon.network.protocol.buffer.DataBuffer;
 
 // This is the main base class for all RPC messages to the DataServer.
 // The message and type encoding scheme is adapted from the implementation found in the streaming

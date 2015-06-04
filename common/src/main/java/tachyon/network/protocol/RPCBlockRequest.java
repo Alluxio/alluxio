@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol;
+package tachyon.network.protocol;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
