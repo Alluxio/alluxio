@@ -28,6 +28,8 @@ import io.netty.channel.SimpleChannelInboundHandler;
  * This is a simple handler for the channel pipelines. This simply saves the message it receives.
  * The stored message can be retrieved with getMessage() which is blocking until the message is
  * received.
+ *
+ * This is for encoder/decoder testing in {@link RPCMessageIntegrationTest}.
  */
 @ChannelHandler.Sharable
 public class MessageSavingHandler extends SimpleChannelInboundHandler<RPCMessage> {
