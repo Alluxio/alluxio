@@ -30,6 +30,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.network.NettyUtils;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
 
