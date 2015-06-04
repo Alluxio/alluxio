@@ -105,7 +105,7 @@ public abstract class UnderFileSystemCluster {
    */
   public static boolean readEOFReturnsNegative() {
     // TODO Should be dynamically determined - may need additional method on UnderFileSystem
-    return (null != sUfsClz) && !(sUfsClz.equals("tachyon.LocalUnderFileSystem"));
+    return null != sUfsClz && sUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster");
   }
 
   public UnderFileSystemCluster(String baseDir, TachyonConf tachyonConf) {
