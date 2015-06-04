@@ -47,9 +47,9 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 import tachyon.Constants;
 import tachyon.TestUtils;
-import tachyon.util.NetworkUtils;
 import tachyon.network.protocol.buffer.DataByteBuffer;
 import tachyon.network.protocol.buffer.DataFileChannel;
+import tachyon.util.NetworkUtils;
 
 /**
  * This tests the encoding and decoding of RPCMessage's. This is done by setting up a simple
