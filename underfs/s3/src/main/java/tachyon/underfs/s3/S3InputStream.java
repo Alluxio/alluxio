@@ -23,14 +23,26 @@ import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Object;
 
+/**
+ * This class is a wrapper around the input stream returned by
+ * {@link org.jets3t.service.model.S3Object} getDataInputStream. The main purpose is to provide a
+ * faster skip method, as the underlying implementation will read and discard bytes until the
+ * number to skip has been reached.
+ */
 public class S3InputStream extends InputStream {
 
+  /** Bucket name of the Tachyon S3 bucket */
   private final String mBucketName;
+  /** Key of the file in S3 to read */
   private final String mKey;
+  /** The JetS3t client for S3 operations */
   private final S3Service mClient;
 
+  /** The storage object that will be updated on each large skip */
   private S3Object mObject;
+  /** The underlying input stream */
   private BufferedInputStream mInputStream;
+  /** Position of the stream */
   private long mPos;
 
   S3InputStream(String bucketName, String key, S3Service client) throws ServiceException {
@@ -67,6 +79,7 @@ public class S3InputStream extends InputStream {
     if (mInputStream.available() >= n) {
       return mInputStream.skip(n);
     }
+    // The number of bytes to skip is possibly large, open a new stream from S3.
     mInputStream.close();
     mPos += n;
     try {
