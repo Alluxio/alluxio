@@ -32,6 +32,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.FileRegion;
 
 import tachyon.TestUtils;
+import tachyon.network.protocol.buffer.DataFileChannel;
 
 public class DataFileChannelTest {
   private static final int OFFSET = 1;

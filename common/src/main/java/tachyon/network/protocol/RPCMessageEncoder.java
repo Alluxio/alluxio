@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol;
+package tachyon.network.protocol;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ import io.netty.channel.FileRegion;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
 import tachyon.Constants;
-import tachyon.worker.netty.protocol.buffer.DataBuffer;
+import tachyon.network.protocol.buffer.DataBuffer;
 
 /**
  * Simple Netty encoder for RPCMessages.

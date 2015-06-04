@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol;
+package tachyon.network.protocol;
 
 import java.nio.ByteBuffer;
 
@@ -23,8 +23,8 @@ import com.google.common.primitives.Shorts;
 import io.netty.buffer.ByteBuf;
 
 import tachyon.worker.DataServerMessage;
-import tachyon.worker.netty.protocol.buffer.DataBuffer;
-import tachyon.worker.netty.protocol.buffer.DataByteBuffer;
+import tachyon.network.protocol.buffer.DataBuffer;
+import tachyon.network.protocol.buffer.DataByteBuffer;
 
 /**
  * This represents the response of a {@link RPCBlockRequest}.
@@ -47,7 +47,7 @@ public class RPCBlockResponse extends RPCResponse {
   }
 
   /**
-   * Creates a {@link tachyon.worker.netty.protocol.RPCBlockResponse} that indicates an error for
+   * Creates a {@link RPCBlockResponse} that indicates an error for
    * the given block.
    *
    * @param blockId The Id of block requested

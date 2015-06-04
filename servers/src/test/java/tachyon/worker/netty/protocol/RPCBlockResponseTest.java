@@ -24,7 +24,9 @@ import org.junit.Test;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-import tachyon.worker.netty.protocol.buffer.DataByteBuffer;
+import tachyon.network.protocol.RPCBlockResponse;
+import tachyon.network.protocol.RPCMessage;
+import tachyon.network.protocol.buffer.DataByteBuffer;
 
 public class RPCBlockResponseTest {
   private static final long BLOCK_ID = 1;
