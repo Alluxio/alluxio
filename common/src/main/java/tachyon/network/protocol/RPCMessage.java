@@ -52,6 +52,11 @@ public abstract class RPCMessage implements EncodedMessage {
     /**
      * Returns the int identifier of the type.
      *
+     * Note: This is only used for getting the int representation of the type for
+     * {@link tachyon.worker.DataServerMessage}, since that class needs to manually encode all
+     * messages. {@link tachyon.worker.DataServerMessage} and this method should no longer be needed
+     * when the client is converted to use Netty.
+     *
      * @return the int id of the type
      */
     public int getId() {
