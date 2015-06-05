@@ -9,7 +9,7 @@
   <artifactId>tachyon-common</artifactId>
   <packaging>jar</packaging>
   <name>Tachyon Common</name>
-  <description>Common utilities shared by different tachyon moduels</description>
+  <description>Common utilities shared by different tachyon modules</description>
 
   <properties>
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
@@ -32,6 +32,11 @@
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <version>4.0.23.Final</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

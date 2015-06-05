@@ -13,32 +13,43 @@
  * the License.
  */
 
-package tachyon.worker.netty;
+package tachyon.network.protocol.databuffer;
 
-import io.netty.channel.epoll.Epoll;
+import java.nio.ByteBuffer;
+
+import io.netty.buffer.Unpooled;
 
 /**
- * What type of netty channel to use. NIO and EPOLL are supported currently.
+ * A DataBuffer with the underlying data being a {@link ByteBuffer}.
  */
-public enum ChannelType {
-  NIO,
-  /**
-   * Use Linux's epoll for channel API. This type of channel only works on Linux.
-   */
-  EPOLL;
+public class DataByteBuffer extends DataBuffer {
+  private final ByteBuffer mBuffer;
+  private final long mLength;
 
   /**
-   * Determines the default type to use based off the system.
-   * <p>
-   * On Linux-based systems, {@link #EPOLL} is the default type for more consistent performance,
-   * otherwise {@link #NIO}.
-   * </p>
+   *
+   * @param buffer The ByteBuffer representing the data
+   * @param length The length of the ByteBuffer
    */
-  public static ChannelType defaultType() {
-    if (Epoll.isAvailable()) {
-      return ChannelType.EPOLL;
-    } else {
-      return ChannelType.NIO;
-    }
+  public DataByteBuffer(ByteBuffer buffer, long length) {
+    mBuffer = buffer;
+    mLength = length;
+  }
+
+  @Override
+  public Object getNettyOutput() {
+    return Unpooled.wrappedBuffer(mBuffer);
+  }
+
+  @Override
+  public long getLength() {
+    return mLength;
+  }
+
+  @Override
+  public ByteBuffer getReadOnlyByteBuffer() {
+    ByteBuffer buffer = mBuffer.asReadOnlyBuffer();
+    buffer.position(0);
+    return buffer;
   }
 }

@@ -21,6 +21,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
 import tachyon.conf.TachyonConf;
+import tachyon.network.protocol.RPCMessage;
+import tachyon.network.protocol.RPCMessageDecoder;
+import tachyon.network.protocol.RPCMessageEncoder;
 import tachyon.worker.BlocksLocker;
 
 /**
@@ -39,8 +42,9 @@ public final class PipelineHandler extends ChannelInitializer<SocketChannel> {
   protected void initChannel(SocketChannel ch) throws Exception {
     ChannelPipeline pipeline = ch.pipeline();
     pipeline.addLast("nioChunkedWriter", new ChunkedWriteHandler());
-    pipeline.addLast("blockRequestDecoder", new BlockRequest.Decoder());
-    pipeline.addLast("blockResponseEncoder", new BlockResponse.Encoder(mTachyonConf));
-    pipeline.addLast("dataServerHandler", new DataServerHandler(mLocker));
+    pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());
+    pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
+    pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
+    pipeline.addLast("dataServerHandler", new DataServerHandler(mLocker, mTachyonConf));
   }
 }
