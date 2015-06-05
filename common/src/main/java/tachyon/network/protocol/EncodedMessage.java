@@ -13,32 +13,23 @@
  * the License.
  */
 
-package tachyon.worker.netty;
+package tachyon.network.protocol;
 
-import io.netty.channel.epoll.Epoll;
+import io.netty.buffer.ByteBuf;
 
-/**
- * What type of netty channel to use. NIO and EPOLL are supported currently.
- */
-public enum ChannelType {
-  NIO,
-  /**
-   * Use Linux's epoll for channel API. This type of channel only works on Linux.
-   */
-  EPOLL;
+public interface EncodedMessage {
 
   /**
-   * Determines the default type to use based off the system.
-   * <p>
-   * On Linux-based systems, {@link #EPOLL} is the default type for more consistent performance,
-   * otherwise {@link #NIO}.
-   * </p>
+   * Returns the number bytes for the message when it is encoded.
+   *
+   * @return the length of the encoded message, in bytes.
    */
-  public static ChannelType defaultType() {
-    if (Epoll.isAvailable()) {
-      return ChannelType.EPOLL;
-    } else {
-      return ChannelType.NIO;
-    }
-  }
+  int getEncodedLength();
+
+  /**
+   * Encodes the message to the output {@link ByteBuf}.
+   *
+   * @param out the output ByteBuf where the message should be encoded.
+   */
+  void encode(ByteBuf out);
 }

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol.buffer;
+package tachyon.network.protocol.databuffer;
 
 import java.nio.ByteBuffer;
 

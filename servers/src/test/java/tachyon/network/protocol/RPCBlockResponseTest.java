@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol;
+package tachyon.network.protocol;
 
 import java.nio.ByteBuffer;
 
@@ -24,7 +24,7 @@ import org.junit.Test;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-import tachyon.worker.netty.protocol.buffer.DataByteBuffer;
+import tachyon.network.protocol.databuffer.DataByteBuffer;
 
 public class RPCBlockResponseTest {
   private static final long BLOCK_ID = 1;
