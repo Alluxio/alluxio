@@ -45,8 +45,7 @@ import tachyon.worker.BlocksLocker;
 import tachyon.worker.tiered.StorageDir;
 
 /**
- * This class has the main logic of the read path to process
- * {@link RPCRequest} messages and return
+ * This class has the main logic of the read path to process {@link RPCRequest} messages and return
  * {@link RPCResponse} messages.
  */
 @ChannelHandler.Sharable
