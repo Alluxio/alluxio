@@ -15,42 +15,75 @@
 
 package tachyon.worker.netty;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.network.protocol.RPCBlockRequest;
+import tachyon.network.protocol.RPCBlockResponse;
+import tachyon.network.protocol.RPCMessage;
+import tachyon.network.protocol.RPCRequest;
+import tachyon.network.protocol.RPCResponse;
+import tachyon.network.protocol.databuffer.DataBuffer;
+import tachyon.network.protocol.databuffer.DataByteBuffer;
+import tachyon.network.protocol.databuffer.DataFileChannel;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.tiered.StorageDir;
 
 /**
- * This class has the main logic of the read path to process
- * {@link tachyon.worker.netty.BlockRequest} messages and return
- * {@link tachyon.worker.netty.BlockResponse} messages.
+ * This class has the main logic of the read path to process {@link RPCRequest} messages and return
+ * {@link RPCResponse} messages.
  */
 @ChannelHandler.Sharable
-public final class DataServerHandler extends ChannelInboundHandlerAdapter {
+public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final BlocksLocker mLocker;
+  private final TachyonConf mTachyonConf;
+  private final FileTransferType mTransferType;
 
-  public DataServerHandler(final BlocksLocker locker) {
+  public DataServerHandler(final BlocksLocker locker, TachyonConf tachyonConf) {
     mLocker = locker;
+    mTachyonConf = tachyonConf;
+    mTransferType =
+        mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.TRANSFER);
   }
 
   @Override
-  public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-    // pipeline will make sure this is true
-    final BlockRequest req = (BlockRequest) msg;
+  public void channelRead0(final ChannelHandlerContext ctx, final RPCMessage msg)
+      throws IOException {
+    switch (msg.getType()) {
+      case RPC_BLOCK_REQUEST:
+        handleBlockRequest(ctx, (RPCBlockRequest) msg);
+        break;
+      default:
+        throw new IllegalArgumentException("No handler implementation for rpc msg type: "
+            + msg.getType());
+    }
+  }
 
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    LOG.warn("Exception thrown while processing request", cause);
+    ctx.close();
+  }
+
+  private void handleBlockRequest(final ChannelHandlerContext ctx, final RPCBlockRequest req)
+      throws IOException {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
@@ -59,14 +92,15 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
 
     BlockHandler handler = null;
     try {
-      validateInput(req);
+      req.validate();
       handler = storageDir.getBlockHandler(blockId);
 
       final long fileLength = handler.getLength();
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
       ChannelFuture future =
-          ctx.writeAndFlush(new BlockResponse(blockId, offset, readLength, handler));
+          ctx.writeAndFlush(new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req,
+              handler, readLength)));
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(handler));
       storageDir.accessBlock(blockId);
@@ -75,7 +109,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     } catch (Exception e) {
       // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);
-      BlockResponse resp = BlockResponse.createErrorResponse(blockId);
+      RPCBlockResponse resp = RPCBlockResponse.createErrorResponse(blockId);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       if (handler != null) {
@@ -86,12 +120,6 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     }
   }
 
-  @Override
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    LOG.warn("Exception thrown while processing request", cause);
-    ctx.close();
-  }
-
   /**
    * Returns how much of a file to read. When {@code len} is {@code -1}, then
    * {@code fileLength - offset} is used.
@@ -100,7 +128,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     return (len == -1) ? fileLength - offset : len;
   }
 
-  private void validateBounds(final BlockRequest req, final long fileLength) {
+  private void validateBounds(final RPCBlockRequest req, final long fileLength) {
     Preconditions.checkArgument(req.getOffset() <= fileLength,
         "Offset(%s) is larger than file length(%s)", req.getOffset(), fileLength);
     Preconditions.checkArgument(req.getLength() == -1
@@ -109,10 +137,33 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
         req.getLength(), fileLength);
   }
 
-  private void validateInput(final BlockRequest req) {
-    Preconditions.checkArgument(req.getOffset() >= 0, "Offset can not be negative: %s",
-        req.getOffset());
-    Preconditions.checkArgument(req.getLength() >= 0 || req.getLength() == -1,
-        "Length can not be negative except -1: %s", req.getLength());
+
+
+  /**
+   * Returns the appropriate DataBuffer representing the data to send, depending on the
+   * configurable transfer type.
+   *
+   * @param req The initiating RPCBlockRequest
+   * @param handler The BlockHandler for the block to read
+   * @param readLength The length, in bytes, of the data to read from the block
+   * @return a DataBuffer representing the data
+   * @throws IOException
+   * @throws IllegalArgumentException
+   */
+  private DataBuffer getDataBuffer(RPCBlockRequest req, BlockHandler handler, long readLength)
+      throws IOException, IllegalArgumentException {
+    switch (mTransferType) {
+      case MAPPED:
+        ByteBuffer data = handler.read(req.getOffset(), (int) readLength);
+        return new DataByteBuffer(data, readLength);
+      case TRANSFER: // intend to fall through as TRANSFER is the default type.
+      default:
+        if (handler.getChannel() instanceof FileChannel) {
+          return new DataFileChannel((FileChannel) handler.getChannel(), req.getOffset(),
+              readLength);
+        }
+        handler.close();
+        throw new IllegalArgumentException("Only FileChannel is supported!");
+    }
   }
 }

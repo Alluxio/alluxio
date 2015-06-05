@@ -99,13 +99,13 @@ public abstract class UnderFileSystemCluster {
   protected final TachyonConf mTachyonConf;
 
   /**
-   * This method is only for unit-test {@link tachyon.client.FileOutStreamTest} temporarily
+   * This method is only used by the {@link tachyon.client.FileOutStreamIntegrationTest} unit-test
    *
    * @return true if reads on end of file return negative otherwise false
    */
   public static boolean readEOFReturnsNegative() {
     // TODO Should be dynamically determined - may need additional method on UnderFileSystem
-    return (null != sUfsClz) && !(sUfsClz.equals("tachyon.LocalUnderFileSystem"));
+    return null != sUfsClz && sUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster");
   }
 
   public UnderFileSystemCluster(String baseDir, TachyonConf tachyonConf) {
