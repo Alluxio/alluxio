@@ -38,6 +38,14 @@ purpose it serves.
 This will connect the ticket to the proposed code changes. In the description field of the pull
 request, please include a link to the JIRA ticket.
 
+-   For pull requests that only address typos or formating issues, it is not
+    required to create the JIRA ticket and reference this JIRA. Instead, you
+    can make the title of your pull requests prefixed by "[SMALLFIX]", for example:
+
+~~~~~
+[SMALLFIX] Fix a typo in Foo
+~~~~~
+
 ### Testing
 
 -   Run all unit tests with ``mvn test`` (will use the local filesystem as the under filesystem and
