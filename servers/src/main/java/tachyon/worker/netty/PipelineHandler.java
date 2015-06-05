@@ -21,10 +21,10 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
 import tachyon.conf.TachyonConf;
-import tachyon.worker.BlocksLocker;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCMessageDecoder;
 import tachyon.network.protocol.RPCMessageEncoder;
+import tachyon.worker.BlocksLocker;
 
 /**
  * Adds the block server's pipeline into the channel.
