@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol;
+package tachyon.network.protocol;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,9 +47,9 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 import tachyon.Constants;
 import tachyon.TestUtils;
+import tachyon.network.protocol.databuffer.DataByteBuffer;
+import tachyon.network.protocol.databuffer.DataFileChannel;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.netty.protocol.buffer.DataByteBuffer;
-import tachyon.worker.netty.protocol.buffer.DataFileChannel;
 
 /**
  * This tests the encoding and decoding of RPCMessage's. This is done by setting up a simple

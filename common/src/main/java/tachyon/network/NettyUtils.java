@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty;
+package tachyon.network;
 
 import java.util.concurrent.ThreadFactory;
 

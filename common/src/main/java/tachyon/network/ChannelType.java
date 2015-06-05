@@ -13,7 +13,32 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol;
+package tachyon.network;
 
-public abstract class RPCRequest extends RPCMessage {
+import io.netty.channel.epoll.Epoll;
+
+/**
+ * What type of netty channel to use. NIO and EPOLL are supported currently.
+ */
+public enum ChannelType {
+  NIO,
+  /**
+   * Use Linux's epoll for channel API. This type of channel only works on Linux.
+   */
+  EPOLL;
+
+  /**
+   * Determines the default type to use based off the system.
+   * <p>
+   * On Linux-based systems, {@link #EPOLL} is the default type for more consistent performance,
+   * otherwise {@link #NIO}.
+   * </p>
+   */
+  public static ChannelType defaultType() {
+    if (Epoll.isAvailable()) {
+      return ChannelType.EPOLL;
+    } else {
+      return ChannelType.NIO;
+    }
+  }
 }

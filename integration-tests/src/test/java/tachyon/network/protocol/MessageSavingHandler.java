@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol;
+package tachyon.network.protocol;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;

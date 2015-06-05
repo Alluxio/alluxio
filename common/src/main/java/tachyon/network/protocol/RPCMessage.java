@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.netty.protocol;
+package tachyon.network.protocol;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -22,7 +22,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
-import tachyon.worker.netty.protocol.buffer.DataBuffer;
+import tachyon.network.protocol.databuffer.DataBuffer;
 
 // This is the main base class for all RPC messages to the DataServer.
 // The message and type encoding scheme is adapted from the implementation found in the streaming
@@ -47,6 +47,20 @@ public abstract class RPCMessage implements EncodedMessage {
     @Override
     public void encode(ByteBuf out) {
       out.writeInt(mId);
+    }
+
+    /**
+     * Returns the int identifier of the type.
+     *
+     * Note: This is only used for getting the int representation of the type for
+     * {@link tachyon.worker.DataServerMessage}, since that class needs to manually encode all
+     * messages. {@link tachyon.worker.DataServerMessage} and this method should no longer be needed
+     * when the client is converted to use Netty.
+     *
+     * @return the int id of the type
+     */
+    public int getId() {
+      return mId;
     }
 
     /**
