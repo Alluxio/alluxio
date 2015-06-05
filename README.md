@@ -6,6 +6,8 @@ The master branch is in version 0.7.0-SNAPSHOT:
 - [Tachyon Homepage](http://www.tachyonproject.org)
 - [Contribute to Tachyon](http://tachyon-project.org/master/Contributing-to-Tachyon.html) and
 [Beginner's Tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner%20AND%20status%20%3D%20Open)
+  - Please limit 2 beginner tasks per new contributor. Afterwards, try some intermediate tasks,
+  or ask in the [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users).
 - [Releases](https://github.com/amplab/tachyon/tags)
 - [Tachyon JIRA](https://tachyon.atlassian.net/browse/TACHYON)
 - [Master Branch Document](http://tachyon-project.org/master/)
