@@ -15,6 +15,7 @@
 
 package tachyon.client;
 
+import java.io.EOFException;
 import java.io.IOException;
 
 import org.junit.AfterClass;
@@ -77,7 +78,11 @@ public class FileInStreamIntegrationTest {
           Assert.assertTrue(value >= 0);
           Assert.assertTrue(value < 256);
           ret[cnt ++] = (byte) value;
-          value = is.read();
+          try {
+            value = is.read();
+          } catch (EOFException e) {
+            value = -1;
+          }
         }
         Assert.assertEquals(cnt, k);
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
@@ -92,7 +97,11 @@ public class FileInStreamIntegrationTest {
           Assert.assertTrue(value >= 0);
           Assert.assertTrue(value < 256);
           ret[cnt ++] = (byte) value;
-          value = is.read();
+          try {
+            value = is.read();
+          } catch (EOFException e) {
+            value = -1;
+          }
         }
         Assert.assertEquals(cnt, k);
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
@@ -180,8 +189,12 @@ public class FileInStreamIntegrationTest {
           byte[] ret = new byte[k / 2];
           int readBytes = is.read(ret, 0, k / 2);
           while (readBytes != -1) {
-            readBytes = is.read(ret);
-            Assert.assertTrue(0 != readBytes);
+            try {
+              readBytes = is.read(ret);
+              Assert.assertTrue(0 != readBytes);
+            } catch (EOFException e) {
+              readBytes = -1;
+            }
           }
           Assert.assertEquals(-1, readBytes);
         } finally {
