@@ -15,6 +15,7 @@
 
 package tachyon.client;
 
+import java.io.EOFException;
 import java.io.IOException;
 
 import tachyon.conf.TachyonConf;
@@ -97,7 +98,8 @@ public class FileInStream extends InStream {
   @Override
   public int read() throws IOException {
     if (mCurrentPosition >= mFileLength) {
-      return -1;
+      throw new EOFException(String.format("Read position %s is past file length %s.",
+          mCurrentPosition, mFileLength));
     }
 
     checkAndAdvanceBlockInStream();
@@ -121,7 +123,8 @@ public class FileInStream extends InStream {
     } else if (len == 0) {
       return 0;
     } else if (mCurrentPosition >= mFileLength) {
-      return -1;
+      throw new EOFException(String.format("Read position %s is past file length %s.",
+          mCurrentPosition, mFileLength));
     }
 
     int tOff = off;
@@ -153,7 +156,7 @@ public class FileInStream extends InStream {
     if (pos < 0) {
       throw new IOException("Seek position is negative: " + pos);
     } else if (pos > mFileLength) {
-      throw new IOException("Seek position is past EOF: " + pos + ", fileSize = " + mFileLength);
+      throw new EOFException("Seek position is past EOF: " + pos + ", fileSize = " + mFileLength);
     }
 
     if ((int) (pos / mBlockCapacity) != mCurrentBlockIndex) {
