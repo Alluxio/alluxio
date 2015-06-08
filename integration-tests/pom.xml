@@ -236,19 +236,6 @@
           </testExcludes>
         </configuration>
       </plugin>
-      <plugin>
-        <!-- TODO: test-jar is generated only to expose LocalTachyonCluster. We
-             should remove this when this class can be exposed in a better way. -->
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 </project>
