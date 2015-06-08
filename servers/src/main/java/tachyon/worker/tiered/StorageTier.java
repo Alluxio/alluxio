@@ -33,6 +33,7 @@ import tachyon.worker.WorkerSource;
 import tachyon.worker.allocation.AllocateStrategies;
 import tachyon.worker.allocation.AllocateStrategy;
 import tachyon.worker.allocation.AllocateStrategyType;
+import tachyon.worker.block.meta.BlockInfo;
 import tachyon.worker.eviction.EvictStrategies;
 import tachyon.worker.eviction.EvictStrategy;
 import tachyon.worker.eviction.EvictStrategyType;
@@ -102,7 +103,7 @@ public class StorageTier {
     }
     String dataFolder =
         tachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
-    String userTempFolder = 
+    String userTempFolder =
         tachyonConf.get(Constants.WORKER_USER_TEMP_RELATIVE_FOLDER, "users");
     mDirs = new StorageDir[dirPaths.length];
     long quotaBytes = 0;

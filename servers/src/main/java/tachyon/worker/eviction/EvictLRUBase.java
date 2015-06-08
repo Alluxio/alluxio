@@ -15,10 +15,8 @@
 
 package tachyon.worker.eviction;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -27,7 +25,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
 import tachyon.Pair;
-import tachyon.worker.tiered.BlockInfo;
+import tachyon.worker.block.meta.BlockInfo;
 import tachyon.worker.tiered.StorageDir;
 
 /**
@@ -70,7 +68,7 @@ public abstract class EvictLRUBase implements EvictStrategy {
 
   /**
    * Update the blocks that are being evicted in each StorageDir
-   * 
+   *
    * @param blockList The list of blocks that will be added in to evicting list
    */
   protected void updateEvictingBlockIds(Collection<BlockInfo> blockList) {
