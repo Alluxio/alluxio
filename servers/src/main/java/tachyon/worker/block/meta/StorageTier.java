@@ -33,9 +33,9 @@ import tachyon.worker.WorkerSource;
 import tachyon.worker.allocation.AllocateStrategies;
 import tachyon.worker.allocation.AllocateStrategy;
 import tachyon.worker.allocation.AllocateStrategyType;
-import tachyon.worker.eviction.EvictStrategies;
-import tachyon.worker.eviction.EvictStrategy;
-import tachyon.worker.eviction.EvictStrategyType;
+import tachyon.worker.block.evictor.EvictStrategies;
+import tachyon.worker.block.evictor.EvictStrategy;
+import tachyon.worker.block.evictor.EvictStrategyType;
 
 /**
  * StorageTier manages StorageDirs, requests space for new coming blocks, and evicts stale blocks to
