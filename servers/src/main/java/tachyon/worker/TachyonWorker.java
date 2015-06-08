@@ -46,7 +46,7 @@ import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
-import tachyon.worker.block.WorkerServiceHandler;
+import tachyon.worker.block.BlockWorkerServiceHandler;
 
 /**
  * Entry point for a worker daemon.
@@ -139,7 +139,7 @@ public class TachyonWorker implements Runnable {
   private TServerSocket mServerTServerSocket;
   private final WorkerStorage mWorkerStorage;
 
-  private final WorkerServiceHandler mWorkerServiceHandler;
+  private final BlockWorkerServiceHandler mWorkerServiceHandler;
 
   private final MetricsSystem mWorkerMetricsSystem;
 
@@ -175,7 +175,7 @@ public class TachyonWorker implements Runnable {
 
     mWorkerStorage = new WorkerStorage(mMasterAddress, mExecutorService, mTachyonConf);
 
-    mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
+    mWorkerServiceHandler = new BlockWorkerServiceHandler(mWorkerStorage);
 
     mWebPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
 
@@ -192,8 +192,8 @@ public class TachyonWorker implements Runnable {
     mHeartbeatThread = new Thread(this);
     try {
       LOG.info("Tachyon Worker version " + Version.VERSION + " tries to start @ " + workerAddress);
-      WorkerService.Processor<WorkerServiceHandler> processor =
-          new WorkerService.Processor<WorkerServiceHandler>(mWorkerServiceHandler);
+      WorkerService.Processor<BlockWorkerServiceHandler> processor =
+          new WorkerService.Processor<BlockWorkerServiceHandler>(mWorkerServiceHandler);
 
       mServerTServerSocket = new TServerSocket(workerAddress);
       mPort = NetworkUtils.getPort(mServerTServerSocket);
@@ -254,7 +254,7 @@ public class TachyonWorker implements Runnable {
    *
    * @return the WorkerServiceHandler
    */
-  WorkerServiceHandler getWorkerServiceHandler() {
+  BlockWorkerServiceHandler getWorkerServiceHandler() {
     return mWorkerServiceHandler;
   }
 
