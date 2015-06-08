@@ -13,22 +13,28 @@
  * the License.
  */
 
-package tachyon.worker.allocation;
+package tachyon.worker.block.allocation;
 
 import tachyon.worker.block.meta.StorageDir;
 
 /**
- * Base class for AllocateStrategy, which provides basic function for AllocateStrategy
+ * Allocate space on the StorageDir that has most free space.
  */
-public abstract class AllocateStrategyBase implements AllocateStrategy {
+public class AllocateMaxFree extends AllocateStrategyBase {
+
   @Override
-  public boolean fitInPossible(StorageDir[] storageDirs, long requestSizeBytes) {
+  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestSizeBytes) {
+    StorageDir availableDir = null;
+    long maxFree = 0;
     for (StorageDir dir : storageDirs) {
-      if (dir.getCapacityBytes() - dir.getLockedSizeBytes() >= requestSizeBytes) {
-        return true;
+      if (dir.getAvailableBytes() >= maxFree && dir.getAvailableBytes() >= requestSizeBytes) {
+        maxFree = dir.getAvailableBytes();
+        availableDir = dir;
       }
     }
-    return false;
+    if (availableDir != null && availableDir.requestSpace(userId, requestSizeBytes)) {
+      return availableDir;
+    }
+    return null;
   }
 }
-

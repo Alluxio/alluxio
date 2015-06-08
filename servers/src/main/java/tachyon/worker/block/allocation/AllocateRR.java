@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.allocation;
+package tachyon.worker.block.allocation;
 
 import tachyon.worker.block.meta.StorageDir;
 

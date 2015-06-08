@@ -27,13 +27,12 @@ import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.block.io.BlockHandler;
 import tachyon.worker.WorkerSource;
-import tachyon.worker.allocation.AllocateStrategies;
-import tachyon.worker.allocation.AllocateStrategy;
-import tachyon.worker.allocation.AllocateStrategyType;
+import tachyon.worker.block.allocation.AllocateStrategies;
+import tachyon.worker.block.allocation.AllocateStrategy;
+import tachyon.worker.block.allocation.AllocateStrategyType;
 import tachyon.master.BlockInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.worker.block.meta.StorageDir;
 
 public class AllocateStrategyTest {
   private final StorageDir[] mStorageDirs = new StorageDir[3];
