@@ -175,7 +175,7 @@ public class TachyonWorker implements Runnable {
 
     mWorkerStorage = new WorkerStorage(mMasterAddress, mExecutorService, mTachyonConf);
 
-    mWorkerServiceHandler = new BlockWorkerServiceHandler(mWorkerStorage);
+    mWorkerServiceHandler = new BlockWorkerServiceHandler();
 
     mWebPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
 
