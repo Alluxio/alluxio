@@ -13,28 +13,22 @@
  * the License.
  */
 
-package tachyon.worker.block.allocation;
-
-import java.util.Random;
+package tachyon.worker.block.allocator;
 
 import tachyon.worker.block.meta.StorageDir;
 
 /**
- * Allocate space on a StorageDir that has enough space and is selected randomly.
+ * Base class for AllocateStrategy, which provides basic function for AllocateStrategy
  */
-public class AllocateRandom extends AllocateStrategyBase {
-  private Random mRandm = new Random(System.currentTimeMillis());
-
+public abstract class AllocateStrategyBase implements AllocateStrategy {
   @Override
-  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestBytes) {
-    int i = mRandm.nextInt(storageDirs.length);
-    for (int j = 0; j < storageDirs.length; j ++, i ++) {
-      i = i % storageDirs.length;
-      StorageDir dir = storageDirs[i];
-      if (dir.getAvailableBytes() >= requestBytes && dir.requestSpace(userId, requestBytes)) {
-        return dir;
+  public boolean fitInPossible(StorageDir[] storageDirs, long requestSizeBytes) {
+    for (StorageDir dir : storageDirs) {
+      if (dir.getCapacityBytes() - dir.getLockedSizeBytes() >= requestSizeBytes) {
+        return true;
       }
     }
-    return null;
+    return false;
   }
 }
+
