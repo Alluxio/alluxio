@@ -39,6 +39,7 @@ import tachyon.thrift.OutOfSpaceException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockWorkerServiceHandler;
+import tachyon.worker.block.io.BlockHandler;
 
 /**
  * Integration tests for tachyon.WorkerServiceHandler

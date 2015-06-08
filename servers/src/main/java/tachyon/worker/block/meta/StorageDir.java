@@ -44,7 +44,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.Users;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.worker.BlockHandler;
+import tachyon.worker.block.io.BlockHandler;
 import tachyon.worker.SpaceCounter;
 import tachyon.worker.WorkerSource;
 
