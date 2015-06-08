@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.eviction;
+package tachyon.worker.block.evictor;
 
 import java.util.ArrayList;
 import java.util.HashMap;

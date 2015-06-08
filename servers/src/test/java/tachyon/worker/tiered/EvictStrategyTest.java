@@ -35,9 +35,9 @@ import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.meta.StorageDir;
-import tachyon.worker.eviction.EvictLRU;
-import tachyon.worker.eviction.EvictPartialLRU;
-import tachyon.worker.eviction.EvictStrategy;
+import tachyon.worker.block.evictor.EvictLRU;
+import tachyon.worker.block.evictor.EvictPartialLRU;
+import tachyon.worker.block.evictor.EvictStrategy;
 
 public class EvictStrategyTest {
   private final StorageDir[] mStorageDirs = new StorageDir[3];

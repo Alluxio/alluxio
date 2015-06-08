@@ -13,29 +13,18 @@
  * the License.
  */
 
-package tachyon.worker.eviction;
+package tachyon.worker.block.evictor;
 
 /**
- * Used to get a specific EvictStrategy based on EvictStrategyType
+ * Different types of EvictionStrategy. Currently only LRU-based strategies are implemented.
  */
-public class EvictStrategies {
+public enum EvictStrategyType {
   /**
-   * Get block EvictStrategy based on configuration
-   *
-   * @param strategyType configuration of EvictStrategy
-   * @param isLastTier whether eviction is applied on the last StorageTier
-   * @return EvictStrategy generated
+   * Evict old blocks among several StorageDirs by LRU
    */
-  public static EvictStrategy getEvictStrategy(EvictStrategyType strategyType, boolean isLastTier) {
-    switch (strategyType) {
-      case LRU:
-        return new EvictLRU(isLastTier);
-      case PARTIAL_LRU:
-        return new EvictPartialLRU(isLastTier);
-      default:
-        return new EvictLRU(isLastTier);
-    }
-  }
-
-  private EvictStrategies() {}
+  LRU,
+  /**
+   * Evict old blocks in certain StorageDir by LRU.
+   */
+  PARTIAL_LRU;
 }
