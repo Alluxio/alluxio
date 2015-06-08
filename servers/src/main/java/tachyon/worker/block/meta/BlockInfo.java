@@ -15,44 +15,39 @@
 
 package tachyon.worker.block.meta;
 
+import java.util.UUID;
+
+import tachyon.util.CommonUtils;
+
 /**
- * Block information on worker side.
+ * Represents the metadata of a block in Tachyon managed storage.
  */
-public final class BlockInfo {
-  private final StorageDir mDir;
+public class BlockInfo {
   private final long mBlockId;
   private final long mBlockSize;
+  private final String mPath;
+  private final String mTmpPath;
 
-  public BlockInfo(StorageDir storageDir, long blockId, long blockSize) {
-    mDir = storageDir;
+  public BlockInfo(long blockId, long blockSize, String localPath) {
     mBlockId = blockId;
     mBlockSize = blockSize;
+    mPath = CommonUtils.concatPath(localPath, blockId);
+    mTmpPath = CommonUtils.concatPath(localPath, UUID.randomUUID());
   }
 
-  /**
-   * Get Id of the block
-   *
-   * @return Id of the block
-   */
   public long getBlockId() {
     return mBlockId;
   }
 
-  /**
-   * Get size of the block
-   *
-   * @return size of the block in bytes
-   */
-  public long getSize() {
+  public long getBlockSize() {
     return mBlockSize;
   }
 
-  /**
-   * Get the StorageDir which contains the block
-   *
-   * @return StorageDir which contains the block
-   */
-  public StorageDir getStorageDir() {
-    return mDir;
+  public String getPath() {
+    return mPath;
+  }
+
+  public String getTmpPath() {
+    return mTmpPath;
   }
 }
