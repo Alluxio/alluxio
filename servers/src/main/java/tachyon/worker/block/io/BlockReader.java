@@ -24,7 +24,7 @@ import java.nio.channels.ReadableByteChannel;
  * <p>
  * This class does not provide thread-safety.
  */
-public interface BlockHandler {
+public interface BlockReader {
 
   /**
    * Reads data from the block.
