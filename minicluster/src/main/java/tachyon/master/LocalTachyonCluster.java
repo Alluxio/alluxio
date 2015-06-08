@@ -22,11 +22,13 @@ import java.net.InetSocketAddress;
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.TachyonWorker;
+import tachyon.master.LocalTachyonMaster;
 
 /**
  * Local Tachyon cluster for unit tests.
