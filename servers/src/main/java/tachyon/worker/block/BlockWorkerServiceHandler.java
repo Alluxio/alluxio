@@ -84,10 +84,6 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
     return null;
   }
 
-  public void userHeartbeat(long userId, List<Long> metrics) {
-
-  }
-
   // TODO: Rename this method when complete, currently is V2 to avoid checkstyle errors
   /**
    * Obtains a lock on the block.
@@ -231,6 +227,10 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public void userHeartbeat(long userId) throws org.apache.thrift.TException {
+
+  }
+
+  public void userHeartbeat(long userId, List<Long> metrics) {
 
   }
 }
