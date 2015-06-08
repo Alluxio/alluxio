@@ -84,7 +84,7 @@ public class EvictStrategyTest {
     EvictStrategy eviction = new EvictLRU(true);
 
     pinList.add(1);
-    Pair<StorageDir, List<tachyon.worker.tiered.BlockInfo>> lruResult =
+    Pair<StorageDir, List<tachyon.worker.block.meta.BlockInfo>> lruResult =
         eviction.getDirCandidate(mStorageDirs, pinList, 300);
     Assert.assertEquals(mStorageDirs[1], lruResult.getFirst());
     Assert.assertEquals(1, lruResult.getSecond().size());
@@ -119,7 +119,7 @@ public class EvictStrategyTest {
     EvictStrategy eviction = new EvictPartialLRU(true);
 
     pinList.add(1);
-    Pair<StorageDir, List<tachyon.worker.tiered.BlockInfo>> lruResult =
+    Pair<StorageDir, List<tachyon.worker.block.meta.BlockInfo>> lruResult =
         eviction.getDirCandidate(mStorageDirs, pinList, 600);
     Assert.assertEquals(mStorageDirs[1], lruResult.getFirst());
     Assert.assertEquals(1, lruResult.getSecond().size());

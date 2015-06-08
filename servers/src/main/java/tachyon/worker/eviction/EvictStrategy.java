@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.Pair;
-import tachyon.worker.tiered.BlockInfo;
+import tachyon.worker.block.meta.BlockInfo;
 import tachyon.worker.tiered.StorageDir;
 
 /**
