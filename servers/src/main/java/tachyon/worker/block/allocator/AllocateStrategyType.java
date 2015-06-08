@@ -13,31 +13,22 @@
  * the License.
  */
 
-package tachyon.worker.block.allocation;
+package tachyon.worker.block.allocator;
 
 /**
- * Define several AllocateStrategy, and get specific AllocateStrategy by AllocateStrategyType
+ * Different types of AllocationStrategy, which are used to allocate space among StorageDirs
  */
-public class AllocateStrategies {
-
+public enum AllocateStrategyType {
   /**
-   * Get AllocateStrategy based on configuration
-   *
-   * @param strategyType configuration of AllocateStrategy
-   * @return AllocationStrategy generated
+   * Allocate space on StorageDir that has max free space
    */
-  public static AllocateStrategy getAllocateStrategy(AllocateStrategyType strategyType) {
-    switch (strategyType) {
-      case MAX_FREE:
-        return new AllocateMaxFree();
-      case RANDOM:
-        return new AllocateRandom();
-      case ROUND_ROBIN:
-        return new AllocateRR();
-      default:
-        return new AllocateMaxFree();
-    }
-  }
-
-  private AllocateStrategies() {}
+  MAX_FREE,
+  /**
+   * Allocate space on StorageDirs randomly
+   */
+  RANDOM,
+  /**
+   * Allocate space on StorageDirs by round robin
+   */
+  ROUND_ROBIN;
 }
