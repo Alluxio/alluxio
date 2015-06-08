@@ -28,7 +28,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.worker.BlockHandler;
+import tachyon.worker.block.io.BlockHandler;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.meta.StorageDir;
 

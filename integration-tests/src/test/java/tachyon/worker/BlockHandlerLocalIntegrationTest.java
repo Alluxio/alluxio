@@ -31,6 +31,7 @@ import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.worker.block.io.BlockHandler;
 
 /**
  * Integration tests for <code>tachyon.client.BlockHandlerLocal</code>.
