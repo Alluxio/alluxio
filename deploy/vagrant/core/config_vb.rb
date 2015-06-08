@@ -17,7 +17,7 @@ def config_vb(config, i, total, name, tachyon_is_local)
     config.vm.synced_folder "../../", "/tachyon"
   end
 
-  config.vm.box = "chef/centos-6.5"
+  config.vm.box = "tachyon-dev"
   config.vm.provider "virtualbox" do |vb|
     if Memory != ''
       vb.customize ["modifyvm", :id, "--memory", Memory]
