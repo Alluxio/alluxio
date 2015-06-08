@@ -38,6 +38,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
+import tachyon.worker.block.WorkerServiceHandler;
 
 /**
  * Integration tests for tachyon.WorkerServiceHandler
