@@ -42,7 +42,7 @@ import tachyon.network.protocol.databuffer.DataByteBuffer;
 import tachyon.network.protocol.databuffer.DataFileChannel;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.BlocksLocker;
-import tachyon.worker.tiered.StorageDir;
+import tachyon.worker.block.meta.StorageDir;
 
 /**
  * This class has the main logic of the read path to process {@link RPCRequest} messages and return

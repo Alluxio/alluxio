@@ -35,7 +35,7 @@ import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
 
 /**
- * Integration tests for {@link tachyon.worker.tiered.StorageTier}.
+ * Integration tests for {@link tachyon.worker.block.meta.StorageTier}.
  */
 public class TieredStoreIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;

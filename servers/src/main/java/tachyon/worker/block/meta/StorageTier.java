@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.tiered;
+package tachyon.worker.block.meta;
 
 import java.io.IOException;
 import java.util.List;
@@ -33,7 +33,6 @@ import tachyon.worker.WorkerSource;
 import tachyon.worker.allocation.AllocateStrategies;
 import tachyon.worker.allocation.AllocateStrategy;
 import tachyon.worker.allocation.AllocateStrategyType;
-import tachyon.worker.block.meta.BlockInfo;
 import tachyon.worker.eviction.EvictStrategies;
 import tachyon.worker.eviction.EvictStrategy;
 import tachyon.worker.eviction.EvictStrategyType;

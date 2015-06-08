@@ -34,6 +34,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.WorkerSource;
+import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.eviction.EvictLRU;
 import tachyon.worker.eviction.EvictPartialLRU;
 import tachyon.worker.eviction.EvictStrategy;
