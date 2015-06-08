@@ -13,22 +13,28 @@
  * the License.
  */
 
-package tachyon.worker.block.allocation;
+package tachyon.worker.block.allocator;
+
+import tachyon.worker.block.meta.StorageDir;
 
 /**
- * Different types of AllocationStrategy, which are used to allocate space among StorageDirs
+ * Allocate space on the StorageDir that has most free space.
  */
-public enum AllocateStrategyType {
-  /**
-   * Allocate space on StorageDir that has max free space
-   */
-  MAX_FREE,
-  /**
-   * Allocate space on StorageDirs randomly
-   */
-  RANDOM,
-  /**
-   * Allocate space on StorageDirs by round robin
-   */
-  ROUND_ROBIN;
+public class AllocateMaxFree extends AllocateStrategyBase {
+
+  @Override
+  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestSizeBytes) {
+    StorageDir availableDir = null;
+    long maxFree = 0;
+    for (StorageDir dir : storageDirs) {
+      if (dir.getAvailableBytes() >= maxFree && dir.getAvailableBytes() >= requestSizeBytes) {
+        maxFree = dir.getAvailableBytes();
+        availableDir = dir;
+      }
+    }
+    if (availableDir != null && availableDir.requestSpace(userId, requestSizeBytes)) {
+      return availableDir;
+    }
+    return null;
+  }
 }
