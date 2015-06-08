@@ -33,6 +33,7 @@ import tachyon.worker.allocation.AllocateStrategyType;
 import tachyon.master.BlockInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
+import tachyon.worker.block.meta.StorageDir;
 
 public class AllocateStrategyTest {
   private final StorageDir[] mStorageDirs = new StorageDir[3];

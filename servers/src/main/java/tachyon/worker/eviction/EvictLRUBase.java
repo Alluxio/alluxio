@@ -26,7 +26,7 @@ import com.google.common.collect.Multimaps;
 
 import tachyon.Pair;
 import tachyon.worker.block.meta.BlockInfo;
-import tachyon.worker.tiered.StorageDir;
+import tachyon.worker.block.meta.StorageDir;
 
 /**
  * Base class for evicting blocks by LRU strategy.

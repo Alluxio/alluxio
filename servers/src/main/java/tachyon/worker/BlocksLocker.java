@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import tachyon.worker.tiered.StorageDir;
+import tachyon.worker.block.meta.StorageDir;
 
 /**
  * Handle local block locking.
@@ -32,7 +32,7 @@ public class BlocksLocker {
   // Mapping from block id to the StorageDir in which the block is locked
   private final Map<Long, StorageDir> mLockedBlockIdToStorageDir =
       new HashMap<Long, StorageDir>();
-  // Each user facing block has a unique block lock id. 
+  // Each user facing block has a unique block lock id.
   private final AtomicInteger mBlockLockId = new AtomicInteger(0);
 
   private final int mUserId;
@@ -45,7 +45,7 @@ public class BlocksLocker {
 
   /**
    * Lock a block with specified lock id.
-   * 
+   *
    * @param blockId The id of the block.
    * @param blockLockId The lock id of the block
    * @return the StorageDir in which this block is locked.
@@ -69,7 +69,7 @@ public class BlocksLocker {
 
   /**
    * Get new lock id
-   * 
+   *
    * @return the lock id
    */
   public synchronized int getLockId() {
@@ -77,7 +77,7 @@ public class BlocksLocker {
   }
   /**
    * Get StorageDir in which the block is locked
-   * 
+   *
    * @param blockId The id of the block
    * @return the StorageDir in which the block is locked
    */
@@ -87,7 +87,7 @@ public class BlocksLocker {
 
   /**
    * Unlock a block with a lock id.
-   * 
+   *
    * @param blockId The id of the block.
    * @param lockId The lock id of the lock.
    * @return true if success, false otherwise

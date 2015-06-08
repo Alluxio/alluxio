@@ -30,6 +30,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlockHandler;
 import tachyon.worker.WorkerSource;
+import tachyon.worker.block.meta.StorageDir;
 
 public class StorageDirTest {
   private StorageDir mSrcDir;
