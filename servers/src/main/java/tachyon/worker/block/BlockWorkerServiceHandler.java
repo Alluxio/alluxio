@@ -16,7 +16,8 @@
 package tachyon.worker.block;
 
 import java.io.FileNotFoundException;
-import java.util.List;
+
+import com.google.common.base.Optional;
 
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
@@ -26,6 +27,8 @@ import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
+import tachyon.worker.CoreWorker;
+import tachyon.worker.block.meta.BlockMeta;
 
 /**
  * Handles all thrift RPC calls to the worker. This class is a thrift server implementation and is
@@ -33,8 +36,10 @@ import tachyon.thrift.WorkerService;
  */
 public class BlockWorkerServiceHandler implements WorkerService.Iface {
 
-  public BlockWorkerServiceHandler() {
+  private final CoreWorker mWorker;
 
+  public BlockWorkerServiceHandler(CoreWorker worker) {
+    mWorker = worker;
   }
 
   /**
@@ -50,7 +55,6 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    */
   public String createBlock(long userId, long blockId, long blockSize, int tierHint)
       throws OutOfSpaceException, FileAlreadyExistException {
-    return null;
   }
 
   /**
@@ -70,7 +74,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @return true if the block is freed successfully, false otherwise
    */
   public boolean freeBlock(long blockId) throws FileNotFoundException {
-    return false;
+    return mBlockWorker.removeBlock(blockId);
   }
 
   /**
@@ -227,10 +231,6 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public void userHeartbeat(long userId) throws org.apache.thrift.TException {
-
-  }
-
-  public void userHeartbeat(long userId, List<Long> metrics) {
 
   }
 }
