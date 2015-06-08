@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
-import tachyon.worker.BlockHandler;
+import tachyon.worker.block.io.BlockHandler;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.allocation.AllocateStrategies;
 import tachyon.worker.allocation.AllocateStrategy;

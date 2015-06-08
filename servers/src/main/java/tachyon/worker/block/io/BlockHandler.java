@@ -4,16 +4,16 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.worker.block.io;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -31,7 +31,7 @@ public abstract class BlockHandler implements Closeable {
 
   /**
    * Create a block handler according to path scheme
-   * 
+   *
    * @param path the block path
    * @return the handler of the block
    * @throws IOException
@@ -46,7 +46,7 @@ public abstract class BlockHandler implements Closeable {
 
   /**
    * Append data to the block from a byte array
-   * 
+   *
    * @param blockOffset starting position of the block file
    * @param buf the data buffer
    * @param offset the offset of the buffer
@@ -60,7 +60,7 @@ public abstract class BlockHandler implements Closeable {
 
   /**
    * Appends data to the block from a ByteBuffer
-   * 
+   *
    * @param blockOffset starting position of the block file
    * @param srcBuf ByteBuffer that data is stored in
    * @return the size of data that was written
@@ -70,7 +70,7 @@ public abstract class BlockHandler implements Closeable {
 
   /**
    * Deletes the block
-   * 
+   *
    * @return true if success, otherwise false
    * @throws IOException
    */
@@ -78,14 +78,14 @@ public abstract class BlockHandler implements Closeable {
 
   /**
    * Gets channel used to access block
-   * 
+   *
    * @return the channel bounded with the block file
    */
   public abstract ByteChannel getChannel();
 
   /**
    * Gets the length of the block
-   * 
+   *
    * @return the length of the block
    * @throws IOException
    */
@@ -93,7 +93,7 @@ public abstract class BlockHandler implements Closeable {
 
   /**
    * Reads data from block
-   * 
+   *
    * @param offset the offset from starting of the block file
    * @param length the length of data to read, -1 represents reading the rest of the block
    * @return ByteBuffer the data that was read
