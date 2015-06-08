@@ -13,27 +13,27 @@
  * the License.
  */
 
-package tachyon.worker.allocation;
+package tachyon.worker.block.allocation;
+
+import java.util.Random;
 
 import tachyon.worker.block.meta.StorageDir;
 
 /**
- * Allocate space on the StorageDir that has most free space.
+ * Allocate space on a StorageDir that has enough space and is selected randomly.
  */
-public class AllocateMaxFree extends AllocateStrategyBase {
+public class AllocateRandom extends AllocateStrategyBase {
+  private Random mRandm = new Random(System.currentTimeMillis());
 
   @Override
-  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestSizeBytes) {
-    StorageDir availableDir = null;
-    long maxFree = 0;
-    for (StorageDir dir : storageDirs) {
-      if (dir.getAvailableBytes() >= maxFree && dir.getAvailableBytes() >= requestSizeBytes) {
-        maxFree = dir.getAvailableBytes();
-        availableDir = dir;
+  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestBytes) {
+    int i = mRandm.nextInt(storageDirs.length);
+    for (int j = 0; j < storageDirs.length; j ++, i ++) {
+      i = i % storageDirs.length;
+      StorageDir dir = storageDirs[i];
+      if (dir.getAvailableBytes() >= requestBytes && dir.requestSpace(userId, requestBytes)) {
+        return dir;
       }
-    }
-    if (availableDir != null && availableDir.requestSpace(userId, requestSizeBytes)) {
-      return availableDir;
     }
     return null;
   }
