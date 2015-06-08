@@ -20,7 +20,7 @@ import java.util.Set;
 
 import tachyon.Pair;
 import tachyon.worker.block.meta.BlockInfo;
-import tachyon.worker.tiered.StorageDir;
+import tachyon.worker.block.meta.StorageDir;
 
 /**
  * Get a StorageDir where space can be allocated by evicting some blocks. Because the information of

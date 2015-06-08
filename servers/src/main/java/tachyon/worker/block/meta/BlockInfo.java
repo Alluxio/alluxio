@@ -15,8 +15,6 @@
 
 package tachyon.worker.block.meta;
 
-import tachyon.worker.tiered.StorageDir;
-
 /**
  * Block information on worker side.
  */

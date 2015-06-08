@@ -22,7 +22,7 @@ import java.util.Set;
 
 import tachyon.Pair;
 import tachyon.worker.block.meta.BlockInfo;
-import tachyon.worker.tiered.StorageDir;
+import tachyon.worker.block.meta.StorageDir;
 
 /**
  * Used to evict blocks in certain StorageDir by LRU strategy.

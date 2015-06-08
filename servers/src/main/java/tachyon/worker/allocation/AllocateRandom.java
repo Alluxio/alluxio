@@ -17,7 +17,7 @@ package tachyon.worker.allocation;
 
 import java.util.Random;
 
-import tachyon.worker.tiered.StorageDir;
+import tachyon.worker.block.meta.StorageDir;
 
 /**
  * Allocate space on a StorageDir that has enough space and is selected randomly.
