@@ -387,7 +387,7 @@ public class WorkerStorage {
    *
    * @param blockId The id of the block
    */
-  void accessBlock(long blockId) {
+  public void accessBlock(long blockId) {
     StorageDir foundDir = getStorageDirByBlockId(blockId);
     if (foundDir != null) {
       foundDir.accessBlock(blockId);
