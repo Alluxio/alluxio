@@ -18,7 +18,6 @@ package tachyon.worker;
 import com.google.common.base.Optional;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.OutOfSpaceException;
-import tachyon.worker.block.BlockFileOperator;
 import tachyon.worker.block.BlockLock;
 import tachyon.worker.block.BlockStore;
 import tachyon.worker.block.TieredBlockStore;
