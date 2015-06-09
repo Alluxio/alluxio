@@ -19,8 +19,8 @@ configurations to initialize Hadoop (both 1.x and 2.x) and GlusterFS.
 
 ## Dependencies
 
-1. Vagrant >= 1.6.5
-2. Virtualbox if you want a local cluster
+1. [Vagrant >= 1.6.5](https://www.vagrantup.com/downloads.html)
+2. [Virtualbox](https://www.virtualbox.org/wiki/Downloads) if you want a local cluster
 3. [Ansible](http://docs.ansible.com/intro_installation.html) for parallel provisioning
 
 ## Configuration:
