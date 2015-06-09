@@ -23,7 +23,7 @@ NODELIST=$TACHYON_PERF_CONF_DIR/slaves
 
 taskid=0
 SLAVES=`sort "$NODELIST"|sed  "s/#.*$//;/^$/d"`
-TOTAL_TASKS=`echo $SLAVES | wc -l`
+TOTAL_TASKS=`echo $SLAVES | wc -w`
 UNIQ_SLAVES=`sort "$NODELIST" | uniq | sed  "s/#.*$//;/^$/d"`
 if [ $TACHYON_PERF_SHARED_FS = "true" ]; then
   echo "Installed on a Shared File System, no configuration copy needed"
