@@ -84,6 +84,7 @@ public class DataServerIntegrationTest {
     mLocalTachyonCluster.stop();
     System.clearProperty(Constants.WORKER_DATA_SERVER);
     System.clearProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE);
+    System.clearProperty(Constants.USER_REMOTE_BLOCK_READER);
   }
 
   /**
@@ -116,6 +117,8 @@ public class DataServerIntegrationTest {
   public final void before() throws IOException {
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
     System.setProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
+    System.setProperty(Constants.USER_REMOTE_BLOCK_READER,
+        "tachyon.client.netty.NettyRemoteBlockReader");
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     mLocalTachyonCluster.start();
