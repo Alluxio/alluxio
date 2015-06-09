@@ -62,16 +62,14 @@ public class BlockWorkerHeartbeat implements Runnable {
     int assignedId = 0;
     BlockWorkerReport blockReport = mCoreWorker.getReport();
     StoreMeta storeMeta = mCoreWorker.getStoreMeta();
+
+
     while (assignedId == 0) {
       try {
         assignedId =
             mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
                 blockReport.getUsedBytesOnTiers(), storeMeta.getBlockList());
-      } catch (BlockInfoException e) {
-        LOG.error(e.getMessage(), e);
-        assignedId = 0;
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-      } catch (IOException e) {
+      } catch (Exception e) {
         LOG.error(e.getMessage(), e);
         assignedId = 0;
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
