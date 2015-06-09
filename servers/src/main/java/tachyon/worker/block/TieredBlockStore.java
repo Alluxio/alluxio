@@ -31,6 +31,7 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.BlockLockManager;
+import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.allocator.NaiveAllocator;
 import tachyon.worker.block.evictor.EvictionPlan;
@@ -47,7 +48,7 @@ import tachyon.worker.block.meta.BlockMeta;
  * <p>
  * This class is thread-safe.
  */
-public class TieredBlockStore implements BlockStore<Integer> {
+public class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mTachyonConf;
@@ -71,97 +72,44 @@ public class TieredBlockStore implements BlockStore<Integer> {
   }
 
   @Override
-  public Optional<Long> lockBlock(long userId, long blockId, BlockLockType blockLockType) {
-    BlockLock blockLock = mLockManager.getBlockLock(blockId).orNull();
-    if (blockLock == null) {
-      LOG.error("Cannot find lock for block {}", blockId);
-      return Optional.absent();
-    }
-    switch (blockLockType) {
-      case READ:
-        mEvictionLock.readLock().lock();
-        blockLock.readLock().lock();
-        break;
-      case WRITE:
-        mEvictionLock.readLock().lock();
-        blockLock.writeLock().lock();
-        break;
-      default:
-        Preconditions.checkState(false, "We shall never reach here, %s", blockLockType);
-    }
-    return Optional.of(blockLock.getLockId());
+  public Optional<Long> lockBlock(long userId, long blockId, BlockLock.BlockLockType blockLockType) {
+    Preconditions.checkArgument(blockLockType == BlockLock.BlockLockType.READ
+        || blockLockType == BlockLock.BlockLockType.WRITE);
+
+    mEvictionLock.readLock().lock();
+    return mLockManager.lockBlock(userId, blockId, blockLockType);
   }
 
   @Override
-  public boolean unlockBlock(long userId, long blockId, long lockId,
-      BlockLockType blockLockType) {
-    BlockLock blockLock = mLockManager.getBlockLock(blockId).orNull();
-    if (blockLock == null) {
-      LOG.error("Cannot find lock for block {}", blockId);
-      return false;
-    }
-    switch (blockLockType) {
-      case READ:
-        blockLock.readLock().unlock();
-        mEvictionLock.readLock().unlock();
-        break;
-      case WRITE:
-        blockLock.writeLock().unlock();
-        mEvictionLock.readLock().unlock();
-        break;
-      default:
-        Preconditions.checkState(false, "We shall never reach here, %s", blockLockType);
-    }
-    return true;
-  }
-
-  @Override
-  public Optional<String> getBlockFilePath(long userId, long blockId, long lockId) {
-    BlockMeta block = mMetaManager.getBlockMeta(blockId).orNull();
-    if (block == null) {
-      LOG.error("Cannot find block {}", blockId);
-      return Optional.absent();
-    }
-    return Optional.of(block.getPath());
-  }
-
-  /**
-   * Create a new block with data from a ByteBuffer.
-   *
-   * @param userId the user ID
-   * @param blockId the block ID
-   * @param buf the input buffer
-   * @param tierHint which tier to put this block
-   * @return true if success, false otherwise
-   * @throws IOException
-   */
-  @Override
-  public boolean createBlock(long userId, long blockId, ByteBuffer buf, Integer tierHint)
-      throws IOException {
-    Preconditions.checkNotNull(buf);
-    mEvictor.preCreateBlock(userId, blockId, tierHint);
-
-    mEvictionLock.writeLock().lock();
-    boolean result = createBlockNoLock(userId, blockId, buf, tierHint);
-    mEvictionLock.writeLock().unlock();
-
-    mEvictor.postCreateBlock(userId, blockId, tierHint);
+  public boolean unlockBlock(long lockId) {
+    boolean result = mLockManager.unlockBlock(lockId);
+    mEvictionLock.readLock().unlock();
     return result;
   }
 
-  private boolean createBlockNoLock(long userId, long blockId, ByteBuffer buf, int tierHint)
-      throws IOException {
+  @Override
+  public Optional<BlockMeta> createBlock(long userId, long blockId, BlockStoreLocation location,
+      long initialSize) throws IOException {
+    // TODO: implement me
+    // Preconditions.checkNotNull(location);
+    // mEvictionLock.writeLock().lock();
+    // boolean result = createBlockNoLock(userId, blockId, location, initialSize);
+    // mEvictionLock.writeLock().unlock();
+
+    return Optional.absent();
+  }
+
+  private Optional<BlockMeta> createBlockNoLock(long userId, long blockId,
+      BlockStoreLocation location, long initialSize) throws IOException {
     if (!mLockManager.addBlockLock(blockId)) {
       LOG.error("Cannot add block lock of {}", blockId);
       return false;
     }
 
-    long blockSize = buf.limit();
-    BlockMeta block =
-        mAllocator.allocateBlock(userId, blockId, blockSize, tierHint).orNull();
+    BlockMeta block = mAllocator.allocateBlock(userId, blockId, initialSize, location).orNull();
     if (block == null) {
       // Not enough space in this block store, let's try to free some space.
-      if (freeSpaceNoLock(userId, blockSize, tierHint)) {
+      if (requestSpace(userId, initialSize, tierHint)) {
         LOG.error("Cannot free space of {} bytes", blockSize);
         return false;
       }
@@ -189,8 +137,7 @@ public class TieredBlockStore implements BlockStore<Integer> {
    */
   @Override
   public Optional<ByteBuffer> readBlock(long userId, long blockId, long offset, long length,
-      Integer tierHint)
-      throws IOException {
+      Integer tierHint) throws IOException {
     mEvictor.preReadBlock(userId, blockId, offset, length);
     Lock blockReadLock = mLockManager.getBlockReadLock(blockId);
 
@@ -238,7 +185,8 @@ public class TieredBlockStore implements BlockStore<Integer> {
     return result;
   }
 
-  private boolean relocateBlockNoLock(long userId, long blockId, int newTierHint) throws IOException {
+  private boolean relocateBlockNoLock(long userId, long blockId, int newTierHint)
+      throws IOException {
     BlockMeta srcBlock = mMetaManager.getBlockMeta(userId).orNull();
     if (srcBlock == null) {
       return false;
@@ -261,7 +209,8 @@ public class TieredBlockStore implements BlockStore<Integer> {
    * @throws FileNotFoundException
    */
   @Override
-  public boolean removeBlock(long userId, long blockId, Integer tierAlias) throws FileNotFoundException {
+  public boolean removeBlock(long userId, long blockId, Integer tierAlias)
+      throws FileNotFoundException {
     mEvictor.preRemoveBlock(userId, blockId);
     Lock blockWriteLock = mLockManager.getBlockWriteLock(blockId);
 

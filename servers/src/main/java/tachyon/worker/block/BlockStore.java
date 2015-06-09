@@ -18,6 +18,8 @@ package tachyon.worker.block;
 import com.google.common.base.Optional;
 
 import tachyon.worker.BlockStoreLocation;
+import tachyon.worker.block.io.BlockReader;
+import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
 
 /**
@@ -59,9 +61,11 @@ public interface BlockStore {
    * @param userId the user ID
    * @param blockId the block ID
    * @param location location to create this block
+   * @param initialBlockSize initial size of this block in bytes
    * @return block meta if success, absent otherwise
    */
-  Optional<BlockMeta> createBlockMeta(long userId, long blockId, BlockStoreLocation location);
+  Optional<BlockMeta> createBlockMeta(long userId, long blockId, BlockStoreLocation location,
+      long initialBlockSize);
 
   /**
    * Commits a temporary block to the local store and returns the updated meta data. After commit,
@@ -70,9 +74,9 @@ public interface BlockStore {
    *
    * @param userId the ID of the user
    * @param blockId the ID of a temp block
-   * @return block meta if success, absent otherwise
+   * @return true if success, false otherwise
    */
-  Optional<BlockMeta> commitBlock(long userId, long blockId);
+  boolean commitBlock(long userId, long blockId);
 
   /**
    * Aborts a temporary block. The meta data of this block will not be added, its data will be
