@@ -9,9 +9,9 @@
   </type>
   <type>
     <name>SimpleReadRemote</name>
-    <taskClass>tachyon.perf.benchmark.simpleread.SimpleReadRemoteTask</taskClass>
-    <taskContextClass>tachyon.perf.benchmark.simpleread.SimpleReadRemoteTaskContext</taskContextClass>
-    <taskThreadClass>tachyon.perf.benchmark.simpleread.SimpleReadRemoteThread</taskThreadClass>
+    <taskClass>tachyon.perf.benchmark.simplereadremote.SimpleReadRemoteTask</taskClass>
+    <taskContextClass>tachyon.perf.benchmark.simplereadremote.SimpleReadRemoteTaskContext</taskContextClass>
+    <taskThreadClass>tachyon.perf.benchmark.simplereadremote.SimpleReadRemoteThread</taskThreadClass>
     <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
   </type>
   <type>
