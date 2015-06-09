@@ -76,7 +76,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       # Provider specific init
       if Provider == "vb"
-        system "bash vbox/init.sh"
+        system "bash vbox/buildbox.sh"
         config_vb(n, i, Total, name, TachyonV.type == "Local")
       end
 
