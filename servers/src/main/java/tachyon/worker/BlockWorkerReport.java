@@ -12,7 +12,7 @@ public class BlockWorkerReport extends WorkerReport {
   private final List<Long> mRemovedBlocks;
   private final Map<Long, List<Long>> mAddedBlocks;
 
-  public BlockWorkerReport(long workerId, List<Long> usedBytesOnTiers, List<Long> removedBlocks,
+  public BlockWorkerReport(List<Long> usedBytesOnTiers, List<Long> removedBlocks,
       Map<Long, List<Long>> addedBlocks) {
     mUsedBytesOnTiers = usedBytesOnTiers;
     mRemovedBlocks = removedBlocks;
