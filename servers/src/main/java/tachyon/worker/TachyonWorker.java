@@ -57,7 +57,6 @@ public class TachyonWorker {
   private TachyonConf mTachyonConf;
   private TServerSocket mThriftServerSocket;
   private TThreadPoolServer mThriftServer;
-  private boolean mRunning;
   private int mThriftPort;
   private int mWorkerId;
 

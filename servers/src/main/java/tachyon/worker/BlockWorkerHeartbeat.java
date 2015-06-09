@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -16,23 +17,27 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Task that sends a block worker heartbeat to the master periodically and carries out the requested
- * commands returned by the master. Manages its own MasterClient instance.
+ * Task that carries out the necessary block worker to master communications, including register
+ * and heartbeat. This class manages its own {@link tachyon.master.MasterClient}.
  */
+// TODO: Find a better name for this
 public class BlockWorkerHeartbeat implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final CoreWorker mCoreWorker;
   private final ExecutorService mMasterClientExecutorService;
+  private final InetSocketAddress mWorkerAddress;
   private final MasterClient mMasterClient;
-  private boolean mRunning;
   private final int mHeartbeatIntervalMs;
   private final int mHeartbeatTimeoutMs;
-  private final int mWorkerId;
 
-  BlockWorkerHeartbeat(CoreWorker coreWorker, TachyonConf tachyonConf, int workerId) {
+  private boolean mRunning;
+  private int mWorkerId;
+
+  BlockWorkerHeartbeat(CoreWorker coreWorker, TachyonConf tachyonConf, InetSocketAddress
+      workerAddress) {
     mCoreWorker = coreWorker;
-    mRunning = true;
+    mWorkerAddress = workerAddress;
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-client-heartbeat-%d"));
     mMasterClient =
@@ -41,7 +46,9 @@ public class BlockWorkerHeartbeat implements Runnable {
         tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
     mHeartbeatTimeoutMs =
         tachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS, 10 * Constants.SECOND_MS);
-    mWorkerId = workerId;
+
+    mRunning = true;
+    mWorkerId = 0;
   }
 
   private InetSocketAddress getMasterAddress(TachyonConf tachyonConf) {
@@ -49,6 +56,35 @@ public class BlockWorkerHeartbeat implements Runnable {
         tachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(tachyonConf));
     int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     return new InetSocketAddress(masterHostname, masterPort);
+  }
+
+  private void registerWithMaster() {
+    int assignedId = 0;
+    BlockWorkerReport blockReport = mCoreWorker.getReport();
+    StoreMeta storeMeta = mCoreWorker.getStoreMeta();
+    while (assignedId == 0) {
+      try {
+        assignedId =
+            mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
+                blockReport.getUsedBytesOnTiers(), storeMeta.getBlockList());
+      } catch (BlockInfoException e) {
+        LOG.error(e.getMessage(), e);
+        assignedId = 0;
+        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
+      } catch (IOException e) {
+        LOG.error(e.getMessage(), e);
+        assignedId = 0;
+        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
+      }
+    }
+    if (mWorkerId != 0 && mWorkerId != assignedId) {
+      LOG.warn("Received new worker id from master: " + assignedId + ". Old id: " + mWorkerId);
+    }
+    mWorkerId = assignedId;
+  }
+
+  public int getWorkerId() {
+    return mWorkerId;
   }
 
   @Override
@@ -90,7 +126,7 @@ public class BlockWorkerHeartbeat implements Runnable {
             break;
           case Register:
             LOG.info("Register command: " + cmd);
-            mCoreWorker.register();
+            registerWithMaster();
             break;
           case Free:
             mCoreWorker.freeBlocks(cmd.mData);

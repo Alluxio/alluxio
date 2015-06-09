@@ -8,14 +8,12 @@ import java.util.Map;
  */
 // TODO: Make this a thrift object?
 public class BlockWorkerReport extends WorkerReport {
-  private final long mWorkerId;
   private final List<Long> mUsedBytesOnTiers;
   private final List<Long> mRemovedBlocks;
   private final Map<Long, List<Long>> mAddedBlocks;
 
   public BlockWorkerReport(long workerId, List<Long> usedBytesOnTiers, List<Long> removedBlocks,
       Map<Long, List<Long>> addedBlocks) {
-    mWorkerId = workerId;
     mUsedBytesOnTiers = usedBytesOnTiers;
     mRemovedBlocks = removedBlocks;
     mAddedBlocks = addedBlocks;
@@ -31,9 +29,5 @@ public class BlockWorkerReport extends WorkerReport {
 
   public List<Long> getUsedBytesOnTiers() {
     return mUsedBytesOnTiers;
-  }
-
-  public long getWorkerId() {
-    return mWorkerId;
   }
 }
