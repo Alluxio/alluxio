@@ -15,6 +15,7 @@
 
 package tachyon.worker;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,8 +32,11 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterClient;
+import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
+import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.block.BlockWorkerServiceHandler;
@@ -48,12 +52,78 @@ public class TachyonWorker {
   private CoreWorker mCoreWorker;
   private DataServer mDataServer;
   private ExecutorService mHeartbeatExecutorService;
+  private MasterClient mMasterClient;
   private NetAddress mWorkerNetAddress;
   private TachyonConf mTachyonConf;
   private TServerSocket mThriftServerSocket;
   private TThreadPoolServer mThriftServer;
-  private boolean shouldRun;
+  private boolean mRunning;
   private int mThriftPort;
+  private int mWorkerId;
+
+  private class MasterHeartbeat implements Runnable {
+
+    @Override
+    public void run() {
+      long lastHeartbeatMs = System.currentTimeMillis();
+      Command cmd = null;
+      while (mRunning) {
+        long diff = System.currentTimeMillis() - lastHeartbeatMs;
+        int hbIntervalMs =
+            mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
+                Constants.SECOND_MS);
+        if (diff < hbIntervalMs) {
+          LOG.debug("Heartbeat process takes {} ms.", diff);
+          CommonUtils.sleepMs(LOG, hbIntervalMs - diff);
+        } else {
+          LOG.warn("Heartbeat process takes " + diff + " ms, expected " + hbIntervalMs + " ms.");
+        }
+
+        try {
+          BlockReport blockReport = mCoreWorker.getBlockReport();
+          cmd = mMasterClient.worker_heartbeat(mWorkerId, blockReport.getUsedBytes(),
+              blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
+          lastHeartbeatMs = System.currentTimeMillis();
+        } catch (IOException e) {
+          LOG.error(e.getMessage(), e);
+          CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
+          cmd = null;
+          int heartbeatTimeout =
+              mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS, 10 * Constants.SECOND_MS);
+          if (System.currentTimeMillis() - lastHeartbeatMs >= heartbeatTimeout) {
+            throw new RuntimeException("Heartbeat timeout "
+                + (System.currentTimeMillis() - lastHeartbeatMs) + "ms");
+          }
+        }
+
+        if (cmd != null) {
+          switch (cmd.mCommandType) {
+            case Unknown:
+              LOG.error("Unknown command: " + cmd);
+              break;
+            case Nothing:
+              LOG.debug("Nothing command: {}", cmd);
+              break;
+            case Register:
+              LOG.info("Register command: " + cmd);
+              mCoreWorker.register();
+              break;
+            case Free:
+              mCoreWorker.freeBlocks(cmd.mData);
+              LOG.info("Free command: " + cmd);
+              break;
+            case Delete:
+              LOG.info("Delete command: " + cmd);
+              break;
+            default:
+              throw new RuntimeException("Un-recognized command from master " + cmd.toString());
+          }
+        }
+
+        mCoreWorker.checkStatus();
+      }
+    }
+  }
 
   public TachyonWorker(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
@@ -125,5 +195,7 @@ public class TachyonWorker {
     return new InetSocketAddress(workerHostname, workerPort);
   }
 
-  public void join() {}
+  public void join() {
+
+  }
 }

@@ -19,8 +19,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
-import com.google.common.base.Optional;
-
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -30,7 +28,6 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
 import tachyon.worker.CoreWorker;
-import tachyon.worker.block.meta.BlockMeta;
 
 /**
  * Handles all thrift RPC calls to the worker. This class is a thrift server implementation and is
