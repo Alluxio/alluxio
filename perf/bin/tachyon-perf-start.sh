@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 function printUsage {
-  echo "Usage: tachyon-perf-start.sh <NodeName> <TaskIdFrom> <TaskIdTo> <TestCase>"
+  echo "Usage: tachyon-perf-start.sh <NodeName> <TaskIdFrom> <TaskIdTo> <TotalTasks> <TestCase>"
   echo "This is used to start tachyon-perf on each node, see more in ./tachyon-perf"
 }
 
-# if less than 4 args specified, show usage
-if [ $# -le 3 ]; then
+# if less than 5 args specified, show usage
+if [ $# -le 4 ]; then
   printUsage
   exit 1
 fi
@@ -27,6 +27,6 @@ JAVACOMMAND="$JAVA -cp $TACHYON_PERF_CONF_DIR/:$TACHYON_PERF_JAR -Dtachyon.perf.
 for (( i = $2; i <= $3; i ++))
 do
   echo "Starting tachyon-perf task-$i @ `hostname -f`"
-  (nohup $JAVACOMMAND $1 $i $4 > /dev/null 2>&1 ) &
+  (nohup $JAVACOMMAND $1 $i $4 $5 > /dev/null 2>&1 ) &
 done
 sleep 1
