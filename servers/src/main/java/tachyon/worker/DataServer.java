@@ -24,6 +24,7 @@ import tachyon.Constants;
 import tachyon.ServerConstants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 
 /**
  * Defines how to interact with a server running the data protocol.
@@ -32,12 +33,12 @@ public interface DataServer extends Closeable {
 
   class Factory {
     public static DataServer createDataServer(final InetSocketAddress dataAddress,
-        final BlocksLocker blockLocker, TachyonConf conf) {
+        final CoreWorker coreWorker, TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.getClass(Constants.WORKER_DATA_SERVER, ServerConstants.WORKER_DATA_SERVER_CLASS),
             new Class[] { InetSocketAddress.class, BlocksLocker.class, TachyonConf.class },
-            new Object[] { dataAddress, blockLocker, conf });
+            new Object[] { dataAddress, coreWorker, conf });
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
