@@ -16,6 +16,7 @@
 package tachyon.worker.block;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 import com.google.common.base.Optional;
@@ -48,24 +49,26 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    *
    * @param userId The id of the client
    * @param blockId The id of the block
-   * @param blockSize The size of the block in bytes
-   * @param tierHint Any tier preference for the block
+   * @param location The tier to place the block in, 0 for any tier
+   * @param initialBytes The amount of space to request for the block initially
    * @return Path to the local file, or null if it failed
    * @throws OutOfSpaceException
    * @throws FileAlreadyExistException
    */
-  public String createBlock(long userId, long blockId, long blockSize, int tierHint)
+  public String createBlock(long userId, long blockId, int location, long initialBytes)
       throws OutOfSpaceException, FileAlreadyExistException {
+    return mWorker.createBlock(userId, blockId, location, initialBytes);
   }
 
   /**
    * Used to close a block. Calling this method will move the block from the user temporary folder
    * to the worker's data folder.
    *
-   * @param blockId
+   * @param userId The id of the client
+   * @param blockId The block id to complete
    */
-  public void completeBlock(long blockId) {
-
+  public void completeBlock(long userId, long blockId) {
+    mWorker.persistBlock(userId, blockId);
   }
 
   /**
@@ -75,39 +78,43 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @return true if the block is freed successfully, false otherwise
    */
   public boolean freeBlock(long blockId) throws FileNotFoundException {
-    return false;
+    return mWorker.relocateBlock(-1L, blockId, -1);
   }
 
   /**
    * Used to get a completed block for reading. This method should only be used if the block is in
    * Tachyon managed space on this worker.
    *
-   * @param blockId
+   * @param userId The id of the client
+   * @param blockId The id of the block to read
+   * @param lockId The lock id of the lock acquired on the block
    * @return
    */
-  public String getBlock(long blockId) {
-    return null;
+  public String getBlock(long userId, long blockId, int lockId) throws IOException {
+    return mWorker.readBlock(userId, blockId, lockId);
   }
 
   // TODO: Rename this method when complete, currently is V2 to avoid checkstyle errors
   /**
    * Obtains a lock on the block.
    *
-   * @param blockId
+   * @param userId The id of the client
+   * @param blockId The id of the block to lock
+   * @param type The type of lock to acquire, 0 for READ, 1 for WRITE
    * @return
    */
-  public boolean lockBlockV2(long blockId) {
-    return false;
+  public long lockBlockV2(long userId, long blockId, int type) {
+    return mWorker.lockBlock(userId, blockId, type);
   }
 
   // TODO: Rename this method when complete, currently is V2 to avoid checkstyle errors
   /**
    * Relinquishes the lock on the block.
    *
-   * @param blockId
+   * @param lockId The id of the lock to relinquish
    * @return
    */
-  public boolean unlockBlockV2(long blockId) {
+  public boolean unlockBlockV2(long lockId) {
     return false;
   }
 
