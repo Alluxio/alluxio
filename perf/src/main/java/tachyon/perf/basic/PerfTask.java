@@ -33,14 +33,17 @@ public abstract class PerfTask {
   protected static final Logger LOG = Logger.getLogger(PerfConstants.PERF_LOGGER_TYPE);
 
   protected int mId;
+  protected int mTotalTasks;
   protected String mNodeName;
   protected TaskConfiguration mTaskConf;
   protected String mTestCase;
 
   private PerfThread[] mThreads;
 
-  public void initialSet(int id, String nodeName, TaskConfiguration taskConf, String testCase) {
+  public void initialSet(int id, int totalTasks,
+                         String nodeName, TaskConfiguration taskConf, String testCase) {
     mId = id;
+    mTotalTasks = totalTasks;
     mNodeName = nodeName;
     mTaskConf = taskConf;
     mTestCase = testCase;
