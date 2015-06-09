@@ -29,6 +29,10 @@ import tachyon.worker.block.meta.BlockMeta;
 
 import java.io.IOException;
 
+/**
+ * Class responsible for managing the Tachyon BlockStore and Under FileSystem. This class
+ * provides thread safety.
+ */
 public class CoreWorker {
   private final BlockStore mBlockStore;
   private final TachyonConf mTachyonConf;
