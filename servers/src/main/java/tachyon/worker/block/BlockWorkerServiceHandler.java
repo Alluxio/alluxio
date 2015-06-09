@@ -117,7 +117,6 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
 
   // ================================ WORKER V1 INTERFACE =======================================
   public void accessBlock(long blockId) throws org.apache.thrift.TException {
-
   }
 
   public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,
@@ -140,7 +139,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    */
   public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
       BlockInfoException, org.apache.thrift.TException {
-
+    mWorker.persistBlock(userId, blockId);
   }
 
   /**
@@ -151,7 +150,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param blockId
    */
   public void cancelBlock(long userId, long blockId) throws org.apache.thrift.TException {
-
+    mWorker.cancelBlock(userId, blockId);
   }
 
   /**
@@ -161,7 +160,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public String getUserUfsTempFolder(long userId) throws org.apache.thrift.TException {
-    return null;
+    return mWorker.getUserUfsTmpFolder(userId);
   }
 
   /**
@@ -174,7 +173,8 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    */
   public String lockBlock(long blockId, long userId) throws FileDoesNotExistException,
       org.apache.thrift.TException {
-    return null;
+    long lockId = mWorker.lockBlock(userId, blockId, 1);
+    return mWorker.readBlock(userId, blockId, lockId);
   }
 
   /**
@@ -185,7 +185,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param blockId
    */
   public boolean promoteBlock(long blockId) throws org.apache.thrift.TException {
-    return false;
+    return mWorker.relocateBlock(-1, blockId, 1);
   }
 
   /**
@@ -201,7 +201,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    */
   public String requestBlockLocation(long userId, long blockId, long initialBytes)
       throws OutOfSpaceException, FileAlreadyExistException, org.apache.thrift.TException {
-    return null;
+    return mWorker.createBlock(userId, blockId, 0, initialBytes);
   }
 
   /**
