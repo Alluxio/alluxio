@@ -16,6 +16,7 @@
 package tachyon.worker.block;
 
 import java.io.FileNotFoundException;
+import java.util.List;
 
 import com.google.common.base.Optional;
 
@@ -74,7 +75,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @return true if the block is freed successfully, false otherwise
    */
   public boolean freeBlock(long blockId) throws FileNotFoundException {
-    return mBlockWorker.removeBlock(blockId);
+    return false;
   }
 
   /**
@@ -230,7 +231,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    *
    * @param userId
    */
-  public void userHeartbeat(long userId) throws org.apache.thrift.TException {
+  public void userHeartbeat(long userId, List<Long> metrics) throws org.apache.thrift.TException {
 
   }
 }
