@@ -34,8 +34,8 @@ public interface BlockStore {
    * Locks a block for a specific mode (READ or WRITE) and guards the subsequent operations on this
    * block.
    *
-   * @param userId ID of the user to lock this block
-   * @param blockId ID of the block to lock
+   * @param userId the ID of the user to lock this block
+   * @param blockId the ID of the block to lock
    * @param blockLockType the lock type
    * @return the lock ID if the lock is acquired successfully, {@link Optional#absent()} otherwise
    */
@@ -44,7 +44,7 @@ public interface BlockStore {
   /**
    * Release an acquired lock on a block previously by {@link #lockBlock}.
    *
-   * @param lockId ID of the lock returned by {@link #lockBlock}
+   * @param lockId the ID of the lock returned by {@link #lockBlock}
    * @return true if the lock has been released, false otherwise
    */
   boolean unlockBlock(long lockId);
@@ -58,8 +58,8 @@ public interface BlockStore {
    * Before commit, all the data written to this block will be stored in the temp path and the block
    * is only "visible" to its writer client.
    *
-   * @param userId the user ID
-   * @param blockId the block ID
+   * @param userId the ID of the user
+   * @param blockId the ID of the block to create
    * @param location location to create this block
    * @param initialBlockSize initial size of this block in bytes
    * @return block meta if success, absent otherwise
@@ -67,6 +67,18 @@ public interface BlockStore {
   Optional<BlockMeta> createBlockMeta(long userId, long blockId, BlockStoreLocation location,
       long initialBlockSize);
 
+  /**
+   * Gets the meta data of a specific block in local storage.
+   * <p>
+   * This method requires the lock ID returned by a proceeding {@link #lockBlock}.
+   *
+   * @param userId the ID of the user to get this file
+   * @param blockId the ID of the block
+   * @param lockId the ID of the lock
+   * @return the block meta, or {@link Optional#absent()} if the block can not be found.
+   */
+  Optional<BlockMeta> getBlockMeta(long userId, long blockId, long lockId);
+  
   /**
    * Commits a temporary block to the local store and returns the updated meta data. After commit,
    * the block will be available in this block store for all clients. Since a temp block is
@@ -93,19 +105,19 @@ public interface BlockStore {
    * Requests to increase the size of a temp block. Since a temp block is "private" to the writer,
    * this requires no proceeding lock acquired.
    *
-   * @param userId the user ID
+   * @param userId the ID of the user to request space
    * @param size the amount of more space to request in bytes
    * @return true if success, false otherwise
    */
   boolean requestSpace(long userId, long blockId, long size);
 
   /**
-   * Creates a writer of a temp block to write data to this block. Since a temp block is "private"
-   * to the writer, this requires no proceeding lock acquired.
+   * Creates a writer to write data to a temp block. Since the temp block is "private" to the
+   * writer, this requires no proceeding lock acquired.
    *
-   * @param userId the user ID
-   * @param blockId the block ID (must be a temp block)
-   * @return a BlockWriter instance on this block if success, absent otherwise
+   * @param userId the ID of the user to get the writer
+   * @param blockId the ID of the temp block
+   * @return a {@link BlockWriter} instance on this block if success, absent otherwise
    */
   Optional<BlockWriter> getBlockWriter(long userId, long blockId);
 
@@ -114,10 +126,10 @@ public interface BlockStore {
    * <p>
    * This method requires the lock ID returned by a proceeding {@link #lockBlock}.
    *
-   * @param userId the user ID
-   * @param blockId the block ID (must be an existing block)
-   * @param lockId the lock ID
-   * @return a BlockReader instance on this block if success, absent otherwise
+   * @param userId the ID of the user to get the reader
+   * @param blockId the ID of an existing block
+   * @param lockId the ID of the lock returned by {@link #lockBlock}
+   * @return a {@link BlockReader} instance on this block if success, absent otherwise
    */
   Optional<BlockReader> getBlockReader(long userId, long blockId, long lockId);
 
@@ -127,9 +139,9 @@ public interface BlockStore {
    * <p>
    * This method requires the lock ID returned by a proceeding {@link #lockBlock}.
    *
-   * @param userId the user ID
-   * @param blockId the block ID
-   * @param lockId the lock ID
+   * @param userId the ID of the user to copy a block
+   * @param blockId the ID of an existing block
+   * @param lockId the ID of the lock returned by {@link #lockBlock}
    * @param newLocation the location of the destination
    * @return true if success, false otherwise
    */
@@ -138,37 +150,25 @@ public interface BlockStore {
   /**
    * Removes an existing block from a specific location. If the block can not be found, return
    * false.
+   * <p>
+   * This method requires the lock ID returned by a proceeding {@link #lockBlock}.
    *
-   * @param userId the user ID
-   * @param blockId the block ID
-   * @param lockId the lock ID
-   * @param location the location to remove this block
+   * @param userId the ID of the user to remove a block
+   * @param blockId the ID of an existing block
+   * @param lockId the ID of the lock returned by {@link #lockBlock}
+   * @param location the location where to remove this block
    * @return true if successful, false otherwise.
    */
   boolean removeBlock(long userId, long blockId, long lockId, BlockStoreLocation location);
 
   /**
-   * Notify the block store that a block was accessed (so the block store could update accordingly
-   * the evictor and allocator.
+   * Notifies the block store that a block was accessed (so the block store could update accordingly
+   * the evictor and allocator).
    *
-   * @param userId the user ID
-   * @param blockId the block ID
-   * @param offset the offset in bytes
-   * @param length the length in bytes
+   * @param userId the ID of the user to access a block
+   * @param blockId the ID of an accessed block
    */
-  void accessBlock(long userId, long blockId, long offset, long length);
-
-  /**
-   * Gets the meta data of a specific block in local storage.
-   * <p>
-   * This method requires the lock ID returned by a proceeding {@link #lockBlock}.
-   *
-   * @param userId ID of the user to get this file
-   * @param blockId ID of the block
-   * @param lockId ID of the lock
-   * @return the block meta, or {@link Optional#absent()} if the block can not be found.
-   */
-  Optional<BlockMeta> getBlockMeata(long userId, long blockId, long lockId);
+  void accessBlock(long userId, long blockId);
 
   /**
    * Gets the meta data of the entire store.
@@ -181,7 +181,7 @@ public interface BlockStore {
    * Cleans up the data associated with a specific user (typically a dead user), e.g., unlock the
    * unreleased locks by this user, reclaim space of temp blocks created by this user.
    *
-   * @param userId user ID
+   * @param userId the user ID
    * @return true if success, false otherwise (e.g., cannot delete file)
    */
   boolean cleanupUser(long userId);
