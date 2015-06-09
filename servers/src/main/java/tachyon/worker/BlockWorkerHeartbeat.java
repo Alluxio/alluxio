@@ -6,6 +6,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.Command;
+import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
@@ -26,7 +27,7 @@ public class BlockWorkerHeartbeat implements Runnable {
 
   private final CoreWorker mCoreWorker;
   private final ExecutorService mMasterClientExecutorService;
-  private final InetSocketAddress mWorkerAddress;
+  private final NetAddress mWorkerAddress;
   private final TachyonConf mTachyonConf;
   private final int mHeartbeatIntervalMs;
   private final int mHeartbeatTimeoutMs;
@@ -35,8 +36,7 @@ public class BlockWorkerHeartbeat implements Runnable {
   private boolean mRunning;
   private int mWorkerId;
 
-  BlockWorkerHeartbeat(CoreWorker coreWorker, TachyonConf tachyonConf, InetSocketAddress
-      workerAddress) {
+  BlockWorkerHeartbeat(CoreWorker coreWorker, TachyonConf tachyonConf, NetAddress workerAddress) {
     mCoreWorker = coreWorker;
     mWorkerAddress = workerAddress;
     mTachyonConf = tachyonConf;
@@ -74,7 +74,10 @@ public class BlockWorkerHeartbeat implements Runnable {
           registerWithMaster();
           break;
         case Free:
-          mCoreWorker.freeBlocks(cmd.mData);
+          for (long block : cmd.mData) {
+            // TODO: Define constants for system user.
+            mCoreWorker.freeBlock(-1, block);
+          }
           LOG.info("Free command: " + cmd);
           break;
         case Delete:
@@ -108,6 +111,7 @@ public class BlockWorkerHeartbeat implements Runnable {
 
   @Override
   public void run() {
+    registerWithMaster();
     long lastHeartbeatMs = System.currentTimeMillis();
     Command cmd = null;
     while (mRunning) {
