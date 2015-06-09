@@ -215,7 +215,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    */
   public boolean requestSpace(long userId, long blockId, long requestBytes)
       throws FileDoesNotExistException, org.apache.thrift.TException {
-    return false;
+    return mWorker.requestSpace(userId, blockId, requestBytes);
   }
 
   /**
@@ -227,7 +227,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public boolean unlockBlock(long blockId, long userId) throws org.apache.thrift.TException {
-    return false;
+    return mWorker.unlockBlock(blockId);
   }
 
   /**
@@ -236,6 +236,6 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public void userHeartbeat(long userId, List<Long> metrics) throws org.apache.thrift.TException {
-
+    mWorker.userHeartbeat(userId, metrics);
   }
 }
