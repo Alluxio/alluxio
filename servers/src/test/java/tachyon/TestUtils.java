@@ -57,6 +57,22 @@ public final class TestUtils {
     return ByteBuffer.wrap(getIncreasingByteArray(start, len));
   }
 
+  public static boolean equalIncreasingByteBuffer(int start, int len, ByteBuffer buf) {
+    if (buf == null) {
+      return false;
+    }
+    buf.rewind();
+    if (buf.remaining() != len) {
+      return false;
+    }
+    for (int k = 0; k < len; k ++) {
+      if (buf.get() != (byte) (start + k)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public static ByteBuffer getIncreasingIntBuffer(int len) {
     ByteBuffer ret = ByteBuffer.allocate(len * 4);
     for (int k = 0; k < len; k ++) {

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.network.protocol.RPCMessage;
 
 /**
  * The message type used to send data request and response for remote data.
@@ -35,7 +36,8 @@ public class DataServerMessage {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static final int HEADER_LENGTH = 26;
+  // TODO: convert client to netty to better deal with headers.
+  private static final int HEADER_LENGTH = 38;
 
   /**
    * Create a default block request message, just allocate the message header, and no attribute is
@@ -73,6 +75,7 @@ public class DataServerMessage {
    */
   public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len) {
     DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
+    ret.mRPCMessageType = RPCMessage.Type.RPC_BLOCK_REQUEST;
 
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
     ret.mBlockId = blockId;
@@ -116,6 +119,7 @@ public class DataServerMessage {
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
       long offset, long len, ByteBuffer data) {
     DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
+    ret.mRPCMessageType = RPCMessage.Type.RPC_BLOCK_RESPONSE;
 
     if (toSend) {
       if (data != null) {
@@ -160,6 +164,11 @@ public class DataServerMessage {
 
   private ByteBuffer mData = null;
 
+  // This is the new message type. For now, DataServerMessage must manually send this type on the
+  // network. When the client is converted to to use Netty, this DataServerMessage class will be
+  // removed.
+  private RPCMessage.Type mRPCMessageType;
+
   /**
    * New a DataServerMessage. Notice that it's not ready.
    *
@@ -199,6 +208,15 @@ public class DataServerMessage {
 
   private void generateHeader() {
     mHeader.clear();
+
+    // These two fields are hard coded for now, until the client is converted to use netty.
+    if (mMessageType == DATA_SERVER_REQUEST_MESSAGE) {
+      mHeader.putLong(HEADER_LENGTH); // frame length
+    } else {
+      mHeader.putLong(HEADER_LENGTH + mLength); // frame length
+    }
+    mHeader.putInt(mRPCMessageType.getId()); // RPC message type
+
     mHeader.putShort(mMessageType);
     mHeader.putLong(mBlockId);
     mHeader.putLong(mOffset);
@@ -293,6 +311,13 @@ public class DataServerMessage {
       numRead = socketChannel.read(mHeader);
       if (mHeader.remaining() == 0) {
         mHeader.flip();
+
+        // These two fields are hard coded for now, until the client is converted to use netty.
+        long frameLength = mHeader.getLong(); // frame length
+        int msgRPCType = mHeader.getInt(); // RPC message type
+
+        // TODO: this msgType will be replaced by the newer msgRPCType when the client is converted
+        // to netty.
         short msgType = mHeader.getShort();
         assert (mMessageType == msgType);
         mBlockId = mHeader.getLong();

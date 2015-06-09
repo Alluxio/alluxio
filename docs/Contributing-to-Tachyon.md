@@ -38,6 +38,14 @@ purpose it serves.
 This will connect the ticket to the proposed code changes. In the description field of the pull
 request, please include a link to the JIRA ticket.
 
+-   For pull requests that only address typos or formating issues, it is not
+    required to create the JIRA ticket and reference this JIRA. Instead, you
+    can make the title of your pull requests prefixed by "[SMALLFIX]", for example:
+
+~~~~~
+[SMALLFIX] Fix a typo in Foo
+~~~~~
+
 ### Testing
 
 -   Run all unit tests with ``mvn test`` (will use the local filesystem as the under filesystem and
@@ -142,7 +150,10 @@ following list, and then submit a pull request. You are also welcome to address
 issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
 Here are a list of
 [tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner%20AND%20status%20%3D%20OPEN)
-for beginners. For a tutorial, see the GitHub guides on
+for beginners. Please limit 2 beginner tasks per new contributor.
+Afterwards, try some intermediate tasks, or ask in the
+[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users).
+For a tutorial, see the GitHub guides on
 [forking a repo](https://help.github.com/articles/fork-a-repo) and
 [sending a pull request](https://help.github.com/articles/using-pull-requests).
 

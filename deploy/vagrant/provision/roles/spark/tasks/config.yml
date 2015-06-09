@@ -8,4 +8,7 @@
 - name: set spark/conf/core-site.xml
   script: config_core_site.sh
 
+- name: set spark/conf/spark-defaults.conf
+  script: spark-defaults.sh
+
 # vim :set filetype=ansible.yaml:
