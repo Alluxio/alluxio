@@ -73,6 +73,16 @@ public class CoreWorker {
     return null;
   }
 
+  public long lockBlock(long userId, long blockId, int type) {
+    // TODO: Define some conversion of int -> lock type
+    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
+    if (optLock.isPresent()) {
+      return optLock.get();
+    }
+    // TODO: Decide on failure return value
+    return -1;
+  }
+
   public boolean persistBlock(long userId, long blockId) {
     return mBlockStore.commitBlock(userId, blockId);
   }
@@ -128,14 +138,8 @@ public class CoreWorker {
     return mBlockStore.requestSpace(userId, blockId, bytesRequested);
   }
 
-  public long lockBlock(long userId, long blockId, int type) {
-    // TODO: Define some conversion of int -> lock type
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
-    if (optLock.isPresent()) {
-      return optLock.get();
-    }
-    // TODO: Decide on failure return value
-    return -1;
+  public boolean unlockBlock(long lockId) {
+    return mBlockStore.unlockBlock(lockId);
   }
 
   public boolean userHeartbeat(long userId) {
