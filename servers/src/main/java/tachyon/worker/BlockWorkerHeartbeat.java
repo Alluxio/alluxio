@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
