@@ -21,6 +21,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.worker.block.BlockLock;
 import tachyon.worker.block.BlockStore;
+import tachyon.worker.block.StoreMeta;
 import tachyon.worker.block.TieredBlockStore;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
@@ -43,7 +44,7 @@ public class CoreWorker {
 
   public String createBlock(long userId, long blockId, int location, long initialBytes)
       throws OutOfSpaceException {
-    BlockStoreLocation loc = new BlockStoreLocation(location);
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
     Optional<BlockMeta> optBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     if (optBlock.isPresent()) {
       return optBlock.get().getTmpPath();
@@ -54,7 +55,7 @@ public class CoreWorker {
 
   public BlockWriter createBlockRemote(long userId, long blockId, int location,
       long initialBytes) throws IOException {
-    BlockStoreLocation loc = new BlockStoreLocation(location);
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
     Optional<BlockMeta> optBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     if (optBlock.isPresent()) {
       Optional<BlockWriter> optWriter = mBlockStore.getBlockWriter(userId, blockId);
@@ -66,6 +67,26 @@ public class CoreWorker {
     }
     // TODO: Throw a better exception
     throw new IOException("Block " + blockId + " does not exist on this worker.");
+  }
+
+  public boolean freeBlock(long userId, long blockId) {
+    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
+    if (!optLock.isPresent()) {
+      return false;
+    }
+    Long lockId = optLock.get();
+    mBlockStore.removeBlock(userId, blockId, lockId, BlockStoreLocation.anyTier());
+    mBlockStore.unlockBlock(lockId);
+    return true;
+  }
+
+  // TODO: Implement this
+  public BlockWorkerReport getReport() {
+    return null;
+  }
+
+  public StoreMeta getStoreMeta() {
+    return mBlockStore.getStoreMeta();
   }
 
   // TODO: Implement this
@@ -122,7 +143,7 @@ public class CoreWorker {
     }
     // TODO: Add this to the BlockMeta API
     BlockStoreLocation oldLoc = optMeta.get().getLocation();
-    BlockStoreLocation newLoc = new BlockStoreLocation(destination);
+    BlockStoreLocation newLoc = BlockStoreLocation.anyDirInTier(destination);
     if (mBlockStore.copyBlock(userId, blockId, lockId, newLoc)) {
       // TODO: What if this fails?
       mBlockStore.removeBlock(userId, blockId, lockId, oldLoc);
