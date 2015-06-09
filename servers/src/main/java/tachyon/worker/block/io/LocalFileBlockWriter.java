@@ -26,15 +26,17 @@ import tachyon.worker.block.meta.BlockMeta;
  */
 public class LocalFileBlockWriter implements BlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final BlockMeta mBlockMeta;
   private final String mFilePath;
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
   private final Closer mCloser = Closer.create();
 
   public LocalFileBlockWriter(BlockMeta blockMeta) throws IOException {
-    mBlockMeta = Preconditions.checkNotNull(blockMeta);
-    mFilePath = mBlockMeta.getPath();
+    this(Preconditions.checkNotNull(blockMeta).getPath());
+  }
+
+  public LocalFileBlockWriter(String path) throws IOException {
+    mFilePath = Preconditions.checkNotNull(path);
     mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "w"));
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
   }
