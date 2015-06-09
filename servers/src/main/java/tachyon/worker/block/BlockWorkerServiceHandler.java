@@ -115,7 +115,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @return
    */
   public boolean unlockBlockV2(long lockId) {
-    return false;
+    return mWorker.unlockBlock(lockId);
   }
 
   // ================================ WORKER V1 INTERFACE =======================================
