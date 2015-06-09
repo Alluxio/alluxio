@@ -57,8 +57,14 @@ public class TachyonWorker {
 
   public TachyonWorker(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mCoreWorker = new CoreWorker();
-    mDataServer = DataServer.Factory.createDataServer(mTachyonConf, mCoreWorker);
+    mCoreWorker = new CoreWorker(tachyonConf);
+
+    int dataServerPort =
+        tachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
+    InetSocketAddress dataServerAddress =
+        new InetSocketAddress(NetworkUtils.getLocalHostName(tachyonConf), dataServerPort);
+    mDataServer = DataServer.Factory.createDataServer(dataServerAddress, mCoreWorker, mTachyonConf);
+
     mServiceHandler = new BlockWorkerServiceHandler(mCoreWorker);
     mThriftServerSocket = createThriftServerSocket();
     mThriftPort = NetworkUtils.getPort(mThriftServerSocket);
