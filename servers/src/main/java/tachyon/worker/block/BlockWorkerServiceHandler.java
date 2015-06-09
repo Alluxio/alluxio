@@ -16,7 +16,6 @@
 package tachyon.worker.block;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 
 import tachyon.thrift.BlockInfoException;
@@ -87,7 +86,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param lockId The lock id of the lock acquired on the block
    * @return
    */
-  public String getBlock(long userId, long blockId, int lockId) throws IOException {
+  public String getBlock(long userId, long blockId, int lockId) throws FileDoesNotExistException {
     return mWorker.readBlock(userId, blockId, lockId);
   }
 
