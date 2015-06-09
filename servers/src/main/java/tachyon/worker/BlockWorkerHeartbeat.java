@@ -28,10 +28,11 @@ public class BlockWorkerHeartbeat implements Runnable {
   private final CoreWorker mCoreWorker;
   private final ExecutorService mMasterClientExecutorService;
   private final InetSocketAddress mWorkerAddress;
-  private final MasterClient mMasterClient;
+  private final TachyonConf mTachyonConf;
   private final int mHeartbeatIntervalMs;
   private final int mHeartbeatTimeoutMs;
 
+  private MasterClient mMasterClient;
   private boolean mRunning;
   private int mWorkerId;
 
@@ -39,24 +40,51 @@ public class BlockWorkerHeartbeat implements Runnable {
       workerAddress) {
     mCoreWorker = coreWorker;
     mWorkerAddress = workerAddress;
+    mTachyonConf = tachyonConf;
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-client-heartbeat-%d"));
     mMasterClient =
-        new MasterClient(getMasterAddress(tachyonConf), mMasterClientExecutorService, tachyonConf);
+        new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
     mHeartbeatIntervalMs =
-        tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
     mHeartbeatTimeoutMs =
-        tachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS, 10 * Constants.SECOND_MS);
+        mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS, 10 * Constants.SECOND_MS);
 
     mRunning = true;
     mWorkerId = 0;
   }
 
-  private InetSocketAddress getMasterAddress(TachyonConf tachyonConf) {
+  private InetSocketAddress getMasterAddress() {
     String masterHostname =
-        tachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(tachyonConf));
-    int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+        mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
+    int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     return new InetSocketAddress(masterHostname, masterPort);
+  }
+
+  private void handleMasterCommand(Command cmd) {
+    if (cmd != null) {
+      switch (cmd.mCommandType) {
+        case Unknown:
+          LOG.error("Unknown command: " + cmd);
+          break;
+        case Nothing:
+          LOG.debug("Nothing command: {}", cmd);
+          break;
+        case Register:
+          LOG.info("Register command: " + cmd);
+          registerWithMaster();
+          break;
+        case Free:
+          mCoreWorker.freeBlocks(cmd.mData);
+          LOG.info("Free command: " + cmd);
+          break;
+        case Delete:
+          LOG.info("Delete command: " + cmd);
+          break;
+        default:
+          throw new RuntimeException("Un-recognized command from master " + cmd.toString());
+      }
+    }
   }
 
   private void registerWithMaster() {
@@ -67,6 +95,12 @@ public class BlockWorkerHeartbeat implements Runnable {
     assignedId = mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
         blockReport.getUsedBytesOnTiers(), storeMeta.getBlockList());
     mWorkerId = assignedId;
+  }
+
+  private void resetMasterClient() {
+    mMasterClient.close();
+    mMasterClient =
+        new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
   }
 
   public int getWorkerId() {
@@ -85,48 +119,23 @@ public class BlockWorkerHeartbeat implements Runnable {
       } else {
         LOG.warn("Heartbeat took " + diff + " ms, expected " + mHeartbeatIntervalMs + " ms.");
       }
-
       try {
         BlockWorkerReport blockReport = mCoreWorker.getReport();
-        cmd =
-            mMasterClient.worker_heartbeat(mWorkerId, blockReport.getUsedBytesOnTiers(),
-                blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
+        cmd = mMasterClient.worker_heartbeat(mWorkerId, blockReport.getUsedBytesOnTiers(),
+            blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
+        resetMasterClient();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         cmd = null;
-        if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {
-          throw new RuntimeException("Heartbeat timeout "
-              + (System.currentTimeMillis() - lastHeartbeatMs) + "ms");
+        diff = System.currentTimeMillis() - lastHeartbeatMs;
+        if (diff >= mHeartbeatTimeoutMs) {
+          throw new RuntimeException("Heartbeat timeout " + diff + "ms");
         }
       }
-
-      if (cmd != null) {
-        switch (cmd.mCommandType) {
-          case Unknown:
-            LOG.error("Unknown command: " + cmd);
-            break;
-          case Nothing:
-            LOG.debug("Nothing command: {}", cmd);
-            break;
-          case Register:
-            LOG.info("Register command: " + cmd);
-            registerWithMaster();
-            break;
-          case Free:
-            mCoreWorker.freeBlocks(cmd.mData);
-            LOG.info("Free command: " + cmd);
-            break;
-          case Delete:
-            LOG.info("Delete command: " + cmd);
-            break;
-          default:
-            throw new RuntimeException("Un-recognized command from master " + cmd.toString());
-        }
-      }
-
-      mCoreWorker.checkStatus();
+      // TODO: Is there a way to make this async? Could take much longer than heartbeat timeout.
+      handleMasterCommand(cmd);
     }
   }
 

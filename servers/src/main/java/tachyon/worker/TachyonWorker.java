@@ -86,7 +86,7 @@ public class TachyonWorker {
     TachyonConf tachyonConf = new TachyonConf();
     TachyonWorker worker = new TachyonWorker(tachyonConf);
     try {
-      worker.join();
+      worker.process();
     } catch (Exception e) {
       LOG.error("Uncaught exception, shutting down Tachyon Worker", e);
       System.exit(-1);
@@ -130,7 +130,6 @@ public class TachyonWorker {
     return new InetSocketAddress(workerHostname, workerPort);
   }
 
-  public void join() {
-
+  public void process() {
   }
 }
