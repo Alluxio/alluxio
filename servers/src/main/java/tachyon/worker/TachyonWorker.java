@@ -15,6 +15,7 @@
 
 package tachyon.worker;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,9 +32,9 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.master.MasterClient;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
+import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.block.BlockWorkerServiceHandler;
@@ -45,17 +46,16 @@ import tachyon.worker.block.BlockWorkerServiceHandler;
 public class TachyonWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private BlockWorkerHeartbeat mBlockWorkerHeartbeat;
   private BlockWorkerServiceHandler mServiceHandler;
   private CoreWorker mCoreWorker;
   private DataServer mDataServer;
   private ExecutorService mHeartbeatExecutorService;
-  private MasterClient mMasterClient;
   private NetAddress mWorkerNetAddress;
   private TachyonConf mTachyonConf;
   private TServerSocket mThriftServerSocket;
   private TThreadPoolServer mThriftServer;
   private int mThriftPort;
-  private int mWorkerId;
 
   public TachyonWorker(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
@@ -76,6 +76,7 @@ public class TachyonWorker {
             mDataServer.getPort());
     mHeartbeatExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-heartbeat-%d"));
+    mBlockWorkerHeartbeat = new BlockWorkerHeartbeat(mCoreWorker, mTachyonConf, mWorkerNetAddress);
   }
 
   public static void main(String[] args) {
@@ -87,6 +88,24 @@ public class TachyonWorker {
     } catch (Exception e) {
       LOG.error("Uncaught exception, shutting down Tachyon Worker", e);
       System.exit(-1);
+    }
+  }
+
+  public void process() {
+    mHeartbeatExecutorService.submit(mBlockWorkerHeartbeat);
+    mThriftServer.serve();
+  }
+
+  public void stop() throws IOException {
+    mDataServer.close();
+    mThriftServer.stop();
+    mThriftServerSocket.close();
+    mHeartbeatExecutorService.shutdown();
+    while (!mDataServer.isClosed() || mThriftServer.isServing()) {
+      // TODO The reason to stop and close again is due to some issues in Thrift.
+      mThriftServer.stop();
+      mThriftServerSocket.close();
+      CommonUtils.sleepMs(null, 100);
     }
   }
 
@@ -125,8 +144,5 @@ public class TachyonWorker {
     String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
     int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
     return new InetSocketAddress(workerHostname, workerPort);
-  }
-
-  public void process() {
   }
 }
