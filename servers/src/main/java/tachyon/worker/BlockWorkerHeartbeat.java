@@ -20,6 +20,14 @@ import java.util.concurrent.Executors;
 /**
  * Task that carries out the necessary block worker to master communications, including register
  * and heartbeat. This class manages its own {@link tachyon.master.MasterClient}.
+ *
+ * When running, this task first requests a block report from the core worker, then sends it to
+ * the master. The master may respond to the heartbeat with a command which will be executed.
+ * After which, the task will wait for the elapsed time since its last heartbeat has reached the
+ * heartbeat interval. Then the cycle will continue.
+ *
+ * If the task fails to heartbeat to the worker, it will destroy its old master client and
+ * recreate it before retrying.
  */
 // TODO: Find a better name for this
 public class BlockWorkerHeartbeat implements Runnable {

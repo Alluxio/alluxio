@@ -40,8 +40,8 @@ import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.block.BlockWorkerServiceHandler;
 
 /**
- * The main program that runs the Tachyon Worker. The Tachyon Worker is responsible for managing its
- * own local Tachyon space as well as its under storage system space.
+ * The main program that runs the Tachyon Worker. The Tachyon Worker is responsible for managing
+ * all the Tachyon services that need to be initialized.
  */
 public class TachyonWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -102,7 +102,7 @@ public class TachyonWorker {
     mThriftServerSocket.close();
     mHeartbeatExecutorService.shutdown();
     while (!mDataServer.isClosed() || mThriftServer.isServing()) {
-      // TODO The reason to stop and close again is due to some issues in Thrift.
+      // TODO: The reason to stop and close again is due to some issues in Thrift.
       mThriftServer.stop();
       mThriftServerSocket.close();
       CommonUtils.sleepMs(null, 100);
