@@ -16,11 +16,14 @@
 package tachyon.worker;
 
 import com.google.common.base.Optional;
+
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.worker.block.BlockLock;
 import tachyon.worker.block.BlockStore;
 import tachyon.worker.block.TieredBlockStore;
+import tachyon.worker.block.io.BlockReader;
+import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
 
 import java.io.IOException;
@@ -75,7 +78,7 @@ public class CoreWorker {
   }
 
   public String readBlock(int userId, long blockId, int lockId) throws IOException {
-    Optional<BlockMeta> optBlock = mBlockStore.getBlockMeata(userId, blockId, lockId);
+    Optional<BlockMeta> optBlock = mBlockStore.getBlockMeta(userId, blockId, lockId);
     if (optBlock.isPresent()) {
       return optBlock.get().getPath();
     }
@@ -100,7 +103,7 @@ public class CoreWorker {
       return false;
     }
     Long lockId = optLock.get();
-    Optional<BlockMeta> optMeta = mBlockStore.getBlockMeata(userId, blockId, lockId);
+    Optional<BlockMeta> optMeta = mBlockStore.getBlockMeta(userId, blockId, lockId);
     // TODO: Define this behavior
     if (!optMeta.isPresent()) {
       // TODO: what if this fails?
