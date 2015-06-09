@@ -10,6 +10,7 @@ import tachyon.thrift.Command;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.worker.block.StoreMeta;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -59,25 +60,12 @@ public class BlockWorkerHeartbeat implements Runnable {
   }
 
   private void registerWithMaster() {
-    int assignedId = 0;
     BlockWorkerReport blockReport = mCoreWorker.getReport();
     StoreMeta storeMeta = mCoreWorker.getStoreMeta();
-
-
-    while (assignedId == 0) {
-      try {
-        assignedId =
-            mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
-                blockReport.getUsedBytesOnTiers(), storeMeta.getBlockList());
-      } catch (Exception e) {
-        LOG.error(e.getMessage(), e);
-        assignedId = 0;
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-      }
-    }
-    if (mWorkerId != 0 && mWorkerId != assignedId) {
-      LOG.warn("Received new worker id from master: " + assignedId + ". Old id: " + mWorkerId);
-    }
+    int assignedId = 0;
+    // TODO: Are retries necessary?
+    assignedId = mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
+        blockReport.getUsedBytesOnTiers(), storeMeta.getBlockList());
     mWorkerId = assignedId;
   }
 
