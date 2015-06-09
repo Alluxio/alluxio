@@ -117,6 +117,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
 
   // ================================ WORKER V1 INTERFACE =======================================
   public void accessBlock(long blockId) throws org.apache.thrift.TException {
+    mWorker.accessBlock(-1, blockId);
   }
 
   public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,

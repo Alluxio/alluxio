@@ -43,6 +43,10 @@ public class CoreWorker {
     mTachyonConf = tachyonConf;
   }
 
+  public void accessBlock(long userId, long blockId) {
+    mBlockStore.accessBlock(userId, blockId);
+  }
+
   public boolean cancelBlock(long userId, long blockId) {
     return mBlockStore.abortBlock(userId, blockId);
   }
@@ -113,7 +117,7 @@ public class CoreWorker {
     return mBlockStore.commitBlock(userId, blockId);
   }
 
-  public String readBlock(long userId, long blockId, int lockId) throws IOException {
+  public String readBlock(long userId, long blockId, long lockId) throws IOException {
     Optional<BlockMeta> optBlock = mBlockStore.getBlockMeta(userId, blockId, lockId);
     if (optBlock.isPresent()) {
       return optBlock.get().getPath();
@@ -123,7 +127,7 @@ public class CoreWorker {
     throw new IOException("Block " + blockId + " does not exist on this worker.");
   }
 
-  public BlockReader readBlockRemote(long userId, long blockId, int lockId) throws IOException {
+  public BlockReader readBlockRemote(long userId, long blockId, long lockId) throws IOException {
     Optional<BlockReader> optReader = mBlockStore.getBlockReader(userId, blockId, lockId);
     if (optReader.isPresent()) {
       return optReader.get();
