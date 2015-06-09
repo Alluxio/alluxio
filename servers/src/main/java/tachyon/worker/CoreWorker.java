@@ -28,6 +28,7 @@ import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Class responsible for managing the Tachyon BlockStore and Under FileSystem. This class
@@ -167,7 +168,7 @@ public class CoreWorker {
     return mBlockStore.unlockBlock(lockId);
   }
 
-  public boolean userHeartbeat(long userId) {
+  public boolean userHeartbeat(long userId, List<Long> metrics) {
     // TODO: Update user metadata
     return true;
   }
