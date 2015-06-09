@@ -47,6 +47,7 @@ public final class EvictLRU extends EvictLRUBase {
     // return null; and if eviction size plus free space of some StorageDir is larger than request
     // size, return the Pair of StorageDir and blockInfoList.
     // TODO Remove while(true). It is in general bad to have the while-loop on true.
+    cleanEvictingBlockIds();
     while (true) {
       // Get oldest block in StorageDir candidates
       Pair<StorageDir, Long> candidate =
@@ -66,8 +67,8 @@ public final class EvictLRU extends EvictLRUBase {
         dir2SizeToEvict.put(dir, evictBytes);
       }
       dir2LRUBlocks.remove(dir);
-
       if (evictBytes + dir.getAvailableBytes() >= requestBytes) {
+        updateEvictingBlockIds(blockInfoList);
         return new Pair<StorageDir, List<BlockInfo>>(dir, blockInfoList);
       }
     }
