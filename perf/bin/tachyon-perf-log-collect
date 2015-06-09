@@ -22,7 +22,7 @@ TACHYON_PERF_LOG_DIR=$TACHYON_PERF_HOME/logs
 TACHYON_PERF_COLLECT_LOG_DIR=$TACHYON_PERF_LOG_DIR/collected-logs
 
 # collect logs from all the slave nodes
-if [ "$1"x = "all"x ]; then
+if [ "$1" = "all" ]; then
   if [ -e $TACHYON_PERF_COLLECT_LOG_DIR ]; then
     rm -rf $TACHYON_PERF_COLLECT_LOG_DIR
   fi
@@ -30,9 +30,8 @@ if [ "$1"x = "all"x ]; then
 
   NODELIST=$TACHYON_PERF_CONF_DIR/slaves
   for slave in `sort "$NODELIST" | uniq | sed  "s/#.*$//;/^$/d"`; do
-    mkdir -p $TACHYON_PERF_COLLECT_LOG_DIR/$slave
     echo -n "Collect logs from $slave ... "
-    scp $slave:$TACHYON_PERF_LOG_DIR/*.log $TACHYON_PERF_COLLECT_LOG_DIR/$slave/
+    scp $slave:$TACHYON_PERF_LOG_DIR/*.log $TACHYON_PERF_COLLECT_LOG_DIR/
     sleep 0.02
   done
   echo "all logs collected at $TACHYON_PERF_COLLECT_LOG_DIR"
@@ -40,17 +39,14 @@ if [ "$1"x = "all"x ]; then
 fi
 
 # collect logs from the specified nodes
+mkdir -p $TACHYON_PERF_COLLECT_LOG_DIR
 while [ $# -gt 0 ]
 do
   slave=$1
   shift
 
-  if [ -e $TACHYON_PERF_COLLECT_LOG_DIR/$slave ]; then
-    rm -rf $TACHYON_PERF_COLLECT_LOG_DIR/$slave
-  fi
-  mkdir -p $TACHYON_PERF_COLLECT_LOG_DIR/$slave
   echo -n "Collect logs from $slave ... "
-  scp $slave:$TACHYON_PERF_LOG_DIR/*.log $TACHYON_PERF_COLLECT_LOG_DIR/$slave/
+  scp $slave:$TACHYON_PERF_LOG_DIR/*.log $TACHYON_PERF_COLLECT_LOG_DIR/
   sleep 0.02
 done
 echo "all logs collected at $TACHYON_PERF_COLLECT_LOG_DIR"
