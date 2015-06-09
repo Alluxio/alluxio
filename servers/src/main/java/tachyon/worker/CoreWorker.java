@@ -18,6 +18,7 @@ package tachyon.worker;
 import com.google.common.base.Optional;
 
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.worker.block.BlockLock;
 import tachyon.worker.block.BlockStore;
@@ -31,8 +32,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Class responsible for managing the Tachyon BlockStore and Under FileSystem. This class
- * provides thread safety.
+ * Class responsible for managing the Tachyon BlockStore and Under FileSystem. This class provides
+ * thread safety.
  */
 public class CoreWorker {
   private final BlockStore mBlockStore;
@@ -62,8 +63,8 @@ public class CoreWorker {
     throw new OutOfSpaceException("Failed to allocate " + initialBytes + " for user " + userId);
   }
 
-  public BlockWriter createBlockRemote(long userId, long blockId, int location,
-      long initialBytes) throws IOException {
+  public BlockWriter createBlockRemote(long userId, long blockId, int location, long initialBytes)
+      throws FileDoesNotExistException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
     Optional<BlockMeta> optBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     if (optBlock.isPresent()) {
@@ -74,8 +75,7 @@ public class CoreWorker {
       // TODO: Throw a better exception
       throw new IOException("Failed to obtain block writer");
     }
-    // TODO: Throw a better exception
-    throw new IOException("Block " + blockId + " does not exist on this worker.");
+    throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
   }
 
   public boolean freeBlock(long userId, long blockId) {
@@ -117,23 +117,22 @@ public class CoreWorker {
     return mBlockStore.commitBlock(userId, blockId);
   }
 
-  public String readBlock(long userId, long blockId, long lockId) throws IOException {
+  public String readBlock(long userId, long blockId, long lockId) throws FileDoesNotExistException {
     Optional<BlockMeta> optBlock = mBlockStore.getBlockMeta(userId, blockId, lockId);
     if (optBlock.isPresent()) {
       return optBlock.get().getPath();
     }
     // Failed to find the block
-    // TODO: Throw a better exception
-    throw new IOException("Block " + blockId + " does not exist on this worker.");
+    throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
   }
 
-  public BlockReader readBlockRemote(long userId, long blockId, long lockId) throws IOException {
+  public BlockReader readBlockRemote(long userId, long blockId, long lockId)
+      throws FileDoesNotExistException {
     Optional<BlockReader> optReader = mBlockStore.getBlockReader(userId, blockId, lockId);
     if (optReader.isPresent()) {
       return optReader.get();
     }
-    // TODO: Throw a better exception
-    throw new IOException("Block " + blockId + " does not exist on this worker.");
+    throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
   }
 
   public boolean relocateBlock(long userId, long blockId, int destination) {
