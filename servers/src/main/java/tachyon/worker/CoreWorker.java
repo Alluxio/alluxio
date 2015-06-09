@@ -37,11 +37,11 @@ public class CoreWorker {
     mTachyonConf = tachyonConf;
   }
 
-  public boolean cancelBlock(int userId, long blockId) {
+  public boolean cancelBlock(long userId, long blockId) {
     return mBlockStore.abortBlock(userId, blockId);
   }
 
-  public String createBlock(int userId, long blockId, int location, long initialBytes)
+  public String createBlock(long userId, long blockId, int location, long initialBytes)
       throws OutOfSpaceException {
     BlockStoreLocation loc = new BlockStoreLocation(location);
     Optional<BlockMeta> optBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
@@ -52,7 +52,7 @@ public class CoreWorker {
     throw new OutOfSpaceException("Failed to allocate " + initialBytes + " for user " + userId);
   }
 
-  public BlockWriter createBlockRemote(int userId, long blockId, int location,
+  public BlockWriter createBlockRemote(long userId, long blockId, int location,
       long initialBytes) throws IOException {
     BlockStoreLocation loc = new BlockStoreLocation(location);
     Optional<BlockMeta> optBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
@@ -69,15 +69,15 @@ public class CoreWorker {
   }
 
   // TODO: Implement this
-  public String getUserUfsTmpFolder(int userId) {
+  public String getUserUfsTmpFolder(long userId) {
     return null;
   }
 
-  public boolean persistBlock(int userId, long blockId) {
+  public boolean persistBlock(long userId, long blockId) {
     return mBlockStore.commitBlock(userId, blockId);
   }
 
-  public String readBlock(int userId, long blockId, int lockId) throws IOException {
+  public String readBlock(long userId, long blockId, int lockId) throws IOException {
     Optional<BlockMeta> optBlock = mBlockStore.getBlockMeta(userId, blockId, lockId);
     if (optBlock.isPresent()) {
       return optBlock.get().getPath();
@@ -87,7 +87,7 @@ public class CoreWorker {
     throw new IOException("Block " + blockId + " does not exist on this worker.");
   }
 
-  public BlockReader readBlockRemote(int userId, long blockId, int lockId) throws IOException {
+  public BlockReader readBlockRemote(long userId, long blockId, int lockId) throws IOException {
     Optional<BlockReader> optReader = mBlockStore.getBlockReader(userId, blockId, lockId);
     if (optReader.isPresent()) {
       return optReader.get();
@@ -96,7 +96,7 @@ public class CoreWorker {
     throw new IOException("Block " + blockId + " does not exist on this worker.");
   }
 
-  public boolean relocateBlock(int userId, long blockId, int destination) {
+  public boolean relocateBlock(long userId, long blockId, int destination) {
     Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
     // TODO: Define this behavior
     if (!optLock.isPresent()) {
@@ -124,11 +124,11 @@ public class CoreWorker {
     }
   }
 
-  public boolean requestSpace(int userId, long blockId, long bytesRequested) {
+  public boolean requestSpace(long userId, long blockId, long bytesRequested) {
     return mBlockStore.requestSpace(userId, blockId, bytesRequested);
   }
 
-  public long lockBlock(int userId, long blockId, int type) {
+  public long lockBlock(long userId, long blockId, int type) {
     // TODO: Define some conversion of int -> lock type
     Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
     if (optLock.isPresent()) {
@@ -138,7 +138,7 @@ public class CoreWorker {
     return -1;
   }
 
-  public boolean userHeartbeat(int userId) {
+  public boolean userHeartbeat(long userId) {
     // TODO: Update user metadata
     return true;
   }
