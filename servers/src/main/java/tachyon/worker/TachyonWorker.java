@@ -80,8 +80,8 @@ public class TachyonWorker {
         }
 
         try {
-          BlockReport blockReport = mCoreWorker.getBlockReport();
-          cmd = mMasterClient.worker_heartbeat(mWorkerId, blockReport.getUsedBytes(),
+          BlockWorkerReport blockReport = mCoreWorker.getReport();
+          cmd = mMasterClient.worker_heartbeat(mWorkerId, blockReport.getUsedBytesOnTiers(),
               blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
           lastHeartbeatMs = System.currentTimeMillis();
         } catch (IOException e) {
