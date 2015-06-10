@@ -69,8 +69,11 @@ public class BlockWorker {
 
   public BlockWorker(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
+
+    // Set up BlockDataManager
     mBlockDataManager = new BlockDataManager(tachyonConf);
 
+    // Set up DataServer
     int dataServerPort =
         tachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
     InetSocketAddress dataServerAddress =
@@ -78,6 +81,7 @@ public class BlockWorker {
     mDataServer =
         DataServer.Factory.createDataServer(dataServerAddress, mBlockDataManager, mTachyonConf);
 
+    // Setup RPC Server
     mServiceHandler = new BlockServiceHandler(mBlockDataManager);
     mThriftServerSocket = createThriftServerSocket();
     mThriftPort = NetworkUtils.getPort(mThriftServerSocket);
@@ -85,30 +89,42 @@ public class BlockWorker {
     mWorkerNetAddress =
         new NetAddress(getWorkerAddress().getAddress().getCanonicalHostName(), mThriftPort,
             mDataServer.getPort());
+
+    // Setup Worker to Master Syncer
     mHeartbeatExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-heartbeat-%d"));
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
     mBlockMasterSync.registerWithMaster();
+
+    // Setup user metadata mapping
     // TODO: Have a top level register that gets the worker id.
     mWorkerId = mBlockMasterSync.getWorkerId();
-
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     String ufsWorkerFolder =
         mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, ufsAddress + "/tachyon/workers");
     mUfsWorkerFolder = CommonUtils.concatPath(ufsWorkerFolder, mWorkerId);
-
     mUsers = new Users(mUfsWorkerFolder, mTachyonConf);
+
+    // Give BlockDataManager a pointer to the user metadata mapping
     // TODO: Fix this hack when we have a top level register
     mBlockDataManager.setUsers(mUsers);
   }
 
+  /**
+   * Runs the block worker. The thread calling this will be blocked until the thrift server shuts
+   * down.
+   */
   public void process() {
     mHeartbeatExecutorService.submit(mBlockMasterSync);
     mThriftServer.serve();
   }
 
+  /**
+   * Stops the block worker. This method should only be called to terminate the worker.
+   * @throws IOException if the data server fails to close.
+   */
   public void stop() throws IOException {
     mDataServer.close();
     mThriftServer.stop();
@@ -122,6 +138,10 @@ public class BlockWorker {
     }
   }
 
+  /**
+   * Helper method to create a thrift server socket.
+   * @return a thrift server socket
+   */
   private TServerSocket createThriftServerSocket() {
     try {
       return new TServerSocket(getWorkerAddress());
@@ -131,6 +151,10 @@ public class BlockWorker {
     }
   }
 
+  /**
+   * Helper method to create a thrift server.
+   * @return a thrift server
+   */
   private TThreadPoolServer createThriftServer() {
     int minWorkerThreads =
         mTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS, Runtime.getRuntime()
@@ -146,6 +170,10 @@ public class BlockWorker {
         .protocolFactory(new TBinaryProtocol.Factory(true, true)));
   }
 
+  /**
+   * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
+   * @return the worker's address
+   */
   private InetSocketAddress getWorkerAddress() {
     String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
     int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
