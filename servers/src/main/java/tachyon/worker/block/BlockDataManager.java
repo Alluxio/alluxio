@@ -17,6 +17,7 @@ package tachyon.worker.block;
 
 import com.google.common.base.Optional;
 
+import tachyon.Users;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
@@ -37,6 +38,8 @@ public class BlockDataManager {
   private final BlockStore mBlockStore;
   private final TachyonConf mTachyonConf;
 
+  private Users mUsers;
+
   public BlockDataManager(TachyonConf tachyonConf) {
     mBlockStore = new TieredBlockStore();
     mTachyonConf = tachyonConf;
@@ -48,6 +51,13 @@ public class BlockDataManager {
 
   public void accessBlock(long userId, long blockId) {
     mBlockStore.accessBlock(userId, blockId);
+  }
+
+  public void cleanupUsers() {
+    for (long user : mUsers.getTimedOutUsers()) {
+      mUsers.removeUser(user);
+      mBlockStore.cleanupUser(user);
+    }
   }
 
   public boolean commitBlock(long userId, long blockId) throws IOException {
@@ -102,9 +112,8 @@ public class BlockDataManager {
     return mBlockStore.getStoreMeta();
   }
 
-  // TODO: Implement this
   public String getUserUfsTmpFolder(long userId) {
-    return null;
+    return mUsers.getUserUfsTempFolder(userId);
   }
 
   public long lockBlock(long userId, long blockId, int type) {
@@ -152,12 +161,16 @@ public class BlockDataManager {
     return mBlockStore.requestSpace(userId, blockId, bytesRequested);
   }
 
+  public void setUsers(Users users) {
+    mUsers = users;
+  }
+
   public boolean unlockBlock(long lockId) {
     return mBlockStore.unlockBlock(lockId);
   }
 
   public boolean userHeartbeat(long userId, List<Long> metrics) {
-    // TODO: Update user metadata
+    mUsers.userHeartbeat(userId);
     return true;
   }
 }
