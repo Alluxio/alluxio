@@ -40,8 +40,8 @@ public abstract class PerfTask {
 
   private PerfThread[] mThreads;
 
-  public void initialSet(int id, int totalTasks,
-                         String nodeName, TaskConfiguration taskConf, String testCase) {
+  public void initialSet(int id, int totalTasks, String nodeName, TaskConfiguration taskConf,
+      String testCase) {
     mId = id;
     mTotalTasks = totalTasks;
     mNodeName = nodeName;
