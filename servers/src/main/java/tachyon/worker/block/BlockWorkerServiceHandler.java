@@ -74,7 +74,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @return true if the block is freed successfully, false otherwise
    */
   public boolean freeBlock(long blockId) throws FileNotFoundException {
-    return mWorker.relocateBlock(-1L, blockId, -1);
+    return mWorker.freeBlock(-1L, blockId, -1);
   }
 
   /**
@@ -185,7 +185,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param blockId
    */
   public boolean promoteBlock(long blockId) throws org.apache.thrift.TException {
-    return mWorker.relocateBlock(-1, blockId, 1);
+    return mWorker.moveBlock(-1, blockId, 1);
   }
 
   /**
