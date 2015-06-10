@@ -18,16 +18,16 @@ import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 
 /**
- * Task that carries out the necessary block worker to master communications, including register
- * and heartbeat. This class manages its own {@link tachyon.master.MasterClient}.
+ * Task that carries out the necessary block worker to master communications, including register and
+ * heartbeat. This class manages its own {@link tachyon.master.MasterClient}.
  *
- * When running, this task first requests a block report from the core worker, then sends it to
- * the master. The master may respond to the heartbeat with a command which will be executed.
- * After which, the task will wait for the elapsed time since its last heartbeat has reached the
- * heartbeat interval. Then the cycle will continue.
+ * When running, this task first requests a block report from the core worker, then sends it to the
+ * master. The master may respond to the heartbeat with a command which will be executed. After
+ * which, the task will wait for the elapsed time since its last heartbeat has reached the heartbeat
+ * interval. Then the cycle will continue.
  *
- * If the task fails to heartbeat to the worker, it will destroy its old master client and
- * recreate it before retrying.
+ * If the task fails to heartbeat to the worker, it will destroy its old master client and recreate
+ * it before retrying.
  */
 // TODO: Find a better name for this
 public class BlockMasterSync implements Runnable {
@@ -44,7 +44,8 @@ public class BlockMasterSync implements Runnable {
   private boolean mRunning;
   private int mWorkerId;
 
-  BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf, NetAddress workerAddress) {
+  BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
+      NetAddress workerAddress) {
     mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;
     mTachyonConf = tachyonConf;
@@ -135,8 +136,9 @@ public class BlockMasterSync implements Runnable {
       }
       try {
         BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
-        cmd = mMasterClient.worker_heartbeat(mWorkerId, blockReport.getUsedBytesOnTiers(),
-            blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
+        cmd =
+            mMasterClient.worker_heartbeat(mWorkerId, blockReport.getUsedBytesOnTiers(),
+                blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);

@@ -43,15 +43,11 @@ import tachyon.worker.DataServer;
 /**
  * The class responsible for managing all top level components of the Block Worker. These include:
  *
- * Servers:
- *   BlockServiceHandler (RPC Server)
- *   BlockDataServer (Data Server)
+ * Servers: BlockServiceHandler (RPC Server), BlockDataServer (Data Server)
  *
- * Periodic Threads:
- *   BlockMasterSync (Worker to Master continuous communication)
+ * Periodic Threads: BlockMasterSync (Worker to Master continuous communication)
  *
- * Logic:
- *   BlockDataManager (Logic for all block related storage operations)
+ * Logic: BlockDataManager (Logic for all block related storage operations)
  *
  */
 public class BlockWorker {
@@ -79,7 +75,8 @@ public class BlockWorker {
         tachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
     InetSocketAddress dataServerAddress =
         new InetSocketAddress(NetworkUtils.getLocalHostName(tachyonConf), dataServerPort);
-    mDataServer = DataServer.Factory.createDataServer(dataServerAddress, mBlockDataManager, mTachyonConf);
+    mDataServer =
+        DataServer.Factory.createDataServer(dataServerAddress, mBlockDataManager, mTachyonConf);
 
     mServiceHandler = new BlockServiceHandler(mBlockDataManager);
     mThriftServerSocket = createThriftServerSocket();
