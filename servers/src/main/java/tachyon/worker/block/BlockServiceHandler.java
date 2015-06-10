@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.apache.thrift.TException;
 
+import tachyon.Users;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -102,7 +103,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    */
   public boolean freeBlock(long blockId) throws TException {
     try {
-      return mWorker.freeBlock(-1L, blockId);
+      return mWorker.freeBlock(Users.MIGRATE_DATA_USER_ID, blockId);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -224,7 +225,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
    */
   public boolean promoteBlock(long blockId) throws TException {
     try {
-      return mWorker.moveBlock(-1, blockId, 1);
+      // TODO: Maybe add constant location for First Tier?
+      return mWorker.moveBlock(Users.MIGRATE_DATA_USER_ID, blockId, 1);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -244,7 +246,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
   public String requestBlockLocation(long userId, long blockId, long initialBytes)
       throws TException {
     try {
-      return mWorker.createBlock(userId, blockId, 0, initialBytes);
+      // TODO: Maybe add a constant for anyTier?
+      return mWorker.createBlock(userId, blockId, -1, initialBytes);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }

@@ -38,7 +38,6 @@ public class BlockDataManager {
   private final BlockStore mBlockStore;
   private final TachyonConf mTachyonConf;
 
-
   private Users mUsers;
 
   public BlockDataManager(TachyonConf tachyonConf) {
@@ -127,6 +126,19 @@ public class BlockDataManager {
     return -1;
   }
 
+  public boolean moveBlock(long userId, long blockId, int tier) throws IOException {
+    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
+    // TODO: Define this behavior
+    if (!optLock.isPresent()) {
+      return false;
+    }
+    Long lockId = optLock.get();
+    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tier);
+    boolean result = mBlockStore.moveBlock(userId, blockId, lockId, dst);
+    mBlockStore.unlockBlock(lockId);
+    return result;
+  }
+
   public String readBlock(long userId, long blockId, long lockId) throws FileDoesNotExistException {
     Optional<BlockMeta> optBlock = mBlockStore.getBlockMeta(userId, blockId, lockId);
     if (optBlock.isPresent()) {
@@ -143,19 +155,6 @@ public class BlockDataManager {
       return optReader.get();
     }
     throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
-  }
-
-  public boolean moveBlock(long userId, long blockId, int tier) throws IOException {
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
-    // TODO: Define this behavior
-    if (!optLock.isPresent()) {
-      return false;
-    }
-    Long lockId = optLock.get();
-    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tier);
-    boolean result = mBlockStore.moveBlock(userId, blockId, lockId, dst);
-    mBlockStore.unlockBlock(lockId);
-    return result;
   }
 
   public boolean requestSpace(long userId, long blockId, long bytesRequested) throws IOException {
