@@ -18,24 +18,20 @@ package tachyon.client.netty;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollSocketChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 
 import tachyon.Constants;
 import tachyon.client.RemoteBlockReader;
@@ -48,7 +44,6 @@ import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCMessageDecoder;
 import tachyon.network.protocol.RPCMessageEncoder;
 import tachyon.network.protocol.RPCResponse;
-import tachyon.util.ThreadFactoryUtils;
 
 /**
  * Read data from remote data server using Netty.
@@ -116,6 +111,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
     boot.group(mWorkerGroup).channel(socketChannelClass);
     boot.option(ChannelOption.SO_KEEPALIVE, true);
     boot.option(ChannelOption.TCP_NODELAY, true);
+    boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
     boot.handler(new ChannelInitializer<SocketChannel>() {
       @Override
