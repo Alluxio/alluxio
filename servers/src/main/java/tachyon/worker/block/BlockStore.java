@@ -159,6 +159,19 @@ public interface BlockStore {
       throws IOException;
 
   /**
+   * Moves an existing block to a new location. If the block can not be found, return false.
+   * <p>
+   * This method requires the lock ID returned by a proceeding {@link #lockBlock}.
+   *
+   * @param userId the ID of the user to remove a block
+   * @param blockId the ID of an existing block
+   * @param lockId the ID of the lock returned by {@link #lockBlock}
+   * @return true if successful, false otherwise.
+   * @throws IOException
+   */
+  boolean moveBlock(long userId, long blockId, long lockId) throws IOException;
+
+  /**
    * Removes an existing block from a specific location. If the block can not be found, return
    * false.
    * <p>
