@@ -89,18 +89,6 @@ public class BlockWorker {
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
   }
 
-  public static void main(String[] args) {
-    checkArgs(args);
-    TachyonConf tachyonConf = new TachyonConf();
-    BlockWorker worker = new BlockWorker(tachyonConf);
-    try {
-      worker.process();
-    } catch (Exception e) {
-      LOG.error("Uncaught exception, shutting down Tachyon Worker", e);
-      System.exit(-1);
-    }
-  }
-
   public void process() {
     mHeartbeatExecutorService.submit(mBlockMasterSync);
     mThriftServer.serve();
@@ -116,13 +104,6 @@ public class BlockWorker {
       mThriftServer.stop();
       mThriftServerSocket.close();
       CommonUtils.sleepMs(null, 100);
-    }
-  }
-
-  private static void checkArgs(String[] args) {
-    if (args.length != 0) {
-      LOG.info("Usage: java TachyonWorker");
-      System.exit(-1);
     }
   }
 
