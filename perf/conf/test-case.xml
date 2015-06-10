@@ -8,13 +8,6 @@
     <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
   </type>
   <type>
-    <name>SimpleReadRemote</name>
-    <taskClass>tachyon.perf.benchmark.simplereadremote.SimpleReadRemoteTask</taskClass>
-    <taskContextClass>tachyon.perf.benchmark.simpleread.SimpleReadTaskContext</taskContextClass>
-    <taskThreadClass>tachyon.perf.benchmark.simpleread.SimpleReadThread</taskThreadClass>
-    <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
-  </type>
-  <type>
     <name>SimpleWrite</name>
     <taskClass>tachyon.perf.benchmark.simplewrite.SimpleWriteTask</taskClass>
     <taskContextClass>tachyon.perf.benchmark.simplewrite.SimpleWriteTaskContext</taskContextClass>
