@@ -10,7 +10,7 @@ Total: 2
 # For VirtualBox: the addresses can be arbitrary
 # For AWS: the addresses must be in the same subnet, to find available subnets:
 #   go to AWS VPC web console and choose the same region and availability zone 
-#   as you specify in ec2-config.yml, look into "Subnets" on left panel
+#   as you specify in ec2.yml, look into "Subnets" on left panel
 # For Docker and OpenStack: these addresses are not used. specify "n/a"
 Addresses:
     - "192.168.1.11"

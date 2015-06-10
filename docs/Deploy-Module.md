@@ -84,7 +84,7 @@ Install aws vagrant plugin. To date, 0.5.0 plugin is tested.
 
     vagrant plugin install vagrant-aws
 
-Then update configurations in `conf/ec2-config.yml`.
+Then update configurations in `conf/ec2.yml`.
 
 Update `init.yml` and software configurations. 
 
