@@ -16,7 +16,6 @@
 package tachyon.worker.block;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 
 import tachyon.thrift.BlockInfoException;
@@ -87,7 +86,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param lockId The lock id of the lock acquired on the block
    * @return
    */
-  public String getBlock(long userId, long blockId, int lockId) throws IOException {
+  public String getBlock(long userId, long blockId, int lockId) throws FileDoesNotExistException {
     return mWorker.readBlock(userId, blockId, lockId);
   }
 
@@ -117,7 +116,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
 
   // ================================ WORKER V1 INTERFACE =======================================
   public void accessBlock(long blockId) throws org.apache.thrift.TException {
-
+    mWorker.accessBlock(-1, blockId);
   }
 
   public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,
@@ -140,7 +139,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    */
   public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
       BlockInfoException, org.apache.thrift.TException {
-
+    mWorker.persistBlock(userId, blockId);
   }
 
   /**
@@ -151,7 +150,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param blockId
    */
   public void cancelBlock(long userId, long blockId) throws org.apache.thrift.TException {
-
+    mWorker.cancelBlock(userId, blockId);
   }
 
   /**
@@ -161,7 +160,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public String getUserUfsTempFolder(long userId) throws org.apache.thrift.TException {
-    return null;
+    return mWorker.getUserUfsTmpFolder(userId);
   }
 
   /**
@@ -174,7 +173,8 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    */
   public String lockBlock(long blockId, long userId) throws FileDoesNotExistException,
       org.apache.thrift.TException {
-    return null;
+    long lockId = mWorker.lockBlock(userId, blockId, 1);
+    return mWorker.readBlock(userId, blockId, lockId);
   }
 
   /**
@@ -185,7 +185,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param blockId
    */
   public boolean promoteBlock(long blockId) throws org.apache.thrift.TException {
-    return false;
+    return mWorker.relocateBlock(-1, blockId, 1);
   }
 
   /**
@@ -201,7 +201,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    */
   public String requestBlockLocation(long userId, long blockId, long initialBytes)
       throws OutOfSpaceException, FileAlreadyExistException, org.apache.thrift.TException {
-    return null;
+    return mWorker.createBlock(userId, blockId, 0, initialBytes);
   }
 
   /**
@@ -215,7 +215,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    */
   public boolean requestSpace(long userId, long blockId, long requestBytes)
       throws FileDoesNotExistException, org.apache.thrift.TException {
-    return false;
+    return mWorker.requestSpace(userId, blockId, requestBytes);
   }
 
   /**
@@ -227,7 +227,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public boolean unlockBlock(long blockId, long userId) throws org.apache.thrift.TException {
-    return false;
+    return mWorker.unlockBlock(blockId);
   }
 
   /**
@@ -236,6 +236,6 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public void userHeartbeat(long userId, List<Long> metrics) throws org.apache.thrift.TException {
-
+    mWorker.userHeartbeat(userId, metrics);
   }
 }
