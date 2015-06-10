@@ -1,9 +1,9 @@
 package tachyon.worker.block;
 
-import tachyon.worker.WorkerReport;
-
 import java.util.List;
 import java.util.Map;
+
+import tachyon.worker.WorkerReport;
 
 /**
  * Represents the data the BlockWorker will send to the master in its periodic heartbeat.

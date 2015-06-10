@@ -15,6 +15,9 @@
 
 package tachyon.worker.block;
 
+import java.io.IOException;
+import java.util.List;
+
 import com.google.common.base.Optional;
 
 import tachyon.Users;
@@ -26,9 +29,6 @@ import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.TempBlockMeta;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Class responsible for managing the Tachyon BlockStore and Under FileSystem. This class provides
