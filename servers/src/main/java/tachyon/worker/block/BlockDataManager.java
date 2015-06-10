@@ -13,17 +13,14 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.worker.block;
 
 import com.google.common.base.Optional;
 
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
-import tachyon.worker.block.BlockLock;
-import tachyon.worker.block.BlockStore;
-import tachyon.worker.block.StoreMeta;
-import tachyon.worker.block.TieredBlockStore;
+import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
@@ -36,11 +33,11 @@ import java.util.List;
  * Class responsible for managing the Tachyon BlockStore and Under FileSystem. This class provides
  * thread safety.
  */
-public class CoreWorker {
+public class BlockDataManager {
   private final BlockStore mBlockStore;
   private final TachyonConf mTachyonConf;
 
-  public CoreWorker(TachyonConf tachyonConf) {
+  public BlockDataManager(TachyonConf tachyonConf) {
     mBlockStore = new TieredBlockStore();
     mTachyonConf = tachyonConf;
   }
@@ -97,7 +94,7 @@ public class CoreWorker {
   }
 
   // TODO: Implement this
-  public BlockWorkerReport getReport() {
+  public BlockHeartbeatReport getReport() {
     return null;
   }
 

@@ -26,17 +26,16 @@ import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
-import tachyon.worker.CoreWorker;
 
 /**
  * Handles all thrift RPC calls to the worker. This class is a thrift server implementation and is
  * thread safe.
  */
-public class BlockWorkerServiceHandler implements WorkerService.Iface {
+public class BlockServiceHandler implements WorkerService.Iface {
 
-  private final CoreWorker mWorker;
+  private final BlockDataManager mWorker;
 
-  public BlockWorkerServiceHandler(CoreWorker worker) {
+  public BlockServiceHandler(BlockDataManager worker) {
     mWorker = worker;
   }
 

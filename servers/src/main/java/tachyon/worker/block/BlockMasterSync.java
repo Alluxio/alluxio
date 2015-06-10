@@ -1,4 +1,4 @@
-package tachyon.worker;
+package tachyon.worker.block;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +10,6 @@ import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
-import tachyon.worker.block.StoreMeta;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -30,10 +29,10 @@ import java.util.concurrent.Executors;
  * recreate it before retrying.
  */
 // TODO: Find a better name for this
-public class BlockWorkerHeartbeat implements Runnable {
+public class BlockMasterSync implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final CoreWorker mCoreWorker;
+  private final BlockDataManager mBlockDataManager;
   private final ExecutorService mMasterClientExecutorService;
   private final NetAddress mWorkerAddress;
   private final TachyonConf mTachyonConf;
@@ -44,8 +43,8 @@ public class BlockWorkerHeartbeat implements Runnable {
   private boolean mRunning;
   private int mWorkerId;
 
-  BlockWorkerHeartbeat(CoreWorker coreWorker, TachyonConf tachyonConf, NetAddress workerAddress) {
-    mCoreWorker = coreWorker;
+  BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf, NetAddress workerAddress) {
+    mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;
     mTachyonConf = tachyonConf;
     mMasterClientExecutorService =
@@ -84,7 +83,7 @@ public class BlockWorkerHeartbeat implements Runnable {
         case Free:
           for (long block : cmd.mData) {
             // TODO: Define constants for system user.
-            mCoreWorker.freeBlock(-1, block);
+            mBlockDataManager.freeBlock(-1, block);
           }
           LOG.info("Free command: " + cmd);
           break;
@@ -98,8 +97,8 @@ public class BlockWorkerHeartbeat implements Runnable {
   }
 
   private void registerWithMaster() {
-    BlockWorkerReport blockReport = mCoreWorker.getReport();
-    StoreMeta storeMeta = mCoreWorker.getStoreMeta();
+    BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
+    StoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     int assignedId = 0;
     // TODO: Are retries necessary?
     assignedId = mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
@@ -131,7 +130,7 @@ public class BlockWorkerHeartbeat implements Runnable {
         LOG.warn("Heartbeat took " + diff + " ms, expected " + mHeartbeatIntervalMs + " ms.");
       }
       try {
-        BlockWorkerReport blockReport = mCoreWorker.getReport();
+        BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
         cmd = mMasterClient.worker_heartbeat(mWorkerId, blockReport.getUsedBytesOnTiers(),
             blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();

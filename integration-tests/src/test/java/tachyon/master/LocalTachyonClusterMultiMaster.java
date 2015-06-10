@@ -32,7 +32,7 @@ import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.worker.TachyonWorker;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * A local Tachyon cluster with Multiple masters
@@ -56,7 +56,7 @@ public class LocalTachyonClusterMultiMaster {
 
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
-  private TachyonWorker mWorker = null;
+  private BlockWorker mWorker = null;
   private long mWorkerCapacityBytes;
   private int mUserBlockSize;
 
@@ -210,7 +210,7 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
     mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
-    mWorker = TachyonWorker.createWorker(mWorkerConf);
+    mWorker = BlockWorker.createWorker(mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
