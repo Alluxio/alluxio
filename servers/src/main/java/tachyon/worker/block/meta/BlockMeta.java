@@ -15,7 +15,7 @@
 
 package tachyon.worker.block.meta;
 
-import java.util.UUID;
+import com.google.common.base.Preconditions;
 
 import tachyon.util.CommonUtils;
 
@@ -24,15 +24,14 @@ import tachyon.util.CommonUtils;
  */
 public class BlockMeta {
   private final long mBlockId;
-  private final long mBlockSize;
-  private final String mPath;
-  private final String mTmpPath;
+  private long mBlockSize;
+  private StorageDir mDir;
+  private boolean mCommitted = false;
 
-  public BlockMeta(long blockId, long blockSize, String localPath) {
+  public BlockMeta(long blockId, long blockSize, StorageDir dir) {
     mBlockId = blockId;
     mBlockSize = blockSize;
-    mPath = CommonUtils.concatPath(localPath, blockId);
-    mTmpPath = CommonUtils.concatPath(localPath, UUID.randomUUID());
+    mDir = Preconditions.checkNotNull(dir);
   }
 
   public long getBlockId() {
@@ -44,10 +43,26 @@ public class BlockMeta {
   }
 
   public String getPath() {
-    return mPath;
+    return CommonUtils.concatPath(mDir.getDirPath(), mBlockId);
   }
 
-  public String getTmpPath() {
-    return mTmpPath;
+  public String getTmpPath(long userId) {
+    return CommonUtils.concatPath(mDir.getDirPath(), userId, mBlockId);
   }
+
+  public StorageDir getParentDir() {
+    return mDir;
+  }
+
+  public boolean commit() {
+    if (mCommitted) {
+      return false;
+    }
+    mCommitted = true;
+  }
+
+  public boolean isCommitted() {
+    return mCommitted;
+  }
+
 }
