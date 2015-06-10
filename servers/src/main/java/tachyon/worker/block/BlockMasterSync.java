@@ -81,11 +81,15 @@ public class BlockMasterSync implements Runnable {
           registerWithMaster();
           break;
         case Free:
-          for (long block : cmd.mData) {
-            // TODO: Define constants for system user.
-            mBlockDataManager.freeBlock(-1, block);
-          }
           LOG.info("Free command: " + cmd);
+          for (long block : cmd.mData) {
+            try {
+              // TODO: Define constants for system user.
+              mBlockDataManager.freeBlock(-1, block);
+            } catch (IOException ioe) {
+              LOG.error("Failed to free blocks: " + cmd.mData, ioe);
+            }
+          }
           break;
         case Delete:
           LOG.info("Delete command: " + cmd);
@@ -99,10 +103,10 @@ public class BlockMasterSync implements Runnable {
   private void registerWithMaster() {
     BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
     StoreMeta storeMeta = mBlockDataManager.getStoreMeta();
-    int assignedId = 0;
     // TODO: Are retries necessary?
-    assignedId = mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
-        blockReport.getUsedBytesOnTiers(), storeMeta.getBlockList());
+    int assignedId =
+        mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
+            blockReport.getUsedBytesOnTiers(), storeMeta.getBlockList());
     mWorkerId = assignedId;
   }
 

@@ -69,7 +69,7 @@ public class BlockWorker {
 
   public BlockWorker(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mBlockDataManager = new tachyon.worker.block.BlockDataManager(tachyonConf);
+    mBlockDataManager = new BlockDataManager(tachyonConf);
 
     int dataServerPort =
         tachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
