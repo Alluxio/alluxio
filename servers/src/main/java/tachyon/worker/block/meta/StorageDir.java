@@ -42,8 +42,12 @@ public class StorageDir {
   private long mCapacityBytes;
   private long mAvailableBytes;
   private String mDirPath;
+  private int mDirId;
+  private StorageTier mTier;
 
-  public StorageDir(long capacityBytes, String dirPath) {
+  public StorageDir(StorageTier tier, int dirId, long capacityBytes, String dirPath) {
+    mTier = Preconditions.checkNotNull(tier);
+    mDirId = dirId;
     mCapacityBytes = capacityBytes;
     mAvailableBytes = capacityBytes;
     mDirPath = dirPath;
@@ -61,6 +65,14 @@ public class StorageDir {
 
   public String getDirPath() {
     return mDirPath;
+  }
+
+  public StorageTier getParentTier() {
+    return mTier;
+  }
+
+  public int getDirId() {
+    return mDirId;
   }
 
   /**
