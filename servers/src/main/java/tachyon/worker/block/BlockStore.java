@@ -201,7 +201,7 @@ public interface BlockStore {
    *
    * @return store meta data
    */
-  StoreMeta getStoreMeta();
+  BlockStoreMeta getBlockStoreMeta();
 
   /**
    * Cleans up the data associated with a specific user (typically a dead user), e.g., unlock the
