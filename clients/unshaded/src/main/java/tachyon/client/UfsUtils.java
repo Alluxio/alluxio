@@ -15,6 +15,7 @@
 
 package tachyon.client;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
@@ -110,6 +111,10 @@ public class UfsUtils {
 
     // create the under FS handler (e.g. hdfs, local FS, s3 etc.)
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, tachyonConf);
+
+    if (!ufs.exists(ufsAddrRootPath.toString())) {
+      throw new FileNotFoundException("ufs path " + ufsAddrRootPath + " not found.");
+    }
 
     // directory name to load, either the path parent or the actual path if it is a directory
     TachyonURI directoryName;
