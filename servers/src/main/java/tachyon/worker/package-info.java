@@ -1,8 +1,8 @@
 /**
  * Worker process and utils for working with the worker remotely.
  *
- * Main entry point for the worker is {@link tachyon.worker.block.BlockWorker#main(String[])} which gets
- * started by the tachyon start scripts. The {@link tachyon.worker.block.BlockWorker} class spins up the
+ * Main entry point for the worker is {@link tachyon.worker.TachyonWorker#main(String[])} which gets
+ * started by the tachyon start scripts. The {@link tachyon.worker.TachyonWorker} class spins up the
  * different RPC services (thrift, data) which are mostly wrappers around
  * {@link tachyon.worker.WorkerStorage}.
  *
