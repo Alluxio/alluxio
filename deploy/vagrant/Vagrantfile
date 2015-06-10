@@ -70,15 +70,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               provider: Provider,
           }
           # ans.verbose = "vvvv"
-          if is_vb
-            ans.raw_arguments = ["--private-key","~/.vagrant.d/insecure_private_key"]
-          end
           ans.raw_ssh_args = ['-o ControlPersist=30m']
         end
       end
 
       # Provider specific init
       if Provider == "vb"
+        system "bash vbox/buildbox.sh"
         config_vb(n, i, Total, name, TachyonV.type == "Local")
       end
 
