@@ -113,7 +113,7 @@ public class UfsUtils {
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, tachyonConf);
 
     if (!ufs.exists(ufsAddrRootPath.toString())) {
-      throw new FileNotFoundException("ufs path " + ufsAddrRootPath.toString() + " not found.");
+      throw new FileNotFoundException("ufs path " + ufsAddrRootPath + " not found.");
     }
 
     // directory name to load, either the path parent or the actual path if it is a directory
