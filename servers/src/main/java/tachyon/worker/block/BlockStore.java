@@ -23,6 +23,7 @@ import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
  * This interface represents a blob store that manages and serves all the blobs (i.e., blocks) in
@@ -66,7 +67,7 @@ public interface BlockStore {
    * @param initialBlockSize initial size of this block in bytes
    * @return block meta if success, absent otherwise
    */
-  Optional<BlockMeta> createBlockMeta(long userId, long blockId, BlockStoreLocation location,
+  Optional<TempBlockMeta> createBlockMeta(long userId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws IOException;
 
   /**
@@ -110,7 +111,7 @@ public interface BlockStore {
    * this requires no proceeding lock acquired.
    *
    * @param userId the ID of the user to request space
-   * @param blockId
+   * @param blockId the ID of the temp block
    * @param size the amount of more space to request in bytes
    * @return true if success, false otherwise
    * @throws IOException
