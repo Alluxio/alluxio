@@ -138,31 +138,17 @@ public class CoreWorker {
     throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
   }
 
-  public boolean relocateBlock(long userId, long blockId, int destination) throws IOException {
+  public boolean moveBlock(long userId, long blockId, int tier) throws IOException {
     Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
     // TODO: Define this behavior
     if (!optLock.isPresent()) {
       return false;
     }
     Long lockId = optLock.get();
-    Optional<BlockMeta> optMeta = mBlockStore.getBlockMeta(userId, blockId, lockId);
-    // TODO: Define this behavior
-    if (!optMeta.isPresent()) {
-      // TODO: what if this fails?
-      mBlockStore.unlockBlock(lockId);
-      return false;
-    }
-    // TODO: Add this to the BlockMeta API
-    BlockStoreLocation newLoc = BlockStoreLocation.anyDirInTier(destination);
-    if (mBlockStore.copyBlock(userId, blockId, lockId, newLoc)) {
-      // TODO: What if this fails?
-      mBlockStore.removeBlock(userId, blockId, lockId);
-      mBlockStore.unlockBlock(lockId);
-      return true;
-    } else {
-      mBlockStore.unlockBlock(lockId);
-      return false;
-    }
+    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tier);
+    boolean result = mBlockStore.moveBlock(userId, blockId, lockId, dst);
+    mBlockStore.unlockBlock(lockId);
+    return result;
   }
 
   public boolean requestSpace(long userId, long blockId, long bytesRequested) throws IOException {
