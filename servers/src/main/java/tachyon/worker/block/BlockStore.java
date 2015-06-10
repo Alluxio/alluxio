@@ -15,6 +15,8 @@
 
 package tachyon.worker.block;
 
+import java.io.IOException;
+
 import com.google.common.base.Optional;
 
 import tachyon.worker.BlockStoreLocation;
@@ -65,7 +67,7 @@ public interface BlockStore {
    * @return block meta if success, absent otherwise
    */
   Optional<BlockMeta> createBlockMeta(long userId, long blockId, BlockStoreLocation location,
-      long initialBlockSize);
+      long initialBlockSize) throws IOException;
 
   /**
    * Gets the meta data of a specific block in local storage.
@@ -78,7 +80,7 @@ public interface BlockStore {
    * @return the block meta, or {@link Optional#absent()} if the block can not be found.
    */
   Optional<BlockMeta> getBlockMeta(long userId, long blockId, long lockId);
-  
+
   /**
    * Commits a temporary block to the local store and returns the updated meta data. After commit,
    * the block will be available in this block store for all clients. Since a temp block is
@@ -87,8 +89,9 @@ public interface BlockStore {
    * @param userId the ID of the user
    * @param blockId the ID of a temp block
    * @return true if success, false otherwise
+   * @throws IOException
    */
-  boolean commitBlock(long userId, long blockId);
+  boolean commitBlock(long userId, long blockId) throws IOException;
 
   /**
    * Aborts a temporary block. The meta data of this block will not be added, its data will be
@@ -98,18 +101,21 @@ public interface BlockStore {
    * @param userId the ID of the user
    * @param blockId the ID of a temp block
    * @return true if success, false otherwise
+   * @throws IOException
    */
-  boolean abortBlock(long userId, long blockId);
+  boolean abortBlock(long userId, long blockId) throws IOException;
 
   /**
    * Requests to increase the size of a temp block. Since a temp block is "private" to the writer,
    * this requires no proceeding lock acquired.
    *
    * @param userId the ID of the user to request space
+   * @param blockId
    * @param size the amount of more space to request in bytes
    * @return true if success, false otherwise
+   * @throws IOException
    */
-  boolean requestSpace(long userId, long blockId, long size);
+  boolean requestSpace(long userId, long blockId, long size) throws IOException;
 
   /**
    * Creates a writer to write data to a temp block. Since the temp block is "private" to the
@@ -118,8 +124,9 @@ public interface BlockStore {
    * @param userId the ID of the user to get the writer
    * @param blockId the ID of the temp block
    * @return a {@link BlockWriter} instance on this block if success, absent otherwise
+   * @throws IOException
    */
-  Optional<BlockWriter> getBlockWriter(long userId, long blockId);
+  Optional<BlockWriter> getBlockWriter(long userId, long blockId) throws IOException;
 
   /**
    * Creates a reader of an existing block to read data from this block.
@@ -130,8 +137,9 @@ public interface BlockStore {
    * @param blockId the ID of an existing block
    * @param lockId the ID of the lock returned by {@link #lockBlock}
    * @return a {@link BlockReader} instance on this block if success, absent otherwise
+   * @throws IOException
    */
-  Optional<BlockReader> getBlockReader(long userId, long blockId, long lockId);
+  Optional<BlockReader> getBlockReader(long userId, long blockId, long lockId) throws IOException;
 
   /**
    * Copies an existing block to another location in the storage. If the block can not be found or
@@ -144,8 +152,10 @@ public interface BlockStore {
    * @param lockId the ID of the lock returned by {@link #lockBlock}
    * @param newLocation the location of the destination
    * @return true if success, false otherwise
+   * @throws IOException
    */
-  boolean copyBlock(long userId, long blockId, long lockId, BlockStoreLocation newLocation);
+  boolean copyBlock(long userId, long blockId, long lockId, BlockStoreLocation newLocation)
+      throws IOException;
 
   /**
    * Removes an existing block from a specific location. If the block can not be found, return
@@ -156,10 +166,10 @@ public interface BlockStore {
    * @param userId the ID of the user to remove a block
    * @param blockId the ID of an existing block
    * @param lockId the ID of the lock returned by {@link #lockBlock}
-   * @param location the location where to remove this block
    * @return true if successful, false otherwise.
+   * @throws IOException
    */
-  boolean removeBlock(long userId, long blockId, long lockId, BlockStoreLocation location);
+  boolean removeBlock(long userId, long blockId, long lockId) throws IOException;
 
   /**
    * Notifies the block store that a block was accessed (so the block store could update accordingly
