@@ -15,9 +15,10 @@
 
 package tachyon.worker.block;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
+import org.apache.thrift.TException;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -51,8 +52,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @throws FileAlreadyExistException
    */
   public String createBlock(long userId, long blockId, int location, long initialBytes)
-      throws OutOfSpaceException, FileAlreadyExistException {
-    return mWorker.createBlock(userId, blockId, location, initialBytes);
+      throws TException {
+    try {
+      return mWorker.createBlock(userId, blockId, location, initialBytes);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**
@@ -62,8 +67,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId The id of the client
    * @param blockId The block id to complete
    */
-  public void completeBlock(long userId, long blockId) {
-    mWorker.commitBlock(userId, blockId);
+  public void completeBlock(long userId, long blockId) throws TException {
+    try {
+      mWorker.commitBlock(userId, blockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**
@@ -72,8 +81,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId The id of the block
    * @return true if the block is freed successfully, false otherwise
    */
-  public boolean freeBlock(long blockId) throws FileNotFoundException {
-    return mWorker.freeBlock(-1L, blockId, -1);
+  public boolean freeBlock(long blockId) throws TException {
+    try {
+      return mWorker.freeBlock(-1L, blockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**
@@ -85,7 +98,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param lockId The lock id of the lock acquired on the block
    * @return
    */
-  public String getBlock(long userId, long blockId, int lockId) throws FileDoesNotExistException {
+  public String getBlock(long userId, long blockId, int lockId) throws TException {
     return mWorker.readBlock(userId, blockId, lockId);
   }
 
@@ -136,9 +149,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId
    * @param blockId
    */
-  public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
-      BlockInfoException, org.apache.thrift.TException {
-    mWorker.commitBlock(userId, blockId);
+  public void cacheBlock(long userId, long blockId) throws TException {
+    try {
+      mWorker.commitBlock(userId, blockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**
@@ -148,8 +164,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId
    * @param blockId
    */
-  public void cancelBlock(long userId, long blockId) throws org.apache.thrift.TException {
-    mWorker.abortBlock(userId, blockId);
+  public void cancelBlock(long userId, long blockId) throws TException {
+    try {
+      mWorker.abortBlock(userId, blockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**
@@ -158,7 +178,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param userId
    */
-  public String getUserUfsTempFolder(long userId) throws org.apache.thrift.TException {
+  public String getUserUfsTempFolder(long userId) throws TException {
     return mWorker.getUserUfsTmpFolder(userId);
   }
 
@@ -170,8 +190,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId
    * @param userId
    */
-  public String lockBlock(long blockId, long userId) throws FileDoesNotExistException,
-      org.apache.thrift.TException {
+  public String lockBlock(long blockId, long userId) throws TException {
     long lockId = mWorker.lockBlock(userId, blockId, 1);
     return mWorker.readBlock(userId, blockId, lockId);
   }
@@ -183,8 +202,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param blockId
    */
-  public boolean promoteBlock(long blockId) throws org.apache.thrift.TException {
-    return mWorker.moveBlock(-1, blockId, 1);
+  public boolean promoteBlock(long blockId) throws TException {
+    try {
+      return mWorker.moveBlock(-1, blockId, 1);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**
@@ -199,8 +222,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param initialBytes
    */
   public String requestBlockLocation(long userId, long blockId, long initialBytes)
-      throws OutOfSpaceException, FileAlreadyExistException, org.apache.thrift.TException {
-    return mWorker.createBlock(userId, blockId, 0, initialBytes);
+      throws TException {
+    try {
+      return mWorker.createBlock(userId, blockId, 0, initialBytes);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**
@@ -213,8 +240,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param requestBytes
    */
   public boolean requestSpace(long userId, long blockId, long requestBytes)
-      throws FileDoesNotExistException, org.apache.thrift.TException {
-    return mWorker.requestSpace(userId, blockId, requestBytes);
+      throws TException {
+    try {
+      return mWorker.requestSpace(userId, blockId, requestBytes);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**
@@ -225,7 +256,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId
    * @param userId
    */
-  public boolean unlockBlock(long blockId, long userId) throws org.apache.thrift.TException {
+  public boolean unlockBlock(long blockId, long userId) {
     return mWorker.unlockBlock(blockId);
   }
 
@@ -234,7 +265,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param userId
    */
-  public void userHeartbeat(long userId, List<Long> metrics) throws org.apache.thrift.TException {
+  public void userHeartbeat(long userId, List<Long> metrics) {
     mWorker.userHeartbeat(userId, metrics);
   }
 }
