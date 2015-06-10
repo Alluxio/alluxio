@@ -1,7 +1,13 @@
 package tachyon.worker.block;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
@@ -10,11 +16,6 @@ import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register

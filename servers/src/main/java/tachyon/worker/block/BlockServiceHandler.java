@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.thrift.TException;
+
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
