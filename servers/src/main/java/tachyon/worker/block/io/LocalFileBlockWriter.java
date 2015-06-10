@@ -1,11 +1,9 @@
 package tachyon.worker.block.io;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.channels.ByteChannel;
 import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
 
@@ -17,10 +15,10 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
-import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * This class provides write access to a block data file locally stored in managed storage.
+ * This class provides write access to a temp block data file locally stored in managed storage.
  * <p>
  * This class does not provide thread-safety. Corresponding lock must be acquired.
  */
@@ -31,8 +29,8 @@ public class LocalFileBlockWriter implements BlockWriter {
   private final FileChannel mLocalFileChannel;
   private final Closer mCloser = Closer.create();
 
-  public LocalFileBlockWriter(BlockMeta blockMeta) throws IOException {
-    this(Preconditions.checkNotNull(blockMeta).getPath());
+  public LocalFileBlockWriter(TempBlockMeta tempBlockMeta) throws IOException {
+    this(Preconditions.checkNotNull(tempBlockMeta).getPath());
   }
 
   public LocalFileBlockWriter(String path) throws IOException {
