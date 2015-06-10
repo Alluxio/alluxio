@@ -13,6 +13,9 @@ dependency-reduced-pom.xml
 deploy/vagrant/.vagrant/
 deploy/vagrant/files/
 deploy/vagrant/shared/
+deploy/vagrant/vbox/.vagrant/
+deploy/vagrant/vbox/tachyon-dev.box
+deploy/vagrant/vbox/shared/
 docs/_site
 docs/api
 docs/serve/
