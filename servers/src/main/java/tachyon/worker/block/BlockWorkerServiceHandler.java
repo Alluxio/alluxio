@@ -64,7 +64,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param blockId The block id to complete
    */
   public void completeBlock(long userId, long blockId) {
-    mWorker.persistBlock(userId, blockId);
+    mWorker.commitBlock(userId, blockId);
   }
 
   /**
@@ -139,7 +139,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    */
   public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
       BlockInfoException, org.apache.thrift.TException {
-    mWorker.persistBlock(userId, blockId);
+    mWorker.commitBlock(userId, blockId);
   }
 
   /**
@@ -150,7 +150,7 @@ public class BlockWorkerServiceHandler implements WorkerService.Iface {
    * @param blockId
    */
   public void cancelBlock(long userId, long blockId) throws org.apache.thrift.TException {
-    mWorker.cancelBlock(userId, blockId);
+    mWorker.abortBlock(userId, blockId);
   }
 
   /**

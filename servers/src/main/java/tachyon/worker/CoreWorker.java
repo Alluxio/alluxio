@@ -45,12 +45,16 @@ public class CoreWorker {
     mTachyonConf = tachyonConf;
   }
 
+  public boolean abortBlock(long userId, long blockId) throws IOException {
+    return mBlockStore.abortBlock(userId, blockId);
+  }
+
   public void accessBlock(long userId, long blockId) {
     mBlockStore.accessBlock(userId, blockId);
   }
 
-  public boolean cancelBlock(long userId, long blockId) {
-    return mBlockStore.abortBlock(userId, blockId);
+  public boolean commitBlock(long userId, long blockId) throws IOException {
+    return mBlockStore.commitBlock(userId, blockId);
   }
 
   public String createBlock(long userId, long blockId, int location, long initialBytes)
@@ -114,10 +118,6 @@ public class CoreWorker {
     }
     // TODO: Decide on failure return value
     return -1;
-  }
-
-  public boolean persistBlock(long userId, long blockId) throws IOException {
-    return mBlockStore.commitBlock(userId, blockId);
   }
 
   public String readBlock(long userId, long blockId, long lockId) throws FileDoesNotExistException {
