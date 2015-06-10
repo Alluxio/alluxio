@@ -115,6 +115,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
         NettyUtils.getClientChannelClass(mChannelType);
     boot.group(mWorkerGroup).channel(socketChannelClass);
     boot.option(ChannelOption.SO_KEEPALIVE, true);
+    boot.option(ChannelOption.TCP_NODELAY, true);
 
     boot.handler(new ChannelInitializer<SocketChannel>() {
       @Override
