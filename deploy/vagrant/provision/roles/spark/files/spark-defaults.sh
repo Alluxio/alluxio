@@ -7,4 +7,7 @@ cat > /spark/conf/spark-defaults.conf <<EOF
   spark.eventLog.enabled true
   spark.eventLog.dir /tmp/spark-eventlog
   spark.serializer org.apache.spark.serializer.KryoSerializer
+  spark.tachyonStore.url tachyon://TachyonMaster.local:19998
+  # externalBlockStore.url is needed in spark master branch
+  spark.externalBlockStore.url tachyon://TachyonMaster.local:19998 
 EOF
