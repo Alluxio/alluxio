@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.Users;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
@@ -65,7 +66,10 @@ public class BlockWorker {
   private TachyonConf mTachyonConf;
   private TServerSocket mThriftServerSocket;
   private TThreadPoolServer mThriftServer;
+  private Users mUsers;
   private int mThriftPort;
+  private int mWorkerId;
+  private String mUfsWorkerFolder;
 
   public BlockWorker(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
@@ -87,6 +91,20 @@ public class BlockWorker {
     mHeartbeatExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-heartbeat-%d"));
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
+    mBlockMasterSync.registerWithMaster();
+    // TODO: Have a top level register that gets the worker id.
+    mWorkerId = mBlockMasterSync.getWorkerId();
+
+    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String ufsAddress =
+        mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
+    String ufsWorkerFolder =
+        mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, ufsAddress + "/tachyon/workers");
+    mUfsWorkerFolder = CommonUtils.concatPath(ufsWorkerFolder, mWorkerId);
+
+    mUsers = new Users(mUfsWorkerFolder, mTachyonConf);
+    // TODO: Fix this hack when we have a top level register
+    mBlockDataManager.setUsers(mUsers);
   }
 
   public void process() {
