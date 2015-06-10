@@ -28,9 +28,10 @@ public class SimpleReadRemoteTask extends SimpleTask {
   protected boolean setupTask(PerfTaskContext taskContext) {
     try {
       PerfFS fs = PerfConstants.getFileSystem();
-      // Read from another tasks directory. This will always be remote if each slave only runs one
-      // task.
-      String readDir = PerfConf.get().WORK_DIR + "/simple-read-write/" + ((mId + 1) % mTotalTasks);
+      // Read from another task's directory.
+      int offset = mTaskConf.getIntProperty("taskid.offset.for.remote");
+      String readDir = PerfConf.get().WORK_DIR + "/simple-read-write/" +
+          ((mId + offset) % mTotalTasks);
       if (!fs.exists(readDir)) {
         throw new IOException("No data to read at " + readDir);
       }
