@@ -42,5 +42,12 @@
     <taskThreadClass>tachyon.perf.benchmark.iterate.IterateThread</taskThreadClass>
     <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
   </type>
+  <type>
+    <name>Massive</name>
+    <taskClass>tachyon.perf.benchmark.massive.MassiveTask</taskClass>
+    <taskContextClass>tachyon.perf.benchmark.massive.MassiveTaskContext</taskContextClass>
+    <taskThreadClass>tachyon.perf.benchmark.massive.MassiveThread</taskThreadClass>
+    <totalReportClass>tachyon.perf.benchmark.SimpleTotalReport</totalReportClass>
+  </type>
 </taskTypes>
 
