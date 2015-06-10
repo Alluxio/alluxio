@@ -41,6 +41,22 @@ public class BlockServiceHandler implements WorkerService.Iface {
   }
 
   /**
+   * Used when a client wishes to abort a temporary block it is managing.
+   *
+   * @param userId The user id of the client
+   * @param blockId The id of the block to be aborted
+   * @return true if successful, false otherwise
+   * @throws TException if the block does not exist or is committed
+   */
+  public boolean abortBlock(long userId, long blockId) throws TException {
+    try {
+      return mWorker.abortBlock(userId, blockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
+  }
+
+  /**
    * Used to create a new block on this worker. This is only used for local clients.
    *
    * @param userId The id of the client
@@ -48,8 +64,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param location The tier to place the block in, 0 for any tier
    * @param initialBytes The amount of space to request for the block initially
    * @return Path to the local file, or null if it failed
-   * @throws OutOfSpaceException
-   * @throws FileAlreadyExistException
+   * @throws OutOfSpaceException if there is not enough space in location to create the block
+   * @throws FileAlreadyExistException if the block already exists
    */
   public String createBlock(long userId, long blockId, int location, long initialBytes)
       throws TException {
@@ -66,6 +82,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param userId The id of the client
    * @param blockId The block id to complete
+   * @throws TException if the block fails to be completed
    */
   public void completeBlock(long userId, long blockId) throws TException {
     try {
@@ -80,6 +97,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param blockId The id of the block
    * @return true if the block is freed successfully, false otherwise
+   * @throws TException if the block does not exist
    */
   public boolean freeBlock(long blockId) throws TException {
     try {
@@ -96,7 +114,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId The id of the client
    * @param blockId The id of the block to read
    * @param lockId The lock id of the lock acquired on the block
-   * @return
+   * @return the path of the block on local disk
+   * @throws TException if the block does not exist
    */
   public String getBlock(long userId, long blockId, int lockId) throws TException {
     return mWorker.readBlock(userId, blockId, lockId);
@@ -109,7 +128,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId The id of the client
    * @param blockId The id of the block to lock
    * @param type The type of lock to acquire, 0 for READ, 1 for WRITE
-   * @return
+   * @return the lockId of the lock obtained
    */
   public long lockBlockV2(long userId, long blockId, int type) {
     return mWorker.lockBlock(userId, blockId, type);
@@ -120,7 +139,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * Relinquishes the lock on the block.
    *
    * @param lockId The id of the lock to relinquish
-   * @return
+   * @return true if successful, false otherwise
    */
   public boolean unlockBlockV2(long lockId) {
     return mWorker.unlockBlock(lockId);
