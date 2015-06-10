@@ -38,7 +38,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.worker.block.BlockWorkerServiceHandler;
+import tachyon.worker.block.BlockServiceHandler;
 import tachyon.worker.block.io.BlockHandler;
 
 /**
@@ -50,7 +50,7 @@ public class WorkerServiceHandlerIntegrationTest {
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
-  private BlockWorkerServiceHandler mWorkerServiceHandler = null;
+  private BlockServiceHandler mWorkerServiceHandler = null;
   private TachyonFS mTfs = null;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
