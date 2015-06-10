@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.worker.block;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -37,18 +37,28 @@ import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
-import tachyon.worker.block.BlockWorkerServiceHandler;
+import tachyon.worker.DataServer;
 
 /**
- * The main program that runs the Tachyon Worker. The Tachyon Worker is responsible for managing
- * all the Tachyon services that need to be initialized.
+ * The class responsible for managing all top level components of the Block Worker. These include:
+ *
+ * Servers:
+ *   BlockServiceHandler (RPC Server)
+ *   BlockDataServer (Data Server)
+ *
+ * Periodic Threads:
+ *   BlockMasterSync (Worker to Master continuous communication)
+ *
+ * Logic:
+ *   BlockDataManager (Logic for all block related storage operations)
+ *
  */
-public class TachyonWorker {
+public class BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private BlockWorkerHeartbeat mBlockWorkerHeartbeat;
-  private BlockWorkerServiceHandler mServiceHandler;
-  private CoreWorker mCoreWorker;
+  private BlockMasterSync mBlockMasterSync;
+  private BlockServiceHandler mServiceHandler;
+  private tachyon.worker.block.BlockDataManager mBlockDataManager;
   private DataServer mDataServer;
   private ExecutorService mHeartbeatExecutorService;
   private NetAddress mWorkerNetAddress;
@@ -57,17 +67,17 @@ public class TachyonWorker {
   private TThreadPoolServer mThriftServer;
   private int mThriftPort;
 
-  public TachyonWorker(TachyonConf tachyonConf) {
+  public BlockWorker(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mCoreWorker = new CoreWorker(tachyonConf);
+    mBlockDataManager = new tachyon.worker.block.BlockDataManager(tachyonConf);
 
     int dataServerPort =
         tachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
     InetSocketAddress dataServerAddress =
         new InetSocketAddress(NetworkUtils.getLocalHostName(tachyonConf), dataServerPort);
-    mDataServer = DataServer.Factory.createDataServer(dataServerAddress, mCoreWorker, mTachyonConf);
+    mDataServer = DataServer.Factory.createDataServer(dataServerAddress, mBlockDataManager, mTachyonConf);
 
-    mServiceHandler = new BlockWorkerServiceHandler(mCoreWorker);
+    mServiceHandler = new BlockServiceHandler(mBlockDataManager);
     mThriftServerSocket = createThriftServerSocket();
     mThriftPort = NetworkUtils.getPort(mThriftServerSocket);
     mThriftServer = createThriftServer();
@@ -76,13 +86,13 @@ public class TachyonWorker {
             mDataServer.getPort());
     mHeartbeatExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-heartbeat-%d"));
-    mBlockWorkerHeartbeat = new BlockWorkerHeartbeat(mCoreWorker, mTachyonConf, mWorkerNetAddress);
+    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
   }
 
   public static void main(String[] args) {
     checkArgs(args);
     TachyonConf tachyonConf = new TachyonConf();
-    TachyonWorker worker = new TachyonWorker(tachyonConf);
+    BlockWorker worker = new BlockWorker(tachyonConf);
     try {
       worker.process();
     } catch (Exception e) {
@@ -92,7 +102,7 @@ public class TachyonWorker {
   }
 
   public void process() {
-    mHeartbeatExecutorService.submit(mBlockWorkerHeartbeat);
+    mHeartbeatExecutorService.submit(mBlockMasterSync);
     mThriftServer.serve();
   }
 
@@ -132,8 +142,8 @@ public class TachyonWorker {
     int maxWorkerThreads =
         mTachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS,
             Constants.DEFAULT_WORKER_MAX_WORKER_THREADS);
-    WorkerService.Processor<BlockWorkerServiceHandler> processor =
-        new WorkerService.Processor<BlockWorkerServiceHandler>(mServiceHandler);
+    WorkerService.Processor<BlockServiceHandler> processor =
+        new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
     return new TThreadPoolServer(new TThreadPoolServer.Args(mThriftServerSocket)
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
         .transportFactory(new TFramedTransport.Factory())

@@ -26,7 +26,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.TachyonWorker;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * Local Tachyon cluster for unit tests.
@@ -46,7 +46,7 @@ public final class LocalTachyonCluster {
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
   }
 
-  private TachyonWorker mWorker = null;
+  private BlockWorker mWorker = null;
 
   private long mWorkerCapacityBytes;
   private int mUserBlockSize;
@@ -115,7 +115,7 @@ public final class LocalTachyonCluster {
     return mMasterConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
   }
 
-  public TachyonWorker getWorker() {
+  public BlockWorker getWorker() {
     return mWorker;
   }
 
@@ -236,7 +236,7 @@ public final class LocalTachyonCluster {
           newPath.substring(0, newPath.length() - 1));
     }
 
-    mWorker = TachyonWorker.createWorker(mWorkerConf);
+    mWorker = BlockWorker.createWorker(mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
