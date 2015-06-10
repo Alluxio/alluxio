@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <property>
+    <name>time.seconds</name>
+    <value>5</value>
+    <description>the time duration of the whole test</description>
+  </property>
+  <property>
+    <name>shuffle.mode</name>
+    <value>false</value>
+    <description>workers will only read their own dataset by default, set shuffle mode to true to read from the entire dataset</description>
+  </property>
+  <property>
+    <name>basic.files.per.thread</name>
+    <value>2</value>
+    <description>the number of global files to write at the beginning for each thread</description>
+  </property>
+  <property>
+    <name>block.size.bytes</name>
+    <value>134217728</value>
+    <description>the block size of a file</description>
+  </property>
+  <property>
+    <name>file.length.bytes</name>
+    <value>134217728</value>
+    <description>the file size in bytes</description>
+  </property>
+  <property>
+    <name>buffer.size.bytes</name>
+    <value>4194304</value>
+    <description>the size of the buffer read and write once</description>
+  </property>
+  <property>
+    <name>read.type</name>
+    <value>CACHE</value>
+    <description>the ReadType of the read operation, now only used for TachyonFS</description>
+  </property>
+  <property>
+    <name>write.type</name>
+    <value>THROUGH</value>
+    <description>the WriteType of the write operation, now only used for TachyonFS</description>
+  </property>
+</configuration>
+
