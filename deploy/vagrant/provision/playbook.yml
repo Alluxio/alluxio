@@ -1,6 +1,7 @@
 - hosts: all
   tasks:
     - include: roles/common/tasks/main.yml
+    - include: roles/vagrant_utils/tasks/main.yml
 
     - include: roles/lib/tasks/mount.yml
       when: provider == "aws"
