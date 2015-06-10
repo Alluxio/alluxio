@@ -27,6 +27,7 @@ import tachyon.worker.block.TieredBlockStore;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
 import java.util.List;
@@ -53,11 +54,12 @@ public class CoreWorker {
   }
 
   public String createBlock(long userId, long blockId, int location, long initialBytes)
-      throws OutOfSpaceException {
+      throws IOException, OutOfSpaceException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
-    Optional<BlockMeta> optBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
+    Optional<TempBlockMeta> optBlock =
+        mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     if (optBlock.isPresent()) {
-      return optBlock.get().getTmpPath();
+      return optBlock.get().getPath();
     }
     // Failed to allocate initial bytes
     throw new OutOfSpaceException("Failed to allocate " + initialBytes + " for user " + userId);
@@ -66,25 +68,26 @@ public class CoreWorker {
   public BlockWriter createBlockRemote(long userId, long blockId, int location, long initialBytes)
       throws FileDoesNotExistException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
-    Optional<BlockMeta> optBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
+    Optional<TempBlockMeta> optBlock =
+        mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     if (optBlock.isPresent()) {
       Optional<BlockWriter> optWriter = mBlockStore.getBlockWriter(userId, blockId);
       if (optWriter.isPresent()) {
         return optWriter.get();
       }
       // TODO: Throw a better exception
-      throw new IOException("Failed to obtain block writer");
+      throw new IOException("Failed to obtain block writer.");
     }
     throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
   }
 
-  public boolean freeBlock(long userId, long blockId) {
+  public boolean freeBlock(long userId, long blockId) throws IOException {
     Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
     if (!optLock.isPresent()) {
       return false;
     }
     Long lockId = optLock.get();
-    mBlockStore.removeBlock(userId, blockId, lockId, BlockStoreLocation.anyTier());
+    mBlockStore.removeBlock(userId, blockId, lockId);
     mBlockStore.unlockBlock(lockId);
     return true;
   }
@@ -113,7 +116,7 @@ public class CoreWorker {
     return -1;
   }
 
-  public boolean persistBlock(long userId, long blockId) {
+  public boolean persistBlock(long userId, long blockId) throws IOException {
     return mBlockStore.commitBlock(userId, blockId);
   }
 
@@ -127,7 +130,7 @@ public class CoreWorker {
   }
 
   public BlockReader readBlockRemote(long userId, long blockId, long lockId)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, IOException {
     Optional<BlockReader> optReader = mBlockStore.getBlockReader(userId, blockId, lockId);
     if (optReader.isPresent()) {
       return optReader.get();
@@ -135,7 +138,7 @@ public class CoreWorker {
     throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
   }
 
-  public boolean relocateBlock(long userId, long blockId, int destination) {
+  public boolean relocateBlock(long userId, long blockId, int destination) throws IOException {
     Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
     // TODO: Define this behavior
     if (!optLock.isPresent()) {
@@ -150,11 +153,10 @@ public class CoreWorker {
       return false;
     }
     // TODO: Add this to the BlockMeta API
-    BlockStoreLocation oldLoc = optMeta.get().getLocation();
     BlockStoreLocation newLoc = BlockStoreLocation.anyDirInTier(destination);
     if (mBlockStore.copyBlock(userId, blockId, lockId, newLoc)) {
       // TODO: What if this fails?
-      mBlockStore.removeBlock(userId, blockId, lockId, oldLoc);
+      mBlockStore.removeBlock(userId, blockId, lockId);
       mBlockStore.unlockBlock(lockId);
       return true;
     } else {
@@ -163,7 +165,7 @@ public class CoreWorker {
     }
   }
 
-  public boolean requestSpace(long userId, long blockId, long bytesRequested) {
+  public boolean requestSpace(long userId, long blockId, long bytesRequested) throws IOException {
     return mBlockStore.requestSpace(userId, blockId, bytesRequested);
   }
 
