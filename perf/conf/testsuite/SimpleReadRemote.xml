@@ -20,5 +20,10 @@
     <value>NO_CACHE</value>
     <description>the ReadType of the read operation, no it only used for Tachyon</description>
   </property>
+  <property>
+    <name>taskid.offset.for.remote</name>
+    <value>1</value>
+    <description>The offset to add to each taskid, to ensure reading from directory (taskid + offset) is remote. An offset of 0 would result in local reads.</description>
+  </property>
 </configuration>
 
