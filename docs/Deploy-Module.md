@@ -75,6 +75,8 @@ Meanings of fields in the configurations are explained in detail in the yml file
 
 You need to have AWS account with access to EC2. If not, sign up [here](https://aws.amazon.com/). 
 
+Set up [AWS CLI](http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ec2-cli-get-set-up.html) may be helpful.
+
 Then you need to set shell environment variables `AWS_ACCESS_KEY`
 and `AWS_SECRET_KEY`, refer to [this doc](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html). 
 
