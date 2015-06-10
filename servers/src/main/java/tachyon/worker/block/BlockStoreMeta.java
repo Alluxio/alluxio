@@ -20,5 +20,5 @@ package tachyon.worker.block;
  * <p>
  * TODO: use proto buf to represent this information
  */
-public class StoreMeta {
+public class BlockStoreMeta {
 }
