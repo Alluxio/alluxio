@@ -100,7 +100,7 @@ public class BlockMasterSync implements Runnable {
     }
   }
 
-  private void registerWithMaster() {
+  public void registerWithMaster() {
     BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
     StoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     // TODO: Are retries necessary?
@@ -122,7 +122,6 @@ public class BlockMasterSync implements Runnable {
 
   @Override
   public void run() {
-    registerWithMaster();
     long lastHeartbeatMs = System.currentTimeMillis();
     Command cmd = null;
     while (mRunning) {
@@ -150,6 +149,8 @@ public class BlockMasterSync implements Runnable {
       }
       // TODO: Is there a way to make this async? Could take much longer than heartbeat timeout.
       handleMasterCommand(cmd);
+      // TODO: This should go in its own thread
+      mBlockDataManager.cleanupUsers();
     }
   }
 
