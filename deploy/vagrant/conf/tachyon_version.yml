@@ -8,3 +8,9 @@ Github:
 
 Release:
   Dist: tachyon-0.5.0-bin.tar.gz
+
+# how much memory to use (e.g. 1000MB, 2GB) per worker
+# make sure your virtual machine has more memory than what is specified here
+#  for virtualbox, machine memory is configured in conf/init.yml:Memory
+#  for aws, machine memory is decided by instance type
+Memory: 2GB

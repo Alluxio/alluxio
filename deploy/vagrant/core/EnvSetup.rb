@@ -91,6 +91,8 @@ class TachyonVersion
       puts "Unknown VersionType"
       exit(1)
     end
+
+    @mem = @yml['Memory']
   end
 
   def dist
@@ -103,6 +105,10 @@ class TachyonVersion
 
   def repo_version
     return @repo, @version
+  end
+
+  def memory
+    return @mem
   end
 end
 
