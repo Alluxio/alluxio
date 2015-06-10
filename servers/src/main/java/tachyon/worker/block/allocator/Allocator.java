@@ -18,7 +18,7 @@ package tachyon.worker.block.allocator;
 import com.google.common.base.Optional;
 
 import tachyon.worker.BlockStoreLocation;
-import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
  * Interface for the allocation policy of Tachyon managed data.
@@ -32,8 +32,8 @@ public interface Allocator {
    * @param blockId the ID of the block
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @return block meta if success, absent otherwise
+   * @return a temp block meta if success, absent otherwise
    */
-  Optional<BlockMeta> allocateBlock(long userId, long blockId, long blockSize,
+  Optional<TempBlockMeta> allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location);
 }
