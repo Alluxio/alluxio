@@ -15,10 +15,7 @@
 
 package tachyon.worker.block;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,18 +26,14 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.BlockStoreLocation;
-import tachyon.worker.block.allocator.Allocator;
-import tachyon.worker.block.allocator.NaiveAllocator;
-import tachyon.worker.block.evictor.Evictor;
-import tachyon.worker.block.evictor.NaiveEvictor;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * Manages the metadata of all blocks in managed space. This information is used by the TieredBlockStore,
- * Allocator and Evictor.
+ * Manages the metadata of all blocks in managed space. This information is used by the
+ * TieredBlockStore, Allocator and Evictor.
  * <p>
  * This class is thread-safe and all operations on block metadata such as StorageTier, StorageDir
  * should go through this class.
@@ -48,67 +41,95 @@ import tachyon.worker.block.meta.TempBlockMeta;
 public class BlockMetadataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private long mAvailableSpace;
-  private Map<Integer, StorageTier> mTiers;
+  /** A list of managed StorageTier */
+  private List<StorageTier> mTiers;
 
   public BlockMetadataManager(TachyonConf tachyonConf) {
     // Initialize storage tiers
     int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
-    mTiers = new HashMap<Integer, StorageTier>(totalTiers);
+    mTiers = new ArrayList<StorageTier>(totalTiers);
     for (int i = 0; i < totalTiers; i ++) {
-      mTiers.put(i, new StorageTier(tachyonConf, i));
+      mTiers.add(new StorageTier(tachyonConf, i));
     }
   }
 
+  /**
+   * Gets the StorageTier given its tierAlias.
+   *
+   * @param tierAlias the alias of this tier
+   * @return the StorageTier object associated with the alias
+   */
   public synchronized StorageTier getTier(int tierAlias) {
     return mTiers.get(tierAlias);
   }
 
-  public synchronized Set<StorageTier> getTiers() {
-    return new HashSet<StorageTier>(mTiers.values());
+  /**
+   * Gets the list of StorageTier managed.
+   *
+   * @return the list of StorageTiers
+   */
+  public synchronized List<StorageTier> getTiers() {
+    return mTiers;
   }
-
-  public synchronized long getAvailableSpace() {
-    return mAvailableSpace;
-  }
-
-  /* Operations on metadata information */
 
   /**
-   * Get the metadata of a specific block.
+   * Gets the metadata of a block given its blockId.
    *
    * @param blockId the block ID
    * @return metadata of the block or absent
    */
   public synchronized Optional<BlockMeta> getBlockMeta(long blockId) {
-    for (StorageTier tier : mTiers.values()) {
-      Optional<BlockMeta> optionalBlock = tier.getBlockMeta(blockId);
-      if (optionalBlock.isPresent()) {
-        return optionalBlock;
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.hasBlockMeta(blockId)) {
+          return tier.getBlockMeta(blockId);
+        }
       }
     }
     return Optional.absent();
   }
 
   /**
-   * Move the metadata of a specific block to another tier.
+   * Moves the metadata of an existing block to another location.
    *
    * @param blockId the block ID
    * @return the new block metadata if success, absent otherwise
    */
-  public synchronized Optional<BlockMeta> moveBlockMeta(long userId, long blockId, int newTierAlias) {
-    StorageTier tier = getTier(newTierAlias);
-    if (tier == null) {
-      LOG.error("tierAlias must be valid: {}", newTierAlias);
-      return Optional.absent();
-    }
-    Optional<BlockMeta> optionalBlock = getBlockMeta(blockId);
-    if (!optionalBlock.isPresent()) {
+  public synchronized Optional<BlockMeta> moveBlockMeta(long userId, long blockId,
+      BlockStoreLocation newLocation) {
+    // Check if the blockId is valid.
+    BlockMeta block = getBlockMeta(blockId).orNull();
+    if (block == null) {
       LOG.error("No block found for block ID {}", blockId);
       return Optional.absent();
     }
-    Preconditions.checkState(removeBlockMeta(blockId));
-    return tier.addBlockMeta(userId, blockId, newTierAlias);
+
+    // If move target can be any tier, then simply return the current block meta.
+    if (newLocation == BlockStoreLocation.anyTier()) {
+      return Optional.of(block);
+    }
+
+    int newTierAlias = newLocation.tier();
+    StorageTier newTier = getTier(newTierAlias);
+    StorageDir newDir = null;
+    if (newLocation == BlockStoreLocation.anyDirInTier(newTierAlias)) {
+      for (StorageDir dir : newTier.getStorageDirs()) {
+        if (dir.getAvailableBytes() > block.getBlockSize()) {
+          newDir = dir;
+        }
+      }
+    } else {
+      newDir = newTier.getDir(newLocation.dir());
+    }
+
+    if (newDir == null) {
+      return Optional.absent();
+    }
+    StorageDir oldDir = block.getParentDir();
+    if (!oldDir.removeBlockMeta(block)) {
+      return Optional.absent();
+    }
+    return newDir.addBlockMeta(block);
   }
 
   /**
@@ -118,9 +139,11 @@ public class BlockMetadataManager {
    * @return true if success, false otherwise
    */
   public synchronized boolean removeBlockMeta(long blockId) {
-    for (StorageTier tier : mTiers.values()) {
-      if (tier.removeBlockMeta(blockId)) {
-        return true;
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.hasBlockMeta(blockId)) {
+          return dir.removeBlockMeta(blockId);
+        }
       }
     }
     return false;
@@ -133,11 +156,10 @@ public class BlockMetadataManager {
    * @return metadata of the block or absent
    */
   public synchronized Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
-    for (StorageTier tier : mTiers.values()) {
+    for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        Optional<TempBlockMeta> optionalTempBlock = dir.getTempBlockMeta(blockId);
-        if (optionalTempBlock.isPresent()) {
-          return optionalTempBlock;
+        if (dir.hasTempBlockMeta(blockId)) {
+          return dir.getTempBlockMeta(blockId);
         }
       }
     }
