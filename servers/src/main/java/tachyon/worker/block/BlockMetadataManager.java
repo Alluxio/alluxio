@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -28,12 +28,15 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.allocator.NaiveAllocator;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.evictor.NaiveEvictor;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
+import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
  * Manages the metadata of all blocks in managed space. This information is used by the TieredBlockStore,
@@ -45,17 +48,10 @@ import tachyon.worker.block.meta.StorageTier;
 public class BlockMetadataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final Allocator mAllocator;
-  private final Evictor mEvictor;
   private long mAvailableSpace;
   private Map<Integer, StorageTier> mTiers;
 
   public BlockMetadataManager(TachyonConf tachyonConf) {
-    // TODO: create Allocator according to tachyonConf.
-    mAllocator = new NaiveAllocator(this);
-    // TODO: create Evictor according to tachyonConf
-    mEvictor = new NaiveEvictor(this);
-
     // Initialize storage tiers
     int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
     mTiers = new HashMap<Integer, StorageTier>(totalTiers);
@@ -79,31 +75,6 @@ public class BlockMetadataManager {
   /* Operations on metadata information */
 
   /**
-   * Create the metadata of a new block in a specific tier. If there is no space for this block in
-   * that tier, try to evict some blocks according to the eviction policy.
-   *
-   * @param userId the id of the user
-   * @param blockId the id of the block
-   * @param blockSize block size in bytes
-   * @param tierHint which tier to create this block
-   * @return the newly created block metadata or absent on creation failure.
-   */
-  public synchronized Optional<BlockMeta> createBlockMeta(long userId, long blockId,
-      long blockSize, int tierHint) {
-    Optional<BlockMeta> optionalBlock =
-        mAllocator.allocateBlock(userId, blockId, blockSize, tierHint);
-    if (!optionalBlock.isPresent()) {
-      mEvictor.freeSpace(blockSize, tierHint);
-      optionalBlock = mAllocator.allocateBlock(userId, blockId, blockSize, tierHint);
-      if (!optionalBlock.isPresent()) {
-        LOG.error("Cannot create block {}:", blockId);
-        return Optional.absent();
-      }
-    }
-    return optionalBlock;
-  }
-
-  /**
    * Get the metadata of a specific block.
    *
    * @param blockId the block ID
@@ -117,22 +88,6 @@ public class BlockMetadataManager {
       }
     }
     return Optional.absent();
-  }
-
-  /**
-   * Add the metadata of a specific block to a storage tier.
-   *
-   * @param userId the user ID
-   * @param blockId the block ID
-   * @param blockSize the block size in bytes
-   * @param tierAlias alias of the tier
-   * @return metadata of the block or absent
-   */
-  public synchronized Optional<BlockMeta> addBlockMetaInTier(long userId, long blockId,
-      long blockSize, int tierAlias) {
-    StorageTier tier = getTier(tierAlias);
-    Preconditions.checkArgument(tier != null, "tierAlias must be valid: %s", tierAlias);
-    return tier.addBlockMeta(userId, blockId, blockSize);
   }
 
   /**
@@ -169,5 +124,59 @@ public class BlockMetadataManager {
       }
     }
     return false;
+  }
+
+  /**
+   * Gets the metadata of a temp block.
+   *
+   * @param blockId the ID of the temp block
+   * @return metadata of the block or absent
+   */
+  public synchronized Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
+    for (StorageTier tier : mTiers.values()) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        Optional<TempBlockMeta> optionalTempBlock = dir.getTempBlockMeta(blockId);
+        if (optionalTempBlock.isPresent()) {
+          return optionalTempBlock;
+        }
+      }
+    }
+    return Optional.absent();
+  }
+
+  /**
+   * Adds a temp block.
+   *
+   * @param tempBlockMeta the meta data of the temp block to add
+   * @return true if success, false otherwise
+   */
+  public synchronized boolean addTempBlockMeta(TempBlockMeta tempBlockMeta) {
+    StorageDir dir = tempBlockMeta.getParentDir();
+    return dir.addTempBlockMeta(tempBlockMeta);
+  }
+
+  /**
+   * Commits a temp block.
+   *
+   * @param tempBlockMeta the meta data of the temp block to commit
+   * @return true if success, false otherwise
+   */
+  public synchronized boolean commitTempBlockMeta(TempBlockMeta tempBlockMeta) {
+    BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
+    StorageDir dir = tempBlockMeta.getParentDir();
+    dir.removeTempBlockMeta(tempBlockMeta);
+    dir.addBlockMeta(block);
+    return false;
+  }
+
+  /**
+   * Aborts a temp block.
+   *
+   * @param tempBlockMeta the meta data of the temp block to add
+   * @return true if success, false otherwise
+   */
+  public synchronized boolean abortTempBlockMeta(TempBlockMeta tempBlockMeta) {
+    StorageDir dir = tempBlockMeta.getParentDir();
+    return dir.removeTempBlockMeta(tempBlockMeta);
   }
 }
