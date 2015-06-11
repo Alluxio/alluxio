@@ -33,7 +33,7 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
    * @return the block store delta report for the last heartbeat period
    */
   public BlockHeartbeatReport generateReport() {
-    synchronized(mLock) {
+    synchronized (mLock) {
       // Copy added and removed blocks
       Map<Long, List<Long>> addedBlocks = new HashMap<Long, List<Long>>(mAddedBlocks);
       List<Long> removedBlocks = new ArrayList<Long>(mRemovedBlocks);
