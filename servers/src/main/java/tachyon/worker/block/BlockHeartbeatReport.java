@@ -3,12 +3,10 @@ package tachyon.worker.block;
 import java.util.List;
 import java.util.Map;
 
-import tachyon.worker.WorkerReport;
-
 /**
  * Container for the delta information in each worker to master heartbeat.
  */
-public class BlockHeartbeatReport extends WorkerReport {
+public class BlockHeartbeatReport {
   /** Map of storage dirs to list of blocks added in the last heartbeat period */
   private final Map<Long, List<Long>> mAddedBlocks;
   /** List of blocks removed in the last heartbeat period */
