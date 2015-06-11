@@ -36,7 +36,6 @@ public class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private Map<Long, BlockMeta> mBlockIdToBlockMap;
-  private Map<Long, Set<Long>> mUserIdToBlockIdsMap;
   private Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
   private Map<Long, Set<Long>> mUserIdToTempBlockIdsMap;
 
@@ -53,7 +52,6 @@ public class StorageDir {
     mAvailableBytes = capacityBytes;
     mDirPath = dirPath;
     mBlockIdToBlockMap = new HashMap<Long, BlockMeta>(200);
-    mUserIdToBlockIdsMap = new HashMap<Long, Set<Long>>(20);
   }
 
   public long getCapacityBytes() {
@@ -142,6 +140,14 @@ public class StorageDir {
    * @return the BlockMeta or absent
    */
   public Optional<BlockMeta> addBlockMeta(long userId, long blockId, long blockSize) {
+    BlockMeta block = new BlockMeta(blockId, blockSize, this);
+    return addBlockMeta(block);
+  }
+
+  public Optional<BlockMeta> addBlockMeta(BlockMeta block) {
+    long blockId = block.getBlockId();
+    long blockSize = block.getBlockSize();
+
     if (getAvailableBytes() < blockSize) {
       LOG.error("Fail to create blockId {} in dir {}: {} bytes required, but {} bytes available",
           blockId, toString(), blockSize, getAvailableBytes());
@@ -151,18 +157,12 @@ public class StorageDir {
       LOG.error("Fail to create blockId {} in dir {}: blockId exists", blockId, toString());
       return Optional.absent();
     }
-    Set<Long> userBlocks = mUserIdToBlockIdsMap.get(userId);
-    if (null == userBlocks) {
-      mUserIdToBlockIdsMap.put(userId, Sets.newHashSet(blockId));
-    } else {
-      userBlocks.add(blockId);
-    }
-    BlockMeta block = new BlockMeta(blockId, blockSize, this);
-    mBlockIdToBlockMap.put(userId, block);
+    mBlockIdToBlockMap.put(blockId, block);
     mAvailableBytes -= blockSize;
     Preconditions.checkState(mAvailableBytes >= 0, "Available bytes should always be non-negative");
     return Optional.of(block);
   }
+
 
   /**
    * Add the metadata of a new block into this storage dir.
@@ -177,7 +177,7 @@ public class StorageDir {
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
     Set<Long> userTempBlocks = mUserIdToTempBlockIdsMap.get(userId);
     if (null == userTempBlocks) {
-      mUserIdToBlockIdsMap.put(userId, Sets.newHashSet(blockId));
+      mUserIdToTempBlockIdsMap.put(userId, Sets.newHashSet(blockId));
     } else {
       userTempBlocks.add(blockId);
     }
@@ -195,24 +195,17 @@ public class StorageDir {
     if (!hasBlockMeta(blockId)) {
       return false;
     }
-    BlockMeta block = mBlockIdToBlockMap.remove(blockId);
+    BlockMeta block = getBlockMeta(blockId).get();
+    return removeBlockMeta(block);
+  }
+
+  public boolean removeBlockMeta(BlockMeta block) {
     Preconditions.checkNotNull(block);
-    for (Map.Entry<Long, Set<Long>> entry : mUserIdToBlockIdsMap.entrySet()) {
-      Long userId = entry.getKey();
-      Set<Long> userBlocks = entry.getValue();
-      if (userBlocks.contains(blockId)) {
-        Preconditions.checkState(userBlocks.remove(blockId));
-        if (userBlocks.isEmpty()) {
-          mUserIdToBlockIdsMap.remove(userId);
-        }
-        mAvailableBytes += block.getBlockSize();
-        Preconditions.checkState(mCapacityBytes >= 0, "Capacity bytes should always be "
-            + "non-negative");
-        return true;
-      }
-    }
+    mBlockIdToBlockMap.remove(block.getBlockId());
+    mAvailableBytes += block.getBlockSize();
     return false;
   }
+
 
   /**
    * Remove a block from this storage dir.
@@ -224,15 +217,22 @@ public class StorageDir {
     if (!hasTempBlockMeta(blockId)) {
       return false;
     }
-    TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.remove(blockId);
+    TempBlockMeta block = getTempBlockMeta(blockId).get();
+    return removeTempBlockMeta(block);
+  }
+
+  public boolean removeTempBlockMeta(TempBlockMeta tempBlockMeta) {
     Preconditions.checkNotNull(tempBlockMeta);
-    for (Map.Entry<Long, Set<Long>> entry : mUserIdToBlockIdsMap.entrySet()) {
+    long blockId = tempBlockMeta.getBlockId();
+    mBlockIdToTempBlockMap.remove(blockId);
+    Preconditions.checkNotNull(tempBlockMeta);
+    for (Map.Entry<Long, Set<Long>> entry : mUserIdToTempBlockIdsMap.entrySet()) {
       Long userId = entry.getKey();
       Set<Long> userBlocks = entry.getValue();
       if (userBlocks.contains(blockId)) {
         Preconditions.checkState(userBlocks.remove(blockId));
         if (userBlocks.isEmpty()) {
-          mUserIdToBlockIdsMap.remove(userId);
+          mUserIdToTempBlockIdsMap.remove(userId);
         }
         mAvailableBytes += tempBlockMeta.getBlockSize();
         Preconditions.checkState(mCapacityBytes >= 0, "Capacity bytes should always be "

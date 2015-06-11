@@ -31,7 +31,7 @@ import tachyon.util.CommonUtils;
  * This class does not guarantee thread safety.
  */
 public class StorageTier {
-  private List<StorageDir> mIdToStorageDirMap;
+  private List<StorageDir> mDirs;
   private final int mTierAlias;
 
   public StorageTier(TachyonConf tachyonConf, int tierAlias) {
@@ -44,12 +44,12 @@ public class StorageTier {
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, tierAlias);
     String[] dirQuotas = tachyonConf.get(tierDirCapacityConf, "0").split(",");
 
-    mIdToStorageDirMap = new ArrayList<StorageDir>(dirPaths.length);
+    mDirs = new ArrayList<StorageDir>(dirPaths.length);
 
     for (int i = 0; i < dirPaths.length; i ++) {
       int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
       long capacity = CommonUtils.parseSpaceSize(dirQuotas[index]);
-      mIdToStorageDirMap.add(new StorageDir(this, i, capacity, dirPaths[i]));
+      mDirs.add(new StorageDir(this, i, capacity, dirPaths[i]));
     }
   }
 
@@ -59,7 +59,7 @@ public class StorageTier {
 
   public long getCapacityBytes() {
     long capacityBytes = 0;
-    for (StorageDir dir : mIdToStorageDirMap) {
+    for (StorageDir dir : mDirs) {
       capacityBytes += dir.getCapacityBytes();
     }
     return capacityBytes;
@@ -67,18 +67,22 @@ public class StorageTier {
 
   public long getAvailableBytes() {
     long availableBytes = 0;
-    for (StorageDir dir : mIdToStorageDirMap) {
+    for (StorageDir dir : mDirs) {
       availableBytes += dir.getAvailableBytes();
     }
     return availableBytes;
   }
 
+  public StorageDir getDir(int dirIndex) {
+    return mDirs.get(dirIndex);
+  }
+
   public Set<StorageDir> getStorageDirs() {
-    return new HashSet<StorageDir>(mIdToStorageDirMap);
+    return new HashSet<StorageDir>(mDirs);
   }
 
   public Optional<BlockMeta> getBlockMeta(long blockId) {
-    for (StorageDir dir : mIdToStorageDirMap) {
+    for (StorageDir dir : mDirs) {
       Optional<BlockMeta> optionalBlock = dir.getBlockMeta(blockId);
       if (optionalBlock.isPresent()) {
         return optionalBlock;
@@ -86,24 +90,4 @@ public class StorageTier {
     }
     return Optional.absent();
   }
-
-  public Optional<BlockMeta> addBlockMeta(long userId, long blockId, long blockSize) {
-    for (StorageDir dir : mIdToStorageDirMap) {
-      Optional<BlockMeta> optionalBlock = dir.addBlockMeta(userId, blockId, blockSize);
-      if (optionalBlock.isPresent()) {
-        return optionalBlock;
-      }
-    }
-    return Optional.absent();
-  }
-
-  public boolean removeBlockMeta(long blockId) {
-    for (StorageDir dir : mIdToStorageDirMap) {
-      if (dir.hasBlockMeta(blockId)) {
-        return dir.removeBlockMeta(blockId);
-      }
-    }
-    return false;
-  }
-
 }
