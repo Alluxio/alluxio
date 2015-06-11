@@ -205,4 +205,11 @@ public interface BlockStore {
    * @return true if success, false otherwise
    */
   boolean freeSpace(long userId, long size, BlockStoreLocation location);
+
+  /**
+   * Registers a {@link BlockMetaEventListener} to this block store.
+   *
+   * @param listener the listener to those events
+   */
+  void registerMetaListener(BlockMetaEventListener listener);
 }
