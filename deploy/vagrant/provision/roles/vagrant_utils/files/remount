@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# devices defined in aws block device mapping are mounted defaultly to /disk0, /disk1...
+# this script makes it easy to remount these devices to other directory
+# e.x. `remount` /disk0 /tmp will mount the device for /disk0 to /tmp
+
+set -e
+
+usage() {
+ echo "Usage: remount <source directory> <destination directory>"
+ echo "destination directory should exist before running this script"
+ exit 1
+}
+
+if [[ "$#" != "2" ]]; then
+ usage
+fi
+
+SRC="$1"
+DEST="$2"
+
+ensure_dir() {
+ dir="$1"
+ if [ ! -d "$dir" ]; then
+  echo "$dir is not a directory"
+  exit 1
+ fi
+}
+
+ensure_dir "$SRC"
+ensure_dir "$DEST"
+
+SRC_DEVICE=`df | grep "$SRC" | grep '^/dev' | cut -d' ' -f1`
+if [[ "$SRC_DEVICE" == "" ]]; then
+ echo "$SRC is not mounted separately to any device under /dev"
+ exit 1
+else
+ echo "device for $SRC is $SRC_DEVICE"
+fi
+
+sudo umount $SRC
+sudo mount $SRC_DEVICE $DEST
+

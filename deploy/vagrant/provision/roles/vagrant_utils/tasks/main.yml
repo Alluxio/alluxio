@@ -5,5 +5,6 @@
   copy: src="{{ item }}" dest=~/vagrant-utils/ mode=0755
   with_items:
     - copy-dir
+    - remount
 
 # vim: set filetype=ansible.yaml:
