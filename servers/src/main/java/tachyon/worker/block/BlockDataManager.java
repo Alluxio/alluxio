@@ -174,7 +174,6 @@ public class BlockDataManager {
    * heart beat and blocks removed since the last heartbeat.
    * @return a block heartbeat report
    */
-  // TODO: Implement this
   public BlockHeartbeatReport getReport() {
     return mHeartbeatReporter.generateReport();
   }

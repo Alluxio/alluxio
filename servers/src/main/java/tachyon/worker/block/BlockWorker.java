@@ -76,7 +76,7 @@ public class BlockWorker {
   /** Port to run RPC server on */
   private int mThriftPort;
   /** Id of this worker */
-  private int mWorkerId;
+  private long mWorkerId;
   /** Under file system folder for temporary files. */
   private String mUfsWorkerFolder;
 
@@ -84,7 +84,7 @@ public class BlockWorker {
    * Creates a Tachyon Block Worker.
    * @param tachyonConf the configuration values to be used
    */
-  public BlockWorker(TachyonConf tachyonConf) {
+  public BlockWorker(TachyonConf tachyonConf) throws IOException {
     mTachyonConf = tachyonConf;
 
     // Set up BlockDataManager

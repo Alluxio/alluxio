@@ -106,11 +106,16 @@ public class BlockMasterSync implements Runnable {
     }
   }
 
-  public void registerWithMaster() throws BlockInfoException, IOException {
+  public void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
-    mWorkerId =
-        mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
-            storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
+    try {
+      mWorkerId =
+          mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
+              storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
+    } catch (BlockInfoException bie) {
+      LOG.error("Failed to register with master.", bie);
+      throw new IOException(bie);
+    }
   }
 
   private void resetMasterClient() {
