@@ -36,7 +36,7 @@ public class EvictionPlan {
     mToEvict = Preconditions.checkNotNull(toEvict);
   }
 
-  public List<Pair<Long, BlockStoreLocation>> toTransfer() {
+  public List<Pair<Long, BlockStoreLocation>> toMove() {
     return mToMove;
   }
 
@@ -46,6 +46,6 @@ public class EvictionPlan {
 
   @Override
   public String toString() {
-    return "toTransfer: " + mToMove.toString() + ", toEvict: " + mToEvict.toString();
+    return "toMove: " + mToMove.toString() + ", toEvict: " + mToEvict.toString();
   }
 }
