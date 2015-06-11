@@ -22,9 +22,9 @@ import tachyon.worker.BlockStoreLocation;
  */
 public interface BlockMetaEventListener {
 
-  void preCommitBlock(long userId, long blockId);
+  void preCommitBlock(long userId, long blockId, BlockStoreLocation location);
 
-  void postCommitBlock(long userId, long blockId);
+  void postCommitBlock(long userId, long blockId, BlockStoreLocation location);
 
   void preMoveBlock(long userId, long blockId, BlockStoreLocation newLocation);
 
