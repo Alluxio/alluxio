@@ -149,8 +149,8 @@ public class BlockDataManager {
   /**
    * Frees a block from Tachyon managed space.
    *
-   * @param userId the id of the client
-   * @param blockId the id of the block to be freed
+   * @param userId The id of the client
+   * @param blockId The id of the block to be freed
    * @return true if successful, false otherwise
    * @throws IOException if an error occurs when removing the block
    */
@@ -194,16 +194,32 @@ public class BlockDataManager {
     return mUsers.getUserUfsTempFolder(userId);
   }
 
+  /**
+   * Obtains a read or write lock on the block.
+   * @param userId The id of the client
+   * @param blockId The id of the block to be locked
+   * @param type The type of the lock, 0 for READ, 1 for WRITE
+   * @return the lockId, or -1 if we failed to obtain a lock
+   */
   public long lockBlock(long userId, long blockId, int type) {
     // TODO: Define some conversion of int -> lock type
     Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
     if (optLock.isPresent()) {
       return optLock.get();
     }
-    // TODO: Decide on failure return value
     return -1;
   }
 
+  /**
+   * Moves a block from its current location to a target location, currently only tier level
+   * moves are supported
+   * @param userId The id of the client
+   * @param blockId The id of the block to move
+   * @param tier The tier to move the block to
+   * @return true if successful, false otherwise
+   * @throws IOException if an error occurs during locking or move
+   */
+  // TODO: This may be better as void, we should avoid throwing IOException
   public boolean moveBlock(long userId, long blockId, int tier) throws IOException {
     Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
     // TODO: Define this behavior
@@ -217,6 +233,15 @@ public class BlockDataManager {
     return result;
   }
 
+  /**
+   * Gets the path to the block file in local storage. The block must be a permanent block, and
+   * the caller must first obtain the lock on the block.
+   * @param userId The id of the client
+   * @param blockId The id of the block to read
+   * @param lockId The id of the lock on this block
+   * @return a string representing the path to this block in local storage
+   * @throws FileDoesNotExistException if the block does not exist
+   */
   public String readBlock(long userId, long blockId, long lockId) throws FileDoesNotExistException {
     Optional<BlockMeta> optBlock = mBlockStore.getBlockMeta(userId, blockId, lockId);
     if (optBlock.isPresent()) {
@@ -226,6 +251,16 @@ public class BlockDataManager {
     throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
   }
 
+  /**
+   * Gets the block reader for the block. This method is only called by a data server.
+   * @param userId The id of the client
+   * @param blockId The id of the block to read
+   * @param lockId The id of the lock on this block
+   * @return the block reader for the block
+   * @throws FileDoesNotExistException if the block does not exist
+   * @throws IOException if an error occurs when obtaining the reader
+   */
+  // TODO: We should avoid throwing IOException
   public BlockReader readBlockRemote(long userId, long blockId, long lockId)
       throws FileDoesNotExistException, IOException {
     Optional<BlockReader> optReader = mBlockStore.getBlockReader(userId, blockId, lockId);
@@ -235,18 +270,46 @@ public class BlockDataManager {
     throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
   }
 
+  /**
+   * Request an amount of space for a block in its storage directory. The block must be a temporary
+   * block.
+   * @param userId The id of the client
+   * @param blockId The id of the block to allocate space to
+   * @param bytesRequested The amount of bytes to allocate
+   * @return true if the space was allocated, false otherwise
+   * @throws IOException if an error occurs when allocating space
+   */
+  // TODO: This may be better as void, we should avoid throwing IOException
   public boolean requestSpace(long userId, long blockId, long bytesRequested) throws IOException {
     return mBlockStore.requestSpace(userId, blockId, bytesRequested);
   }
 
+  /**
+   * Instantiates the user metadata object. This should only be called once and is a temporary work
+   * around.
+   * @param users The user metadata object
+   */
   public void setUsers(Users users) {
     mUsers = users;
   }
 
+  /**
+   * Relinquishes the lock with the specified lock id.
+   * @param lockId The id of the lock to relinquish
+   * @return true if successful, false otherwise
+   */
+  // TODO: This may be better as void
   public boolean unlockBlock(long lockId) {
     return mBlockStore.unlockBlock(lockId);
   }
 
+  /**
+   * Handles the heartbeat from a client.
+   * @param userId The id of the client
+   * @param metrics The set of metrics the client has gathered since the last heartbeat
+   * @return true if successful, false otherwise
+   */
+  // TODO: This may be better as void
   public boolean userHeartbeat(long userId, List<Long> metrics) {
     mUsers.userHeartbeat(userId);
     return true;
