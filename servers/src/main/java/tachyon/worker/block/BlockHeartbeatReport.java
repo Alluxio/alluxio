@@ -9,8 +9,10 @@ import tachyon.worker.WorkerReport;
  * Container for the delta information in each worker to master heartbeat.
  */
 public class BlockHeartbeatReport extends WorkerReport {
-  private final List<Long> mRemovedBlocks;
+  /** Map of storage dirs to list of blocks added in the last heartbeat period */
   private final Map<Long, List<Long>> mAddedBlocks;
+  /** List of blocks removed in the last heartbeat period */
+  private final List<Long> mRemovedBlocks;
 
   public BlockHeartbeatReport(Map<Long, List<Long>> addedBlocks, List<Long> removedBlocks) {
     mRemovedBlocks = removedBlocks;
