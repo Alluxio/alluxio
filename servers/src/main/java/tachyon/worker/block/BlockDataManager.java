@@ -35,24 +35,47 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * thread safety.
  */
 public class BlockDataManager {
+  /** Block Store manager */
   private final BlockStore mBlockStore;
+  /** Configuration values */
   private final TachyonConf mTachyonConf;
 
+  /** User metadata, used to keep track of user heartbeats */
   private Users mUsers;
 
+  /**
+   * Creates a BlockDataManager based on the configuration values.
+   * @param tachyonConf a BlockDataManager
+   */
   public BlockDataManager(TachyonConf tachyonConf) {
     mBlockStore = new TieredBlockStore();
     mTachyonConf = tachyonConf;
   }
 
+  /**
+   * Aborts the temporary block created by the user.
+   * @param userId The id of the client
+   * @param blockId The id of the block to be aborted
+   * @return true if successful, false if unsuccessful
+   * @throws IOException if the block does not exist
+   */
   public boolean abortBlock(long userId, long blockId) throws IOException {
     return mBlockStore.abortBlock(userId, blockId);
   }
 
+  /**
+   * Access the block for a given user. This should be called to update the evictor when necessary.
+   *
+   * @param userId The id of the client
+   * @param blockId The id of the block to access
+   */
   public void accessBlock(long userId, long blockId) {
     mBlockStore.accessBlock(userId, blockId);
   }
 
+  /**
+   * Cleans up after users, to prevent zombie users. This method is called periodically.
+   */
   public void cleanupUsers() {
     for (long user : mUsers.getTimedOutUsers()) {
       mUsers.removeUser(user);
@@ -60,10 +83,28 @@ public class BlockDataManager {
     }
   }
 
+  /**
+   * Commits a block to Tachyon managed space. The block must be temporary.
+   * @param userId The id of the client
+   * @param blockId The id of the block to commit
+   * @return true if successful, false otherwise
+   * @throws IOException if the block to commit does not exist
+   */
   public boolean commitBlock(long userId, long blockId) throws IOException {
     return mBlockStore.commitBlock(userId, blockId);
   }
 
+  /**
+   * Creates a block in Tachyon managed space. The block will be temporary until it is committed.
+   *
+   * @param userId The id of the client
+   * @param blockId The id of the block to create
+   * @param location The tier to place the new block in
+   * @param initialBytes The initial amount of space to request for this block
+   * @return A string representing the local path of the file
+   * @throws IOException if a file already exists with the same name
+   * @throws OutOfSpaceException if there is no more space to store the block
+   */
   public String createBlock(long userId, long blockId, int location, long initialBytes)
       throws IOException, OutOfSpaceException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
@@ -76,6 +117,16 @@ public class BlockDataManager {
     throw new OutOfSpaceException("Failed to allocate " + initialBytes + " for user " + userId);
   }
 
+  /**
+   * Creates a block. This method is only called from a data server.
+   * @param userId The id of the client
+   * @param blockId The id of the block to be created
+   * @param location The location to create this block
+   * @param initialBytes The initial amount of bytes to be allocated.
+   * @return the block writer to the file
+   * @throws FileDoesNotExistException if the block is not on the worker.
+   * @throws IOException if the block writer cannot be obtained.
+   */
   public BlockWriter createBlockRemote(long userId, long blockId, int location, long initialBytes)
       throws FileDoesNotExistException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
@@ -92,6 +143,14 @@ public class BlockDataManager {
     throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
   }
 
+  /**
+   * Frees a block from Tachyon managed space.
+   *
+   * @param userId the id of the client
+   * @param blockId the id of the block to be freed
+   * @return true if successful, false otherwise
+   * @throws IOException if an error occurs when removing the block
+   */
   public boolean freeBlock(long userId, long blockId) throws IOException {
     Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
     if (!optLock.isPresent()) {
@@ -103,15 +162,30 @@ public class BlockDataManager {
     return true;
   }
 
+  /**
+   * Gets a report for the periodic heartbeat to master. Contains the total used bytes on each
+   * tier, blocks added since the last heart beat, and blocks removed since the last heartbeat.
+   * @return a block heartbeat report
+   */
   // TODO: Implement this
   public BlockHeartbeatReport getReport() {
     return null;
   }
 
+  /**
+   * Gets the metadata for the entire block store. Contains the block mapping per storage dir and
+   * the total capacity and used capacity of each tier.
+   * @return the store metadata
+   */
   public StoreMeta getStoreMeta() {
     return mBlockStore.getStoreMeta();
   }
 
+  /**
+   * Gets the temporary folder for the user in the under filesystem.
+   * @param userId The id of the client
+   * @return the path to the under filesystem temporary folder for the client
+   */
   public String getUserUfsTmpFolder(long userId) {
     return mUsers.getUserUfsTempFolder(userId);
   }
