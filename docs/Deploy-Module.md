@@ -57,7 +57,7 @@ After installing the prerequisites, if have virtualbox installed, you can follow
 5. `vagrant ssh TachyonMaster`, and you should have entered the virtual machine named TachyonMaster
 6. `/tachyon/bin/tachyon runTests` to run some tests against Tachyon
 7. After the tests all pass, visit Tachyon web UI: `http://192.168.1.12:19999` again, in `Browse FileSystem`, you should see files written to Tachyon by the tests run above
-8. If you don't want to play around in the cluster any more, `vagrant destory` to delete the virtual machines. 
+8. If you don't want to play around in the cluster any more, `vagrant destroy` to delete the virtual machines. 
 
 Cool! The more exciting aspect of deploy module is that you can set up the same cluster in AWS EC2 with the same commands and workflow described above, just change some configurations!
 
