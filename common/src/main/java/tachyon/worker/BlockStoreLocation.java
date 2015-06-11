@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.worker;
 
 /**
@@ -5,17 +20,17 @@ package tachyon.worker;
  * representing the tier to put this block.
  */
 public class BlockStoreLocation {
-  private static final int sAnyTier = -1;
-  private static final int sAnyDir = -1;
+  private static final int ANY_TIER = -1;
+  private static final int ANY_DIR = -1;
   private final int mTierAlias;
   private final int mDirIndex;
 
   public static BlockStoreLocation anyTier() {
-    return new BlockStoreLocation(sAnyTier, sAnyDir);
+    return new BlockStoreLocation(ANY_TIER, ANY_DIR);
   }
 
   public static BlockStoreLocation anyDirInTier(int tierAlias) {
-    return new BlockStoreLocation(tierAlias, sAnyDir);
+    return new BlockStoreLocation(tierAlias, ANY_DIR);
   }
 
   public BlockStoreLocation(int tierAlias, int dirIndex) {
@@ -41,13 +56,13 @@ public class BlockStoreLocation {
   @Override
   public String toString() {
     String result = "";
-    if (mDirIndex == sAnyDir) {
+    if (mDirIndex == ANY_DIR) {
       result += "any dir";
     } else {
       result += "dir " + mDirIndex;
     }
 
-    if (mTierAlias == sAnyTier) {
+    if (mTierAlias == ANY_TIER) {
       result += ", any tier";
     } else {
       result += ", tier " + mTierAlias;
@@ -57,9 +72,8 @@ public class BlockStoreLocation {
 
   @Override
   public boolean equals(Object object) {
-    if (object instanceof BlockStoreLocation &&
-        ((BlockStoreLocation) object).tier() == tier() &&
-        ((BlockStoreLocation) object).dir() == dir()) {
+    if (object instanceof BlockStoreLocation && ((BlockStoreLocation) object).tier() == tier()
+        && ((BlockStoreLocation) object).dir() == dir()) {
       return true;
     } else {
       return false;

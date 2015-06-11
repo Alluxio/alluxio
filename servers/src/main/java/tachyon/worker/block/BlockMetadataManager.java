@@ -15,7 +15,8 @@
 
 package tachyon.worker.block;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
