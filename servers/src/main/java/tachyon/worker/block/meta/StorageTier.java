@@ -55,7 +55,7 @@ public class StorageTier {
     }
   }
 
-  public int getTierId() {
+  public int getTierAlias() {
     return mTierId;
   }
 
