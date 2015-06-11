@@ -15,22 +15,20 @@
 
 package tachyon.worker.block;
 
+import tachyon.worker.BlockStoreLocation;
+
 /**
- * Interface for listening on methods of {@link TieredBlockStore}.
+ * Interface for listening on meta data mutation methods of {@link TieredBlockStore}.
  */
-public interface BlockStoreEventListener {
+public interface BlockMetaEventListener {
 
-  void preCreateBlock(long userId, long blockId, int tierHint);
+  void preCommitBlock(long userId, long blockId);
 
-  void postCreateBlock(long userId, long blockId, int tierHint);
+  void postCommitBlock(long userId, long blockId);
 
-  void preReadBlock(long userId, long blockId, long offset, long length);
+  void preMoveBlock(long userId, long blockId, BlockStoreLocation newLocation);
 
-  void postReadBlock(long userId, long blockId, long offset, long length);
-
-  void preRelocateBlock(long userId, long blockId, int newTierHint);
-
-  void postRelocateBlock(long userId, long blockId, int newTierHint);
+  void postMoveBlock(long userId, long blockId, BlockStoreLocation newLocation);
 
   void preRemoveBlock(long userId, long blockId);
 
