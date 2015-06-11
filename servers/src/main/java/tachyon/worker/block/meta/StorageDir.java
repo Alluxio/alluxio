@@ -100,7 +100,7 @@ public class StorageDir {
    * @return true if the block is in this storage dir, false otherwise
    */
   public boolean hasBlockMeta(long blockId) {
-    return mBlockIdToBlockMap.containsKey(blockId)
+    return mBlockIdToBlockMap.containsKey(blockId);
   }
 
   /**
@@ -110,7 +110,7 @@ public class StorageDir {
    * @return true if the block is in this storage dir, false otherwise
    */
   public boolean hasTempBlockMeta(long blockId) {
-    return mBlockIdToTempBlockMap.containsKey(blockId)
+    return mBlockIdToTempBlockMap.containsKey(blockId);
   }
 
   /**
@@ -181,7 +181,6 @@ public class StorageDir {
     } else {
       userTempBlocks.add(blockId);
     }
-    mCapacityBytes += blockSize;
     mAvailableBytes -= blockSize;
     return true;
   }
@@ -206,7 +205,6 @@ public class StorageDir {
         if (userBlocks.isEmpty()) {
           mUserIdToBlockIdsMap.remove(userId);
         }
-        mCapacityBytes -= block.getBlockSize();
         mAvailableBytes += block.getBlockSize();
         Preconditions.checkState(mCapacityBytes >= 0, "Capacity bytes should always be "
             + "non-negative");

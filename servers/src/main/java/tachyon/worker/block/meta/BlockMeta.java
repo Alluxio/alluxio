@@ -29,7 +29,7 @@ public class BlockMeta extends BlockMetaBase {
   }
 
   public BlockMeta(TempBlockMeta tempBlock) {
-    super(tempBlock.getBlockId(), tempBlock.getParentDir();
+    super(tempBlock.getBlockId(), tempBlock.getParentDir());
     mBlockSize = tempBlock.getBlockSize();
   }
 
