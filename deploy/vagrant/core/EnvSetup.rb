@@ -92,7 +92,7 @@ class TachyonVersion
       exit(1)
     end
 
-    @mem = @yml['Memory']
+    @mem = @yml['WorkerMemory']
   end
 
   def dist

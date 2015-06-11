@@ -13,4 +13,4 @@ Release:
 # make sure your virtual machine has more memory than what is specified here
 #  for virtualbox, machine memory is configured in conf/init.yml:Memory
 #  for aws, machine memory is decided by instance type
-Memory: 2GB
+WorkerMemory: 2GB
