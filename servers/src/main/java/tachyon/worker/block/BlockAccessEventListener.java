@@ -13,30 +13,16 @@
  * the License.
  */
 
-package tachyon.worker.block.evictor;
+package tachyon.worker.block;
 
 import tachyon.worker.BlockStoreLocation;
-import tachyon.worker.block.BlockAccessEventListener;
-import tachyon.worker.block.BlockMetadataManager;
 
 /**
- * A simple evictor that evicts random blocks until the required size in the target tier is met.
+ * Interface for listening on reading/writing blocks of {@link TieredBlockStore}.
  */
-public class NaiveEvictor implements Evictor, BlockAccessEventListener {
-  private final BlockMetadataManager mMetadata;
+public interface BlockAccessEventListener {
 
-  public NaiveEvictor(BlockMetadataManager metadata) {
-    mMetadata = metadata;
-  }
+  void preAccessBlock(long userId, long blockId);
 
-  @Override
-  public EvictionPlan freeSpace(long bytes,  BlockStoreLocation location) {
-    return new EvictionPlan(null, null);
-  }
-
-  @Override
-  public void preAccessBlock(long userId, long blockId) {}
-
-  @Override
-  public void postAccessBlock(long userId, long blockId) {}
+  void postAccessBlock(long userId, long blockId);
 }
