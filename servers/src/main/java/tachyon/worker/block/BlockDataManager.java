@@ -35,6 +35,8 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * thread-safe.
  */
 public class BlockDataManager {
+  /** Block store delta reporter for master heartbeat */
+  private final BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
   private final BlockStore mBlockStore;
 
@@ -46,7 +48,11 @@ public class BlockDataManager {
    * @param tachyonConf the configuration values to use
    */
   public BlockDataManager(TachyonConf tachyonConf) {
+    mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = new TieredBlockStore(tachyonConf);
+
+    // Register the heartbeat reporter so it can record block store changes
+    mBlockStore.registerMetaListener(mHeartbeatReporter);
   }
 
   /**
@@ -164,13 +170,13 @@ public class BlockDataManager {
   }
 
   /**
-   * Gets a report for the periodic heartbeat to master. Contains the total used bytes on each
-   * tier, blocks added since the last heart beat, and blocks removed since the last heartbeat.
+   * Gets a report for the periodic heartbeat to master. Contains the blocks added since the last
+   * heart beat and blocks removed since the last heartbeat.
    * @return a block heartbeat report
    */
   // TODO: Implement this
   public BlockHeartbeatReport getReport() {
-    return null;
+    return mHeartbeatReporter.generateReport();
   }
 
   /**
