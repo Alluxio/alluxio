@@ -30,7 +30,7 @@ import tachyon.util.CommonUtils;
  * {@link StorageDir} which actually contains metadata information about blocks stored and space
  * used/available.
  * <p>
- * This class is not guarantee thread safety.
+ * This class does not guarantee thread safety.
  */
 public class StorageTier {
   private HashMap<Integer, StorageDir> mIdToStorageDirMap;
@@ -55,7 +55,7 @@ public class StorageTier {
     }
   }
 
-  public int getTierId() {
+  public int getTierAlias() {
     return mTierId;
   }
 

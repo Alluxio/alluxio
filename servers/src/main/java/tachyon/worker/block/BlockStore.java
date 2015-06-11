@@ -143,22 +143,6 @@ public interface BlockStore {
   Optional<BlockReader> getBlockReader(long userId, long blockId, long lockId) throws IOException;
 
   /**
-   * Copies an existing block to another location in the storage. If the block can not be found or
-   * the new location doesn't have enough space, return false.
-   * <p>
-   * This method requires the lock ID returned by a proceeding {@link #lockBlock}.
-   *
-   * @param userId the ID of the user to copy a block
-   * @param blockId the ID of an existing block
-   * @param lockId the ID of the lock returned by {@link #lockBlock}
-   * @param newLocation the location of the destination
-   * @return true if success, false otherwise
-   * @throws IOException
-   */
-  boolean copyBlock(long userId, long blockId, long lockId, BlockStoreLocation newLocation)
-      throws IOException;
-
-  /**
    * Moves an existing block to a new location. If the block can not be found, return false.
    * <p>
    * This method requires the lock ID returned by a proceeding {@link #lockBlock}.
@@ -201,7 +185,7 @@ public interface BlockStore {
    *
    * @return store meta data
    */
-  StoreMeta getStoreMeta();
+  BlockStoreMeta getBlockStoreMeta();
 
   /**
    * Cleans up the data associated with a specific user (typically a dead user), e.g., unlock the
@@ -221,4 +205,18 @@ public interface BlockStore {
    * @return true if success, false otherwise
    */
   boolean freeSpace(long userId, long size, BlockStoreLocation location);
+
+  /**
+   * Registers a {@link BlockMetaEventListener} to this block store.
+   *
+   * @param listener the listener to those events
+   */
+  void registerMetaListener(BlockMetaEventListener listener);
+
+  /**
+   * Registers a {@link BlockAccessEventListener} to this block store.
+   *
+   * @param listener the listener to those events
+   */
+  void registerAccessListener(BlockAccessEventListener listener);
 }

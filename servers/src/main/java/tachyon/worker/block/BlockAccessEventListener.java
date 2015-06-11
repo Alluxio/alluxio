@@ -15,24 +15,14 @@
 
 package tachyon.worker.block;
 
+import tachyon.worker.BlockStoreLocation;
+
 /**
- * Interface for listening on methods of {@link TieredBlockStore}.
+ * Interface for listening on reading/writing blocks of {@link TieredBlockStore}.
  */
-public interface BlockStoreEventListener {
+public interface BlockAccessEventListener {
 
-  void preCreateBlock(long userId, long blockId, int tierHint);
+  void preAccessBlock(long userId, long blockId);
 
-  void postCreateBlock(long userId, long blockId, int tierHint);
-
-  void preReadBlock(long userId, long blockId, long offset, long length);
-
-  void postReadBlock(long userId, long blockId, long offset, long length);
-
-  void preRelocateBlock(long userId, long blockId, int newTierHint);
-
-  void postRelocateBlock(long userId, long blockId, int newTierHint);
-
-  void preRemoveBlock(long userId, long blockId);
-
-  void postRemoveBlock(long userId, long blockId);
+  void postAccessBlock(long userId, long blockId);
 }

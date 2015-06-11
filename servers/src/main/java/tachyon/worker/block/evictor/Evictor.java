@@ -16,12 +16,12 @@
 package tachyon.worker.block.evictor;
 
 import tachyon.worker.BlockStoreLocation;
-import tachyon.worker.block.BlockStoreEventListener;
+import tachyon.worker.block.BlockMetaEventListener;
 
 /**
  * Interface for the eviction policy in Tachyon
  */
-public interface Evictor extends BlockStoreEventListener {
+public interface Evictor {
   /**
    * Free space in the given block store location. The location can be a specific location, or
    * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)} .

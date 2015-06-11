@@ -15,10 +15,22 @@
 
 package tachyon.worker.block;
 
+import tachyon.worker.BlockStoreLocation;
+
 /**
- * This class holds the meta data information of a block store.
- * <p>
- * TODO: use proto buf to represent this information
+ * Interface for listening on meta data mutation methods of {@link TieredBlockStore}.
  */
-public class StoreMeta {
+public interface BlockMetaEventListener {
+
+  void preCommitBlock(long userId, long blockId);
+
+  void postCommitBlock(long userId, long blockId);
+
+  void preMoveBlock(long userId, long blockId, BlockStoreLocation newLocation);
+
+  void postMoveBlock(long userId, long blockId, BlockStoreLocation newLocation);
+
+  void preRemoveBlock(long userId, long blockId);
+
+  void postRemoveBlock(long userId, long blockId);
 }
