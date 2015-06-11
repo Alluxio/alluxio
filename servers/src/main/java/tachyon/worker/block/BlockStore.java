@@ -204,7 +204,7 @@ public interface BlockStore {
    * @param location the location to free space
    * @return true if success, false otherwise
    */
-  boolean freeSpace(long userId, long size, BlockStoreLocation location);
+  boolean freeSpace(long userId, long size, BlockStoreLocation location) throws IOException;
 
   /**
    * Registers a {@link BlockMetaEventListener} to this block store.

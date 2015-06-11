@@ -20,22 +20,24 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import tachyon.Pair;
+import tachyon.worker.BlockStoreLocation;
 
 /**
  * This class provides information about the blocks that need to be moved when evicting.
  */
 public class EvictionPlan {
-  /** A list of pairs of blockId and tierAlias **/
-  private final List<Pair<Long, Integer>> mToTransfer;
+  /** A list of pairs of blockId and its location to move to */
+  private final List<Pair<Long, BlockStoreLocation>> mToMove;
+  /** A list of blockId to remove */
   private final List<Long> mToEvict;
 
-  public EvictionPlan(List<Pair<Long, Integer>> toTransfer, List<Long> toEvict) {
-    mToTransfer = Preconditions.checkNotNull(toTransfer);
+  public EvictionPlan(List<Pair<Long, BlockStoreLocation>> toTransfer, List<Long> toEvict) {
+    mToMove = Preconditions.checkNotNull(toTransfer);
     mToEvict = Preconditions.checkNotNull(toEvict);
   }
 
-  public List<Pair<Long, Integer>> toTransfer() {
-    return mToTransfer;
+  public List<Pair<Long, BlockStoreLocation>> toMove() {
+    return mToMove;
   }
 
   public List<Long> toEvict() {
@@ -44,6 +46,6 @@ public class EvictionPlan {
 
   @Override
   public String toString() {
-    return "toTransfer: " + mToTransfer.toString() + ", toEvict: " + mToEvict.toString();
+    return "toMove: " + mToMove.toString() + ", toEvict: " + mToEvict.toString();
   }
 }

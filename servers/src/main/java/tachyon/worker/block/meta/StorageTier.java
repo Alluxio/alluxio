@@ -15,9 +15,7 @@
 
 package tachyon.worker.block.meta;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import com.google.common.base.Optional;
 
@@ -33,35 +31,35 @@ import tachyon.util.CommonUtils;
  * This class does not guarantee thread safety.
  */
 public class StorageTier {
-  private HashMap<Integer, StorageDir> mIdToStorageDirMap;
-  private final int mTierId;
+  private List<StorageDir> mIdToStorageDirMap;
+  private final int mTierAlias;
 
-  public StorageTier(TachyonConf tachyonConf, int tier) {
-    mTierId = tier;
+  public StorageTier(TachyonConf tachyonConf, int tierAlias) {
+    mTierAlias = tierAlias;
     String tierDirPathConf =
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, tier);
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, tierAlias);
     String[] dirPaths = tachyonConf.get(tierDirPathConf, "/mnt/ramdisk").split(",");
 
     String tierDirCapacityConf =
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, tier);
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, tierAlias);
     String[] dirQuotas = tachyonConf.get(tierDirCapacityConf, "0").split(",");
 
-    mIdToStorageDirMap = new HashMap<Integer, StorageDir>(dirPaths.length);
+    mIdToStorageDirMap = new ArrayList<StorageDir>(dirPaths.length);
 
     for (int i = 0; i < dirPaths.length; i ++) {
       int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
       long capacity = CommonUtils.parseSpaceSize(dirQuotas[index]);
-      mIdToStorageDirMap.put(i, new StorageDir(i, capacity, dirPaths[i]));
+      mIdToStorageDirMap.add(new StorageDir(this, i, capacity, dirPaths[i]));
     }
   }
 
   public int getTierAlias() {
-    return mTierId;
+    return mTierAlias;
   }
 
   public long getCapacityBytes() {
     long capacityBytes = 0;
-    for (StorageDir dir : mIdToStorageDirMap.values()) {
+    for (StorageDir dir : mIdToStorageDirMap) {
       capacityBytes += dir.getCapacityBytes();
     }
     return capacityBytes;
@@ -69,18 +67,18 @@ public class StorageTier {
 
   public long getAvailableBytes() {
     long availableBytes = 0;
-    for (StorageDir dir : mIdToStorageDirMap.values()) {
+    for (StorageDir dir : mIdToStorageDirMap) {
       availableBytes += dir.getAvailableBytes();
     }
     return availableBytes;
   }
 
   public Set<StorageDir> getStorageDirs() {
-    return new HashSet<StorageDir>(mIdToStorageDirMap.values());
+    return new HashSet<StorageDir>(mIdToStorageDirMap);
   }
 
   public Optional<BlockMeta> getBlockMeta(long blockId) {
-    for (StorageDir dir : mIdToStorageDirMap.values()) {
+    for (StorageDir dir : mIdToStorageDirMap) {
       Optional<BlockMeta> optionalBlock = dir.getBlockMeta(blockId);
       if (optionalBlock.isPresent()) {
         return optionalBlock;
@@ -90,7 +88,7 @@ public class StorageTier {
   }
 
   public Optional<BlockMeta> addBlockMeta(long userId, long blockId, long blockSize) {
-    for (StorageDir dir : mIdToStorageDirMap.values()) {
+    for (StorageDir dir : mIdToStorageDirMap) {
       Optional<BlockMeta> optionalBlock = dir.addBlockMeta(userId, blockId, blockSize);
       if (optionalBlock.isPresent()) {
         return optionalBlock;
@@ -100,7 +98,7 @@ public class StorageTier {
   }
 
   public boolean removeBlockMeta(long blockId) {
-    for (StorageDir dir : mIdToStorageDirMap.values()) {
+    for (StorageDir dir : mIdToStorageDirMap) {
       if (dir.hasBlockMeta(blockId)) {
         return dir.removeBlockMeta(blockId);
       }
