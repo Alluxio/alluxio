@@ -169,7 +169,7 @@ public class BlockDataManager {
    * @return a block heartbeat report
    */
   // TODO: Implement this
-  public BlockHeartbeatReporter getReport() {
+  public BlockHeartbeatReport getReport() {
     return null;
   }
 
