@@ -17,15 +17,18 @@ public class TachyonWorker {
   public static void main(String[] args) {
     checkArgs(args);
     TachyonConf tachyonConf = new TachyonConf();
-    BlockWorker worker = new BlockWorker(tachyonConf);
+    BlockWorker worker = null;
     try {
+      worker = new BlockWorker(tachyonConf);
       worker.process();
     } catch (Exception e) {
-      LOG.error("Uncaught exception, shutting down Tachyon Worker", e);
+      LOG.error("Uncaught exception, shutting down workers and then exiting.", e);
       try {
-        worker.stop();
+        if (worker != null) {
+          worker.stop();
+        }
       } catch (Exception ex) {
-        LOG.error("Failed to stop block worker.", e);
+        LOG.error("Failed to stop block worker. Exiting.", e);
         System.exit(-1);
       }
       System.exit(-1);
