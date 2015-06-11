@@ -40,11 +40,5 @@
       <artifactId>tachyon-servers</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-servers</artifactId>
-      <version>${project.version}</version>
-      <type>test-jar</type>
-    </dependency>
   </dependencies>
 </project>
