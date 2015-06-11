@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.worker.block;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +28,6 @@ import com.google.common.base.Optional;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.worker.block.BlockLock;
 
 /**
  * Handle all block locks.
@@ -113,7 +112,7 @@ public class BlockLockManager {
       LOG.error("Cannot add lock for block {}: already exists", blockId);
       return false;
     }
-    mBlockIdToLockMap.put(new BlockLock(blockId);
+    mBlockIdToLockMap.put(blockId, new BlockLock(blockId));
     return true;
   }
 
