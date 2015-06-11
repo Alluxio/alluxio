@@ -122,9 +122,9 @@ public final class NettyDataServer implements DataServer {
     final int bossThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS, 1);
     final int workerThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 0);
     final EventLoopGroup bossGroup =
-        NettyUtils.createEventLoop(type, bossThreadCount, "data-server-boss-%d");
+        NettyUtils.createEventLoop(type, bossThreadCount, "data-server-boss-%d", false);
     final EventLoopGroup workerGroup =
-        NettyUtils.createEventLoop(type, workerThreadCount, "data-server-worker-%d");
+        NettyUtils.createEventLoop(type, workerThreadCount, "data-server-worker-%d", false);
 
     final Class<? extends ServerChannel> socketChannelClass =
         NettyUtils.getServerChannelClass(type);

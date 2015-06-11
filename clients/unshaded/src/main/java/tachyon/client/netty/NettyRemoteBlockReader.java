@@ -56,14 +56,15 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
   private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
 
   private static final TachyonConf TACHYON_CONF = new TachyonConf();
-  private static final ChannelType CHANNEL_TYPE =
-      TACHYON_CONF.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.defaultType());
-  private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS =
-      NettyUtils.getClientChannelClass(CHANNEL_TYPE);
+  private static final ChannelType CHANNEL_TYPE = TACHYON_CONF.getEnum(
+      Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.defaultType());
+  private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS = NettyUtils
+      .getClientChannelClass(CHANNEL_TYPE);
   // Reuse EventLoopGroup for all clients.
-  private static final EventLoopGroup WORKER_GROUP =
-      NettyUtils.createEventLoop(CHANNEL_TYPE,
-          TACHYON_CONF.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 1), "netty-client-worker-%d");
+  // Use daemon threads so the JVM is allowed to shutdown even when daemon threads are alive.
+  private static final EventLoopGroup WORKER_GROUP = NettyUtils
+      .createEventLoop(CHANNEL_TYPE, TACHYON_CONF.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 1),
+          "netty-client-worker-%d", true);
 
   private final Bootstrap mClientBootstrap;
   private final ClientHandler mHandler;
@@ -98,8 +99,6 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       }
     } catch (Exception e) {
       LOG.error("exception in netty client: " + e.getMessage());
-    } finally {
-//      WORKER_GROUP.shutdownGracefully(0, 0, TimeUnit.SECONDS);
     }
 
     return null;
