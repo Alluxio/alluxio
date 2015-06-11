@@ -15,9 +15,7 @@
 
 package tachyon.worker.block.meta;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +40,7 @@ public class StorageDir {
   private Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
   private Map<Long, Set<Long>> mUserIdToTempBlockIdsMap;
 
-  private long mCapacityBytes;
+  private final long mCapacityBytes;
   private long mAvailableBytes;
   private String mDirPath;
   private int mDirId;
@@ -76,6 +74,23 @@ public class StorageDir {
 
   public int getDirId() {
     return mDirId;
+  }
+
+  // TODO: deprecate this method.
+  public long getStorageDirId() {
+    // TODO: implement me
+    return 0;
+  }
+
+  /**
+   * Returns a list of (non-temp) block IDs in this dir.
+   */
+  public List<Long> getBlockIds() {
+    List<Long> blockIds = new ArrayList<Long>();
+    for (long blockId: mBlockIdToBlockMap.keySet()) {
+      blockIds.add(blockId);
+    }
+    return blockIds;
   }
 
   /**
@@ -144,7 +159,6 @@ public class StorageDir {
     }
     BlockMeta block = new BlockMeta(blockId, blockSize, this);
     mBlockIdToBlockMap.put(userId, block);
-    mCapacityBytes += blockSize;
     mAvailableBytes -= blockSize;
     Preconditions.checkState(mAvailableBytes >= 0, "Available bytes should always be non-negative");
     return Optional.of(block);
@@ -222,7 +236,6 @@ public class StorageDir {
         if (userBlocks.isEmpty()) {
           mUserIdToBlockIdsMap.remove(userId);
         }
-        mCapacityBytes -= tempBlockMeta.getBlockSize();
         mAvailableBytes += tempBlockMeta.getBlockSize();
         Preconditions.checkState(mCapacityBytes >= 0, "Capacity bytes should always be "
             + "non-negative");
