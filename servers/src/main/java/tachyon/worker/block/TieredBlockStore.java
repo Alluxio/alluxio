@@ -76,7 +76,8 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public Optional<Long> lockBlock(long userId, long blockId, BlockLock.BlockLockType blockLockType) {
+  public Optional<Long> lockBlock(long userId, long blockId,
+                                  BlockLock.BlockLockType blockLockType) {
     mEvictionLock.readLock().lock();
     return mLockManager.lockBlock(userId, blockId, blockLockType);
   }
@@ -92,8 +93,8 @@ public class TieredBlockStore implements BlockStore {
   public Optional<TempBlockMeta> createBlockMeta(long userId, long blockId,
       BlockStoreLocation location, long initialBlockSize) throws IOException {
     mEvictionLock.writeLock().lock();
-    Optional<TempBlockMeta> optTempBlock = createBlockMetaNoLock(userId, blockId, location,
-        initialBlockSize);
+    Optional<TempBlockMeta> optTempBlock =
+        createBlockMetaNoLock(userId, blockId, location, initialBlockSize);
     mEvictionLock.writeLock().unlock();
     return optTempBlock;
   }

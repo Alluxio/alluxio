@@ -15,11 +15,15 @@
 
 package tachyon.worker.block;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.google.common.base.Preconditions;
+
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
-
-import java.util.*;
 
 /**
  * This class holds the meta data information of a block store.
