@@ -103,8 +103,8 @@ public class BlockMasterSync implements Runnable {
   }
 
   public void registerWithMaster() {
-    BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
-    StoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+    BlockHeartbeatReporter blockReport = mBlockDataManager.getReport();
+    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     // TODO: Are retries necessary?
     int assignedId =
         mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
@@ -135,7 +135,7 @@ public class BlockMasterSync implements Runnable {
         LOG.warn("Heartbeat took " + diff + " ms, expected " + mHeartbeatIntervalMs + " ms.");
       }
       try {
-        BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
+        BlockHeartbeatReporter blockReport = mBlockDataManager.getReport();
         cmd =
             mMasterClient.worker_heartbeat(mWorkerId, blockReport.getUsedBytesOnTiers(),
                 blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());

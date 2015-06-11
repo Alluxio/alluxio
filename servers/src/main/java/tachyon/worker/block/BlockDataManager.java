@@ -37,8 +37,6 @@ import tachyon.worker.block.meta.TempBlockMeta;
 public class BlockDataManager {
   /** Block Store manager */
   private final BlockStore mBlockStore;
-  /** Configuration values */
-  private final TachyonConf mTachyonConf;
 
   /** User metadata, used to keep track of user heartbeats */
   private Users mUsers;
@@ -48,8 +46,7 @@ public class BlockDataManager {
    * @param tachyonConf the configuration values to use
    */
   public BlockDataManager(TachyonConf tachyonConf) {
-    mBlockStore = new TieredBlockStore();
-    mTachyonConf = tachyonConf;
+    mBlockStore = new TieredBlockStore(tachyonConf);
   }
 
   /**
@@ -172,7 +169,7 @@ public class BlockDataManager {
    * @return a block heartbeat report
    */
   // TODO: Implement this
-  public BlockHeartbeatReport getReport() {
+  public BlockHeartbeatReporter getReport() {
     return null;
   }
 
@@ -181,8 +178,8 @@ public class BlockDataManager {
    * the total capacity and used capacity of each tier.
    * @return the block store metadata
    */
-  public StoreMeta getStoreMeta() {
-    return mBlockStore.getStoreMeta();
+  public BlockStoreMeta getStoreMeta() {
+    return mBlockStore.getBlockStoreMeta();
   }
 
   /**
