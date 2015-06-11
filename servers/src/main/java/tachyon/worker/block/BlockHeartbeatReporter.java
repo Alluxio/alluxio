@@ -10,19 +10,38 @@ import com.google.common.collect.Lists;
 import tachyon.worker.BlockStoreLocation;
 
 /**
- * Represents the data the BlockWorker will send to the master in its periodic heartbeat. This
- * class is thread safe.
+ * Represents the delta of the block store within one heartbeat period. This class is thread safe.
  */
 public class BlockHeartbeatReporter implements BlockMetaEventListener {
+  /** Lock for operations on the removed and added block collections */
   private final Object mLock;
 
+  /** List of blocks that were removed in the last heartbeat period */
   private List<Long> mRemovedBlocks;
+  /** Map of storage dirs to a list of blocks that were added in the last heartbeat period */
   private Map<Long, List<Long>> mAddedBlocks;
 
   public BlockHeartbeatReporter() {
     mLock = new Object();
     mRemovedBlocks = new ArrayList<Long>(100);
     mAddedBlocks = new HashMap<Long, List<Long>>();
+  }
+
+  /**
+   * Generates the report of the block store delta in the last heartbeat period. Calling this
+   * method marks the end of a period and the start of a new heartbeat period.
+   * @return the block store delta report for the last heartbeat period
+   */
+  public BlockHeartbeatReport generateReport() {
+    synchronized(mLock) {
+      // Copy added and removed blocks
+      Map<Long, List<Long>> addedBlocks = new HashMap<Long, List<Long>>(mAddedBlocks);
+      List<Long> removedBlocks = new ArrayList<Long>(mRemovedBlocks);
+      // Clear added and removed blocks
+      mAddedBlocks.clear();
+      mRemovedBlocks.clear();
+      return new BlockHeartbeatReport(addedBlocks, removedBlocks);
+    }
   }
 
   @Override
