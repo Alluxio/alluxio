@@ -6,17 +6,17 @@ import java.util.Map;
 import tachyon.worker.WorkerReport;
 
 /**
- * Represents the data the BlockWorker will send to the master in its periodic heartbeat.
+ * Container for the delta information in each worker to master heartbeat.
  */
-// TODO: Make this a thrift object?
+// TODO: This may be better as a thrift object
 public class BlockHeartbeatReport extends WorkerReport {
   private final List<Long> mUsedBytesOnTiers;
   private final List<Long> mRemovedBlocks;
   private final Map<Long, List<Long>> mAddedBlocks;
 
-  public BlockHeartbeatReport(List<Long> usedBytesOnTiers, List<Long> removedBlocks,
+  public BlockHeartbeatReport(List<Long> usedBytesOnTier, List<Long> removedBlocks,
       Map<Long, List<Long>> addedBlocks) {
-    mUsedBytesOnTiers = usedBytesOnTiers;
+    mUsedBytesOnTiers = usedBytesOnTier;
     mRemovedBlocks = removedBlocks;
     mAddedBlocks = addedBlocks;
   }
