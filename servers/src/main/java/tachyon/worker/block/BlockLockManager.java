@@ -37,7 +37,7 @@ import tachyon.Pair;
 public class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The unique id of each lock **/
-  static final AtomicLong mCurrentLockId = new AtomicLong(0);
+  private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
 
   /** A map from a block ID to its lock */
   private final Map<Long, BlockLock> mBlockIdToLockMap = new HashMap<Long, BlockLock>();
@@ -77,7 +77,7 @@ public class BlockLockManager {
 
   private synchronized long createLockId(long userId, Lock lock) {
     // TODO: implement me
-    long lockId = mCurrentLockId.getAndIncrement();
+    long lockId = LOCK_ID_GEN.getAndIncrement();
     // mUserIdToAcquiredLockIdsMap.put(userId, lockID);
     return lockId;
   }
