@@ -15,6 +15,7 @@
 
 package tachyon.worker.block.evictor;
 
+import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.BlockMetadataManager;
 
 /**
@@ -28,32 +29,25 @@ public class NaiveEvictor implements Evictor {
   }
 
   @Override
-  public EvictionPlan freeSpace(long bytes, int tierHint) {
+  public EvictionPlan freeSpace(long bytes,  BlockStoreLocation location) {
     return new EvictionPlan(null, null);
   }
 
   @Override
-  public void preCreateBlock(long userId, long blockId, int tierHint) {}
+  public void preCommitBlock(long userId, long blockId) {}
 
   @Override
-  public void postCreateBlock(long userId, long blockId, int tierHint) {}
+  public void postCommitBlock(long userId, long blockId) {}
 
   @Override
-  public void preReadBlock(long userId, long blockId, long offset, long length) {}
+  public void preMoveBlock(long userId, long blockId, BlockStoreLocation newLocation) {}
 
   @Override
-  public void postReadBlock(long userId, long blockId, long offset, long length) {}
-
-  @Override
-  public void preMoveBlock(long userId, long blockId, int newTierHint) {}
-
-  @Override
-  public void postMoveBlock(long userId, long blockId, int newTierHint) {}
+  public void postMoveBlock(long userId, long blockId, BlockStoreLocation newLocation) {}
 
   @Override
   public void preRemoveBlock(long userId, long blockId) {}
 
   @Override
   public void postRemoveBlock(long userId, long blockId) {}
-
 }
