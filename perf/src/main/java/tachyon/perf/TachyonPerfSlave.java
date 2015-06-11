@@ -29,19 +29,21 @@ public class TachyonPerfSlave {
   private static final Logger LOG = Logger.getLogger(PerfConstants.PERF_LOGGER_TYPE);
 
   public static void main(String[] args) {
-    if (args.length < 3) {
-      LOG.error("Wrong program arguments. Should be <NodeName> <TaskId> <TestCase>"
+    if (args.length < 4) {
+      LOG.error("Wrong program arguments. Should be <NodeName> <TaskId> <TotalTasks> <TestCase>"
           + "See more in bin/tachyon-perf");
       System.exit(-1);
     }
 
     String nodeName = null;
     int taskId = -1;
+    int totalTasks = -1;
     String testCase = null;
     try {
       nodeName = args[0];
       taskId = Integer.parseInt(args[1]);
-      testCase = args[2];
+      totalTasks = Integer.parseInt(args[2]);
+      testCase = args[3];
     } catch (Exception e) {
       LOG.error("Failed to parse the input args", e);
       System.exit(-1);
@@ -50,7 +52,7 @@ public class TachyonPerfSlave {
     try {
       TaskConfiguration taskConf = TaskConfiguration.get(testCase, true);
       PerfTask task = TestCase.get().getTaskClass(testCase);
-      task.initialSet(taskId, nodeName, taskConf, testCase);
+      task.initialSet(taskId, totalTasks, nodeName, taskConf, testCase);
       PerfTaskContext taskContext = TestCase.get().getTaskContextClass(testCase);
       taskContext.initialSet(taskId, nodeName, testCase, taskConf);
 
