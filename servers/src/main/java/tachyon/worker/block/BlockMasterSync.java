@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -29,7 +30,6 @@ import tachyon.util.ThreadFactoryUtils;
  * If the task fails to heartbeat to the worker, it will destroy its old master client and recreate
  * it before retrying.
  */
-// TODO: Find a better name for this
 public class BlockMasterSync implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -42,7 +42,7 @@ public class BlockMasterSync implements Runnable {
 
   private MasterClient mMasterClient;
   private boolean mRunning;
-  private int mWorkerId;
+  private long mWorkerId;
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
       NetAddress workerAddress) {
@@ -80,7 +80,11 @@ public class BlockMasterSync implements Runnable {
           break;
         case Register:
           LOG.info("Register command: " + cmd);
-          registerWithMaster();
+          try {
+            registerWithMaster();
+          } catch (Exception e) {
+            LOG.error("Failed to register with master.", e);
+          }
           break;
         case Free:
           LOG.info("Free command: " + cmd);
@@ -102,14 +106,11 @@ public class BlockMasterSync implements Runnable {
     }
   }
 
-  public void registerWithMaster() {
-    BlockHeartbeatReporter blockReport = mBlockDataManager.getReport();
+  public void registerWithMaster() throws BlockInfoException, IOException {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
-    // TODO: Are retries necessary?
-    int assignedId =
+    mWorkerId =
         mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
-            blockReport.getUsedBytesOnTiers(), storeMeta.getBlockList());
-    mWorkerId = assignedId;
+            storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
   }
 
   private void resetMasterClient() {
@@ -118,7 +119,7 @@ public class BlockMasterSync implements Runnable {
         new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
   }
 
-  public int getWorkerId() {
+  public long getWorkerId() {
     return mWorkerId;
   }
 
@@ -135,9 +136,10 @@ public class BlockMasterSync implements Runnable {
         LOG.warn("Heartbeat took " + diff + " ms, expected " + mHeartbeatIntervalMs + " ms.");
       }
       try {
-        BlockHeartbeatReporter blockReport = mBlockDataManager.getReport();
+        BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
+        BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
         cmd =
-            mMasterClient.worker_heartbeat(mWorkerId, blockReport.getUsedBytesOnTiers(),
+            mMasterClient.worker_heartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(),
                 blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();
       } catch (IOException e) {
