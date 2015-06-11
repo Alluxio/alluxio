@@ -53,20 +53,37 @@ import tachyon.worker.DataServer;
 public class BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Runnable responsible for heartbeating and registration with master. */
   private BlockMasterSync mBlockMasterSync;
+  /** Logic for handling RPC requests. */
   private BlockServiceHandler mServiceHandler;
-  private tachyon.worker.block.BlockDataManager mBlockDataManager;
+  /** Logic for managing block store and under file system store. */
+  private BlockDataManager mBlockDataManager;
+  /** Server for data requests and responses. */
   private DataServer mDataServer;
-  private ExecutorService mHeartbeatExecutorService;
+  /** Threadpool for the master sync */
+  private ExecutorService mSyncExecutorService;
+  /** Net address of this worker */
   private NetAddress mWorkerNetAddress;
+  /** Configuration object */
   private TachyonConf mTachyonConf;
+  /** Server socket for thrift */
   private TServerSocket mThriftServerSocket;
+  /** Thread pool for trift */
   private TThreadPoolServer mThriftServer;
+  /** Users object for tracking metadata */
   private Users mUsers;
+  /** Port to run RPC server on */
   private int mThriftPort;
+  /** Id of this worker */
   private int mWorkerId;
+  /** Under file system folder for temporary files. */
   private String mUfsWorkerFolder;
 
+  /**
+   * Creates a Tachyon Block Worker.
+   * @param tachyonConf the configuration values to be used
+   */
   public BlockWorker(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
 
@@ -91,7 +108,7 @@ public class BlockWorker {
             mDataServer.getPort());
 
     // Setup Worker to Master Syncer
-    mHeartbeatExecutorService =
+    mSyncExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-heartbeat-%d"));
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
     mBlockMasterSync.registerWithMaster();
@@ -117,7 +134,7 @@ public class BlockWorker {
    * down.
    */
   public void process() {
-    mHeartbeatExecutorService.submit(mBlockMasterSync);
+    mSyncExecutorService.submit(mBlockMasterSync);
     mThriftServer.serve();
   }
 
@@ -129,7 +146,7 @@ public class BlockWorker {
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
-    mHeartbeatExecutorService.shutdown();
+    mSyncExecutorService.shutdown();
     while (!mDataServer.isClosed() || mThriftServer.isServing()) {
       // TODO: The reason to stop and close again is due to some issues in Thrift.
       mThriftServer.stop();
