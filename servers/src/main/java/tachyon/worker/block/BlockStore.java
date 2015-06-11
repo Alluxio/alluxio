@@ -212,4 +212,11 @@ public interface BlockStore {
    * @param listener the listener to those events
    */
   void registerMetaListener(BlockMetaEventListener listener);
+
+  /**
+   * Registers a {@link BlockAccessEventListener} to this block store.
+   *
+   * @param listener the listener to those events
+   */
+  void registerAccessListener(BlockAccessEventListener listener);
 }
