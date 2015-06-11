@@ -28,7 +28,6 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
-import tachyon.worker.BlockLockManager;
 import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.allocator.NaiveAllocator;
