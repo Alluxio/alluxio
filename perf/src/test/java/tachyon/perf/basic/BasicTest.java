@@ -62,12 +62,14 @@ public class BasicTest {
   public void taskWorkflowTest() throws Exception {
     String nodeName = "testNode";
     int taskId = 0;
+    int totalTasks = 1;
     String testCase = "Foo";
 
     TaskConfiguration taskConf = TaskConfiguration.get(testCase, false);
     PerfTask task = TestCase.get().getTaskClass(testCase);
-    task.initialSet(taskId, nodeName, taskConf, testCase);
+    task.initialSet(taskId, totalTasks, nodeName, taskConf, testCase);
     Assert.assertEquals(taskId, task.mId);
+    Assert.assertEquals(totalTasks, task.mTotalTasks);
     Assert.assertEquals(nodeName, task.mNodeName);
     Assert.assertEquals(testCase, task.mTestCase);
     Assert.assertEquals("Foo", task.getCleanupDir());

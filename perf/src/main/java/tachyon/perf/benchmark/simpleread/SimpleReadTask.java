@@ -28,7 +28,10 @@ public class SimpleReadTask extends SimpleTask {
   protected boolean setupTask(PerfTaskContext taskContext) {
     try {
       PerfFS fs = PerfConstants.getFileSystem();
-      String readDir = PerfConf.get().WORK_DIR + "/simple-read-write/" + mId;
+      // Potentially read from another task's directory.
+      int offset = mTaskConf.getIntProperty("taskid.offset");
+      String readDir = PerfConf.get().WORK_DIR + "/simple-read-write/"
+          + ((mId + offset) % mTotalTasks);
       if (!fs.exists(readDir)) {
         throw new IOException("No data to read at " + readDir);
       }

@@ -23,6 +23,7 @@ NODELIST=$TACHYON_PERF_CONF_DIR/slaves
 
 taskid=0
 SLAVES=`sort "$NODELIST"|sed  "s/#.*$//;/^$/d"`
+TOTAL_TASKS=`echo $SLAVES | wc -w`
 UNIQ_SLAVES=`sort "$NODELIST" | uniq | sed  "s/#.*$//;/^$/d"`
 if [ $TACHYON_PERF_SHARED_FS = "true" ]; then
   echo "Installed on a Shared File System, no configuration copy needed"
@@ -40,10 +41,10 @@ for slave in $UNIQ_SLAVES; do
   slavenum=`echo $SLAVES | grep -o "$slave" | wc -l`
   lasttaskid=`expr $taskid + $slavenum - 1`
   echo -n "Connect to $slave... "
-  ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t $slave $bin/tachyon-perf-start.sh $slave $taskid $lasttaskid $1 2>&1
+  ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t $slave $bin/tachyon-perf-start.sh $slave $taskid $lasttaskid $TOTAL_TASKS $1 2>&1
   sleep 0.02
   taskid=`expr $lasttaskid + 1`
 done
 wait
 
-$JAVA -cp $TACHYON_PERF_CONF_DIR/:$TACHYON_PERF_JAR -Dtachyon.perf.home=$TACHYON_PERF_HOME -Dtachyon.perf.logger.type="PERF_MASTER_LOGGER" -Dtachyon.perf.slave.id="" -Dlog4j.configuration=file:$TACHYON_PERF_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS $TACHYON_PERF_JAVA_OPTS tachyon.perf.TachyonPerfMaster $taskid $SLAVES $1
+$JAVA -cp $TACHYON_PERF_CONF_DIR/:$TACHYON_PERF_JAR -Dtachyon.perf.home=$TACHYON_PERF_HOME -Dtachyon.perf.logger.type="PERF_MASTER_LOGGER" -Dtachyon.perf.slave.id="" -Dlog4j.configuration=file:$TACHYON_PERF_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS $TACHYON_PERF_JAVA_OPTS tachyon.perf.TachyonPerfMaster $TOTAL_TASKS $SLAVES $1
