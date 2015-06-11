@@ -23,22 +23,14 @@ public final class ThreadFactoryUtils {
   private ThreadFactoryUtils() {}
 
   /**
-   * Creates a {@link java.util.concurrent.ThreadFactory} that spawns off daemon threads.
-   * 
-   * @param nameFormat name pattern for each thread. should contain '%d' to distinguish between
-   *        threads.
-   */
-  public static ThreadFactory daemon(final String nameFormat) {
-    return new ThreadFactoryBuilder().setDaemon(true).setNameFormat(nameFormat).build();
-  }
-
-  /**
    * Creates a {@link java.util.concurrent.ThreadFactory} that spawns off threads.
    *
    * @param nameFormat name pattern for each thread. should contain '%d' to distinguish between
    *        threads.
+   * @param daemonThreads if true, the {@link java.util.concurrent.ThreadFactory} will create
+   *                      daemon threads.
    */
-  public static ThreadFactory build(final String nameFormat) {
-    return new ThreadFactoryBuilder().setDaemon(false).setNameFormat(nameFormat).build();
+  public static ThreadFactory build(final String nameFormat, boolean daemonThreads) {
+    return new ThreadFactoryBuilder().setDaemon(daemonThreads).setNameFormat(nameFormat).build();
   }
 }
