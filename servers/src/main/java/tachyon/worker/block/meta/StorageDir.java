@@ -32,7 +32,7 @@ import tachyon.Constants;
  * Represents a directory in a storage tier. It has a fixed capacity allocated to it on
  * instantiation. It contains the set of blocks currently in the storage directory
  * <p>
- * This class is not thread safety.
+ * This class does not guarantee thread safety.
  */
 public class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

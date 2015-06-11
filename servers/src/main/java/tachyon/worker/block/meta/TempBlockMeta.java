@@ -22,10 +22,17 @@ import tachyon.util.CommonUtils;
  */
 public class TempBlockMeta extends BlockMetaBase {
   private final long mUserId;
+  private long mTempBlockSize;
 
-  public TempBlockMeta(long userId, long blockId, long blockSize, StorageDir dir) {
-    super(blockId, blockSize, dir);
+  public TempBlockMeta(long userId, long blockId, long initialBlockSize, StorageDir dir) {
+    super(blockId, dir);
     mUserId = userId;
+    mTempBlockSize = initialBlockSize;
+  }
+
+  @Override
+  public long getBlockSize() {
+    return mTempBlockSize;
   }
 
   @Override
@@ -37,7 +44,11 @@ public class TempBlockMeta extends BlockMetaBase {
     return CommonUtils.concatPath(mDir.getDirPath(), mBlockId);
   }
 
+  public long getUserId() {
+    return mUserId;
+  }
+
   public void setBlockSize(long newSize) {
-    mBlockSize = newSize;
+    mTempBlockSize = newSize;
   }
 }
