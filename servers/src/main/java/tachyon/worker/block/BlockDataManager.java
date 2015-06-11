@@ -31,8 +31,8 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * Class responsible for managing the Tachyon BlockStore and Under FileSystem. This class provides
- * thread safety.
+ * Class responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
+ * thread-safe.
  */
 public class BlockDataManager {
   /** Block Store manager */
@@ -45,7 +45,7 @@ public class BlockDataManager {
 
   /**
    * Creates a BlockDataManager based on the configuration values.
-   * @param tachyonConf a BlockDataManager
+   * @param tachyonConf the configuration values to use
    */
   public BlockDataManager(TachyonConf tachyonConf) {
     mBlockStore = new TieredBlockStore();
@@ -59,6 +59,7 @@ public class BlockDataManager {
    * @return true if successful, false if unsuccessful
    * @throws IOException if the block does not exist
    */
+  // TODO: This may be better as void
   public boolean abortBlock(long userId, long blockId) throws IOException {
     return mBlockStore.abortBlock(userId, blockId);
   }
@@ -90,6 +91,7 @@ public class BlockDataManager {
    * @return true if successful, false otherwise
    * @throws IOException if the block to commit does not exist
    */
+  // TODO: This may be better as void
   public boolean commitBlock(long userId, long blockId) throws IOException {
     return mBlockStore.commitBlock(userId, blockId);
   }
@@ -99,12 +101,13 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to create
-   * @param location The tier to place the new block in
-   * @param initialBytes The initial amount of space to request for this block
-   * @return A string representing the local path of the file
-   * @throws IOException if a file already exists with the same name
+   * @param location The tier to place the new block in, -1 for any tier
+   * @param initialBytes The initial amount of bytes to be allocated
+   * @return A string representing the path to the local file
+   * @throws IOException if the block already exists
    * @throws OutOfSpaceException if there is no more space to store the block
    */
+  // TODO: We should avoid throwing IOException
   public String createBlock(long userId, long blockId, int location, long initialBytes)
       throws IOException, OutOfSpaceException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
@@ -121,12 +124,13 @@ public class BlockDataManager {
    * Creates a block. This method is only called from a data server.
    * @param userId The id of the client
    * @param blockId The id of the block to be created
-   * @param location The location to create this block
-   * @param initialBytes The initial amount of bytes to be allocated.
-   * @return the block writer to the file
-   * @throws FileDoesNotExistException if the block is not on the worker.
-   * @throws IOException if the block writer cannot be obtained.
+   * @param location The tier to create this block, -1 for any tier
+   * @param initialBytes The initial amount of bytes to be allocated
+   * @return the block writer for the local block file
+   * @throws FileDoesNotExistException if the block is not on the worker
+   * @throws IOException if the block writer cannot be obtained
    */
+  // TODO: We should avoid throwing IOException
   public BlockWriter createBlockRemote(long userId, long blockId, int location, long initialBytes)
       throws FileDoesNotExistException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
@@ -137,7 +141,6 @@ public class BlockDataManager {
       if (optWriter.isPresent()) {
         return optWriter.get();
       }
-      // TODO: Throw a better exception
       throw new IOException("Failed to obtain block writer.");
     }
     throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
@@ -151,6 +154,7 @@ public class BlockDataManager {
    * @return true if successful, false otherwise
    * @throws IOException if an error occurs when removing the block
    */
+  // TODO: This may be better as void, we should avoid throwing IOException
   public boolean freeBlock(long userId, long blockId) throws IOException {
     Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
     if (!optLock.isPresent()) {
@@ -175,7 +179,7 @@ public class BlockDataManager {
   /**
    * Gets the metadata for the entire block store. Contains the block mapping per storage dir and
    * the total capacity and used capacity of each tier.
-   * @return the store metadata
+   * @return the block store metadata
    */
   public StoreMeta getStoreMeta() {
     return mBlockStore.getStoreMeta();
