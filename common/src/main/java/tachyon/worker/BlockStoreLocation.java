@@ -30,7 +30,6 @@ public class BlockStoreLocation {
     return (mTierAlias << 24) + (mTierAlias << 16) + mDirIndex;
   }
 
-
   public int tier() {
     return mTierAlias;
   }
@@ -56,4 +55,14 @@ public class BlockStoreLocation {
     return result;
   }
 
+  @Override
+  public boolean equals(Object object) {
+    if (object instanceof BlockStoreLocation &&
+        ((BlockStoreLocation) object).tier() == tier() &&
+        ((BlockStoreLocation) object).dir() == dir()) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
