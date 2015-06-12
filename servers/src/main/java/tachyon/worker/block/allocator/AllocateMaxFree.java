@@ -13,28 +13,29 @@
  * the License.
  */
 
-package tachyon.worker.block.allocator;
-
-import tachyon.worker.block.meta.StorageDir;
-
-/**
- * Allocate space on the StorageDir that has most free space.
- */
-public class AllocateMaxFree extends AllocateStrategyBase {
-
-  @Override
-  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestSizeBytes) {
-    StorageDir availableDir = null;
-    long maxFree = 0;
-    for (StorageDir dir : storageDirs) {
-      if (dir.getAvailableBytes() >= maxFree && dir.getAvailableBytes() >= requestSizeBytes) {
-        maxFree = dir.getAvailableBytes();
-        availableDir = dir;
-      }
-    }
-    if (availableDir != null && availableDir.requestSpace(userId, requestSizeBytes)) {
-      return availableDir;
-    }
-    return null;
-  }
-}
+// TODO: Implement with new framework
+//package tachyon.worker.block.allocator;
+//
+//import tachyon.worker.block.meta.StorageDir;
+//
+///**
+// * Allocate space on the StorageDir that has most free space.
+// */
+//public class AllocateMaxFree extends AllocateStrategyBase {
+//
+//  @Override
+//  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestSizeBytes) {
+//    StorageDir availableDir = null;
+//    long maxFree = 0;
+//    for (StorageDir dir : storageDirs) {
+//      if (dir.getAvailableBytes() >= maxFree && dir.getAvailableBytes() >= requestSizeBytes) {
+//        maxFree = dir.getAvailableBytes();
+//        availableDir = dir;
+//      }
+//    }
+//    if (availableDir != null && availableDir.requestSpace(userId, requestSizeBytes)) {
+//      return availableDir;
+//    }
+//    return null;
+//  }
+//}
