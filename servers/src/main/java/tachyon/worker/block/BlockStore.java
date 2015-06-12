@@ -38,7 +38,7 @@ public interface BlockStore {
    *
    * @param userId the ID of the user to lock this block
    * @param blockId the ID of the block to lock
-    * @return the lock ID if the lock is acquired successfully, {@link Optional#absent()} otherwise
+   * @return the lock ID if the lock is acquired successfully, {@link Optional#absent()} otherwise
    */
   Optional<Long> lockBlock(long userId, long blockId);
 
@@ -81,9 +81,9 @@ public interface BlockStore {
   Optional<BlockMeta> getBlockMeta(long userId, long blockId, long lockId);
 
   /**
-   * Commits a temporary block to the local store and returns the updated meta data. After commit,
-   * the block will be available in this block store for all clients. Since a temp block is
-   * "private" to the writer, this method requires no proceeding lock acquired.
+   * Commits a temporary block to the local store. After commit, the block will be available in this
+   * block store for all clients to access. Since a temp block is "private" to the writer, this
+   * method requires no proceeding lock acquired.
    *
    * @param userId the ID of the user
    * @param blockId the ID of a temp block
