@@ -5,6 +5,6 @@
   script: mkdir.sh
 
 - name: rsync spark runtime from TachyonMaster
-  shell: rsync -avz TachyonMaster.local:/spark/* /spark
+  shell: rsync -avz TachyonMaster:/spark/* /spark
 
 # vim :set filetype=ansible.yaml:

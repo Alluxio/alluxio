@@ -19,7 +19,7 @@ fi
 HOSTS=`vagrant ssh-config 2>/dev/null |grep -w Host |awk '{print $2}'`
 for h in $HOSTS; do
  addr=`vagrant ssh $h -c "ifconfig eth0" |grep -w inet|awk '{print $2}'`
- echo ${addr} ${h}".local" >> files/hosts
+ echo ${addr} ${h} >> files/hosts
 done
 
 vagrant provision

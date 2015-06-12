@@ -31,9 +31,9 @@ fi
 # files/workers
 rm -f files/workers
 for i in `seq 1 $((TOTAL-1))`; do
- echo "TachyonWorker${i}.local" >> files/workers
+ echo "TachyonWorker${i}" >> files/workers
 done
-echo "TachyonMaster.local" >> files/workers
+echo "TachyonMaster" >> files/workers
 
 if [[ "$PROVIDER" == "aws" ]]; then
  # ssh without password
@@ -54,7 +54,7 @@ $VUP
 # IPs are automatically assigned by vagrant
 # hack to find out the assigned IPs by looking into vagrant's ssh config to 
 if [[ "$PROVIDER" == "aws" ]]; then
- vagrant ssh-config | egrep '^Host|HostName' | sed "N;s/\n//g" | awk '{ print $4, $2 ".local" }' > files/hosts
+ vagrant ssh-config | egrep '^Host|HostName' | sed "N;s/\n//g" | awk '{ print $4, $2 }' > files/hosts
 fi
 if [[ "$PROVIDER" == "vb" ]]; then
  rm -f files/hosts
@@ -63,7 +63,7 @@ if [[ "$PROVIDER" == "vb" ]]; then
  # but we can ssh to each vm and find out its assigned IP
  for host in `cat files/workers`; do
   IP=`vagrant ssh $host -c 'ifconfig eth1 | grep "inet addr"' | grep -w 'inet addr' | awk '{print $2}' | cut -d':' -f2`
-  echo "$IP ${host}.local" >> files/hosts
+  echo "$IP ${host}" >> files/hosts
  done
 fi
 
