@@ -89,53 +89,12 @@ public class BlockMasterSync implements Runnable {
   }
 
   /**
-   * Gets the Tachyon master address from the configuration
+   * Gets the worker id, 0 if registerWithMaster has not been called successfully.
    *
-   * @return the InetSocketAddress of the master
+   * @return the worker id
    */
-  private InetSocketAddress getMasterAddress() {
-    String masterHostname =
-        mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
-    int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    return new InetSocketAddress(masterHostname, masterPort);
-  }
-
-  /**
-   * Handles a master command. The command is one of Unknown, Nothing, Register, Free, or Delete.
-   * This call will block until the command is complete.
-   *
-   * @param cmd the command to execute.
-   * @throws IOException if an error occurs when executing the command
-   */
-  // TODO: Evaluate the necessity of each command
-  private void handleMasterCommand(Command cmd) throws IOException {
-    if (cmd == null) {
-      return;
-    }
-    switch (cmd.mCommandType) {
-    // Currently unused
-      case Delete:
-        break;
-      // Master requests blocks to be removed from Tachyon managed space.
-      case Free:
-        for (long block : cmd.mData) {
-          mBlockDataManager.freeBlock(Users.MASTER_COMMAND_ID, block);
-        }
-        break;
-      // No action required
-      case Nothing:
-        break;
-      // Master requests re-registration
-      case Register:
-        registerWithMaster();
-        break;
-      // Unknown request
-      case Unknown:
-        LOG.error("Master heartbeat sends unknown command " + cmd);
-        break;
-      default:
-        throw new RuntimeException("Un-recognized command from master " + cmd);
-    }
+  public long getWorkerId() {
+    return mWorkerId;
   }
 
   /**
@@ -154,24 +113,6 @@ public class BlockMasterSync implements Runnable {
       LOG.error("Failed to register with master.", bie);
       throw new IOException(bie);
     }
-  }
-
-  /**
-   * Closes and creates a new master client, in case the master changes.
-   */
-  private void resetMasterClient() {
-    mMasterClient.close();
-    mMasterClient =
-        new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
-  }
-
-  /**
-   * Gets the worker id, 0 if registerWithMaster has not been called successfully.
-   *
-   * @return the worker id
-   */
-  public long getWorkerId() {
-    return mWorkerId;
   }
 
   /**
@@ -225,5 +166,64 @@ public class BlockMasterSync implements Runnable {
     mRunning = false;
     mMasterClient.close();
     mMasterClientExecutorService.shutdown();
+  }
+
+  /**
+   * Gets the Tachyon master address from the configuration
+   *
+   * @return the InetSocketAddress of the master
+   */
+  private InetSocketAddress getMasterAddress() {
+    String masterHostname =
+        mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
+    int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+    return new InetSocketAddress(masterHostname, masterPort);
+  }
+
+  /**
+   * Handles a master command. The command is one of Unknown, Nothing, Register, Free, or Delete.
+   * This call will block until the command is complete.
+   *
+   * @param cmd the command to execute.
+   * @throws IOException if an error occurs when executing the command
+   */
+  // TODO: Evaluate the necessity of each command
+  private void handleMasterCommand(Command cmd) throws IOException {
+    if (cmd == null) {
+      return;
+    }
+    switch (cmd.mCommandType) {
+      // Currently unused
+      case Delete:
+        break;
+      // Master requests blocks to be removed from Tachyon managed space.
+      case Free:
+        for (long block : cmd.mData) {
+          mBlockDataManager.freeBlock(Users.MASTER_COMMAND_ID, block);
+        }
+        break;
+      // No action required
+      case Nothing:
+        break;
+      // Master requests re-registration
+      case Register:
+        registerWithMaster();
+        break;
+      // Unknown request
+      case Unknown:
+        LOG.error("Master heartbeat sends unknown command " + cmd);
+        break;
+      default:
+        throw new RuntimeException("Un-recognized command from master " + cmd);
+    }
+  }
+
+  /**
+   * Closes and creates a new master client, in case the master changes.
+   */
+  private void resetMasterClient() {
+    mMasterClient.close();
+    mMasterClient =
+        new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
   }
 }
