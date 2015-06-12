@@ -67,10 +67,10 @@ For example:
     -Dtachyon.worker.tieredstore.level.max=2
     -Dtachyon.worker.tieredstore.level0.alias=MEM
     -Dtachyon.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
-    -Dtachyon.worker.tieredstore.level0.dirs.quota=10G
+    -Dtachyon.worker.tieredstore.level0.dirs.quota=10GB
     -Dtachyon.worker.tieredstore.level1.alias=SSD
     -Dtachyon.worker.tieredstore.level1.dirs.path=/mnt/ssd1,/mnt/ssd2
-    -Dtachyon.worker.tieredstore.level1.dirs.quota=60G,80G
+    -Dtachyon.worker.tieredstore.level1.dirs.quota=60GB,80GB
     -Dtachyon.worker.allocate.strategy=MAX_FREE
     -Dtachyon.worker.evict.strategy=LRU
 
