@@ -10,11 +10,23 @@ done
 namenode=$i
 echo $namenode > /hadoop/conf/masters
 
+# use /disk0, /disk1... as local storage
+EXTRA_DISKS=`ls / | grep '^disk'`
+DN=""
+NN=""
+TMP=""
+for disk in $EXTRA_DISKS; do
+ DN=/${disk}/dfs/dn,$DN
+ NN=/${disk}/dfs/nn,$NN
+ TMP=/${disk}/hadoop-tmpstore,$TMP
+done
+
+[[ "$TMP" == "" ]] && TMP=/tmp/hadoop-tmpstore
 cat > /hadoop/conf/core-site.xml << EOF
 <configuration>
 <property>
   <name>hadoop.tmp.dir</name>
-  <value>/tmp/hadoop-tmpstore</value>
+  <value>$TMP</value>
 </property>
 <property>
   <name>fs.default.name</name>
@@ -23,6 +35,8 @@ cat > /hadoop/conf/core-site.xml << EOF
 </configuration>
 EOF
 
+[[ "$DN" == "" ]] && DN=/tmp/hdfs-datanode
+[[ "$NN" == "" ]] && NN=/tmp/hdfs-namenode
 cat > /hadoop/conf/hdfs-site.xml << EOF
 <configuration>
 <property>
@@ -31,7 +45,11 @@ cat > /hadoop/conf/hdfs-site.xml << EOF
 </property>
 <property>
  <name>dfs.data.dir</name>
- <value>/tmp/hdfs-datanode</value>
+ <value>$DN</value>
+</property>
+<property>
+ <name>dfs.name.dir</name>
+ <value>$NN</value>
 </property>
 <property>
  <name>dfs.support.broken.append</name>
