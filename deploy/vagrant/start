@@ -19,6 +19,11 @@ if [[ "$TOTAL" < "2" ]]; then
  exit 1
 fi
 
+if [[ "$PROVIDER" != "aws" && "$PROVIDER" != "vb" ]]; then
+ echo "provider $PROVIDER not supported yet"
+ exit 1
+fi
+
 HERE=`dirname "$0"`
 pushd $HERE >/dev/null
 
