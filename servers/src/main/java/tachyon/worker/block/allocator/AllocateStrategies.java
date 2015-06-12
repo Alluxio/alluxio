@@ -13,31 +13,32 @@
  * the License.
  */
 
-package tachyon.worker.block.allocator;
-
-/**
- * Define several AllocateStrategy, and get specific AllocateStrategy by AllocateStrategyType
- */
-public class AllocateStrategies {
-
-  /**
-   * Get AllocateStrategy based on configuration
-   *
-   * @param strategyType configuration of AllocateStrategy
-   * @return AllocationStrategy generated
-   */
-  public static AllocateStrategy getAllocateStrategy(AllocateStrategyType strategyType) {
-    switch (strategyType) {
-      case MAX_FREE:
-        return new AllocateMaxFree();
-      case RANDOM:
-        return new AllocateRandom();
-      case ROUND_ROBIN:
-        return new AllocateRR();
-      default:
-        return new AllocateMaxFree();
-    }
-  }
-
-  private AllocateStrategies() {}
-}
+// TODO: Implement allocation strategies
+//package tachyon.worker.block.allocator;
+//
+///**
+// * Define several AllocateStrategy, and get specific AllocateStrategy by AllocateStrategyType
+// */
+//public class AllocateStrategies {
+//
+//  /**
+//   * Get AllocateStrategy based on configuration
+//   *
+//   * @param strategyType configuration of AllocateStrategy
+//   * @return AllocationStrategy generated
+//   */
+//  public static AllocateStrategy getAllocateStrategy(AllocateStrategyType strategyType) {
+//    switch (strategyType) {
+//      case MAX_FREE:
+//        return new AllocateMaxFree();
+//      case RANDOM:
+//        return new AllocateRandom();
+//      case ROUND_ROBIN:
+//        return new AllocateRR();
+//      default:
+//        return new AllocateMaxFree();
+//    }
+//  }
+//
+//  private AllocateStrategies() {}
+//}

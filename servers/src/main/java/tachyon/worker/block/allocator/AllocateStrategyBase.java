@@ -13,22 +13,23 @@
  * the License.
  */
 
-package tachyon.worker.block.allocator;
-
-import tachyon.worker.block.meta.StorageDir;
-
-/**
- * Base class for AllocateStrategy, which provides basic function for AllocateStrategy
- */
-public abstract class AllocateStrategyBase implements AllocateStrategy {
-  @Override
-  public boolean fitInPossible(StorageDir[] storageDirs, long requestSizeBytes) {
-    for (StorageDir dir : storageDirs) {
-      if (dir.getCapacityBytes() - dir.getLockedSizeBytes() >= requestSizeBytes) {
-        return true;
-      }
-    }
-    return false;
-  }
-}
+// TODO: Implement with new framework
+//package tachyon.worker.block.allocator;
+//
+//import tachyon.worker.block.meta.StorageDir;
+//
+///**
+// * Base class for AllocateStrategy, which provides basic function for AllocateStrategy
+// */
+//public abstract class AllocateStrategyBase implements AllocateStrategy {
+//  @Override
+//  public boolean fitInPossible(StorageDir[] storageDirs, long requestSizeBytes) {
+//    for (StorageDir dir : storageDirs) {
+//      if (dir.getCapacityBytes() - dir.getLockedSizeBytes() >= requestSizeBytes) {
+//        return true;
+//      }
+//    }
+//    return false;
+//  }
+//}
 
