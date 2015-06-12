@@ -159,14 +159,7 @@ public class BlockDataManager {
    */
   // TODO: This may be better as void, we should avoid throwing IOException
   public boolean freeBlock(long userId, long blockId) throws IOException {
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
-    if (!optLock.isPresent()) {
-      return false;
-    }
-    Long lockId = optLock.get();
-    mBlockStore.removeBlock(userId, blockId, lockId);
-    mBlockStore.unlockBlock(lockId);
-    return true;
+    return mBlockStore.removeBlock(userId, blockId);
   }
 
   /**
@@ -219,20 +212,12 @@ public class BlockDataManager {
    * @param blockId The id of the block to move
    * @param tier The tier to move the block to
    * @return true if successful, false otherwise
-   * @throws IOException if an error occurs during locking or move
+   * @throws IOException if an error occurs during move
    */
   // TODO: This may be better as void, we should avoid throwing IOException
   public boolean moveBlock(long userId, long blockId, int tier) throws IOException {
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
-    // TODO: Define this behavior
-    if (!optLock.isPresent()) {
-      return false;
-    }
-    Long lockId = optLock.get();
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tier);
-    boolean result = mBlockStore.moveBlock(userId, blockId, lockId, dst);
-    mBlockStore.unlockBlock(lockId);
-    return result;
+    return mBlockStore.moveBlock(userId, blockId, dst);
   }
 
   /**
