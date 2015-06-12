@@ -14,5 +14,7 @@ Hadoop:
   # if you don't compile spark, this can be empty
   SparkProfile: 2.4
 
+# Doc on AccessKeyID and SecretAccessKey: 
+# http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html
 S3:
   Bucket:

@@ -16,9 +16,9 @@ Addr = @cmd['Addresses']
 validate_provider(Provider)
 
 # load version configuration from tachyon_version.yml
-TachyonV = TachyonVersion.new('conf/tachyon_version.yml')
-SparkV = SparkVersion.new('conf/spark_version.yml')
-UfsV = UfsVersion.new('conf/ufs_version.yml')
+TachyonV = TachyonVersion.new('conf/tachyon.yml')
+SparkV = SparkVersion.new('conf/spark.yml')
+UfsV = UfsVersion.new('conf/ufs.yml')
 
 require "./core/config_#{Provider}"
 
@@ -87,7 +87,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       if Provider == "aws"
         if (defined?(@ec2)).nil?
-          @ec2 = YAML.load_file('conf/ec2-config.yml')
+          @ec2 = YAML.load_file('conf/ec2.yml')
           puts @ec2.inspect
           KEYPAIR=@ec2['Keypair']
           KEY_PATH=@ec2['Key_Path']
@@ -104,7 +104,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       if Provider == "openstack"
         if (defined?(@os)).nil?
-          @os = YAML.load_file('conf/openstack-config.yml')
+          @os = YAML.load_file('conf/openstack.yml')
           puts @os.inspect
           FLAVOR = @os['Flavor']
           IMAGE =  @os['Image']
