@@ -15,11 +15,7 @@
 
 package tachyon.worker.block.meta;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.StorageDirId;
 
 /**
  * Represents a directory in a storage tier. It has a fixed capacity allocated to it on
@@ -39,23 +36,28 @@ import tachyon.Constants;
 public class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** A map from block ID to block meta data */
   private Map<Long, BlockMeta> mBlockIdToBlockMap;
+  /** A map from block ID to temp block meta data */
   private Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
+  /** A map from user ID to the set of temp blocks created by this user */
   private Map<Long, Set<Long>> mUserIdToTempBlockIdsMap;
 
   private final long mCapacityBytes;
   private long mAvailableBytes;
   private String mDirPath;
-  private int mDirId;
+  private int mDirIndex;
   private StorageTier mTier;
 
-  public StorageDir(StorageTier tier, int dirId, long capacityBytes, String dirPath) {
+  public StorageDir(StorageTier tier, int dirIndex, long capacityBytes, String dirPath) {
     mTier = Preconditions.checkNotNull(tier);
-    mDirId = dirId;
+    mDirIndex = dirIndex;
     mCapacityBytes = capacityBytes;
     mAvailableBytes = capacityBytes;
     mDirPath = dirPath;
     mBlockIdToBlockMap = new HashMap<Long, BlockMeta>(200);
+    mBlockIdToTempBlockMap = new HashMap<Long, TempBlockMeta>(200);
+    mUserIdToTempBlockIdsMap = new HashMap<Long, Set<Long>>(200);
   }
 
   public long getCapacityBytes() {
@@ -75,24 +77,21 @@ public class StorageDir {
   }
 
   public int getDirId() {
-    return mDirId;
+    return mDirIndex;
   }
 
   // TODO: deprecate this method.
   public long getStorageDirId() {
-    // TODO: implement me
-    return 0;
+    int level = mTier.getTierAlias() + 1;
+    int storageLevelAliasValue = mTier.getTierAlias();
+    return StorageDirId.getStorageDirId(level, storageLevelAliasValue, mDirIndex);
   }
 
   /**
-   * Returns a list of (non-temp) block IDs in this dir.
+   * Returns a list of non-temporary block IDs in this dir.
    */
   public List<Long> getBlockIds() {
-    List<Long> blockIds = new ArrayList<Long>();
-    for (long blockId : mBlockIdToBlockMap.keySet()) {
-      blockIds.add(blockId);
-    }
-    return blockIds;
+    return new ArrayList<Long>(mBlockIdToBlockMap.keySet());
   }
 
   /**
@@ -138,16 +137,9 @@ public class StorageDir {
   /**
    * Add the metadata of a new block into this storage dir.
    *
-   * @param userId the user ID
-   * @param blockId the block ID
-   * @param blockSize the block size in bytes
+   * @param block the meta data of the block
    * @return the BlockMeta or absent
    */
-  public Optional<BlockMeta> addBlockMeta(long userId, long blockId, long blockSize) {
-    BlockMeta block = new BlockMeta(blockId, blockSize, this);
-    return addBlockMeta(block);
-  }
-
   public Optional<BlockMeta> addBlockMeta(BlockMeta block) {
     long blockId = block.getBlockId();
     long blockSize = block.getBlockSize();
@@ -171,7 +163,7 @@ public class StorageDir {
   /**
    * Add the metadata of a new block into this storage dir.
    *
-   * @param tempBlockMeta
+   * @param tempBlockMeta the meta data of a temp block to add
    * @return the BlockMeta or absent
    */
   public boolean addTempBlockMeta(TempBlockMeta tempBlockMeta) {
@@ -192,17 +184,9 @@ public class StorageDir {
   /**
    * Remove a block from this storage dir.
    *
-   * @param blockId the block ID
+   * @param block the meta data of the block
    * @return true if success, false otherwise
    */
-  public boolean removeBlockMeta(long blockId) {
-    if (!hasBlockMeta(blockId)) {
-      return false;
-    }
-    BlockMeta block = getBlockMeta(blockId).get();
-    return removeBlockMeta(block);
-  }
-
   public boolean removeBlockMeta(BlockMeta block) {
     Preconditions.checkNotNull(block);
     mBlockIdToBlockMap.remove(block.getBlockId());
@@ -210,21 +194,12 @@ public class StorageDir {
     return false;
   }
 
-
   /**
    * Remove a block from this storage dir.
    *
-   * @param blockId the block ID
+   * @param tempBlockMeta the meta data of the temp block to remove
    * @return true if success, false otherwise
    */
-  public boolean removeTempBlockMeta(long blockId) {
-    if (!hasTempBlockMeta(blockId)) {
-      return false;
-    }
-    TempBlockMeta block = getTempBlockMeta(blockId).get();
-    return removeTempBlockMeta(block);
-  }
-
   public boolean removeTempBlockMeta(TempBlockMeta tempBlockMeta) {
     Preconditions.checkNotNull(tempBlockMeta);
     long blockId = tempBlockMeta.getBlockId();
@@ -239,11 +214,27 @@ public class StorageDir {
           mUserIdToTempBlockIdsMap.remove(userId);
         }
         mAvailableBytes += tempBlockMeta.getBlockSize();
-        Preconditions.checkState(mCapacityBytes >= 0, "Capacity bytes should always be "
-            + "non-negative");
+        Preconditions.checkState(mCapacityBytes >= mAvailableBytes,
+            "Available bytes should always be less than total capacity bytes");
         return true;
       }
     }
     return false;
+  }
+
+  /**
+   * Cleans up the temp block meta data of a specific user
+   *
+   * @param userId the ID of the user to cleanup
+   */
+  public void cleanupUser(long userId) {
+    Set<Long> userTempBlocks = mUserIdToTempBlockIdsMap.get(userId);
+    if (null == userTempBlocks) {
+      return;
+    }
+    for (long blockId : userTempBlocks) {
+      mBlockIdToTempBlockMap.remove(blockId);
+    }
+    mUserIdToTempBlockIdsMap.remove(userId);
   }
 }

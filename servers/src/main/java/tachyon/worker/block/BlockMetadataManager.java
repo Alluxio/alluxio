@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -136,18 +135,12 @@ public class BlockMetadataManager {
   /**
    * Remove the metadata of a specific block.
    *
-   * @param blockId the block ID
+   * @param block  the meta data of the block to remove
    * @return true if success, false otherwise
    */
-  public synchronized boolean removeBlockMeta(long blockId) {
-    for (StorageTier tier : mTiers) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (dir.hasBlockMeta(blockId)) {
-          return dir.removeBlockMeta(blockId);
-        }
-      }
-    }
-    return false;
+  public synchronized boolean removeBlockMeta(BlockMeta block) {
+    StorageDir dir = block.getParentDir();
+    return dir.removeBlockMeta(block);
   }
 
   /**
@@ -185,11 +178,11 @@ public class BlockMetadataManager {
    * @return true if success, false otherwise
    */
   public synchronized boolean commitTempBlockMeta(TempBlockMeta tempBlockMeta) {
-    BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
+    BlockMeta block = new BlockMeta(tempBlockMeta);
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
     dir.addBlockMeta(block);
-    return false;
+    return true;
   }
 
   /**
@@ -201,5 +194,18 @@ public class BlockMetadataManager {
   public synchronized boolean abortTempBlockMeta(TempBlockMeta tempBlockMeta) {
     StorageDir dir = tempBlockMeta.getParentDir();
     return dir.removeTempBlockMeta(tempBlockMeta);
+  }
+
+  /**
+   * Cleans up the temp blocks meta data created by the given user.
+   * @param userId the ID of the user
+   */
+  public synchronized void cleanupUser(long userId) {
+    // TODO: implement me
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        dir.cleanupUser(userId);
+      }
+    }
   }
 }
