@@ -190,6 +190,7 @@ public class TieredBlockStore implements BlockStore {
   public boolean cleanupUser(long userId) {
     mEvictionLock.writeLock().lock();
     mMetaManager.cleanupUser(userId);
+    mLockManager.cleanupUser(userId);
     mEvictionLock.writeLock().unlock();
     return false;
   }

@@ -15,19 +15,22 @@
 
 package tachyon.worker.block;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 
 import tachyon.Constants;
-import tachyon.Pair;
+import tachyon.worker.ClientRWLock;
 
 /**
  * Handle all block locks.
@@ -36,55 +39,80 @@ import tachyon.Pair;
  */
 public class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final int NUM_LOCKS = 100;
   /** The unique id of each lock **/
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
 
   /** A map from a block ID to its lock */
-  private final Map<Long, BlockLock> mBlockIdToLockMap = new HashMap<Long, BlockLock>();
+  private final List<ClientRWLock> mLockArray = new ArrayList<ClientRWLock>(NUM_LOCKS);
   /** A map from a user ID to all the locks hold by this user */
   private final Map<Long, Set<Long>> mUserIdToLockIdsMap = new HashMap<Long, Set<Long>>();
   /** A map from a lock ID to the user ID holding this lock */
-  private final Map<Long, Pair<Long, Lock>> mLockIdToUserIdAndLockMap =
-      new HashMap<Long, Pair<Long, Lock>>();
+  private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
+
+  private class LockRecord {
+    private final long mUserId;
+    private final long mBlockId;
+    private final Lock mLock;
+
+    LockRecord(long userId, long blockId, Lock lock) {
+      mUserId = userId;
+      mBlockId = blockId;
+      mLock = lock;
+    }
+
+    long userId() {
+      return mUserId;
+    }
+
+    long blockId() {
+      return mBlockId;
+    }
+
+    Lock lock() {
+      return mLock;
+    }
+  }
 
   public BlockLockManager() {}
 
   public synchronized Optional<Long> lockBlock(long userId, long blockId,
-      BlockLock.BlockLockType blockLockType) {
-    if (!mBlockIdToLockMap.containsKey(blockId)) {
-      LOG.error("Cannot get lock for block {}: not exists", blockId);
-      return Optional.absent();
-    }
-    BlockLock blockLock = mBlockIdToLockMap.get(blockId);
+      BlockLockType blockLockType) {
+    int hashValue = (int) blockId % NUM_LOCKS;
+    ClientRWLock blockLock = mLockArray.get(hashValue);
     Lock lock = null;
-    if (blockLockType == BlockLock.BlockLockType.READ) {
+    if (blockLockType == BlockLockType.READ) {
       lock = blockLock.readLock();
-    } else if (blockLockType == BlockLock.BlockLockType.WRITE) {
+    } else if (blockLockType == BlockLockType.WRITE) {
       lock = blockLock.writeLock();
     }
     lock.lock();
-    long lockId = createLockId(userId, lock);
+    long lockId = LOCK_ID_GEN.getAndIncrement();
+    mLockIdToRecordMap.put(lockId, new LockRecord(userId, blockId, lock));
+    Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
+    if (null == userLockIds) {
+      mUserIdToLockIdsMap.put(userId, Sets.newHashSet(lockId));
+    } else {
+      userLockIds.add(lockId);
+    }
     return Optional.of(lockId);
   }
 
-  public synchronized boolean unlockBlock(long lockId) {
-    // TODO: implement me
-    // do unlock
+  public boolean unlockBlock(long lockId) {
+    LockRecord record = mLockIdToRecordMap.get(lockId);
+    if (null == record) {
+      return false;
+    }
+    long userId = record.userId();
+    Lock lock = record.lock();
 
-    cleanupLockId(lockId);
-    return true;
-  }
-
-  private synchronized long createLockId(long userId, Lock lock) {
-    // TODO: implement me
-    long lockId = LOCK_ID_GEN.getAndIncrement();
-    // mUserIdToAcquiredLockIdsMap.put(userId, lockID);
-    return lockId;
-  }
-
-  private synchronized boolean cleanupLockId(long lockId) {
-    // TODO: implement me
-    // mUserIdToAcquiredLockIdsMap.put(userId, lockID);
+    mLockIdToRecordMap.remove(lockId);
+    Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
+    userLockIds.remove(lockId);
+    if (userLockIds.isEmpty()) {
+      mUserIdToLockIdsMap.remove(userId);
+    }
+    lock.unlock();
     return true;
   }
 
@@ -96,38 +124,33 @@ public class BlockLockManager {
    * @param lockId The ID of the lock
    * @return true if validation succeeds, false otherwise
    */
-  public synchronized boolean validateLockId(long userId, long blockId, long lockId) {
-    // TODO: implement me
-    return true;
+  public boolean validateLockId(long userId, long blockId, long lockId) {
+    LockRecord record = mLockIdToRecordMap.get(lockId);
+    if (null == record) {
+      return false;
+    }
+    return userId == record.userId() && blockId == record.blockId();
   }
 
   /**
-   * Get the lock for the given block id. If there is no such a lock yet, create one.
+   * Cleans up the locks currently hold by a specific user
    *
-   * @param blockId The id of the block
-   * @return true if success, false otherwise
+   * @param userId the ID of the user to cleanup
    */
-  public synchronized boolean addBlockLock(long blockId) {
-    if (mBlockIdToLockMap.containsKey(blockId)) {
-      LOG.error("Cannot add lock for block {}: already exists", blockId);
-      return false;
+  public void cleanupUser(long userId) {
+    Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
+    if (null == userLockIds) {
+      return;
     }
-    mBlockIdToLockMap.put(blockId, new BlockLock(blockId));
-    return true;
-  }
-
-  /**
-   * Remove a lock for the given block id.
-   *
-   * @param blockId The id of the block
-   * @return true if success, false otherwise
-   */
-  public synchronized boolean removeBlockLock(long blockId) {
-    if (!mBlockIdToLockMap.containsKey(blockId)) {
-      LOG.error("Cannot remove lock for block {}: not exists", blockId);
-      return false;
+    for (long lockId : userLockIds) {
+      LockRecord record = mLockIdToRecordMap.get(lockId);
+      if (null == record) {
+        return;
+      }
+      Lock lock = record.lock();
+      lock.unlock();
+      mLockIdToRecordMap.remove(lockId);
     }
-    mBlockIdToLockMap.remove(blockId);
-    return true;
+    mUserIdToLockIdsMap.remove(userId);
   }
 }
