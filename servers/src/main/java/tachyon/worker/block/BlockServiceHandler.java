@@ -59,6 +59,22 @@ public class BlockServiceHandler implements WorkerService.Iface {
   }
 
   /**
+   * Used to close a block. Calling this method will move the block from the user temporary folder
+   * to the worker's data folder.
+   *
+   * @param userId The id of the client
+   * @param blockId The block id to complete
+   * @throws TException if the block fails to be completed
+   */
+  public void commitBlock(long userId, long blockId) throws TException {
+    try {
+      mWorker.commitBlock(userId, blockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
+  }
+
+  /**
    * Used to create a new block on this worker. This is only used for local clients.
    *
    * @param userId The id of the client
@@ -78,35 +94,16 @@ public class BlockServiceHandler implements WorkerService.Iface {
     }
   }
 
+  // TODO: Rename this method when complete, currently is V2 to avoid checkstyle errors
   /**
-   * Used to close a block. Calling this method will move the block from the user temporary folder
-   * to the worker's data folder.
+   * Obtains a read lock on the block.
    *
    * @param userId The id of the client
-   * @param blockId The block id to complete
-   * @throws TException if the block fails to be completed
+   * @param blockId The id of the block to lock
+   * @return the lockId of the lock obtained
    */
-  public void completeBlock(long userId, long blockId) throws TException {
-    try {
-      mWorker.commitBlock(userId, blockId);
-    } catch (IOException ioe) {
-      throw new TException(ioe);
-    }
-  }
-
-  /**
-   * Used to remove a block from the Tachyon storage managed by this worker.
-   *
-   * @param blockId The id of the block
-   * @return true if the block is freed successfully, false otherwise
-   * @throws TException if the block does not exist
-   */
-  public boolean freeBlock(long blockId) throws TException {
-    try {
-      return mWorker.removeBlock(Users.MIGRATE_DATA_USER_ID, blockId);
-    } catch (IOException ioe) {
-      throw new TException(ioe);
-    }
+  public long lockBlockV2(long userId, long blockId) {
+    return mWorker.lockBlock(userId, blockId);
   }
 
   /**
@@ -119,20 +116,23 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @return the path of the block on local disk
    * @throws TException if the block does not exist
    */
-  public String getBlock(long userId, long blockId, int lockId) throws TException {
+  public String readBlock(long userId, long blockId, int lockId) throws TException {
     return mWorker.readBlock(userId, blockId, lockId);
   }
 
-  // TODO: Rename this method when complete, currently is V2 to avoid checkstyle errors
   /**
-   * Obtains a read lock on the block.
+   * Used to remove a block from the Tachyon storage managed by this worker.
    *
-   * @param userId The id of the client
-   * @param blockId The id of the block to lock
-   * @return the lockId of the lock obtained
+   * @param blockId The id of the block
+   * @return true if the block is freed successfully, false otherwise
+   * @throws TException if the block does not exist
    */
-  public long lockBlockV2(long userId, long blockId) {
-    return mWorker.lockBlock(userId, blockId);
+  public boolean removeBlock(long blockId) throws TException {
+    try {
+      return mWorker.removeBlock(Users.MIGRATE_DATA_USER_ID, blockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   // TODO: Rename this method when complete, currently is V2 to avoid checkstyle errors
