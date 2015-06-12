@@ -23,6 +23,28 @@ cat > /hadoop/etc/hadoop/hdfs-site.xml << EOF
  <name>dfs.replication</name>
  <value>1</value>
 </property>
+EOF
+# use /disk0, /disk1... as local storage
+EXTRA_DISKS=`ls / | grep '^disk'`
+DN=""
+NN=""
+for disk in $EXTRA_DISKS; do
+ DN=file:///${disk}/dfs/dn,$DN
+ NN=file:///${disk}/dfs/nn,$NN
+done
+if [[ "$DN" != "" ]]; then
+ cat >> /hadoop/etc/hadoop/hdfs-site.xml << EOF
+<property>
+ <name>dfs.name.dir</name>
+ <value>$NN</value>
+</property>
+<property>
+ <name>dfs.data.dir</name>
+ <value>$DN</value>
+</property>
+EOF
+fi
+cat >> /hadoop/etc/hadoop/hdfs-site.xml << EOF
 </configuration>
 EOF
 
