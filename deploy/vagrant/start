@@ -49,10 +49,10 @@ fi
 python bin/init.py $PROVIDER
 
 # start machine without provisioning
-VUP="vagrant up --provider=$PROVIDER --no-provision"
-if [[ "$PROVIDER" == "aws" ]]; then
- VUP="${VUP} --parallel"
-fi
+FULL_PROVIDER_NAME=$PROVIDER
+[[ "$FULL_PROVIDER_NAME" == "vb" ]] && FULL_PROVIDER_NAME=virtualbox
+VUP="vagrant up --provider=$FULL_PROVIDER_NAME --no-provision"
+[[ "$PROVIDER" == "aws" ]] && VUP="${VUP} --parallel"
 $VUP
 
 # files/hosts
