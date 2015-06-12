@@ -1,5 +1,32 @@
 This doc is for contributors on deploy module, for users, please go to the [online doc](http://tachyon-project.org/master/Deploy-Module.html).
 
+## Tools
+
+[Vagrant](https://www.vagrantup.com), here is the [download link](https://www.vagrantup.com/downloads.html).
+
+### What is Vagrant?
+
+Vagrant can create VM images (VirtualBox, VMWare Fusion), Docker containers, and AWS and OpenStack
+instances.
+
+### Why Use Vagrant?
+
+Setting up a Tachyon cluster correctly with under filesystem and computation frameworks is a tedious huge undertaking. It requires not only expertise on both Tachyon and the related systems, but also expertise on the target deployment platform. 
+
+Vagrant makes it possible to predefine how to install and configure software on a "machine" which can be an aws instance, a virtualbox vm, a docker container or an openstack instance. Then with the same workflow, you can create the same environment on all these platforms.
+
+[Ansible](http://docs.ansible.com), here is the [download link](http://docs.ansible.com/intro_installation.html)
+
+Ansible is a pure python package, so you need to have python installed, follow the docs in the link above. 
+
+### What is Ansible?
+
+Ansible is a language and toolset to define how to provision(install software, configure the system). It allows you to manipulate remote servers on your laptop, any number of nodes in parallel!
+
+### Why Use Ansible?
+
+When set up a Tachyon cluster, we need the ability to manipulate target machines in parallel, say, install java on all nodes. Ansible satisfies this requirement. It's supported by Vagrant and has simple syntax, so we adopt it as the provisioning tool.
+
 ## Extension
 
 You can extend deploy module by adding

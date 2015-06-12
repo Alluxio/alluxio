@@ -19,80 +19,75 @@ Apart from Tachyon, you can choose to deploy computation frameworks and under fi
 
 ## Prerequisites
 
-[Vagrant](https://www.vagrantup.com), here is the [download link](https://www.vagrantup.com/downloads.html).
-
-### What is Vagrant?
-
-Vagrant can create VM images (VirtualBox, VMWare Fusion), Docker containers, and AWS and OpenStack
-instances.
-
-### Why Use Vagrant?
-
-Setting up a Tachyon cluster correctly with under filesystem and computation frameworks is a tedious huge undertaking. It requires not only expertise on both Tachyon and the related systems, but also expertise on the target deployment platform. 
-
-Vagrant makes it possible to predefine how to install and configure software on a "machine" which can be an aws instance, a virtualbox vm, a docker container or an openstack instance. Then with the same workflow, you can create the same environment on all these platforms.
-
-[Ansible](http://docs.ansible.com), here is the [download link](http://docs.ansible.com/intro_installation.html)
-
-Ansible is a pure python package, so you need to have python installed, follow the docs in the link above. 
-
-### What is Ansible?
-
-Ansible is a language and toolset to define how to provision(install software, configure the system). It allows you to manipulate remote servers on your laptop, any number of nodes in parallel!
-
-### Why Use Ansible?
-
-When set up a Tachyon cluster, we need the ability to manipulate target machines in parallel, say, install java on all nodes. Ansible satisfies this requirement. It's supported by Vagrant and has simple syntax, so we adopt it as the provisioning tool.
-
-If you want to deploy on virtualbox on your laptop, please install [Virtualbox](https://www.virtualbox.org/wiki/Downloads).
+1. [download vagrant](https://www.vagrantup.com/downloads.html)
+2. if want to deploy on desktop, [download virtualbox](https://www.virtualbox.org/wiki/Downloads)
+3. [python](http://python.org/)
+4. Under `deploy/vagrant` directory in your Tachyon repo, run `sudo bash bin/install.sh`. If anything goes wrong, install [pip](https://pip.pypa.io/en/latest/installing.html) on your own, then in the same directory, run `[sudo] pip install -r pip-req.txt`. This will install dependent python libs.
 
 ## Quick Start With VirtualBox
 
 After installing the prerequisites, if have virtualbox installed, you can follow this quick start to set up a two node Tachyon cluster with apache hadoop2.4.1 as under filesystem, one node is named TachyonMaster, another is TachyonWorker.
 
 1. `cd TACHYON/deploy/vagrant`, replace TACHYON with the Tachyon repo on your host, you can clone the latest from [github](https://github.com/amplab/tachyon.git)
-2. `./run_vb.sh`, it will be slow when you first run this command, because vagrant will download a centos6.5 virtual machine, and install necessary software in this machine. The console output is verbose enough for you to know what's going on. 
-3. After the above command, a purple line in the output tells you the IP of TachyonMaster, the IP should be "192.168.1.12", visit `http://192.168.1.12:19999` in your browser, you should see Tachyon's web UI
-4. Visit `http://192.168.1.12:50070` in your browser, you should see Hadoop's web UI!
-5. `vagrant ssh TachyonMaster`, and you should have entered the virtual machine named TachyonMaster
-6. `/tachyon/bin/tachyon runTests` to run some tests against Tachyon
-7. After the tests all pass, visit Tachyon web UI: `http://192.168.1.12:19999` again, in `Browse FileSystem`, you should see files written to Tachyon by the tests run above
-8. If you don't want to play around in the cluster any more, `vagrant destroy` to delete the virtual machines. 
+2. `./start 2 vb`, it will be slow when you first run this command, because vagrant will download a centos6.5 virtual machine, and install necessary software in this machine. The console output is verbose enough for you to know what's going on. 
 
-Cool! The more exciting aspect of deploy module is that you can set up the same cluster in AWS EC2 with the same commands and workflow described above, just change some configurations!
+## Quick Start With AWS EC2
+
+**Optional** Set up [AWS CLI](http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ec2-cli-get-set-up.html) may be helpful.
+
+1. [Sign up](https://aws.amazon.com/) AWS account with access to EC2
+2. Set shell environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, 
+refer to [this doc](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html) for more detail
+3. Download [key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Be sure 
+to chmod private ssh key to **0600**
+4. `vagrant plugin install vagrant-aws`. Install aws vagrant plugin. To date, 0.5.0 plugin is tested.
+5. By default, if you don't have a [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html) 
+called **tachyon-vagrant-test** in [Region and Availability Zone](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html) **(us-east-1, us-east-1a)**,
+a cluster will be set up in us-east-1a by running `./start <number of machines> aws`.
+If you do not understand the terminologies, you probably should just try the command.
+6. If the Security Group has existed, configure a new one in `ec2.yml` according to comments of the `Security_Group` field.
+8. You can monitor instance running state through [AWS web console](https://console.aws.amazon.com).
+
+## After Cluster Set Up
+3. When command `./start xx xx` succeeds, a purple line in the output tells you the IP of TachyonMaster, say, it's IP, then visit `http://{IP}:19999` in your browser, you should see Tachyon's web UI
+4. Visit `http://{IP}:50070` in your browser, you should see Hadoop's web UI!
+5. `vagrant ssh TachyonMaster`, and you should have entered TachyonMaster node, all software is installed under root directory, e.x. Tachyon is installed in `/tachyon`, Hadoop is installed in `/hadoop`
+6. `/tachyon/bin/tachyon runTests` to run some tests against Tachyon
+7. After the tests all pass, visit Tachyon web UI: `http://{IP}:19999` again, in `Browse FileSystem`, you should see files written to Tachyon by the tests run above
+8. In TachyonMaster node, `~/vagrant-utils` provides utilities to work with the cluster, one is `copy-dir` which can copy or delete a directory in all nodes, another is `remount` which can unmount a device from current mount point and mount to another mount point. Play with them if you are interested
+8. From inside TachyonMaster node, run `ssh TachyonWorker1` to login to TachyonWorker1 without password
+9. If you don't want to play around in the cluster any more, `./stop` to destroy the cluster, 
+for virtualbox, virtual machines will be deleted, for EC2, instances will be terminated.
 
 ## Configurations
 
-There are three kinds of configuration files under `conf`. All the configuration files use [yaml syntax](http://en.wikipedia.org/wiki/YAML).
+There are two kinds of configuration files under `conf`:
 
-1. configuration of virtual machine itself in `init.yml`. 
-2. provider specific configuration, like `ec2.yml`, `openstack.yml`.
-3. software configuration, like `tachyon.yml`, `spark.yml`, `ufs.yml`(ufs means under filesystem). 
+1. provider specific configuration, like `vb.yml` for virtualbox, `ec2.yml` for AWS EC2
+2. software configuration, like `tachyon.yml`, `spark.yml`, `ufs.yml`(ufs means under filesystem). 
+
+All the configuration files use [yaml syntax](http://en.wikipedia.org/wiki/YAML).
 
 Meanings of fields in the configurations are explained in detail in the yml files.
 
-## AWS EC2
+If you are new to AWS EC2, we recommend you to understand comments in `ec2.yml`.
 
-You need to have AWS account with access to EC2. If not, sign up [here](https://aws.amazon.com/). 
+## FAQ
 
-Set up [AWS CLI](http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ec2-cli-get-set-up.html) may be helpful.
+1. How to increase virtualbox virtual machine's memory size?
 
-Then you need to set shell environment variables `AWS_ACCESS_KEY`
-and `AWS_SECRET_KEY`, refer to [this doc](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html). 
+  Increase **MachineMemory** in **conf/vb.yml**
 
-Then download [key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html).
+2. How to increase Tachyon worker's memory?
 
-Install aws vagrant plugin. To date, 0.5.0 plugin is tested.
+  Increase **WorkerMemory** in **conf/tachyon.yml**
 
-    vagrant plugin install vagrant-aws
+3. How to increase HDFS capacity in AWS?
+4. How to use EBS in AWS?
+5. Why extra storage specified in Instance Type not available?
 
-Then update configurations in `conf/ec2.yml`.
+  Set **Block_Device_Mapping** in **conf/ec2.yml** according to the comment there
 
-Update `init.yml` and software configurations. 
+6. What's PV/HVM?
 
-Run `./run_aws.sh`, then `vagrant ssh TachyonMaster` or `vagrant ssh TachyonWorker#{number}`, to log into remote nodes. 
-
-You can monitor instance running state through [AWS web console](https://console.aws.amazon.com).
-
-`vagrant destroy` to terminate the instances.
-
+  see comment on **AMI** in **conf/ec2.yml**
