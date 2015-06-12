@@ -189,7 +189,9 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public boolean cleanupUser(long userId) {
-    // TODO: implement me
+    mEvictionLock.writeLock().lock();
+    mMetaManager.cleanupUser(userId);
+    mEvictionLock.writeLock().unlock();
     return false;
   }
 
@@ -295,13 +297,13 @@ public class TieredBlockStore implements BlockStore {
     if (!optBlock.isPresent()) {
       return false;
     }
-
+    BlockMeta block = optBlock.get();
     // Delete metadata of the block
-    if (!mMetaManager.removeBlockMeta(blockId)) {
+    if (!mMetaManager.removeBlockMeta(block)) {
       return false;
     }
     // Delete the data file of the block
-    return new File(optBlock.get().getPath()).delete();
+    return new File(block.getPath()).delete();
   }
 
   private boolean freeSpaceNoLock(long userId, long size, BlockStoreLocation location)
