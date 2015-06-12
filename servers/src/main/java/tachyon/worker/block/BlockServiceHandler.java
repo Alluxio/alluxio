@@ -125,15 +125,14 @@ public class BlockServiceHandler implements WorkerService.Iface {
 
   // TODO: Rename this method when complete, currently is V2 to avoid checkstyle errors
   /**
-   * Obtains a lock on the block.
+   * Obtains a read lock on the block.
    *
    * @param userId The id of the client
    * @param blockId The id of the block to lock
-   * @param type The type of lock to acquire, 0 for READ, 1 for WRITE
    * @return the lockId of the lock obtained
    */
-  public long lockBlockV2(long userId, long blockId, int type) {
-    return mWorker.lockBlock(userId, blockId, type);
+  public long lockBlockV2(long userId, long blockId) {
+    return mWorker.lockBlock(userId, blockId);
   }
 
   // TODO: Rename this method when complete, currently is V2 to avoid checkstyle errors
