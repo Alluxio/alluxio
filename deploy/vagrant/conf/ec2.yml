@@ -31,6 +31,9 @@ Tag: "my-"
 # The devices specified here will be automatically formatted to ext4 and
 # mounted to "/disk0", "/disk1"... in sequence
 #
+# If ufs is HDFS, all the /disk* will be used as HDFS's storage
+# Otherwise, all the /disk* will be used as Tachyon's HDD Tiered Storage
+#
 # Example: 
 # 1. Instance Extra Storage(If the Storage colume specified in instance type matrix
 #    http://aws.amazon.com/ec2/instance-types/ is not "EBS Only")
