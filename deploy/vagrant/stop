@@ -1,0 +1,6 @@
+#!/bin/bash
+
+HERE=`dirname $0`
+pushd $HERE >/dev/null
+vagrant destroy -f
+popd >/dev/null
