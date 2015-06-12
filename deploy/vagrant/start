@@ -58,12 +58,17 @@ $VUP
 # files/hosts
 # IPs are automatically assigned by vagrant
 # hack to find out the assigned IPs by looking into vagrant's ssh config to 
-IFACE=eth0
-[[ "$PROVIDER" == "vb" ]] && IFACE=eth1
+# output of `ifconfig` is different in RHEL6.5 and RHEL7
+#   inet:addr 127.0.0.1  VS. inet 127.0.0.1
+# use `ip addr show` instead
 rm -f files/hosts
+IFACE=eth0
+[[ "$PROVIDER" == "vb" ]] && IFACE=eth1 # because of dhcp
 for host in `cat files/workers`; do
-IP=`vagrant ssh $host -c 'ifconfig $IFACE | grep "inet addr"' | grep -w 'inet addr' | awk '{print $2}' | cut -d':' -f2`
-echo "$IP ${host}" >> files/hosts
+ echo "looking up IP of $host..."
+ IP=`vagrant ssh $host -c "ip addr show $IFACE | grep -w inet" | grep -w inet | awk '{print $2}' | cut -d'/' -f1`
+ echo "IP for $host is $IP"
+ echo "$IP ${host}" >> files/hosts
 done
 
 # provision
