@@ -22,10 +22,11 @@ import tachyon.util.ThreadFactoryUtils;
  * Task that carries out the necessary block worker to master communications, including register and
  * heartbeat. This class manages its own {@link tachyon.master.MasterClient}.
  *
- * When running, this task first requests a block report from the core worker, then sends it to the
- * master. The master may respond to the heartbeat with a command which will be executed. After
- * which, the task will wait for the elapsed time since its last heartbeat has reached the heartbeat
- * interval. Then the cycle will continue.
+ * When running, this task first requests a block report from the
+ * {@link tachyon.worker.block.BlockDataManager}, then sends it to the master. The master may
+ * respond to the heartbeat with a command which will be executed. After which, the task will wait
+ * for the elapsed time since its last heartbeat has reached the heartbeat interval. Then the cycle
+ * will continue.
  *
  * If the task fails to heartbeat to the worker, it will destroy its old master client and recreate
  * it before retrying.
@@ -33,15 +34,24 @@ import tachyon.util.ThreadFactoryUtils;
 public class BlockMasterSync implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
+  /** The executor service for the master client thread */
   private final ExecutorService mMasterClientExecutorService;
+  /** The net address of the worker */
   private final NetAddress mWorkerAddress;
+  /** The configuration values */
   private final TachyonConf mTachyonConf;
+  /** Milliseconds between each heartbeat */
   private final int mHeartbeatIntervalMs;
+  /** Milliseconds between heartbeats before a timeout */
   private final int mHeartbeatTimeoutMs;
 
+  /** Client for all master communication */
   private MasterClient mMasterClient;
+  /** Flag to indicate if the sync should continue */
   private boolean mRunning;
+  /** The id of the worker */
   private long mWorkerId;
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
@@ -62,6 +72,10 @@ public class BlockMasterSync implements Runnable {
     mWorkerId = 0;
   }
 
+  /**
+   * Gets the Tachyon master address from the configuration
+   * @return the InetSocketAddress of the master
+   */
   private InetSocketAddress getMasterAddress() {
     String masterHostname =
         mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
@@ -69,6 +83,11 @@ public class BlockMasterSync implements Runnable {
     return new InetSocketAddress(masterHostname, masterPort);
   }
 
+  /**
+   * Handles a master command. The command is one of Unknown, Nothing, Register, Free, or Delete.
+   * This call will block until the command is complete.
+   * @param cmd the command to execute.
+   */
   private void handleMasterCommand(Command cmd) {
     if (cmd != null) {
       switch (cmd.mCommandType) {
@@ -106,6 +125,11 @@ public class BlockMasterSync implements Runnable {
     }
   }
 
+  /**
+   * Registers with the Tachyon master. This should be called before the continuous heartbeat
+   * thread begins. The workerId will be set after this method is successful.
+   * @throws IOException if the registration fails
+   */
   public void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
@@ -118,16 +142,27 @@ public class BlockMasterSync implements Runnable {
     }
   }
 
+  /**
+   * Closes and creates a new master client, in case the master changes.
+   */
   private void resetMasterClient() {
     mMasterClient.close();
     mMasterClient =
         new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
   }
 
+  /**
+   * Gets the worker id, 0 if registerWithMaster has not been called successfully.
+   * @return the worker id
+   */
   public long getWorkerId() {
     return mWorkerId;
   }
 
+  /**
+   * Main loop for the syncer, continuously heartbeats to the master node about the change in the
+   * worker's managed space.
+   */
   @Override
   public void run() {
     long lastHeartbeatMs = System.currentTimeMillis();
