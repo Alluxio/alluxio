@@ -34,7 +34,7 @@ public class NaiveAllocator implements Allocator {
 
   @Override
   public Optional<TempBlockMeta> allocateBlock(long userId, long blockId, long blockSize,
-                                               BlockStoreLocation location) {
+      BlockStoreLocation location) {
     // TODO: implement me
     return Optional.absent();
   }
