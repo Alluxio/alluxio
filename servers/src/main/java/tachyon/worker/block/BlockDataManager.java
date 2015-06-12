@@ -196,7 +196,7 @@ public class BlockDataManager {
    * @return the lockId, or -1 if we failed to obtain a lock
    */
   public long lockBlock(long userId, long blockId) {
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.READ);
+    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId);
     if (optLock.isPresent()) {
       return optLock.get();
     }
