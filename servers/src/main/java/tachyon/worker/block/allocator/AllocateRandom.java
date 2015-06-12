@@ -13,28 +13,29 @@
  * the License.
  */
 
-package tachyon.worker.block.allocator;
-
-import java.util.Random;
-
-import tachyon.worker.block.meta.StorageDir;
-
-/**
- * Allocate space on a StorageDir that has enough space and is selected randomly.
- */
-public class AllocateRandom extends AllocateStrategyBase {
-  private Random mRandm = new Random(System.currentTimeMillis());
-
-  @Override
-  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestBytes) {
-    int i = mRandm.nextInt(storageDirs.length);
-    for (int j = 0; j < storageDirs.length; j ++, i ++) {
-      i = i % storageDirs.length;
-      StorageDir dir = storageDirs[i];
-      if (dir.getAvailableBytes() >= requestBytes && dir.requestSpace(userId, requestBytes)) {
-        return dir;
-      }
-    }
-    return null;
-  }
-}
+// TODO: Implement with new framework
+//package tachyon.worker.block.allocator;
+//
+//import java.util.Random;
+//
+//import tachyon.worker.block.meta.StorageDir;
+//
+///**
+// * Allocate space on a StorageDir that has enough space and is selected randomly.
+// */
+//public class AllocateRandom extends AllocateStrategyBase {
+//  private Random mRandm = new Random(System.currentTimeMillis());
+//
+//  @Override
+//  public StorageDir getStorageDir(StorageDir[] storageDirs, long userId, long requestBytes) {
+//    int i = mRandm.nextInt(storageDirs.length);
+//    for (int j = 0; j < storageDirs.length; j ++, i ++) {
+//      i = i % storageDirs.length;
+//      StorageDir dir = storageDirs[i];
+//      if (dir.getAvailableBytes() >= requestBytes && dir.requestSpace(userId, requestBytes)) {
+//        return dir;
+//      }
+//    }
+//    return null;
+//  }
+//}

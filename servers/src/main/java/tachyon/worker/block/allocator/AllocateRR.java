@@ -13,30 +13,31 @@
  * the License.
  */
 
-package tachyon.worker.block.allocator;
-
-import tachyon.worker.block.meta.StorageDir;
-
-/**
- * Allocate space on a StorageDir selected in round robin from StorageDirs.
- */
-public class AllocateRR extends AllocateStrategyBase {
-  private int mDirIndex = 0;
-
-  @Override
-  public synchronized StorageDir getStorageDir(StorageDir[] storageDirs, long userId,
-      long requestSizeBytes) {
-    StorageDir availableDir = null;
-    for (int j = 0; j < storageDirs.length; mDirIndex ++, j ++) {
-      mDirIndex = mDirIndex % storageDirs.length;
-      if (storageDirs[mDirIndex].getAvailableBytes() >= requestSizeBytes) {
-        availableDir = storageDirs[mDirIndex];
-        if (availableDir.requestSpace(userId, requestSizeBytes)) {
-          mDirIndex ++;
-          return availableDir;
-        }
-      }
-    }
-    return null;
-  }
-}
+// TODO: Implement with new framework
+//package tachyon.worker.block.allocator;
+//
+//import tachyon.worker.block.meta.StorageDir;
+//
+///**
+// * Allocate space on a StorageDir selected in round robin from StorageDirs.
+// */
+//public class AllocateRR extends AllocateStrategyBase {
+//  private int mDirIndex = 0;
+//
+//  @Override
+//  public synchronized StorageDir getStorageDir(StorageDir[] storageDirs, long userId,
+//      long requestSizeBytes) {
+//    StorageDir availableDir = null;
+//    for (int j = 0; j < storageDirs.length; mDirIndex ++, j ++) {
+//      mDirIndex = mDirIndex % storageDirs.length;
+//      if (storageDirs[mDirIndex].getAvailableBytes() >= requestSizeBytes) {
+//        availableDir = storageDirs[mDirIndex];
+//        if (availableDir.requestSpace(userId, requestSizeBytes)) {
+//          mDirIndex ++;
+//          return availableDir;
+//        }
+//      }
+//    }
+//    return null;
+//  }
+//}
