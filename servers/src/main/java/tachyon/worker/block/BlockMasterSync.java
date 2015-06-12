@@ -90,6 +90,7 @@ public class BlockMasterSync implements Runnable {
 
   /**
    * Gets the Tachyon master address from the configuration
+   *
    * @return the InetSocketAddress of the master
    */
   private InetSocketAddress getMasterAddress() {
@@ -102,6 +103,7 @@ public class BlockMasterSync implements Runnable {
   /**
    * Handles a master command. The command is one of Unknown, Nothing, Register, Free, or Delete.
    * This call will block until the command is complete.
+   *
    * @param cmd the command to execute.
    * @throws IOException if an error occurs when executing the command
    */
@@ -111,7 +113,7 @@ public class BlockMasterSync implements Runnable {
       return;
     }
     switch (cmd.mCommandType) {
-      // Currently unused
+    // Currently unused
       case Delete:
         break;
       // Master requests blocks to be removed from Tachyon managed space.
@@ -137,8 +139,9 @@ public class BlockMasterSync implements Runnable {
   }
 
   /**
-   * Registers with the Tachyon master. This should be called before the continuous heartbeat
-   * thread begins. The workerId will be set after this method is successful.
+   * Registers with the Tachyon master. This should be called before the continuous heartbeat thread
+   * begins. The workerId will be set after this method is successful.
+   *
    * @throws IOException if the registration fails
    */
   public void registerWithMaster() throws IOException {
@@ -164,6 +167,7 @@ public class BlockMasterSync implements Runnable {
 
   /**
    * Gets the worker id, 0 if registerWithMaster has not been called successfully.
+   *
    * @return the worker id
    */
   public long getWorkerId() {
@@ -177,35 +181,39 @@ public class BlockMasterSync implements Runnable {
   @Override
   public void run() {
     long lastHeartbeatMs = System.currentTimeMillis();
-    Command cmd = null;
     while (mRunning) {
-      long diff = System.currentTimeMillis() - lastHeartbeatMs;
-      if (diff < mHeartbeatIntervalMs) {
-        LOG.debug("Heartbeat process takes {} ms.", diff);
-        CommonUtils.sleepMs(LOG, mHeartbeatIntervalMs - diff);
+      // Check the time since last heartbeat, and wait until it is within heartbeat interval
+      long lastIntervalMs = System.currentTimeMillis() - lastHeartbeatMs;
+      long toSleepMs = mHeartbeatIntervalMs - lastIntervalMs;
+      if (toSleepMs > 0) {
+        CommonUtils.sleepMs(LOG, toSleepMs);
       } else {
-        LOG.warn("Heartbeat took " + diff + " ms, expected " + mHeartbeatIntervalMs + " ms.");
+        LOG.warn("Heartbeat took: " + lastIntervalMs + ", expected: " + mHeartbeatIntervalMs);
       }
+
+      // Prepare metadata for the next heartbeat
+      BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
+      BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+
+      // Send the heartbeat and execute the response
       try {
-        BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
-        BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
-        cmd =
+        Command cmdFromMaster =
             mMasterClient.worker_heartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(),
                 blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
+        handleMasterCommand(cmdFromMaster);
+      } catch (IOException ioe) {
+        // An error occurred, retry after 1 second or error if heartbeat timeout is reached
+        LOG.error("Failed to receive or execute master heartbeat command.", ioe);
         resetMasterClient();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-        cmd = null;
-        diff = System.currentTimeMillis() - lastHeartbeatMs;
-        if (diff >= mHeartbeatTimeoutMs) {
-          throw new RuntimeException("Heartbeat timeout " + diff + "ms");
+        if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {
+          throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
         }
       }
-      // TODO: Is there a way to make this async? Could take much longer than heartbeat timeout.
-      handleMasterCommand(cmd);
-      // TODO: This should go in its own thread
+
+      // Check if any users have become zombies, if so clean them up
+      // TODO: Make this unrelated to master sync
       mBlockDataManager.cleanupUsers();
     }
   }
