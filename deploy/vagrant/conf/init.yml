@@ -5,13 +5,3 @@ Provider: 'vb'
 Memory: 1024 #MB
 # Total is the number of VMs to start
 Total: 2
-# Addresses are the internal IPs given to each VM.
-# The last one is designated as Tachyon master
-# For VirtualBox: the addresses can be arbitrary
-# For AWS: the addresses must be in the same subnet, to find available subnets:
-#   go to AWS VPC web console and choose the same region and availability zone 
-#   as you specify in ec2.yml, look into "Subnets" on left panel
-# For Docker and OpenStack: these addresses are not used. specify "n/a"
-Addresses:
-    - "192.168.1.11"
-    - "192.168.1.12"
