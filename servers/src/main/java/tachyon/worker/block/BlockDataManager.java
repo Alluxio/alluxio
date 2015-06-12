@@ -190,15 +190,13 @@ public class BlockDataManager {
   }
 
   /**
-   * Obtains a read or write lock on the block.
+   * Obtains a read lock the block.
    * @param userId The id of the client
    * @param blockId The id of the block to be locked
-   * @param type The type of the lock, 0 for READ, 1 for WRITE
    * @return the lockId, or -1 if we failed to obtain a lock
    */
-  public long lockBlock(long userId, long blockId, int type) {
-    // TODO: Define some conversion of int -> lock type
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
+  public long lockBlock(long userId, long blockId) {
+    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.READ);
     if (optLock.isPresent()) {
       return optLock.get();
     }
