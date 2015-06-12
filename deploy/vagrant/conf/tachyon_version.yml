@@ -4,7 +4,7 @@ Type: Local
 # github repo and version(can be branch, commit hash)
 Github:
   Repo: https://github.com/amplab/tachyon
-  Version: branch-0.5
+  Version: branch-0.6
 
 Release:
-  Dist: tachyon-0.5.0-bin.tar.gz
+  Dist: tachyon-0.6.4-bin.tar.gz
