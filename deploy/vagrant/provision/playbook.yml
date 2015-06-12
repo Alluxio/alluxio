@@ -1,8 +1,6 @@
 - hosts: all
   tasks:
     - include: roles/common/tasks/main.yml
-    - include: roles/vagrant_utils/tasks/main.yml
-
     - include: roles/lib/tasks/mount.yml
       when: provider == "aws"
 
@@ -26,6 +24,8 @@
 
 - hosts: TachyonMaster
   tasks:
+    - include: roles/vagrant_utils/tasks/main.yml
+
     # Ufs
     - include: roles/ufs_{{ ufs }}/tasks/download_release.yml
     - include: roles/ufs_{{ ufs }}/tasks/config.yml
