@@ -35,6 +35,9 @@
 
     - include: roles/tachyon/tasks/config.yml
 
+    - include: roles/lib/tasks/tachyon_tiered.yml
+      when: (ufs != "hadoop1") and (ufs != "hadoop2")
+
     # Spark
     - include: roles/spark/tasks/download_release.yml
       when: spark_type == "Release"
