@@ -29,6 +29,11 @@ import tachyon.worker.block.BlockWorker;
 public class TachyonWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Main method for Tachyon Worker. A Block Worker will be started and the Tachyon Worker will
+   * continue to run until the Block Worker thread exits.
+   * @param args command line arguments, should be empty
+   */
   public static void main(String[] args) {
     checkArgs(args);
     TachyonConf tachyonConf = new TachyonConf();
@@ -51,6 +56,10 @@ public class TachyonWorker {
     System.exit(0);
   }
 
+  /**
+   * Verifies that no parameters are passed in
+   * @param args command line arguments
+   */
   private static void checkArgs(String[] args) {
     if (args.length != 0) {
       LOG.info("Usage: java TachyonWorker");
