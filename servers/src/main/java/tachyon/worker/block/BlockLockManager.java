@@ -47,7 +47,7 @@ public class BlockLockManager {
   private final List<ClientRWLock> mLockArray = new ArrayList<ClientRWLock>(NUM_LOCKS);
   /** A map from a user ID to all the locks hold by this user */
   private final Map<Long, Set<Long>> mUserIdToLockIdsMap = new HashMap<Long, Set<Long>>();
-  /** A map from a lock ID to the user ID holding this lock */
+  /** A map from a lock ID to the lock record of it */
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
 
   private class LockRecord {
@@ -74,7 +74,11 @@ public class BlockLockManager {
     }
   }
 
-  public BlockLockManager() {}
+  public BlockLockManager() {
+    for (int i = 0; i < NUM_LOCKS; i++) {
+      mLockArray.add(new ClientRWLock());
+    }
+  }
 
   public synchronized Optional<Long> lockBlock(long userId, long blockId,
       BlockLockType blockLockType) {
