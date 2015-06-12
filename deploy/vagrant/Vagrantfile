@@ -8,9 +8,8 @@ require "./core/EnvSetup"
 @cmd = YAML.load_file('conf/init.yml')
 puts @cmd.inspect
 
-Total = @cmd['Total']
+Total = @cmd['MachineNumber']
 Provider = @cmd['Provider']
-Memory = @cmd['Memory']
 
 validate_provider(Provider)
 
