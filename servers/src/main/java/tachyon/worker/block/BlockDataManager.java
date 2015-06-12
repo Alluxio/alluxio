@@ -158,7 +158,7 @@ public class BlockDataManager {
    * @throws IOException if an error occurs when removing the block
    */
   // TODO: This may be better as void, we should avoid throwing IOException
-  public boolean freeBlock(long userId, long blockId) throws IOException {
+  public boolean removeBlock(long userId, long blockId) throws IOException {
     return mBlockStore.removeBlock(userId, blockId);
   }
 

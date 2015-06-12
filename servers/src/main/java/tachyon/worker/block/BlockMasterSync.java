@@ -199,7 +199,7 @@ public class BlockMasterSync implements Runnable {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
-          mBlockDataManager.freeBlock(Users.MASTER_COMMAND_ID, block);
+          mBlockDataManager.removeBlock(Users.MASTER_COMMAND_ID, block);
         }
         break;
       // No action required
