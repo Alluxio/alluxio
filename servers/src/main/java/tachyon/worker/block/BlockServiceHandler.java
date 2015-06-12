@@ -211,7 +211,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public String lockBlock(long blockId, long userId) throws TException {
-    long lockId = mWorker.lockBlock(userId, blockId, 1);
+    long lockId = mWorker.lockBlock(userId, blockId);
     return mWorker.readBlock(userId, blockId, lockId);
   }
 
