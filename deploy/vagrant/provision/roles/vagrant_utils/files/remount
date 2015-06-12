@@ -2,13 +2,12 @@
 
 # devices defined in aws block device mapping are mounted defaultly to /disk0, /disk1...
 # this script makes it easy to remount these devices to other directory
-# e.x. `remount` /disk0 /tmp will mount the device for /disk0 to /tmp
+# e.x. `remount` /disk0 /tmp will mount the device for /disk0 to /tmp in all nodes
 
-set -e
 
 usage() {
  echo "Usage: remount <source directory> <destination directory>"
- echo "destination directory should exist before running this script"
+ echo "assume the backend device of the <source directory> is the same on all nodes"
  exit 1
 }
 
@@ -18,18 +17,6 @@ fi
 
 SRC="$1"
 DEST="$2"
-
-ensure_dir() {
- dir="$1"
- if [ ! -d "$dir" ]; then
-  echo "$dir is not a directory"
-  exit 1
- fi
-}
-
-ensure_dir "$SRC"
-ensure_dir "$DEST"
-
 SRC_DEVICE=`df | grep "$SRC" | grep '^/dev' | cut -d' ' -f1`
 if [[ "$SRC_DEVICE" == "" ]]; then
  echo "$SRC is not mounted separately to any device under /dev"
@@ -38,6 +25,18 @@ else
  echo "device for $SRC is $SRC_DEVICE"
 fi
 
+for HOST in `cat /vagrant/files/workers`; do
+  ssh $HOST /bin/bash <<EOF &
+set -e
+
+echo "remounting $SRC to $DEST on $HOST"
+
+sudo mkdir -p $SRC && sudo chown -R `whoami` $SRC
+sudo mkdir -p $DEST && sudo chown -R `whoami` $DEST
+
 sudo umount $SRC
 sudo mount $SRC_DEVICE $DEST
+EOF
+done
 
+wait
