@@ -36,6 +36,7 @@ public class Users {
   public static final int DATASERVER_USER_ID = -1;
   public static final int CHECKPOINT_USER_ID = -2;
   public static final int MIGRATE_DATA_USER_ID = -3;
+  public static final int MASTER_COMMAND_ID = -4;
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

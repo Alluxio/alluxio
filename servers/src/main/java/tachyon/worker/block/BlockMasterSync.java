@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.Users;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
@@ -102,41 +103,36 @@ public class BlockMasterSync implements Runnable {
    * Handles a master command. The command is one of Unknown, Nothing, Register, Free, or Delete.
    * This call will block until the command is complete.
    * @param cmd the command to execute.
+   * @throws IOException if an error occurs when executing the command
    */
-  private void handleMasterCommand(Command cmd) {
-    if (cmd != null) {
-      switch (cmd.mCommandType) {
-        case Unknown:
-          LOG.error("Unknown command: " + cmd);
-          break;
-        case Nothing:
-          LOG.debug("Nothing command: {}", cmd);
-          break;
-        case Register:
-          LOG.info("Register command: " + cmd);
-          try {
-            registerWithMaster();
-          } catch (Exception e) {
-            LOG.error("Failed to register with master.", e);
-          }
-          break;
-        case Free:
-          LOG.info("Free command: " + cmd);
-          for (long block : cmd.mData) {
-            try {
-              // TODO: Define constants for system user.
-              mBlockDataManager.freeBlock(-1, block);
-            } catch (IOException ioe) {
-              LOG.error("Failed to free blocks: " + cmd.mData, ioe);
-            }
-          }
-          break;
-        case Delete:
-          LOG.info("Delete command: " + cmd);
-          break;
-        default:
-          throw new RuntimeException("Un-recognized command from master " + cmd.toString());
-      }
+  // TODO: Evaluate the necessity of each command
+  private void handleMasterCommand(Command cmd) throws IOException {
+    if (cmd == null) {
+      return;
+    }
+    switch (cmd.mCommandType) {
+      // Currently unused
+      case Delete:
+        break;
+      // Master requests blocks to be removed from Tachyon managed space.
+      case Free:
+        for (long block : cmd.mData) {
+          mBlockDataManager.freeBlock(Users.MASTER_COMMAND_ID, block);
+        }
+        break;
+      // No action required
+      case Nothing:
+        break;
+      // Master requests re-registration
+      case Register:
+        registerWithMaster();
+        break;
+      // Unknown request
+      case Unknown:
+        LOG.error("Master heartbeat sends unknown command " + cmd);
+        break;
+      default:
+        throw new RuntimeException("Un-recognized command from master " + cmd);
     }
   }
 
@@ -175,7 +171,7 @@ public class BlockMasterSync implements Runnable {
   }
 
   /**
-   * Main loop for the syncer, continuously heartbeats to the master node about the change in the
+   * Main loop for the sync, continuously heartbeats to the master node about the change in the
    * worker's managed space.
    */
   @Override
@@ -214,6 +210,9 @@ public class BlockMasterSync implements Runnable {
     }
   }
 
+  /**
+   * Stops the sync, once this method is called, the object should be discarded
+   */
   public void stop() {
     mRunning = false;
     mMasterClient.close();
