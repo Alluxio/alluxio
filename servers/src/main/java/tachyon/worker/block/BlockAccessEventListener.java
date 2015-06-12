@@ -22,7 +22,6 @@ import tachyon.worker.BlockStoreLocation;
  */
 public interface BlockAccessEventListener {
 
-  void preAccessBlock(long userId, long blockId);
+  void onAccessBlock(long userId, long blockId);
 
-  void postAccessBlock(long userId, long blockId);
 }

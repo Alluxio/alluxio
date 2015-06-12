@@ -35,7 +35,7 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
   }
 
   @Override
-  public void preAccessBlock(long userId, long blockId) {}
+  public void onAccessBlock(long userId, long blockId) {}
 
   @Override
   public void postAccessBlock(long userId, long blockId) {}
