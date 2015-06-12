@@ -158,8 +158,20 @@ public class BlockDataManager {
    * @throws IOException if an error occurs when removing the block
    */
   // TODO: This may be better as void, we should avoid throwing IOException
+<<<<<<< HEAD
   public boolean removeBlock(long userId, long blockId) throws IOException {
     return mBlockStore.removeBlock(userId, blockId);
+=======
+  public boolean freeBlock(long userId, long blockId) throws IOException {
+    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLockType.BlockLockType.WRITE);
+    if (!optLock.isPresent()) {
+      return false;
+    }
+    Long lockId = optLock.get();
+    mBlockStore.removeBlock(userId, blockId, lockId);
+    mBlockStore.unlockBlock(lockId);
+    return true;
+>>>>>>> Make lockBlock in BlockStore interface to grab READ lock only, because only all WRITE lock acquisition are in the tierd store layer
   }
 
   /**
@@ -195,8 +207,14 @@ public class BlockDataManager {
    * @param blockId The id of the block to be locked
    * @return the lockId, or -1 if we failed to obtain a lock
    */
+<<<<<<< HEAD
   public long lockBlock(long userId, long blockId) {
     Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.READ);
+=======
+  public long lockBlock(long userId, long blockId, int type) {
+    // TODO: Define some conversion of int -> lock type
+    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLockType.BlockLockType.WRITE);
+>>>>>>> Make lockBlock in BlockStore interface to grab READ lock only, because only all WRITE lock acquisition are in the tierd store layer
     if (optLock.isPresent()) {
       return optLock.get();
     }
@@ -214,6 +232,12 @@ public class BlockDataManager {
    */
   // TODO: This may be better as void, we should avoid throwing IOException
   public boolean moveBlock(long userId, long blockId, int tier) throws IOException {
+    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLockType.BlockLockType.WRITE);
+    // TODO: Define this behavior
+    if (!optLock.isPresent()) {
+      return false;
+    }
+    Long lockId = optLock.get();
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tier);
     return mBlockStore.moveBlock(userId, blockId, dst);
   }
