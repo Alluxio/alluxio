@@ -159,7 +159,7 @@ public class BlockDataManager {
    */
   // TODO: This may be better as void, we should avoid throwing IOException
   public boolean freeBlock(long userId, long blockId) throws IOException {
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
+    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLockType.BlockLockType.WRITE);
     if (!optLock.isPresent()) {
       return false;
     }
@@ -205,7 +205,7 @@ public class BlockDataManager {
    */
   public long lockBlock(long userId, long blockId, int type) {
     // TODO: Define some conversion of int -> lock type
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
+    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLockType.BlockLockType.WRITE);
     if (optLock.isPresent()) {
       return optLock.get();
     }
@@ -223,7 +223,7 @@ public class BlockDataManager {
    */
   // TODO: This may be better as void, we should avoid throwing IOException
   public boolean moveBlock(long userId, long blockId, int tier) throws IOException {
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE);
+    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLockType.BlockLockType.WRITE);
     // TODO: Define this behavior
     if (!optLock.isPresent()) {
       return false;

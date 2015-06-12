@@ -76,9 +76,8 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public Optional<Long> lockBlock(long userId, long blockId,
-      BlockLock.BlockLockType blockLockType) {
-    return mLockManager.lockBlock(userId, blockId, blockLockType);
+  public Optional<Long> lockBlock(long userId, long blockId) {
+    return mLockManager.lockBlock(userId, blockId, BlockLockType.READ);
   }
 
   @Override
@@ -128,7 +127,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public boolean commitBlock(long userId, long blockId) {
     mEvictionLock.readLock().lock();
-    long lockId = mLockManager.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE).get();
+    long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
     boolean result = commitBlockNoLock(userId, blockId);
     mLockManager.unlockBlock(lockId);
     mEvictionLock.readLock().unlock();
@@ -136,9 +135,9 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public boolean abortBlock(long userId, long blockId) throws IOException {
+  public boolean abortBlock(long userId, long blockId) {
     mEvictionLock.readLock().lock();
-    long lockId = mLockManager.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE).get();
+    long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
     boolean result = abortBlockNoLock(userId, blockId);
     mLockManager.unlockBlock(lockId);
     mEvictionLock.readLock().unlock();
@@ -157,7 +156,7 @@ public class TieredBlockStore implements BlockStore {
   public boolean moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
       throws IOException {
     mEvictionLock.readLock().lock();
-    long lockId = mLockManager.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE).get();
+    long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
     boolean result = moveBlockNoLock(userId, blockId, newLocation);
     mLockManager.unlockBlock(lockId);
     mEvictionLock.readLock().unlock();
@@ -167,7 +166,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public boolean removeBlock(long userId, long blockId) throws IOException {
     mEvictionLock.readLock().lock();
-    long lockId = mLockManager.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE).get();
+    long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
     boolean result = removeBlockNoLock(userId, blockId);
     mLockManager.unlockBlock(lockId);
     mEvictionLock.readLock().unlock();
@@ -247,7 +246,7 @@ public class TieredBlockStore implements BlockStore {
     return mMetaManager.commitTempBlockMeta(tempBlock);
   }
 
-  private boolean abortBlockNoLock(long userId, long blockId) throws IOException {
+  private boolean abortBlockNoLock(long userId, long blockId) {
     // TODO: check the userId is the owner of this temp block?
     Optional<TempBlockMeta> optTempBlock = mMetaManager.getTempBlockMeta(blockId);
     if (!optTempBlock.isPresent()) {
@@ -311,7 +310,7 @@ public class TieredBlockStore implements BlockStore {
     EvictionPlan plan = mEvictor.freeSpace(size, location);
     // Step1: remove blocks to make room.
     for (long blockId : plan.toEvict()) {
-      long lockId = mLockManager.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE).get();
+      long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
       boolean result = removeBlockNoLock(userId, blockId);
       mLockManager.unlockBlock(lockId);
       if (!result) {
@@ -322,7 +321,7 @@ public class TieredBlockStore implements BlockStore {
     for (Pair<Long, BlockStoreLocation> entry : plan.toMove()) {
       long blockId = entry.getFirst();
       BlockStoreLocation newLocation = entry.getSecond();
-      long lockId = mLockManager.lockBlock(userId, blockId, BlockLock.BlockLockType.WRITE).get();
+      long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
       boolean result = moveBlockNoLock(userId, blockId, newLocation);
       mLockManager.unlockBlock(lockId);
       if (!result) {
