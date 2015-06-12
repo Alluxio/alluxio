@@ -103,7 +103,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    */
   public boolean freeBlock(long blockId) throws TException {
     try {
-      return mWorker.freeBlock(Users.MIGRATE_DATA_USER_ID, blockId);
+      return mWorker.removeBlock(Users.MIGRATE_DATA_USER_ID, blockId);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
