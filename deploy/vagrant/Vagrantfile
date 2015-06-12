@@ -11,7 +11,6 @@ puts @cmd.inspect
 Total = @cmd['Total']
 Provider = @cmd['Provider']
 Memory = @cmd['Memory']
-Addr = @cmd['Addresses']
 
 validate_provider(Provider)
 
@@ -22,16 +21,17 @@ UfsV = UfsVersion.new('conf/ufs.yml')
 
 require "./core/config_#{Provider}"
 
-# config cluster and create /etc/hosts
-NameArr = Array.new
-config_hosts(NameArr)
 # Vagrantfile API/syntax version.
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.require_version ">= 1.6.5"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   (1..Total).each do |i|
     # multi vm config
-    name = NameArr[i]
+    if i == Total
+      name = "TachyonMaster"
+    else
+      name = "TachyonWorker#{i}"
+    end
     config.vm.define "#{name}" do |n|
       n.vm.hostname = "#{name}"
 
