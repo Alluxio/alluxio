@@ -39,6 +39,7 @@ for disk in $to_mount; do
  sudo mkfs.ext4 "/dev/$disk"
  sudo mkdir "/disk$n"
  sudo mount "/dev/$disk" "/disk$n"
+ sudo chown -R `whoami` "/disk$n"
  n=$(( $n + 1 ))
 done
 echo "$n devices mounted as /disk#"
