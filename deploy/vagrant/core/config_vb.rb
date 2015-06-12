@@ -3,6 +3,8 @@
 
 # VB specific configurations go here
 
+require 'yaml'
+
 def config_vb(config, i, total, name, tachyon_is_local)
   # sync vagrant/shared, but shared may be created in vm, so we sync vagrant/
   # we can put maven repos, hadoop binary tar to vagrant/shared so that they
@@ -17,8 +19,9 @@ def config_vb(config, i, total, name, tachyon_is_local)
 
   config.vm.box = "tachyon-dev"
   config.vm.provider "virtualbox" do |vb|
-    if Memory != ''
-      vb.customize ["modifyvm", :id, "--memory", Memory]
+    mem = YAML.load_file('conf/vb.yml')['MachineMemory']
+    if mem != ''
+      vb.customize ["modifyvm", :id, "--memory", mem]
     end
     vb.gui = true
   end
