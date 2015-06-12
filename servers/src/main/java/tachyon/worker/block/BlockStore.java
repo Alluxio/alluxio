@@ -34,15 +34,13 @@ import tachyon.worker.block.meta.TempBlockMeta;
 public interface BlockStore {
 
   /**
-   * Locks a block for a specific mode (READ or WRITE) and guards the subsequent operations on this
-   * block.
+   * Locks a block for a READ and guards the subsequent operations on this block.
    *
    * @param userId the ID of the user to lock this block
    * @param blockId the ID of the block to lock
-   * @param blockLockType the lock type
-   * @return the lock ID if the lock is acquired successfully, {@link Optional#absent()} otherwise
+    * @return the lock ID if the lock is acquired successfully, {@link Optional#absent()} otherwise
    */
-  Optional<Long> lockBlock(long userId, long blockId, BlockLock.BlockLockType blockLockType);
+  Optional<Long> lockBlock(long userId, long blockId);
 
   /**
    * Release an acquired lock on a block previously by {@link #lockBlock}.
@@ -92,7 +90,7 @@ public interface BlockStore {
    * @return true if success, false otherwise
    * @throws IOException
    */
-  boolean commitBlock(long userId, long blockId) throws IOException;
+  boolean commitBlock(long userId, long blockId);
 
   /**
    * Aborts a temporary block. The meta data of this block will not be added, its data will be
@@ -104,7 +102,7 @@ public interface BlockStore {
    * @return true if success, false otherwise
    * @throws IOException
    */
-  boolean abortBlock(long userId, long blockId) throws IOException;
+  boolean abortBlock(long userId, long blockId);
 
   /**
    * Requests to increase the size of a temp block. Since a temp block is "private" to the writer,
