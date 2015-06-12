@@ -25,12 +25,6 @@ def validate_provider(provider)
 end
 
 
-def gen_ssh_key
-  system "mkdir -p ./files && \
-          if [ ! -f ./files/id_rsa ]; then ssh-keygen -f ./files/id_rsa -t rsa -N ''; fi"
-end
-
-
 def config_hosts(name)
   system 'mkdir', '-p', './files'
   # copy ./files/workers in Host to /tachyon/conf/workers in Vagrant
