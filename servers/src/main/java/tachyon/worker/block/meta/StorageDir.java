@@ -15,7 +15,11 @@
 
 package tachyon.worker.block.meta;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +89,7 @@ public class StorageDir {
    */
   public List<Long> getBlockIds() {
     List<Long> blockIds = new ArrayList<Long>();
-    for (long blockId: mBlockIdToBlockMap.keySet()) {
+    for (long blockId : mBlockIdToBlockMap.keySet()) {
       blockIds.add(blockId);
     }
     return blockIds;
