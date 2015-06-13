@@ -11,10 +11,10 @@ title: Deploy Specific Version Of Either Tachyon Or Spark Via Vagrant
     # github repo and version(can be branch, commit hash)
     Github: 
       Repo: https://github.com/amplab/tachyon
-      Version: branch-0.5
+      Version: branch-0.6
 
     Release:
-      Dist: tachyon-0.5.0-bin.tar.gz
+      Dist: tachyon-0.6.4-bin.tar.gz
 
 Parameters explained: 
 
@@ -29,10 +29,10 @@ Parameters explained:
     <td>Github:Repo</td><td>url of github repo for tachyon</td><td>official repo is https://github.com/amplab/tachyon</td>
 </tr>
 <tr>
-    <td>Github:Version</td><td>branch or commit hash of the repo</td><td>e.x. branch-0.5 or 88116afd140306ce9755eabe3d6fd305ddaf9267</td>
+    <td>Github:Version</td><td>branch or commit hash of the repo</td><td>e.x. branch-0.6 or 385e66c5dc6ccd1527a66199da0d135f38d3812e</td>
 </tr>
 <tr>
-    <td>Release:Dist</td><td>the name of tarball you want to deploy</td><td>e.x. tachyon-0.5.0-bin.tar.gz</td>
+    <td>Release:Dist</td><td>the name of tarball you want to deploy</td><td>e.x. tachyon-0.6.4-bin.tar.gz</td>
 </tr>
 </table>
 
@@ -45,11 +45,11 @@ Parameters explained:
 
     Github:
       Repo: https://github.com/apache/spark
-      Version: branch-1.3 # repo of this version must contain make-distribution.sh, that is branch-0.8 afterwards
+      Version: branch-1.4 # repo of this version must contain make-distribution.sh, that is branch-0.8 afterwards
       Version_LessThan_1.0.0: false
 
     Release: 
-      Dist: spark-1.3.1-bin-hadoop1.tgz
+      Dist: spark-1.4.0-bin-hadoop1.tgz
 
 Parameters' meanings are similar to those of tachyon_version.yml.
 
