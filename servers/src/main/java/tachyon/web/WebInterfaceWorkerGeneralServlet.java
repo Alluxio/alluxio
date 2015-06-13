@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -25,17 +25,17 @@ import javax.servlet.http.HttpServletResponse;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.util.CommonUtils;
-import tachyon.worker.WorkerStorage;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * Servlets that shows a worker's general information, including tiered storage details.
  */
 public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   private static final long serialVersionUID = 3735143768058466487L;
-  private final transient WorkerStorage mWorkerStorage;
+  private final transient BlockWorker mWorker;
 
-  public WebInterfaceWorkerGeneralServlet(WorkerStorage workerStorage) {
-    mWorkerStorage = workerStorage;
+  public WebInterfaceWorkerGeneralServlet(BlockWorker worker) {
+    mWorker = worker;
   }
 
   @Override
@@ -51,27 +51,29 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
    * @param request The HttpServletRequest object
    * @throws IOException
    */
+  // TODO: Provide a way to populate these values
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);
 
-    request.setAttribute("workerAddress", mWorkerStorage.getWorkerAddress().toString());
-
-    request.setAttribute("uptime",
-        Utils.convertMsToClockTime(System.currentTimeMillis() - mWorkerStorage.getStartTimeMs()));
-
-    request.setAttribute("startTime", Utils.convertMsToDate(mWorkerStorage.getStartTimeMs()));
-
-    request.setAttribute("version", Version.VERSION);
-
-    request.setAttribute("capacityBytes",
-        CommonUtils.getSizeFromBytes(mWorkerStorage.getCapacityBytes()));
-
-    request.setAttribute("usedBytes", CommonUtils.getSizeFromBytes(mWorkerStorage.getUsedBytes()));
-
-    request.setAttribute("capacityBytesOnTiers", mWorkerStorage.getCapacityBytesOnTiers());
-
-    request.setAttribute("usedBytesOnTiers", mWorkerStorage.getUsedBytesOnTiers());
-
-    request.setAttribute("storageDirs", mWorkerStorage.getStorageDirs());
+    // request.setAttribute("workerAddress", mWorkerStorage.getWorkerAddress().toString());
+    //
+    // request.setAttribute("uptime",
+    // Utils.convertMsToClockTime(System.currentTimeMillis() - mWorkerStorage.getStartTimeMs()));
+    //
+    // request.setAttribute("startTime", Utils.convertMsToDate(mWorkerStorage.getStartTimeMs()));
+    //
+    // request.setAttribute("version", Version.VERSION);
+    //
+    // request.setAttribute("capacityBytes",
+    // CommonUtils.getSizeFromBytes(mWorkerStorage.getCapacityBytes()));
+    //
+    // request.setAttribute("usedBytes",
+    // CommonUtils.getSizeFromBytes(mWorkerStorage.getUsedBytes()));
+    //
+    // request.setAttribute("capacityBytesOnTiers", mWorkerStorage.getCapacityBytesOnTiers());
+    //
+    // request.setAttribute("usedBytesOnTiers", mWorkerStorage.getUsedBytesOnTiers());
+    //
+    // request.setAttribute("storageDirs", mWorkerStorage.getStorageDirs());
   }
 }

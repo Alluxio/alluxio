@@ -14,32 +14,34 @@
  */
 
 // TODO: Implement this with new framework
-//package tachyon.worker.block.evictor;
+// package tachyon.worker.block.evictor;
 //
-//import java.util.List;
-//import java.util.Set;
+// import java.util.List;
+// import java.util.Set;
 //
-//import tachyon.Pair;
-//import tachyon.worker.block.meta.BlockInfo;
-//import tachyon.worker.block.meta.StorageDir;
+// import tachyon.Pair;
+// import tachyon.worker.block.meta.BlockInfo;
+// import tachyon.worker.block.meta.StorageDir;
 //
-///**
-// * Get a StorageDir where space can be allocated by evicting some blocks. Because the information of
+// /**
+// * Get a StorageDir where space can be allocated by evicting some blocks. Because the information
+// of
 // * pin file / locked blocks may change after the blocks to evict are selected, at the moment when
-// * one really attempts to evict blocks, some candidate blocks may not be allowed to evict any more.
+// * one really attempts to evict blocks, some candidate blocks may not be allowed to evict any
+// more.
 // * As a result, one may have to try multiple times to get enough space.
 // */
-//public interface EvictStrategy {
+// public interface EvictStrategy {
 //
-//  /**
-//   * Get a StorageDir allocated and a list of blocks to evict among StorageDir candidates
-//   *
-//   * @param storageDirs StorageDir candidates that the space will be allocated in
-//   * @param pinList list of pinned files
-//   * @param requestBytes size of requested space in bytes
-//   * @return a pair of StorageDir allocated and a list of blockInfo which contains the information
-//   *         of blocks to evict, null if no allocated directory is found
-//   */
-//  Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
-//      Set<Integer> pinList, long requestBytes);
-//}
+// /**
+// * Get a StorageDir allocated and a list of blocks to evict among StorageDir candidates
+// *
+// * @param storageDirs StorageDir candidates that the space will be allocated in
+// * @param pinList list of pinned files
+// * @param requestBytes size of requested space in bytes
+// * @return a pair of StorageDir allocated and a list of blockInfo which contains the information
+// * of blocks to evict, null if no allocated directory is found
+// */
+// Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
+// Set<Integer> pinList, long requestBytes);
+// }

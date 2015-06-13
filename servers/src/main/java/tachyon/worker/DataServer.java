@@ -37,7 +37,7 @@ public interface DataServer extends Closeable {
       try {
         return CommonUtils.createNewClassInstance(
             conf.getClass(Constants.WORKER_DATA_SERVER, ServerConstants.WORKER_DATA_SERVER_CLASS),
-            new Class[] { InetSocketAddress.class, BlocksLocker.class, TachyonConf.class },
+            new Class[] { InetSocketAddress.class, BlockDataManager.class, TachyonConf.class },
             new Object[] { dataAddress, blockDataManager, conf });
       } catch (Exception e) {
         throw Throwables.propagate(e);
