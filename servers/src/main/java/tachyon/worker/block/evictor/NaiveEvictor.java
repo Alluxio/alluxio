@@ -30,13 +30,10 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
   }
 
   @Override
-  public EvictionPlan freeSpace(long bytes,  BlockStoreLocation location) {
+  public EvictionPlan freeSpace(long bytes, BlockStoreLocation location) {
     return new EvictionPlan(null, null);
   }
 
   @Override
   public void onAccessBlock(long userId, long blockId) {}
-
-  @Override
-  public void postAccessBlock(long userId, long blockId) {}
 }
