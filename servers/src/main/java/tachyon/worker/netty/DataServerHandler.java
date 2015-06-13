@@ -40,8 +40,8 @@ import tachyon.network.protocol.RPCResponse;
 import tachyon.network.protocol.databuffer.DataBuffer;
 import tachyon.network.protocol.databuffer.DataByteBuffer;
 import tachyon.network.protocol.databuffer.DataFileChannel;
+import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockHandler;
-import tachyon.worker.BlocksLocker;
 import tachyon.worker.block.meta.StorageDir;
 
 /**
@@ -52,7 +52,7 @@ import tachyon.worker.block.meta.StorageDir;
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final BlocksLocker mLocker;
+  private final BlockDataManager mLocker;
   private final TachyonConf mTachyonConf;
   private final FileTransferType mTransferType;
 
