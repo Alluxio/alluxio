@@ -34,11 +34,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.Users;
 import tachyon.conf.TachyonConf;
-import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
 import tachyon.worker.DataServerMessage;
-import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.BlockDataManager;
 
 /**
  * The Server to serve data file read requests from remote machines. The current implementation is
@@ -65,7 +65,7 @@ public class NIODataServer implements Runnable, DataServer {
       .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
   // The blocks locker manager.
-  private final BlocksLocker mBlockLocker;
+  private final BlockDataManager mDataManager;
   private final Thread mListenerThread;
 
   private volatile boolean mShutdown = false;
@@ -75,15 +75,15 @@ public class NIODataServer implements Runnable, DataServer {
    * Create a data server with direct access to worker storage.
    *
    * @param address The address of the data server.
-   * @param locker The lock system for lock blocks.
+   * @param dataManager The lock system for lock blocks.
    */
-  public NIODataServer(final InetSocketAddress address, final BlocksLocker locker,
+  public NIODataServer(final InetSocketAddress address, final BlockDataManager dataManager,
       TachyonConf tachyonConf) {
     LOG.info("Starting DataServer @ " + address);
     mTachyonConf = tachyonConf;
     TachyonConf.assertValidPort(address, mTachyonConf);
     mAddress = address;
-    mBlockLocker = locker;
+    mDataManager = dataManager;
     try {
       mSelector = initSelector();
       mListenerThread = new Thread(this);
@@ -217,23 +217,25 @@ public class NIODataServer implements Runnable, DataServer {
       final long blockId = tMessage.getBlockId();
       LOG.info("Get request for blockId: {}", blockId);
 
-      final int lockId = mBlockLocker.getLockId();
-      final StorageDir storageDir = mBlockLocker.lock(blockId, lockId);
+      final long lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
+      // TODO: Update this code to work with the new interface
+      //final StorageDir storageDir = mBlockLocker.lock(blockId, lockId);
       ByteBuffer data;
       int dataLen = 0;
       try {
-        data = storageDir.getBlockData(blockId, tMessage.getOffset(), (int) tMessage.getLength());
-        storageDir.accessBlock(blockId);
-        dataLen = data.limit();
+//      data = storageDir.getBlockData(blockId, tMessage.getOffset(), (int) tMessage.getLength());
+        mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
+        // dataLen = data.limit();
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
         data = null;
       }
-      DataServerMessage tResponseMessage =
-          DataServerMessage.createBlockResponseMessage(true, blockId, tMessage.getOffset(),
-              dataLen, data);
-      tResponseMessage.setLockId(lockId);
-      mSendingData.put(socketChannel, tResponseMessage);
+//      DataServerMessage tResponseMessage =
+//          DataServerMessage.createBlockResponseMessage(true, blockId, tMessage.getOffset(),
+//              dataLen, data);
+      //TODO: Have this take long instead of int
+      //tResponseMessage.setLockId(lockId);
+      //mSendingData.put(socketChannel, tResponseMessage);
     }
   }
 
@@ -300,7 +302,8 @@ public class NIODataServer implements Runnable, DataServer {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
-      mBlockLocker.unlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
+      // TODO: Have this work with the new lock API
+      // mDataManager.unlockBlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
     }
   }
 }
