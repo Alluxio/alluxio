@@ -45,6 +45,6 @@ public final class PipelineHandler extends ChannelInitializer<SocketChannel> {
     pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());
     pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
     pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
-    pipeline.addLast("dataServerHandler", new DataServerHandler(BlockDataManager, mTachyonConf));
+    pipeline.addLast("dataServerHandler", new DataServerHandler(mDataManager, mTachyonConf));
   }
 }

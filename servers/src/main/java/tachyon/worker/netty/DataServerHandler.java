@@ -42,7 +42,6 @@ import tachyon.network.protocol.databuffer.DataBuffer;
 import tachyon.network.protocol.databuffer.DataByteBuffer;
 import tachyon.network.protocol.databuffer.DataFileChannel;
 import tachyon.worker.block.BlockDataManager;
-import tachyon.worker.block.io.BlockHandler;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.meta.StorageDir;
 
