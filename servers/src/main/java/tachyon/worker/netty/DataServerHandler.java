@@ -31,6 +31,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import tachyon.Constants;
+import tachyon.Users;
 import tachyon.conf.TachyonConf;
 import tachyon.network.protocol.RPCBlockRequest;
 import tachyon.network.protocol.RPCBlockResponse;
@@ -42,6 +43,7 @@ import tachyon.network.protocol.databuffer.DataByteBuffer;
 import tachyon.network.protocol.databuffer.DataFileChannel;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockHandler;
+import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.meta.StorageDir;
 
 /**
@@ -52,12 +54,12 @@ import tachyon.worker.block.meta.StorageDir;
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final BlockDataManager mLocker;
+  private final BlockDataManager mDataManager;
   private final TachyonConf mTachyonConf;
   private final FileTransferType mTransferType;
 
-  public DataServerHandler(final BlocksLocker locker, TachyonConf tachyonConf) {
-    mLocker = locker;
+  public DataServerHandler(final BlockDataManager dataManager, TachyonConf tachyonConf) {
+    mDataManager = dataManager;
     mTachyonConf = tachyonConf;
     mTransferType =
         mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.TRANSFER);
@@ -82,30 +84,31 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     ctx.close();
   }
 
+  // TODO: Implement this with the BlockReader API
   private void handleBlockRequest(final ChannelHandlerContext ctx, final RPCBlockRequest req)
       throws IOException {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
-    final int lockId = mLocker.getLockId();
-    final StorageDir storageDir = mLocker.lock(blockId, lockId);
+    final long lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
+    //final StorageDir storageDir = mDataManager.lock(blockId, lockId);
 
-    BlockHandler handler = null;
+    BlockReader handler = null;
     try {
       req.validate();
-      handler = storageDir.getBlockHandler(blockId);
-
-      final long fileLength = handler.getLength();
-      validateBounds(req, fileLength);
-      final long readLength = returnLength(offset, len, fileLength);
-      ChannelFuture future =
-          ctx.writeAndFlush(new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req,
-              handler, readLength)));
-      future.addListener(ChannelFutureListener.CLOSE);
-      future.addListener(new ClosableResourceChannelListener(handler));
-      storageDir.accessBlock(blockId);
-      LOG.info("Response remote request by reading from {}, preparation done.",
-          storageDir.getBlockFilePath(blockId));
+//      handler = storageDir.getBlockHandler(blockId);
+//
+//      final long fileLength = handler.getLength();
+//      validateBounds(req, fileLength);
+//      final long readLength = returnLength(offset, len, fileLength);
+//      ChannelFuture future =
+//          ctx.writeAndFlush(new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req,
+//              handler, readLength)));
+//      future.addListener(ChannelFutureListener.CLOSE);
+//      future.addListener(new ClosableResourceChannelListener(handler));
+//      mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
+//      LOG.info("Response remote request by reading from {}, preparation done.",
+//          storageDir.getBlockFilePath(blockId));
     } catch (Exception e) {
       // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);
@@ -113,10 +116,10 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       if (handler != null) {
-        handler.close();
+//        handler.close();
       }
     } finally {
-      mLocker.unlock(blockId, lockId);
+      mDataManager.unlockBlock(lockId);
     }
   }
 
@@ -148,7 +151,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
    * @throws IOException
    * @throws IllegalArgumentException
    */
-  private DataBuffer getDataBuffer(RPCBlockRequest req, BlockHandler handler, long readLength)
+  private DataBuffer getDataBuffer(RPCBlockRequest req, BlockReader handler, long readLength)
       throws IOException, IllegalArgumentException {
     switch (mTransferType) {
       case MAPPED:
@@ -160,7 +163,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
           return new DataFileChannel((FileChannel) handler.getChannel(), req.getOffset(),
               readLength);
         }
-        handler.close();
+        // TODO: Implement close
+//        handler.close();
         throw new IllegalArgumentException("Only FileChannel is supported!");
     }
   }
