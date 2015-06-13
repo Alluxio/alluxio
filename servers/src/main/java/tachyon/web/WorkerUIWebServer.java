@@ -22,7 +22,6 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
-import tachyon.worker.WorkerStorage;
 import tachyon.worker.block.BlockWorker;
 
 /**
