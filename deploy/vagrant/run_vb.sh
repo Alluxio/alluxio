@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 vagrant up --provider=virtualbox --no-provision
 
 vagrant provision
