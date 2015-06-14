@@ -31,8 +31,9 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * Class responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
- * thread-safe.
+ * Class responsible for managing the Tachyon {@link tachyon.worker.block.BlockStore} and Under FileSystem.
+ * <p>
+ * This class is thread-safe.
  */
 public class BlockDataManager {
   /** Block store delta reporter for master heartbeat */
