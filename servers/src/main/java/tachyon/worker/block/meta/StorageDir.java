@@ -87,7 +87,7 @@ public class StorageDir {
 
   // TODO: deprecate this method.
   public long getStorageDirId() {
-    int level = mTier.getTierAlias();
+    int level = mTier.getTierAlias() - 1;
     int storageLevelAliasValue = mTier.getTierAlias();
     return StorageDirId.getStorageDirId(level, storageLevelAliasValue, mDirIndex);
   }
