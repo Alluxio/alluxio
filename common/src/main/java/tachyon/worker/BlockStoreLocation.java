@@ -53,6 +53,23 @@ public class BlockStoreLocation {
     return mDirIndex;
   }
 
+  /**
+   * Whether this location belongs to the specific location
+   *
+   * a location A belongs to B either when A.equals(B) or tier and dir of A are all in the range of B
+   *
+   * @param location the target BlockStoreLocation
+   * @return true when this BlockStoreLocation belongs to the target, otherwise false
+   */
+  public boolean belongTo(BlockStoreLocation location) {
+    if (this.equals(location)) {
+      return true;
+    }
+    boolean tierInRange = (this.tier() == location.tier()) || (location.tier() == ANY_TIER);
+    boolean dirInRange = (this.dir() == location.dir()) || (location.dir() == ANY_DIR);
+    return tierInRange && dirInRange;
+  }
+
   @Override
   public String toString() {
     String result = "";
