@@ -31,8 +31,11 @@ import tachyon.Constants;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
+import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
+import tachyon.underfs.UnderFileSystem;
+import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.BlockStoreLocation;
@@ -60,6 +63,8 @@ public class BlockDataManager {
   // TODO: See if this can be removed from the class
   /** MasterClient, only used to inform the master of a new block in commitBlock */
   private MasterClient mMasterClient;
+  /** UnderFileSystem Client */
+  private UnderFileSystem mUfs;
   /** User metadata, used to keep track of user heartbeats */
   private Users mUsers;
   /** Id of this worker */
@@ -78,6 +83,12 @@ public class BlockDataManager {
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-client-heartbeat-%d"));
     mMasterClient =
         new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
+
+    // Create Under FileSystem Client
+    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String ufsAddress =
+        mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
+    mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerMetaListener(mHeartbeatReporter);
@@ -104,6 +115,42 @@ public class BlockDataManager {
    */
   public void accessBlock(long userId, long blockId) {
     mBlockStore.accessBlock(userId, blockId);
+  }
+
+  /**
+   * Add the checkpoint information of a file. The information is from the user <code>userId</code>.
+   *
+   * This method is normally triggered from {@link tachyon.client.FileOutStream#close()} if and only
+   * if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
+   * checkpointing is that through {@link tachyon.client.WriteType} operations write to
+   * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a user temp
+   * directory (temp directory is defined in the worker as {@link #getUserUfsTmpFolder(long)}).
+   *
+   * @param userId The user id of the client who sends the notification
+   * @param fileId The id of the checkpointed file
+   * @throws FileDoesNotExistException
+   * @throws FailedToCheckpointException
+   * @throws IOException
+   */
+  public void addCheckpoint(long userId, int fileId) throws TException, IOException {
+    // TODO This part needs to be changed.
+    String srcPath = CommonUtils.concatPath(getUserUfsTmpFolder(userId), fileId);
+    String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data");
+    String dstPath = CommonUtils.concatPath(ufsDataFolder, fileId);
+    try {
+      if (!mUfs.rename(srcPath, dstPath)) {
+        throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
+      }
+    } catch (IOException e) {
+      throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
+    }
+    long fileSize;
+    try {
+      fileSize = mUfs.getFileSize(dstPath);
+    } catch (IOException e) {
+      throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
+    }
+    mMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
   }
 
   /**
