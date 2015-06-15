@@ -15,6 +15,7 @@
 
 package tachyon.worker.block.io;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
@@ -24,7 +25,7 @@ import java.nio.channels.WritableByteChannel;
  * <p>
  * This class does not provide thread-safety.
  */
-public interface BlockWriter {
+public interface BlockWriter extends Closeable {
   /**
    * Appends data to the end of a block from an input ByteBuffer.
    *
@@ -40,19 +41,4 @@ public interface BlockWriter {
    * @return channel
    */
   WritableByteChannel getChannel();
-
-  /**
-   * Deletes this block.
-   *
-   * @return true on success, false otherwise
-   */
-  boolean delete();
-
-  /**
-   * Moves the block file to another path.
-   *
-   * @param dstPath destination path
-   * @return true on success, false otherwise
-   */
-  boolean move(String dstPath);
 }
