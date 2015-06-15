@@ -17,11 +17,18 @@ package tachyon.worker.block.evictor;
 
 import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.BlockMetaEventListener;
+import tachyon.worker.block.BlockMetadataManager;
 
 /**
  * Interface for the eviction policy in Tachyon
  */
-public interface Evictor {
+public abstract class Evictor {
+  protected BlockMetadataManager mMeta;
+
+  public Evictor(BlockMetadataManager meta) {
+    mMeta = meta;
+  }
+
   /**
    * Free space in the given block store location. The location can be a specific location, or
    * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)} .
@@ -30,5 +37,5 @@ public interface Evictor {
    * @param location the location in block store
    * @return an eviction plan to achieve the freed space
    */
-  EvictionPlan freeSpace(long bytes, BlockStoreLocation location);
+  public abstract EvictionPlan freeSpace(long bytes, BlockStoreLocation location);
 }

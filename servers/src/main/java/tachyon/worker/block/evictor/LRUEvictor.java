@@ -31,9 +31,7 @@ import tachyon.worker.block.meta.BlockMeta;
 /**
  * Not thread-safe
  */
-public class LRUEvictor implements Evictor, BlockAccessEventListener {
-  private final BlockMetadataManager mMeta;
-
+public class LRUEvictor extends Evictor implements BlockAccessEventListener {
   /** Double-Link List, most recently accessed block is at tail of the list */
   private class Node {
     long blockId;
@@ -71,7 +69,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
 
 
   public LRUEvictor(BlockMetadataManager meta) {
-    mMeta = meta;
+    super(meta);
 
     mHead = new Node();
     mTail = new Node();
