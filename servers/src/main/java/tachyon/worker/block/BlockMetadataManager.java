@@ -138,7 +138,7 @@ public class BlockMetadataManager {
   /**
    * Remove the metadata of a specific block.
    *
-   * @param block  the meta data of the block to remove
+   * @param block the meta data of the block to remove
    * @return true if success, false otherwise
    */
   public synchronized boolean removeBlockMeta(BlockMeta block) {
@@ -183,9 +183,8 @@ public class BlockMetadataManager {
   public synchronized boolean commitTempBlockMeta(TempBlockMeta tempBlockMeta) {
     BlockMeta block = new BlockMeta(tempBlockMeta);
     StorageDir dir = tempBlockMeta.getParentDir();
-    dir.removeTempBlockMeta(tempBlockMeta);
-    dir.addBlockMeta(block);
-    return true;
+    return dir.removeTempBlockMeta(tempBlockMeta) && dir.addBlockMeta(block).isPresent();
+
   }
 
   /**
@@ -201,6 +200,7 @@ public class BlockMetadataManager {
 
   /**
    * Cleans up the temp blocks meta data created by the given user.
+   *
    * @param userId the ID of the user
    */
   public synchronized void cleanupUser(long userId) {
