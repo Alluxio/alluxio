@@ -37,6 +37,13 @@ public interface BlockReader {
   ByteBuffer read(long offset, long length) throws IOException;
 
   /**
+   * Gets the length of the block
+   *
+   * @return the length of the block
+   */
+  long getLength();
+
+  /**
    * Returns a readable byte channel of the block.
    *
    * @return channel
