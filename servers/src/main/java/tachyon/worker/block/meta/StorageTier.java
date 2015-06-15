@@ -39,12 +39,13 @@ public class StorageTier {
 
   public StorageTier(TachyonConf tachyonConf, int tierAlias) {
     mTierAlias = tierAlias;
+    int level = tierAlias - 1;
     String tierDirPathConf =
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, tierAlias);
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
     String[] dirPaths = tachyonConf.get(tierDirPathConf, "/mnt/ramdisk").split(",");
 
     String tierDirCapacityConf =
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, tierAlias);
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, level);
     String[] dirQuotas = tachyonConf.get(tierDirCapacityConf, "0").split(",");
 
     mDirs = new ArrayList<StorageDir>(dirPaths.length);

@@ -37,7 +37,7 @@ public class NaiveAllocator implements Allocator {
   @Override
   public Optional<TempBlockMeta> allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location) {
-    if (location == BlockStoreLocation.anyTier()) {
+    if (location.equals(BlockStoreLocation.anyTier())) {
       // When any tier is ok, loop over all storage tier and dir, and return the first dir that has
       // sufficient available space.
       for (StorageTier tier : mMetaManager.getTiers()) {
@@ -52,7 +52,7 @@ public class NaiveAllocator implements Allocator {
 
     int tierAlias = location.tier();
     StorageTier tier = mMetaManager.getTier(tierAlias);
-    if (location == BlockStoreLocation.anyDirInTier(tierAlias)) {
+    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
       // Loop over all dirs in the given tier
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.getAvailableBytes() >= blockSize) {

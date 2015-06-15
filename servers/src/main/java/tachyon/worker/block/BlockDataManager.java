@@ -16,14 +16,25 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.google.common.base.Optional;
 
+import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterClient;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
+import tachyon.util.NetworkUtils;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
@@ -35,21 +46,38 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * thread-safe.
  */
 public class BlockDataManager {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** Block store delta reporter for master heartbeat */
   private final BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
   private final BlockStore mBlockStore;
+  /** Master client threadpool */
+  private final ExecutorService mMasterClientExecutorService;
+  /** Configuration values */
+  private final TachyonConf mTachyonConf;
 
+  // TODO: See if this can be removed from the class
+  /** MasterClient, only used to inform the master of a new block in commitBlock */
+  private MasterClient mMasterClient;
   /** User metadata, used to keep track of user heartbeats */
   private Users mUsers;
+  /** Id of this worker */
+  long mWorkerId;
 
   /**
    * Creates a BlockDataManager based on the configuration values.
+   *
    * @param tachyonConf the configuration values to use
    */
   public BlockDataManager(TachyonConf tachyonConf) {
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = new TieredBlockStore(tachyonConf);
+    mTachyonConf = tachyonConf;
+    mMasterClientExecutorService =
+        Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-client-heartbeat-%d"));
+    mMasterClient =
+        new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerMetaListener(mHeartbeatReporter);
@@ -57,6 +85,7 @@ public class BlockDataManager {
 
   /**
    * Aborts the temporary block created by the user.
+   *
    * @param userId The id of the client
    * @param blockId The id of the block to be aborted
    * @return true if successful, false if unsuccessful
@@ -89,6 +118,7 @@ public class BlockDataManager {
 
   /**
    * Commits a block to Tachyon managed space. The block must be temporary.
+   *
    * @param userId The id of the client
    * @param blockId The id of the block to commit
    * @return true if successful, false otherwise
@@ -96,7 +126,33 @@ public class BlockDataManager {
    */
   // TODO: This may be better as void
   public boolean commitBlock(long userId, long blockId) throws IOException {
-    return mBlockStore.commitBlock(userId, blockId);
+    if (!mBlockStore.commitBlock(userId, blockId)) {
+      return false;
+    }
+
+    // Block successfully committed, update master with new block metadata
+    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId);
+    if (!optLock.isPresent()) {
+      throw new IOException("Error while locking new block: " + blockId);
+    }
+    Long lockId = optLock.get();
+    Optional<BlockMeta> optMeta = mBlockStore.getBlockMeta(userId, blockId, lockId);
+    if (!optMeta.isPresent()) {
+      throw new IOException("Failed to get block meta for new block " + blockId);
+    }
+    BlockMeta meta = optMeta.get();
+    BlockStoreLocation loc = meta.getBlockLocation();
+    Long storageDirId = loc.getStorageDirId();
+    Long length = meta.getBlockSize();
+    BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
+    Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tier());
+    try {
+      mMasterClient
+          .worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);
+    } catch (TException te) {
+      throw new IOException("Failed to commit block to master.", te);
+    }
+    return true;
   }
 
   /**
@@ -125,6 +181,7 @@ public class BlockDataManager {
 
   /**
    * Creates a block. This method is only called from a data server.
+   *
    * @param userId The id of the client
    * @param blockId The id of the block to be created
    * @param location The tier to create this block, -1 for any tier
@@ -165,6 +222,7 @@ public class BlockDataManager {
   /**
    * Gets a report for the periodic heartbeat to master. Contains the blocks added since the last
    * heart beat and blocks removed since the last heartbeat.
+   *
    * @return a block heartbeat report
    */
   public BlockHeartbeatReport getReport() {
@@ -174,6 +232,7 @@ public class BlockDataManager {
   /**
    * Gets the metadata for the entire block store. Contains the block mapping per storage dir and
    * the total capacity and used capacity of each tier.
+   *
    * @return the block store metadata
    */
   public BlockStoreMeta getStoreMeta() {
@@ -182,6 +241,7 @@ public class BlockDataManager {
 
   /**
    * Gets the temporary folder for the user in the under filesystem.
+   *
    * @param userId The id of the client
    * @return the path to the under filesystem temporary folder for the client
    */
@@ -191,6 +251,7 @@ public class BlockDataManager {
 
   /**
    * Obtains a read lock the block.
+   *
    * @param userId The id of the client
    * @param blockId The id of the block to be locked
    * @return the lockId, or -1 if we failed to obtain a lock
@@ -204,8 +265,9 @@ public class BlockDataManager {
   }
 
   /**
-   * Moves a block from its current location to a target location, currently only tier level
-   * moves are supported
+   * Moves a block from its current location to a target location, currently only tier level moves
+   * are supported
+   *
    * @param userId The id of the client
    * @param blockId The id of the block to move
    * @param tier The tier to move the block to
@@ -219,8 +281,9 @@ public class BlockDataManager {
   }
 
   /**
-   * Gets the path to the block file in local storage. The block must be a permanent block, and
-   * the caller must first obtain the lock on the block.
+   * Gets the path to the block file in local storage. The block must be a permanent block, and the
+   * caller must first obtain the lock on the block.
+   *
    * @param userId The id of the client
    * @param blockId The id of the block to read
    * @param lockId The id of the lock on this block
@@ -238,6 +301,7 @@ public class BlockDataManager {
 
   /**
    * Gets the block reader for the block. This method is only called by a data server.
+   *
    * @param userId The id of the client
    * @param blockId The id of the block to read
    * @param lockId The id of the lock on this block
@@ -246,8 +310,7 @@ public class BlockDataManager {
    * @throws IOException if an error occurs when obtaining the reader
    */
   // TODO: We should avoid throwing IOException
-  public BlockReader readBlockRemote(long userId, long blockId, long lockId)
-      throws IOException {
+  public BlockReader readBlockRemote(long userId, long blockId, long lockId) throws IOException {
     Optional<BlockReader> optReader = mBlockStore.getBlockReader(userId, blockId, lockId);
     if (optReader.isPresent()) {
       return optReader.get();
@@ -258,6 +321,7 @@ public class BlockDataManager {
   /**
    * Request an amount of space for a block in its storage directory. The block must be a temporary
    * block.
+   *
    * @param userId The id of the client
    * @param blockId The id of the block to allocate space to
    * @param bytesRequested The amount of bytes to allocate
@@ -272,6 +336,7 @@ public class BlockDataManager {
   /**
    * Instantiates the user metadata object. This should only be called once and is a temporary work
    * around.
+   *
    * @param users The user metadata object
    */
   public void setUsers(Users users) {
@@ -279,7 +344,15 @@ public class BlockDataManager {
   }
 
   /**
+   * Sets the workerId. This should only be called once and is a temporary work around.
+   */
+  public void setWorkerId(long workerId) {
+    mWorkerId = workerId;
+  }
+
+  /**
    * Relinquishes the lock with the specified lock id.
+   *
    * @param lockId The id of the lock to relinquish
    * @return true if successful, false otherwise
    */
@@ -290,6 +363,7 @@ public class BlockDataManager {
 
   /**
    * Handles the heartbeat from a client.
+   *
    * @param userId The id of the client
    * @param metrics The set of metrics the client has gathered since the last heartbeat
    * @return true if successful, false otherwise
@@ -298,5 +372,17 @@ public class BlockDataManager {
   public boolean userHeartbeat(long userId, List<Long> metrics) {
     mUsers.userHeartbeat(userId);
     return true;
+  }
+
+  /**
+   * Gets the Tachyon master address from the configuration
+   *
+   * @return the InetSocketAddress of the master
+   */
+  private InetSocketAddress getMasterAddress() {
+    String masterHostname =
+        mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
+    int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+    return new InetSocketAddress(masterHostname, masterPort);
   }
 }

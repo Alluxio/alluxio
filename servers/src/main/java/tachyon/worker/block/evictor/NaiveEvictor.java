@@ -44,7 +44,7 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
     List<Long> toEvict = new ArrayList<Long>();
 
     long sizeFreed = 0;
-    if (location == BlockStoreLocation.anyTier()) {
+    if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTier tier : mMetaManager.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
           for (BlockMeta block : dir.getBlocks()) {
@@ -61,7 +61,7 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
 
     int tierAlias = location.tier();
     StorageTier tier = mMetaManager.getTier(tierAlias);
-    if (location == BlockStoreLocation.anyDirInTier(tierAlias)) {
+    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
       // Loop over all dirs in the given tier
       for (StorageDir dir : tier.getStorageDirs()) {
         for (BlockMeta block : dir.getBlocks()) {
