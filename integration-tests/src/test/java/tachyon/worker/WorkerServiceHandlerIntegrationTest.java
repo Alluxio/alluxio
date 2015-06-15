@@ -17,6 +17,7 @@ package tachyon.worker;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -39,7 +40,7 @@ import tachyon.thrift.OutOfSpaceException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockServiceHandler;
-import tachyon.worker.block.io.BlockHandler;
+import tachyon.worker.block.io.BlockWriter;
 
 /**
  * Integration tests for tachyon.WorkerServiceHandler
@@ -115,10 +116,11 @@ public class WorkerServiceHandlerIntegrationTest {
 
   private void createBlockFile(String filename, int fileLen)
       throws IOException, InvalidPathException {
-    UnderFileSystem.get(filename, mMasterTachyonConf).mkdirs(CommonUtils.getParent(filename), true);
-    BlockHandler handler = BlockHandler.get(filename);
-    handler.append(0, TestUtils.getIncreasingByteArray(fileLen), 0, fileLen);
-    handler.close();
+    UnderFileSystem ufs = UnderFileSystem.get(filename, mMasterTachyonConf);
+    ufs.mkdirs(CommonUtils.getParent(filename), true);
+    OutputStream out = ufs.create(filename);
+    out.write(TestUtils.getIncreasingByteArray(fileLen), 0, fileLen);
+    out.close();
   }
 
   @Test
