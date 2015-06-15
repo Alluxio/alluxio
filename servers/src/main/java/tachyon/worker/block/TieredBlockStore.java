@@ -257,7 +257,7 @@ public class TieredBlockStore implements BlockStore {
         mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
     if (!optTempBlock.isPresent()) {
       // Not enough space in this block store, let's try to free some space.
-      if (freeSpaceNoLock(userId, initialBlockSize, location)) {
+      if (!freeSpaceNoLock(userId, initialBlockSize, location)) {
         LOG.error("Cannot free {} bytes space in {}", initialBlockSize, location);
         return Optional.absent();
       }
