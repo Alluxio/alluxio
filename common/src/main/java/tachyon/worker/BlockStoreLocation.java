@@ -41,8 +41,8 @@ public class BlockStoreLocation {
   // A helper function to derive StorageDirId from a BlockLocation.
   // TODO: remove this method when master also understands BlockLocation
   public long getStorageDirId() {
-    // TODO: evaluate if we still need level which is same as tierAlias
-    int level = mTierAlias;
+    // TODO: level is alias - 1 as alias of MEM is 1, SSD is 2 and HDD is 3.
+    int level = mTierAlias - 1;
     // Calculation copied from {@link StorageDirId.getStorageDirId}
     return (level << 24) + (mTierAlias << 16) + mDirIndex;
   }

@@ -16,7 +16,9 @@
 package tachyon.worker.block;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +44,15 @@ public class BlockMetadataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** A list of managed StorageTier */
-  private List<StorageTier> mTiers;
+  private Map<Integer, StorageTier> mTiers;
 
   public BlockMetadataManager(TachyonConf tachyonConf) {
     // Initialize storage tiers
     int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
-    mTiers = new ArrayList<StorageTier>(totalTiers);
+    mTiers = new HashMap<Integer, StorageTier>(totalTiers);
     for (int i = 0; i < totalTiers; i ++) {
-      mTiers.add(new StorageTier(tachyonConf, i));
+      int tierAlias = i + 1;
+      mTiers.put(tierAlias, new StorageTier(tachyonConf, tierAlias));
     }
   }
 
@@ -69,7 +72,7 @@ public class BlockMetadataManager {
    * @return the list of StorageTiers
    */
   public synchronized List<StorageTier> getTiers() {
-    return mTiers;
+    return new ArrayList<StorageTier>(mTiers.values());
   }
 
   /**
@@ -79,7 +82,7 @@ public class BlockMetadataManager {
    * @return metadata of the block or absent
    */
   public synchronized Optional<BlockMeta> getBlockMeta(long blockId) {
-    for (StorageTier tier : mTiers) {
+    for (StorageTier tier : mTiers.values()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasBlockMeta(blockId)) {
           return tier.getBlockMeta(blockId);
@@ -150,7 +153,7 @@ public class BlockMetadataManager {
    * @return metadata of the block or absent
    */
   public synchronized Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
-    for (StorageTier tier : mTiers) {
+    for (StorageTier tier : mTiers.values()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasTempBlockMeta(blockId)) {
           return dir.getTempBlockMeta(blockId);
@@ -201,8 +204,7 @@ public class BlockMetadataManager {
    * @param userId the ID of the user
    */
   public synchronized void cleanupUser(long userId) {
-    // TODO: implement me
-    for (StorageTier tier : mTiers) {
+    for (StorageTier tier : mTiers.values()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         dir.cleanupUser(userId);
       }
