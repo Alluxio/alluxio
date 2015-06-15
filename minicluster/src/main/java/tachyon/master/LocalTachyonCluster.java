@@ -124,19 +124,11 @@ public final class LocalTachyonCluster {
   }
 
   public NetAddress getWorkerAddress() {
-    return new NetAddress(mLocalhostName, getWorkerPort(), getWorkerDataPort());
+    return mWorker.getWorkerNetAddress();
   }
 
   public String getWorkerDataFolder() {
     return mWorkerDataFolder;
-  }
-
-  public int getWorkerPort() {
-    return mWorker.getMetaPort();
-  }
-
-  public int getWorkerDataPort() {
-    return mWorker.getDataPort();
   }
 
   private void deleteDir(String path) throws IOException {
@@ -236,12 +228,12 @@ public final class LocalTachyonCluster {
           newPath.substring(0, newPath.length() - 1));
     }
 
-    mWorker = BlockWorker.createWorker(mWorkerConf);
+    mWorker = new BlockWorker(mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
         try {
-          mWorker.start();
+          mWorker.process();
         } catch (Exception e) {
           throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
         }

@@ -196,4 +196,14 @@ public class BlockWorker {
     int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
     return new InetSocketAddress(workerHostname, workerPort);
   }
+
+  // Methods for unit test purposes only
+
+  public NetAddress getWorkerNetAddress() {
+    return mWorkerNetAddress;
+  }
+
+  public BlockServiceHandler getWorkerServiceHandler() {
+    return mServiceHandler;
+  }
 }
