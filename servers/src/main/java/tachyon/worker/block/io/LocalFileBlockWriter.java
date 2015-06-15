@@ -82,16 +82,7 @@ public class LocalFileBlockWriter implements BlockWriter {
   }
 
   @Override
-  public boolean delete() {
-    return new File(mFilePath).delete();
-  }
-
-  @Override
-  public boolean move(String dstPath) {
-    // Check if destPath equals the current path, in this case, do nothing.
-    if (mFilePath.equals(dstPath)) {
-      return true;
-    }
-    return new File(mFilePath).renameTo(new File(dstPath));
+  public void close() throws IOException {
+    mCloser.close();
   }
 }
