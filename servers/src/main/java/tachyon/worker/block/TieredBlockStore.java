@@ -226,11 +226,11 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public boolean cleanupUser(long userId) {
-    mEvictionLock.writeLock().lock();
+    mEvictionLock.readLock().lock();
     mMetaManager.cleanupUser(userId);
     mLockManager.cleanupUser(userId);
-    mEvictionLock.writeLock().unlock();
-    return false;
+    mEvictionLock.readLock().unlock();
+    return true;
   }
 
   @Override

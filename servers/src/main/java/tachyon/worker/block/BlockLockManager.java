@@ -49,6 +49,7 @@ public class BlockLockManager {
   private final Map<Long, Set<Long>> mUserIdToLockIdsMap = new HashMap<Long, Set<Long>>();
   /** A map from a lock ID to the lock record of it */
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
+  private final Object mSharedMapsLock = new Object();
 
   private class LockRecord {
     private final long mUserId;
@@ -75,13 +76,12 @@ public class BlockLockManager {
   }
 
   public BlockLockManager() {
-    for (int i = 0; i < NUM_LOCKS; i++) {
+    for (int i = 0; i < NUM_LOCKS; i ++) {
       mLockArray.add(new ClientRWLock());
     }
   }
 
-  public synchronized Optional<Long> lockBlock(long userId, long blockId,
-      BlockLockType blockLockType) {
+  public Optional<Long> lockBlock(long userId, long blockId, BlockLockType blockLockType) {
     // TODO: generate real hashValue on blockID.
     int hashValue = (int) (blockId % (long) NUM_LOCKS);
     ClientRWLock blockLock = mLockArray.get(hashValue);
@@ -93,29 +93,34 @@ public class BlockLockManager {
     }
     lock.lock();
     long lockId = LOCK_ID_GEN.getAndIncrement();
-    mLockIdToRecordMap.put(lockId, new LockRecord(userId, blockId, lock));
-    Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
-    if (null == userLockIds) {
-      mUserIdToLockIdsMap.put(userId, Sets.newHashSet(lockId));
-    } else {
-      userLockIds.add(lockId);
+
+    synchronized (mSharedMapsLock) {
+      mLockIdToRecordMap.put(lockId, new LockRecord(userId, blockId, lock));
+      Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
+      if (null == userLockIds) {
+        mUserIdToLockIdsMap.put(userId, Sets.newHashSet(lockId));
+      } else {
+        userLockIds.add(lockId);
+      }
     }
     return Optional.of(lockId);
   }
 
   public boolean unlockBlock(long lockId) {
-    LockRecord record = mLockIdToRecordMap.get(lockId);
-    if (null == record) {
-      return false;
-    }
-    long userId = record.userId();
-    Lock lock = record.lock();
-
-    mLockIdToRecordMap.remove(lockId);
-    Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
-    userLockIds.remove(lockId);
-    if (userLockIds.isEmpty()) {
-      mUserIdToLockIdsMap.remove(userId);
+    Lock lock;
+    synchronized (mSharedMapsLock) {
+      LockRecord record = mLockIdToRecordMap.get(lockId);
+      if (null == record) {
+        return false;
+      }
+      long userId = record.userId();
+      lock = record.lock();
+      mLockIdToRecordMap.remove(lockId);
+      Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
+      userLockIds.remove(lockId);
+      if (userLockIds.isEmpty()) {
+        mUserIdToLockIdsMap.remove(userId);
+      }
     }
     lock.unlock();
     return true;
@@ -130,11 +135,13 @@ public class BlockLockManager {
    * @return true if validation succeeds, false otherwise
    */
   public boolean validateLockId(long userId, long blockId, long lockId) {
-    LockRecord record = mLockIdToRecordMap.get(lockId);
-    if (null == record) {
-      return false;
+    synchronized (mSharedMapsLock) {
+      LockRecord record = mLockIdToRecordMap.get(lockId);
+      if (null == record) {
+        return false;
+      }
+      return userId == record.userId() && blockId == record.blockId();
     }
-    return userId == record.userId() && blockId == record.blockId();
   }
 
   /**
@@ -143,19 +150,21 @@ public class BlockLockManager {
    * @param userId the ID of the user to cleanup
    */
   public void cleanupUser(long userId) {
-    Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
-    if (null == userLockIds) {
-      return;
-    }
-    for (long lockId : userLockIds) {
-      LockRecord record = mLockIdToRecordMap.get(lockId);
-      if (null == record) {
+    synchronized (mSharedMapsLock) {
+      Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
+      if (null == userLockIds) {
         return;
       }
-      Lock lock = record.lock();
-      lock.unlock();
-      mLockIdToRecordMap.remove(lockId);
+      for (long lockId : userLockIds) {
+        LockRecord record = mLockIdToRecordMap.get(lockId);
+        if (null == record) {
+          return;
+        }
+        Lock lock = record.lock();
+        lock.unlock();
+        mLockIdToRecordMap.remove(lockId);
+      }
+      mUserIdToLockIdsMap.remove(userId);
     }
-    mUserIdToLockIdsMap.remove(userId);
   }
 }
