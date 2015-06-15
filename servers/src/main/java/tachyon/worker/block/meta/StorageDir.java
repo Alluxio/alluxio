@@ -16,6 +16,7 @@
 package tachyon.worker.block.meta;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
@@ -96,6 +97,10 @@ public class StorageDir {
    */
   public List<Long> getBlockIds() {
     return new ArrayList<Long>(mBlockIdToBlockMap.keySet());
+  }
+
+  public Collection<BlockMeta> getBlocks() {
+    return mBlockIdToBlockMap.values();
   }
 
   /**
