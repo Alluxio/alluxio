@@ -21,12 +21,8 @@ import java.util.List;
 import org.apache.thrift.TException;
 
 import tachyon.Users;
-import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
-import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
 
@@ -151,10 +147,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
     mWorker.accessBlock(-1, blockId);
   }
 
-  public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,
-      SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException,
-      org.apache.thrift.TException {
-
+  public void addCheckpoint(long userId, int fileId) throws org.apache.thrift.TException {
+    try {
+      mWorker.addCheckpoint(userId, fileId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   public boolean asyncCheckpoint(int fileId) throws TachyonException, org.apache.thrift.TException {
