@@ -90,31 +90,26 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     final long len = req.getLength();
     final long lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
     BlockReader reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
-    //final StorageDir storageDir = mDataManager.lock(blockId, lockId);
-
-    BlockReader handler = null;
     try {
       req.validate();
-//      handler = storageDir.getBlockHandler(blockId);
-//
-        final long fileLength = reader.getLength();
-        validateBounds(req, fileLength);
-        final long readLength = returnLength(offset, len, fileLength);
-        ChannelFuture future =
-            ctx.writeAndFlush(new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req,
-                handler, readLength)));
-        future.addListener(ChannelFutureListener.CLOSE);
-        future.addListener(new ClosableResourceChannelListener(reader));
-        mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
-        LOG.info("Preparation for responding to remote block request for: " + blockId + " done.");
+      final long fileLength = reader.getLength();
+      validateBounds(req, fileLength);
+      final long readLength = returnLength(offset, len, fileLength);
+      ChannelFuture future =
+          ctx.writeAndFlush(new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req,
+              reader, readLength)));
+      future.addListener(ChannelFutureListener.CLOSE);
+      future.addListener(new ClosableResourceChannelListener(reader));
+      mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
+      LOG.info("Preparation for responding to remote block request for: " + blockId + " done.");
     } catch (Exception e) {
       // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);
       RPCBlockResponse resp = RPCBlockResponse.createErrorResponse(blockId);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
-      if (handler != null) {
-//        handler.close();
+      if (reader != null) {
+        reader.close();
       }
     } finally {
       mDataManager.unlockBlock(lockId);
@@ -141,8 +136,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
 
 
   /**
-   * Returns the appropriate DataBuffer representing the data to send, depending on the
-   * configurable transfer type.
+   * Returns the appropriate DataBuffer representing the data to send, depending on the configurable
+   * transfer type.
    *
    * @param req The initiating RPCBlockRequest
    * @param handler The BlockHandler for the block to read
@@ -164,7 +159,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
               readLength);
         }
         // TODO: Implement close
-//        handler.close();
+        handler.close();
         throw new IllegalArgumentException("Only FileChannel is supported!");
     }
   }
