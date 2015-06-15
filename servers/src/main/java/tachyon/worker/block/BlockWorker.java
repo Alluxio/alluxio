@@ -127,6 +127,7 @@ public class BlockWorker {
     // Give BlockDataManager a pointer to the user metadata mapping
     // TODO: Fix this hack when we have a top level register
     mBlockDataManager.setUsers(mUsers);
+    mBlockDataManager.setWorkerId(mWorkerId);
   }
 
   /**
