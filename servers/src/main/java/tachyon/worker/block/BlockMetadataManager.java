@@ -112,7 +112,7 @@ public class BlockMetadataManager {
       return Optional.of(block);
     }
 
-    int newTierAlias = newLocation.tier();
+    int newTierAlias = newLocation.tierAlias();
     StorageTier newTier = getTier(newTierAlias);
     StorageDir newDir = null;
     if (newLocation == BlockStoreLocation.anyDirInTier(newTierAlias)) {

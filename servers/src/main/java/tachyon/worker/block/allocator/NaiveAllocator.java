@@ -50,7 +50,7 @@ public class NaiveAllocator implements Allocator {
       return Optional.absent();
     }
 
-    int tierAlias = location.tier();
+    int tierAlias = location.tierAlias();
     StorageTier tier = mMetaManager.getTier(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
       // Loop over all dirs in the given tier
