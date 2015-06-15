@@ -15,6 +15,7 @@
 
 package tachyon.worker.block.io;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
@@ -24,7 +25,7 @@ import java.nio.channels.ReadableByteChannel;
  * <p>
  * This class does not provide thread-safety.
  */
-public interface BlockReader {
+public interface BlockReader extends Closeable {
 
   /**
    * Reads data from the block.
