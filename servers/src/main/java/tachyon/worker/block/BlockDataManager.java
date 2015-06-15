@@ -145,7 +145,7 @@ public class BlockDataManager {
     Long storageDirId = loc.getStorageDirId();
     Long length = meta.getBlockSize();
     BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
-    Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tier());
+    Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierLevel());
     try {
       mMasterClient
           .worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);

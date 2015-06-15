@@ -47,8 +47,12 @@ public class BlockStoreLocation {
     return (level << 24) + (mTierAlias << 16) + mDirIndex;
   }
 
-  public int tier() {
+  public int tierAlias() {
     return mTierAlias;
+  }
+
+  public int tierLevel() {
+    return mTierAlias - 1;
   }
 
   public int dir() {
@@ -67,14 +71,15 @@ public class BlockStoreLocation {
     if (mTierAlias == ANY_TIER) {
       result += ", any tier";
     } else {
-      result += ", tier " + mTierAlias;
+      result += ", tierAlias " + mTierAlias;
     }
     return result;
   }
 
   @Override
   public boolean equals(Object object) {
-    if (object instanceof BlockStoreLocation && ((BlockStoreLocation) object).tier() == tier()
+    if (object instanceof BlockStoreLocation
+        && ((BlockStoreLocation) object).tierAlias() == tierAlias()
         && ((BlockStoreLocation) object).dir() == dir()) {
       return true;
     } else {
