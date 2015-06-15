@@ -247,12 +247,12 @@ public class BlockDataManager {
    */
   // TODO: We should avoid throwing IOException
   public BlockReader readBlockRemote(long userId, long blockId, long lockId)
-      throws FileDoesNotExistException, IOException {
+      throws IOException {
     Optional<BlockReader> optReader = mBlockStore.getBlockReader(userId, blockId, lockId);
     if (optReader.isPresent()) {
       return optReader.get();
     }
-    throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
+    throw new IOException("Block " + blockId + " does not exist on this worker.");
   }
 
   /**
