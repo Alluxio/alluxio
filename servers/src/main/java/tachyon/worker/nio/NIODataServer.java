@@ -229,6 +229,8 @@ public class NIODataServer implements Runnable, DataServer {
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
         data = null;
+      } finally {
+        reader.close();
       }
       DataServerMessage tResponseMessage =
           DataServerMessage.createBlockResponseMessage(true, blockId, tMessage.getOffset(),
