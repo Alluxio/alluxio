@@ -43,7 +43,6 @@ import tachyon.network.protocol.databuffer.DataByteBuffer;
 import tachyon.network.protocol.databuffer.DataFileChannel;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
-import tachyon.worker.block.meta.StorageDir;
 
 /**
  * This class has the main logic of the read path to process {@link RPCRequest} messages and return
@@ -90,6 +89,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     final long offset = req.getOffset();
     final long len = req.getLength();
     final long lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
+    BlockReader reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
     //final StorageDir storageDir = mDataManager.lock(blockId, lockId);
 
     BlockReader handler = null;
@@ -97,17 +97,16 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       req.validate();
 //      handler = storageDir.getBlockHandler(blockId);
 //
-//      final long fileLength = handler.getLength();
-//      validateBounds(req, fileLength);
-//      final long readLength = returnLength(offset, len, fileLength);
-//      ChannelFuture future =
-//          ctx.writeAndFlush(new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req,
-//              handler, readLength)));
-//      future.addListener(ChannelFutureListener.CLOSE);
-//      future.addListener(new ClosableResourceChannelListener(handler));
-//      mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
-//      LOG.info("Response remote request by reading from {}, preparation done.",
-//          storageDir.getBlockFilePath(blockId));
+        final long fileLength = reader.getLength();
+        validateBounds(req, fileLength);
+        final long readLength = returnLength(offset, len, fileLength);
+        ChannelFuture future =
+            ctx.writeAndFlush(new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req,
+                handler, readLength)));
+        future.addListener(ChannelFutureListener.CLOSE);
+        future.addListener(new ClosableResourceChannelListener(reader));
+        mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
+        LOG.info("Preparation for responding to remote block request for: " + blockId + " done.");
     } catch (Exception e) {
       // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);
