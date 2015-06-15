@@ -58,6 +58,9 @@ public class LocalFileBlockReader implements BlockReader {
   }
 
   @Override
+  public long getLength() { return mFileSize; }
+
+  @Override
   public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkArgument(offset + length <= mFileSize,
         "offset=%s, length=%s, exceeds file size(%s)", offset, length, mFileSize);
