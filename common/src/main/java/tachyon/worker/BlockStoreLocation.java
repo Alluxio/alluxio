@@ -41,8 +41,10 @@ public class BlockStoreLocation {
   // A helper function to derive StorageDirId from a BlockLocation.
   // TODO: remove this method when master also understands BlockLocation
   public long getStorageDirId() {
-    // TODO: double check if mTierAlias is really the level
-    return (mTierAlias << 24) + (mTierAlias << 16) + mDirIndex;
+    // TODO: evaluate if we still need level which is same as tierAlias
+    int level = mTierAlias;
+    // Calculation copied from {@link StorageDirId.getStorageDirId}
+    return (level << 24) + (mTierAlias << 16) + mDirIndex;
   }
 
   public int tier() {
