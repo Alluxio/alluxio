@@ -160,7 +160,7 @@ public class DataServerMessage {
 
   private long mLength;
 
-  private int mLockId = -1;
+  private long mLockId = -1L;
 
   private ByteBuffer mData = null;
 
@@ -250,7 +250,7 @@ public class DataServerMessage {
    *
    * @return The id of the block's locker
    */
-  public int getLockId() {
+  public long getLockId() {
     return mLockId;
   }
 
@@ -368,7 +368,7 @@ public class DataServerMessage {
    *
    * @param lockId The id of the block's locker
    */
-  public void setLockId(int lockId) {
+  public void setLockId(long lockId) {
     mLockId = lockId;
   }
 }
