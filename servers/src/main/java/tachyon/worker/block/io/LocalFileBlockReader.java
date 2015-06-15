@@ -58,7 +58,9 @@ public class LocalFileBlockReader implements BlockReader {
   }
 
   @Override
-  public long getLength() { return mFileSize; }
+  public long getLength() {
+    return mFileSize;
+  }
 
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
@@ -66,5 +68,10 @@ public class LocalFileBlockReader implements BlockReader {
         "offset=%s, length=%s, exceeds file size(%s)", offset, length, mFileSize);
     ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
     return buf;
+  }
+
+  @Override
+  public void close() throws IOException {
+    mCloser.close();
   }
 }
