@@ -82,7 +82,8 @@ public class BlockLockManager {
 
   public synchronized Optional<Long> lockBlock(long userId, long blockId,
       BlockLockType blockLockType) {
-    int hashValue = (int) blockId % NUM_LOCKS;
+    // TODO: generate real hashValue on blockID.
+    int hashValue = (int) (blockId % (long) NUM_LOCKS);
     ClientRWLock blockLock = mLockArray.get(hashValue);
     Lock lock = null;
     if (blockLockType == BlockLockType.READ) {
