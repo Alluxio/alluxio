@@ -13,6 +13,8 @@
  * the License.
  */
 
+// TODO: Reenable this
+/*
 package tachyon.worker.block.meta;
 
 import java.io.File;
@@ -150,3 +152,4 @@ public class EvictStrategyTest {
     CommonUtils.changeLocalFileToFullPermission(dir.getUserTempPath(userId));
   }
 }
+*/
