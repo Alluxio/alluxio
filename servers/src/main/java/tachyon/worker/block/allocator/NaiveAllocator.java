@@ -20,22 +20,53 @@ import com.google.common.base.Preconditions;
 
 import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * Naive allocation strategy
+ * A naive allocator that returns the first Storage dir fitting the size of block to allocate.
  */
 public class NaiveAllocator implements Allocator {
-  private final BlockMetadataManager mMetadata;
+  private final BlockMetadataManager mMetaManager;
 
   public NaiveAllocator(BlockMetadataManager metadata) {
-    mMetadata = Preconditions.checkNotNull(metadata);
+    mMetaManager = Preconditions.checkNotNull(metadata);
   }
 
   @Override
   public Optional<TempBlockMeta> allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location) {
-    // TODO: implement me
+    if (location == BlockStoreLocation.anyTier()) {
+      // When any tier is ok, loop over all storage tier and dir, and return the first dir that has
+      // sufficient available space.
+      for (StorageTier tier : mMetaManager.getTiers()) {
+        for (StorageDir dir : tier.getStorageDirs()) {
+          if (dir.getAvailableBytes() >= blockSize) {
+            return Optional.of(new TempBlockMeta(userId, blockId, blockSize, dir));
+          }
+        }
+      }
+      return Optional.absent();
+    }
+
+    int tierAlias = location.tier();
+    StorageTier tier = mMetaManager.getTier(tierAlias);
+    if (location == BlockStoreLocation.anyDirInTier(tierAlias)) {
+      // Loop over all dirs in the given tier
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.getAvailableBytes() >= blockSize) {
+          return Optional.of(new TempBlockMeta(userId, blockId, blockSize, dir));
+        }
+      }
+      return Optional.absent();
+    }
+
+    int dirIndex = location.dir();
+    StorageDir dir = tier.getDir(dirIndex);
+    if (dir.getAvailableBytes() >= blockSize) {
+      return Optional.of(new TempBlockMeta(userId, blockId, blockSize, dir));
+    }
     return Optional.absent();
   }
 }
