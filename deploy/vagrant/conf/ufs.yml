@@ -17,6 +17,4 @@ Hadoop:
 # Doc on AccessKeyID and SecretAccessKey: 
 # http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html
 S3:
-  Bucket:  # Bucket name
-  AccessKeyID: 
-  SecretAccessKey:
+  Bucket:
