@@ -48,6 +48,9 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
       node.next = next;
       node.prev = this;
       next = node;
+      if (node.next != null) {
+        node.next.prev = node;
+      }
     }
 
     // Remove itself from the List
