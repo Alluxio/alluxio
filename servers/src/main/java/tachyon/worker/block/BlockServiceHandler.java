@@ -277,7 +277,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public boolean unlockBlock(long blockId, long userId) {
-    return mWorker.unlockBlock(blockId);
+    // return mWorker.unlockBlock(blockId);
+    return mWorker.unlockBlock(userId, blockId);
   }
 
   /**

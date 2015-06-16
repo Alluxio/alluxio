@@ -408,6 +408,11 @@ public class BlockDataManager {
     return mBlockStore.unlockBlock(lockId);
   }
 
+  // TODO: for debug only.
+  public boolean unlockBlock(long userId, long blockId) {
+    return mBlockStore.unlockBlock(userId, blockId);
+  }
+
   /**
    * Handles the heartbeat from a client.
    *
