@@ -21,11 +21,18 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
+
 /**
  * Read/write lock associated with clients rather than threads. Either its read lock or write lock
  * can be released by a thread different from the thread acquiring them.
  */
 public class ClientRWLock implements ReadWriteLock {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private static final int MAX_AVAILABLE = 100;
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, true);
 
