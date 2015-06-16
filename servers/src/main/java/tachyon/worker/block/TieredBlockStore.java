@@ -91,6 +91,11 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
+  public boolean unlockBlock(long userId, long blockId) {
+    return mLockManager.unlockBlock(userId, blockId);
+  }
+
+  @Override
   public Optional<BlockWriter> getBlockWriter(long userId, long blockId) throws IOException {
     Optional<TempBlockMeta> optBlock = mMetaManager.getTempBlockMeta(blockId);
     if (!optBlock.isPresent()) {

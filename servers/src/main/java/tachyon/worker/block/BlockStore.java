@@ -51,6 +51,11 @@ public interface BlockStore {
   boolean unlockBlock(long lockId);
 
   /**
+   * NOTE: debug only
+   */
+  boolean unlockBlock(long userId, long blockId);
+
+  /**
    * Creates the meta data of a new block and assigns a temporary path (e.g., a subdir of the final
    * location named after the the user ID) to store its data. This method only creates the meta data
    * but adds NO data to this temporary location. The location can be a specific location, or

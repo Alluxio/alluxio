@@ -111,7 +111,7 @@ public class BlockLockManager {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
-        LOG.error("Failed to unlock lockId {}: no lock record found ", lockId);
+        LOG.error("Failed to unlock lockId {}: no lock record found", lockId);
         return false;
       }
       long userId = record.userId();
@@ -126,6 +126,33 @@ public class BlockLockManager {
     lock.unlock();
     return true;
   }
+
+  // TODO: debug only, remove me later.
+  public boolean unlockBlock(long userId, long blockId) {
+    synchronized (mSharedMapsLock) {
+      Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
+      for (long lockId : userLockIds) {
+        LockRecord record = mLockIdToRecordMap.get(lockId);
+        if (null == record) {
+          LOG.error("Failed to unlock lockId {}: no lock record found", lockId);
+          return false;
+        }
+        if (blockId == record.blockId()) {
+          mLockIdToRecordMap.remove(lockId);
+          userLockIds.remove(lockId);
+          if (userLockIds.isEmpty()) {
+            mUserIdToLockIdsMap.remove(userId);
+          }
+          Lock lock = record.lock();
+          lock.unlock();
+          return true;
+        }
+      }
+    }
+    LOG.error("Failed to unlock blockId {} for userId {}", blockId, userId);
+    return false;
+  }
+
 
   /**
    * Validates the lock is hold by the given user for the given block.
@@ -155,7 +182,7 @@ public class BlockLockManager {
     synchronized (mSharedMapsLock) {
       Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
       if (null == userLockIds) {
-        LOG.error("Failed to cleanup userId {}: no acquired lock found ", userId);
+        LOG.error("Failed to cleanup userId {}: no acquired lock found", userId);
         return;
       }
       for (long lockId : userLockIds) {
