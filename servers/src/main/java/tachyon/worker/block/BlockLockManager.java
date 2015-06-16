@@ -111,6 +111,7 @@ public class BlockLockManager {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
+        LOG.error("Failed to unlock lockId {}: no lock record found ", lockId);
         return false;
       }
       long userId = record.userId();
@@ -138,6 +139,7 @@ public class BlockLockManager {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
+        LOG.error("Fail to validate lockId {}: no lock record found", lockId);
         return false;
       }
       return userId == record.userId() && blockId == record.blockId();
@@ -153,12 +155,14 @@ public class BlockLockManager {
     synchronized (mSharedMapsLock) {
       Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
       if (null == userLockIds) {
+        LOG.error("Failed to cleanup userId {}: no acquired lock found ", userId);
         return;
       }
       for (long lockId : userLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (null == record) {
-          return;
+          LOG.error("Failed to cleanup userId {}: no lock record for lockId {}", userId, lockId);
+          continue;
         }
         Lock lock = record.lock();
         lock.unlock();
