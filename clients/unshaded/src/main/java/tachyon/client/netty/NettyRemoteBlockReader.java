@@ -94,12 +94,16 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       if (response.getType() == RPCMessage.Type.RPC_BLOCK_RESPONSE) {
         RPCBlockResponse blockResponse = (RPCBlockResponse) response;
         LOG.info("Data " + blockId + " from remote machine " + address + " received");
+
+        if (blockResponse.getBlockId() < 0) {
+          LOG.info("Data " + blockResponse.getBlockId() + " is not in remote machine.");
+          return null;
+        }
         return blockResponse.getPayloadDataBuffer().getReadOnlyByteBuffer();
       }
     } catch (Exception e) {
-      LOG.error("exception in netty client: " + e.getMessage());
+      LOG.error("exception in netty client: " + e + " message: " + e.getMessage());
     }
-
     return null;
   }
 
