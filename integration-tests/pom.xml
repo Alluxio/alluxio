@@ -18,6 +18,7 @@
     <module>s3</module>
     <module>glusterfs</module>
     <module>hadoop-contract</module>
+    <module>swift</module>
   </modules>
 
   <properties>
