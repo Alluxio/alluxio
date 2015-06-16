@@ -22,9 +22,11 @@ import tachyon.worker.block.BlockMetadataManager;
 /**
  * A simple evictor that evicts random blocks until the required size in the target tier is met.
  */
-public class NaiveEvictor extends Evictor implements BlockAccessEventListener {
-  public NaiveEvictor(BlockMetadataManager metadata) {
-    super(metadata);
+public class NaiveEvictor implements Evictor, BlockAccessEventListener {
+  protected BlockMetadataManager mMeta;
+
+  public NaiveEvictor(BlockMetadataManager meta) {
+    mMeta = meta;
   }
 
   @Override

@@ -22,13 +22,7 @@ import tachyon.worker.block.BlockMetadataManager;
 /**
  * Interface for the eviction policy in Tachyon
  */
-public abstract class Evictor {
-  protected BlockMetadataManager mMeta;
-
-  public Evictor(BlockMetadataManager meta) {
-    mMeta = meta;
-  }
-
+public interface Evictor {
   /**
    * Free space in the given block store location. The location can be a specific location, or
    * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)} .
