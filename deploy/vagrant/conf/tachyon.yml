@@ -1,0 +1,13 @@
+# Type can be {Local|Github|Release}
+# Local means using the Tachyon repo which this directory resides in
+# Release means using binary distribution from https://github.com/amplab/tachyon/releases
+# Github means cloning and compiling github repo
+Type: Local
+
+# github repo and version(can be branch, commit hash)
+Github:
+  Repo: https://github.com/amplab/tachyon
+  Version: master
+
+Release:
+  Dist: tachyon-0.6.4-bin.tar.gz # name of release tarball in https://github.com/amplab/tachyon/releases
