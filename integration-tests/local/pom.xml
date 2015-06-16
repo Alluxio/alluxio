@@ -26,32 +26,40 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.18.1</version>
-        <configuration>
-          <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
-          <!-- Pull in integration tests from test-cases module -->
-          <dependenciesToScan>
-            <dependency>org.tachyonproject:tachyon-integration-test-cases</dependency>
-          </dependenciesToScan>
-          <systemPropertyVariables>
-            <ufs>tachyon.LocalFilesystemCluster</ufs>
-          </systemPropertyVariables>
-        </configuration>
-        <executions>
-          <execution>
-            <id>default-test</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+  <profiles>
+    <profile>
+      <id>localTest</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.18.1</version>
+            <configuration>
+              <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
+              <!-- Pull in integration tests from test-cases module -->
+              <dependenciesToScan>
+                <dependency>org.tachyonproject:tachyon-integration-test-cases</dependency>
+              </dependenciesToScan>
+              <systemPropertyVariables>
+                <ufs>tachyon.LocalFilesystemCluster</ufs>
+              </systemPropertyVariables>
+            </configuration>
+            <executions>
+              <execution>
+                <id>default-test</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
