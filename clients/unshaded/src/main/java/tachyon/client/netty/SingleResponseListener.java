@@ -28,6 +28,9 @@ import com.google.common.util.concurrent.SettableFuture;
 import tachyon.Constants;
 import tachyon.network.protocol.RPCResponse;
 
+/**
+ * A simple listener that waits for a single {@link RPCResponse} message from the remote server.
+ */
 public final class SingleResponseListener implements ClientHandler.ResponseListener {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
