@@ -28,9 +28,6 @@ import tachyon.worker.block.BlockAccessEventListener;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.meta.BlockMeta;
 
-/**
- * Not thread-safe
- */
 public class LRUEvictor implements Evictor, BlockAccessEventListener {
   protected BlockMetadataManager mMeta;
 
@@ -85,6 +82,8 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
    *
    * If the total free space is fewer than {@param bytes}, they will all be evicted
    *
+   * Thread safe.
+   *
    * @param bytes the size in bytes
    * @param location the location in block store
    * @return an eviction plan to achieve the freed space
@@ -96,35 +95,43 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
 
     Node p = mHead;
     long evictBytes = 0;
-    while (p.next != mTail && evictBytes < bytes) {
-      Optional<BlockMeta> meta = mMeta.getBlockMeta(p.blockId);
-      if (!meta.isPresent() || !meta.get().getBlockLocation().belongTo(location)) {
-        continue;
+    // erase race condition with onAccessBlock on internal data structure
+    synchronized (mTail) {
+      while (p.next != mTail && evictBytes < bytes) {
+        Optional<BlockMeta> meta = mMeta.getBlockMeta(p.blockId);
+        if (!meta.isPresent() || !meta.get().getBlockLocation().belongTo(location)) {
+          continue;
+        }
+
+        evictBytes += meta.get().getBlockSize();
+        toEvict.add(p.blockId);
+
+        mCache.remove(p.blockId);
+
+        Node current = p;
+        p = p.next;
+        current.remove();
       }
-
-      evictBytes += meta.get().getBlockSize();
-      toEvict.add(p.blockId);
-
-      mCache.remove(p.blockId);
-
-      Node current = p;
-      p = p.next;
-      current.remove();
     }
 
     return new EvictionPlan(toMove, toEvict);
   }
 
+  /**
+   * Thread safe
+   */
   @Override
   public void onAccessBlock(long userId, long blockId) {
     Node node;
-    if (mCache.containsKey(blockId)) {
-      node = mCache.get(blockId);
-      node.remove();
-    } else {
-      node = new Node(blockId);
-      mCache.put(blockId, node);
+    synchronized (mTail) {
+      if (mCache.containsKey(blockId)) {
+        node = mCache.get(blockId);
+        node.remove();
+      } else {
+        node = new Node(blockId);
+        mCache.put(blockId, node);
+      }
+      mTail.prev.append(node);
     }
-    mTail.prev.append(node);
   }
 }
