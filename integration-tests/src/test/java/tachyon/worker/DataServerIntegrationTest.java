@@ -53,30 +53,45 @@ public class DataServerIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
-  private static final String UNUSED_TRANSFER_TYPE = "UNUSED";
+  // DataServer variations.
+  private static final String NETTY_DATA_SERVER = "tachyon.worker.netty.NettyDataServer";
+  private static final String NIO_DATA_SERVER = "tachyon.worker.nio.NIODataServer";
+
+  // Netty transfer variations.
+  private static final String MAPPED_TRANSFER = "MAPPED";
+  private static final String FILE_CHANNEL_TRANSFER = "TRANSFER";
+  private static final String UNUSED_TRANSFER = "UNUSED";
+
+  // Remote block reader variations.
+  private static final String TCP_BLOCK_READER = "tachyon.client.tcp.TCPRemoteBlockReader";
+  private static final String NETTY_BLOCK_READER = "tachyon.client.netty.NettyRemoteBlockReader";
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
-    // Creates a new instance of DataServerTest for each network type and transfer type.
-    // The transfer type is only applicable to the netty DataServer.
+    // Creates a new instance of DataServerTest for different combinations of parameters..
     List<Object[]> list = new ArrayList<Object[]>();
-    list.add(new Object[] { "tachyon.worker.netty.NettyDataServer", "MAPPED" });
-    list.add(new Object[] { "tachyon.worker.netty.NettyDataServer", "TRANSFER" });
-    list.add(new Object[] { "tachyon.worker.nio.NIODataServer", UNUSED_TRANSFER_TYPE });
+    list.add(new Object[] { NETTY_DATA_SERVER, MAPPED_TRANSFER, TCP_BLOCK_READER });
+    list.add(new Object[] { NETTY_DATA_SERVER, MAPPED_TRANSFER, NETTY_BLOCK_READER });
+    list.add(new Object[] { NETTY_DATA_SERVER, FILE_CHANNEL_TRANSFER, TCP_BLOCK_READER });
+    list.add(new Object[] { NETTY_DATA_SERVER, FILE_CHANNEL_TRANSFER, NETTY_BLOCK_READER });
+    // The transfer type is not applicable to the NIODataServer.
+    list.add(new Object[] { NIO_DATA_SERVER, UNUSED_TRANSFER, TCP_BLOCK_READER });
+    list.add(new Object[] { NIO_DATA_SERVER, UNUSED_TRANSFER, NETTY_BLOCK_READER });
     return list;
   }
 
   private final String mDataServerClass;
   private final String mNettyTransferType;
+  private final String mBlockReader;
+
   private LocalTachyonCluster mLocalTachyonCluster = null;
-
   private TachyonFS mTFS = null;
-
   private TachyonConf mWorkerTachyonConf;
 
-  public DataServerIntegrationTest(String className, String nettyTransferType) {
+  public DataServerIntegrationTest(String className, String nettyTransferType, String blockReader) {
     mDataServerClass = className;
     mNettyTransferType = nettyTransferType;
+    mBlockReader = blockReader;
   }
 
   @After
@@ -117,8 +132,7 @@ public class DataServerIntegrationTest {
   public final void before() throws IOException {
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
     System.setProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    System.setProperty(Constants.USER_REMOTE_BLOCK_READER,
-        "tachyon.client.netty.NettyRemoteBlockReader");
+    System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mBlockReader);
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     mLocalTachyonCluster.start();
@@ -224,6 +238,30 @@ public class DataServerIntegrationTest {
         block.getLocations().get(0).mSecondaryPort, block.getBlockId(), 0, length);
 
     Assert.assertEquals(TestUtils.getIncreasingByteBuffer(length), result);
+  }
+
+  @Test
+  public void readThroughClientNonExistentTest()
+      throws InvalidPathException, FileAlreadyExistException, IOException {
+    final int length = 10;
+    int fileId = TachyonFSTestUtils.createByteFile(mTFS, "/testFile", WriteType.MUST_CACHE, length);
+    List<ClientBlockInfo> blocks = mTFS.getFileBlocks(fileId);
+    ClientBlockInfo block = blocks.get(0);
+
+    // Get the maximum block id, for use in determining a non-existent block id.
+    long maxBlockId = block.getBlockId();
+    for (ClientBlockInfo b : blocks) {
+      if (b.getBlockId() > maxBlockId) {
+        maxBlockId = b.getBlockId();
+      }
+    }
+
+    RemoteBlockReader client =
+        RemoteBlockReader.Factory.createRemoteBlockReader(mWorkerTachyonConf);
+    ByteBuffer result = client.readRemoteBlock(block.getLocations().get(0).mHost,
+        block.getLocations().get(0).mSecondaryPort, maxBlockId + 1, 0, length);
+
+    Assert.assertNull(result);
   }
 
   @Test
