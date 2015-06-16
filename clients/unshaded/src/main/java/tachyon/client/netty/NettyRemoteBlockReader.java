@@ -49,9 +49,9 @@ import tachyon.network.protocol.RPCResponse;
  * Read data from remote data server using Netty.
  */
 public final class NettyRemoteBlockReader implements RemoteBlockReader {
-
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  // Share both the encoder and decoder with all the client pipelines.
   private static final RPCMessageEncoder ENCODER = new RPCMessageEncoder();
   private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
 
