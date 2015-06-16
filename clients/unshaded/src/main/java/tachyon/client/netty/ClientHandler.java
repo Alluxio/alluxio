@@ -30,11 +30,18 @@ import tachyon.network.protocol.RPCBlockResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCResponse;
 
+/**
+ * This handles all the messages received by the client channel.
+ */
 @ChannelHandler.Sharable
 public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * The interface for listeners to implement to receive callbacks when messages are received.
+   */
   public interface ResponseListener {
+    /** This method will be called when a message is received on the client. */
     void onResponseReceived(RPCResponse response);
   }
 
