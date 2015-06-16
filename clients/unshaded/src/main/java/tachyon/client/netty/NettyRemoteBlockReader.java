@@ -71,8 +71,8 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
 
   // TODO: Creating a new remote block reader may be expensive, so consider a connection pool.
   public NettyRemoteBlockReader() {
-    mClientBootstrap = createClientBootstrap();
     mHandler = new ClientHandler();
+    mClientBootstrap = createClientBootstrap();
   }
 
   @Override
