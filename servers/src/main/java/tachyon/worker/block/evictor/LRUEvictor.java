@@ -102,18 +102,20 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
     synchronized (mTail) {
       while (p.next != mTail && evictBytes < bytes) {
         Optional<BlockMeta> meta = mMeta.getBlockMeta(p.blockId);
-        if (!meta.isPresent() || !meta.get().getBlockLocation().belongTo(location)) {
-          continue;
+        boolean evicted = false;
+        if (!meta.isPresent()) {
+          LOG.error("BlockMeta for blockId %d can not be get in LRUEvictor", p.blockId);
+        } else if (meta.get().getBlockLocation().belongTo(location)) {
+          evictBytes += meta.get().getBlockSize();
+          toEvict.add(p.blockId);
+          evicted = true;
         }
 
-        evictBytes += meta.get().getBlockSize();
-        toEvict.add(p.blockId);
-
-        mCache.remove(p.blockId);
-
-        Node current = p;
         p = p.next;
-        current.remove();
+        if (evicted) {
+          p.prev.remove();
+          mCache.remove(p.blockId);
+        }
       }
     }
 
