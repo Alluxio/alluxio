@@ -56,8 +56,12 @@ public class RemoteBlockInStreamIntegrationTest {
     List<Object[]> list = new ArrayList<Object[]>();
     list.add(new Object[] { new String[] { "tachyon.worker.netty.NettyDataServer",
         "tachyon.client.tcp.TCPRemoteBlockReader" } });
+    list.add(new Object[] { new String[] { "tachyon.worker.netty.NettyDataServer",
+        "tachyon.client.netty.NettyRemoteBlockReader" } });
     list.add(new Object[] { new String[] { "tachyon.worker.nio.NIODataServer",
         "tachyon.client.tcp.TCPRemoteBlockReader" } });
+    list.add(new Object[] { new String[] { "tachyon.worker.nio.NIODataServer",
+        "tachyon.client.netty.NettyRemoteBlockReader" } });
     return list;
   }
 
