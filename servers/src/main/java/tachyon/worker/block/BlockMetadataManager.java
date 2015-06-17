@@ -76,6 +76,23 @@ public class BlockMetadataManager {
   }
 
   /**
+   * Checks if the storage has a given block.
+   *
+   * @param blockId the block ID
+   * @return true if the block is contained, false otherwise
+   */
+  public synchronized boolean hasBlockMeta(long blockId) {
+    for (StorageTier tier : mTiers.values()) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.hasBlockMeta(blockId)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Gets the metadata of a block given its blockId.
    *
    * @param blockId the block ID
