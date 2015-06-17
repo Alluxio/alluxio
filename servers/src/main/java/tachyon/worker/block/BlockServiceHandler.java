@@ -18,6 +18,8 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.List;
 
+import com.google.common.base.Optional;
+
 import org.apache.thrift.TException;
 
 import tachyon.Users;
@@ -209,8 +211,11 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public String lockBlock(long blockId, long userId) throws TException {
-    long lockId = mWorker.lockBlock(userId, blockId);
-    return mWorker.readBlock(userId, blockId, lockId);
+    Optional<Long> optLock = mWorker.lockBlock(userId, blockId);
+    if (optLock.isPresent()) {
+      return mWorker.readBlock(userId, blockId, optLock.get());
+    }
+    return null;
   }
 
   /**
