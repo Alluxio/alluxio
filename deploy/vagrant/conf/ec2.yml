@@ -7,32 +7,33 @@ Keypair: "aws-east"
 Key_Path: "~/.ssh/aws-east.pem"
 
 # Differences among EC2 instance types: http://aws.amazon.com/ec2/instance-types/
+#
 # When using spark, we recommend "r3.large", compile spark needs 2G memory at least
 #
 # Some Instance Type must need PV/HVM(refer to AMI below)
-Instance_Type: "m1.small"
+Instance_Type: "t2.small"
 
-# tag to the instance name to avoid name conflict during mutiple deployment
+# tag to the instance name to avoid name conflict during multiple deployment.
 # specify this to illustrate the usage of your cluster, especially when you
 # share the EC2 with others, without tags, it's hard to tell which cluster is yours. 
 #
 # The machines will be named to {Tag}TachyonMaster, {Tag}TachyonWorker1...
 Tag: "my-"
 
-# By default, EC2 instance only mounts 10GB under root directory '/'
+# By default, EC2 instance only mounts 10GB under root directory '/'.
 # Different instance types provide different amount of extra disk spaces,
 # but if you do not specify these extra disks in block device mapping, they won't be used.
-# Also, you can specify EBS disks here
+# Also, you can specify EBS disks here.
 #
 # For more info:
 #   http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/block-device-mapping-concepts.html
 #
-# If you need to specify this field, don't forget to delete the "[]"
+# If you need to specify this field, don't forget to delete the "[]".
 # The devices specified here will be automatically formatted to ext4 and
-# mounted to "/disk0", "/disk1"... in sequence
+# mounted to "/disk0", "/disk1"... in sequence.
 #
-# If ufs is HDFS, all the /disk* will be used as HDFS's storage
-# Otherwise, all the /disk* will be used as Tachyon's HDD Tiered Storage
+# If ufs is HDFS, all the /disk* will be used as HDFS's storage,
+# Otherwise, all the /disk* will be used as Tachyon's HDD Tiered Storage.
 #
 # Example: 
 # 1. Instance Extra Storage(If the Storage colume specified in instance type matrix

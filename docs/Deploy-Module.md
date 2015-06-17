@@ -50,7 +50,7 @@ If you do not understand the terminologies, you probably should just try the com
 8. You can monitor instance running state through [AWS web console](https://console.aws.amazon.com).
 
 ## After Cluster Set Up
-1. When command `./start xx xx` succeeds, a purple line in the output tells you the IP of TachyonMaster, say, it's IP, then visit `http://{IP}:19999` in your browser, you should see Tachyon's web UI
+1. When command `./start <number of machines> aws` succeeds, a purple line in the output tells you the IP of TachyonMaster, say, it's IP, then visit `http://{IP}:19999` in your browser, you should see Tachyon's web UI
 2. Visit `http://{IP}:50070` in your browser, you should see Hadoop's web UI!
 3. `vagrant ssh TachyonMaster`, and you should have entered TachyonMaster node, all software is installed under root directory, e.x. Tachyon is installed in `/tachyon`, Hadoop is installed in `/hadoop`
 4. `/tachyon/bin/tachyon runTests` to run some tests against Tachyon
@@ -91,4 +91,4 @@ If you are new to AWS EC2, we recommend you to understand comments in `ec2.yml`.
 
 6. What's PV/HVM?
 
-  see comment on **AMI** in **conf/ec2.yml**
+  explanation in http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/virtualization_types.html
