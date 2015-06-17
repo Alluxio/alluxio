@@ -17,20 +17,17 @@ package tachyon.worker.block.meta;
 
 import tachyon.util.CommonUtils;
 
+import java.io.File;
+
 /**
  * Represents the metadata of a block in Tachyon managed storage.
  */
 public class BlockMeta extends BlockMetaBase {
   private final long mBlockSize;
 
-  public BlockMeta(long blockId, long blockSize, StorageDir dir) {
-    super(blockId, dir);
-    mBlockSize = blockSize;
-  }
-
   public BlockMeta(TempBlockMeta tempBlock) {
     super(tempBlock.getBlockId(), tempBlock.getParentDir());
-    mBlockSize = tempBlock.getBlockSize();
+    mBlockSize = new File(tempBlock.getCommitPath()).length();
   }
 
   @Override
