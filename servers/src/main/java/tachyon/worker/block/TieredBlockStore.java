@@ -142,9 +142,7 @@ public class TieredBlockStore implements BlockStore {
     }
 
     mEvictionLock.readLock().lock();
-    long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
     boolean result = commitBlockNoLock(userId, blockId);
-    mLockManager.unlockBlock(lockId);
     mEvictionLock.readLock().unlock();
 
     if (result) {
@@ -158,9 +156,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public boolean abortBlock(long userId, long blockId) {
     mEvictionLock.readLock().lock();
-    long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
     boolean result = abortBlockNoLock(userId, blockId);
-    mLockManager.unlockBlock(lockId);
     mEvictionLock.readLock().unlock();
     return result;
   }
@@ -181,6 +177,7 @@ public class TieredBlockStore implements BlockStore {
     }
 
     mEvictionLock.readLock().lock();
+    // TODO: Handle absent
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
     boolean result = moveBlockNoLock(userId, blockId, newLocation);
     mLockManager.unlockBlock(lockId);
@@ -201,6 +198,7 @@ public class TieredBlockStore implements BlockStore {
     }
 
     mEvictionLock.readLock().lock();
+    // TODO: Handle absent
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
     boolean result = removeBlockNoLock(userId, blockId);
     mLockManager.unlockBlock(lockId);
@@ -262,7 +260,7 @@ public class TieredBlockStore implements BlockStore {
         mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
     if (!optTempBlock.isPresent()) {
       // Not enough space in this block store, let's try to free some space.
-      if (freeSpaceNoLock(userId, initialBlockSize, location)) {
+      if (!freeSpaceNoLock(userId, initialBlockSize, location)) {
         LOG.error("Cannot free {} bytes space in {}", initialBlockSize, location);
         return Optional.absent();
       }
@@ -346,11 +344,13 @@ public class TieredBlockStore implements BlockStore {
   private boolean removeBlockNoLock(long userId, long blockId) throws IOException {
     Optional<BlockMeta> optBlock = mMetaManager.getBlockMeta(blockId);
     if (!optBlock.isPresent()) {
+      LOG.error("Block is not present");
       return false;
     }
     BlockMeta block = optBlock.get();
     // Delete metadata of the block
     if (!mMetaManager.removeBlockMeta(block)) {
+      LOG.error("Unable to remove metadata");
       return false;
     }
     // Delete the data file of the block
@@ -362,6 +362,7 @@ public class TieredBlockStore implements BlockStore {
     EvictionPlan plan = mEvictor.freeSpace(size, location);
     // Step1: remove blocks to make room.
     for (long blockId : plan.toEvict()) {
+      // TODO: Handle absent
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
       boolean result = removeBlockNoLock(userId, blockId);
       mLockManager.unlockBlock(lockId);
@@ -373,6 +374,7 @@ public class TieredBlockStore implements BlockStore {
     for (Pair<Long, BlockStoreLocation> entry : plan.toMove()) {
       long blockId = entry.getFirst();
       BlockStoreLocation newLocation = entry.getSecond();
+      // TODO: Handle absent
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
       boolean result = moveBlockNoLock(userId, blockId, newLocation);
       mLockManager.unlockBlock(lockId);

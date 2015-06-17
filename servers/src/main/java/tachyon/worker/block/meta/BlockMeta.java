@@ -15,9 +15,9 @@
 
 package tachyon.worker.block.meta;
 
-import tachyon.util.CommonUtils;
-
 import java.io.File;
+
+import tachyon.util.CommonUtils;
 
 /**
  * Represents the metadata of a block in Tachyon managed storage.
