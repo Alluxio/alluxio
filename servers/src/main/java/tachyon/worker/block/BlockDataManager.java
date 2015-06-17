@@ -177,6 +177,7 @@ public class BlockDataManager {
       return false;
     }
 
+    // TODO: Reconsider how to do this without heavy locking
     // Block successfully committed, update master with new block metadata
     Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId);
     if (!optLock.isPresent()) {
@@ -185,6 +186,7 @@ public class BlockDataManager {
     Long lockId = optLock.get();
     Optional<BlockMeta> optMeta = mBlockStore.getBlockMeta(userId, blockId, lockId);
     if (!optMeta.isPresent()) {
+      mBlockStore.unlockBlock(userId, blockId);
       throw new IOException("Failed to get block meta for new block " + blockId);
     }
     BlockMeta meta = optMeta.get();
@@ -197,8 +199,10 @@ public class BlockDataManager {
       mMasterClient
           .worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);
     } catch (TException te) {
+      mBlockStore.unlockBlock(userId, blockId);
       throw new IOException("Failed to commit block to master.", te);
     }
+    mBlockStore.unlockBlock(userId, blockId);
     return true;
   }
 

@@ -68,12 +68,14 @@ public class BlockInStreamIntegrationTest {
     TachyonFile file1 = sTfs1.getFile(fileId);
     InStream is1 = file1.getInStream(ReadType.NO_CACHE);
     Assert.assertTrue(is1 instanceof RemoteBlockInStream); // local read is disabled
+    is1.close();
 
     conf.set(Constants.USER_ENABLE_LOCAL_READ, "true");
     TachyonFS sTfs2 = TachyonFS.get(conf);
     TachyonFile file2 = sTfs2.getFile(fileId);
     InStream is2 = file2.getInStream(ReadType.NO_CACHE);
     Assert.assertTrue(is2 instanceof LocalBlockInStream); // local read is enabled
+    is2.close();
   }
 
   /**
