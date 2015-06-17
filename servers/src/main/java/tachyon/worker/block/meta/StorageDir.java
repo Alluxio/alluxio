@@ -200,7 +200,7 @@ public class StorageDir {
     Preconditions.checkNotNull(block);
     mBlockIdToBlockMap.remove(block.getBlockId());
     mAvailableBytes += block.getBlockSize();
-    return false;
+    return true;
   }
 
   /**

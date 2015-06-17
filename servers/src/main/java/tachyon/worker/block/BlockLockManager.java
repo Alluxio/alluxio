@@ -103,7 +103,7 @@ public class BlockLockManager {
       lock = blockLock.writeLock();
     }
     lock.lock();
-    if (mMetaManager.hasBlockMeta(blockId)) {
+    if (!mMetaManager.hasBlockMeta(blockId)) {
       lock.unlock();
       return Optional.absent();
     }
