@@ -86,7 +86,7 @@ public class TieredBlockStore implements BlockStore {
     if (mMetaManager.getBlockMeta(blockId).isPresent()) {
       return mLockManager.lockBlock(userId, blockId, BlockLockType.READ);
     }
-    return null;
+    return Optional.absent();
   }
 
   @Override
