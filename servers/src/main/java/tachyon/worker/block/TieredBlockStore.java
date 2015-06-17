@@ -80,6 +80,9 @@ public class TieredBlockStore implements BlockStore {
 
     EvictorType evictorType = mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
     mEvictor = Evictors.create(evictorType, mMetaManager);
+    if (mEvictor instanceof BlockAccessEventListener) {
+      registerAccessListener((BlockAccessEventListener)mEvictor);
+    }
   }
 
   @Override
