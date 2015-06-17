@@ -82,7 +82,11 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public Optional<Long> lockBlock(long userId, long blockId) {
-    return mLockManager.lockBlock(userId, blockId, BlockLockType.READ);
+    // TODO: Fix this to contains
+    if (mMetaManager.getBlockMeta(blockId).isPresent()) {
+      return mLockManager.lockBlock(userId, blockId, BlockLockType.READ);
+    }
+    return null;
   }
 
   @Override
