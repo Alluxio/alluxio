@@ -101,7 +101,11 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @return the lockId of the lock obtained
    */
   public long lockBlockV2(long userId, long blockId) {
-    return mWorker.lockBlock(userId, blockId);
+    Optional<Long> optLock = mWorker.lockBlock(userId, blockId);
+    if (optLock.isPresent()) {
+      return optLock.get();
+    }
+    return -1;
   }
 
   /**
