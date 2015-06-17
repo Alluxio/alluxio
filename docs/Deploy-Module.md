@@ -26,10 +26,10 @@ Apart from Tachyon, you can choose to deploy computation frameworks and under fi
 
 ## Quick Start With VirtualBox
 
-After installing the prerequisites, if have virtualbox installed, you can follow this quick start to set up a two node Tachyon cluster with apache hadoop2.4.1 as under filesystem, one node is named TachyonMaster, another is TachyonWorker.
+After installing the prerequisites, if have virtualbox installed and the memory capacity of your host is larger than 4G, you can follow this quick start to set up a two node Tachyon cluster with apache hadoop2.4.1 as under filesystem, one node is named TachyonMaster, another is TachyonWorker.
 
 1. `cd TACHYON/deploy/vagrant`, replace TACHYON with the Tachyon repo on your host, you can clone the latest from [github](https://github.com/amplab/tachyon.git)
-2. `./start 2 vb`, it will be slow when you first run this command, because vagrant will download a centos6.5 virtual machine, and install necessary software in this machine. The console output is verbose enough for you to know what's going on. 
+2. `./create 2 vb`, it will be slow when you first run this command, because vagrant will download a centos6.5 virtual machine, and install necessary software in this machine. The console output is verbose enough for you to know what's going on. 
 
 ## Quick Start With AWS EC2
 
@@ -44,20 +44,20 @@ to chmod private ssh key to **0600**.
 5. `vagrant plugin install vagrant-aws`. Install aws vagrant plugin. To date, 0.5.0 plugin is tested.
 6. By default, if you don't have a [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html) 
 called **tachyon-vagrant-test** in [Region and Availability Zone](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html) **(us-east-1, us-east-1a)**,
-a cluster will be set up in us-east-1a by running `./start <number of machines> aws`.
+a cluster will be set up in us-east-1a by running `./create <number of machines> aws`.
 If you do not understand the terminologies, you probably should just try the command.
 7. If the Security Group has existed, configure a new one in `ec2.yml` according to comments of the `Security_Group` field.
 8. You can monitor instance running state through [AWS web console](https://console.aws.amazon.com).
 
 ## After Cluster Set Up
-1. When command `./start <number of machines> aws` succeeds, a purple line in the output tells you the IP of TachyonMaster, say, it's IP, then visit `http://{IP}:19999` in your browser, you should see Tachyon's web UI
+1. When command `./create <number of machines> aws` succeeds, a purple line in the output tells you the IP of TachyonMaster, say, it's IP, then visit `http://{IP}:19999` in your browser, you should see Tachyon's web UI
 2. Visit `http://{IP}:50070` in your browser, you should see Hadoop's web UI!
 3. `vagrant ssh TachyonMaster`, and you should have entered TachyonMaster node, all software is installed under root directory, e.x. Tachyon is installed in `/tachyon`, Hadoop is installed in `/hadoop`
 4. `/tachyon/bin/tachyon runTests` to run some tests against Tachyon
 5. After the tests all pass, visit Tachyon web UI: `http://{IP}:19999` again, in `Browse FileSystem`, you should see files written to Tachyon by the tests run above
 6. In TachyonMaster node, `~/vagrant-utils` provides utilities to work with the cluster, one is `copy-dir` which can copy or delete a directory in all nodes, another is `remount` which can unmount a device from current mount point and mount to another mount point. Play with them if you are interested
 7. From inside TachyonMaster node, run `ssh TachyonWorker1` to login to TachyonWorker1 without password
-8. If you don't want to play around in the cluster any more, `./stop` to destroy the cluster, 
+8. If you don't want to play around in the cluster any more, `./destroy` to destroy the cluster, 
 for virtualbox, virtual machines will be deleted, for EC2, instances will be terminated.
 
 ## Configurations
