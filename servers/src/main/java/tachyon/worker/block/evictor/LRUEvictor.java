@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -20,8 +20,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Optional;
 
+import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.BlockAccessEventListener;
@@ -29,41 +33,28 @@ import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.meta.BlockMeta;
 
 public class LRUEvictor implements Evictor, BlockAccessEventListener {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final BlockMetadataManager mMeta;
 
   /** Double-Link List, most recently accessed block is at tail of the list */
-  private class Node {
+  private class Node extends DoubleLinkListNode {
     long blockId;
-    Node prev, next;
+
     Node() {
       blockId = -1;
       prev = next = null;
     }
+
     Node(long blkId) {
       blockId = blkId;
       prev = next = null;
     }
 
-    void append(Node node) {
-      node.next = next;
-      node.prev = this;
-      next = node;
-      if (node.next != null) {
-        node.next.prev = node;
-      }
-    }
-
-    // Remove itself from the List
-    void remove() {
-      if (prev != null) {
-        prev.next = next;
-      }
-      if (next != null) {
-        next.prev = prev;
-      }
-      next = prev = null;
+    Node nextNode() {
+      return (Node) next;
     }
   }
+
   private Node mHead;
   private Node mTail;
   /** Map from blockId to corresponding Node in the Double-Link List */
@@ -83,8 +74,8 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
    * Free space in the given block store location. The location can be a specific location, or
    * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)} .
    *
-   * If the total free space is fewer than {@param bytes}, they will all be evicted
-   *
+   * If the total free space is fewer than {@code bytes}, they will all be evicted
+   * 
    * Thread safe.
    *
    * @param bytes the size in bytes
@@ -100,7 +91,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
     long evictBytes = 0;
     // erase race condition with onAccessBlock on internal data structure
     synchronized (mTail) {
-      while (p.next != mTail && evictBytes < bytes) {
+      while (p.nextNode() != mTail && evictBytes < bytes) {
         Optional<BlockMeta> meta = mMeta.getBlockMeta(p.blockId);
         boolean evicted = false;
         if (!meta.isPresent()) {
@@ -111,7 +102,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
           evicted = true;
         }
 
-        p = p.next;
+        p = p.nextNode();
         if (evicted) {
           p.prev.remove();
           mCache.remove(p.blockId);
