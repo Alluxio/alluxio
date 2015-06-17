@@ -24,6 +24,7 @@ import org.apache.thrift.TException;
 
 import tachyon.Users;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
@@ -219,7 +220,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
     if (optLock.isPresent()) {
       return mWorker.readBlock(userId, blockId, optLock.get());
     }
-    return null;
+    throw new FileDoesNotExistException("Block does not exist " + blockId);
   }
 
   /**
