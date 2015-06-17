@@ -34,7 +34,8 @@ import tachyon.worker.block.meta.TempBlockMeta;
 public interface BlockStore {
 
   /**
-   * Locks a block for a READ and guards the subsequent operations on this block.
+   * Locks a block for a given user to read it if it exists, and guards the subsequent
+   * READ operations on this block. In case the block doesn't exist, return absent.
    *
    * @param userId the ID of the user to lock this block
    * @param blockId the ID of the block to lock
