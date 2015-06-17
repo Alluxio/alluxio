@@ -44,7 +44,7 @@ import tachyon.util.ThreadFactoryUtils;
  * for the elapsed time since its last heartbeat has reached the heartbeat interval. Then the cycle
  * will continue.
  *
- * If the task fails to heartbeat to the worker, it will destroy its old master client and recreate
+ * If the task fails to heartbeat to the master, it will destroy its old master client and recreate
  * it before retrying.
  */
 public class BlockMasterSync implements Runnable {

@@ -16,15 +16,34 @@
 package tachyon.worker.block.evictor;
 
 /**
- * Different types of EvictionStrategy. Currently only LRU-based strategies are implemented.
+ * Used to get a specific EvictStrategy based on EvictStrategyType
  */
-public enum EvictStrategyType {
+
+import tachyon.worker.block.BlockMetadataManager;
+
+/**
+ * Factory of {@link Evictor} based on {@link EvictorType}
+ */
+public class Evictors {
   /**
-   * Evict old blocks among several StorageDirs by LRU
+   * New a {@link Evictor}
+   *
+   * @param evictorType EvictorType of the Evictor to create
+   * @param metaManager BlockMetadataManager to pass to Evictor
+   * @return the generated Evictor
    */
-  LRU,
-  /**
-   * Evict old blocks in certain StorageDir by LRU.
-   */
-  PARTIAL_LRU;
+  public static Evictor create(EvictorType evictorType, BlockMetadataManager metaManager) {
+    switch (evictorType) {
+      case LRU:
+        return new LRUEvictor(metaManager);
+      case PARTIAL_LRU:
+        // TODO not implemented yet
+        return null;
+      default:
+        // TODO may not default to LRU
+        return new LRUEvictor(metaManager);
+    }
+  }
+
+  private Evictors() {}
 }

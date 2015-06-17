@@ -15,21 +15,21 @@
 
 package tachyon.worker.block.evictor;
 
-import tachyon.worker.BlockStoreLocation;
-import tachyon.worker.block.BlockMetaEventListener;
-import tachyon.worker.block.BlockMetadataManager;
-
 /**
- * Interface for the eviction policy in Tachyon
+ * Different types of {@link Evictor}. Currently only LRU-based strategies are implemented.
  */
-public interface Evictor {
+public enum EvictorType {
   /**
-   * Free space in the given block store location. The location can be a specific location, or
-   * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)} .
-   *
-   * @param bytes the size in bytes
-   * @param location the location in block store
-   * @return an eviction plan to achieve the freed space
+   * Default type which will be determined in {@link Evictors}
+   * mainly used in {@link tachyon.conf.TachyonConf#getEnum} as default value when get EvictorType from configuration
    */
-  public abstract EvictionPlan freeSpace(long bytes, BlockStoreLocation location);
+  DEFAULT,
+  /**
+   * Evict old blocks among several StorageDirs by LRU
+   */
+  LRU,
+  /**
+   * Evict old blocks in certain StorageDir by LRU.
+   */
+  PARTIAL_LRU,
 }
