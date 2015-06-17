@@ -72,7 +72,7 @@ public class TieredBlockStore implements BlockStore {
   public TieredBlockStore(TachyonConf tachyonConf) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mMetaManager = new BlockMetadataManager(mTachyonConf);
-    mLockManager = new BlockLockManager();
+    mLockManager = new BlockLockManager(mMetaManager);
 
     // TODO: create Allocator according to tachyonConf.
     mAllocator = new NaiveAllocator(mMetaManager);
@@ -82,11 +82,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public Optional<Long> lockBlock(long userId, long blockId) {
-    // TODO: Fix this to contains
-    if (mMetaManager.getBlockMeta(blockId).isPresent()) {
-      return mLockManager.lockBlock(userId, blockId, BlockLockType.READ);
-    }
-    return Optional.absent();
+    return mLockManager.lockBlock(userId, blockId, BlockLockType.READ);
   }
 
   @Override
