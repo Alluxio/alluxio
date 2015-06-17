@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +89,14 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
-    final long lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
+    Optional<Long> optLock = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
+    if (!optLock.isPresent()) {
+      LOG.error("The block is not in worker storage");
+      RPCBlockResponse resp = RPCBlockResponse.createErrorResponse(blockId);
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(ChannelFutureListener.CLOSE);
+    }
+    long lockId = optLock.get();
     BlockReader reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
     try {
       req.validate();
