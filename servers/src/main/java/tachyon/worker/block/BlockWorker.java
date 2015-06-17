@@ -147,6 +147,7 @@ public class BlockWorker {
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
+    mBlockMasterSync.stop();
     mSyncExecutorService.shutdown();
     while (!mDataServer.isClosed() || mThriftServer.isServing()) {
       // TODO: The reason to stop and close again is due to some issues in Thrift.
