@@ -78,10 +78,10 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
     ctx.close();
   }
 
-  private void handleBlockResponse(final ChannelHandlerContext ctx, final RPCResponse req)
+  private void handleBlockResponse(final ChannelHandlerContext ctx, final RPCBlockResponse resp)
       throws IOException {
     for (ResponseListener listener : mListeners) {
-      listener.onResponseReceived(req);
+      listener.onResponseReceived(resp);
     }
   }
 }
