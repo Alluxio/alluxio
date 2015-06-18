@@ -163,6 +163,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public boolean requestSpace(long userId, long blockId, long moreBytes) throws IOException {
+    // TODO: Change the lock to read lock and only upgrade to write lock if necessary
     mEvictionLock.writeLock().lock();
     boolean result = requestSpaceNoLock(userId, blockId, moreBytes);
     mEvictionLock.writeLock().unlock();
@@ -331,7 +332,7 @@ public class TieredBlockStore implements BlockStore {
     }
 
     // Increase the size of this temp block
-    tempBlock.setBlockSize(tempBlock.getBlockSize() + moreBytes);
+    mMetaManager.resizeTempBlockMeta(tempBlock, tempBlock.getBlockSize() + moreBytes);
     return true;
   }
 

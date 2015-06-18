@@ -243,6 +243,17 @@ public class BlockMetadataManager {
   }
 
   /**
+   * Modifies the size of a temp block
+   *
+   * @param tempBlockMeta the temp block to modify
+   * @param newSize new size in bytes
+   */
+  public synchronized void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize) {
+    StorageDir dir = tempBlockMeta.getParentDir();
+    dir.resizeTempBlockMeta(tempBlockMeta, newSize);
+  }
+
+    /**
    * Cleans up the temp blocks meta data created by the given user.
    *
    * @param userId the ID of the user
