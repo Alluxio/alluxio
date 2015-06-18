@@ -18,6 +18,7 @@ package tachyon.worker.block.evictor;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 import tachyon.Pair;
@@ -29,7 +30,7 @@ import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
 /**
- * A simple evictor that evicts random blocks until the required size in the target tier is met.
+ * A simple evictor that evicts arbitrary blocks until the required size is met.
  */
 public class NaiveEvictor implements Evictor, BlockAccessEventListener {
   private final BlockMetadataManager mMetaManager;
@@ -39,24 +40,24 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
   }
 
   @Override
-  public EvictionPlan freeSpace(long bytes, BlockStoreLocation location) {
+  public Optional<EvictionPlan> freeSpace(long bytes, BlockStoreLocation location) {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
 
-    long sizeFreed = 0;
+    long spaceFreed = 0;
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTier tier : mMetaManager.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
           for (BlockMeta block : dir.getBlocks()) {
             toEvict.add(block.getBlockId());
-            sizeFreed += block.getBlockSize();
-            if (sizeFreed >= bytes) {
-              return new EvictionPlan(toMove, toEvict);
+            spaceFreed += block.getBlockSize();
+            if (spaceFreed >= bytes) {
+              return Optional.of(new EvictionPlan(toMove, toEvict));
             }
           }
         }
       }
-      return new EvictionPlan(toMove, toEvict);
+      return Optional.absent();
     }
 
     int tierAlias = location.tierAlias();
@@ -66,30 +67,30 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
       for (StorageDir dir : tier.getStorageDirs()) {
         for (BlockMeta block : dir.getBlocks()) {
           toEvict.add(block.getBlockId());
-          sizeFreed += block.getBlockSize();
-          if (sizeFreed >= bytes) {
-            return new EvictionPlan(toMove, toEvict);
+          spaceFreed += block.getBlockSize();
+          if (spaceFreed >= bytes) {
+            return Optional.of(new EvictionPlan(toMove, toEvict));
           }
         }
       }
-      return new EvictionPlan(toMove, toEvict);
+      return Optional.absent();
     }
 
     int dirIndex = location.dir();
     StorageDir dir = tier.getDir(dirIndex);
     for (BlockMeta block : dir.getBlocks()) {
       toEvict.add(block.getBlockId());
-      sizeFreed += block.getBlockSize();
-      if (sizeFreed >= bytes) {
-        return new EvictionPlan(toMove, toEvict);
+      spaceFreed += block.getBlockSize();
+      if (spaceFreed >= bytes) {
+        return Optional.of(new EvictionPlan(toMove, toEvict));
       }
     }
-    return new EvictionPlan(toMove, toEvict);
+    return Optional.absent();
   }
 
   @Override
   public void onAccessBlock(long userId, long blockId) {
-    // do nothing
+    // This naive evictor does nothing on block access
   }
 
 }

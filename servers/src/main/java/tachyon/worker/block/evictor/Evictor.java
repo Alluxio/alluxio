@@ -15,20 +15,21 @@
 
 package tachyon.worker.block.evictor;
 
+import com.google.common.base.Optional;
 import tachyon.worker.BlockStoreLocation;
-import tachyon.worker.block.BlockMetaEventListener;
 
 /**
  * Interface for the eviction policy in Tachyon
  */
 public interface Evictor {
   /**
-   * Free space in the given block store location. The location can be a specific location, or
-   * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)} .
+   * Frees space in the given block store location. The location can be a specific location, or
+   * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}. Return
+   * absent if Evictor can not propose such a feasible plan to meet the requirement.
    *
    * @param bytes the size in bytes
    * @param location the location in block store
-   * @return an eviction plan to achieve the freed space
+   * @return an eviction plan to achieve the freed space, or absent if no feasible plan
    */
-  EvictionPlan freeSpace(long bytes, BlockStoreLocation location);
+  Optional<EvictionPlan> freeSpace(long bytes, BlockStoreLocation location);
 }
