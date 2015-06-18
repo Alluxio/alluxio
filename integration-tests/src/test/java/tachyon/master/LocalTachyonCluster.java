@@ -259,8 +259,8 @@ public final class LocalTachyonCluster {
    * @throws Exception
    */
   public void stopTFS() throws Exception {
-    stopWorker();
     mMaster.stop();
+    mWorker.stop();
 
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.worker.port");
