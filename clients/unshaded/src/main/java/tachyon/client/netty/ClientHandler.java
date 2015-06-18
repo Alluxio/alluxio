@@ -48,7 +48,7 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
   private final HashSet<ResponseListener> mListeners;
 
   public ClientHandler() {
-    mListeners = new HashSet<ResponseListener>();
+    mListeners = new HashSet<ResponseListener>(4);
   }
 
   public void addListener(ResponseListener listener) {
@@ -62,13 +62,12 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
   @Override
   public void channelRead0(final ChannelHandlerContext ctx, final RPCMessage msg)
       throws IOException {
-    switch (msg.getType()) {
-      case RPC_BLOCK_RESPONSE:
-        handleBlockResponse(ctx, (RPCBlockResponse) msg);
-        break;
-      default:
-        throw new IllegalArgumentException("No handler implementation for rpc response type: "
-            + msg.getType());
+    if (msg instanceof RPCResponse) {
+      handleResponse(ctx, (RPCResponse) msg);
+    } else {
+      // The client should only receive RPCResponse messages.
+      throw new IllegalArgumentException("No handler implementation for rpc response type: "
+          + msg.getType());
     }
   }
 
@@ -78,7 +77,7 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
     ctx.close();
   }
 
-  private void handleBlockResponse(final ChannelHandlerContext ctx, final RPCBlockResponse resp)
+  private void handleResponse(final ChannelHandlerContext ctx, final RPCResponse resp)
       throws IOException {
     for (ResponseListener listener : mListeners) {
       listener.onResponseReceived(resp);
