@@ -125,14 +125,14 @@ public class BlockMetadataManager {
     }
 
     // If move target can be any tier, then simply return the current block meta.
-    if (newLocation == BlockStoreLocation.anyTier()) {
+    if (newLocation.equals(BlockStoreLocation.anyTier())) {
       return Optional.of(block);
     }
 
     int newTierAlias = newLocation.tierAlias();
     StorageTier newTier = getTier(newTierAlias);
     StorageDir newDir = null;
-    if (newLocation == BlockStoreLocation.anyDirInTier(newTierAlias)) {
+    if (newLocation.equals(BlockStoreLocation.anyDirInTier(newTierAlias))) {
       for (StorageDir dir : newTier.getStorageDirs()) {
         if (dir.getAvailableBytes() > block.getBlockSize()) {
           newDir = dir;
