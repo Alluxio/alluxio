@@ -259,8 +259,19 @@ public class TieredBlockStore implements BlockStore {
     Optional<TempBlockMeta> optTempBlock =
         mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
     if (!optTempBlock.isPresent()) {
+      // Not enough space to allocate a temp block, upgrade to write lock and let Evictor kick in
+      // to free some space
+      mEvictionLock.readLock().unlock();
+      mEvictionLock.writeLock().lock();
+
+      boolean result = freeSpaceNoLock(userId, initialBlockSize, location);
+
+      // Downgrade to read lock again
+      mEvictionLock.readLock().lock();
+      mEvictionLock.writeLock().unlock();
+
       // Not enough space in this block store, let's try to free some space.
-      if (!freeSpaceNoLock(userId, initialBlockSize, location)) {
+      if (!result) {
         LOG.error("Cannot free {} bytes space in {}", initialBlockSize, location);
         return Optional.absent();
       }
