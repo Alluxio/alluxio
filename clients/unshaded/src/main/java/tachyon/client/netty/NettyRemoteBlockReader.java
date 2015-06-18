@@ -65,8 +65,9 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       .getClientChannelClass(CHANNEL_TYPE);
   // Reuse EventLoopGroup for all clients.
   // Use daemon threads so the JVM is allowed to shutdown even when daemon threads are alive.
+  // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
   private static final EventLoopGroup WORKER_GROUP = NettyUtils.createEventLoop(CHANNEL_TYPE,
-      TACHYON_CONF.getInt(Constants.USER_NETTY_WORKER_THREADS, 1), "netty-client-worker-%d", true);
+      TACHYON_CONF.getInt(Constants.USER_NETTY_WORKER_THREADS, 0), "netty-client-worker-%d", true);
 
   private final Bootstrap mClientBootstrap;
   private final ClientHandler mHandler;
