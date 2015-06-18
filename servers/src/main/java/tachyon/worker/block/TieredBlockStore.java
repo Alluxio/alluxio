@@ -359,7 +359,12 @@ public class TieredBlockStore implements BlockStore {
 
   private boolean freeSpaceNoLock(long userId, long size, BlockStoreLocation location)
       throws IOException {
-    EvictionPlan plan = mEvictor.freeSpace(size, location);
+    Optional<EvictionPlan> optPlan = mEvictor.freeSpace(size, location);
+    // Absent plan means failed to evict enough space.
+    if (!optPlan.isPresent()) {
+      return false;
+    }
+    EvictionPlan plan = optPlan.get();
     // Step1: remove blocks to make room.
     for (long blockId : plan.toEvict()) {
       // TODO: Handle absent
