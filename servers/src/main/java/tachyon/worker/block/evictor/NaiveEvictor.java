@@ -40,18 +40,24 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
   }
 
   @Override
-  public Optional<EvictionPlan> freeSpace(long bytes, BlockStoreLocation location) {
+  public Optional<EvictionPlan> freeSpace(long availableBytes, BlockStoreLocation location) {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
 
-    long spaceFreed = 0;
+    long freed = 0;
+    long available = mMetaManager.getAvailableBytes(location);
+    if (available >= availableBytes) {
+      // The current space is sufficient, no need for eviction
+      return Optional.of(new EvictionPlan(toMove, toEvict));
+    }
+
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTier tier : mMetaManager.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
           for (BlockMeta block : dir.getBlocks()) {
             toEvict.add(block.getBlockId());
-            spaceFreed += block.getBlockSize();
-            if (spaceFreed >= bytes) {
+            freed += block.getBlockSize();
+            if (available + freed >= availableBytes) {
               return Optional.of(new EvictionPlan(toMove, toEvict));
             }
           }
@@ -67,8 +73,8 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
       for (StorageDir dir : tier.getStorageDirs()) {
         for (BlockMeta block : dir.getBlocks()) {
           toEvict.add(block.getBlockId());
-          spaceFreed += block.getBlockSize();
-          if (spaceFreed >= bytes) {
+          freed += block.getBlockSize();
+          if (available + freed >= availableBytes) {
             return Optional.of(new EvictionPlan(toMove, toEvict));
           }
         }
@@ -80,8 +86,8 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
     StorageDir dir = tier.getDir(dirIndex);
     for (BlockMeta block : dir.getBlocks()) {
       toEvict.add(block.getBlockId());
-      spaceFreed += block.getBlockSize();
-      if (spaceFreed >= bytes) {
+      freed += block.getBlockSize();
+      if (available + freed >= availableBytes) {
         return Optional.of(new EvictionPlan(toMove, toEvict));
       }
     }
