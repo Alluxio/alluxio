@@ -91,6 +91,8 @@ class TachyonVersion
       puts "Unknown VersionType"
       exit(1)
     end
+
+    @mem = @yml['WorkerMemory']
   end
 
   def dist
@@ -103,6 +105,10 @@ class TachyonVersion
 
   def repo_version
     return @repo, @version
+  end
+
+  def memory
+    return @mem
   end
 end
 
@@ -217,14 +223,14 @@ class S3Version
       puts 'ERROR: S3:Bucket is not set'
       exit(1)
     end
-    @id = yml['AccessKeyID']
+    @id = ENV['AWS_ACCESS_KEY']
     if @id == nil
-      puts 'ERROR: S3:AccessKeyID is not set'
+      puts 'ERROR: AWS_ACCESS_KEY needs to be set as environment variable'
       exit(1)
     end
-    @key = yml['SecretAccessKey']
+    @key = ENV['AWS_SECRET_KEY']
     if @key == nil
-      puts 'ERROR: S3:SecretAccessKey is not set'
+      puts 'ERROR: AWS_SECRET_KEY needs to be set as environment variable'
       exit(1)
     end
   end

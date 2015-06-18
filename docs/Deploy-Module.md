@@ -1,39 +1,98 @@
 ---
 layout: global
-title: Index For Deploy Module
+title: Deploy Module
 ---
 
 ## Summary
-In Tachyon source tree, there is a `deploy` directory which contains `docker` and `vagrant` modules.
 
-## Docker
-The `docker` module helps you create a two nodes Tachyon cluster with hadoop as underfs, in the form of docker image.
+In Tachyon source tree, `deploy/vagrant` directory contains utilities to help you set up a Tachyon cluster within 10min, it can be deployed on AWS EC2 or virtualbox.
 
-Please refer to `deploy/docker/README.md` for more info.
+Apart from Tachyon, you can choose to deploy computation frameworks and under filesystems from the following list. New frameworks and filesystems will be added, please see **Extension** section in `deploy/vagrant/README.md`, welcome contribution!
 
-## Vagrant
+* Computation Framework
+  * Spark
+* Under Filesystem
+  * Hadoop1
+  * Hadoop2
+  * GlusterFS
+  * AWS S3
 
-The `vagrant` module makes deploying a Tachyon cluster with hadoop or glusterfs as underfs, even
-with Spark run on top of Tachyon, in **just one command** with **simple yaml configuration**.
+## Prerequisites
 
-No matter you want a local test environment in **virtualbox**, or you want to build a **docker**
-image, even you need to deploy to **AWS** or **OpenStack**, use the same work flow like
-`./run_xxx.sh`, whenever you want to destroy the deployment, just `vagrant destroy`, that's all!
+[Vagrant](https://www.vagrantup.com), here is the [download link](https://www.vagrantup.com/downloads.html).
 
-Versions of the full software stack like spark/tachyon/hadoop are configurable through yaml files, for example:
+### What is Vagrant?
 
-* deploy any branch or commit of Tachyon's official github repo(https://github.com/amplab/tachyon)
-* deploy specific release of Tachyon from Tachyon's github release page(https://github.com/amplab/tachyon/releases)
-* deploy any version of hadoop release, either it's apache distribution or cloudera distribution
-* deploy any branch or commit of Spark's official github repo(https://github.com/apache/spark)
-* deploy specific release of Spark from Apache repo(http://archive.apache.org/dist/spark)
-* don't deploy Spark
+Vagrant can create VM images (VirtualBox, VMWare Fusion), Docker containers, and AWS and OpenStack
+instances.
 
-Please refer to `deploy/vagrant/README.md` for more info. Or visit document on this site:
+### Why Use Vagrant?
 
-* [Configure Specific Version Of Tachyon Or Spark in Vagrant](Running-Specific-Version-Of-Tachyon-Or-Spark-Via-Vagrant.html)
-* [Deploy to Amazon AWS](Running-Tachyon-on-AWS.html)
-* [Deploy to OpenStack](Running-Tachyon-on-OpenStack.html)
-* [Deploy to Linux Container](Running-Tachyon-on-Container.html)
-* [Deploy to VirtualBox](Running-Tachyon-on-VirtualBox.html)
+Setting up a Tachyon cluster correctly with under filesystem and computation frameworks is a tedious huge undertaking. It requires not only expertise on both Tachyon and the related systems, but also expertise on the target deployment platform. 
+
+Vagrant makes it possible to predefine how to install and configure software on a "machine" which can be an aws instance, a virtualbox vm, a docker container or an openstack instance. Then with the same workflow, you can create the same environment on all these platforms.
+
+[Ansible](http://docs.ansible.com), here is the [download link](http://docs.ansible.com/intro_installation.html)
+
+Ansible is a pure python package, so you need to have python installed, follow the docs in the link above. 
+
+### What is Ansible?
+
+Ansible is a language and toolset to define how to provision(install software, configure the system). It allows you to manipulate remote servers on your laptop, any number of nodes in parallel!
+
+### Why Use Ansible?
+
+When set up a Tachyon cluster, we need the ability to manipulate target machines in parallel, say, install java on all nodes. Ansible satisfies this requirement. It's supported by Vagrant and has simple syntax, so we adopt it as the provisioning tool.
+
+If you want to deploy on virtualbox on your laptop, please install [Virtualbox](https://www.virtualbox.org/wiki/Downloads).
+
+## Quick Start With VirtualBox
+
+After installing the prerequisites, if have virtualbox installed, you can follow this quick start to set up a two node Tachyon cluster with apache hadoop2.4.1 as under filesystem, one node is named TachyonMaster, another is TachyonWorker.
+
+1. `cd TACHYON/deploy/vagrant`, replace TACHYON with the Tachyon repo on your host, you can clone the latest from [github](https://github.com/amplab/tachyon.git)
+2. `./run_vb.sh`, it will be slow when you first run this command, because vagrant will download a centos6.5 virtual machine, and install necessary software in this machine. The console output is verbose enough for you to know what's going on. 
+3. After the above command, a purple line in the output tells you the IP of TachyonMaster, the IP should be "192.168.1.12", visit `http://192.168.1.12:19999` in your browser, you should see Tachyon's web UI
+4. Visit `http://192.168.1.12:50070` in your browser, you should see Hadoop's web UI!
+5. `vagrant ssh TachyonMaster`, and you should have entered the virtual machine named TachyonMaster
+6. `/tachyon/bin/tachyon runTests` to run some tests against Tachyon
+7. After the tests all pass, visit Tachyon web UI: `http://192.168.1.12:19999` again, in `Browse FileSystem`, you should see files written to Tachyon by the tests run above
+8. If you don't want to play around in the cluster any more, `vagrant destroy` to delete the virtual machines. 
+
+Cool! The more exciting aspect of deploy module is that you can set up the same cluster in AWS EC2 with the same commands and workflow described above, just change some configurations!
+
+## Configurations
+
+There are three kinds of configuration files under `conf`. All the configuration files use [yaml syntax](http://en.wikipedia.org/wiki/YAML).
+
+1. configuration of virtual machine itself in `init.yml`. 
+2. provider specific configuration, like `ec2.yml`, `openstack.yml`.
+3. software configuration, like `tachyon.yml`, `spark.yml`, `ufs.yml`(ufs means under filesystem). 
+
+Meanings of fields in the configurations are explained in detail in the yml files.
+
+## AWS EC2
+
+You need to have AWS account with access to EC2. If not, sign up [here](https://aws.amazon.com/). 
+
+Set up [AWS CLI](http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ec2-cli-get-set-up.html) may be helpful.
+
+Then you need to set shell environment variables `AWS_ACCESS_KEY`
+and `AWS_SECRET_KEY`, refer to [this doc](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html). 
+
+Then download [key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html).
+
+Install aws vagrant plugin. To date, 0.5.0 plugin is tested.
+
+    vagrant plugin install vagrant-aws
+
+Then update configurations in `conf/ec2.yml`.
+
+Update `init.yml` and software configurations. 
+
+Run `./run_aws.sh`, then `vagrant ssh TachyonMaster` or `vagrant ssh TachyonWorker#{number}`, to log into remote nodes. 
+
+You can monitor instance running state through [AWS web console](https://console.aws.amazon.com).
+
+`vagrant destroy` to terminate the instances.
 

@@ -1,4 +1,7 @@
 #!/bin/bash
+echo "Not Tested Yet"
+exit 0
+
 set -e
 # clean up environment
 rm -rf files
