@@ -41,10 +41,27 @@ public final class SingleResponseListener implements ClientHandler.ResponseListe
     mResponse.set(response);
   }
 
+  /**
+   * Waits to receive the response and returns the response message.
+   *
+   * @return The {@link RPCResponse} received from the remote server.
+   * @throws ExecutionException
+   * @throws InterruptedException
+   */
   public RPCResponse get() throws ExecutionException, InterruptedException {
     return mResponse.get();
   }
 
+  /**
+   * Waits to receive the response for at most a specified time, and returns the response message.
+   *
+   * @param timeout the maximum amount of time to wait.
+   * @param unit the {@link TimeUnit} of the timeout parameter.
+   * @return The {@link RPCResponse} received from the remote server.
+   * @throws InterruptedException
+   * @throws ExecutionException
+   * @throws TimeoutException
+   */
   public RPCResponse get(long timeout, TimeUnit unit)
       throws InterruptedException, ExecutionException, TimeoutException {
     return mResponse.get(timeout, unit);
