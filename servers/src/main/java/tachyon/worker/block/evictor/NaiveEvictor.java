@@ -84,7 +84,7 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
         return new EvictionPlan(toMove, toEvict);
       }
     }
-    return new EvictionPlan(null, null);
+    return new EvictionPlan(toMove, toEvict);
   }
 
   @Override
