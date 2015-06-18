@@ -162,9 +162,9 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public boolean requestSpace(long userId, long blockId, long size) throws IOException {
+  public boolean requestSpace(long userId, long blockId, long moreBytes) throws IOException {
     mEvictionLock.writeLock().lock();
-    boolean result = requestSpaceNoLock(userId, blockId, size);
+    boolean result = requestSpaceNoLock(userId, blockId, moreBytes);
     mEvictionLock.writeLock().unlock();
     return result;
   }
@@ -220,9 +220,10 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public boolean freeSpace(long userId, long size, BlockStoreLocation location) throws IOException {
+  public boolean freeSpace(long userId, long availableBytes, BlockStoreLocation location)
+      throws IOException {
     mEvictionLock.writeLock().lock();
-    boolean result = freeSpaceNoLock(userId, size, location);
+    boolean result = freeSpaceNoEvictionLock(userId, availableBytes, location);
     mEvictionLock.writeLock().unlock();
     return result;
   }
@@ -259,8 +260,20 @@ public class TieredBlockStore implements BlockStore {
     Optional<TempBlockMeta> optTempBlock =
         mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
     if (!optTempBlock.isPresent()) {
+      // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
+
+      // Upgrade to write lock to guard evictor.
+      mEvictionLock.readLock().unlock();
+      mEvictionLock.writeLock().lock();
+
+      boolean result = freeSpaceNoEvictionLock(userId, initialBlockSize, location);
+
+      // Downgrade to read lock again after eviction
+      mEvictionLock.readLock().lock();
+      mEvictionLock.writeLock().unlock();
+
       // Not enough space in this block store, let's try to free some space.
-      if (!freeSpaceNoLock(userId, initialBlockSize, location)) {
+      if (!result) {
         LOG.error("Cannot free {} bytes space in {}", initialBlockSize, location);
         return Optional.absent();
       }
@@ -309,19 +322,19 @@ public class TieredBlockStore implements BlockStore {
     return mMetaManager.abortTempBlockMeta(tempBlock);
   }
 
-  private boolean requestSpaceNoLock(long userId, long blockId, long size) throws IOException {
+  private boolean requestSpaceNoLock(long userId, long blockId, long moreBytes) throws IOException {
     Optional<TempBlockMeta> optTempBlock = mMetaManager.getTempBlockMeta(blockId);
     if (!optTempBlock.isPresent()) {
       return false;
     }
     TempBlockMeta tempBlock = optTempBlock.get();
     BlockStoreLocation location = tempBlock.getBlockLocation();
-    if (!freeSpaceNoLock(userId, size, location)) {
+    if (!freeSpaceNoEvictionLock(userId, moreBytes, location)) {
       return false;
     }
 
     // Increase the size of this temp block
-    tempBlock.setBlockSize(tempBlock.getBlockSize() + size);
+    tempBlock.setBlockSize(tempBlock.getBlockSize() + moreBytes);
     return true;
   }
 
@@ -357,11 +370,12 @@ public class TieredBlockStore implements BlockStore {
     return new File(block.getPath()).delete();
   }
 
-  private boolean freeSpaceNoLock(long userId, long size, BlockStoreLocation location)
-      throws IOException {
-    Optional<EvictionPlan> optPlan = mEvictor.freeSpace(size, location);
+  private boolean freeSpaceNoEvictionLock(long userId, long availableBytes,
+      BlockStoreLocation location) throws IOException {
+    Optional<EvictionPlan> optPlan = mEvictor.freeSpace(availableBytes, location);
     // Absent plan means failed to evict enough space.
     if (!optPlan.isPresent()) {
+      LOG.error("Failed to free space: no eviction plan by evictor");
       return false;
     }
     EvictionPlan plan = optPlan.get();
@@ -372,6 +386,7 @@ public class TieredBlockStore implements BlockStore {
       boolean result = removeBlockNoLock(userId, blockId);
       mLockManager.unlockBlock(lockId);
       if (!result) {
+        LOG.error("Failed to free space: cannot evict block {}", blockId);
         return false;
       }
     }
@@ -384,6 +399,7 @@ public class TieredBlockStore implements BlockStore {
       boolean result = moveBlockNoLock(userId, blockId, newLocation);
       mLockManager.unlockBlock(lockId);
       if (!result) {
+        LOG.error("Failed to free space: cannot move block {} to {}", blockId, newLocation);
         return false;
       }
     }
