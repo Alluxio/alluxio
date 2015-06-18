@@ -181,9 +181,8 @@ public class FileOutStream extends OutStream {
         int tLen = len;
         int tOff = off;
         while (tLen > 0) {
-          if (mCurrentBlockOutStream == null) {
-            getNextBlock();
-          } else if (mCurrentBlockOutStream.getRemainingSpaceByte() == 0) {
+          if (mCurrentBlockOutStream == null
+              || mCurrentBlockOutStream.getRemainingSpaceByte() == 0) {
             getNextBlock();
           }
           long currentBlockLeftBytes = mCurrentBlockOutStream.getRemainingSpaceByte();
@@ -220,9 +219,7 @@ public class FileOutStream extends OutStream {
   public void write(int b) throws IOException {
     if (mWriteType.isCache()) {
       try {
-        if (mCurrentBlockOutStream == null) {
-          getNextBlock();
-        } else if (mCurrentBlockOutStream.getRemainingSpaceByte() == 0) {
+        if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.getRemainingSpaceByte() == 0) {
           getNextBlock();
         }
         // TODO Cache the exception here.
