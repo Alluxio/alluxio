@@ -254,4 +254,13 @@ public class BlockMetadataManager {
       }
     }
   }
+
+  /**
+   * Gets a summary of the meta data.
+   *
+   * @return the metadata of this block store
+   */
+  public synchronized BlockStoreMeta getBlockStoreMeta() {
+    return new BlockStoreMeta(this);
+  }
 }

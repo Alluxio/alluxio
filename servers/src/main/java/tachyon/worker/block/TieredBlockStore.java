@@ -239,10 +239,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
-    mEvictionLock.readLock().lock();
-    BlockStoreMeta meta = new BlockStoreMeta(mMetaManager);
-    mEvictionLock.readLock().unlock();
-    return meta;
+    return mMetaManager.getBlockStoreMeta();
   }
 
   @Override
