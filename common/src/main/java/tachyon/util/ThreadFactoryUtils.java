@@ -27,10 +27,10 @@ public final class ThreadFactoryUtils {
    *
    * @param nameFormat name pattern for each thread. should contain '%d' to distinguish between
    *        threads.
-   * @param daemonThreads if true, the {@link java.util.concurrent.ThreadFactory} will create
-   *                      daemon threads.
+   * @param isDaemon if true, the {@link java.util.concurrent.ThreadFactory} will create
+   *                 daemon threads.
    */
-  public static ThreadFactory build(final String nameFormat, boolean daemonThreads) {
-    return new ThreadFactoryBuilder().setDaemon(daemonThreads).setNameFormat(nameFormat).build();
+  public static ThreadFactory build(final String nameFormat, boolean isDaemon) {
+    return new ThreadFactoryBuilder().setDaemon(isDaemon).setNameFormat(nameFormat).build();
   }
 }
