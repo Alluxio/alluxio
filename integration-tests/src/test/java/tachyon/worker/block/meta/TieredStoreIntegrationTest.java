@@ -111,6 +111,8 @@ public class TieredStoreIntegrationTest {
     Assert.assertEquals(file5.isInMemory(), true);
   }
 
+  // TODO: Add this test back when CACHE_PROMOTE is enabled again
+  /*
   @Test
   public void promoteBlock() throws IOException, InterruptedException {
     int fileId1 =
@@ -149,4 +151,5 @@ public class TieredStoreIntegrationTest {
     Assert.assertEquals(MEM_CAPACITY_BYTES / 6 + MEM_CAPACITY_BYTES,
         mLocalTachyonCluster.getMasterInfo().getUsedBytes());
   }
+  */
 }
