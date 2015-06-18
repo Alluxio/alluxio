@@ -221,8 +221,9 @@ public class LocalBlockInStreamIntegrationTest {
         } catch (IOException e) {
           // This is expected
           continue;
+        } finally {
+          is.close();
         }
-        is.close();
         throw new IOException("Except seek IOException");
       }
     }
@@ -252,9 +253,11 @@ public class LocalBlockInStreamIntegrationTest {
         } else {
           Assert.assertTrue(is instanceof LocalBlockInStream);
         }
-
-        is.seek(k + 1);
-        is.close();
+        try {
+          is.seek(k + 1);
+        } finally {
+          is.close();
+        }
       }
     }
   }
