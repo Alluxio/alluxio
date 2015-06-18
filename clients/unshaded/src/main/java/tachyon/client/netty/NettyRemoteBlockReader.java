@@ -51,6 +51,9 @@ import tachyon.network.protocol.RPCResponse;
 public final class NettyRemoteBlockReader implements RemoteBlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  // The maximum number of seconds to wait for a response from the server.
+  private static final long TIMEOUT_SECOND = 1L;
+
   // Share both the encoder and decoder with all the client pipelines.
   private static final RPCMessageEncoder ENCODER = new RPCMessageEncoder();
   private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
@@ -88,7 +91,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       mHandler.addListener(listener);
       channel.writeAndFlush(new RPCBlockRequest(blockId, offset, length));
 
-      RPCResponse response = listener.get(1, TimeUnit.SECONDS);
+      RPCResponse response = listener.get(TIMEOUT_SECOND, TimeUnit.SECONDS);
       channel.close().sync();
 
       if (response.getType() == RPCMessage.Type.RPC_BLOCK_RESPONSE) {
@@ -100,6 +103,9 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
           return null;
         }
         return blockResponse.getPayloadDataBuffer().getReadOnlyByteBuffer();
+      } else {
+        LOG.error("Unexpected response message type: " + response.getType() + " (expected: "
+            + RPCMessage.Type.RPC_BLOCK_RESPONSE + ")");
       }
     } catch (Exception e) {
       LOG.error("exception in netty client: " + e + " message: " + e.getMessage());
