@@ -486,7 +486,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     UnderFileSystem underFsClient = UnderFileSystem.get(path, mTachyonConf);
 
     InputStream inputStream = null;
-    BlockOutStream bos = null;
+    LocalBlockOutStream bos = null;
     try {
       inputStream = underFsClient.open(path);
 
@@ -497,7 +497,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       int bufferBytes =
           (int) mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB) * 4;
       byte[] buffer = new byte[bufferBytes];
-      bos = new BlockOutStream(this, WriteType.TRY_CACHE, blockIndex, mTachyonConf);
+      bos = new LocalBlockOutStream(this, WriteType.TRY_CACHE, blockIndex, mTachyonConf);
       int limit;
       while (length > 0 && ((limit = inputStream.read(buffer)) >= 0)) {
         if (limit != 0) {

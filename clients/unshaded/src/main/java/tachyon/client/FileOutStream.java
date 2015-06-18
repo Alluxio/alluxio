@@ -158,7 +158,7 @@ public class FileOutStream extends OutStream {
 
     if (mWriteType.isCache()) {
       int offset = (int) (mCachedBytes / mBlockCapacityByte);
-      mCurrentBlockOutStream = new BlockOutStream(mFile, mWriteType, offset, mTachyonConf);
+      mCurrentBlockOutStream = BlockOutStream.get(mFile, mWriteType, offset, mTachyonConf);
     }
   }
 
