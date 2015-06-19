@@ -174,8 +174,13 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public boolean removeBlock(long userId, long blockId) throws IOException {
     mEvictionLock.readLock().lock();
-    // TODO: Handle absent
-    long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
+    Optional<Long> optLock = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
+    // If we fail to lock, the block is no longer in tiered store, so return true
+    if (!optLock.isPresent()) {
+      mEvictionLock.readLock().unlock();
+      return true;
+    }
+    long lockId = optLock.get();
     boolean result = removeBlockNoLock(userId, blockId);
     mLockManager.unlockBlock(lockId);
     mEvictionLock.readLock().unlock();
