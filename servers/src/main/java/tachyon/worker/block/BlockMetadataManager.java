@@ -93,6 +93,7 @@ public class BlockMetadataManager {
 
     int tierAlias = location.tierAlias();
     StorageTier tier = getTier(tierAlias);
+    // TODO: This should probably be max of the capacity bytes in the dirs?
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
       return tier.getAvailableBytes();
     }
