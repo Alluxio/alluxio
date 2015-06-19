@@ -89,6 +89,7 @@ public class BlockDataManager {
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
+    // TODO: Handle UFS security
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerMetaListener(mHeartbeatReporter);
@@ -202,8 +203,6 @@ public class BlockDataManager {
       mBlockStore.unlockBlock(userId, blockId);
       throw new IOException("Failed to commit block to master.", te);
     }
-    // TODO: Handle this post commit as part of the hook after block creation is changed
-    mHeartbeatReporter.postCommitBlockTmp(userId, blockId, loc);
     mBlockStore.unlockBlock(userId, blockId);
     return true;
   }
