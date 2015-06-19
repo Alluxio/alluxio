@@ -66,8 +66,11 @@ public class LocalFileBlockReader implements BlockReader {
   public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkArgument(offset + length <= mFileSize,
         "offset=%s, length=%s, exceeds file size(%s)", offset, length, mFileSize);
-    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
-    return buf;
+    // TODO: May need to make sure length is an int
+    if (length == -1) {
+      length = mFileSize - offset;
+    }
+    return mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
   }
 
   @Override
