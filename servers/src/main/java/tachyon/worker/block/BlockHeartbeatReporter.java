@@ -64,8 +64,16 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
     // Do nothing
   }
 
+  // TODO: Add this functionality back when block creation between client and master is changed
   @Override
   public void postCommitBlock(long userId, long blockId, BlockStoreLocation location) {
+  //  Long storageDirId = location.getStorageDirId();
+  //  synchronized (mLock) {
+  //    addBlockToAddedBlocks(blockId, storageDirId);
+  //  }
+  }
+
+  public void postCommitBlockTmp(long userId, long blockId, BlockStoreLocation location) {
     Long storageDirId = location.getStorageDirId();
     synchronized (mLock) {
       addBlockToAddedBlocks(blockId, storageDirId);
