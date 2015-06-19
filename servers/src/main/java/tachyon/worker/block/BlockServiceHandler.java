@@ -256,8 +256,10 @@ public class BlockServiceHandler implements WorkerService.Iface {
   public String requestBlockLocation(long userId, long blockId, long initialBytes)
       throws TException {
     try {
+      // NOTE: right now, we ask allocator to allocate new blocks in MEM tier by setting location
+      // to be 1.
       // TODO: Maybe add a constant for anyTier?
-      return mWorker.createBlock(userId, blockId, -1, initialBytes);
+      return mWorker.createBlock(userId, blockId, 1, initialBytes);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
