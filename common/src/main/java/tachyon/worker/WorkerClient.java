@@ -245,7 +245,7 @@ public class WorkerClient implements Closeable {
       int port = workerNetAddress.mPort;
       mWorkerAddress = new InetSocketAddress(host, port);
       LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
-
+      // TODO: auth connection ???
       mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(host, port)));
       mClient = new WorkerService.Client(mProtocol);
 

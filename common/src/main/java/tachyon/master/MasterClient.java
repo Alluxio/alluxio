@@ -27,16 +27,18 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import javax.security.sasl.SaslException;
+
+import com.google.common.base.Throwables;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
@@ -47,6 +49,9 @@ import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
+import tachyon.security.AuthenticationFactory;
+import tachyon.security.PlainSaslHelper;
+import tachyon.security.UserGroup;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -66,7 +71,6 @@ import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
 
 /**
  * The client side of master server.
@@ -182,9 +186,7 @@ public final class MasterClient implements Closeable {
       LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect with master"
           + " @ " + mMasterAddress);
 
-      mProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(
-              NetworkUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
+      mProtocol = new TBinaryProtocol(createTransport());
       mClient = new MasterService.Client(mProtocol);
       try {
         mProtocol.getTransport().open();
@@ -222,6 +224,50 @@ public final class MasterClient implements Closeable {
     // Reaching here indicates that we did not successfully connect.
     throw new IOException("Failed to connect with master @ " + mMasterAddress + " after "
         + (retry.getRetryCount()) + " attempts", lastException);
+  }
+
+  /**
+   * Create transport per the connection options Supported transport options are: - SASL based
+   * transports over + Kerberos + Delegation token + SSL + non-SSL - Raw (non-SASL) socket
+   * 
+   * Kerberos and Delegation token supports SASL QOP configurations
+   * 
+   * @throws TTransportException
+   */
+  private TTransport createTransport() throws IOException {
+    TTransport tTransport = null;
+    String authTypeStr =
+        mTachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
+            AuthenticationFactory.AuthTypes.NOSASL.getAuthName());
+    try {
+      if (authTypeStr.equalsIgnoreCase(AuthenticationFactory.AuthTypes.KERBEROS.getAuthName())) {
+        // TODO: Kerboros
+      } else if (authTypeStr.equalsIgnoreCase(
+          AuthenticationFactory.AuthTypes.SIMPLE.getAuthName())) {
+        String username = getUserName();
+
+        if (mTachyonConf.getBoolean(Constants.TACHYON_SECURITY_USE_SSL, false)) {
+          // TODO: ssl
+        } else {
+          tTransport = AuthenticationFactory.createTSocket(mMasterAddress);
+        }
+        // Overlay the SASL transport on top of the base socket transport (SSL or non-SSL)
+        tTransport = PlainSaslHelper.getPlainTransport(username, "noPassword", tTransport);
+      } else if (authTypeStr.equalsIgnoreCase(
+          AuthenticationFactory.AuthTypes.NOSASL.getAuthName())) {
+        tTransport = new TFramedTransport(AuthenticationFactory.createTSocket(mMasterAddress));
+      }
+    } catch (SaslException e) {
+      throw e;
+    }
+    return tTransport;
+  }
+
+  private String getUserName() throws IOException {
+    // TODO: high layer user
+
+    // Login user
+    return UserGroup.getTachyonLoginUser().getShortUserName();
   }
 
   /**
