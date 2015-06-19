@@ -332,7 +332,7 @@ public class TieredBlockStore implements BlockStore {
     }
     String destPath = optDestBlock.get().getPath();
 
-    if(!new File(srcPath).renameTo(new File(destPath))) {
+    if (!new File(srcPath).renameTo(new File(destPath))) {
       return false;
     }
 
