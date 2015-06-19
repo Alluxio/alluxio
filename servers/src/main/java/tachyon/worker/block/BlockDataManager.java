@@ -202,6 +202,8 @@ public class BlockDataManager {
       mBlockStore.unlockBlock(userId, blockId);
       throw new IOException("Failed to commit block to master.", te);
     }
+    // TODO: Handle this post commit as part of the hook after block creation is changed
+    mHeartbeatReporter.postCommitBlockTmp(userId, blockId, loc);
     mBlockStore.unlockBlock(userId, blockId);
     return true;
   }
