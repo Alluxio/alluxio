@@ -1,0 +1,98 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.tachyonproject</groupId>
+    <artifactId>tachyon-integration-tests</artifactId>
+    <version>0.7.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>tachyon-integration-tests-swift</artifactId>
+  <name>Tachyon Integration Tests - Swift</name>
+  <description>Runs the Tachyon Integration tests using OpenStack Swift as the under file system</description>
+
+  <properties>
+    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+
+    <!-- Use these properties to set your Swift base for testing -->
+    <swift.base /> <!-- E.g. swift://server/account/ -->
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-swift</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-integration-test-cases</artifactId>
+      <version>${project.version}</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>swiftTest</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <version>1.4</version>
+            <executions>
+              <execution>
+                <id>enforce-swift-settings</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireProperty>
+                      <property>swift.base</property>
+                      <message>Property swift.base must be set to provide the Swift service to use</message>
+                      <regex>swift://.+</regex>
+                      <regexMessage>Property swift.base must be set to a swift:// URL to provide the
+                        Swift service to use</regexMessage>
+                    </requireProperty>
+                  </rules>
+                  <fail>true</fail>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.18.1</version>
+            <configuration>
+              <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
+              <!-- Pull in integration tests from test-cases module -->
+              <dependenciesToScan>
+                <dependency>org.tachyonproject:tachyon-integration-test-cases</dependency>
+              </dependenciesToScan>
+              <systemPropertyVariables>
+                <ufs>tachyon.underfs.swift.SwiftUnderStorageCluster</ufs>
+                <swift.base>${swift.base}</swift.base>
+              </systemPropertyVariables>
+            </configuration>
+            <executions>
+              <execution>
+                <id>default-test</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

@@ -1,0 +1,115 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.tachyonproject</groupId>
+    <artifactId>tachyon-integration-tests</artifactId>
+    <version>0.7.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>tachyon-integration-tests-s3</artifactId>
+  <name>Tachyon Integration Tests - S3</name>
+  <description>Runs the integration tests against an S3 file system, since this requires a specific S3 account to run against these must be specifically configured and activated by a profile</description>
+
+  <properties>
+    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+
+    <!-- Use these properties to set your S3 credentials and bucket for testing -->
+    <s3.accessKey />
+    <s3.secretKey />
+    <s3.bucket /> <!-- E.g. s3n://bucket/tachyon-test -->
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-integration-test-cases</artifactId>
+      <version>${project.version}</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>s3Test</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-underfs-s3</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <version>1.4</version>
+            <executions>
+              <execution>
+                <id>enforce-s3-settings</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireProperty>
+                      <property>s3.accessKey</property>
+                      <message>Property s3.accessKey must be set to provide your AWS Access Key</message>
+                      <regex>.+</regex>
+                      <regexMessage>Property s3.accessKey must be set to provide your AWS Access Key</regexMessage>
+                    </requireProperty>
+                    <requireProperty>
+                      <property>s3.secretKey</property>
+                      <message>Property s3.secretKey must be set to provide your AWS Secret Key</message>
+                      <regex>.+</regex>
+                      <regexMessage>Property s3.secretKey must be set to provide your AWS Secret Key</regexMessage>
+                    </requireProperty>
+                    <requireProperty>
+                      <property>s3.bucket</property>
+                      <message>Property s3.bucket must be set to provide the S3 Bucket to use</message>
+                      <regex>s3n://.+</regex>
+                      <regexMessage>Property s3.bucket must be set to a s3n:// URL to provide the S3 Bucket to use</regexMessage>
+                    </requireProperty>
+                  </rules>
+                  <fail>true</fail>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.18.1</version>
+            <configuration>
+              <argLine>-Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
+              <!-- Pull in integration tests from test-cases module -->
+              <dependenciesToScan>
+                <dependency>org.tachyonproject:tachyon-integration-test-cases</dependency>
+              </dependenciesToScan>
+              <systemPropertyVariables>
+                <ufs>tachyon.underfs.s3.S3UnderStorageCluster</ufs>
+                <s3.accessKey>${s3.accessKey}</s3.accessKey>
+                <s3.secretKey>${s3.secretKey}</s3.secretKey>
+                <s3.bucket>${s3.bucket}</s3.bucket>
+              </systemPropertyVariables>
+            </configuration>
+            <executions>
+              <execution>
+                <id>default-test</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

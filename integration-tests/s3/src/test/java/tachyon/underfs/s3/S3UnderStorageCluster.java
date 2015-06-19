@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -17,6 +17,8 @@ package tachyon.underfs.s3;
 
 import java.io.IOException;
 import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -32,9 +34,9 @@ import tachyon.underfs.UnderFileSystemCluster;
  */
 public class S3UnderStorageCluster extends UnderFileSystemCluster {
 
-  private static final String INTEGRATION_S3_ACCESS_KEY = "accessKey";
-  private static final String INTEGRATION_S3_SECRET_KEY = "secretKey";
-  private static final String INTEGRATION_S3_BUCKET = "s3Bucket";
+  private static final String INTEGRATION_S3_ACCESS_KEY = "s3.accessKey";
+  private static final String INTEGRATION_S3_SECRET_KEY = "s3.secretKey";
+  private static final String INTEGRATION_S3_BUCKET = "s3.bucket";
 
   private String mS3Bucket;
 
@@ -45,6 +47,11 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
     System.setProperty(Constants.S3_ACCESS_KEY, awsAccessKey);
     System.setProperty(Constants.S3_SECRET_KEY, awsSecretKey);
     mS3Bucket = System.getProperty(INTEGRATION_S3_BUCKET);
+    if (StringUtils.isEmpty(mS3Bucket)) {
+      throw new IllegalArgumentException(
+          "Failed to specify a S3 bucket to use for testing via the " + INTEGRATION_S3_BUCKET
+              + " property");
+    }
     mBaseDir = mS3Bucket + UUID.randomUUID();
   }
 
@@ -67,8 +74,10 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   }
 
   @Override
-  public void shutdown() throws IOException {}
+  public void shutdown() throws IOException {
+  }
 
   @Override
-  public void start() throws IOException {}
+  public void start() throws IOException {
+  }
 }
