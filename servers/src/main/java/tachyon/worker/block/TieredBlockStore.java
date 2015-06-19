@@ -136,21 +136,10 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public boolean commitBlock(long userId, long blockId) {
-    TempBlockMeta tempBlock = mMetaManager.getTempBlockMeta(blockId).orNull();
-    for (BlockMetaEventListener listener: mMetaEventListeners) {
-      listener.preCommitBlock(userId, blockId, tempBlock.getBlockLocation());
-    }
-
     mEvictionLock.readLock().lock();
     boolean result = commitBlockNoLock(userId, blockId);
     mEvictionLock.readLock().unlock();
-
-    if (result) {
-      for (BlockMetaEventListener listener : mMetaEventListeners) {
-        listener.postCommitBlock(userId, blockId, tempBlock.getBlockLocation());
-      }
-    }
-    return true;
+    return result;
   }
 
   @Override
@@ -173,43 +162,23 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public boolean moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
       throws IOException {
-    for (BlockMetaEventListener listener: mMetaEventListeners) {
-      listener.preMoveBlock(userId, blockId, newLocation);
-    }
-
     mEvictionLock.readLock().lock();
     // TODO: Handle absent
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
     boolean result = moveBlockNoLock(userId, blockId, newLocation);
     mLockManager.unlockBlock(lockId);
     mEvictionLock.readLock().unlock();
-
-    if (result) {
-      for (BlockMetaEventListener listener: mMetaEventListeners) {
-        listener.postMoveBlock(userId, blockId, newLocation);
-      }
-    }
     return result;
   }
 
   @Override
   public boolean removeBlock(long userId, long blockId) throws IOException {
-    for (BlockMetaEventListener listener: mMetaEventListeners) {
-      listener.preRemoveBlock(userId, blockId);
-    }
-
     mEvictionLock.readLock().lock();
     // TODO: Handle absent
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
     boolean result = removeBlockNoLock(userId, blockId);
     mLockManager.unlockBlock(lockId);
     mEvictionLock.readLock().unlock();
-
-    if (result) {
-      for (BlockMetaEventListener listener: mMetaEventListeners) {
-        listener.postRemoveBlock(userId, blockId);
-      }
-    }
     return result;
   }
 
@@ -289,6 +258,10 @@ public class TieredBlockStore implements BlockStore {
       return false;
     }
     TempBlockMeta tempBlock = optTempBlock.get();
+
+    for (BlockMetaEventListener listener: mMetaEventListeners) {
+      listener.preCommitBlock(userId, blockId, tempBlock.getBlockLocation());
+    }
     // Check the userId is the owner of this temp block
     if (tempBlock.getUserId() != userId) {
       return false;
@@ -299,7 +272,14 @@ public class TieredBlockStore implements BlockStore {
     if (!renamed) {
       return false;
     }
-    return mMetaManager.commitTempBlockMeta(tempBlock);
+    if (!mMetaManager.commitTempBlockMeta(tempBlock)) {
+      return false;
+    }
+
+    for (BlockMetaEventListener listener : mMetaEventListeners) {
+      listener.postCommitBlock(userId, blockId, tempBlock.getBlockLocation());
+    }
+    return true;
   }
 
   private boolean abortBlockNoLock(long userId, long blockId) {
@@ -338,6 +318,9 @@ public class TieredBlockStore implements BlockStore {
 
   private boolean moveBlockNoLock(long userId, long blockId, BlockStoreLocation newLocation)
       throws IOException {
+    for (BlockMetaEventListener listener: mMetaEventListeners) {
+      listener.preMoveBlock(userId, blockId, newLocation);
+    }
     Optional<BlockMeta> optSrcBlock = mMetaManager.getBlockMeta(blockId);
     if (!optSrcBlock.isPresent()) {
       return false;
@@ -349,10 +332,21 @@ public class TieredBlockStore implements BlockStore {
     }
     String destPath = optDestBlock.get().getPath();
 
-    return new File(srcPath).renameTo(new File(destPath));
+    if(!new File(srcPath).renameTo(new File(destPath))) {
+      return false;
+    }
+
+    for (BlockMetaEventListener listener: mMetaEventListeners) {
+      listener.postMoveBlock(userId, blockId, newLocation);
+    }
+    return true;
   }
 
   private boolean removeBlockNoLock(long userId, long blockId) throws IOException {
+    for (BlockMetaEventListener listener: mMetaEventListeners) {
+      listener.preRemoveBlock(userId, blockId);
+    }
+
     Optional<BlockMeta> optBlock = mMetaManager.getBlockMeta(blockId);
     if (!optBlock.isPresent()) {
       LOG.error("Block is not present");
@@ -365,7 +359,14 @@ public class TieredBlockStore implements BlockStore {
       return false;
     }
     // Delete the data file of the block
-    return new File(block.getPath()).delete();
+    if (!new File(block.getPath()).delete()) {
+      return false;
+    }
+
+    for (BlockMetaEventListener listener: mMetaEventListeners) {
+      listener.postRemoveBlock(userId, blockId);
+    }
+    return true;
   }
 
   private boolean freeSpaceNoEvictionLock(long userId, long availableBytes,
