@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -107,11 +108,10 @@ public class WorkerServiceHandlerIntegrationTest {
     Exception exception = null;
     try {
       mWorkerServiceHandler.cacheBlock(userId, blockId1);
-    } catch (FileDoesNotExistException e) {
+    } catch (TException e) {
       exception = e;
     }
-    Assert.assertEquals(
-        new FileDoesNotExistException("Block doesn't exist! blockId:" + blockId1), exception);
+    Assert.assertNotNull(exception);
   }
 
   private void createBlockFile(String filename, int fileLen)
@@ -169,22 +169,15 @@ public class WorkerServiceHandlerIntegrationTest {
     result = mWorkerServiceHandler.requestSpace(userId, blockId1, WORKER_CAPACITY_BYTES);
     Assert.assertEquals(false, result);
     Exception exception = null;
-    try {
-      mWorkerServiceHandler.requestSpace(userId, blockId2, WORKER_CAPACITY_BYTES / 10L);
-    } catch (FileDoesNotExistException e) {
-      exception = e;
-    }
-    Assert.assertEquals(new FileDoesNotExistException(
-        "Temporary block file doesn't exist! blockId:" + blockId2), exception);
-
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(userId, blockId2,
+        WORKER_CAPACITY_BYTES / 10L));
     try {
       mWorkerServiceHandler.requestBlockLocation(userId, blockId2, WORKER_CAPACITY_BYTES + 1);
     } catch (OutOfSpaceException e) {
       exception = e;
     }
-    Assert.assertEquals(new OutOfSpaceException(String.format("Failed to allocate space for block!"
-        + " blockId(%d) sizeBytes(%d)", blockId2, WORKER_CAPACITY_BYTES + 1)), exception);
-
+    Assert.assertEquals(new OutOfSpaceException(String.format("Failed to allocate "
+        + (WORKER_CAPACITY_BYTES + 1) + " for user " + userId)), exception);
   }
 
   @Test

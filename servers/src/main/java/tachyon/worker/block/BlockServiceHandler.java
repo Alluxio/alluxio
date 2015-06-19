@@ -174,9 +174,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId
    * @param blockId
    */
+  // TODO: Reconsider this exception handling
   public void cacheBlock(long userId, long blockId) throws TException {
     try {
-      mWorker.commitBlock(userId, blockId);
+      if (!mWorker.commitBlock(userId, blockId)) {
+        throw new TException("Failed to commit block: " + blockId);
+      }
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
