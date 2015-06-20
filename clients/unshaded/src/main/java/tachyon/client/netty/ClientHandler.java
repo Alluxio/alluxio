@@ -66,7 +66,7 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
       handleResponse(ctx, (RPCResponse) msg);
     } else {
       // The client should only receive RPCResponse messages.
-      throw new IllegalArgumentException("No handler implementation for rpc response type: "
+      throw new IllegalArgumentException("No handler implementation for rpc message type: "
           + msg.getType());
     }
   }
