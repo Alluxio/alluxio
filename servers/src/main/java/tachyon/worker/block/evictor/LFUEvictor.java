@@ -167,7 +167,7 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
    * Complexity: O(1)
    */
   @Override
-  public EvictionPlan freeSpace(long bytes, BlockStoreLocation location) {
+  public Optional<EvictionPlan> freeSpace(long bytes, BlockStoreLocation location) {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
 
@@ -201,6 +201,6 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
       }
     }
 
-    return new EvictionPlan(toMove, toEvict);
+    return Optional.of(new EvictionPlan(toMove, toEvict));
   }
 }

@@ -83,7 +83,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
    * @return an eviction plan to achieve the freed space
    */
   @Override
-  public EvictionPlan freeSpace(long bytes, BlockStoreLocation location) {
+  public Optional<EvictionPlan> freeSpace(long bytes, BlockStoreLocation location) {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
 
@@ -111,7 +111,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
       }
     }
 
-    return new EvictionPlan(toMove, toEvict);
+    return Optional.of(new EvictionPlan(toMove, toEvict));
   }
 
   /**
