@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import tachyon.Constants;
+import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.RemoteBlockReader;
@@ -53,30 +54,29 @@ public class DataServerIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
-  // DataServer variations.
-  private static final String NETTY_DATA_SERVER = "tachyon.worker.netty.NettyDataServer";
-  private static final String NIO_DATA_SERVER = "tachyon.worker.nio.NIODataServer";
-
-  // Netty transfer variations.
-  private static final String MAPPED_TRANSFER = "MAPPED";
-  private static final String FILE_CHANNEL_TRANSFER = "TRANSFER";
-  private static final String UNUSED_TRANSFER = "UNUSED";
-
-  // Remote block reader variations.
-  private static final String TCP_BLOCK_READER = "tachyon.client.tcp.TCPRemoteBlockReader";
-  private static final String NETTY_BLOCK_READER = "tachyon.client.netty.NettyRemoteBlockReader";
-
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     // Creates a new instance of DataServerTest for different combinations of parameters..
     List<Object[]> list = new ArrayList<Object[]>();
-    list.add(new Object[] { NETTY_DATA_SERVER, MAPPED_TRANSFER, TCP_BLOCK_READER });
-    list.add(new Object[] { NETTY_DATA_SERVER, MAPPED_TRANSFER, NETTY_BLOCK_READER });
-    list.add(new Object[] { NETTY_DATA_SERVER, FILE_CHANNEL_TRANSFER, TCP_BLOCK_READER });
-    list.add(new Object[] { NETTY_DATA_SERVER, FILE_CHANNEL_TRANSFER, NETTY_BLOCK_READER });
+    list.add(new Object[] { IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.MAPPED_TRANSFER,
+        IntegrationTestConstants.TCP_BLOCK_READER });
+    list.add(new Object[] { IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.MAPPED_TRANSFER,
+        IntegrationTestConstants.NETTY_BLOCK_READER });
+    list.add(new Object[] { IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.FILE_CHANNEL_TRANSFER,
+        IntegrationTestConstants.TCP_BLOCK_READER });
+    list.add(new Object[] { IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.FILE_CHANNEL_TRANSFER,
+        IntegrationTestConstants.NETTY_BLOCK_READER });
     // The transfer type is not applicable to the NIODataServer.
-    list.add(new Object[] { NIO_DATA_SERVER, UNUSED_TRANSFER, TCP_BLOCK_READER });
-    list.add(new Object[] { NIO_DATA_SERVER, UNUSED_TRANSFER, NETTY_BLOCK_READER });
+    list.add(new Object[] { IntegrationTestConstants.NIO_DATA_SERVER,
+        IntegrationTestConstants.UNUSED_TRANSFER,
+        IntegrationTestConstants.TCP_BLOCK_READER });
+    list.add(new Object[] { IntegrationTestConstants.NIO_DATA_SERVER,
+        IntegrationTestConstants.UNUSED_TRANSFER,
+        IntegrationTestConstants.NETTY_BLOCK_READER });
     return list;
   }
 
