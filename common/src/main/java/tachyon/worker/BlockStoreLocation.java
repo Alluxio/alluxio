@@ -71,8 +71,8 @@ public class BlockStoreLocation {
     if (this.equals(location)) {
       return true;
     }
-    boolean tierInRange = (this.tier() == location.tier()) || (location.tier() == ANY_TIER);
-    boolean dirInRange = (this.dir() == location.dir()) || (location.dir() == ANY_DIR);
+    boolean tierInRange = (tierAlias() == location.tierAlias()) || (location.tierAlias() == ANY_TIER);
+    boolean dirInRange = (dir() == location.dir()) || (location.dir() == ANY_DIR);
     return tierInRange && dirInRange;
   }
 
