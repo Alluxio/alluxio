@@ -87,11 +87,11 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
 
-    Node p = mHead;
+    Node p = mHead.nextNode();
     long evictBytes = 0;
     // erase race condition with onAccessBlock on internal data structure
     synchronized (mTail) {
-      while (p.nextNode() != mTail && evictBytes < bytes) {
+      while (p != mTail && evictBytes < bytes) {
         Optional<BlockMeta> meta = mMeta.getBlockMeta(p.blockId);
         boolean evicted = false;
         if (!meta.isPresent()) {
@@ -102,11 +102,12 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
           evicted = true;
         }
 
-        p = p.nextNode();
+        Node next = p.nextNode();
         if (evicted) {
-          p.prev.remove();
+          p.remove();
           mCache.remove(p.blockId);
         }
+        p = next;
       }
     }
 
