@@ -25,7 +25,10 @@ import com.google.common.collect.Lists;
 import tachyon.worker.BlockStoreLocation;
 
 /**
- * Represents the delta of the block store within one heartbeat period. This class is thread safe.
+ * Represents the delta of the block store within one heartbeat period. For now, newly committed
+ * blocks do not pass through this master communication mechanism, instead it is synchronise
+ * through {@link tachyon.worker.block.BlockDataManager#commitBlock(long, long)}. This class is
+ * thread safe.
  */
 public class BlockHeartbeatReporter implements BlockMetaEventListener {
   /** Lock for operations on the removed and added block collections */
@@ -64,12 +67,13 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
     // Do nothing
   }
 
+  // TODO: Add this functionality back when block creation between client and master is changed
   @Override
   public void postCommitBlock(long userId, long blockId, BlockStoreLocation location) {
-    Long storageDirId = location.getStorageDirId();
-    synchronized (mLock) {
-      addBlockToAddedBlocks(blockId, storageDirId);
-    }
+  //  Long storageDirId = location.getStorageDirId();
+  //  synchronized (mLock) {
+  //    addBlockToAddedBlocks(blockId, storageDirId);
+  //  }
   }
 
   @Override
@@ -81,6 +85,9 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
   public void postMoveBlock(long userId, long blockId, BlockStoreLocation newLocation) {
     Long storageDirId = newLocation.getStorageDirId();
     synchronized (mLock) {
+      // Add the block to the removed block list to remove the previous location
+      // TODO: We should have a better mechanism to indicate block movement
+      mRemovedBlocks.add(blockId);
       // Remove the block from our list of added blocks in this heartbeat, if it was added to
       // prevent adding the block twice.
       removeBlockFromAddedBlocks(blockId);

@@ -163,8 +163,7 @@ public class StorageDir {
       return Optional.absent();
     }
     mBlockIdToBlockMap.put(blockId, block);
-    mAvailableBytes -= blockSize;
-    Preconditions.checkState(mAvailableBytes >= 0, "Available bytes should always be non-negative");
+    reserveSpace(blockSize);
     return Optional.of(block);
   }
 
@@ -186,7 +185,7 @@ public class StorageDir {
     } else {
       userTempBlocks.add(blockId);
     }
-    mAvailableBytes -= blockSize;
+    reserveSpace(blockSize);
     return true;
   }
 
@@ -199,8 +198,8 @@ public class StorageDir {
   public boolean removeBlockMeta(BlockMeta block) {
     Preconditions.checkNotNull(block);
     mBlockIdToBlockMap.remove(block.getBlockId());
-    mAvailableBytes += block.getBlockSize();
-    return false;
+    reclaimSpace(block.getBlockSize());
+    return true;
   }
 
   /**
@@ -222,15 +221,34 @@ public class StorageDir {
         if (userBlocks.isEmpty()) {
           mUserIdToTempBlockIdsMap.remove(userId);
         }
-        mAvailableBytes += tempBlockMeta.getBlockSize();
-        Preconditions.checkState(mCapacityBytes >= mAvailableBytes,
-            "Available bytes should always be less than total capacity bytes");
+        reclaimSpace(tempBlockMeta.getBlockSize());
         return true;
       }
     }
     return false;
   }
 
+  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize) {
+    long oldSize = tempBlockMeta.getBlockSize();
+    tempBlockMeta.setBlockSize(newSize);
+    if (newSize > oldSize) {
+      reserveSpace(newSize - oldSize);
+    } else {
+      LOG.error("Shrinking block, not supported!");
+    }
+  }
+
+  private void reserveSpace(long size) {
+    Preconditions.checkState(size <= mAvailableBytes,
+        "Available bytes should always be non-negative ");
+    mAvailableBytes -= size;
+  }
+
+  private void reclaimSpace(long size) {
+    Preconditions.checkState(mCapacityBytes >= mAvailableBytes + size,
+        "Available bytes should always be less than total capacity bytes");
+    mAvailableBytes += size;
+  }
   /**
    * Cleans up the temp block meta data of a specific user
    *

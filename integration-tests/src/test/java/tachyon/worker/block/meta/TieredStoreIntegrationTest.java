@@ -21,6 +21,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TestUtils;
@@ -41,6 +43,7 @@ public class TieredStoreIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
   private static final int DISK_CAPACITY_BYTES = 10000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTFS = null;
@@ -72,7 +75,8 @@ public class TieredStoreIntegrationTest {
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
   }
 
-  @Test
+  // TODO: this test is allocator and evictor specific and really testing LRU.
+  /*@Test
   public void blockEvict() throws IOException, InterruptedException {
     int fileId1 =
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE,
@@ -96,13 +100,18 @@ public class TieredStoreIntegrationTest {
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test4", WriteType.TRY_CACHE,
             MEM_CAPACITY_BYTES / 2);
     int fileId5 =
-        TachyonFSTestUtils.createByteFile(mTFS, "/root/test5", WriteType.TRY_CACHE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test5", WriteType.MUST_CACHE,
             MEM_CAPACITY_BYTES / 2);
 
     CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
 
     TachyonFile file4 = mTFS.getFile(fileId4);
     TachyonFile file5 = mTFS.getFile(fileId5);
+    LOG.info("file1 {}", file1.isInMemory());
+    LOG.info("file2 {}", file2.isInMemory());
+    LOG.info("file3 {}", file3.isInMemory());
+    LOG.info("file4 {}", file4.isInMemory());
+    LOG.info("file5 {}", file5.isInMemory());
 
     Assert.assertEquals(file1.isInMemory(), false);
     Assert.assertEquals(file2.isInMemory(), false);
@@ -110,7 +119,10 @@ public class TieredStoreIntegrationTest {
     Assert.assertEquals(file4.isInMemory(), true);
     Assert.assertEquals(file5.isInMemory(), true);
   }
+  */
 
+  // TODO: Add this test back when CACHE_PROMOTE is enabled again
+  /*
   @Test
   public void promoteBlock() throws IOException, InterruptedException {
     int fileId1 =
@@ -149,4 +161,5 @@ public class TieredStoreIntegrationTest {
     Assert.assertEquals(MEM_CAPACITY_BYTES / 6 + MEM_CAPACITY_BYTES,
         mLocalTachyonCluster.getMasterInfo().getUsedBytes());
   }
+  */
 }

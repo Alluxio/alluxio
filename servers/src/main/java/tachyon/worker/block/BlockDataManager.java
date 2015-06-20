@@ -90,6 +90,7 @@ public class BlockDataManager {
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
+    // TODO: Handle UFS security
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerMetaListener(mHeartbeatReporter);
@@ -178,6 +179,7 @@ public class BlockDataManager {
       return false;
     }
 
+    // TODO: Reconsider how to do this without heavy locking
     // Block successfully committed, update master with new block metadata
     Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId);
     if (!optLock.isPresent()) {
@@ -186,6 +188,7 @@ public class BlockDataManager {
     Long lockId = optLock.get();
     Optional<BlockMeta> optMeta = mBlockStore.getBlockMeta(userId, blockId, lockId);
     if (!optMeta.isPresent()) {
+      mBlockStore.unlockBlock(userId, blockId);
       throw new IOException("Failed to get block meta for new block " + blockId);
     }
     BlockMeta meta = optMeta.get();
@@ -198,8 +201,10 @@ public class BlockDataManager {
       mMasterClient
           .worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);
     } catch (TException te) {
+      mBlockStore.unlockBlock(userId, blockId);
       throw new IOException("Failed to commit block to master.", te);
     }
+    mBlockStore.unlockBlock(userId, blockId);
     return true;
   }
 
@@ -304,12 +309,8 @@ public class BlockDataManager {
    * @param blockId The id of the block to be locked
    * @return the lockId, or -1 if we failed to obtain a lock
    */
-  public long lockBlock(long userId, long blockId) {
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId);
-    if (optLock.isPresent()) {
-      return optLock.get();
-    }
-    return -1;
+  public Optional<Long> lockBlock(long userId, long blockId) {
+    return mBlockStore.lockBlock(userId, blockId);
   }
 
   /**
@@ -407,6 +408,11 @@ public class BlockDataManager {
   // TODO: This may be better as void
   public boolean unlockBlock(long lockId) {
     return mBlockStore.unlockBlock(lockId);
+  }
+
+  // TODO: for debug only.
+  public boolean unlockBlock(long userId, long blockId) {
+    return mBlockStore.unlockBlock(userId, blockId);
   }
 
   /**

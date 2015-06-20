@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
@@ -43,6 +44,7 @@ public class BlockLockManager {
   /** The unique id of each lock **/
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
 
+  private final BlockMetadataManager mMetaManager;
   /** A map from a block ID to its lock */
   private final List<ClientRWLock> mLockArray = new ArrayList<ClientRWLock>(NUM_LOCKS);
   /** A map from a user ID to all the locks hold by this user */
@@ -75,12 +77,21 @@ public class BlockLockManager {
     }
   }
 
-  public BlockLockManager() {
+  public BlockLockManager(BlockMetadataManager metaManager) {
+    mMetaManager = Preconditions.checkNotNull(metaManager);
     for (int i = 0; i < NUM_LOCKS; i ++) {
       mLockArray.add(new ClientRWLock());
     }
   }
 
+  /**
+   * Lock a block only if it exists.
+   *
+   * @param userId the ID of user
+   * @param blockId the ID of block
+   * @param blockLockType READ or WRITE
+   * @return lock id if the block exists
+   */
   public Optional<Long> lockBlock(long userId, long blockId, BlockLockType blockLockType) {
     // TODO: generate real hashValue on blockID.
     int hashValue = (int) (blockId % (long) NUM_LOCKS);
@@ -92,8 +103,11 @@ public class BlockLockManager {
       lock = blockLock.writeLock();
     }
     lock.lock();
+    if (!mMetaManager.hasBlockMeta(blockId)) {
+      lock.unlock();
+      return Optional.absent();
+    }
     long lockId = LOCK_ID_GEN.getAndIncrement();
-
     synchronized (mSharedMapsLock) {
       mLockIdToRecordMap.put(lockId, new LockRecord(userId, blockId, lock));
       Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
@@ -111,6 +125,7 @@ public class BlockLockManager {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
+        LOG.error("Failed to unlock lockId {}: no lock record found", lockId);
         return false;
       }
       long userId = record.userId();
@@ -126,6 +141,33 @@ public class BlockLockManager {
     return true;
   }
 
+  // TODO: debug only, remove me later.
+  public boolean unlockBlock(long userId, long blockId) {
+    synchronized (mSharedMapsLock) {
+      Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
+      for (long lockId : userLockIds) {
+        LockRecord record = mLockIdToRecordMap.get(lockId);
+        if (null == record) {
+          LOG.error("Failed to unlock lockId {}: no lock record found", lockId);
+          return false;
+        }
+        if (blockId == record.blockId()) {
+          mLockIdToRecordMap.remove(lockId);
+          userLockIds.remove(lockId);
+          if (userLockIds.isEmpty()) {
+            mUserIdToLockIdsMap.remove(userId);
+          }
+          Lock lock = record.lock();
+          lock.unlock();
+          return true;
+        }
+      }
+    }
+    LOG.error("Failed to unlock blockId {} for userId {}", blockId, userId);
+    return false;
+  }
+
+
   /**
    * Validates the lock is hold by the given user for the given block.
    *
@@ -138,6 +180,7 @@ public class BlockLockManager {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
+        LOG.error("Fail to validate lockId {}: no lock record found", lockId);
         return false;
       }
       return userId == record.userId() && blockId == record.blockId();
@@ -153,12 +196,14 @@ public class BlockLockManager {
     synchronized (mSharedMapsLock) {
       Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
       if (null == userLockIds) {
+        LOG.error("Failed to cleanup userId {}: no acquired lock found", userId);
         return;
       }
       for (long lockId : userLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (null == record) {
-          return;
+          LOG.error("Failed to cleanup userId {}: no lock record for lockId {}", userId, lockId);
+          continue;
         }
         Lock lock = record.lock();
         lock.unlock();

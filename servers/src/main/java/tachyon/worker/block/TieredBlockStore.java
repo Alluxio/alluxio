@@ -73,7 +73,7 @@ public class TieredBlockStore implements BlockStore {
   public TieredBlockStore(TachyonConf tachyonConf) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mMetaManager = new BlockMetadataManager(mTachyonConf);
-    mLockManager = new BlockLockManager();
+    mLockManager = new BlockLockManager(mMetaManager);
 
     // TODO: create Allocator according to tachyonConf.
     mAllocator = new NaiveAllocator(mMetaManager);
@@ -93,6 +93,11 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public boolean unlockBlock(long lockId) {
     return mLockManager.unlockBlock(lockId);
+  }
+
+  @Override
+  public boolean unlockBlock(long userId, long blockId) {
+    return mLockManager.unlockBlock(userId, blockId);
   }
 
   @Override
@@ -136,39 +141,25 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public boolean commitBlock(long userId, long blockId) {
-    TempBlockMeta tempBlock = mMetaManager.getTempBlockMeta(blockId).orNull();
-    for (BlockMetaEventListener listener: mMetaEventListeners) {
-      listener.preCommitBlock(userId, blockId, tempBlock.getBlockLocation());
-    }
-
     mEvictionLock.readLock().lock();
-    long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
     boolean result = commitBlockNoLock(userId, blockId);
-    mLockManager.unlockBlock(lockId);
-    mEvictionLock.readLock().unlock();
-
-    if (result) {
-      for (BlockMetaEventListener listener : mMetaEventListeners) {
-        listener.postCommitBlock(userId, blockId, tempBlock.getBlockLocation());
-      }
-    }
-    return true;
-  }
-
-  @Override
-  public boolean abortBlock(long userId, long blockId) {
-    mEvictionLock.readLock().lock();
-    long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
-    boolean result = abortBlockNoLock(userId, blockId);
-    mLockManager.unlockBlock(lockId);
     mEvictionLock.readLock().unlock();
     return result;
   }
 
   @Override
-  public boolean requestSpace(long userId, long blockId, long size) throws IOException {
+  public boolean abortBlock(long userId, long blockId) {
+    mEvictionLock.readLock().lock();
+    boolean result = abortBlockNoLock(userId, blockId);
+    mEvictionLock.readLock().unlock();
+    return result;
+  }
+
+  @Override
+  public boolean requestSpace(long userId, long blockId, long moreBytes) throws IOException {
+    // TODO: Change the lock to read lock and only upgrade to write lock if necessary
     mEvictionLock.writeLock().lock();
-    boolean result = requestSpaceNoLock(userId, blockId, size);
+    boolean result = requestSpaceNoLock(userId, blockId, moreBytes);
     mEvictionLock.writeLock().unlock();
     return result;
   }
@@ -176,41 +167,28 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public boolean moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
       throws IOException {
-    for (BlockMetaEventListener listener: mMetaEventListeners) {
-      listener.preMoveBlock(userId, blockId, newLocation);
-    }
-
     mEvictionLock.readLock().lock();
+    // TODO: Handle absent
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
     boolean result = moveBlockNoLock(userId, blockId, newLocation);
     mLockManager.unlockBlock(lockId);
     mEvictionLock.readLock().unlock();
-
-    if (result) {
-      for (BlockMetaEventListener listener: mMetaEventListeners) {
-        listener.postMoveBlock(userId, blockId, newLocation);
-      }
-    }
     return result;
   }
 
   @Override
   public boolean removeBlock(long userId, long blockId) throws IOException {
-    for (BlockMetaEventListener listener: mMetaEventListeners) {
-      listener.preRemoveBlock(userId, blockId);
-    }
-
     mEvictionLock.readLock().lock();
-    long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
+    Optional<Long> optLock = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
+    // If we fail to lock, the block is no longer in tiered store, so return true
+    if (!optLock.isPresent()) {
+      mEvictionLock.readLock().unlock();
+      return true;
+    }
+    long lockId = optLock.get();
     boolean result = removeBlockNoLock(userId, blockId);
     mLockManager.unlockBlock(lockId);
     mEvictionLock.readLock().unlock();
-
-    if (result) {
-      for (BlockMetaEventListener listener: mMetaEventListeners) {
-        listener.postRemoveBlock(userId, blockId);
-      }
-    }
     return result;
   }
 
@@ -222,9 +200,10 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public boolean freeSpace(long userId, long size, BlockStoreLocation location) throws IOException {
+  public boolean freeSpace(long userId, long availableBytes, BlockStoreLocation location)
+      throws IOException {
     mEvictionLock.writeLock().lock();
-    boolean result = freeSpaceNoLock(userId, size, location);
+    boolean result = freeSpaceNoEvictionLock(userId, availableBytes, location);
     mEvictionLock.writeLock().unlock();
     return result;
   }
@@ -240,10 +219,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
-    mEvictionLock.readLock().lock();
-    BlockStoreMeta meta = new BlockStoreMeta(mMetaManager);
-    mEvictionLock.readLock().unlock();
-    return meta;
+    return mMetaManager.getBlockStoreMeta();
   }
 
   @Override
@@ -261,8 +237,20 @@ public class TieredBlockStore implements BlockStore {
     Optional<TempBlockMeta> optTempBlock =
         mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
     if (!optTempBlock.isPresent()) {
+      // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
+
+      // Upgrade to write lock to guard evictor.
+      mEvictionLock.readLock().unlock();
+      mEvictionLock.writeLock().lock();
+
+      boolean result = freeSpaceNoEvictionLock(userId, initialBlockSize, location);
+
+      // Downgrade to read lock again after eviction
+      mEvictionLock.readLock().lock();
+      mEvictionLock.writeLock().unlock();
+
       // Not enough space in this block store, let's try to free some space.
-      if (!freeSpaceNoLock(userId, initialBlockSize, location)) {
+      if (!result) {
         LOG.error("Cannot free {} bytes space in {}", initialBlockSize, location);
         return Optional.absent();
       }
@@ -280,6 +268,10 @@ public class TieredBlockStore implements BlockStore {
       return false;
     }
     TempBlockMeta tempBlock = optTempBlock.get();
+
+    for (BlockMetaEventListener listener: mMetaEventListeners) {
+      listener.preCommitBlock(userId, blockId, tempBlock.getBlockLocation());
+    }
     // Check the userId is the owner of this temp block
     if (tempBlock.getUserId() != userId) {
       return false;
@@ -290,7 +282,14 @@ public class TieredBlockStore implements BlockStore {
     if (!renamed) {
       return false;
     }
-    return mMetaManager.commitTempBlockMeta(tempBlock);
+    if (!mMetaManager.commitTempBlockMeta(tempBlock)) {
+      return false;
+    }
+
+    for (BlockMetaEventListener listener : mMetaEventListeners) {
+      listener.postCommitBlock(userId, blockId, tempBlock.getBlockLocation());
+    }
+    return true;
   }
 
   private boolean abortBlockNoLock(long userId, long blockId) {
@@ -311,24 +310,27 @@ public class TieredBlockStore implements BlockStore {
     return mMetaManager.abortTempBlockMeta(tempBlock);
   }
 
-  private boolean requestSpaceNoLock(long userId, long blockId, long size) throws IOException {
+  private boolean requestSpaceNoLock(long userId, long blockId, long moreBytes) throws IOException {
     Optional<TempBlockMeta> optTempBlock = mMetaManager.getTempBlockMeta(blockId);
     if (!optTempBlock.isPresent()) {
       return false;
     }
     TempBlockMeta tempBlock = optTempBlock.get();
     BlockStoreLocation location = tempBlock.getBlockLocation();
-    if (!freeSpaceNoLock(userId, size, location)) {
+    if (!freeSpaceNoEvictionLock(userId, moreBytes, location)) {
       return false;
     }
 
     // Increase the size of this temp block
-    tempBlock.setBlockSize(tempBlock.getBlockSize() + size);
+    mMetaManager.resizeTempBlockMeta(tempBlock, tempBlock.getBlockSize() + moreBytes);
     return true;
   }
 
   private boolean moveBlockNoLock(long userId, long blockId, BlockStoreLocation newLocation)
       throws IOException {
+    for (BlockMetaEventListener listener: mMetaEventListeners) {
+      listener.preMoveBlock(userId, blockId, newLocation);
+    }
     Optional<BlockMeta> optSrcBlock = mMetaManager.getBlockMeta(blockId);
     if (!optSrcBlock.isPresent()) {
       return false;
@@ -340,32 +342,60 @@ public class TieredBlockStore implements BlockStore {
     }
     String destPath = optDestBlock.get().getPath();
 
-    return new File(srcPath).renameTo(new File(destPath));
+    if (!new File(srcPath).renameTo(new File(destPath))) {
+      return false;
+    }
+
+    for (BlockMetaEventListener listener: mMetaEventListeners) {
+      listener.postMoveBlock(userId, blockId, newLocation);
+    }
+    return true;
   }
 
   private boolean removeBlockNoLock(long userId, long blockId) throws IOException {
+    for (BlockMetaEventListener listener: mMetaEventListeners) {
+      listener.preRemoveBlock(userId, blockId);
+    }
+
     Optional<BlockMeta> optBlock = mMetaManager.getBlockMeta(blockId);
     if (!optBlock.isPresent()) {
+      LOG.error("Block is not present");
       return false;
     }
     BlockMeta block = optBlock.get();
     // Delete metadata of the block
     if (!mMetaManager.removeBlockMeta(block)) {
+      LOG.error("Unable to remove metadata");
       return false;
     }
     // Delete the data file of the block
-    return new File(block.getPath()).delete();
+    if (!new File(block.getPath()).delete()) {
+      return false;
+    }
+
+    for (BlockMetaEventListener listener: mMetaEventListeners) {
+      listener.postRemoveBlock(userId, blockId);
+    }
+    return true;
   }
 
-  private boolean freeSpaceNoLock(long userId, long size, BlockStoreLocation location)
-      throws IOException {
-    EvictionPlan plan = mEvictor.freeSpace(size, location);
+  private boolean freeSpaceNoEvictionLock(long userId, long availableBytes,
+      BlockStoreLocation location) throws IOException {
+    Optional<EvictionPlan> optPlan = mEvictor.freeSpace(availableBytes, location);
+    // Absent plan means failed to evict enough space.
+    if (!optPlan.isPresent()) {
+      LOG.error("Failed to free space: no eviction plan by evictor");
+      return false;
+    }
+    EvictionPlan plan = optPlan.get();
     // Step1: remove blocks to make room.
     for (long blockId : plan.toEvict()) {
+      // TODO: Handle absent
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
       boolean result = removeBlockNoLock(userId, blockId);
       mLockManager.unlockBlock(lockId);
       if (!result) {
+        LOG.error("Failed to free space: cannot evict block {}", blockId);
         return false;
       }
     }
@@ -373,10 +403,12 @@ public class TieredBlockStore implements BlockStore {
     for (Pair<Long, BlockStoreLocation> entry : plan.toMove()) {
       long blockId = entry.getFirst();
       BlockStoreLocation newLocation = entry.getSecond();
+      // TODO: Handle absent
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE).get();
       boolean result = moveBlockNoLock(userId, blockId, newLocation);
       mLockManager.unlockBlock(lockId);
       if (!result) {
+        LOG.error("Failed to free space: cannot move block {} to {}", blockId, newLocation);
         return false;
       }
     }

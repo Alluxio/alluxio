@@ -44,15 +44,20 @@ public class BlockMetadataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** A list of managed StorageTier */
-  private Map<Integer, StorageTier> mTiers;
+  private List<StorageTier> mTiers;
+  /** A map from tier alias to StorageTier */
+  private Map<Integer, StorageTier> mAliasToTiers;
 
   public BlockMetadataManager(TachyonConf tachyonConf) {
     // Initialize storage tiers
     int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
-    mTiers = new HashMap<Integer, StorageTier>(totalTiers);
+    mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
+    mTiers = new ArrayList<StorageTier>(totalTiers);
     for (int i = 0; i < totalTiers; i ++) {
       int tierAlias = i + 1;
-      mTiers.put(tierAlias, new StorageTier(tachyonConf, tierAlias));
+      StorageTier tier = new StorageTier(tachyonConf, tierAlias);
+      mTiers.add(tier);
+      mAliasToTiers.put(tierAlias, tier);
     }
   }
 
@@ -63,7 +68,7 @@ public class BlockMetadataManager {
    * @return the StorageTier object associated with the alias
    */
   public synchronized StorageTier getTier(int tierAlias) {
-    return mTiers.get(tierAlias);
+    return mAliasToTiers.get(tierAlias);
   }
 
   /**
@@ -72,7 +77,52 @@ public class BlockMetadataManager {
    * @return the list of StorageTiers
    */
   public synchronized List<StorageTier> getTiers() {
-    return new ArrayList<StorageTier>(mTiers.values());
+    return mTiers;
+  }
+
+  /**
+   * Gets the amount of available space in given location in bytes.
+   *
+   * @param location location the check available bytes
+   * @return available bytes
+   */
+  public synchronized long getAvailableBytes(BlockStoreLocation location) {
+    long spaceAvailable = 0;
+
+    if (location.equals(BlockStoreLocation.anyTier())) {
+      for (StorageTier tier : getTiers()) {
+        spaceAvailable += tier.getAvailableBytes();
+      }
+      return spaceAvailable;
+    }
+
+    int tierAlias = location.tierAlias();
+    StorageTier tier = getTier(tierAlias);
+    // TODO: This should probably be max of the capacity bytes in the dirs?
+    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
+      return tier.getAvailableBytes();
+    }
+
+    int dirIndex = location.dir();
+    StorageDir dir = tier.getDir(dirIndex);
+    return dir.getAvailableBytes();
+  }
+
+  /**
+   * Checks if the storage has a given block.
+   *
+   * @param blockId the block ID
+   * @return true if the block is contained, false otherwise
+   */
+  public synchronized boolean hasBlockMeta(long blockId) {
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.hasBlockMeta(blockId)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
@@ -82,7 +132,7 @@ public class BlockMetadataManager {
    * @return metadata of the block or absent
    */
   public synchronized Optional<BlockMeta> getBlockMeta(long blockId) {
-    for (StorageTier tier : mTiers.values()) {
+    for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasBlockMeta(blockId)) {
           return tier.getBlockMeta(blockId);
@@ -108,14 +158,14 @@ public class BlockMetadataManager {
     }
 
     // If move target can be any tier, then simply return the current block meta.
-    if (newLocation == BlockStoreLocation.anyTier()) {
+    if (newLocation.equals(BlockStoreLocation.anyTier())) {
       return Optional.of(block);
     }
 
     int newTierAlias = newLocation.tierAlias();
     StorageTier newTier = getTier(newTierAlias);
     StorageDir newDir = null;
-    if (newLocation == BlockStoreLocation.anyDirInTier(newTierAlias)) {
+    if (newLocation.equals(BlockStoreLocation.anyDirInTier(newTierAlias))) {
       for (StorageDir dir : newTier.getStorageDirs()) {
         if (dir.getAvailableBytes() > block.getBlockSize()) {
           newDir = dir;
@@ -153,7 +203,7 @@ public class BlockMetadataManager {
    * @return metadata of the block or absent
    */
   public synchronized Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
-    for (StorageTier tier : mTiers.values()) {
+    for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasTempBlockMeta(blockId)) {
           return dir.getTempBlockMeta(blockId);
@@ -199,15 +249,35 @@ public class BlockMetadataManager {
   }
 
   /**
+   * Modifies the size of a temp block
+   *
+   * @param tempBlockMeta the temp block to modify
+   * @param newSize new size in bytes
+   */
+  public synchronized void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize) {
+    StorageDir dir = tempBlockMeta.getParentDir();
+    dir.resizeTempBlockMeta(tempBlockMeta, newSize);
+  }
+
+    /**
    * Cleans up the temp blocks meta data created by the given user.
    *
    * @param userId the ID of the user
    */
   public synchronized void cleanupUser(long userId) {
-    for (StorageTier tier : mTiers.values()) {
+    for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         dir.cleanupUser(userId);
       }
     }
+  }
+
+  /**
+   * Gets a summary of the meta data.
+   *
+   * @return the metadata of this block store
+   */
+  public synchronized BlockStoreMeta getBlockStoreMeta() {
+    return new BlockStoreMeta(this);
   }
 }

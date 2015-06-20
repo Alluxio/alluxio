@@ -112,6 +112,8 @@ public class TachyonFileIntegrationTest {
    *
    * @throws IOException
    */
+  // TODO: Reenable this when LRU is enabled
+  /*
   @Test
   public void isInMemoryTest2() throws IOException {
     for (int k = 0; k < MAX_FILES; k ++) {
@@ -149,12 +151,15 @@ public class TachyonFileIntegrationTest {
       Assert.assertTrue(file.isInMemory());
     }
   }
+  */
 
   /**
    * Test LRU Cache Eviction + PIN.
    *
    * @throws IOException
    */
+  // TODO: Reenable this when LRU is enabled
+  /*
   @Test
   public void isInMemoryTest3() throws IOException {
     TachyonURI pin = new TachyonURI("/pin");
@@ -187,7 +192,7 @@ public class TachyonFileIntegrationTest {
       Assert.assertTrue(file.isInMemory());
     }
   }
-
+  */
   /**
    * Test <code>String getLocalFilename(long blockId) </code>.
    */

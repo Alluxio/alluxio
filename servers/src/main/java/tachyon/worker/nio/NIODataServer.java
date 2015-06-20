@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -218,7 +219,11 @@ public class NIODataServer implements Runnable, DataServer {
       final long blockId = tMessage.getBlockId();
       LOG.info("Get request for blockId: {}", blockId);
 
-      final long lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
+      Optional<Long> optLock = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
+      if (!optLock.isPresent()) {
+        LOG.error("Block is not present on this worker " + tMessage.getBlockId());
+      }
+      long lockId = optLock.get();
       BlockReader reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
       ByteBuffer data;
       int dataLen = 0;

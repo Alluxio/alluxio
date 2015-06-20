@@ -18,10 +18,13 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.List;
 
+import com.google.common.base.Optional;
+
 import org.apache.thrift.TException;
 
 import tachyon.Users;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
@@ -99,7 +102,11 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @return the lockId of the lock obtained
    */
   public long lockBlockV2(long userId, long blockId) {
-    return mWorker.lockBlock(userId, blockId);
+    Optional<Long> optLock = mWorker.lockBlock(userId, blockId);
+    if (optLock.isPresent()) {
+      return optLock.get();
+    }
+    return -1;
   }
 
   /**
@@ -167,9 +174,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId
    * @param blockId
    */
+  // TODO: Reconsider this exception handling
   public void cacheBlock(long userId, long blockId) throws TException {
     try {
-      mWorker.commitBlock(userId, blockId);
+      if (!mWorker.commitBlock(userId, blockId)) {
+        throw new TException("Failed to commit block: " + blockId);
+      }
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -209,8 +219,11 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public String lockBlock(long blockId, long userId) throws TException {
-    long lockId = mWorker.lockBlock(userId, blockId);
-    return mWorker.readBlock(userId, blockId, lockId);
+    Optional<Long> optLock = mWorker.lockBlock(userId, blockId);
+    if (optLock.isPresent()) {
+      return mWorker.readBlock(userId, blockId, optLock.get());
+    }
+    throw new FileDoesNotExistException("Block does not exist " + blockId);
   }
 
   /**
@@ -243,8 +256,10 @@ public class BlockServiceHandler implements WorkerService.Iface {
   public String requestBlockLocation(long userId, long blockId, long initialBytes)
       throws TException {
     try {
+      // NOTE: right now, we ask allocator to allocate new blocks in MEM tier by setting location
+      // to be 1.
       // TODO: Maybe add a constant for anyTier?
-      return mWorker.createBlock(userId, blockId, -1, initialBytes);
+      return mWorker.createBlock(userId, blockId, 1, initialBytes);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -277,7 +292,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public boolean unlockBlock(long blockId, long userId) {
-    return mWorker.unlockBlock(blockId);
+    // return mWorker.unlockBlock(blockId);
+    return mWorker.unlockBlock(userId, blockId);
   }
 
   /**
