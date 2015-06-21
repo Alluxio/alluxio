@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -15,12 +15,11 @@
 
 package tachyon.worker.block.meta;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import com.google.common.base.Optional;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -34,18 +33,21 @@ import tachyon.util.CommonUtils;
  * This class does not guarantee thread safety.
  */
 public class StorageTier {
-  private List<StorageDir> mDirs;
+  /** Alias of this tier, e.g., memory tier is 1, SSD tier is 2 and HDD tier is 3 */
   private final int mTierAlias;
+  /** Level of this tier in tiered storage, highest level is 0 */
+  private final int mTierLevel;
+  private List<StorageDir> mDirs;
 
-  public StorageTier(TachyonConf tachyonConf, int tierAlias) {
+  public StorageTier(TachyonConf tachyonConf, int tierLevel, int tierAlias) {
     mTierAlias = tierAlias;
-    int level = tierAlias - 1;
+    mTierLevel = tierLevel;
     String tierDirPathConf =
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, mTierLevel);
     String[] dirPaths = tachyonConf.get(tierDirPathConf, "/mnt/ramdisk").split(",");
 
     String tierDirCapacityConf =
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, level);
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, mTierLevel);
     String[] dirQuotas = tachyonConf.get(tierDirCapacityConf, "0").split(",");
 
     mDirs = new ArrayList<StorageDir>(dirPaths.length);
@@ -59,6 +61,10 @@ public class StorageTier {
 
   public int getTierAlias() {
     return mTierAlias;
+  }
+
+  public int getTierLevel() {
+    return mTierLevel;
   }
 
   public long getCapacityBytes() {
@@ -85,13 +91,19 @@ public class StorageTier {
     return new HashSet<StorageDir>(mDirs);
   }
 
-  public Optional<BlockMeta> getBlockMeta(long blockId) {
+  /**
+   * Returns the BlockMeta for a given blockId.
+   *
+   * @param blockId the ID of the block
+   * @return BlockMeta
+   * @throws IOException if no BlockMeta for this blockId is found in this StorageDir
+   */
+  public BlockMeta getBlockMeta(long blockId) throws IOException {
     for (StorageDir dir : mDirs) {
-      Optional<BlockMeta> optionalBlock = dir.getBlockMeta(blockId);
-      if (optionalBlock.isPresent()) {
-        return optionalBlock;
+      if (dir.hasBlockMeta(blockId)) {
+        return dir.getBlockMeta(blockId);
       }
     }
-    return Optional.absent();
+    throw new IOException("Cannot get blockId " + blockId + " in tier " + this);
   }
 }
