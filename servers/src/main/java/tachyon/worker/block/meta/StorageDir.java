@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -15,17 +15,16 @@
 
 package tachyon.worker.block.meta;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
@@ -40,15 +39,13 @@ import tachyon.StorageDirId;
  */
 public class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
+  private final long mCapacityBytes;
   /** A map from block ID to block meta data */
   private Map<Long, BlockMeta> mBlockIdToBlockMap;
   /** A map from block ID to temp block meta data */
   private Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
   /** A map from user ID to the set of temp blocks created by this user */
   private Map<Long, Set<Long>> mUserIdToTempBlockIdsMap;
-
-  private final long mCapacityBytes;
   private long mAvailableBytes;
   private String mDirPath;
   private int mDirIndex;
@@ -77,34 +74,51 @@ public class StorageDir {
     return mDirPath;
   }
 
+  /**
+   * Returns the StorageTier containing this StorageDir.
+   *
+   * @return StorageTier
+   */
   public StorageTier getParentTier() {
     return mTier;
   }
 
+  /**
+   * Returns the zero-based index of this dir in its parent StorageTier.
+   *
+   * @return index
+   */
   public int getDirIndex() {
     return mDirIndex;
   }
 
   // TODO: deprecate this method.
   public long getStorageDirId() {
-    int level = mTier.getTierAlias() - 1;
+    int level = mTier.getTierLevel();
     int storageLevelAliasValue = mTier.getTierAlias();
     return StorageDirId.getStorageDirId(level, storageLevelAliasValue, mDirIndex);
   }
 
   /**
-   * Returns a list of non-temporary block IDs in this dir.
+   * Returns the list of block IDs in this dir.
+   *
+   * @return a list of block IDs
    */
   public List<Long> getBlockIds() {
     return new ArrayList<Long>(mBlockIdToBlockMap.keySet());
   }
 
-  public Collection<BlockMeta> getBlocks() {
-    return mBlockIdToBlockMap.values();
+  /**
+   * Returns the list of blocks stored in this dir.
+   *
+   * @return a list of blocks
+   */
+  public List<BlockMeta> getBlocks() {
+    return new ArrayList<BlockMeta>(mBlockIdToBlockMap.values());
   }
 
   /**
-   * Check if a specific block is in this storage dir.
+   * Checks if a block is in this storage dir.
    *
    * @param blockId the block ID
    * @return true if the block is in this storage dir, false otherwise
@@ -114,7 +128,7 @@ public class StorageDir {
   }
 
   /**
-   * Check if a temp block is in this storage dir.
+   * Checks if a temp block is in this storage dir.
    *
    * @param blockId the block ID
    * @return true if the block is in this storage dir, false otherwise
@@ -124,95 +138,116 @@ public class StorageDir {
   }
 
   /**
-   * Get the BlockMeta from this storage dir by its block ID.
+   * Gets the BlockMeta from this storage dir by its block ID or throws IOException.
    *
    * @param blockId the block ID
-   * @return the BlockMeta or absent
+   * @return BlockMeta of the given block or null
+   * @throws IOException if no block is found
    */
-  public Optional<BlockMeta> getBlockMeta(long blockId) {
-    return Optional.fromNullable(mBlockIdToBlockMap.get(blockId));
+  public BlockMeta getBlockMeta(long blockId) throws IOException {
+    BlockMeta blockMeta = mBlockIdToBlockMap.get(blockId);
+    if (blockMeta == null) {
+      throw new IOException("Cannot find BlockMeta for blockId " + blockId + " in " + toString());
+    }
+    return blockMeta;
   }
 
   /**
-   * Get the BlockMeta from this storage dir by its block ID.
+   * Gets the BlockMeta from this storage dir by its block ID or throws IOException.
    *
    * @param blockId the block ID
-   * @return the BlockMeta or absent
+   * @return TempBlockMeta of the given block or null
+   * @throws IOException if no temp block is found
    */
-  public Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
-    return Optional.fromNullable(mBlockIdToTempBlockMap.get(blockId));
+  public TempBlockMeta getTempBlockMeta(long blockId) throws IOException {
+    TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.get(blockId);
+    if (tempBlockMeta == null) {
+      throw new IOException("Cannot find TempBlockMeta for blockId " + blockId + " in "
+          + toString());
+    }
+    return tempBlockMeta;
   }
 
   /**
-   * Add the metadata of a new block into this storage dir.
+   * Adds the metadata of a new block into this storage dir or throws IOException.
    *
-   * @param block the meta data of the block
-   * @return the BlockMeta or absent
+   * @param blockMeta the meta data of the block
+   * @throws IOException if blockId already exists or not enough space
    */
-  public Optional<BlockMeta> addBlockMeta(BlockMeta block) {
-    long blockId = block.getBlockId();
-    long blockSize = block.getBlockSize();
+  public void addBlockMeta(BlockMeta blockMeta) throws IOException {
+    Preconditions.checkNotNull(blockMeta);
+    long blockId = blockMeta.getBlockId();
+    long blockSize = blockMeta.getBlockSize();
 
     if (getAvailableBytes() < blockSize) {
-      LOG.error("Fail to create blockId {} in dir {}: {} bytes required, but {} bytes available",
-          blockId, toString(), blockSize, getAvailableBytes());
-      return Optional.absent();
+      throw new IOException("Failed to add BlockMeta: blockId " + blockId + " is " + blockSize
+          + " bytes, but only " + getAvailableBytes() + " bytes available");
     }
     if (hasBlockMeta(blockId)) {
-      LOG.error("Fail to create blockId {} in dir {}: blockId exists", blockId, toString());
-      return Optional.absent();
+      throw new IOException("Failed to add BlockMeta: blockId " + blockId + " exists");
     }
-    mBlockIdToBlockMap.put(blockId, block);
+    mBlockIdToBlockMap.put(blockId, blockMeta);
     reserveSpace(blockSize);
-    return Optional.of(block);
   }
 
-
   /**
-   * Add the metadata of a new block into this storage dir.
+   * Adds the metadata of a new block into this storage dir or throws IOException.
    *
    * @param tempBlockMeta the meta data of a temp block to add
-   * @return the BlockMeta or absent
+   * @throws IOException if blockId already exists or not enough space
    */
-  public boolean addTempBlockMeta(TempBlockMeta tempBlockMeta) {
+  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws IOException {
+    Preconditions.checkNotNull(tempBlockMeta);
     long userId = tempBlockMeta.getUserId();
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
+
+    if (getAvailableBytes() < blockSize) {
+      throw new IOException("Failed to add TempBlockMeta: blockId " + blockId + " is " + blockSize
+          + " bytes, but only " + getAvailableBytes() + " bytes available");
+    }
+    if (hasBlockMeta(blockId)) {
+      throw new IOException("Failed to add TempBlockMeta: blockId " + blockId + " exists");
+    }
+
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
     Set<Long> userTempBlocks = mUserIdToTempBlockIdsMap.get(userId);
-    if (null == userTempBlocks) {
+    if (userTempBlocks == null) {
       mUserIdToTempBlockIdsMap.put(userId, Sets.newHashSet(blockId));
     } else {
       userTempBlocks.add(blockId);
     }
     reserveSpace(blockSize);
-    return true;
   }
 
   /**
-   * Remove a block from this storage dir.
+   * Removes a block from this storage dir or throws IOException.
    *
-   * @param block the meta data of the block
-   * @return true if success, false otherwise
+   * @param blockMeta the meta data of the block
+   * @throws IOException if no block is found
    */
-  public boolean removeBlockMeta(BlockMeta block) {
-    Preconditions.checkNotNull(block);
-    mBlockIdToBlockMap.remove(block.getBlockId());
-    reclaimSpace(block.getBlockSize());
-    return true;
+  public void removeBlockMeta(BlockMeta blockMeta) throws IOException {
+    Preconditions.checkNotNull(blockMeta);
+    BlockMeta deletedBlockMeta = mBlockIdToBlockMap.remove(blockMeta.getBlockId());
+    if (deletedBlockMeta == null) {
+      throw new IOException("Failed to remove BlockMeta: No block meta found");
+    }
+    reclaimSpace(blockMeta.getBlockSize());
   }
 
   /**
-   * Remove a block from this storage dir.
+   * Removes a temp block from this storage dir or throws IOException.
    *
    * @param tempBlockMeta the meta data of the temp block to remove
-   * @return true if success, false otherwise
+   * @throws IOException if no temp block is found
    */
-  public boolean removeTempBlockMeta(TempBlockMeta tempBlockMeta) {
+  public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) throws IOException {
     Preconditions.checkNotNull(tempBlockMeta);
     long blockId = tempBlockMeta.getBlockId();
-    mBlockIdToTempBlockMap.remove(blockId);
-    Preconditions.checkNotNull(tempBlockMeta);
+    TempBlockMeta deletedTempBlockMeta = mBlockIdToTempBlockMap.remove(blockId);
+    if (deletedTempBlockMeta == null) {
+      throw new IOException("Failed to remove TempBlockMeta: No block meta found");
+    }
     for (Map.Entry<Long, Set<Long>> entry : mUserIdToTempBlockIdsMap.entrySet()) {
       Long userId = entry.getKey();
       Set<Long> userBlocks = entry.getValue();
@@ -222,19 +257,25 @@ public class StorageDir {
           mUserIdToTempBlockIdsMap.remove(userId);
         }
         reclaimSpace(tempBlockMeta.getBlockSize());
-        return true;
       }
     }
-    return false;
+    throw new IOException("Failed to remove TempBlockMeta: No owner userId associated");
   }
 
-  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize) {
+  /**
+   * Changes the size of a temp block or throws IOException.
+   *
+   * @param tempBlockMeta the meta data of the temp block to resize
+   * @param newSize the new size after change in bytes
+   * @throws IOException
+   */
+  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize) throws IOException {
     long oldSize = tempBlockMeta.getBlockSize();
     tempBlockMeta.setBlockSize(newSize);
     if (newSize > oldSize) {
       reserveSpace(newSize - oldSize);
-    } else {
-      LOG.error("Shrinking block, not supported!");
+    } else if (newSize < oldSize) {
+      throw new IOException("Shrinking block, not supported!");
     }
   }
 
@@ -249,8 +290,9 @@ public class StorageDir {
         "Available bytes should always be less than total capacity bytes");
     mAvailableBytes += size;
   }
+
   /**
-   * Cleans up the temp block meta data of a specific user
+   * Cleans up the temp block meta data of a specific user.
    *
    * @param userId the ID of the user to cleanup
    */
