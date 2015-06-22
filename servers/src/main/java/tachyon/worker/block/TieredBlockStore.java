@@ -152,7 +152,11 @@ public class TieredBlockStore implements BlockStore {
     // TODO: Change the lock to read lock and only upgrade to write lock if necessary
     mEvictionLock.writeLock().lock();
     try {
-      requestSpaceNoLock(userId, blockId, moreBytes);
+      TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
+      BlockStoreLocation location = tempBlockMeta.getBlockLocation();
+      freeSpaceInternal(userId, moreBytes, location);
+      // Increase the size of this temp block
+      mMetaManager.resizeTempBlockMeta(tempBlockMeta, tempBlockMeta.getBlockSize() + moreBytes);
     } finally {
       mEvictionLock.writeLock().unlock();
     }
@@ -203,7 +207,7 @@ public class TieredBlockStore implements BlockStore {
       throws IOException {
     mEvictionLock.writeLock().lock();
     try {
-      freeSpaceNoEvictionLock(userId, availableBytes, location);
+      freeSpaceInternal(userId, availableBytes, location);
     } finally {
       mEvictionLock.writeLock().unlock();
     }
@@ -243,7 +247,7 @@ public class TieredBlockStore implements BlockStore {
       mEvictionLock.readLock().unlock();
       mEvictionLock.writeLock().lock();
       try {
-        freeSpaceNoEvictionLock(userId, initialBlockSize, location);
+        freeSpaceInternal(userId, initialBlockSize, location);
       } finally {
         // Downgrade to read lock again after eviction
         mEvictionLock.readLock().lock();
@@ -297,15 +301,6 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.abortTempBlockMeta(tempBlockMeta);
   }
 
-  private void requestSpaceNoLock(long userId, long blockId, long moreBytes) throws IOException {
-    TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-
-    BlockStoreLocation location = tempBlockMeta.getBlockLocation();
-    freeSpaceNoEvictionLock(userId, moreBytes, location);
-    // Increase the size of this temp block
-    mMetaManager.resizeTempBlockMeta(tempBlockMeta, tempBlockMeta.getBlockSize() + moreBytes);
-  }
-
   private void moveBlockNoLock(long userId, long blockId, BlockStoreLocation newLocation)
       throws IOException {
     for (BlockMetaEventListener listener : mMetaEventListeners) {
@@ -346,14 +341,15 @@ public class TieredBlockStore implements BlockStore {
     }
   }
 
-  private void freeSpaceNoEvictionLock(long userId, long availableBytes, BlockStoreLocation location)
+  // This method must be guarded by WRITE lock of mEvictionLock
+  private void freeSpaceInternal(long userId, long availableBytes, BlockStoreLocation location)
       throws IOException {
-    Optional<EvictionPlan> optPlan = mEvictor.freeSpace(availableBytes, location);
+    EvictionPlan plan = mEvictor.freeSpace(availableBytes, location);
     // Absent plan means failed to evict enough space.
-    if (!optPlan.isPresent()) {
+    if (plan == null) {
       throw new IOException("Failed to free space: no eviction plan by evictor");
     }
-    EvictionPlan plan = optPlan.get();
+
     // Step1: remove blocks to make room.
     for (long blockId : plan.toEvict()) {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
@@ -380,5 +376,4 @@ public class TieredBlockStore implements BlockStore {
       }
     }
   }
-
 }
