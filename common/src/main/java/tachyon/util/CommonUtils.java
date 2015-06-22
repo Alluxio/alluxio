@@ -81,6 +81,31 @@ public final class CommonUtils {
   }
 
   /**
+   * Creates the local block path and all the parent directories. Also, sets the appropriate
+   * permissions.
+   *
+   * @param path The path of the block.
+   * @throws IOException
+   */
+  public static void createBlockPath(String path) throws IOException {
+    File localFolder;
+    try {
+      localFolder = new File(CommonUtils.getParent(path));
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
+
+    if (!localFolder.exists()) {
+      if (localFolder.mkdirs()) {
+        CommonUtils.changeLocalFileToFullPermission(localFolder.getAbsolutePath());
+        LOG.info("Folder {} was created!", localFolder);
+      } else {
+        throw new IOException("Failed to create folder " + localFolder);
+      }
+    }
+  }
+
+  /**
    * Blocking operation that copies the processes stdout/stderr to this JVM's stdout/stderr.
    */
   private static void redirectIO(final Process process) throws IOException {
