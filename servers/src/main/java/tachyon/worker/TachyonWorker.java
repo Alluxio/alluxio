@@ -151,7 +151,7 @@ public class TachyonWorker implements Runnable {
   private final int mPort;
   private final int mDataPort;
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(1,
-      ThreadFactoryUtils.daemon("heartbeat-worker-%d"));
+      ThreadFactoryUtils.build("heartbeat-worker-%d", true));
   private final TachyonConf mTachyonConf;
 
   /**

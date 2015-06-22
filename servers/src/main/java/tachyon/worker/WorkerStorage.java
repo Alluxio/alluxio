@@ -334,7 +334,8 @@ public class WorkerStorage {
 
     int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
     mCheckpointExecutor =
-        Executors.newFixedThreadPool(checkpointThreads, ThreadFactoryUtils.build("checkpoint-%d"));
+        Executors.newFixedThreadPool(checkpointThreads,ThreadFactoryUtils.build("checkpoint-%d",
+            false));
 
     mWorkerSource = new WorkerSource(this);
   }

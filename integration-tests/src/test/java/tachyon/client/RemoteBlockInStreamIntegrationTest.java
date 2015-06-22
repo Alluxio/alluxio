@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import tachyon.Constants;
+import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
@@ -54,10 +55,14 @@ public class RemoteBlockInStreamIntegrationTest {
   public static Collection<Object[]> data() {
     // creates a new instance of RemoteBlockInStreamTest for each network type
     List<Object[]> list = new ArrayList<Object[]>();
-    list.add(new Object[] { new String[] { "tachyon.worker.netty.NettyDataServer",
-        "tachyon.client.tcp.TCPRemoteBlockReader" } });
-    list.add(new Object[] { new String[] { "tachyon.worker.nio.NIODataServer",
-        "tachyon.client.tcp.TCPRemoteBlockReader" } });
+    list.add(new Object[] { new String[] { IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.TCP_BLOCK_READER } });
+    list.add(new Object[] { new String[] { IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.NETTY_BLOCK_READER } });
+    list.add(new Object[] { new String[] { IntegrationTestConstants.NIO_DATA_SERVER,
+        IntegrationTestConstants.TCP_BLOCK_READER } });
+    list.add(new Object[] { new String[] { IntegrationTestConstants.NIO_DATA_SERVER,
+        IntegrationTestConstants.NETTY_BLOCK_READER } });
     return list;
   }
 
