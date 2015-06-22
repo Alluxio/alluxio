@@ -173,17 +173,12 @@ public class BlockDataManager {
    */
   // TODO: This may be better as void
   public boolean commitBlock(long userId, long blockId) throws IOException {
-    mBlockStore.commitBlock(userId, blockId)
+    mBlockStore.commitBlock(userId, blockId);
 
     // TODO: Reconsider how to do this without heavy locking
     // Block successfully committed, update master with new block metadata
     Long lockId = mBlockStore.lockBlock(userId, blockId);
-    Optional<BlockMeta> optMeta = mBlockStore.getBlockMeta(userId, blockId, lockId);
-    if (!optMeta.isPresent()) {
-      mBlockStore.unlockBlock(userId, blockId);
-      throw new IOException("Failed to get block meta for new block " + blockId);
-    }
-    BlockMeta meta = optMeta.get();
+    BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
     BlockStoreLocation loc = meta.getBlockLocation();
     Long storageDirId = loc.getStorageDirId();
     Long length = meta.getBlockSize();
@@ -215,13 +210,8 @@ public class BlockDataManager {
   public String createBlock(long userId, long blockId, int location, long initialBytes)
       throws IOException, OutOfSpaceException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
-    Optional<TempBlockMeta> optBlock =
-        mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
-    if (optBlock.isPresent()) {
-      return optBlock.get().getPath();
-    }
-    // Failed to allocate initial bytes
-    throw new OutOfSpaceException("Failed to allocate " + initialBytes + " for user " + userId);
+    TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
+    return createdBlock.getPath();
   }
 
   /**
@@ -239,16 +229,8 @@ public class BlockDataManager {
   public BlockWriter createBlockRemote(long userId, long blockId, int location, long initialBytes)
       throws FileDoesNotExistException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
-    Optional<TempBlockMeta> optBlock =
-        mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
-    if (optBlock.isPresent()) {
-      Optional<BlockWriter> optWriter = mBlockStore.getBlockWriter(userId, blockId);
-      if (optWriter.isPresent()) {
-        return optWriter.get();
-      }
-      throw new IOException("Failed to obtain block writer.");
-    }
-    throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
+    mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
+    return mBlockStore.getBlockWriter(userId, blockId);
   }
 
   /**
@@ -259,21 +241,9 @@ public class BlockDataManager {
    * @return true if successful, false otherwise
    * @throws IOException if an error occurs when removing the block
    */
-  // TODO: This may be better as void, we should avoid throwing IOException
-<<<<<<< HEAD
-  public boolean removeBlock(long userId, long blockId) throws IOException {
-    return mBlockStore.removeBlock(userId, blockId);
-=======
-  public boolean freeBlock(long userId, long blockId) throws IOException {
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLockType.BlockLockType.WRITE);
-    if (!optLock.isPresent()) {
-      return false;
-    }
-    Long lockId = optLock.get();
-    mBlockStore.removeBlock(userId, blockId, lockId);
-    mBlockStore.unlockBlock(lockId);
-    return true;
->>>>>>> Make lockBlock in BlockStore interface to grab READ lock only, because only all WRITE lock acquisition are in the tierd store layer
+  // TODO: We should avoid throwing IOException
+  public void removeBlock(long userId, long blockId) throws IOException {
+    mBlockStore.removeBlock(userId, blockId);
   }
 
   /**
@@ -313,7 +283,8 @@ public class BlockDataManager {
    * @param blockId The id of the block to be locked
    * @return the lockId, or -1 if we failed to obtain a lock
    */
-  public Optional<Long> lockBlock(long userId, long blockId) {
+  // TODO: We should avoid throwing IOException
+  public long lockBlock(long userId, long blockId) throws IOException {
     return mBlockStore.lockBlock(userId, blockId);
   }
 
