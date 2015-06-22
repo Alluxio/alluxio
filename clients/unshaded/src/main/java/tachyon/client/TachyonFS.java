@@ -715,6 +715,13 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
+   * @return The address of the data server on the worker.
+   */
+  public synchronized InetSocketAddress getWorkerDataServerAddress() {
+    return mWorkerClient.getDataServerAddress();
+  }
+
+  /**
    * @return all the works' info
    * @throws IOException
    */
