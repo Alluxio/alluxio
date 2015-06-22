@@ -86,12 +86,6 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-minicluster</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <profiles>
@@ -235,6 +229,19 @@
             <exclude>**/hadoop/contract/**</exclude>
           </testExcludes>
         </configuration>
+      </plugin>
+      <plugin>
+        <!-- TODO: test-jar is generated only to expose LocalTachyonCluster. We
+             should remove this when this class can be exposed in a better way. -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
