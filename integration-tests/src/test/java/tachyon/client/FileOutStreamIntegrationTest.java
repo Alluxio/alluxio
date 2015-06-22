@@ -39,6 +39,7 @@ public class FileOutStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 32;
+  private static final int BUFFER_BYTES = 100;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
   private static TachyonFS sTfs = null;
 
@@ -57,7 +58,9 @@ public class FileOutStreamIntegrationTest {
   @BeforeClass
   public static final void beforeClass() throws IOException {
     sLocalTachyonCluster = new LocalTachyonCluster(10000, 128, 128);
-    sLocalTachyonCluster.start();
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
+    sLocalTachyonCluster.start(tachyonConf);
     sTfs = sLocalTachyonCluster.getClient();
   }
 
@@ -195,5 +198,32 @@ public class FileOutStreamIntegrationTest {
     os.write((byte) 1);
     os.close();
     checkWrite(filePath, op, len, len);
+  }
+
+  /**
+   * Tests if out-of-order writes are possible. Writes could be out-of-order when the following are
+   * both true:
+   * - a "large" write (over half the internal buffer size) follows a smaller write.
+   * - the "large" write does not cause the internal buffer to overflow.
+   * @throws IOException
+   */
+  @Test
+  public void outOfOrderWriteTest() throws IOException {
+    TachyonURI filePath = new TachyonURI(TestUtils.uniqPath());
+    int fileId = sTfs.createFile(filePath);
+    TachyonFile file = sTfs.getFile(fileId);
+    OutStream os = file.getOutStream(WriteType.MUST_CACHE);
+
+    // Write something small, so it is written into the buffer, and not directly to the file.
+    os.write((byte) 0);
+
+    // A length greater than 0.5 * BUFFER_BYTES and less than BUFFER_BYTES.
+    int length = (BUFFER_BYTES * 3) / 4;
+
+    // Write a large amount of data (larger than BUFFER_BYTES/2, but will not overflow the buffer.
+    os.write(TestUtils.getIncreasingByteArray(1, length));
+    os.close();
+
+    checkWrite(filePath, WriteType.MUST_CACHE, length + 1, length + 1);
   }
 }
