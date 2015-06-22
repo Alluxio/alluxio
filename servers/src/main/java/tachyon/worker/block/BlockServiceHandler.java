@@ -223,11 +223,13 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public String lockBlock(long blockId, long userId) throws TException {
-    Optional<Long> optLock = mWorker.lockBlock(userId, blockId);
-    if (optLock.isPresent()) {
-      return mWorker.readBlock(userId, blockId, optLock.get());
+    try {
+      long lockId = mWorker.lockBlock(userId, blockId);
+      if (optLock.isPresent()) {
+        return mWorker.readBlock(userId, blockId, optLock.get());
+      }
+      throw new FileDoesNotExistException("Block does not exist " + blockId);
     }
-    throw new FileDoesNotExistException("Block does not exist " + blockId);
   }
 
   /**

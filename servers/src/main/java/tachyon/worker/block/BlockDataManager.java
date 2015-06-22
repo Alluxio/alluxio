@@ -156,7 +156,7 @@ public class BlockDataManager {
   /**
    * Cleans up after users, to prevent zombie users. This method is called periodically.
    */
-  public void cleanupUsers() {
+  public void cleanupUsers() throws IOException {
     for (long user : mUsers.getTimedOutUsers()) {
       mUsers.removeUser(user);
       mBlockStore.cleanupUser(user);
@@ -298,16 +298,10 @@ public class BlockDataManager {
    * @return true if successful, false otherwise
    * @throws IOException if an error occurs during move
    */
-  // TODO: This may be better as void, we should avoid throwing IOException
-  public boolean moveBlock(long userId, long blockId, int tier) throws IOException {
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId, BlockLockType.BlockLockType.WRITE);
-    // TODO: Define this behavior
-    if (!optLock.isPresent()) {
-      return false;
-    }
-    Long lockId = optLock.get();
+  // TODO: We should avoid throwing IOException
+  public void moveBlock(long userId, long blockId, int tier) throws IOException {
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tier);
-    return mBlockStore.moveBlock(userId, blockId, dst);
+    mBlockStore.moveBlock(userId, blockId, dst);
   }
 
   /**
@@ -320,13 +314,9 @@ public class BlockDataManager {
    * @return a string representing the path to this block in local storage
    * @throws FileDoesNotExistException if the block does not exist
    */
-  public String readBlock(long userId, long blockId, long lockId) throws FileDoesNotExistException {
-    Optional<BlockMeta> optBlock = mBlockStore.getBlockMeta(userId, blockId, lockId);
-    if (optBlock.isPresent()) {
-      return optBlock.get().getPath();
-    }
-    // Failed to find the block
-    throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
+  public String readBlock(long userId, long blockId, long lockId) throws IOException {
+    BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
+    return meta.getPath();
   }
 
   /**
@@ -341,11 +331,7 @@ public class BlockDataManager {
    */
   // TODO: We should avoid throwing IOException
   public BlockReader readBlockRemote(long userId, long blockId, long lockId) throws IOException {
-    Optional<BlockReader> optReader = mBlockStore.getBlockReader(userId, blockId, lockId);
-    if (optReader.isPresent()) {
-      return optReader.get();
-    }
-    throw new IOException("Block " + blockId + " does not exist on this worker.");
+    return mBlockStore.getBlockReader(userId, blockId, lockId);
   }
 
   /**
@@ -358,9 +344,9 @@ public class BlockDataManager {
    * @return true if the space was allocated, false otherwise
    * @throws IOException if an error occurs when allocating space
    */
-  // TODO: This may be better as void, we should avoid throwing IOException
-  public boolean requestSpace(long userId, long blockId, long bytesRequested) throws IOException {
-    return mBlockStore.requestSpace(userId, blockId, bytesRequested);
+  // TODO: We should avoid throwing IOException
+  public void requestSpace(long userId, long blockId, long bytesRequested) throws IOException {
+    mBlockStore.requestSpace(userId, blockId, bytesRequested);
   }
 
   /**
@@ -386,14 +372,13 @@ public class BlockDataManager {
    * @param lockId The id of the lock to relinquish
    * @return true if successful, false otherwise
    */
-  // TODO: This may be better as void
-  public boolean unlockBlock(long lockId) {
-    return mBlockStore.unlockBlock(lockId);
+  public void unlockBlock(long lockId) throws IOException {
+    mBlockStore.unlockBlock(lockId);
   }
 
   // TODO: for debug only.
-  public boolean unlockBlock(long userId, long blockId) {
-    return mBlockStore.unlockBlock(userId, blockId);
+  public void unlockBlock(long userId, long blockId) throws IOException {
+    mBlockStore.unlockBlock(userId, blockId);
   }
 
   /**
@@ -403,10 +388,9 @@ public class BlockDataManager {
    * @param metrics The set of metrics the client has gathered since the last heartbeat
    * @return true if successful, false otherwise
    */
-  // TODO: This may be better as void
-  public boolean userHeartbeat(long userId, List<Long> metrics) {
+  // TODO: Add Metrics Collection
+  public void userHeartbeat(long userId, List<Long> metrics) {
     mUsers.userHeartbeat(userId);
-    return true;
   }
 
   /**
