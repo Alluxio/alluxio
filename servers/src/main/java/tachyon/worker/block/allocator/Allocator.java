@@ -17,8 +17,6 @@ package tachyon.worker.block.allocator;
 
 import java.io.IOException;
 
-import javax.annotation.Nullable;
-
 import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.meta.TempBlockMeta;
 
@@ -37,7 +35,6 @@ public interface Allocator {
    * @return a temp block meta if success, null otherwise
    * @throws IOException if block location is invalid
    */
-  @Nullable
-  TempBlockMeta allocateBlock(long userId, long blockId, long blockSize, BlockStoreLocation location)
-      throws IOException;
+  TempBlockMeta allocateBlock(
+      long userId, long blockId, long blockSize, BlockStoreLocation location) throws IOException;
 }

@@ -15,11 +15,9 @@
 
 package tachyon.worker.block.evictor;
 
-import javax.annotation.Nullable;
+import java.io.IOException;
 
 import tachyon.worker.BlockStoreLocation;
-
-import java.io.IOException;
 
 /**
  * Interface for the eviction policy in Tachyon
@@ -39,6 +37,5 @@ public interface Evictor {
    * @return an eviction plan (possibly empty) to get the free space, or null if no plan is feasible
    * @throws IOException if given block location is invalid
    */
-  @Nullable
   EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location) throws IOException;
 }
