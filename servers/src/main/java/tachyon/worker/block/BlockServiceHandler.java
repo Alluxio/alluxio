@@ -151,7 +151,11 @@ public class BlockServiceHandler implements WorkerService.Iface {
 
   // ================================ WORKER V1 INTERFACE =======================================
   public void accessBlock(long blockId) throws org.apache.thrift.TException {
-    mWorker.accessBlock(-1, blockId);
+    try {
+      mWorker.accessBlock(-1, blockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   public void addCheckpoint(long userId, int fileId) throws org.apache.thrift.TException {
