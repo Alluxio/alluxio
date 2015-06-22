@@ -22,6 +22,7 @@ import org.apache.thrift.TException;
 
 import tachyon.Users;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
@@ -233,7 +234,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
       long lockId = mWorker.lockBlock(userId, blockId);
       return mWorker.readBlock(userId, blockId, lockId);
     } catch (IOException ioe) {
-      throw new TException(ioe);
+      throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
     }
   }
 
@@ -273,7 +274,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
       // TODO: Maybe add a constant for anyTier?
       return mWorker.createBlock(userId, blockId, 1, initialBytes);
     } catch (IOException ioe) {
-      throw new TException(ioe);
+      throw new OutOfSpaceException("Failed to allocate " + initialBytes + " for user " + userId);
     }
   }
 
@@ -291,7 +292,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
       mWorker.requestSpace(userId, blockId, requestBytes);
       return true;
     } catch (IOException ioe) {
-      throw new TException(ioe);
+      return false;
     }
   }
 
