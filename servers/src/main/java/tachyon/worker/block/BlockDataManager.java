@@ -248,6 +248,20 @@ public class BlockDataManager {
   }
 
   /**
+   * Opens a {@link BlockWriter} for an existing temporary block. This method is only called from a
+   * data server.
+   *
+   * @param userId The id of the client
+   * @param blockId The id of the block to be opened for writing
+   * @return the block writer for the local block file
+   * @throws IOException if the block writer cannot be obtained
+   */
+  public BlockWriter getTempBlockWriterRemote(long userId, long blockId)
+      throws FileDoesNotExistException, IOException {
+    return mBlockStore.getBlockWriter(userId, blockId);
+  }
+
+  /**
    * Gets a report for the periodic heartbeat to master. Contains the blocks added since the last
    * heart beat and blocks removed since the last heartbeat.
    *
