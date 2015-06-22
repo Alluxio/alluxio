@@ -103,9 +103,8 @@ public class BlockDataManager {
    * @return true if successful, false if unsuccessful
    * @throws IOException if the block does not exist
    */
-  // TODO: This may be better as void
-  public boolean abortBlock(long userId, long blockId) throws IOException {
-    return mBlockStore.abortBlock(userId, blockId);
+  public void abortBlock(long userId, long blockId) throws IOException {
+    mBlockStore.abortBlock(userId, blockId);
   }
 
   /**
@@ -114,7 +113,7 @@ public class BlockDataManager {
    * @param userId The id of the client
    * @param blockId The id of the block to access
    */
-  public void accessBlock(long userId, long blockId) {
+  public void accessBlock(long userId, long blockId) throws IOException {
     mBlockStore.accessBlock(userId, blockId);
   }
 
@@ -174,17 +173,11 @@ public class BlockDataManager {
    */
   // TODO: This may be better as void
   public boolean commitBlock(long userId, long blockId) throws IOException {
-    if (!mBlockStore.commitBlock(userId, blockId)) {
-      return false;
-    }
+    mBlockStore.commitBlock(userId, blockId)
 
     // TODO: Reconsider how to do this without heavy locking
     // Block successfully committed, update master with new block metadata
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId);
-    if (!optLock.isPresent()) {
-      throw new IOException("Error while locking new block: " + blockId);
-    }
-    Long lockId = optLock.get();
+    Long lockId = mBlockStore.lockBlock(userId, blockId);
     Optional<BlockMeta> optMeta = mBlockStore.getBlockMeta(userId, blockId, lockId);
     if (!optMeta.isPresent()) {
       mBlockStore.unlockBlock(userId, blockId);
