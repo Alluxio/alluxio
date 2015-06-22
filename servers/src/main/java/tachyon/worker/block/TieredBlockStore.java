@@ -238,9 +238,9 @@ public class TieredBlockStore implements BlockStore {
 
   private TempBlockMeta createBlockMetaNoLock(long userId, long blockId,
       BlockStoreLocation location, long initialBlockSize) throws IOException {
-    Optional<TempBlockMeta> optTempBlock =
+    TempBlockMeta tempBlock =
         mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
-    if (!optTempBlock.isPresent()) {
+    if (tempBlock == null) {
       // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
 
       // Upgrade to write lock to guard evictor.
@@ -253,12 +253,12 @@ public class TieredBlockStore implements BlockStore {
         mEvictionLock.readLock().lock();
         mEvictionLock.writeLock().unlock();
       }
-      optTempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
-      Preconditions.checkState(optTempBlock.isPresent(), "Cannot allocate block {}:", blockId);
+      tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
+      Preconditions.checkNotNull(tempBlock, "Cannot allocate block %s:", blockId);
     }
     // Add allocated temp block to metadata manager
-    mMetaManager.addTempBlockMeta(optTempBlock.get());
-    return optTempBlock.get();
+    mMetaManager.addTempBlockMeta(tempBlock);
+    return tempBlock;
   }
 
   private void commitBlockNoLock(long userId, long blockId) throws IOException {

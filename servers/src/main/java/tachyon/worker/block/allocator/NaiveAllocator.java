@@ -15,7 +15,8 @@
 
 package tachyon.worker.block.allocator;
 
-import com.google.common.base.Optional;
+import java.io.IOException;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.worker.BlockStoreLocation;
@@ -35,19 +36,19 @@ public class NaiveAllocator implements Allocator {
   }
 
   @Override
-  public Optional<TempBlockMeta> allocateBlock(long userId, long blockId, long blockSize,
-      BlockStoreLocation location) {
+  public TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
+      BlockStoreLocation location) throws IOException {
     if (location.equals(BlockStoreLocation.anyTier())) {
       // When any tier is ok, loop over all storage tier and dir, and return the first dir that has
       // sufficient available space.
       for (StorageTier tier : mMetaManager.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
           if (dir.getAvailableBytes() >= blockSize) {
-            return Optional.of(new TempBlockMeta(userId, blockId, blockSize, dir));
+            return new TempBlockMeta(userId, blockId, blockSize, dir);
           }
         }
       }
-      return Optional.absent();
+      return null;
     }
 
     int tierAlias = location.tierAlias();
@@ -56,17 +57,17 @@ public class NaiveAllocator implements Allocator {
       // Loop over all dirs in the given tier
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.getAvailableBytes() >= blockSize) {
-          return Optional.of(new TempBlockMeta(userId, blockId, blockSize, dir));
+          return new TempBlockMeta(userId, blockId, blockSize, dir);
         }
       }
-      return Optional.absent();
+      return null;
     }
 
     int dirIndex = location.dir();
     StorageDir dir = tier.getDir(dirIndex);
     if (dir.getAvailableBytes() >= blockSize) {
-      return Optional.of(new TempBlockMeta(userId, blockId, blockSize, dir));
+      return new TempBlockMeta(userId, blockId, blockSize, dir);
     }
-    return Optional.absent();
+    return null;
   }
 }
