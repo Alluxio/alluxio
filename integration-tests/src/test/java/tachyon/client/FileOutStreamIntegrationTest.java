@@ -201,7 +201,10 @@ public class FileOutStreamIntegrationTest {
   }
 
   /**
-   * Tests if out-of-order writes are possible. Tests [TACHYON-513].
+   * Tests if out-of-order writes are possible. Writes could be out-of-order when the following are
+   * both true:
+   * - a "large" write (over half the internal buffer size) follows a smaller write.
+   * - the "large" write does not cause the internal buffer to overflow.
    * @throws IOException
    */
   @Test
