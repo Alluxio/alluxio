@@ -219,11 +219,7 @@ public class NIODataServer implements Runnable, DataServer {
       final long blockId = tMessage.getBlockId();
       LOG.info("Get request for blockId: {}", blockId);
 
-      Optional<Long> optLock = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
-      if (!optLock.isPresent()) {
-        LOG.error("Block is not present on this worker " + tMessage.getBlockId());
-      }
-      long lockId = optLock.get();
+      long lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
       BlockReader reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
       ByteBuffer data;
       int dataLen = 0;
@@ -308,7 +304,12 @@ public class NIODataServer implements Runnable, DataServer {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
-      mDataManager.unlockBlock(sendMessage.getLockId());
+      // TODO: Reconsider how we handle this exception
+      try {
+        mDataManager.unlockBlock(sendMessage.getLockId());
+      } catch (IOException ioe) {
+        LOG.error("Failed to unlock block!", ioe);
+      }
     }
   }
 }

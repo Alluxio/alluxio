@@ -155,7 +155,11 @@ public class BlockMasterSync implements Runnable {
 
       // Check if any users have become zombies, if so clean them up
       // TODO: Make this unrelated to master sync
-      mBlockDataManager.cleanupUsers();
+      try {
+        mBlockDataManager.cleanupUsers();
+      } catch (IOException ioe) {
+        LOG.error("Failed to clean up users", ioe);
+      }
     }
   }
 
