@@ -15,9 +15,11 @@
 
 package tachyon.worker.block.evictor;
 
-import com.google.common.base.Optional;
+import javax.annotation.Nullable;
 
 import tachyon.worker.BlockStoreLocation;
+
+import java.io.IOException;
 
 /**
  * Interface for the eviction policy in Tachyon
@@ -25,14 +27,18 @@ import tachyon.worker.BlockStoreLocation;
 public interface Evictor {
   /**
    * Frees space in the given block store location to ensure a specific amount of free space
-   * available. The location can be a specific location, or {@link BlockStoreLocation#anyTier()} or
-   * {@link BlockStoreLocation#anyDirInTier(int)}. This operation returns absent if Evictor fails to
-   * propose a feasible plan to meet its requirement, or an eviction plan (possibly an empty one) to
-   * ensure the free space.
+   * available after eviction. The location can be a specific location with StorageTier and
+   * StorageDir, or {@link BlockStoreLocation#anyTier()} or
+   * {@link BlockStoreLocation#anyDirInTier(int)}. This operation returns null if Evictor fails to
+   * propose a feasible plan to meet its requirement, or an eviction plan to ensure the free space.
+   * The returned eviction plan can have toMove and toEvict fields empty lists, which indicates
+   * no necessary actions to meet the requirement.
    *
    * @param availableBytes the size in bytes
    * @param location the location in block store
-   * @return an eviction plan (possibly empty) to get the free space, or absent if no feasible plan
+   * @return an eviction plan (possibly empty) to get the free space, or null if no plan is feasible
+   * @throws IOException if given block location is invalid
    */
-  Optional<EvictionPlan> freeSpace(long availableBytes, BlockStoreLocation location);
+  @Nullable
+  EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location) throws IOException;
 }
