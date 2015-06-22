@@ -49,9 +49,9 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @return true if successful, false otherwise
    * @throws TException if the block does not exist or is committed
    */
-  public boolean abortBlock(long userId, long blockId) throws TException {
+  public void abortBlock(long userId, long blockId) throws TException {
     try {
-      return mWorker.abortBlock(userId, blockId);
+      mWorker.abortBlock(userId, blockId);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -101,12 +101,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId The id of the block to lock
    * @return the lockId of the lock obtained
    */
-  public long lockBlockV2(long userId, long blockId) {
-    Optional<Long> optLock = mWorker.lockBlock(userId, blockId);
-    if (optLock.isPresent()) {
-      return optLock.get();
+  public long lockBlockV2(long userId, long blockId) throws TException {
+    try {
+      return mWorker.lockBlock(userId, blockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
     }
-    return -1;
   }
 
   /**
@@ -120,7 +120,11 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @throws TException if the block does not exist
    */
   public String readBlock(long userId, long blockId, int lockId) throws TException {
-    return mWorker.readBlock(userId, blockId, lockId);
+    try {
+      return mWorker.readBlock(userId, blockId, lockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**
@@ -130,9 +134,9 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @return true if the block is freed successfully, false otherwise
    * @throws TException if the block does not exist
    */
-  public boolean removeBlock(long blockId) throws TException {
+  public void removeBlock(long blockId) throws TException {
     try {
-      return mWorker.removeBlock(Users.MIGRATE_DATA_USER_ID, blockId);
+      mWorker.removeBlock(Users.MIGRATE_DATA_USER_ID, blockId);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -145,8 +149,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param lockId The id of the lock to relinquish
    * @return true if successful, false otherwise
    */
-  public boolean unlockBlockV2(long lockId) {
-    return mWorker.unlockBlock(lockId);
+  public void unlockBlockV2(long lockId) throws TException {
+    try {
+      mWorker.unlockBlock(lockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   // ================================ WORKER V1 INTERFACE =======================================
@@ -166,6 +174,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
     }
   }
 
+  // TODO: Make this supported again
   public boolean asyncCheckpoint(int fileId) throws TachyonException, org.apache.thrift.TException {
     return false;
   }
@@ -225,10 +234,9 @@ public class BlockServiceHandler implements WorkerService.Iface {
   public String lockBlock(long blockId, long userId) throws TException {
     try {
       long lockId = mWorker.lockBlock(userId, blockId);
-      if (optLock.isPresent()) {
-        return mWorker.readBlock(userId, blockId, optLock.get());
-      }
-      throw new FileDoesNotExistException("Block does not exist " + blockId);
+      return mWorker.readBlock(userId, blockId, lockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
     }
   }
 
@@ -242,7 +250,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
   public boolean promoteBlock(long blockId) throws TException {
     try {
       // TODO: Maybe add constant location for First Tier?
-      return mWorker.moveBlock(Users.MIGRATE_DATA_USER_ID, blockId, 1);
+      mWorker.moveBlock(Users.MIGRATE_DATA_USER_ID, blockId, 1);
+      return true;
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -280,10 +289,10 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId
    * @param requestBytes
    */
-  public boolean requestSpace(long userId, long blockId, long requestBytes)
-      throws TException {
+  public boolean requestSpace(long userId, long blockId, long requestBytes) throws TException {
     try {
-      return mWorker.requestSpace(userId, blockId, requestBytes);
+      mWorker.requestSpace(userId, blockId, requestBytes);
+      return true;
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -297,9 +306,13 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId
    * @param userId
    */
-  public boolean unlockBlock(long blockId, long userId) {
-    // return mWorker.unlockBlock(blockId);
-    return mWorker.unlockBlock(userId, blockId);
+  public boolean unlockBlock(long blockId, long userId) throws TException {
+    try {
+      mWorker.unlockBlock(userId, blockId);
+      return true;
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**
