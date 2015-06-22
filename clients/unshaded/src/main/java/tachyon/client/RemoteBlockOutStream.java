@@ -143,6 +143,14 @@ public class RemoteBlockOutStream extends BlockOutStream {
     return mBlockId;
   }
 
+  /**
+   * @return the remaining space of the block, in bytes
+   */
+  @Override
+  public long getRemainingSpaceByte() {
+    return mBlockCapacityBytes - mWrittenBytes;
+  }
+
   @Override
   public void write(byte[] b) throws IOException {
     write(b, 0, b.length);
