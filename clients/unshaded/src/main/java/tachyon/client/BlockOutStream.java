@@ -210,13 +210,22 @@ public class BlockOutStream extends OutStream {
     long userFileBufferBytes =
         mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB);
     if (mBuffer.position() > 0 && mBuffer.position() + len > userFileBufferBytes) {
+      // Write the non-empty buffer if the new write will overflow it.
       appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       mBuffer.clear();
     }
 
     if (len > userFileBufferBytes / 2) {
+      // This write is "large", so do not write it to the buffer, but write it out directly to the
+      // mapped file.
+      if (mBuffer.position() > 0) {
+        // Make sure all bytes in the buffer are written out first, to prevent out-of-order writes.
+        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
+        mBuffer.clear();
+      }
       appendCurrentBuffer(b, off, len);
     } else if (len > 0) {
+      // Write the data to the buffer, and not directly to the mapped file.
       mBuffer.put(b, off, len);
     }
 
