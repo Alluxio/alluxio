@@ -220,7 +220,6 @@ public class WorkerClient implements Closeable {
   private synchronized boolean connect() throws IOException {
     if (!mConnected) {
       NetAddress workerNetAddress = null;
-/*
       try {
         String localHostName = NetworkUtils.getLocalHostName(mTachyonConf);
         LOG.info("Trying to get local worker host : " + localHostName);
@@ -233,7 +232,7 @@ public class WorkerClient implements Closeable {
         LOG.info(e.getMessage());
         workerNetAddress = null;
       }
-*/
+
       if (workerNetAddress == null) {
         try {
           workerNetAddress = mMasterClient.user_getWorker(true, "");
