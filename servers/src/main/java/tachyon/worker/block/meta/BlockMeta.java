@@ -17,8 +17,6 @@ package tachyon.worker.block.meta;
 
 import java.io.File;
 
-import tachyon.util.CommonUtils;
-
 /**
  * Represents the metadata of a block in Tachyon managed storage.
  */
@@ -37,6 +35,6 @@ public class BlockMeta extends BlockMetaBase {
 
   @Override
   public String getPath() {
-    return CommonUtils.concatPath(mDir.getDirPath(), mBlockId);
+    return commitPath();
   }
 }
