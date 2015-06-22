@@ -15,10 +15,10 @@
 
 package tachyon.worker.block.evictor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 import tachyon.Pair;
@@ -40,7 +40,8 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
   }
 
   @Override
-  public Optional<EvictionPlan> freeSpace(long availableBytes, BlockStoreLocation location) {
+  public EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location)
+      throws IOException {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
 
@@ -48,7 +49,7 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
     long available = mMetaManager.getAvailableBytes(location);
     if (available >= availableBytes) {
       // The current space is sufficient, no need for eviction
-      return Optional.of(new EvictionPlan(toMove, toEvict));
+      return new EvictionPlan(toMove, toEvict);
     }
 
     if (location.equals(BlockStoreLocation.anyTier())) {
@@ -58,12 +59,12 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
             toEvict.add(block.getBlockId());
             freed += block.getBlockSize();
             if (available + freed >= availableBytes) {
-              return Optional.of(new EvictionPlan(toMove, toEvict));
+              return new EvictionPlan(toMove, toEvict);
             }
           }
         }
       }
-      return Optional.absent();
+      return null;
     }
 
     int tierAlias = location.tierAlias();
@@ -75,11 +76,11 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
           toEvict.add(block.getBlockId());
           freed += block.getBlockSize();
           if (available + freed >= availableBytes) {
-            return Optional.of(new EvictionPlan(toMove, toEvict));
+            return new EvictionPlan(toMove, toEvict);
           }
         }
       }
-      return Optional.absent();
+      return null;
     }
 
     int dirIndex = location.dir();
@@ -88,10 +89,10 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
       toEvict.add(block.getBlockId());
       freed += block.getBlockSize();
       if (available + freed >= availableBytes) {
-        return Optional.of(new EvictionPlan(toMove, toEvict));
+        return new EvictionPlan(toMove, toEvict);
       }
     }
-    return Optional.absent();
+    return null;
   }
 
   @Override
