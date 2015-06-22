@@ -29,12 +29,32 @@ import tachyon.conf.TachyonConf;
 public abstract class BlockOutStream extends OutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Get a new BlockOutStream with a default initial size allocated to the block.
+   *
+   * @param tachyonFile The file this block belongs to.
+   * @param opType The type of write.
+   * @param blockIndex The index of the block in the tachyonFile.
+   * @param tachyonConf The TachyonConf instance.
+   * @return A new {@link LocalBlockOutStream} or {@link RemoteBlockOutStream}.
+   * @throws IOException
+   */
   public static BlockOutStream get(TachyonFile tachyonFile, WriteType opType, int blockIndex,
       TachyonConf tachyonConf) throws IOException {
     return get(tachyonFile, opType, blockIndex,
         tachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES, 8 * Constants.MB), tachyonConf);
   }
 
+  /**
+   *
+   * @param tachyonFile The file this block belongs to.
+   * @param opType The type of write.
+   * @param blockIndex The index of the block in the tachyonFile.
+   * @param initialBytes The initial size (in bytes) that will be allocated to the block.
+   * @param tachyonConf The TachyonConf instance.
+   * @return A new {@link LocalBlockOutStream} or {@link RemoteBlockOutStream}.
+   * @throws IOException
+   */
   public static BlockOutStream get(TachyonFile tachyonFile, WriteType opType, int blockIndex,
       long initialBytes, TachyonConf tachyonConf) throws IOException {
 
@@ -44,7 +64,7 @@ public abstract class BlockOutStream extends OutStream {
     }
 
     LOG.info("Writing with remote stream.");
-    throw new IOException("Remote write not supported.");
+    return new RemoteBlockOutStream(tachyonFile, opType, blockIndex, initialBytes, tachyonConf);
   }
 
   public BlockOutStream(TachyonFile tachyonFile, WriteType opType, TachyonConf tachyonConf) {
