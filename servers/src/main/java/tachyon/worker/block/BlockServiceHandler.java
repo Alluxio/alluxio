@@ -18,13 +18,10 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.List;
 
-import com.google.common.base.Optional;
-
 import org.apache.thrift.TException;
 
 import tachyon.Users;
 import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
