@@ -192,7 +192,7 @@ public class TachyonFS extends AbstractTachyonFS {
     mMasterAddress = new InetSocketAddress(masterHost, masterPort);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
     mExecutorService =
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.daemon("client-heartbeat-%d"));
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("client-heartbeat-%d", true));
     mMasterClient =
         mCloser.register(new MasterClient(mMasterAddress, mExecutorService, mTachyonConf));
     mWorkerClient =
