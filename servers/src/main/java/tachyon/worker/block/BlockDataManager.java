@@ -376,7 +376,7 @@ public class BlockDataManager {
     mBlockStore.unlockBlock(lockId);
   }
 
-  // TODO: for debug only.
+  // TODO: Remove when lock and reads are separate operations
   public void unlockBlock(long userId, long blockId) throws IOException {
     mBlockStore.unlockBlock(userId, blockId);
   }
