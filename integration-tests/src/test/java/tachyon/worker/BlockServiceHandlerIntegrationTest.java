@@ -169,91 +169,101 @@ public class BlockServiceHandlerIntegrationTest {
   @Test
   public void lockBlockFailureTest() throws Exception {
     final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
-    Exception e = null;
+    Exception exception = null;
     try {
-      String localPath = mWorkerServiceHandler.lockBlock(mTfs.getBlockId(fileId, 0), USER_ID);
+      mWorkerServiceHandler.lockBlock(mTfs.getBlockId(fileId, 0), USER_ID);
     } catch (FileDoesNotExistException fdne) {
-      e = fdne;
+      exception = fdne;
     }
-    Assert.assertNotNull(e);
+
+    // A file does not exist exception should have been thrown
+    Assert.assertNotNull(exception);
   }
 
+  // Tests that files are evicted when there is not enough space in the worker.
   @Test
   public void evictionTest() throws Exception {
-    int fileId1 =
-        TachyonFSTestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE,
-            (int) WORKER_CAPACITY_BYTES / 3);
-    Assert.assertTrue(fileId1 >= 0);
-    ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
+    final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
+    int fId1 = TachyonFSTestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE, blockSize);
+
+    // File should be in memory after it is written with MUST_CACHE
+    ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo(fId1);
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
-    int fileId2 =
-        TachyonFSTestUtils.createByteFile(mTfs, "/file2", WriteType.MUST_CACHE,
-            (int) WORKER_CAPACITY_BYTES / 3);
-    Assert.assertTrue(fileId2 >= 0);
-    fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
-    ClientFileInfo fileInfo2 = mMasterInfo.getClientFileInfo(new TachyonURI("/file2"));
+
+    int fId2 = TachyonFSTestUtils.createByteFile(mTfs, "/file2", WriteType.MUST_CACHE, blockSize);
+
+    // Both file 1 and 2 should be in memory since the combined size is not larger than worker space
+    fileInfo1 = mMasterInfo.getClientFileInfo(fId1);
+    ClientFileInfo fileInfo2 = mMasterInfo.getClientFileInfo(fId2);
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
     Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
-    int fileId3 =
-        TachyonFSTestUtils.createByteFile(mTfs, "/file3", WriteType.MUST_CACHE,
-            (int) WORKER_CAPACITY_BYTES / 2);
 
-    CommonUtils.sleepMs(null,
-        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+    int fId3 = TachyonFSTestUtils.createByteFile(mTfs, "/file3", WriteType.MUST_CACHE, blockSize);
 
-    fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
-    fileInfo2 = mMasterInfo.getClientFileInfo(new TachyonURI("/file2"));
-    ClientFileInfo fileInfo3 = mMasterInfo.getClientFileInfo(new TachyonURI("/file3"));
-    Assert.assertTrue(fileId3 >= 0);
-    Assert.assertEquals(0, fileInfo1.inMemoryPercentage);
-    Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
+    waitForHeartbeat();
+
+    fileInfo1 = mMasterInfo.getClientFileInfo(fId1);
+    fileInfo2 = mMasterInfo.getClientFileInfo(fId2);
+    ClientFileInfo fileInfo3 = mMasterInfo.getClientFileInfo(fId3);
+
+    // File 3 should be in memory and one of file 1 or 2 should be in memory
     Assert.assertEquals(100, fileInfo3.inMemoryPercentage);
+    Assert.assertTrue(fileInfo1.inMemoryPercentage == 100 ^ fileInfo2.inMemoryPercentage == 100);
   }
 
+  // Tests that space will be allocated when possible
   @Test
   public void requestSpaceTest() throws Exception {
-    final long userId = 1L;
     final long blockId1 = 12345L;
     final long blockId2 = 12346L;
-    String filename = mWorkerServiceHandler.requestBlockLocation(userId, blockId1,
-        WORKER_CAPACITY_BYTES / 10L);
-    Assert.assertTrue(filename != null);
-    boolean result =
-        mWorkerServiceHandler.requestSpace(userId, blockId1, WORKER_CAPACITY_BYTES / 10L);
+    final int chunkSize = (int) WORKER_CAPACITY_BYTES / 10;
+
+    mWorkerServiceHandler.requestBlockLocation(USER_ID, blockId1, chunkSize);
+    boolean result = mWorkerServiceHandler.requestSpace(USER_ID, blockId1, chunkSize);
+
+    // Initial request and first additional request should succeed
     Assert.assertEquals(true, result);
-    result = mWorkerServiceHandler.requestSpace(userId, blockId1, WORKER_CAPACITY_BYTES);
+
+    result = mWorkerServiceHandler.requestSpace(USER_ID, blockId1, WORKER_CAPACITY_BYTES);
+
+    // Impossible request should fail
     Assert.assertEquals(false, result);
+
+    // Request for space on a nonexistent block should fail
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(USER_ID, blockId2, chunkSize));
+
+    // Request for impossible initial space should fail
     Exception exception = null;
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(userId, blockId2,
-        WORKER_CAPACITY_BYTES / 10L));
     try {
-      mWorkerServiceHandler.requestBlockLocation(userId, blockId2, WORKER_CAPACITY_BYTES + 1);
-    } catch (OutOfSpaceException e) {
-      exception = e;
+      mWorkerServiceHandler.requestBlockLocation(USER_ID, blockId2, WORKER_CAPACITY_BYTES + 1);
+    } catch (OutOfSpaceException oose) {
+      exception = oose;
     }
-    Assert.assertEquals(new OutOfSpaceException(String.format("Failed to allocate "
-        + (WORKER_CAPACITY_BYTES + 1) + " for user " + userId)), exception);
+    Assert.assertNotNull(exception);
   }
 
+  // Tests that multiple users cannot request a combined space greater than worker space
   @Test
   public void totalOverCapacityRequestSpaceTest() throws Exception {
-    final long userId1 = 1L;
+    final int chunkSize = (int) WORKER_CAPACITY_BYTES / 2;
+    final long userId1 = USER_ID;
+    final long userId2 = USER_ID + 1;
     final long blockId1 = 12345L;
-    final long userId2 = 2L;
     final long blockId2 = 23456L;
-    String filePath1 = mWorkerServiceHandler.requestBlockLocation(userId1, blockId1,
-        WORKER_CAPACITY_BYTES / 2);
+
+    String filePath1 = mWorkerServiceHandler.requestBlockLocation(userId1, blockId1, chunkSize);
+    String filePath2 = mWorkerServiceHandler.requestBlockLocation(userId2, blockId2, chunkSize);
+
+    // Initial requests should succeed
     Assert.assertTrue(filePath1 != null);
-    String filePath2 = mWorkerServiceHandler.requestBlockLocation(userId2, blockId2,
-        WORKER_CAPACITY_BYTES / 2);
     Assert.assertTrue(filePath2 != null);
 
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(userId1, blockId1,
-        WORKER_CAPACITY_BYTES / 2));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(userId2, blockId2,
-        WORKER_CAPACITY_BYTES / 2));
+    // Additional requests for space should fail
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(userId1, blockId1, chunkSize));
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(userId2, blockId2, chunkSize));
   }
 
+  // Creates a block file and write an increasing byte array into it
   private void createBlockFile(String filename, int len) throws IOException, InvalidPathException {
     UnderFileSystem ufs = UnderFileSystem.get(filename, mMasterTachyonConf);
     ufs.mkdirs(CommonUtils.getParent(filename), true);
