@@ -28,6 +28,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
+import tachyon.client.OutStream;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.WriteType;
@@ -75,22 +76,40 @@ public class BlockServiceHandlerIntegrationTest {
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
   }
 
+  // Tests that checkpointing a file successfully informs master of the update
+  @Test
+  public void addCheckpointTest() throws Exception {
+    final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
+    final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
+
+    String tmpFolder = mWorkerServiceHandler.getUserUfsTempFolder(USER_ID);
+    UnderFileSystem ufs = UnderFileSystem.get(tmpFolder, mMasterTachyonConf);
+    ufs.mkdirs(tmpFolder, true);
+    String filename = CommonUtils.concatPath(tmpFolder, fileId);
+    createBlockFile(filename, blockSize);
+    mWorkerServiceHandler.addCheckpoint(USER_ID, fileId);
+
+    // No space should be used in Tachyon, but the file should be complete
+    Assert.assertEquals(0, mMasterInfo.getUsedBytes());
+    Assert.assertTrue(mTfs.getFile(fileId).isComplete());
+  }
+
   // Tests that caching a block successfully persists the block if the block exists
   @Test
   public void cacheBlockTest() throws Exception {
     final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
+    final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
     final long blockId0 = mTfs.getBlockId(fileId, 0);
     final long blockId1 = mTfs.getBlockId(fileId, 1);
-    final long blockSize = WORKER_CAPACITY_BYTES / 10;
 
     String filename = mWorkerServiceHandler.requestBlockLocation(USER_ID, blockId0, blockSize);
-    createBlockFile(filename, (int) blockSize);
+    createBlockFile(filename, blockSize);
     mWorkerServiceHandler.cacheBlock(USER_ID, blockId0);
 
     // The master should be immediately updated with the persisted block
     Assert.assertEquals(blockSize, mMasterInfo.getUsedBytes());
 
-    // Attempting to cache a non existant block should throw an exception
+    // Attempting to cache a non existent block should throw an exception
     Exception exception = null;
     try {
       mWorkerServiceHandler.cacheBlock(USER_ID, blockId1);
@@ -104,11 +123,11 @@ public class BlockServiceHandlerIntegrationTest {
   @Test
   public void cancelBlockTest() throws Exception {
     final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
+    final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     final long blockId = mTfs.getBlockId(fileId, 0);
-    final long blockSize = WORKER_CAPACITY_BYTES / 2;
 
     String filename = mWorkerServiceHandler.requestBlockLocation(USER_ID, blockId, blockSize);
-    createBlockFile(filename, (int) blockSize);
+    createBlockFile(filename, blockSize);
     mWorkerServiceHandler.cancelBlock(USER_ID, blockId);
 
     // The block should not exist after being cancelled
@@ -117,6 +136,46 @@ public class BlockServiceHandlerIntegrationTest {
     // The master should not have recorded any used space after the block is cancelled
     waitForHeartbeat();
     Assert.assertEquals(0, mMasterInfo.getUsedBytes());
+  }
+
+  // Tests that lock block returns the correct path
+  @Test
+  public void lockBlockTest() throws Exception {
+    final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
+    final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
+    final long blockId = mTfs.getBlockId(fileId, 0);
+
+    OutStream out = mTfs.getFile(fileId).getOutStream(WriteType.MUST_CACHE);
+    out.write(TestUtils.getIncreasingByteArray(blockSize));
+    out.close();
+
+    String localPath = mWorkerServiceHandler.lockBlock(blockId, USER_ID);
+
+    // The local path should exist
+    Assert.assertNotNull(localPath);
+
+    UnderFileSystem ufs = UnderFileSystem.get(localPath, mMasterTachyonConf);
+    byte[] data = new byte[blockSize];
+    int bytesRead = ufs.open(localPath).read(data);
+
+    // The data in the local file should equal the data we wrote earlier
+    Assert.assertEquals(bytesRead, blockSize);
+    Assert.assertTrue(TestUtils.equalIncreasingByteArray(bytesRead, data));
+
+    mWorkerServiceHandler.unlockBlock(blockId, USER_ID);
+  }
+
+  // Tests that lock block returns error on failure
+  @Test
+  public void lockBlockFailureTest() throws Exception {
+    final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
+    Exception e = null;
+    try {
+      String localPath = mWorkerServiceHandler.lockBlock(mTfs.getBlockId(fileId, 0), USER_ID);
+    } catch (FileDoesNotExistException fdne) {
+      e = fdne;
+    }
+    Assert.assertNotNull(e);
   }
 
   @Test
