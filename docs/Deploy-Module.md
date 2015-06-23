@@ -92,3 +92,9 @@ If you are new to AWS EC2, we recommend you to understand comments in `ec2.yml`.
 6. What's PV/HVM?
 
   explanation in http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/virtualization_types.html
+
+7. How to use AWS Spot Instance?
+
+  explanation for [Spot Instance](http://aws.amazon.com/ec2/purchasing-options/spot-instances/)
+  
+  set "Spot_Price" in conf/ec2.yml, that's all. We do not support persistent spot instances.
