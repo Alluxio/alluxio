@@ -86,7 +86,9 @@ public class BlockServiceHandlerIntegrationTest {
     UnderFileSystem ufs = UnderFileSystem.get(tmpFolder, mMasterTachyonConf);
     ufs.mkdirs(tmpFolder, true);
     String filename = CommonUtils.concatPath(tmpFolder, fileId);
-    createBlockFile(filename, blockSize);
+    OutputStream out = ufs.create(filename);
+    out.write(TestUtils.getIncreasingByteArray(blockSize));
+    out.close();
     mWorkerServiceHandler.addCheckpoint(USER_ID, fileId);
 
     // No space should be used in Tachyon, but the file should be complete
