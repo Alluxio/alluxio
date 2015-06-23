@@ -32,7 +32,7 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-client</artifactId>
+      <artifactId>tachyon-client-unshaded</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
