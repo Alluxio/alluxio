@@ -15,8 +15,6 @@
 
 package tachyon.worker.block.meta;
 
-import tachyon.util.CommonUtils;
-
 /**
  * Represents the metadata of an uncommited block in Tachyon managed storage.
  */
@@ -37,11 +35,11 @@ public class TempBlockMeta extends BlockMetaBase {
 
   @Override
   public String getPath() {
-    return CommonUtils.concatPath(mDir.getDirPath(), mUserId, mBlockId);
+    return tempPath(mUserId);
   }
 
   public String getCommitPath() {
-    return CommonUtils.concatPath(mDir.getDirPath(), mBlockId);
+    return commitPath();
   }
 
   public long getUserId() {

@@ -89,14 +89,17 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
-    Optional<Long> optLock = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
-    if (!optLock.isPresent()) {
-      LOG.error("The block is not in worker storage");
+    long lockId;
+    try {
+      lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
+    } catch (IOException ioe) {
+      LOG.error("failed to lock block", ioe);
       RPCBlockResponse resp = RPCBlockResponse.createErrorResponse(blockId);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
+      return;
     }
-    long lockId = optLock.get();
+
     BlockReader reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
     try {
       req.validate();

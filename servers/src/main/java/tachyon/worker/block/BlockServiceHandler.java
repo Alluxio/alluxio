@@ -18,8 +18,6 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.List;
 
-import com.google.common.base.Optional;
-
 import org.apache.thrift.TException;
 
 import tachyon.Users;
@@ -49,9 +47,9 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @return true if successful, false otherwise
    * @throws TException if the block does not exist or is committed
    */
-  public boolean abortBlock(long userId, long blockId) throws TException {
+  public void abortBlock(long userId, long blockId) throws TException {
     try {
-      return mWorker.abortBlock(userId, blockId);
+      mWorker.abortBlock(userId, blockId);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -101,12 +99,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId The id of the block to lock
    * @return the lockId of the lock obtained
    */
-  public long lockBlockV2(long userId, long blockId) {
-    Optional<Long> optLock = mWorker.lockBlock(userId, blockId);
-    if (optLock.isPresent()) {
-      return optLock.get();
+  public long lockBlockV2(long userId, long blockId) throws TException {
+    try {
+      return mWorker.lockBlock(userId, blockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
     }
-    return -1;
   }
 
   /**
@@ -120,7 +118,11 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @throws TException if the block does not exist
    */
   public String readBlock(long userId, long blockId, int lockId) throws TException {
-    return mWorker.readBlock(userId, blockId, lockId);
+    try {
+      return mWorker.readBlock(userId, blockId, lockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**
@@ -130,9 +132,9 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @return true if the block is freed successfully, false otherwise
    * @throws TException if the block does not exist
    */
-  public boolean removeBlock(long blockId) throws TException {
+  public void removeBlock(long blockId) throws TException {
     try {
-      return mWorker.removeBlock(Users.MIGRATE_DATA_USER_ID, blockId);
+      mWorker.removeBlock(Users.MIGRATE_DATA_USER_ID, blockId);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -145,13 +147,21 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param lockId The id of the lock to relinquish
    * @return true if successful, false otherwise
    */
-  public boolean unlockBlockV2(long lockId) {
-    return mWorker.unlockBlock(lockId);
+  public void unlockBlockV2(long lockId) throws TException {
+    try {
+      mWorker.unlockBlock(lockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   // ================================ WORKER V1 INTERFACE =======================================
   public void accessBlock(long blockId) throws org.apache.thrift.TException {
-    mWorker.accessBlock(-1, blockId);
+    try {
+      mWorker.accessBlock(-1, blockId);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   public void addCheckpoint(long userId, int fileId) throws org.apache.thrift.TException {
@@ -162,6 +172,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
     }
   }
 
+  // TODO: Make this supported again
   public boolean asyncCheckpoint(int fileId) throws TachyonException, org.apache.thrift.TException {
     return false;
   }
@@ -219,11 +230,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public String lockBlock(long blockId, long userId) throws TException {
-    Optional<Long> optLock = mWorker.lockBlock(userId, blockId);
-    if (optLock.isPresent()) {
-      return mWorker.readBlock(userId, blockId, optLock.get());
+    try {
+      long lockId = mWorker.lockBlock(userId, blockId);
+      return mWorker.readBlock(userId, blockId, lockId);
+    } catch (IOException ioe) {
+      throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
     }
-    throw new FileDoesNotExistException("Block does not exist " + blockId);
   }
 
   /**
@@ -236,7 +248,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
   public boolean promoteBlock(long blockId) throws TException {
     try {
       // TODO: Maybe add constant location for First Tier?
-      return mWorker.moveBlock(Users.MIGRATE_DATA_USER_ID, blockId, 1);
+      mWorker.moveBlock(Users.MIGRATE_DATA_USER_ID, blockId, 1);
+      return true;
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -261,7 +274,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
       // TODO: Maybe add a constant for anyTier?
       return mWorker.createBlock(userId, blockId, 1, initialBytes);
     } catch (IOException ioe) {
-      throw new TException(ioe);
+      throw new OutOfSpaceException("Failed to allocate " + initialBytes + " for user " + userId);
     }
   }
 
@@ -274,12 +287,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId
    * @param requestBytes
    */
-  public boolean requestSpace(long userId, long blockId, long requestBytes)
-      throws TException {
+  public boolean requestSpace(long userId, long blockId, long requestBytes) throws TException {
     try {
-      return mWorker.requestSpace(userId, blockId, requestBytes);
+      mWorker.requestSpace(userId, blockId, requestBytes);
+      return true;
     } catch (IOException ioe) {
-      throw new TException(ioe);
+      return false;
     }
   }
 
@@ -291,9 +304,13 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId
    * @param userId
    */
-  public boolean unlockBlock(long blockId, long userId) {
-    // return mWorker.unlockBlock(blockId);
-    return mWorker.unlockBlock(userId, blockId);
+  public boolean unlockBlock(long blockId, long userId) throws TException {
+    try {
+      mWorker.unlockBlock(userId, blockId);
+      return true;
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**

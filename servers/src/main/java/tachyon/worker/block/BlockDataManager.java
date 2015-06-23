@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.google.common.base.Optional;
-
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,9 +102,8 @@ public class BlockDataManager {
    * @return true if successful, false if unsuccessful
    * @throws IOException if the block does not exist
    */
-  // TODO: This may be better as void
-  public boolean abortBlock(long userId, long blockId) throws IOException {
-    return mBlockStore.abortBlock(userId, blockId);
+  public void abortBlock(long userId, long blockId) throws IOException {
+    mBlockStore.abortBlock(userId, blockId);
   }
 
   /**
@@ -115,7 +112,7 @@ public class BlockDataManager {
    * @param userId The id of the client
    * @param blockId The id of the block to access
    */
-  public void accessBlock(long userId, long blockId) {
+  public void accessBlock(long userId, long blockId) throws IOException {
     mBlockStore.accessBlock(userId, blockId);
   }
 
@@ -158,7 +155,7 @@ public class BlockDataManager {
   /**
    * Cleans up after users, to prevent zombie users. This method is called periodically.
    */
-  public void cleanupUsers() {
+  public void cleanupUsers() throws IOException {
     for (long user : mUsers.getTimedOutUsers()) {
       mUsers.removeUser(user);
       mBlockStore.cleanupUser(user);
@@ -175,23 +172,12 @@ public class BlockDataManager {
    */
   // TODO: This may be better as void
   public boolean commitBlock(long userId, long blockId) throws IOException {
-    if (!mBlockStore.commitBlock(userId, blockId)) {
-      return false;
-    }
+    mBlockStore.commitBlock(userId, blockId);
 
     // TODO: Reconsider how to do this without heavy locking
     // Block successfully committed, update master with new block metadata
-    Optional<Long> optLock = mBlockStore.lockBlock(userId, blockId);
-    if (!optLock.isPresent()) {
-      throw new IOException("Error while locking new block: " + blockId);
-    }
-    Long lockId = optLock.get();
-    Optional<BlockMeta> optMeta = mBlockStore.getBlockMeta(userId, blockId, lockId);
-    if (!optMeta.isPresent()) {
-      mBlockStore.unlockBlock(userId, blockId);
-      throw new IOException("Failed to get block meta for new block " + blockId);
-    }
-    BlockMeta meta = optMeta.get();
+    Long lockId = mBlockStore.lockBlock(userId, blockId);
+    BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
     BlockStoreLocation loc = meta.getBlockLocation();
     Long storageDirId = loc.getStorageDirId();
     Long length = meta.getBlockSize();
@@ -223,13 +209,8 @@ public class BlockDataManager {
   public String createBlock(long userId, long blockId, int location, long initialBytes)
       throws IOException, OutOfSpaceException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
-    Optional<TempBlockMeta> optBlock =
-        mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
-    if (optBlock.isPresent()) {
-      return optBlock.get().getPath();
-    }
-    // Failed to allocate initial bytes
-    throw new OutOfSpaceException("Failed to allocate " + initialBytes + " for user " + userId);
+    TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
+    return createdBlock.getPath();
   }
 
   /**
@@ -247,16 +228,8 @@ public class BlockDataManager {
   public BlockWriter createBlockRemote(long userId, long blockId, int location, long initialBytes)
       throws FileDoesNotExistException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
-    Optional<TempBlockMeta> optBlock =
-        mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
-    if (optBlock.isPresent()) {
-      Optional<BlockWriter> optWriter = mBlockStore.getBlockWriter(userId, blockId);
-      if (optWriter.isPresent()) {
-        return optWriter.get();
-      }
-      throw new IOException("Failed to obtain block writer.");
-    }
-    throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
+    mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
+    return mBlockStore.getBlockWriter(userId, blockId);
   }
 
   /**
@@ -267,9 +240,9 @@ public class BlockDataManager {
    * @return true if successful, false otherwise
    * @throws IOException if an error occurs when removing the block
    */
-  // TODO: This may be better as void, we should avoid throwing IOException
-  public boolean removeBlock(long userId, long blockId) throws IOException {
-    return mBlockStore.removeBlock(userId, blockId);
+  // TODO: We should avoid throwing IOException
+  public void removeBlock(long userId, long blockId) throws IOException {
+    mBlockStore.removeBlock(userId, blockId);
   }
 
   /**
@@ -309,7 +282,8 @@ public class BlockDataManager {
    * @param blockId The id of the block to be locked
    * @return the lockId, or -1 if we failed to obtain a lock
    */
-  public Optional<Long> lockBlock(long userId, long blockId) {
+  // TODO: We should avoid throwing IOException
+  public long lockBlock(long userId, long blockId) throws IOException {
     return mBlockStore.lockBlock(userId, blockId);
   }
 
@@ -323,10 +297,10 @@ public class BlockDataManager {
    * @return true if successful, false otherwise
    * @throws IOException if an error occurs during move
    */
-  // TODO: This may be better as void, we should avoid throwing IOException
-  public boolean moveBlock(long userId, long blockId, int tier) throws IOException {
+  // TODO: We should avoid throwing IOException
+  public void moveBlock(long userId, long blockId, int tier) throws IOException {
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tier);
-    return mBlockStore.moveBlock(userId, blockId, dst);
+    mBlockStore.moveBlock(userId, blockId, dst);
   }
 
   /**
@@ -339,13 +313,9 @@ public class BlockDataManager {
    * @return a string representing the path to this block in local storage
    * @throws FileDoesNotExistException if the block does not exist
    */
-  public String readBlock(long userId, long blockId, long lockId) throws FileDoesNotExistException {
-    Optional<BlockMeta> optBlock = mBlockStore.getBlockMeta(userId, blockId, lockId);
-    if (optBlock.isPresent()) {
-      return optBlock.get().getPath();
-    }
-    // Failed to find the block
-    throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
+  public String readBlock(long userId, long blockId, long lockId) throws IOException {
+    BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
+    return meta.getPath();
   }
 
   /**
@@ -360,11 +330,7 @@ public class BlockDataManager {
    */
   // TODO: We should avoid throwing IOException
   public BlockReader readBlockRemote(long userId, long blockId, long lockId) throws IOException {
-    Optional<BlockReader> optReader = mBlockStore.getBlockReader(userId, blockId, lockId);
-    if (optReader.isPresent()) {
-      return optReader.get();
-    }
-    throw new IOException("Block " + blockId + " does not exist on this worker.");
+    return mBlockStore.getBlockReader(userId, blockId, lockId);
   }
 
   /**
@@ -377,9 +343,9 @@ public class BlockDataManager {
    * @return true if the space was allocated, false otherwise
    * @throws IOException if an error occurs when allocating space
    */
-  // TODO: This may be better as void, we should avoid throwing IOException
-  public boolean requestSpace(long userId, long blockId, long bytesRequested) throws IOException {
-    return mBlockStore.requestSpace(userId, blockId, bytesRequested);
+  // TODO: We should avoid throwing IOException
+  public void requestSpace(long userId, long blockId, long bytesRequested) throws IOException {
+    mBlockStore.requestSpace(userId, blockId, bytesRequested);
   }
 
   /**
@@ -405,14 +371,13 @@ public class BlockDataManager {
    * @param lockId The id of the lock to relinquish
    * @return true if successful, false otherwise
    */
-  // TODO: This may be better as void
-  public boolean unlockBlock(long lockId) {
-    return mBlockStore.unlockBlock(lockId);
+  public void unlockBlock(long lockId) throws IOException {
+    mBlockStore.unlockBlock(lockId);
   }
 
-  // TODO: for debug only.
-  public boolean unlockBlock(long userId, long blockId) {
-    return mBlockStore.unlockBlock(userId, blockId);
+  // TODO: Remove when lock and reads are separate operations
+  public void unlockBlock(long userId, long blockId) throws IOException {
+    mBlockStore.unlockBlock(userId, blockId);
   }
 
   /**
@@ -422,10 +387,9 @@ public class BlockDataManager {
    * @param metrics The set of metrics the client has gathered since the last heartbeat
    * @return true if successful, false otherwise
    */
-  // TODO: This may be better as void
-  public boolean userHeartbeat(long userId, List<Long> metrics) {
+  // TODO: Add Metrics Collection
+  public void userHeartbeat(long userId, List<Long> metrics) {
     mUsers.userHeartbeat(userId);
-    return true;
   }
 
   /**

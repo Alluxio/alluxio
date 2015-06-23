@@ -17,12 +17,39 @@ package tachyon.worker.block.meta;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.util.CommonUtils;
 import tachyon.worker.BlockStoreLocation;
 
 /**
  * A base class of the metadata of blocks in Tachyon managed storage.
  */
 public abstract class BlockMetaBase {
+  /**
+   * All blocks are created as temp blocks before committed. They are stored in BlockStore under a
+   * subdir of its StorageDir, the subdir is the same as the creator's userId, and the block file
+   * is the same as its blockId. e .g. userId 2 creates a temp Block 100 in StorageDir
+   * "/mnt/mem/0", this temp block has path:
+   * <p>
+   * /mnt/mem/0/2/100
+   *
+   * @return committed file path
+   */
+  protected String tempPath(long userId) {
+    return CommonUtils.concatPath(mDir.getDirPath(), userId, mBlockId);
+  }
+
+  /**
+   * Committed block is stored in BlockStore under its StorageDir as a block file named after its
+   * blockId. e.g. Block 100 of StorageDir "/mnt/mem/0" has path:
+   * <p>
+   * /mnt/mem/0/100
+   *
+   * @return committed file path
+   */
+  protected String commitPath() {
+    return CommonUtils.concatPath(mDir.getDirPath(), mBlockId);
+  }
+
   protected final long mBlockId;
   protected final StorageDir mDir;
 
