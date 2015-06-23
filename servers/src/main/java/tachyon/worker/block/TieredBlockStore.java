@@ -214,11 +214,17 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void cleanupUser(long userId) {
+  public void cleanupUser(long userId) throws IOException {
     mEvictionLock.readLock().lock();
-    mMetaManager.cleanupUser(userId);
+    List<TempBlockMeta> tempBlocksToRemove = mMetaManager.cleanupUser(userId);
     mLockManager.cleanupUser(userId);
     mEvictionLock.readLock().unlock();
+    for (TempBlockMeta tempBlockMeta : tempBlocksToRemove) {
+      if (!new File(tempBlockMeta.getPath()).delete()) {
+        throw new IOException("Failed to cleanup userId " + userId + ": cannot delete "
+            + tempBlockMeta.getPath());
+      }
+    }
   }
 
   @Override

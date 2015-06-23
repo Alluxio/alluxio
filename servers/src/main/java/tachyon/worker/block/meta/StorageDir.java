@@ -296,15 +296,22 @@ public class StorageDir {
    * Cleans up the temp block meta data of a specific user.
    *
    * @param userId the ID of the user to cleanup
+   * @return A list of temp blocks removed from this dir
    */
-  public void cleanupUser(long userId) {
+  public List<TempBlockMeta> cleanupUser(long userId) {
+    List<TempBlockMeta> blocksToRemove = new ArrayList<TempBlockMeta>();
     Set<Long> userTempBlocks = mUserIdToTempBlockIdsMap.get(userId);
-    if (null == userTempBlocks) {
-      return;
+    if (userTempBlocks != null) {
+      for (long blockId : userTempBlocks) {
+        TempBlockMeta tempBlock = mBlockIdToTempBlockMap.remove(blockId);
+        if (tempBlock != null) {
+          blocksToRemove.add(tempBlock);
+        } else {
+          LOG.error("Cannot find blockId {} when cleanup userId {}", blockId, userId);
+        }
+      }
+      mUserIdToTempBlockIdsMap.remove(userId);
     }
-    for (long blockId : userTempBlocks) {
-      mBlockIdToTempBlockMap.remove(blockId);
-    }
-    mUserIdToTempBlockIdsMap.remove(userId);
+    return blocksToRemove;
   }
 }
