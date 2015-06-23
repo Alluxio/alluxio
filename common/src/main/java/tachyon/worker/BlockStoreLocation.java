@@ -68,7 +68,7 @@ public class BlockStoreLocation {
    * @return true when this BlockStoreLocation belongs to the target, otherwise false
    */
   public boolean belongTo(BlockStoreLocation location) {
-    if (this.equals(location)) {
+    if (equals(location)) {
       return true;
     }
     boolean tierInRange = (tierAlias() == location.tierAlias()) || (location.tierAlias() == ANY_TIER);
