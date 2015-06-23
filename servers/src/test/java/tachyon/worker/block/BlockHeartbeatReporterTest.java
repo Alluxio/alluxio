@@ -24,6 +24,10 @@ public class BlockHeartbeatReporterTest {
     mReporter.postMoveBlock(USER_ID, blockId, loc);
   }
 
+  private void removeBlock(long blockId) {
+    mReporter.postRemoveBlock(USER_ID, blockId);
+  }
+
   // Tests Empty Report
   @Test
   public void generateReportEmptyTest() {
@@ -72,12 +76,38 @@ public class BlockHeartbeatReporterTest {
   public void generateReportStateClearTest() {
     Long block1 = 1L;
     moveBlock(block1, MEM_LOC);
+
+    // First report should have updates
     BlockHeartbeatReport report = mReporter.generateReport();
     Assert.assertFalse(report.getAddedBlocks().isEmpty());
     Assert.assertFalse(report.getRemovedBlocks().isEmpty());
 
+    // Second report should not have updates
     BlockHeartbeatReport nextReport = mReporter.generateReport();
     Assert.assertTrue(nextReport.getAddedBlocks().isEmpty());
     Assert.assertTrue(nextReport.getRemovedBlocks().isEmpty());
+  }
+
+  // Tests a report is correctly generated after removing blocks
+  @Test
+  public void generateReportSimpleRemoveTest() {
+    Long block1 = 1L;
+    Long block2 = 2L;
+    Long block3 = 3L;
+    removeBlock(block1);
+    removeBlock(block2);
+    removeBlock(block3);
+    BlockHeartbeatReport report = mReporter.generateReport();
+
+    // All blocks should be removed
+    List<Long> removedBlocks = report.getRemovedBlocks();
+    Assert.assertEquals(removedBlocks.size(), 3);
+    Assert.assertTrue(removedBlocks.contains(block1));
+    Assert.assertTrue(removedBlocks.contains(block2));
+    Assert.assertTrue(removedBlocks.contains(block3));
+
+    // No blocks should have been added
+    Map<Long, List<Long>> addedBlocks = report.getAddedBlocks();
+    Assert.assertTrue(addedBlocks.isEmpty());
   }
 }
