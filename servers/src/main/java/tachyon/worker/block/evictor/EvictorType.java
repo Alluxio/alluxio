@@ -16,7 +16,7 @@
 package tachyon.worker.block.evictor;
 
 /**
- * Different types of {@link Evictor}. Currently only LRU-based strategies are implemented.
+ * Different types of {@link Evictor}.
  */
 public enum EvictorType {
   /**
