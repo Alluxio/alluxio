@@ -50,22 +50,22 @@ public class BlockHeartbeatReporterTest {
 
     // Block1 moved to memory
     List<Long> addedBlocksMem = addedBlocks.get(MEM_LOC.getStorageDirId());
-    Assert.assertEquals(addedBlocksMem.size(), 1);
-    Assert.assertEquals(addedBlocksMem.get(0), block1);
+    Assert.assertEquals(1, addedBlocksMem.size());
+    Assert.assertEquals(block1, addedBlocksMem.get(0));
 
     // Block2 moved to ssd
     List<Long> addedBlocksSsd = addedBlocks.get(SSD_LOC.getStorageDirId());
-    Assert.assertEquals(addedBlocksSsd.size(), 1);
-    Assert.assertEquals(addedBlocksSsd.get(0), block2);
+    Assert.assertEquals(1, addedBlocksSsd.size());
+    Assert.assertEquals(block2, addedBlocksSsd.get(0));
 
     // Block3 moved to hdd
     List<Long> addedBlocksHdd = addedBlocks.get(HDD_LOC.getStorageDirId());
-    Assert.assertEquals(addedBlocksHdd.size(), 1);
-    Assert.assertEquals(addedBlocksHdd.get(0), block3);
+    Assert.assertEquals(1, addedBlocksHdd.size());
+    Assert.assertEquals(block3, addedBlocksHdd.get(0));
 
     // All blocks should be "removed" to force an update of their location in master
     List<Long> removedBlocks = report.getRemovedBlocks();
-    Assert.assertEquals(removedBlocks.size(), 3);
+    Assert.assertEquals(3, removedBlocks.size());
     Assert.assertTrue(removedBlocks.contains(block1));
     Assert.assertTrue(removedBlocks.contains(block2));
     Assert.assertTrue(removedBlocks.contains(block3));
@@ -101,7 +101,7 @@ public class BlockHeartbeatReporterTest {
 
     // All blocks should be removed
     List<Long> removedBlocks = report.getRemovedBlocks();
-    Assert.assertEquals(removedBlocks.size(), 3);
+    Assert.assertEquals(3, removedBlocks.size());
     Assert.assertTrue(removedBlocks.contains(block1));
     Assert.assertTrue(removedBlocks.contains(block2));
     Assert.assertTrue(removedBlocks.contains(block3));
@@ -124,7 +124,7 @@ public class BlockHeartbeatReporterTest {
 
     // The block should be in the removed blocks list
     List<Long> removedBlocks = report.getRemovedBlocks();
-    Assert.assertEquals(removedBlocks.size(), 1);
+    Assert.assertEquals(1, removedBlocks.size());
     Assert.assertTrue(removedBlocks.contains(block1));
   }
 }

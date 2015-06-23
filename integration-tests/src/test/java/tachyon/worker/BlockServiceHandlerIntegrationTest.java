@@ -159,7 +159,7 @@ public class BlockServiceHandlerIntegrationTest {
     int bytesRead = ufs.open(localPath).read(data);
 
     // The data in the local file should equal the data we wrote earlier
-    Assert.assertEquals(bytesRead, blockSize);
+    Assert.assertEquals(blockSize, bytesRead);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(bytesRead, data));
 
     mWorkerServiceHandler.unlockBlock(blockId, USER_ID);
