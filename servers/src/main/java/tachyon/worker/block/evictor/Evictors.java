@@ -15,10 +15,6 @@
 
 package tachyon.worker.block.evictor;
 
-/**
- * Used to get a specific EvictStrategy based on EvictStrategyType
- */
-
 import tachyon.worker.block.BlockMetadataManager;
 
 /**
@@ -36,9 +32,8 @@ public class Evictors {
     switch (evictorType) {
       case LRU:
         return new LRUEvictor(metaManager);
-      case PARTIAL_LRU:
-        // TODO not implemented yet
-        return null;
+      case LFU:
+        return new LFUEvictor(metaManager);
       default:
         // TODO may not default to LRU
         return new LRUEvictor(metaManager);

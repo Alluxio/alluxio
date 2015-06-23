@@ -29,7 +29,7 @@ public enum EvictorType {
    */
   LRU,
   /**
-   * Evict old blocks in certain StorageDir by LRU.
+   * Evict old blocks among several StorageDirs by LFU
    */
-  PARTIAL_LRU,
+  LFU,
 }
