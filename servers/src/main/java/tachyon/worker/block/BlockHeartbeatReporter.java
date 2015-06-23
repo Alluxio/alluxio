@@ -107,7 +107,9 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
       // Remove the block from list of added blocks, in case it was added in this heartbeat period.
       removeBlockFromAddedBlocks(blockId);
       // Add to the list of removed blocks in this heartbeat period.
-      mRemovedBlocks.add(blockId);
+      if (!mRemovedBlocks.contains(blockId)) {
+        mRemovedBlocks.add(blockId);
+      }
     }
   }
 
