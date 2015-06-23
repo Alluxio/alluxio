@@ -38,7 +38,7 @@ public class BlockHeartbeatReporterTest {
 
   // Tests a report is correctly generated after moving blocks
   @Test
-  public void generateReportSimpleMoveTest() {
+  public void generateReportMoveTest() {
     Long block1 = 1L;
     Long block2 = 2L;
     Long block3 = 3L;
@@ -90,7 +90,7 @@ public class BlockHeartbeatReporterTest {
 
   // Tests a report is correctly generated after removing blocks
   @Test
-  public void generateReportSimpleRemoveTest() {
+  public void generateReportRemoveTest() {
     Long block1 = 1L;
     Long block2 = 2L;
     Long block3 = 3L;
@@ -109,5 +109,22 @@ public class BlockHeartbeatReporterTest {
     // No blocks should have been added
     Map<Long, List<Long>> addedBlocks = report.getAddedBlocks();
     Assert.assertTrue(addedBlocks.isEmpty());
+  }
+
+  // Tests a report is correctly generated after moving and then removing a block
+  @Test
+  public void generateReportMoveThenRemoveTest() {
+    Long block1 = 1L;
+    moveBlock(block1, MEM_LOC);
+    removeBlock(block1);
+
+    // The block should not be in the added blocks list
+    BlockHeartbeatReport report = mReporter.generateReport();
+    Assert.assertTrue(report.getAddedBlocks().get(MEM_LOC.getStorageDirId()).isEmpty());
+
+    // The block should be in the removed blocks list
+    List<Long> removedBlocks = report.getRemovedBlocks();
+    Assert.assertEquals(removedBlocks.size(), 1);
+    Assert.assertTrue(removedBlocks.contains(block1));
   }
 }
