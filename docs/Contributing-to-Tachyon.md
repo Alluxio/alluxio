@@ -149,7 +149,7 @@ Here are a few things that everyone should do before developing on Tachyon.
 following list, and then submit a pull request. You are also welcome to address
 issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
 Here are a list of
-[tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner%20AND%20status%20%3D%20OPEN)
+[tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
 for beginners. Please limit 2 beginner tasks per new contributor.
 Afterwards, try some intermediate tasks, or ask in the
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users).
