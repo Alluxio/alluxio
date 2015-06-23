@@ -44,10 +44,11 @@ import tachyon.worker.block.BlockServiceHandler;
 import tachyon.worker.block.io.BlockWriter;
 
 /**
- * Integration tests for tachyon.WorkerServiceHandler
+ * Integration tests for tachyon.BlockServiceHandler
  */
-public class WorkerServiceHandlerIntegrationTest {
+public class BlockServiceHandlerIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
+  private static final long USER_ID = 1L;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -74,53 +75,48 @@ public class WorkerServiceHandlerIntegrationTest {
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
   }
 
-  @Test
-  public void cancelBlockTest() throws Exception {
-    //public void cancelBlockTest() throws TException, IOException {
-    final long userId = 1L;
-    final long blockId = 12345L;
-    String filename = mWorkerServiceHandler.requestBlockLocation(userId, blockId,
-        WORKER_CAPACITY_BYTES / 10L);
-    Assert.assertTrue(filename != null);
-    createBlockFile(filename, (int)(WORKER_CAPACITY_BYTES / 10L - 10L));
-    mWorkerServiceHandler.cancelBlock(userId, blockId);
-    Assert.assertFalse(new File(filename).exists());
-
-    CommonUtils.sleepMs(null,
-        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
-
-    Assert.assertEquals(0, mMasterInfo.getUsedBytes());
-  }
-
+  // Tests that caching a block successfully persists the block if the block exists
   @Test
   public void cacheBlockTest() throws Exception {
-    final long userId = 1L;
-    final int fileId = mTfs.createFile(new TachyonURI("/testFile1"));
+    final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
     final long blockId0 = mTfs.getBlockId(fileId, 0);
     final long blockId1 = mTfs.getBlockId(fileId, 1);
-    String filename = mWorkerServiceHandler.requestBlockLocation(userId, blockId0,
-        WORKER_CAPACITY_BYTES / 10L);
-    Assert.assertTrue(filename != null);
-    createBlockFile(filename, (int)(WORKER_CAPACITY_BYTES / 10L - 10L));
-    mWorkerServiceHandler.cacheBlock(userId, blockId0);
-    Assert.assertEquals(WORKER_CAPACITY_BYTES / 10L - 10, mMasterInfo.getUsedBytes());
+    final long blockSize = WORKER_CAPACITY_BYTES / 10;
 
+    String filename = mWorkerServiceHandler.requestBlockLocation(USER_ID, blockId0, blockSize);
+    createBlockFile(filename, (int) blockSize);
+    mWorkerServiceHandler.cacheBlock(USER_ID, blockId0);
+
+    // The master should be immediately updated with the persisted block
+    Assert.assertEquals(blockSize, mMasterInfo.getUsedBytes());
+
+    // Attempting to cache a non existant block should throw an exception
     Exception exception = null;
     try {
-      mWorkerServiceHandler.cacheBlock(userId, blockId1);
+      mWorkerServiceHandler.cacheBlock(USER_ID, blockId1);
     } catch (TException e) {
       exception = e;
     }
     Assert.assertNotNull(exception);
   }
 
-  private void createBlockFile(String filename, int fileLen)
-      throws IOException, InvalidPathException {
-    UnderFileSystem ufs = UnderFileSystem.get(filename, mMasterTachyonConf);
-    ufs.mkdirs(CommonUtils.getParent(filename), true);
-    OutputStream out = ufs.create(filename);
-    out.write(TestUtils.getIncreasingByteArray(fileLen), 0, fileLen);
-    out.close();
+  // Tests that cancelling a block will remove the temporary file
+  @Test
+  public void cancelBlockTest() throws Exception {
+    final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
+    final long blockId = mTfs.getBlockId(fileId, 0);
+    final long blockSize = WORKER_CAPACITY_BYTES / 2;
+
+    String filename = mWorkerServiceHandler.requestBlockLocation(USER_ID, blockId, blockSize);
+    createBlockFile(filename, (int) blockSize);
+    mWorkerServiceHandler.cancelBlock(USER_ID, blockId);
+
+    // The block should not exist after being cancelled
+    Assert.assertFalse(new File(filename).exists());
+
+    // The master should not have recorded any used space after the block is cancelled
+    waitForHeartbeat();
+    Assert.assertEquals(0, mMasterInfo.getUsedBytes());
   }
 
   @Test
@@ -197,5 +193,18 @@ public class WorkerServiceHandlerIntegrationTest {
         WORKER_CAPACITY_BYTES / 2));
     Assert.assertFalse(mWorkerServiceHandler.requestSpace(userId2, blockId2,
         WORKER_CAPACITY_BYTES / 2));
+  }
+
+  private void createBlockFile(String filename, int len) throws IOException, InvalidPathException {
+    UnderFileSystem ufs = UnderFileSystem.get(filename, mMasterTachyonConf);
+    ufs.mkdirs(CommonUtils.getParent(filename), true);
+    OutputStream out = ufs.create(filename);
+    out.write(TestUtils.getIncreasingByteArray(len), 0, len);
+    out.close();
+  }
+
+  // Sleeps for a duration so that the worker heartbeat to master can be processed
+  private void waitForHeartbeat() {
+    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 3);
   }
 }
