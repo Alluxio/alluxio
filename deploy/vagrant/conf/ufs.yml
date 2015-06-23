@@ -6,7 +6,8 @@ Hadoop:
   # cdh: https://repository.cloudera.com/cloudera/cloudera-repos/org/apache/hadoop/hadoop-dist/${Version}/hadoop-dist-${Version}.tar.gz
   # apache | cdh
   Type: apache
-  # e.x. 2.4.1, 2.0.0-cdh4.7.1
+  # e.x. 2.4.1, 2.0.0-cdh4.7.1 for hadoop2. 
+  #      1.2.1 for hadoop1
   Version: 2.4.1
   # for some version of hadoop, profile is needed when compiling spark
   # https://spark.apache.org/docs/latest/building-spark.html#specifying-the-hadoop-version
@@ -14,7 +15,7 @@ Hadoop:
   # if you don't compile spark, this can be empty
   SparkProfile: 2.4
 
+# Doc on AccessKeyID and SecretAccessKey: 
+# http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html
 S3:
   Bucket:
-  AccessKeyID:
-  SecretAccessKey:
