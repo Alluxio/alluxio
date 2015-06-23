@@ -21,9 +21,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -266,16 +267,24 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Cleans up the temp blocks meta data created by the given user.
+   * Cleans up the meta data of temp blocks created by the given user.
    *
    * @param userId the ID of the user
+   * @return A list of temp blocks created by the user in this block store
    */
-  public synchronized void cleanupUser(long userId) {
+  public synchronized List<TempBlockMeta> cleanupUser(long userId) {
+    List<TempBlockMeta> ret = new ArrayList<TempBlockMeta>();
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        dir.cleanupUser(userId);
+        List<TempBlockMeta> blocksToRemove = dir.cleanupUser(userId);
+        if (blocksToRemove != null) {
+          for (TempBlockMeta block : blocksToRemove) {
+            ret.add(block);
+          }
+        }
       }
     }
+    return ret;
   }
 
   /**
