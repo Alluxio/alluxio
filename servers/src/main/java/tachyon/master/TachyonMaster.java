@@ -84,7 +84,7 @@ public class TachyonMaster {
   private int mMinWorkerThreads;
   private boolean mZookeeperMode = false;
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2,
-      ThreadFactoryUtils.daemon("heartbeat-master-%d"));
+      ThreadFactoryUtils.build("heartbeat-master-%d", true));
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 

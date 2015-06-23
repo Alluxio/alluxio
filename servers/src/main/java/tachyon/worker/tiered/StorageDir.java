@@ -494,10 +494,12 @@ public final class StorageDir {
    */
   public long getLockedSizeBytes() {
     long lockedBytes = 0;
-    for (long blockId : mUserPerLockedBlock.keySet()) {
-      Long blockSize = mBlockSizes.get(blockId);
-      if (blockSize != null) {
-        lockedBytes += blockSize;
+    synchronized (mUserPerLockedBlock) {
+      for (long blockId : mUserPerLockedBlock.keySet()) {
+        Long blockSize = mBlockSizes.get(blockId);
+        if (blockSize != null) {
+          lockedBytes += blockSize;
+        }
       }
     }
     return lockedBytes;

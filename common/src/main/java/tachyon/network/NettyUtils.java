@@ -21,8 +21,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
 import tachyon.util.ThreadFactoryUtils;
 
@@ -36,10 +39,12 @@ public final class NettyUtils {
    * @param numThreads
    * @param threadPrefix name pattern for each thread. should contain '%d' to distinguish between
    *        threads.
+   * @param isDaemon if true, the {@link java.util.concurrent.ThreadFactory} will create
+   *                 daemon threads.
    */
   public static EventLoopGroup createEventLoop(ChannelType type, int numThreads,
-      String threadPrefix) {
-    ThreadFactory threadFactory = ThreadFactoryUtils.build(threadPrefix);
+      String threadPrefix, boolean isDaemon) {
+    ThreadFactory threadFactory = ThreadFactoryUtils.build(threadPrefix, isDaemon);
 
     switch (type) {
       case NIO:
@@ -62,6 +67,22 @@ public final class NettyUtils {
         return NioServerSocketChannel.class;
       case EPOLL:
         return EpollServerSocketChannel.class;
+      default:
+        throw new IllegalArgumentException("Unknown io type: " + type);
+    }
+  }
+
+  /**
+   * Returns the correct SocketChannel class based on ChannelType.
+   *
+   * @param type Selector for which form of low-level IO we should use
+   */
+  public static Class<? extends SocketChannel> getClientChannelClass(ChannelType type) {
+    switch (type) {
+      case NIO:
+        return NioSocketChannel.class;
+      case EPOLL:
+        return EpollSocketChannel.class;
       default:
         throw new IllegalArgumentException("Unknown io type: " + type);
     }

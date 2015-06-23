@@ -23,7 +23,6 @@ def config_aws(config, i, total, name)
       'Name' => TAG + name,
     }
 	  aws.availability_zone = AVAILABILITY_ZONE
-    aws.private_ip_address = Addr[i - 1]
     aws.user_data = "#!/bin/bash\necho 'Defaults:root !requiretty' > /etc/sudoers.d/998-vagrant-cloud-init-requiretty && echo 'Defaults:ec2-user !requiretty' > /etc/sudoers.d/999-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/998-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/999-vagrant-cloud-init-requiretty"
   end
 end

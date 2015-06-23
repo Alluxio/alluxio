@@ -2,6 +2,6 @@
   script: mkdir.sh
 
 - name: rsync hadoop runtime from TachyonMaster
-  shell: rsync -avz TachyonMaster.local:/hadoop/* /hadoop
+  shell: rsync -avz TachyonMaster:/hadoop/* /hadoop
 
 # vim :set filetype=ansible.yaml:
