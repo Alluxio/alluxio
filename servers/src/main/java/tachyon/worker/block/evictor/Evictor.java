@@ -18,8 +18,6 @@ package tachyon.worker.block.evictor;
 import java.io.IOException;
 
 import tachyon.worker.BlockStoreLocation;
-import tachyon.worker.block.BlockMetaEventListener;
-import tachyon.worker.block.BlockMetadataManager;
 
 /**
  * Interface for the eviction policy in Tachyon
