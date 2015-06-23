@@ -58,6 +58,11 @@ Block_Device_Mapping: []
 # modify only when you know what you are doing
 #
 
+# If you want to use "Spot Instance"
+# (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html), 
+# set this field. If this field is not empty, it means you want to use spot instance.
+Spot_Price: ""
+
 # RHEL 6.5 Amazon Machine Images
 # "PV" and "HVM" are different virtualization methods:
 #   http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/virtualization_types.html
@@ -72,6 +77,15 @@ Block_Device_Mapping: []
 # AMI: "ami-b06a98d8"
 # HVM
 AMI: "ami-5b697332"
+#
+# NOT ALL AMI supports Spot Request
+# This Amazone Linux AMI(http://aws.amazon.com/amazon-linux-ami/) in us-east-1 
+# is HVM and supports Spot Request.
+# (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html)
+# To find AMI that supports Spot Request in other region, 
+# click "Spot Requests" on left panel in AWS EC2 console 
+# -> click "Request Spot Instances", then you can find the AMI you want.
+# AMI: "ami-1ecae776"
 
 # EC2 network security groups and subnet id
 # Ensure ports used by Tachyon are on
