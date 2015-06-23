@@ -150,6 +150,7 @@
     <module>examples</module>
     <module>integration-tests</module>
     <module>assembly</module>
+    <module>minicluster</module>
   </modules>
 
   <dependencyManagement>
