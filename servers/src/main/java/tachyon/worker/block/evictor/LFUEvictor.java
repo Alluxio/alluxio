@@ -35,17 +35,20 @@ import tachyon.worker.block.meta.BlockMeta;
 
 public class LFUEvictor implements Evictor, BlockAccessEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private final BlockMetadataManager mMeta;
   private final Object mLock = new Object();
 
   /**
-   * Double-Linked List
+   * Layered Double-Linked List
    *
-   * "n" such as "1" represents access count, corresponding to class CountNode "o" represents class
-   * Node, "-" represents bi-directional link
+   * "n" such as "1" represents access count, corresponding to class CountNode.
+   * "o" represents class Node.
+   * "->" represents single direction link.
+   * "-" represents bi-directional link.
    *
-   * 1 - o - o
+   * 1 -> o - o
    * |
-   * 2 - o
+   * 2 -> o
    * |
    * ...
    *
@@ -75,16 +78,14 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
     void appendNode(Node node) {
       if (mFirst == null) {
         mFirst = node;
-        node.mPrev = mFirst;
       } else {
         mLast.append(node);
-        mLast = node;
       }
       mLast = node;
     }
 
     CountNode nextCountNode() {
-      return (CountNode)mNext;
+      return (CountNode) mNext;
     }
   }
 
@@ -104,7 +105,7 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
       mHead = null;
     }
 
-    // assume next layer exists and have elements other than the count node
+    /** assume next layer exists and have elements other than the count node */
     void appendToNextLayer() {
       remove();
       nextLayerHead().appendNode(this);
@@ -123,7 +124,7 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
     }
 
     Node nextNode() {
-      return (Node)mNext;
+      return (Node) mNext;
     }
   }
 
@@ -131,8 +132,6 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
   private CountNode mHead;
   /** Map from blockId to corresponding Node */
   private Map<Long, Node> mCache;
-
-  private final BlockMetadataManager mMeta;
 
   public LFUEvictor(BlockMetadataManager meta) {
     mMeta = meta;
@@ -153,6 +152,8 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
         if (node.nextLayerHead() == null && node.first() == node) { // only Node in last layer
           node.mHead.mCount += 1;
         } else {
+          // not the only Node in last layer
+          // or count of next layer is not its current count plus 1
           if (node.nextLayerHead() == null || node.nextLayerHead().mCount != node.count() + 1) {
             // create new layer
             node.mHead.append(new CountNode(node.count() + 1));
@@ -160,7 +161,9 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
           node.appendToNextLayer();
         }
       } else {
-        mHead.appendNode(new Node(blockId));
+        Node node = new Node(blockId);
+        mHead.appendNode(node);
+        mCache.put(blockId, node);
       }
     }
   }
@@ -169,36 +172,55 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
    * Evict layer by layer, in each layer, evict from first to last
    */
   @Override
-  public EvictionPlan freeSpace(long bytes, BlockStoreLocation location) {
+  public EvictionPlan freeSpace(long bytes, BlockStoreLocation location) throws IOException {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
+    EvictionPlan plan = null;
+
+    if (bytes <= 0) {
+      plan = new EvictionPlan(toMove, toEvict);
+      return plan;
+    }
+
+    // map from directory to a pair of id of blocks to evict and total size of these blocks
+    Map<BlockStoreLocation, Pair<List<Long>, Long>> dirCandidate =
+        new HashMap<BlockStoreLocation, Pair<List<Long>, Long>>();
+    long maxEvictBytes = 0;
+    BlockStoreLocation dirWithMaxEvictBytes = null;
 
     synchronized (mLock) {
-      long evictBytes = 0;
       CountNode head = mHead;
       // layer by layer
-      while (evictBytes < bytes && head != null) {
+      while (maxEvictBytes < bytes && head != null) {
         Node p = head.mFirst;
         // in each layer, left to right
-        while (evictBytes < bytes && p != null) {
+        while (maxEvictBytes < bytes && p != null) {
           Node next = p.nextNode();
-          boolean remove = false;
 
           try {
             BlockMeta meta = mMeta.getBlockMeta(p.mBlockId);
-            if (meta.getBlockLocation().belongTo(location)) {
-              toEvict.add(p.mBlockId);
-              evictBytes += meta.getBlockSize();
-              remove = true;
+            BlockStoreLocation dir = meta.getBlockLocation();
+            if (dir.belongTo(location)) {
+              Pair<List<Long>, Long> candidate;
+              if (dirCandidate.containsKey(dir)) {
+                candidate = dirCandidate.get(dir);
+              } else {
+                candidate = new Pair<List<Long>, Long>(new ArrayList<Long>(), 0L);
+                dirCandidate.put(dir, candidate);
+              }
+
+              candidate.getFirst().add(meta.getBlockId());
+              long evictBytes = candidate.getSecond() + meta.getBlockSize();
+              candidate.setSecond(evictBytes);
+
+              if (maxEvictBytes < evictBytes) {
+                maxEvictBytes = evictBytes;
+                dirWithMaxEvictBytes = dir;
+              }
             }
           } catch (IOException ioe) {
             LOG.warn("Remove block %d because %s", p.mBlockId, ioe);
-            remove = true;
-          }
-
-          if (remove) {
-            p.remove();
-            mCache.remove(p.mBlockId);
+            removeNode(p);
           }
 
           // go to next right node
@@ -207,8 +229,21 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
         // go to next layer
         head = head.nextCountNode();
       }
+
+      if (maxEvictBytes >= bytes) {
+        toEvict = dirCandidate.get(dirWithMaxEvictBytes).getFirst();
+        for (long blockId : toEvict) {
+          removeNode(mCache.get(blockId));
+        }
+        plan = new EvictionPlan(toMove, toEvict);
+      }
     }
 
-    return new EvictionPlan(toMove, toEvict);
+    return plan;
+  }
+
+  private void removeNode(Node node) {
+    node.remove();
+    mCache.remove(node.mBlockId);
   }
 }
