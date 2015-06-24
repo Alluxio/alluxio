@@ -15,6 +15,7 @@
 
 package tachyon.worker.block.evictor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -163,11 +164,9 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
 
   /**
    * Evict layer by layer, in each layer, evict from first to last
-   *
-   * Complexity: O(1)
    */
   @Override
-  public Optional<EvictionPlan> freeSpace(long bytes, BlockStoreLocation location) {
+  public EvictionPlan freeSpace(long bytes, BlockStoreLocation location) {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
 
@@ -179,28 +178,34 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
         Node p = head.first;
         // in each layer, left to right
         while (evictBytes < bytes && p != null) {
-          boolean evicted = false;
-          Optional<BlockMeta> optMeta = mMeta.getBlockMeta(p.blockId);
-          if (!optMeta.isPresent()) {
-            LOG.error("BlockMeta of blockId %d can not be get", p.blockId);
-          } else if (optMeta.get().getBlockLocation().belongTo(location)) {
-            toEvict.add(p.blockId);
-            evictBytes += optMeta.get().getBlockSize();
-            evicted = true;
+          Node next = p.nextNode();
+          boolean remove = false;
+
+          try {
+            BlockMeta meta = mMeta.getBlockMeta(p.blockId);
+            if (meta.getBlockLocation().belongTo(location)) {
+              toEvict.add(p.blockId);
+              evictBytes += meta.getBlockSize();
+              remove = true;
+            }
+          } catch (IOException ioe) {
+            LOG.warn("Remove block %d because %s", p.blockId, ioe);
+            remove = true;
+          }
+
+          if (remove) {
+            p.remove();
+            mCache.remove(p.blockId);
           }
 
           // go to next right node
-          p = p.nextNode();
-          if (evicted) {
-            p.prev.remove();
-            mCache.remove(p.blockId);
-          }
+          p = next;
         }
         // go to next layer
         head = head.nextCountNode();
       }
     }
 
-    return Optional.of(new EvictionPlan(toMove, toEvict));
+    return new EvictionPlan(toMove, toEvict);
   }
 }

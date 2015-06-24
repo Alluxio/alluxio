@@ -15,6 +15,7 @@
 
 package tachyon.worker.block.evictor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,7 +84,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
    * @return an eviction plan to achieve the freed space
    */
   @Override
-  public Optional<EvictionPlan> freeSpace(long bytes, BlockStoreLocation location) {
+  public EvictionPlan freeSpace(long bytes, BlockStoreLocation location) {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
 
@@ -92,26 +93,31 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
     // erase race condition with onAccessBlock on internal data structure
     synchronized (mTail) {
       while (p != mTail && evictBytes < bytes) {
-        Optional<BlockMeta> meta = mMeta.getBlockMeta(p.blockId);
-        boolean evicted = false;
-        if (!meta.isPresent()) {
-          LOG.error("BlockMeta for blockId %d can not be get in LRUEvictor", p.blockId);
-        } else if (meta.get().getBlockLocation().belongTo(location)) {
-          evictBytes += meta.get().getBlockSize();
-          toEvict.add(p.blockId);
-          evicted = true;
+        Node next = p.nextNode();
+        boolean remove = false;
+
+        try {
+          BlockMeta meta = mMeta.getBlockMeta(p.blockId);
+          if (meta.getBlockLocation().belongTo(location)) {
+            evictBytes += meta.getBlockSize();
+            toEvict.add(p.blockId);
+            remove = true;
+          }
+        } catch (IOException ioe) {
+          LOG.warn("Remove block %d from LRU Cache because %s", p.blockId, ioe);
+          remove = true;
         }
 
-        Node next = p.nextNode();
-        if (evicted) {
+        if (remove) {
           p.remove();
           mCache.remove(p.blockId);
         }
+
         p = next;
       }
     }
 
-    return Optional.of(new EvictionPlan(toMove, toEvict));
+    return new EvictionPlan(toMove, toEvict);
   }
 
   /**
