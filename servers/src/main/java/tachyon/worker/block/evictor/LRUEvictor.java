@@ -36,6 +36,7 @@ import tachyon.worker.block.meta.BlockMeta;
 public class LRUEvictor implements Evictor, BlockAccessEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final BlockMetadataManager mMeta;
+  private final Object mLock = new Object();
 
   /** Double-Link List, most recently accessed block is at tail of the list */
   private class Node extends DoubleLinkListNode {
@@ -91,7 +92,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
     Node p = mHead.nextNode();
     long evictBytes = 0;
     // erase race condition with onAccessBlock on internal data structure
-    synchronized (mMeta) {
+    synchronized (mLock) {
       while (p != mTail && evictBytes < bytes) {
         Node next = p.nextNode();
         boolean remove = false;
@@ -126,7 +127,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
   @Override
   public void onAccessBlock(long userId, long blockId) {
     Node node;
-    synchronized (mMeta) {
+    synchronized (mLock) {
       if (mCache.containsKey(blockId)) {
         node = mCache.get(blockId);
         node.remove();

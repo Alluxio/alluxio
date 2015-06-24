@@ -35,6 +35,7 @@ import tachyon.worker.block.meta.BlockMeta;
 
 public class LFUEvictor implements Evictor, BlockAccessEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private final Object mLock = new Object();
 
   /**
    * Double-Linked List
@@ -141,7 +142,7 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
   /** Complexity: O(1) */
   @Override
   public void onAccessBlock(long userId, long blockId) {
-    synchronized (mMeta) {
+    synchronized (mLock) {
       if (mCache.containsKey(blockId)) {
         Node node = mCache.get(blockId);
         if (node.count() == Long.MAX_VALUE) {
@@ -170,7 +171,7 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
 
-    synchronized (mMeta) {
+    synchronized (mLock) {
       long evictBytes = 0;
       CountNode head = mHead;
       // layer by layer
