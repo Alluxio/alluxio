@@ -15,7 +15,6 @@
 
 package tachyon.worker.block.io;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -50,7 +49,7 @@ public class LocalFileBlockWriter implements BlockWriter {
 
   public LocalFileBlockWriter(String path) throws IOException {
     mFilePath = Preconditions.checkNotNull(path);
-    mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "w"));
+    mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
   }
 
