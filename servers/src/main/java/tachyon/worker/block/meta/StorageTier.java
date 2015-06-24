@@ -37,6 +37,8 @@ public class StorageTier {
   private final int mTierAlias;
   /** Level of this tier in tiered storage, highest level is 0 */
   private final int mTierLevel;
+  /** Total capacity of all StorageDirs in bytes */
+  private final long mCapacityBytes;
   private List<StorageDir> mDirs;
 
   public StorageTier(TachyonConf tachyonConf, int tierLevel, int tierAlias) {
@@ -52,11 +54,14 @@ public class StorageTier {
 
     mDirs = new ArrayList<StorageDir>(dirPaths.length);
 
+    long totalCapacity = 0;
     for (int i = 0; i < dirPaths.length; i ++) {
       int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
       long capacity = CommonUtils.parseSpaceSize(dirQuotas[index]);
+      totalCapacity += capacity;
       mDirs.add(new StorageDir(this, i, capacity, dirPaths[i]));
     }
+    mCapacityBytes = totalCapacity;
   }
 
   public int getTierAlias() {
@@ -68,11 +73,7 @@ public class StorageTier {
   }
 
   public long getCapacityBytes() {
-    long capacityBytes = 0;
-    for (StorageDir dir : mDirs) {
-      capacityBytes += dir.getCapacityBytes();
-    }
-    return capacityBytes;
+    return mCapacityBytes;
   }
 
   public long getAvailableBytes() {
