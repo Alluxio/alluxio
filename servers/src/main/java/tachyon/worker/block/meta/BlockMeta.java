@@ -23,6 +23,11 @@ import java.io.File;
 public class BlockMeta extends BlockMetaBase {
   private final long mBlockSize;
 
+  public BlockMeta(long blockId, long blockSize, StorageDir dir) {
+    super(blockId, dir);
+    mBlockSize = blockSize;
+  }
+
   public BlockMeta(TempBlockMeta tempBlock) {
     super(tempBlock.getBlockId(), tempBlock.getParentDir());
     mBlockSize = new File(tempBlock.getCommitPath()).length();
