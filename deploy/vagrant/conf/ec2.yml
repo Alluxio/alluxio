@@ -60,7 +60,8 @@ Block_Device_Mapping: []
 
 # If you want to use "Spot Instance"
 # (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html), 
-# set this field. If this field is not empty, it means you want to use spot instance.
+# set this field like "0.2", unit is dollar
+# spot instances will be used if and only if the 'Spot_Price' is not empty.
 Spot_Price: ""
 
 # RHEL 6.5 Amazon Machine Images
@@ -73,13 +74,14 @@ Spot_Price: ""
 #
 # Some Instance Type must need PV/HVM:
 #   http://aws.amazon.com/amazon-linux-ami/instance-type-matrix/
-# PV
+# PV, NOT support spot request
 # AMI: "ami-b06a98d8"
-# HVM
+#
+# HVM, NOT support spot request
 AMI: "ami-5b697332"
 #
 # NOT ALL AMI supports Spot Request
-# This Amazone Linux AMI(http://aws.amazon.com/amazon-linux-ami/) in us-east-1 
+# This Amazon Linux AMI(http://aws.amazon.com/amazon-linux-ami/) in us-east-1 
 # is HVM and supports Spot Request.
 # (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html)
 # To find AMI that supports Spot Request in other region, 
