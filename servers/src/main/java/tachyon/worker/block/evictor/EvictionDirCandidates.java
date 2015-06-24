@@ -26,7 +26,7 @@ import tachyon.worker.BlockStoreLocation;
 /**
  * A collection of candidate blocks for eviction organized by directory
  */
-class EvictionCandidates {
+class EvictionDirCandidates {
   private Map<BlockStoreLocation, Pair<List<Long>, Long>> mDirCandidates =
       new HashMap<BlockStoreLocation, Pair<List<Long>, Long>>();
   private long mMaxAvailableBytes = 0;

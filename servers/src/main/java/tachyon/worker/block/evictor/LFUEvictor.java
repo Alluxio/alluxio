@@ -180,7 +180,7 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
       return plan;
     }
 
-    EvictionCandidates dirCandidates = new EvictionCandidates();
+    EvictionDirCandidates dirCandidates = new EvictionDirCandidates();
 
     synchronized (mLock) {
       CountNode head = mHead;

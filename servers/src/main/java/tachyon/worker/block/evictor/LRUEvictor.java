@@ -84,7 +84,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
       return plan;
     }
 
-    EvictionCandidates dirCandidates = new EvictionCandidates();
+    EvictionDirCandidates dirCandidates = new EvictionDirCandidates();
 
     Node p = mHead.next();
     // erase race condition with onAccessBlock on internal data structure
