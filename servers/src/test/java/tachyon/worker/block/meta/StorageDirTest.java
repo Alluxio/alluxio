@@ -37,12 +37,13 @@ public class StorageDirTest {
   private static final String TEST_DIR_PATH = "/mnt/ramdisk/0/";
   private static final int TEST_DIR_INDEX = 1;
   private static final long TEST_DIR_CAPACITY = 1000;
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
   private StorageTier mTier;
   private StorageDir mDir;
   private BlockMeta mBlockMeta;
   private TempBlockMeta mTempBlockMeta;
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void before() {
