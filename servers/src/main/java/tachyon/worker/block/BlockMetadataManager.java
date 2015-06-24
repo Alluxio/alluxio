@@ -203,6 +203,23 @@ public class BlockMetadataManager {
   }
 
   /**
+   * Checks if the storage has a given temp block.
+   *
+   * @param blockId the temp block ID
+   * @return true if the block is contained, false otherwise
+   */
+  public synchronized boolean hasTempBlockMeta(long blockId) {
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.hasTempBlockMeta(blockId)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Gets the metadata of a temp block.
    *
    * @param blockId the ID of the temp block
