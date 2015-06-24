@@ -15,6 +15,8 @@
 
 package tachyon.worker.block.meta;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,6 +62,48 @@ public class StorageDir {
     mBlockIdToBlockMap = new HashMap<Long, BlockMeta>(200);
     mBlockIdToTempBlockMap = new HashMap<Long, TempBlockMeta>(200);
     mUserIdToTempBlockIdsMap = new HashMap<Long, Set<Long>>(200);
+
+    initializeMeta();
+  }
+
+  /**
+   * Only the File that is file and filename can be parsed into Long will be accept
+   */
+  class MetaFileFilter implements FileFilter {
+    public boolean accept(File path) {
+      if (!path.isFile()) {
+        return false;
+      }
+      try {
+        Long.valueOf(path.getName());
+        return true;
+      } catch (NumberFormatException nfe) {
+        return false;
+      }
+    }
+  }
+
+  /**
+   * Initialize meta data for existing blocks in this StorageDir
+   *
+   * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath()} are legal,
+   * should be in format like {dir}/{blockId}. others are ignored.
+   */
+  private void initializeMeta() {
+    File dir = new File(mDirPath);
+    FileFilter filter = new MetaFileFilter();
+    File[] files = dir.listFiles(filter);
+    if (files == null) {
+      return;
+    }
+    for (File file : files) {
+      try {
+        long blockId = Long.valueOf(file.getName());
+        addBlockMeta(new BlockMeta(blockId, file.length(), this));
+      } catch (IOException ioe) {
+        LOG.warn("can not add block meta of file %s: %s", file.getAbsolutePath(), ioe);
+      }
+    }
   }
 
   public long getCapacityBytes() {
