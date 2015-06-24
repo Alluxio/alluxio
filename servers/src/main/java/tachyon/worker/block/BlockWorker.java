@@ -223,7 +223,7 @@ public class BlockWorker {
    * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
    * @return the worker's address
    */
-  public InetSocketAddress getWorkerAddress() {
+  private InetSocketAddress getWorkerAddress() {
     String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
     int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
     return new InetSocketAddress(workerHostname, workerPort);
