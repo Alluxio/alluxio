@@ -15,14 +15,9 @@
 
 package tachyon.network.protocol;
 
-import java.nio.ByteBuffer;
-
 import com.google.common.primitives.Longs;
 
 import io.netty.buffer.ByteBuf;
-
-import tachyon.network.protocol.databuffer.DataBuffer;
-import tachyon.network.protocol.databuffer.DataByteBuffer;
 
 /**
  * This represents the response to a {@link RPCBlockWriteRequest}.
@@ -32,12 +27,16 @@ public class RPCBlockWriteResponse extends RPCResponse {
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
+  // true if write succeeded.
+  private final boolean mStatus;
 
-  public RPCBlockWriteResponse(long userId, long blockId, long offset, long length) {
+  public RPCBlockWriteResponse(long userId, long blockId, long offset, long length,
+      boolean status) {
     mUserId = userId;
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
+    mStatus = status;
   }
 
   public Type getType() {
@@ -55,13 +54,14 @@ public class RPCBlockWriteResponse extends RPCResponse {
     long blockId = in.readLong();
     long offset = in.readLong();
     long length = in.readLong();
-    return new RPCBlockWriteResponse(userId, blockId, offset, length);
+    boolean status = in.readBoolean();
+    return new RPCBlockWriteResponse(userId, blockId, offset, length, status);
   }
 
   @Override
   public int getEncodedLength() {
-    // 4 longs (mUserId, mBLockId, mOffset, mLength)
-    return Longs.BYTES * 4;
+    // 4 longs (mUserId, mBLockId, mOffset, mLength) + 1 boolean (mStatus)
+    return Longs.BYTES * 4 + 1;
   }
 
   @Override
@@ -70,6 +70,7 @@ public class RPCBlockWriteResponse extends RPCResponse {
     out.writeLong(mBlockId);
     out.writeLong(mOffset);
     out.writeLong(mLength);
+    out.writeBoolean(mStatus);
   }
 
   public long getUserId() {
@@ -86,5 +87,9 @@ public class RPCBlockWriteResponse extends RPCResponse {
 
   public long getOffset() {
     return mOffset;
+  }
+
+  public boolean getStatus() {
+    return mStatus;
   }
 }
