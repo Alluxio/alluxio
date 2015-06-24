@@ -13,140 +13,96 @@
  * the License.
  */
 
-// TODO: Reenable this
-/*
 package tachyon.worker.block.meta;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-import tachyon.Constants;
-import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.InvalidPathException;
-import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
-import tachyon.worker.block.io.BlockHandler;
-import tachyon.worker.WorkerSource;
-import tachyon.worker.block.meta.StorageDir;
-import tachyon.worker.block.meta.StorageTier;
 
 public class StorageTierTest {
+  private static final long TEST_USER_ID = 2;
+  private static final long TEST_TEMP_BLOCK_ID = 10;
+  private static final long TEST_BLOCK_SIZE = 20;
+  private static final String TEST_DIR1_PATH = "/mnt/ramdisk/0/";
+  private static final String TEST_DIR2_PATH = "/mnt/ramdisk/1/";
+  private static final long TEST_DIR1_CAPACITY = 2000;
+  private static final long TEST_DIR2_CAPACITY = 3000;
+  private static final int TEST_TIER_LEVEL = 0;
+  private static final int TEST_TIER_ALIAS = 1;
+  private StorageTier mTier;
+  private StorageDir mDir1;
+  private TempBlockMeta mTempBlockMeta;
 
-  private static final long USER_ID = 1;
-
-  private StorageTier[] mStorageTiers;
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Before
-  public final void before() throws IOException, InvalidPathException {
-    String tachyonHome =
-        File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
-
-    final int maxLevel = 2;
-
+  public final void before() throws Exception {
     TachyonConf tachyonConf = new TachyonConf();
-    tachyonConf.set(Constants.TACHYON_HOME, tachyonHome);
-
-    // Setup conf for worker
-    tachyonConf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, Integer.toString(maxLevel));
     tachyonConf.set("tachyon.worker.tieredstore.level0.alias", "MEM");
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", tachyonHome + "/ramdisk");
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", 1000 + "");
-    tachyonConf.set("tachyon.worker.tieredstore.level1.alias", "HDD");
-    tachyonConf.set("tachyon.worker.tieredstore.level1.dirs.path", tachyonHome + "/disk1,"
-        + tachyonHome + "/disk2");
-    tachyonConf.set("tachyon.worker.tieredstore.level1.dirs.quota", 4000 + "," + 4000);
+    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", TEST_DIR1_PATH + ","
+        + TEST_DIR2_PATH);
+    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", TEST_DIR1_CAPACITY + ","
+        + TEST_DIR2_CAPACITY);
 
-    mStorageTiers = new StorageTier[maxLevel];
-    StorageTier nextTier = null;
-    for (int level = maxLevel - 1; level >= 0; level --) {
-      StorageTier curTier = new StorageTier(level, tachyonConf, nextTier, new WorkerSource(null));
-      mStorageTiers[level] = curTier;
-      curTier.initialize();
-      for (StorageDir dir : curTier.getStorageDirs()) {
-        initializeStorageDir(dir, USER_ID);
-      }
-      nextTier = curTier;
-    }
-  }
+    mTier = new StorageTier(tachyonConf, TEST_TIER_LEVEL, TEST_TIER_ALIAS);
+    mDir1 = mTier.getDir(0);
+    mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
 
-  private void createBlockFile(StorageDir dir, long blockId, int blockSize) throws IOException {
-    byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
-    BlockHandler bhSrc = BlockHandler.get(dir.getUserTempFilePath(USER_ID, blockId));
-    try {
-      bhSrc.append(0, ByteBuffer.wrap(buf));
-    } finally {
-      bhSrc.close();
-    }
-    dir.cacheBlock(USER_ID, blockId);
   }
 
   @Test
-  public void getStorageDirTest() throws IOException {
-    long blockId = 1;
-    List<Long> removedBlockIds = new ArrayList<Long>();
-    StorageDir dir =
-        mStorageTiers[0].requestSpace(USER_ID, 100, new HashSet<Integer>(), removedBlockIds);
-    dir.updateTempBlockAllocatedBytes(USER_ID, blockId, 100);
-    createBlockFile(dir, blockId, 100);
-    Assert.assertEquals(100, mStorageTiers[0].getUsedBytes());
-    StorageDir dir1 = mStorageTiers[0].getStorageDirByBlockId(1);
-    Assert.assertEquals(dir, dir1);
-    dir1 = mStorageTiers[0].getStorageDirByBlockId(2);
-    Assert.assertEquals(null, dir1);
-    dir = mStorageTiers[1].getStorageDirByIndex(1);
-    Assert.assertEquals(mStorageTiers[1].getStorageDirs()[1], dir);
-    dir1 = mStorageTiers[1].getStorageDirByIndex(2);
-    Assert.assertEquals(null, dir1);
-  }
-
-  private void initializeStorageDir(StorageDir dir, long userId) throws IOException {
-    UnderFileSystem ufs = dir.getUfs();
-    ufs.mkdirs(dir.getUserTempPath(userId), true);
-    CommonUtils.changeLocalFileToFullPermission(dir.getUserTempPath(userId));
+  public void getTierAliasTest() {
+    Assert.assertEquals(TEST_TIER_ALIAS, mTier.getTierAlias());
   }
 
   @Test
-  public void isLastTierTest() {
-    Assert.assertEquals(false, mStorageTiers[0].isLastTier());
-    Assert.assertEquals(true, mStorageTiers[1].isLastTier());
+  public void getTierLevelTest() {
+    Assert.assertEquals(TEST_TIER_LEVEL, mTier.getTierLevel());
   }
 
   @Test
-  public void requestSpaceTest() throws IOException {
-    long blockId = 1;
-    List<Long> removedBlockIds = new ArrayList<Long>();
-    Assert.assertEquals(1000, mStorageTiers[0].getCapacityBytes());
-    Assert.assertEquals(8000, mStorageTiers[1].getCapacityBytes());
-    StorageDir dir =
-        mStorageTiers[0].requestSpace(USER_ID, 500, new HashSet<Integer>(), removedBlockIds);
-    dir.updateTempBlockAllocatedBytes(USER_ID, blockId, 500);
-    Assert.assertEquals(mStorageTiers[0].getStorageDirs()[0], dir);
-    Assert.assertEquals(500, dir.getAvailableBytes());
-    Assert.assertEquals(500, dir.getUsedBytes());
-    StorageDir dir1 =
-        mStorageTiers[0].requestSpace(USER_ID, 501, new HashSet<Integer>(), removedBlockIds);
-    Assert.assertEquals(null, dir1);
-    createBlockFile(dir, blockId, 500);
-    Assert.assertEquals(500, mStorageTiers[0].getUsedBytes());
-    boolean request =
-        mStorageTiers[0].requestSpace(dir, USER_ID, 501, new HashSet<Integer>(), removedBlockIds);
-    Assert.assertTrue(request);
-    Assert.assertEquals(499, dir.getAvailableBytes());
-    Assert.assertEquals(501, dir.getUsedBytes());
-    Assert.assertTrue(mStorageTiers[1].containsBlock(blockId));
-    Assert.assertEquals(500, mStorageTiers[1].getUsedBytes());
-    request =
-        mStorageTiers[0].requestSpace(dir, USER_ID, 500, new HashSet<Integer>(), removedBlockIds);
-    Assert.assertEquals(false, request);
+  public void getCapacityBytesTest() throws IOException {
+    Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getCapacityBytes());
+
+    // Capacity should not change after adding block to a dir.
+    mDir1.addTempBlockMeta(mTempBlockMeta);
+    Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getCapacityBytes());
+  }
+
+  @Test
+  public void getAvailableBytesTest() throws IOException {
+    Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getAvailableBytes());
+
+    // Capacity should subtract block size after adding block to a dir.
+    mDir1.addTempBlockMeta(mTempBlockMeta);
+    Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY - TEST_BLOCK_SIZE,
+        mTier.getAvailableBytes());
+  }
+
+  @Test
+  public void getDirTest() {
+    mThrown.expect(IndexOutOfBoundsException.class);
+    StorageDir dir1 = mTier.getDir(0);
+    Assert.assertEquals(TEST_DIR1_PATH, dir1.getDirPath());
+    StorageDir dir2 = mTier.getDir(1);
+    Assert.assertEquals(TEST_DIR2_PATH, dir2.getDirPath());
+    // Get dir by a non-existing index, expect getDir to fail and throw IndexOutOfBoundsException
+    mTier.getDir(2);
+  }
+
+  @Test
+  public void getStorageDirsTest() {
+    List<StorageDir> dirs = mTier.getStorageDirs();
+    Assert.assertEquals(2, dirs.size());
+    Assert.assertEquals(TEST_DIR1_PATH, dirs.get(0).getDirPath());
+    Assert.assertEquals(TEST_DIR2_PATH, dirs.get(1).getDirPath());
   }
 }
-*/
