@@ -24,6 +24,6 @@
   with_items: ec2.instances
 
 - name: Save instance info
-  template: src=ec2.j2 dest="{{ temp_folder }}/ec2.info"
+  template: src=ec2.j2 dest="{{ ansible_info_dir }}/ec2.info"
 
 # vim :set filetype=ansible.yaml:
