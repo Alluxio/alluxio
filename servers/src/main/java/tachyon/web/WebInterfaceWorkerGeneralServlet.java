@@ -88,7 +88,8 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);
 
-    request.setAttribute("workerAddress", mWorker.getWorkerAddress().toString());
+    request.setAttribute("workerAddress", mWorker.getWorkerNetAddress().getMHost() + ":"
+        + mWorker.getWorkerNetAddress().getMPort());
 
     request.setAttribute("uptime",
         Utils.convertMsToClockTime(System.currentTimeMillis() - mWorker.getStartTimeMs()));
@@ -115,13 +116,10 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
     request.setAttribute("usedBytesOnTiers", usedBytesOnTiers);
 
-    List<UiStorageDir> storageDirs = new ArrayList<UiStorageDir>();
+    List<UiStorageDir> storageDirs = new ArrayList<UiStorageDir>(storeMeta.getDirPaths().size());
     for (long dirId : storeMeta.getDirPaths().keySet()) {
-      storageDirs.add(new UiStorageDir(
-          dirId,
-          storeMeta.getDirPaths().get(dirId),
-          storeMeta.getCapacityBytesOnDirs().get(dirId),
-          storeMeta.getUsedBytesOnDirs().get(dirId)));
+      storageDirs.add(new UiStorageDir(dirId, storeMeta.getDirPaths().get(dirId), storeMeta
+          .getCapacityBytesOnDirs().get(dirId), storeMeta.getUsedBytesOnDirs().get(dirId)));
     }
 
     request.setAttribute("storageDirs", storageDirs);
