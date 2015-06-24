@@ -72,7 +72,7 @@ public class RPCBlockWriteRequest extends RPCRequest {
 
   @Override
   public int getEncodedLength() {
-    // 4 longs (mUserId, mBLockId, mOffset, mLength)
+    // 4 longs (mUserId, mBlockId, mOffset, mLength)
     return Longs.BYTES * 4;
   }
 

@@ -60,7 +60,7 @@ public class RPCBlockWriteResponse extends RPCResponse {
 
   @Override
   public int getEncodedLength() {
-    // 4 longs (mUserId, mBLockId, mOffset, mLength) + 1 boolean (mStatus)
+    // 4 longs (mUserId, mBlockId, mOffset, mLength) + 1 boolean (mStatus)
     return Longs.BYTES * 4 + 1;
   }
 

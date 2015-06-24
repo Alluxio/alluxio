@@ -60,7 +60,7 @@ public class RPCBlockRequest extends RPCRequest {
   @Override
   public int getEncodedLength() {
     // TODO: adjust the length when client also uses netty.
-    // 3 longs (mBLockId, mOffset, mLength) + 1 short (DATA_SERVER_REQUEST_MESSAGE)
+    // 3 longs (mBlockId, mOffset, mLength) + 1 short (DATA_SERVER_REQUEST_MESSAGE)
     return Longs.BYTES * 3 + Shorts.BYTES;
   }
 
