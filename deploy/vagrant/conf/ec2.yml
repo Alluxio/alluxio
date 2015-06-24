@@ -17,8 +17,8 @@ Instance_Type: "t2.small"
 # specify this to illustrate the usage of your cluster, especially when you
 # share the EC2 with others, without tags, it's hard to tell which cluster is yours. 
 #
-# The machines will be named to {Tag}TachyonMaster, {Tag}TachyonWorker1...
-Tag: "my-"
+# The machines will be named to {Tag}-TachyonMaster, {Tag}-TachyonWorker1...
+Tag: "my"
 
 # By default, EC2 instance only mounts 10GB under root directory '/'.
 # Different instance types provide different amount of extra disk spaces,
