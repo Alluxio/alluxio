@@ -19,6 +19,7 @@ deploy/vagrant/vbox/shared/
 deploy/vagrant/conf/init.yml
 deploy/vagrant/spot/roles/create_ec2/vars/
 deploy/vagrant/spot/roles/tag_ec2/vars/
+deploy/vagrant/bin/*.pyc
 docs/_site
 docs/api
 docs/serve/
