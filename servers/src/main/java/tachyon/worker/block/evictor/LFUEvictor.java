@@ -129,7 +129,7 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
   /** Map from blockId to corresponding Node */
   private Map<Long, Node> mCache;
 
-  private BlockMetadataManager mMeta;
+  private final BlockMetadataManager mMeta;
 
   public LFUEvictor(BlockMetadataManager meta) {
     mMeta = meta;

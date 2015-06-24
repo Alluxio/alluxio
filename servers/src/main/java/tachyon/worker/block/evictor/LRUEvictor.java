@@ -91,7 +91,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
     Node p = mHead.nextNode();
     long evictBytes = 0;
     // erase race condition with onAccessBlock on internal data structure
-    synchronized (mTail) {
+    synchronized (mMeta) {
       while (p != mTail && evictBytes < bytes) {
         Node next = p.nextNode();
         boolean remove = false;
@@ -126,7 +126,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
   @Override
   public void onAccessBlock(long userId, long blockId) {
     Node node;
-    synchronized (mTail) {
+    synchronized (mMeta) {
       if (mCache.containsKey(blockId)) {
         node = mCache.get(blockId);
         node.remove();
