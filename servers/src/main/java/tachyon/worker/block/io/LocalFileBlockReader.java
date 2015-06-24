@@ -37,7 +37,6 @@ import tachyon.worker.block.meta.BlockMeta;
  */
 public class LocalFileBlockReader implements BlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final BlockMeta mBlockMeta;
   private final String mFilePath;
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
@@ -45,8 +44,11 @@ public class LocalFileBlockReader implements BlockReader {
   private final long mFileSize;
 
   public LocalFileBlockReader(BlockMeta blockMeta) throws IOException {
-    mBlockMeta = Preconditions.checkNotNull(blockMeta);
-    mFilePath = mBlockMeta.getPath();
+    this(Preconditions.checkNotNull(blockMeta).getPath());
+  }
+
+  public LocalFileBlockReader(String path) throws IOException {
+    mFilePath = Preconditions.checkNotNull(path);
     mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "r"));
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
     mFileSize = mLocalFile.length();
@@ -65,9 +67,9 @@ public class LocalFileBlockReader implements BlockReader {
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkArgument(offset + length <= mFileSize,
-        "offset=%s, length=%s, exceeds file size(%s)", offset, length, mFileSize);
+        "offset=%s, length=%s, exceeding fileSize=%s", offset, length, mFileSize);
     // TODO: May need to make sure length is an int
-    if (length == -1) {
+    if (length == -1L) {
       length = mFileSize - offset;
     }
     return mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
