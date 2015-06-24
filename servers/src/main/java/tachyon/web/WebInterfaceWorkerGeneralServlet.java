@@ -116,7 +116,7 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     request.setAttribute("usedBytesOnTiers", usedBytesOnTiers);
 
     List<UiStorageDir> storageDirs = new ArrayList<UiStorageDir>();
-    for (long dirId : storeMeta.getCapacityBytesOnDirs().keySet()) {
+    for (long dirId : storeMeta.getDirPaths().keySet()) {
       storageDirs.add(new UiStorageDir(
           dirId,
           storeMeta.getDirPaths().get(dirId),

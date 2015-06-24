@@ -17,6 +17,7 @@ package tachyon.worker.block;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +37,7 @@ public class BlockStoreMeta {
   Map<Long, List<Long>> mBlockIdsOnDirs = new HashMap<Long, List<Long>>();
   Map<Long, Long> mCapacityBytesOnDirs = new HashMap<Long, Long>();
   Map<Long, Long> mUsedBytesOnDirs = new HashMap<Long, Long>();
-  Map<Long, String> mDirPaths = new HashMap<Long, String>();
+  Map<Long, String> mDirPaths = new LinkedHashMap<Long, String>();
 
   public BlockStoreMeta(BlockMetadataManager manager) {
     Preconditions.checkNotNull(manager);
