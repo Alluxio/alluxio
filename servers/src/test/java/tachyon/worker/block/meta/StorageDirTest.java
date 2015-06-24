@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -43,7 +43,7 @@ public class StorageDirTest {
   private TempBlockMeta mTempBlockMeta;
 
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() {
@@ -111,16 +111,16 @@ public class StorageDirTest {
   public void addBlockMetaTooBigTest() throws IOException {
     final long bigBlockSize = TEST_DIR_CAPACITY + 1;
     BlockMeta bigBlockMeta = new BlockMeta(TEST_BLOCK_ID, bigBlockSize, mDir);
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Failed to add BlockMeta: blockId " + TEST_BLOCK_ID + " is "
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Failed to add BlockMeta: blockId " + TEST_BLOCK_ID + " is "
         + bigBlockSize + " bytes, but only " + TEST_DIR_CAPACITY + " bytes available");
     mDir.addBlockMeta(bigBlockMeta);
   }
 
   @Test
   public void addBlockMetaExistingTest() throws IOException {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Failed to add BlockMeta: blockId " + TEST_BLOCK_ID + " exists");
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Failed to add BlockMeta: blockId " + TEST_BLOCK_ID + " exists");
     mDir.addBlockMeta(mBlockMeta);
     BlockMeta dupBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mDir.addBlockMeta(dupBlockMeta);
@@ -128,23 +128,23 @@ public class StorageDirTest {
 
   @Test
   public void removeBlockMetaNotExistingTest() throws IOException {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Failed to remove BlockMeta: blockId " + TEST_BLOCK_ID + " not found");
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Failed to remove BlockMeta: blockId " + TEST_BLOCK_ID + " not found");
     mDir.removeBlockMeta(mBlockMeta);
   }
 
   @Test
   public void getBlockMetaNotExistingTest() throws IOException {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Failed to get BlockMeta: blockId " + TEST_BLOCK_ID + " not found in ");
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Failed to get BlockMeta: blockId " + TEST_BLOCK_ID + " not found in ");
     mDir.getBlockMeta(TEST_BLOCK_ID);
   }
 
   @Test
   public void addTempBlockMetaTooBigTest() throws IOException {
     final long bigBlockSize = TEST_DIR_CAPACITY + 1;
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Failed to add TempBlockMeta: blockId " + TEST_TEMP_BLOCK_ID + " is "
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Failed to add TempBlockMeta: blockId " + TEST_TEMP_BLOCK_ID + " is "
         + bigBlockSize + " bytes, but only " + TEST_DIR_CAPACITY + " bytes available");
     TempBlockMeta bigTempBlockMeta =
         new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, bigBlockSize, mDir);
@@ -153,8 +153,8 @@ public class StorageDirTest {
 
   @Test
   public void addTempBlockMetaExistingTest() throws IOException {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Failed to add TempBlockMeta: blockId " + TEST_TEMP_BLOCK_ID + " exists");
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Failed to add TempBlockMeta: blockId " + TEST_TEMP_BLOCK_ID + " exists");
     mDir.addTempBlockMeta(mTempBlockMeta);
     TempBlockMeta dupTempBlockMeta =
         new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
@@ -163,8 +163,8 @@ public class StorageDirTest {
 
   @Test
   public void removeTempBlockMetaNotExistingTest() throws IOException {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Failed to remove TempBlockMeta: blockId " + TEST_TEMP_BLOCK_ID + " not "
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Failed to remove TempBlockMeta: blockId " + TEST_TEMP_BLOCK_ID + " not "
         + "found");
     mDir.removeTempBlockMeta(mTempBlockMeta);
   }
@@ -172,8 +172,8 @@ public class StorageDirTest {
   @Test
   public void removeTempBlockMetaNotOwnerTest() throws IOException {
     final long wrongUserId = TEST_USER_ID + 1;
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Failed to remove TempBlockMeta: blockId " + TEST_TEMP_BLOCK_ID
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Failed to remove TempBlockMeta: blockId " + TEST_TEMP_BLOCK_ID
         + " has userId " + wrongUserId + " not found");
     mDir.addTempBlockMeta(mTempBlockMeta);
     TempBlockMeta wrongTempBlockMeta =
@@ -183,8 +183,8 @@ public class StorageDirTest {
 
   @Test
   public void getTempBlockMetaNotExistingTest() throws IOException {
-    thrown.expect(IOException.class);
-    thrown.expectMessage("Failed to get BlockMeta: blockId " + TEST_TEMP_BLOCK_ID
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Failed to get BlockMeta: blockId " + TEST_TEMP_BLOCK_ID
         + " not found in ");
     mDir.getBlockMeta(TEST_TEMP_BLOCK_ID);
   }
