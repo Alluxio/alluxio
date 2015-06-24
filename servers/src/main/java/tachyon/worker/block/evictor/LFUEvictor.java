@@ -24,8 +24,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
-
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.worker.BlockStoreLocation;
@@ -182,41 +180,22 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
       return plan;
     }
 
-    // map from directory to a pair of id of blocks to evict and total size of these blocks
-    Map<BlockStoreLocation, Pair<List<Long>, Long>> dirCandidate =
-        new HashMap<BlockStoreLocation, Pair<List<Long>, Long>>();
-    long maxEvictBytes = 0;
-    BlockStoreLocation dirWithMaxEvictBytes = null;
+    EvictionCandidates dirCandidates = new EvictionCandidates();
 
     synchronized (mLock) {
       CountNode head = mHead;
       // layer by layer
-      while (maxEvictBytes < bytes && head != null) {
+      while (dirCandidates.maxAvailableBytes() < bytes && head != null) {
         Node p = head.mFirst;
         // in each layer, left to right
-        while (maxEvictBytes < bytes && p != null) {
+        while (dirCandidates.maxAvailableBytes() < bytes && p != null) {
           Node next = p.nextNode();
 
           try {
             BlockMeta meta = mMeta.getBlockMeta(p.mBlockId);
             BlockStoreLocation dir = meta.getBlockLocation();
             if (dir.belongTo(location)) {
-              Pair<List<Long>, Long> candidate;
-              if (dirCandidate.containsKey(dir)) {
-                candidate = dirCandidate.get(dir);
-              } else {
-                candidate = new Pair<List<Long>, Long>(new ArrayList<Long>(), 0L);
-                dirCandidate.put(dir, candidate);
-              }
-
-              candidate.getFirst().add(meta.getBlockId());
-              long evictBytes = candidate.getSecond() + meta.getBlockSize();
-              candidate.setSecond(evictBytes);
-
-              if (maxEvictBytes < evictBytes) {
-                maxEvictBytes = evictBytes;
-                dirWithMaxEvictBytes = dir;
-              }
+              dirCandidates.add(dir, meta.getBlockId(), meta.getBlockSize());
             }
           } catch (IOException ioe) {
             LOG.warn("Remove block %d because %s", p.mBlockId, ioe);
@@ -230,8 +209,8 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
         head = head.nextCountNode();
       }
 
-      if (maxEvictBytes >= bytes) {
-        toEvict = dirCandidate.get(dirWithMaxEvictBytes).getFirst();
+      if (dirCandidates.maxAvailableBytes() >= bytes) {
+        toEvict = dirCandidates.toEvict();
         for (long blockId : toEvict) {
           removeNode(mCache.get(blockId));
         }
