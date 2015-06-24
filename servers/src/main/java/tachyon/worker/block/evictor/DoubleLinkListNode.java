@@ -16,30 +16,31 @@
 package tachyon.worker.block.evictor;
 
 class DoubleLinkListNode {
-  public DoubleLinkListNode prev, next;
+  protected DoubleLinkListNode mPrev;
+  protected DoubleLinkListNode mNext;
 
   public DoubleLinkListNode() {
-    prev = next = null;
+    mPrev = mNext = null;
   }
 
   // remove itself from the list
   public void remove() {
-    if (prev != null) {
-      prev.next = next;
+    if (mPrev != null) {
+      mPrev.mNext = mNext;
     }
-    if (next != null) {
-      next.prev = prev;
+    if (mNext != null) {
+      mNext.mPrev = mPrev;
     }
-    prev = next = null;
+    mPrev = mNext = null;
   }
 
   // append next to itself
   public void append(DoubleLinkListNode node) {
-    node.next = next;
-    node.prev = this;
-    next = node;
-    if (node.next != null) {
-      node.next.prev = node;
+    node.mNext = mNext;
+    node.mPrev = this;
+    mNext = node;
+    if (node.mNext != null) {
+      node.mNext.mPrev = node;
     }
   }
 }

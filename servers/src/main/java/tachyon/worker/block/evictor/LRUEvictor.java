@@ -40,20 +40,24 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
 
   /** Double-Link List, most recently accessed block is at tail of the list */
   private class Node extends DoubleLinkListNode {
-    long blockId;
+    long mBlockId;
 
     Node() {
-      blockId = -1;
-      prev = next = null;
+      super();
+      mBlockId = -1;
     }
 
     Node(long blkId) {
-      blockId = blkId;
-      prev = next = null;
+      super();
+      mBlockId = blkId;
     }
 
-    Node nextNode() {
-      return (Node) next;
+    Node next() {
+      return (Node)mNext;
+    }
+
+    Node prev() {
+      return (Node)mPrev;
     }
   }
 
@@ -89,29 +93,29 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
 
-    Node p = mHead.nextNode();
+    Node p = mHead.next();
     long evictBytes = 0;
     // erase race condition with onAccessBlock on internal data structure
     synchronized (mLock) {
       while (p != mTail && evictBytes < bytes) {
-        Node next = p.nextNode();
+        Node next = p.next();
         boolean remove = false;
 
         try {
-          BlockMeta meta = mMeta.getBlockMeta(p.blockId);
+          BlockMeta meta = mMeta.getBlockMeta(p.mBlockId);
           if (meta.getBlockLocation().belongTo(location)) {
             evictBytes += meta.getBlockSize();
-            toEvict.add(p.blockId);
+            toEvict.add(p.mBlockId);
             remove = true;
           }
         } catch (IOException ioe) {
-          LOG.warn("Remove block %d from LRU Cache because %s", p.blockId, ioe);
+          LOG.warn("Remove block %d from LRU Cache because %s", p.mBlockId, ioe);
           remove = true;
         }
 
         if (remove) {
           p.remove();
-          mCache.remove(p.blockId);
+          mCache.remove(p.mBlockId);
         }
 
         p = next;
@@ -135,7 +139,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
         node = new Node(blockId);
         mCache.put(blockId, node);
       }
-      mTail.prev.append(node);
+      mTail.prev().append(node);
     }
   }
 }

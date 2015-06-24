@@ -56,50 +56,52 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
    * If the access count arrives at limit of {@code long}, it will no longer be increased
    */
   class CountNode extends DoubleLinkListNode {
-    long count;
-    Node first, last;
+    long mCount;
+    Node mFirst;
+    Node mLast;
 
     CountNode() {
-      count = 0;
-      prev = next = null;
-      first = last = null;
+      super();
+      mCount = 0;
+      mFirst = mLast = null;
     }
 
     CountNode(long count) {
-      this.count = count;
-      prev = next = null;
-      first = last = null;
+      super();
+      mCount = count;
+      mFirst = mLast = null;
     }
 
     void appendNode(Node node) {
-      if (first == null) {
-        first = node;
-        node.prev = first;
+      if (mFirst == null) {
+        mFirst = node;
+        node.mPrev = mFirst;
       } else {
-        last.append(node);
-        last = node;
+        mLast.append(node);
+        mLast = node;
       }
-      last = node;
+      mLast = node;
     }
 
     CountNode nextCountNode() {
-      return (CountNode)next;
+      return (CountNode)mNext;
     }
   }
+
   class Node extends DoubleLinkListNode {
-    long blockId;
-    CountNode head;
+    long mBlockId;
+    CountNode mHead;
 
     Node() {
-      blockId = -1;
-      prev = next = null;
-      head = null;
+      super();
+      mBlockId = -1;
+      mHead = null;
     }
 
     Node(long id) {
-      blockId = id;
-      prev = next = null;
-      head = null;
+      super();
+      mBlockId = id;
+      mHead = null;
     }
 
     // assume next layer exists and have elements other than the count node
@@ -109,19 +111,19 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
     }
 
     long count() {
-      return head.count;
+      return mHead.mCount;
     }
 
     Node first() {
-      return head.first;
+      return mHead.mFirst;
     }
 
     CountNode nextLayerHead() {
-      return head.nextCountNode();
+      return mHead.nextCountNode();
     }
 
     Node nextNode() {
-      return (Node)next;
+      return (Node)mNext;
     }
   }
 
@@ -149,11 +151,11 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
           return;
         }
         if (node.nextLayerHead() == null && node.first() == node) { // only Node in last layer
-          node.head.count += 1;
+          node.mHead.mCount += 1;
         } else {
-          if (node.nextLayerHead() == null || node.nextLayerHead().count != node.count() + 1) {
+          if (node.nextLayerHead() == null || node.nextLayerHead().mCount != node.count() + 1) {
             // create new layer
-            node.head.append(new CountNode(node.count() + 1));
+            node.mHead.append(new CountNode(node.count() + 1));
           }
           node.appendToNextLayer();
         }
@@ -176,27 +178,27 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
       CountNode head = mHead;
       // layer by layer
       while (evictBytes < bytes && head != null) {
-        Node p = head.first;
+        Node p = head.mFirst;
         // in each layer, left to right
         while (evictBytes < bytes && p != null) {
           Node next = p.nextNode();
           boolean remove = false;
 
           try {
-            BlockMeta meta = mMeta.getBlockMeta(p.blockId);
+            BlockMeta meta = mMeta.getBlockMeta(p.mBlockId);
             if (meta.getBlockLocation().belongTo(location)) {
-              toEvict.add(p.blockId);
+              toEvict.add(p.mBlockId);
               evictBytes += meta.getBlockSize();
               remove = true;
             }
           } catch (IOException ioe) {
-            LOG.warn("Remove block %d because %s", p.blockId, ioe);
+            LOG.warn("Remove block %d because %s", p.mBlockId, ioe);
             remove = true;
           }
 
           if (remove) {
             p.remove();
-            mCache.remove(p.blockId);
+            mCache.remove(p.mBlockId);
           }
 
           // go to next right node
