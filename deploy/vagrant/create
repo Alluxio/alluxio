@@ -50,14 +50,14 @@ python bin/init.py $PROVIDER
 
 # if "PROVIDER" is "aws" and "Spot_Price" is set in conf/ec2.yml, 
 # return true and generate variables in spot/vars, otherwise return false.
-IS_AWS_SPOT=`python bin/init.py $PROVIDER --is-aws-spot`
+IS_AWS_SPOT=`python bin/is_aws_spot.py`
 # start machine without provisioning
 if [[ "$IS_AWS_SPOT" == "true" ]]; then
   # vagrant aws does not support spot instance, use ansible as a workaround
   echo "waiting for AWS EC2 Spot Instances to be available..."
   ansible-playbook spot/create.yml
   # generate inventory, vars and tags
-  python bin/init.py $PROVIDER --prepare-aws-spot
+  python bin/save_aws_spot_info.py
   # tag instances
   ansible-playbook spot/tag.yml
 else
