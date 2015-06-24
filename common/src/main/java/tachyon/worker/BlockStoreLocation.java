@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -62,7 +62,8 @@ public class BlockStoreLocation {
   /**
    * Whether this location belongs to the specific location
    *
-   * a location A belongs to B either when A.equals(B) or tier and dir of A are all in the range of B
+   * a location A belongs to B either when A.equals(B) or tier and dir of A are all in the range of
+   * B
    *
    * @param location the target BlockStoreLocation
    * @return true when this BlockStoreLocation belongs to the target, otherwise false
@@ -71,7 +72,8 @@ public class BlockStoreLocation {
     if (equals(location)) {
       return true;
     }
-    boolean tierInRange = (tierAlias() == location.tierAlias()) || (location.tierAlias() == ANY_TIER);
+    boolean tierInRange =
+        (tierAlias() == location.tierAlias()) || (location.tierAlias() == ANY_TIER);
     boolean dirInRange = (dir() == location.dir()) || (location.dir() == ANY_DIR);
     return tierInRange && dirInRange;
   }
