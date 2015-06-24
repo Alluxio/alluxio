@@ -97,7 +97,7 @@ public class StorageTier {
    *
    * @param blockId the ID of the block
    * @return BlockMeta
-   * @throws IOException if no BlockMeta for this blockId is found in this StorageDir
+   * @throws IOException if no BlockMeta for this blockId is found in this StorageTier
    */
   public BlockMeta getBlockMeta(long blockId) throws IOException {
     for (StorageDir dir : mDirs) {
