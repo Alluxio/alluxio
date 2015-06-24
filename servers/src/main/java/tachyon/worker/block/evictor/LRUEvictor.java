@@ -53,11 +53,11 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
     }
 
     Node next() {
-      return (Node)mNext;
+      return (Node) mNext;
     }
 
     Node prev() {
-      return (Node)mPrev;
+      return (Node) mPrev;
     }
   }
 
@@ -76,53 +76,70 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
     mCache = new HashMap<Long, Node>();
   }
 
-  /**
-   * Free space in the given block store location. The location can be a specific location, or
-   * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)} .
-   *
-   * If the total free space is fewer than {@code bytes}, they will all be evicted
-   * 
-   * Thread safe.
-   *
-   * @param bytes the size in bytes
-   * @param location the location in block store
-   * @return an eviction plan to achieve the freed space
-   */
   @Override
-  public EvictionPlan freeSpace(long bytes, BlockStoreLocation location) {
+  public EvictionPlan freeSpace(long bytes, BlockStoreLocation location) throws IOException {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
+    EvictionPlan plan = null;
+
+    if (bytes <= 0) {
+      plan = new EvictionPlan(toMove, toEvict);
+      return plan;
+    }
+
+    // map from directory to a pair of id of blocks to evict and total size of these blocks
+    Map<BlockStoreLocation, Pair<List<Long>, Long>> dirCandidate =
+        new HashMap<BlockStoreLocation, Pair<List<Long>, Long>>();
 
     Node p = mHead.next();
-    long evictBytes = 0;
+    long maxEvictBytes = 0;
+    BlockStoreLocation dirWithMaxEvictBytes = null;
     // erase race condition with onAccessBlock on internal data structure
     synchronized (mLock) {
-      while (p != mTail && evictBytes < bytes) {
+      while (p != mTail && maxEvictBytes < bytes) {
         Node next = p.next();
-        boolean remove = false;
 
         try {
           BlockMeta meta = mMeta.getBlockMeta(p.mBlockId);
-          if (meta.getBlockLocation().belongTo(location)) {
-            evictBytes += meta.getBlockSize();
-            toEvict.add(p.mBlockId);
-            remove = true;
+
+          BlockStoreLocation dir = meta.getBlockLocation();
+          if (dir.belongTo(location)) {
+            Pair<List<Long>, Long> candidate;
+            if (dirCandidate.containsKey(dir)) {
+              candidate = dirCandidate.get(dir);
+            } else {
+              candidate = new Pair<List<Long>, Long>(new ArrayList<Long>(), 0L);
+              dirCandidate.put(dir, candidate);
+            }
+
+            candidate.getFirst().add(meta.getBlockId());
+            long evictBytes = candidate.getSecond() + meta.getBlockSize();
+            candidate.setSecond(evictBytes);
+
+            if (maxEvictBytes < evictBytes) {
+              maxEvictBytes = evictBytes;
+              dirWithMaxEvictBytes = dir;
+            }
           }
         } catch (IOException ioe) {
           LOG.warn("Remove block %d from LRU Cache because %s", p.mBlockId, ioe);
-          remove = true;
-        }
-
-        if (remove) {
-          p.remove();
-          mCache.remove(p.mBlockId);
+          removeNode(p);
         }
 
         p = next;
       }
+
+      // enough free space
+      if (maxEvictBytes >= bytes) {
+        toEvict = dirCandidate.get(dirWithMaxEvictBytes).getFirst();
+        for (Long blockId : toEvict) {
+          removeNode(mCache.get(blockId));
+        }
+        plan = new EvictionPlan(toMove, toEvict);
+      }
     }
 
-    return new EvictionPlan(toMove, toEvict);
+    return plan;
   }
 
   /**
@@ -141,5 +158,10 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
       }
       mTail.prev().append(node);
     }
+  }
+
+  private void removeNode(Node p) {
+    p.remove();
+    mCache.remove(p.mBlockId);
   }
 }
