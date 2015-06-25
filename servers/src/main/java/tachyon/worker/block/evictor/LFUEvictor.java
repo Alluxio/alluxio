@@ -40,15 +40,20 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
    * Layered Double-Linked List
    *
    * "n" such as "1" represents access count, corresponding to class CountNode.
-   * "o" represents class Node.
+   * 
+   * "o" represents class Node, each "o" has a pointer to the first "n" in the same row.
+   * 
    * "->" represents single direction link.
+   * 
    * "-" represents bi-directional link.
    *
+   * {@literal
    * 1 -> o - o
    * |
    * 2 -> o
    * |
    * ...
+   * }
    *
    * When a Node is accessed, move it to next layer, if next layer represents the same access count
    * with this node, append it to the end of next layer, otherwise, create a new next layer with the
@@ -104,18 +109,16 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
       mHead = null;
     }
 
-    /** assume next layer exists and have elements other than the count node */
-    void appendToNextLayer() {
-      remove();
-      nextLayerHead().appendNode(this);
-    }
-
     long count() {
       return mHead.mCount;
     }
 
     Node first() {
       return mHead.mFirst;
+    }
+
+    Node last() {
+      return mHead.mLast;
     }
 
     CountNode nextLayerHead() {
@@ -125,10 +128,14 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
     Node nextNode() {
       return (Node) mNext;
     }
+
+    Node prevNode() {
+      return (Node) mPrev;
+    }
   }
 
   /** Always be the head of the first layer */
-  private CountNode mHead;
+  private final CountNode mHead;
   /** Map from blockId to corresponding Node */
   private Map<Long, Node> mCache;
 
@@ -148,16 +155,20 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
         if (node.count() == Long.MAX_VALUE) {
           return;
         }
-        if (node.nextLayerHead() == null && node.first() == node) { // only Node in last layer
+        // only Node in last but not first layer, just update count
+        if (node.nextLayerHead() == null && node.first() == node && node.mHead != mHead) {
           node.mHead.mCount += 1;
         } else {
-          // not the only Node in last layer
-          // or count of next layer is not its current count plus 1
+          // no next layer or
+          // count of next layer is not its current count plus 1,
           if (node.nextLayerHead() == null || node.nextLayerHead().mCount != node.count() + 1) {
             // create new layer
             node.mHead.append(new CountNode(node.count() + 1));
           }
-          node.appendToNextLayer();
+          // move to the last of next layer
+          CountNode nextHead = node.nextLayerHead();
+          removeNode(node);
+          nextHead.appendNode(node);
         }
       } else {
         Node node = new Node(blockId);
@@ -202,8 +213,9 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
               dirCandidates.add(dir, meta.getBlockId(), meta.getBlockSize());
             }
           } catch (IOException ioe) {
-            LOG.warn("Remove block %d because %s", p.mBlockId, ioe);
+            LOG.warn("Remove block {} because {}", p.mBlockId, ioe);
             removeNode(p);
+            mCache.remove(p.mBlockId);
           }
 
           // go to next right node
@@ -217,6 +229,7 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
         toEvict = dirCandidates.toEvict();
         for (long blockId : toEvict) {
           removeNode(mCache.get(blockId));
+          mCache.remove(blockId);
         }
         plan = new EvictionPlan(toMove, toEvict);
       }
@@ -225,8 +238,23 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
     return plan;
   }
 
+  /**
+   * Remove {@code Node node} from LFU List. maintain relationship with other Nodes as well as the
+   * CountNode in the same layer
+   */
   private void removeNode(Node node) {
+    if (node.first() == node) {
+      node.mHead.mFirst = node.nextNode();
+    }
+    if (node.last() == node) {
+      node.mHead.mLast = node.prevNode();
+    }
+    // not the first layer and contain no Node, delete this layer
+    if (node.mHead.mFirst == null && node.mHead != mHead) {
+      node.mHead.remove();
+    }
+    node.mHead = null;
+    
     node.remove();
-    mCache.remove(node.mBlockId);
   }
 }
