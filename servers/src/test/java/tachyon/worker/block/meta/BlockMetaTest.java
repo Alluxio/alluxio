@@ -43,7 +43,7 @@ public class BlockMetaTest {
     TachyonConf tachyonConf = new TachyonConf();
     StorageTier tier = new StorageTier(tachyonConf, 0 /* level */, 1 /* alias */);
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
-    mDir = new StorageDir(tier, 0 /* index */, 100 /* capacity */, mTestDirPath);
+    mDir = StorageDir.newStorageDir(tier, 0 /* index */, 100 /* capacity */, mTestDirPath);
   }
 
   @Test

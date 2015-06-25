@@ -50,7 +50,7 @@ public class BlockMetaBaseTest {
   public void before() {
     TachyonConf tachyonConf = new TachyonConf();
     mTier = new StorageTier(tachyonConf, 0 /* level */, 1 /* alias */);
-    mDir = new StorageDir(mTier, 0 /* index */, 100 /* capacity */, TEST_DIR_PATH);
+    mDir = StorageDir.newStorageDir(mTier, 0 /* index */, 100 /* capacity */, TEST_DIR_PATH);
     mBlockMeta = new BlockMetaBaseForTest(TEST_BLOCK_ID, mDir);
   }
 
