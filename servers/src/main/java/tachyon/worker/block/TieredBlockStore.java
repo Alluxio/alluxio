@@ -31,6 +31,7 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.BlockStoreLocation;
+import tachyon.worker.WorkerSource;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.allocator.NaiveAllocator;
 import tachyon.worker.block.evictor.EvictionPlan;
@@ -60,6 +61,7 @@ public class TieredBlockStore implements BlockStore {
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
   private final Evictor mEvictor;
+  private final WorkerSource mWorkerSource;
 
   private List<BlockAccessEventListener> mAccessEventListeners =
       new ArrayList<BlockAccessEventListener>();
@@ -69,10 +71,11 @@ public class TieredBlockStore implements BlockStore {
   /** A readwrite lock for meta data **/
   private final ReentrantReadWriteLock mEvictionLock = new ReentrantReadWriteLock();
 
-  public TieredBlockStore(TachyonConf tachyonConf) {
+  public TieredBlockStore(TachyonConf tachyonConf, WorkerSource workerSource) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mMetaManager = new BlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
+    mWorkerSource = workerSource;
 
     // TODO: create Allocator according to tachyonConf.
     mAllocator = new NaiveAllocator(mMetaManager);
@@ -364,6 +367,7 @@ public class TieredBlockStore implements BlockStore {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
       try {
         removeBlockNoLock(userId, blockId);
+        mWorkerSource.incBlocksEvicted();
       } catch (IOException e) {
         throw new IOException("Failed to free space: cannot evict block " + blockId);
       } finally {

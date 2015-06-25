@@ -66,8 +66,20 @@ public class BlockStoreMeta {
     return mDirPaths;
   }
 
-  public Map<Long, Long> getUsedBytesOnDirs() {
-    return mUsedBytesOnDirs;
+  public int getNumberOfBlocks() {
+    int numberOfBlocks = 0;
+    for (List blockIds : mBlockIdsOnDirs.values()) {
+      numberOfBlocks += blockIds.size();
+    }
+    return numberOfBlocks;
+  }
+
+  public long getUsedBytes() {
+    long usedBytes = 0L;
+    for (long usedBytesOnTier : mUsedBytesOnTiers) {
+      usedBytes += usedBytesOnTier;
+    }
+    return usedBytes;
   }
 
   public List<Long> getUsedBytesOnTiers() {

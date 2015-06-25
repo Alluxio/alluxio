@@ -57,36 +57,6 @@ public class WorkerSource implements Source {
   private final Counter mBytesWrittenUfs = mMetricRegistry.counter(MetricRegistry
       .name("BytesWrittenUfs"));
 
-  public WorkerSource(final BlockWorker worker) {
-//    mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
-//      @Override
-//      public Long getValue() {
-//        return workerStorage.getCapacityBytes();
-//      }
-//    });
-//
-//    mMetricRegistry.register(MetricRegistry.name("CapacityUsed"), new Gauge<Long>() {
-//      @Override
-//      public Long getValue() {
-//        return workerStorage.getUsedBytes();
-//      }
-//    });
-//
-//    mMetricRegistry.register(MetricRegistry.name("CapacityFree"), new Gauge<Long>() {
-//      @Override
-//      public Long getValue() {
-//        return workerStorage.getCapacityBytes() - workerStorage.getUsedBytes();
-//      }
-//    });
-//
-//    mMetricRegistry.register(MetricRegistry.name("BlocksCached"), new Gauge<Integer>() {
-//      @Override
-//      public Integer getValue() {
-//        return workerStorage.getNumberOfBlocks();
-//      }
-//    });
-  }
-
   @Override
   public String getName() {
     return WORKER_SOURCE_NAME;
@@ -147,5 +117,35 @@ public class WorkerSource implements Source {
 
   public void incBytesWrittenUfs(long n) {
     mBytesWrittenUfs.inc(n);
+  }
+
+  public void registerGauges(final BlockWorker worker) {
+    mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
+      @Override
+      public Long getValue() {
+        return worker.getStoreMeta().getCapacityBytes();
+      }
+    });
+
+    mMetricRegistry.register(MetricRegistry.name("CapacityUsed"), new Gauge<Long>() {
+      @Override
+      public Long getValue() {
+        return worker.getStoreMeta().getUsedBytes();
+      }
+    });
+
+    mMetricRegistry.register(MetricRegistry.name("CapacityFree"), new Gauge<Long>() {
+      @Override
+      public Long getValue() {
+        return worker.getStoreMeta().getCapacityBytes() - worker.getStoreMeta().getUsedBytes();
+      }
+    });
+
+    mMetricRegistry.register(MetricRegistry.name("BlocksCached"), new Gauge<Integer>() {
+      @Override
+      public Integer getValue() {
+        return worker.getStoreMeta().getNumberOfBlocks();
+      }
+    });
   }
 }
