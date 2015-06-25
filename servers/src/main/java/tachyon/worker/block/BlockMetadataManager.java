@@ -187,8 +187,10 @@ public class BlockMetadataManager {
     }
     StorageDir oldDir = blockMeta.getParentDir();
     oldDir.removeBlockMeta(blockMeta);
-    newDir.addBlockMeta(blockMeta);
-    return blockMeta;
+    BlockMeta newBlockMeta =
+        new BlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), newDir);
+    newDir.addBlockMeta(newBlockMeta);
+    return newBlockMeta;
   }
 
   /**
