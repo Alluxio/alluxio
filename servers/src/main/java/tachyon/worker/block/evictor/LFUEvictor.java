@@ -80,6 +80,7 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
         mLast.append(node);
       }
       mLast = node;
+      node.mHead = this;
     }
 
     CountNode nextCountNode() {
@@ -170,25 +171,27 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
    * Evict layer by layer, in each layer, evict from first to last
    */
   @Override
-  public EvictionPlan freeSpace(long bytes, BlockStoreLocation location) throws IOException {
+  public EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location) throws IOException {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
     EvictionPlan plan = null;
 
-    if (bytes <= 0) {
+    long alreadyAvailableBytes = mMeta.getAvailableBytes(location);
+    if (alreadyAvailableBytes >= availableBytes) {
       plan = new EvictionPlan(toMove, toEvict);
       return plan;
     }
+    long toEvictBytes = availableBytes - alreadyAvailableBytes;
 
     EvictionDirCandidates dirCandidates = new EvictionDirCandidates();
 
     synchronized (mLock) {
       CountNode head = mHead;
       // layer by layer
-      while (dirCandidates.maxAvailableBytes() < bytes && head != null) {
+      while (dirCandidates.maxAvailableBytes() < toEvictBytes && head != null) {
         Node p = head.mFirst;
         // in each layer, left to right
-        while (dirCandidates.maxAvailableBytes() < bytes && p != null) {
+        while (dirCandidates.maxAvailableBytes() < toEvictBytes && p != null) {
           Node next = p.nextNode();
 
           try {
@@ -209,7 +212,7 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
         head = head.nextCountNode();
       }
 
-      if (dirCandidates.maxAvailableBytes() >= bytes) {
+      if (dirCandidates.maxAvailableBytes() >= toEvictBytes) {
         toEvict = dirCandidates.toEvict();
         for (long blockId : toEvict) {
           removeNode(mCache.get(blockId));

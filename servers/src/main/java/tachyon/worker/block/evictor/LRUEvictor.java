@@ -74,22 +74,24 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
   }
 
   @Override
-  public EvictionPlan freeSpace(long bytes, BlockStoreLocation location) throws IOException {
+  public EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location) throws IOException {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
     EvictionPlan plan = null;
 
-    if (bytes <= 0) {
+    long alreadyAvailableBytes = mMeta.getAvailableBytes(location);
+    if (alreadyAvailableBytes >= availableBytes) {
       plan = new EvictionPlan(toMove, toEvict);
       return plan;
     }
+    long toEvictBytes = availableBytes - alreadyAvailableBytes;
 
     EvictionDirCandidates dirCandidates = new EvictionDirCandidates();
 
     Node p = mHead.next();
     // erase race condition with onAccessBlock on internal data structure
     synchronized (mLock) {
-      while (p != mTail && dirCandidates.maxAvailableBytes() < bytes) {
+      while (p != mTail && dirCandidates.maxAvailableBytes() < toEvictBytes) {
         Node next = p.next();
 
         try {
@@ -108,7 +110,7 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
       }
 
       // enough free space
-      if (dirCandidates.maxAvailableBytes() >= bytes) {
+      if (dirCandidates.maxAvailableBytes() >= toEvictBytes) {
         toEvict = dirCandidates.toEvict();
         for (Long blockId : toEvict) {
           removeNode(mCache.get(blockId));
