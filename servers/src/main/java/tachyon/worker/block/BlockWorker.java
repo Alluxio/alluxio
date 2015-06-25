@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
+import tachyon.metrics.MetricsSystem;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
@@ -41,6 +42,7 @@ import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
+import tachyon.worker.WorkerSource;
 
 /**
  * The class responsible for managing all top level components of the Block Worker. These include:
@@ -85,6 +87,10 @@ public class BlockWorker {
   private final long mStartTimeMs;
   /** Worker Web UI server */
   private final UIWebServer mWebServer;
+  /** Worker metrics system */
+  private MetricsSystem mWorkerMetricsSystem;
+  /** WorkerSource for collecting worker metrics */
+  private WorkerSource mWorkerSource;
 
   /**
    * Creates a Tachyon Block Worker.
@@ -94,8 +100,9 @@ public class BlockWorker {
     mTachyonConf = tachyonConf;
     mStartTimeMs = System.currentTimeMillis();
 
+    mWorkerSource = new WorkerSource();
     // Set up BlockDataManager
-    mBlockDataManager = new BlockDataManager(tachyonConf);
+    mBlockDataManager = new BlockDataManager(tachyonConf, mWorkerSource);
 
     // Set up DataServer
     int dataServerPort =
@@ -148,6 +155,11 @@ public class BlockWorker {
    * down.
    */
   public void process() {
+    mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
+    mWorkerSource.registerGauges(this);
+    mWorkerMetricsSystem.registerSource(mWorkerSource);
+    mWorkerMetricsSystem.start();
+
     mSyncExecutorService.submit(mBlockMasterSync);
     mWebServer.startWebServer();
     mThriftServer.serve();
