@@ -72,12 +72,14 @@ public class StorageDir {
   class MetaFileFilter implements FileFilter {
     public boolean accept(File path) {
       if (!path.isFile()) {
+        LOG.error("%s in StorageDir is not a file", path.getAbsolutePath());
         return false;
       }
       try {
         Long.valueOf(path.getName());
         return true;
       } catch (NumberFormatException nfe) {
+        LOG.error("filename of %s in StorageDir can not be parsed into long", path.getAbsolutePath());
         return false;
       }
     }
