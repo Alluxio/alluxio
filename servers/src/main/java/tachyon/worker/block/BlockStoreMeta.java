@@ -46,8 +46,32 @@ public class BlockStoreMeta {
     }
   }
 
+  public long getCapacityBytes() {
+    long capacityBytes = 0L;
+    for (long capacityBytesOnTier : mCapacityBytesOnTiers) {
+      capacityBytes += capacityBytesOnTier;
+    }
+    return capacityBytes;
+  }
+
   public List<Long> getCapacityBytesOnTiers() {
     return mCapacityBytesOnTiers;
+  }
+
+  public int getNumberOfBlocks() {
+    int numberOfBlocks = 0;
+    for (List blockIds : mBlockIdsOnDirs.values()) {
+      numberOfBlocks += blockIds.size();
+    }
+    return numberOfBlocks;
+  }
+
+  public long getUsedBytes() {
+    long usedBytes = 0L;
+    for (long usedBytesOnTier : mUsedBytesOnTiers) {
+      usedBytes += usedBytesOnTier;
+    }
+    return usedBytes;
   }
 
   public List<Long> getUsedBytesOnTiers() {

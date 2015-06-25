@@ -37,6 +37,7 @@ import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.BlockStoreLocation;
+import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
@@ -57,6 +58,8 @@ public class BlockDataManager {
   private final ExecutorService mMasterClientExecutorService;
   /** Configuration values */
   private final TachyonConf mTachyonConf;
+  /** WorkerSource for collecting worker metrics */
+  private final WorkerSource mWorkerSource;
 
   // TODO: See if this can be removed from the class
   /** MasterClient, only used to inform the master of a new block in commitBlock */
@@ -73,10 +76,12 @@ public class BlockDataManager {
    *
    * @param tachyonConf the configuration values to use
    */
-  public BlockDataManager(TachyonConf tachyonConf) {
+  public BlockDataManager(TachyonConf tachyonConf, WorkerSource workerSource) {
     mHeartbeatReporter = new BlockHeartbeatReporter();
-    mBlockStore = new TieredBlockStore(tachyonConf);
+    mBlockStore = new TieredBlockStore(tachyonConf, workerSource);
     mTachyonConf = tachyonConf;
+    mWorkerSource = workerSource;
+
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-client-heartbeat-%d"));
     mMasterClient =
@@ -103,6 +108,7 @@ public class BlockDataManager {
    */
   public void abortBlock(long userId, long blockId) throws IOException {
     mBlockStore.abortBlock(userId, blockId);
+    mWorkerSource.incBlocksCanceled();
   }
 
   /**
@@ -113,6 +119,7 @@ public class BlockDataManager {
    */
   public void accessBlock(long userId, long blockId) throws IOException {
     mBlockStore.accessBlock(userId, blockId);
+    mWorkerSource.incBlocksAccessed();
   }
 
   /**
@@ -242,6 +249,7 @@ public class BlockDataManager {
   // TODO: We should avoid throwing IOException
   public void removeBlock(long userId, long blockId) throws IOException {
     mBlockStore.removeBlock(userId, blockId);
+    mWorkerSource.incBlocksDeleted();
   }
 
   /**
@@ -293,13 +301,25 @@ public class BlockDataManager {
    * @param userId The id of the client
    * @param blockId The id of the block to move
    * @param tier The tier to move the block to
-   * @return true if successful, false otherwise
    * @throws IOException if an error occurs during move
    */
   // TODO: We should avoid throwing IOException
   public void moveBlock(long userId, long blockId, int tier) throws IOException {
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tier);
     mBlockStore.moveBlock(userId, blockId, dst);
+  }
+
+  /**
+   * Promote a block to the first tier.
+   *
+   * @param userId The id of the client
+   * @param blockId The id of the block to promote
+   * @throws IOException if an error occurs during promoting
+   */
+  public void promoteBlock(long userId, long blockId) throws IOException {
+    // TODO: Maybe add constant location for First Tier?
+    moveBlock(userId, blockId, 1);
+    mWorkerSource.incBlocksPromoted();
   }
 
   /**
@@ -386,9 +406,18 @@ public class BlockDataManager {
    * @param metrics The set of metrics the client has gathered since the last heartbeat
    * @return true if successful, false otherwise
    */
-  // TODO: Add Metrics Collection
   public void userHeartbeat(long userId, List<Long> metrics) {
     mUsers.userHeartbeat(userId);
+    if (metrics.get(Constants.CLIENT_METRICS_VERSION_INDEX) == Constants.CLIENT_METRICS_VERSION) {
+      mWorkerSource.incBlocksReadLocal(metrics.get(Constants.BLOCKS_READ_LOCAL_INDEX));
+      mWorkerSource.incBlocksReadRemote(metrics.get(Constants.BLOCKS_READ_REMOTE_INDEX));
+      mWorkerSource.incBlocksWrittenLocal(metrics.get(Constants.BLOCKS_WRITTEN_LOCAL_INDEX));
+      mWorkerSource.incBytesReadLocal(metrics.get(Constants.BYTES_READ_LOCAL_INDEX));
+      mWorkerSource.incBytesReadRemote(metrics.get(Constants.BYTES_READ_REMOTE_INDEX));
+      mWorkerSource.incBytesReadUfs(metrics.get(Constants.BYTES_READ_UFS_INDEX));
+      mWorkerSource.incBytesWrittenLocal(metrics.get(Constants.BYTES_WRITTEN_LOCAL_INDEX));
+      mWorkerSource.incBytesWrittenUfs(metrics.get(Constants.BYTES_WRITTEN_UFS_INDEX));
+    }
   }
 
   /**
