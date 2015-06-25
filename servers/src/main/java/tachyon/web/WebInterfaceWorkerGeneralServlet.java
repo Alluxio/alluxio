@@ -16,6 +16,8 @@
 package tachyon.web;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -25,12 +27,44 @@ import javax.servlet.http.HttpServletResponse;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.util.CommonUtils;
+import tachyon.worker.block.BlockStoreMeta;
 import tachyon.worker.block.BlockWorker;
 
 /**
  * Servlets that shows a worker's general information, including tiered storage details.
  */
 public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
+
+  public static class UiStorageDir {
+    private final long mStorageDirId;
+    private final String mDirPath;
+    private final long mCapacityBytes;
+    private final long mUsedBytes;
+
+    public UiStorageDir(long storageDirId, String dirPath, long capacityBytes, long usedBytes) {
+      mStorageDirId = storageDirId;
+      mDirPath = dirPath;
+      mCapacityBytes = capacityBytes;
+      mUsedBytes = usedBytes;
+    }
+
+    public long getCapacityBytes() {
+      return mCapacityBytes;
+    }
+
+    public String getDirPath() {
+      return mDirPath;
+    }
+
+    public long getStorageDirId() {
+      return mStorageDirId;
+    }
+
+    public long getUsedBytes() {
+      return mUsedBytes;
+    }
+  }
+
   private static final long serialVersionUID = 3735143768058466487L;
   private final transient BlockWorker mWorker;
 
@@ -51,29 +85,43 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
    * @param request The HttpServletRequest object
    * @throws IOException
    */
-  // TODO: Provide a way to populate these values
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);
 
-    // request.setAttribute("workerAddress", mWorkerStorage.getWorkerAddress().toString());
-    //
-    // request.setAttribute("uptime",
-    // Utils.convertMsToClockTime(System.currentTimeMillis() - mWorkerStorage.getStartTimeMs()));
-    //
-    // request.setAttribute("startTime", Utils.convertMsToDate(mWorkerStorage.getStartTimeMs()));
-    //
-    // request.setAttribute("version", Version.VERSION);
-    //
-    // request.setAttribute("capacityBytes",
-    // CommonUtils.getSizeFromBytes(mWorkerStorage.getCapacityBytes()));
-    //
-    // request.setAttribute("usedBytes",
-    // CommonUtils.getSizeFromBytes(mWorkerStorage.getUsedBytes()));
-    //
-    // request.setAttribute("capacityBytesOnTiers", mWorkerStorage.getCapacityBytesOnTiers());
-    //
-    // request.setAttribute("usedBytesOnTiers", mWorkerStorage.getUsedBytesOnTiers());
-    //
-    // request.setAttribute("storageDirs", mWorkerStorage.getStorageDirs());
+    request.setAttribute("workerAddress", mWorker.getWorkerNetAddress().getMHost() + ":"
+        + mWorker.getWorkerNetAddress().getMPort());
+
+    request.setAttribute("uptime",
+        Utils.convertMsToClockTime(System.currentTimeMillis() - mWorker.getStartTimeMs()));
+
+    request.setAttribute("startTime", Utils.convertMsToDate(mWorker.getStartTimeMs()));
+
+    request.setAttribute("version", Version.VERSION);
+
+    BlockStoreMeta storeMeta = mWorker.getStoreMeta();
+    long capacityBytes = 0L;
+    long usedBytes = 0L;
+    List<Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();
+    List<Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
+    for (int i = 0; i < capacityBytesOnTiers.size(); i ++) {
+      capacityBytes += capacityBytesOnTiers.get(i);
+      usedBytes += usedBytesOnTiers.get(i);
+    }
+
+    request.setAttribute("capacityBytes", CommonUtils.getSizeFromBytes(capacityBytes));
+
+    request.setAttribute("usedBytes", CommonUtils.getSizeFromBytes(usedBytes));
+
+    request.setAttribute("capacityBytesOnTiers", capacityBytesOnTiers);
+
+    request.setAttribute("usedBytesOnTiers", usedBytesOnTiers);
+
+    List<UiStorageDir> storageDirs = new ArrayList<UiStorageDir>(storeMeta.getDirPaths().size());
+    for (long dirId : storeMeta.getDirPaths().keySet()) {
+      storageDirs.add(new UiStorageDir(dirId, storeMeta.getDirPaths().get(dirId), storeMeta
+          .getCapacityBytesOnDirs().get(dirId), storeMeta.getUsedBytesOnDirs().get(dirId)));
+    }
+
+    request.setAttribute("storageDirs", storageDirs);
   }
 }
