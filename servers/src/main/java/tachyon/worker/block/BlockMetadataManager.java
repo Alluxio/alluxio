@@ -54,12 +54,10 @@ public class BlockMetadataManager {
     int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
     mTiers = new ArrayList<StorageTier>(totalTiers);
-    for (int i = 0; i < totalTiers; i ++) {
-      // TODO: Change the following calculation to get alias
-      int tierAlias = i + 1;
-      StorageTier tier = new StorageTier(tachyonConf, i, tierAlias);
+    for (int level = 0; level < totalTiers; level ++) {
+      StorageTier tier = new StorageTier(tachyonConf, level);
       mTiers.add(tier);
-      mAliasToTiers.put(tierAlias, tier);
+      mAliasToTiers.put(tier.getTierAlias(), tier);
     }
   }
 
