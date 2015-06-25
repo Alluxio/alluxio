@@ -24,12 +24,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.InvalidPathException;
+import tachyon.util.CommonUtils;
 import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.allocator.Allocator;
@@ -222,10 +223,25 @@ public class TieredBlockStore implements BlockStore {
     List<TempBlockMeta> tempBlocksToRemove = mMetaManager.cleanupUser(userId);
     mLockManager.cleanupUser(userId);
     mEvictionLock.readLock().unlock();
+    List<String> dirs = new ArrayList<String>();
     for (TempBlockMeta tempBlockMeta : tempBlocksToRemove) {
-      if (!new File(tempBlockMeta.getPath()).delete()) {
-        throw new IOException("Failed to cleanup userId " + userId + ": cannot delete "
-            + tempBlockMeta.getPath());
+      String fileName = tempBlockMeta.getPath();
+      try {
+        String dirName = CommonUtils.getParent(fileName);
+        dirs.add(dirName);
+      } catch (InvalidPathException e) {
+        LOG.error("Cannot parse parent dir of {}", fileName);
+      }
+      if (!new File(fileName).delete()) {
+        throw new IOException("Failed to cleanup userId " + userId + ": cannot delete file "
+            + fileName);
+      }
+    }
+    // Cleanup the user folder
+    for (String dirName : dirs) {
+      if (!new File(dirName).delete()) {
+        throw new IOException("Failed to cleanup userId " + userId + ": cannot delete directory "
+            + dirName);
       }
     }
   }
@@ -250,8 +266,7 @@ public class TieredBlockStore implements BlockStore {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
       throw new IOException("Failed to create TempBlockMeta: blockId " + blockId + " exists");
     }
-    TempBlockMeta tempBlock =
-        mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
+    TempBlockMeta tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
     if (tempBlock == null) {
       // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
 
