@@ -59,7 +59,7 @@ public class StorageTier {
       int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
       long capacity = CommonUtils.parseSpaceSize(dirQuotas[index]);
       totalCapacity += capacity;
-      mDirs.add(new StorageDir(this, i, capacity, dirPaths[i]));
+      mDirs.add(StorageDir.newStorageDir(this, i, capacity, dirPaths[i]));
     }
     mCapacityBytes = totalCapacity;
   }
