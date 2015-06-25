@@ -97,10 +97,8 @@ public class StorageDir {
    *
    * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath()} are legal,
    * should be in format like {dir}/{blockId}. others are ignored.
-   *
-   * @throws IOException when block meta can not be preloaded
    */
-  private void initializeMeta() throws IOException {
+  private void initializeMeta() {
     File dir = new File(mDirPath);
     FileFilter filter = new MetaFileFilter();
     File[] files = dir.listFiles(filter);
@@ -113,7 +111,12 @@ public class StorageDir {
         addBlockMeta(new BlockMeta(blockId, file.length(), this));
       } catch (IOException ioe) {
         LOG.error("can not add block meta of file %s: %s", file.getAbsolutePath(), ioe);
-        throw ioe;
+        // delete file
+        if (file.delete()) {
+          LOG.warn("file %s has been deleted", file.getAbsolutePath());
+        } else {
+          LOG.error("can not delete file %s", file.getAbsolutePath());
+        }
       }
     }
   }
