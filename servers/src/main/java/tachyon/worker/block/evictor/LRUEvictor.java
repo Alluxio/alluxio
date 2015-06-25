@@ -74,7 +74,8 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
   }
 
   @Override
-  public EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location) throws IOException {
+  public EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location)
+      throws IOException {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
     EvictionPlan plan = null;

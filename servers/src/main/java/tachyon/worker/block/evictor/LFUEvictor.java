@@ -171,7 +171,8 @@ public class LFUEvictor implements Evictor, BlockAccessEventListener {
    * Evict layer by layer, in each layer, evict from first to last
    */
   @Override
-  public EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location) throws IOException {
+  public EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location)
+      throws IOException {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
     EvictionPlan plan = null;
