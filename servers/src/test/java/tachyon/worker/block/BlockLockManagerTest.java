@@ -102,6 +102,16 @@ public class BlockLockManagerTest {
 
   @Test
   public void cleanupUserTest() throws Exception {
-
+    long userId1 = TEST_USER_ID;
+    long userId2 = TEST_USER_ID + 1;
+    long lockId1 = mLockManager.lockBlock(userId1, TEST_BLOCK_ID, BlockLockType.READ);
+    long lockId2 = mLockManager.lockBlock(userId2, TEST_BLOCK_ID, BlockLockType.READ);
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Failed to validateLockId: lockId " + lockId2 + " has no lock record");
+    mLockManager.cleanupUser(userId2);
+    // Expect validating userId1 to get through
+    mLockManager.validateLockId(userId1, TEST_BLOCK_ID, lockId1);
+    // Because userId2 has been cleaned up, expect validating userId2 to throw IOException
+    mLockManager.validateLockId(userId2, TEST_BLOCK_ID, lockId2);
   }
 }
