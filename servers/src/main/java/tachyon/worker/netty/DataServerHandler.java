@@ -137,8 +137,6 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         req.getLength(), fileLength);
   }
 
-
-
   /**
    * Returns the appropriate DataBuffer representing the data to send, depending on the
    * configurable transfer type.
