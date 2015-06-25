@@ -53,7 +53,7 @@ public class StorageDir {
   private int mDirIndex;
   private StorageTier mTier;
 
-  public StorageDir(StorageTier tier, int dirIndex, long capacityBytes, String dirPath) {
+  private StorageDir(StorageTier tier, int dirIndex, long capacityBytes, String dirPath) {
     mTier = Preconditions.checkNotNull(tier);
     mDirIndex = dirIndex;
     mCapacityBytes = capacityBytes;
@@ -62,14 +62,13 @@ public class StorageDir {
     mBlockIdToBlockMap = new HashMap<Long, BlockMeta>(200);
     mBlockIdToTempBlockMap = new HashMap<Long, TempBlockMeta>(200);
     mUserIdToTempBlockIdsMap = new HashMap<Long, Set<Long>>(200);
+  }
 
-    // TODO: make a factory method to create StorageDir and move inializeMeta into the factory
-    // method
-    try {
-      initializeMeta();
-    } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
-    }
+  public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
+      String dirPath) {
+    StorageDir dir = new StorageDir(tier, dirIndex, capacityBytes, dirPath);
+    dir.initializeMeta();
+    return dir;
   }
 
   /**
