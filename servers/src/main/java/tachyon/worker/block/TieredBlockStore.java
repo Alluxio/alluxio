@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -24,12 +24,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.InvalidPathException;
+import tachyon.util.CommonUtils;
 import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.allocator.NaiveAllocator;
@@ -60,14 +61,12 @@ public class TieredBlockStore implements BlockStore {
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
   private final Evictor mEvictor;
-
+  /** A readwrite lock for meta data **/
+  private final ReentrantReadWriteLock mEvictionLock = new ReentrantReadWriteLock();
   private List<BlockAccessEventListener> mAccessEventListeners =
       new ArrayList<BlockAccessEventListener>();
   private List<BlockMetaEventListener> mMetaEventListeners =
       new ArrayList<BlockMetaEventListener>();
-
-  /** A readwrite lock for meta data **/
-  private final ReentrantReadWriteLock mEvictionLock = new ReentrantReadWriteLock();
 
   public TieredBlockStore(TachyonConf tachyonConf) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
@@ -219,10 +218,25 @@ public class TieredBlockStore implements BlockStore {
     List<TempBlockMeta> tempBlocksToRemove = mMetaManager.cleanupUser(userId);
     mLockManager.cleanupUser(userId);
     mEvictionLock.readLock().unlock();
+    List<String> dirs = new ArrayList<String>();
     for (TempBlockMeta tempBlockMeta : tempBlocksToRemove) {
-      if (!new File(tempBlockMeta.getPath()).delete()) {
-        throw new IOException("Failed to cleanup userId " + userId + ": cannot delete "
-            + tempBlockMeta.getPath());
+      String fileName = tempBlockMeta.getPath();
+      try {
+        String dirName = CommonUtils.getParent(fileName);
+        dirs.add(dirName);
+      } catch (InvalidPathException e) {
+        LOG.error("Cannot parse parent dir of {}", fileName);
+      }
+      if (!new File(fileName).delete()) {
+        throw new IOException("Failed to cleanup userId " + userId + ": cannot delete file "
+            + fileName);
+      }
+    }
+    // Cleanup the user folder
+    for (String dirName : dirs) {
+      if (!new File(dirName).delete()) {
+        throw new IOException("Failed to cleanup userId " + userId + ": cannot delete directory "
+            + dirName);
       }
     }
   }
@@ -247,8 +261,7 @@ public class TieredBlockStore implements BlockStore {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
       throw new IOException("Failed to create TempBlockMeta: blockId " + blockId + " exists");
     }
-    TempBlockMeta tempBlock =
-        mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
+    TempBlockMeta tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
     if (tempBlock == null) {
       // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
 
