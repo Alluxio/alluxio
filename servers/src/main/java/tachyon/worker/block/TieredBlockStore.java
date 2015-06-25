@@ -266,6 +266,9 @@ public class TieredBlockStore implements BlockStore {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
       throw new IOException("Failed to create TempBlockMeta: blockId " + blockId + " exists");
     }
+    if (mMetaManager.hasBlockMeta(blockId)) {
+      throw new IOException("Failed to create TempBlockMeta: blockId " + blockId + " committed");
+    }
     TempBlockMeta tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
     if (tempBlock == null) {
       // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
@@ -293,6 +296,10 @@ public class TieredBlockStore implements BlockStore {
     for (BlockMetaEventListener listener : mMetaEventListeners) {
       listener.preCommitBlock(userId, blockId, tempBlockMeta.getBlockLocation());
     }
+
+    if (mMetaManager.hasBlockMeta(blockId)) {
+      throw new IOException("Failed to commit block " + blockId + ": block is committed");
+    }
     // Check the userId is the owner of this temp block
     long ownerUserId = tempBlockMeta.getUserId();
     if (ownerUserId != userId) {
@@ -313,6 +320,10 @@ public class TieredBlockStore implements BlockStore {
   }
 
   private void abortBlockNoLock(long userId, long blockId) throws IOException {
+    if (mMetaManager.hasBlockMeta(blockId)) {
+      throw new IOException("Failed to abort block " + blockId + ": block is committed");
+    }
+
     TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
     // Check the userId is the owner of this temp block
     long ownerUserId = tempBlockMeta.getUserId();
@@ -332,6 +343,10 @@ public class TieredBlockStore implements BlockStore {
       throws IOException {
     for (BlockMetaEventListener listener : mMetaEventListeners) {
       listener.preMoveBlock(userId, blockId, newLocation);
+    }
+
+    if (mMetaManager.hasTempBlockMeta(blockId)) {
+      throw new IOException("Failed to move block " + blockId + ": block is uncommited");
     }
     BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
     String srcPath = blockMeta.getPath();
@@ -353,14 +368,23 @@ public class TieredBlockStore implements BlockStore {
       listener.preRemoveBlock(userId, blockId);
     }
 
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-    // Delete metadata of the block
-    mMetaManager.removeBlockMeta(blockMeta);
+    // Delete metadata of the block---no matter it is a temp block.
+    String filePath;
+    if (mMetaManager.hasTempBlockMeta(blockId)) {
+      TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
+      mMetaManager.abortTempBlockMeta(tempBlockMeta);
+      filePath = tempBlockMeta.getPath();
+    } else if (mMetaManager.hasBlockMeta(blockId)) {
+      BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
+      mMetaManager.removeBlockMeta(blockMeta);
+      filePath = blockMeta.getPath();
+    } else {
+      throw new IOException("Failed to move block " + blockId + ": block is not found");
+    }
 
-    // Delete the data file of the block
-    if (!new File(blockMeta.getPath()).delete()) {
-      throw new IOException("Failed to remove block " + blockId + ": cannot delete "
-          + blockMeta.getPath());
+    // Delete the data of the block on "disk"
+    if (!new File(filePath).delete()) {
+      throw new IOException("Failed to remove block " + blockId + ": cannot delete " + filePath);
     }
 
     for (BlockMetaEventListener listener : mMetaEventListeners) {
