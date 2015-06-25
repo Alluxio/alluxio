@@ -60,8 +60,8 @@ public class PrefixList {
       return false;
     }
 
-    for (int k = 0; k < mInnerList.size(); k ++) {
-      if (path.startsWith(mInnerList.get(k))) {
+    for (String prefix : mInnerList) {
+      if (path.startsWith(prefix)) {
         return true;
       }
     }
