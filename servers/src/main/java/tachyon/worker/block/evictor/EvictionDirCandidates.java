@@ -20,6 +20,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.worker.BlockStoreLocation;
 
@@ -27,10 +31,12 @@ import tachyon.worker.BlockStoreLocation;
  * A collection of candidate blocks for eviction organized by directory
  */
 class EvictionDirCandidates {
-  private Map<BlockStoreLocation, Pair<List<Long>, Long>> mDirCandidates =
-      new HashMap<BlockStoreLocation, Pair<List<Long>, Long>>();
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  /** Map from StorageDirId to pair of list of candidate blockIds and their total size in bytes */
+  private Map<Long, Pair<List<Long>, Long>> mDirCandidates =
+      new HashMap<Long, Pair<List<Long>, Long>>();
   private long mMaxAvailableBytes = 0;
-  private BlockStoreLocation mDirWithMaxAvailableBytes = null;
+  private Long mKeyOfMaxAvailableBytes = null;
 
   /**
    * Add the block in the directory to this collection
@@ -40,22 +46,28 @@ class EvictionDirCandidates {
    * @param blockSizeBytes block size in bytes
    */
   public void add(BlockStoreLocation dir, long blockId, long blockSizeBytes) {
+    LOG.debug("add block {} with bytes {} to dir {}", blockId, blockSizeBytes, dir);
     Pair<List<Long>, Long> candidate;
-    if (mDirCandidates.containsKey(dir)) {
-      candidate = mDirCandidates.get(dir);
+    long dirId = dir.getStorageDirId();
+    if (mDirCandidates.containsKey(dirId)) {
+      LOG.debug("dir already in mDirCandidates");
+      candidate = mDirCandidates.get(dirId);
     } else {
+      LOG.debug("new dir, put to mDirCandidates");
       candidate = new Pair<List<Long>, Long>(new ArrayList<Long>(), 0L);
-      mDirCandidates.put(dir, candidate);
+      mDirCandidates.put(dirId, candidate);
     }
 
     candidate.getFirst().add(blockId);
     long evictBytes = candidate.getSecond() + blockSizeBytes;
+    LOG.debug("maxAvailableBytes = {}, evictBytes = {}", mMaxAvailableBytes, evictBytes);
     candidate.setSecond(evictBytes);
 
     if (mMaxAvailableBytes < evictBytes) {
       mMaxAvailableBytes = evictBytes;
-      mDirWithMaxAvailableBytes = dir;
+      mKeyOfMaxAvailableBytes = dirId;
     }
+    LOG.debug("mDirCandidates.size() = {}", mDirCandidates.size());
   }
 
   /**
@@ -68,20 +80,15 @@ class EvictionDirCandidates {
   }
 
   /**
-   * The directory that has maximum available bytes
-   *
-   * @return the directory
-   */
-  public BlockStoreLocation dirWithMaxAvailableBytes() {
-    return mDirWithMaxAvailableBytes;
-  }
-
-  /**
    * List of blockIds for eviction
    *
    * @return list of blockIds
    */
   public List<Long> toEvict() {
-    return mDirCandidates.get(mDirWithMaxAvailableBytes).getFirst();
+    Pair<List<Long>, Long> evict = mDirCandidates.get(mKeyOfMaxAvailableBytes);
+    if (evict == null) {
+      return new ArrayList<Long>();
+    }
+    return evict.getFirst();
   }
 }
