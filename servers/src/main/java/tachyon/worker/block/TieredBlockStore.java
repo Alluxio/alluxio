@@ -250,7 +250,11 @@ public class TieredBlockStore implements BlockStore {
 
   private TempBlockMeta createBlockMetaNoLock(long userId, long blockId,
       BlockStoreLocation location, long initialBlockSize) throws IOException {
-    TempBlockMeta tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
+    if (mMetaManager.hasTempBlockMeta(blockId)) {
+      throw new IOException("Failed to create TempBlockMeta: blockId " + blockId + " exists");
+    }
+    TempBlockMeta tempBlock =
+        mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
     if (tempBlock == null) {
       // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
 
