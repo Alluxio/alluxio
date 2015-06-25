@@ -166,8 +166,8 @@ public class BlockLockManager {
             + record.userId() + ", not " + userId);
       }
       if (blockId != record.blockId()) {
-        throw new IOException("Failed to validateLockId: lockId " + lockId + " is for blockId " +
-            record.blockId() + ", not " + blockId);
+        throw new IOException("Failed to validateLockId: lockId " + lockId + " is for blockId "
+            + record.blockId() + ", not " + blockId);
       }
     }
   }
@@ -181,7 +181,6 @@ public class BlockLockManager {
     synchronized (mSharedMapsLock) {
       Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
       if (null == userLockIds) {
-        LOG.error("Failed to cleanup userId {}: no acquired lock found", userId);
         return;
       }
       for (long lockId : userLockIds) {
