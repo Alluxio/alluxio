@@ -151,16 +151,13 @@ public class BlockMetadataManager {
   /**
    * Moves the metadata of an existing block to another location or throws IOExceptions.
    *
-   * @param blockId the block ID
+   * @param blockMeta the meta data of the block to move
    * @param newLocation new location of the block
    * @return the new block metadata if success, absent otherwise
    * @throws IOException if this block is not found
    */
-  public synchronized BlockMeta moveBlockMeta(long blockId, BlockStoreLocation newLocation)
+  public synchronized BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)
       throws IOException {
-    // Check if the blockId is valid.
-    BlockMeta blockMeta = getBlockMeta(blockId);
-
     // If move target can be any tier, then simply return the current block meta.
     if (newLocation.equals(BlockStoreLocation.anyTier())) {
       return blockMeta;
@@ -234,7 +231,7 @@ public class BlockMetadataManager {
         }
       }
     }
-    throw new IOException("Failed to get BlockWriter: temp blockId " + blockId + "not found");
+    throw new IOException("Failed to get TempBlockMeta: temp blockId " + blockId + " not found");
   }
 
   /**
