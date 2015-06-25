@@ -236,7 +236,7 @@
           </testExcludes>
         </configuration>
       </plugin>
-        <!-- TODO: Remove this generation when TachyonFSTestUtils is fixed. -->
+      <!-- TODO: Remove this generation when TachyonFSTestUtils is fixed. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
