@@ -298,6 +298,9 @@ public class TieredBlockStore implements BlockStore {
     for (BlockMetaEventListener listener : mMetaEventListeners) {
       listener.postCommitBlock(userId, blockId, tempBlockMeta.getBlockLocation());
     }
+
+    // since the temp block has been committed, call accessBlock to update Evictor
+    accessBlock(userId, blockId);
   }
 
   private void abortBlockNoLock(long userId, long blockId) throws IOException {
