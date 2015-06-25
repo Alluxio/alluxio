@@ -85,11 +85,11 @@ public class StorageDir {
     }
     for (File path : paths) {
       if (!path.isFile()) {
-        LOG.error("%s in StorageDir is not a file", path.getAbsolutePath());
+        LOG.error("{} in StorageDir is not a file", path.getAbsolutePath());
         try {
           FileUtils.deleteDirectory(path);
         } catch (IOException ioe) {
-          LOG.error("can not delete directory %s: %s", path.getAbsolutePath(), ioe);
+          LOG.error("can not delete directory {}: {}", path.getAbsolutePath(), ioe);
         }
       } else {
         boolean success = false;
@@ -98,16 +98,16 @@ public class StorageDir {
           addBlockMeta(new BlockMeta(blockId, path.length(), this));
           success = true;
         } catch (NumberFormatException nfe) {
-          LOG.error("filename of %s in StorageDir can not be parsed into long",
+          LOG.error("filename of {} in StorageDir can not be parsed into long",
               path.getAbsolutePath());
         } catch (IOException ioe) {
-          LOG.error("can not add block meta of file %s: %s", path.getAbsolutePath(), ioe);
+          LOG.error("can not add block meta of file {}: {}", path.getAbsolutePath(), ioe);
         }
         if (!success) {
           if (path.delete()) {
-            LOG.warn("file %s has been deleted", path.getAbsolutePath());
+            LOG.warn("file {} has been deleted", path.getAbsolutePath());
           } else {
-            LOG.error("can not delete file %s", path.getAbsolutePath());
+            LOG.error("can not delete file {}", path.getAbsolutePath());
           }
         }
       }
