@@ -63,7 +63,13 @@ public class StorageDir {
     mBlockIdToTempBlockMap = new HashMap<Long, TempBlockMeta>(200);
     mUserIdToTempBlockIdsMap = new HashMap<Long, Set<Long>>(200);
 
-    initializeMeta();
+    // TODO: make a factory method to create StorageDir and move inializeMeta into the factory
+    // method
+    try {
+      initializeMeta();
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
   }
 
   /**
@@ -79,7 +85,8 @@ public class StorageDir {
         Long.valueOf(path.getName());
         return true;
       } catch (NumberFormatException nfe) {
-        LOG.error("filename of %s in StorageDir can not be parsed into long", path.getAbsolutePath());
+        LOG.error("filename of %s in StorageDir can not be parsed into long",
+            path.getAbsolutePath());
         return false;
       }
     }
@@ -90,8 +97,10 @@ public class StorageDir {
    *
    * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath()} are legal,
    * should be in format like {dir}/{blockId}. others are ignored.
+   *
+   * @throws IOException when block meta can not be preloaded
    */
-  private void initializeMeta() {
+  private void initializeMeta() throws IOException {
     File dir = new File(mDirPath);
     FileFilter filter = new MetaFileFilter();
     File[] files = dir.listFiles(filter);
@@ -103,7 +112,8 @@ public class StorageDir {
         long blockId = Long.valueOf(file.getName());
         addBlockMeta(new BlockMeta(blockId, file.length(), this));
       } catch (IOException ioe) {
-        LOG.warn("can not add block meta of file %s: %s", file.getAbsolutePath(), ioe);
+        LOG.error("can not add block meta of file %s: %s", file.getAbsolutePath(), ioe);
+        throw ioe;
       }
     }
   }
