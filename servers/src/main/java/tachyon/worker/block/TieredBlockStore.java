@@ -335,7 +335,7 @@ public class TieredBlockStore implements BlockStore {
     }
     BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
     String srcPath = blockMeta.getPath();
-    blockMeta = mMetaManager.moveBlockMeta(blockId, newLocation);
+    blockMeta = mMetaManager.moveBlockMeta(blockMeta, newLocation);
     String destPath = blockMeta.getPath();
 
     if (!new File(srcPath).renameTo(new File(destPath))) {
