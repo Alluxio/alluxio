@@ -16,7 +16,6 @@
 package tachyon.worker.block.meta;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,49 +72,43 @@ public class StorageDir {
   }
 
   /**
-   * Only the File that is file and filename can be parsed into Long will be accept
-   */
-  class MetaFileFilter implements FileFilter {
-    public boolean accept(File path) {
-      if (!path.isFile()) {
-        LOG.error("%s in StorageDir is not a file", path.getAbsolutePath());
-        return false;
-      }
-      try {
-        Long.valueOf(path.getName());
-        return true;
-      } catch (NumberFormatException nfe) {
-        LOG.error("filename of %s in StorageDir can not be parsed into long",
-            path.getAbsolutePath());
-        return false;
-      }
-    }
-  }
-
-  /**
    * Initialize meta data for existing blocks in this StorageDir
    *
    * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath()} are legal,
-   * should be in format like {dir}/{blockId}. others are ignored.
+   * should be in format like {dir}/{blockId}. other paths will be deleted.
    */
   private void initializeMeta() {
     File dir = new File(mDirPath);
-    FileFilter filter = new MetaFileFilter();
-    File[] files = dir.listFiles(filter);
-    if (files == null) {
+    File[] paths = dir.listFiles();
+    if (paths == null) {
       return;
     }
-    for (File file : files) {
-      try {
-        long blockId = Long.valueOf(file.getName());
-        addBlockMeta(new BlockMeta(blockId, file.length(), this));
-      } catch (IOException ioe) {
-        LOG.error("can not add block meta of file %s: %s", file.getAbsolutePath(), ioe);
-        // delete file
-        if (file.delete()) {
-          LOG.warn("file %s has been deleted", file.getAbsolutePath());
-        } else {
-          LOG.error("can not delete file %s", file.getAbsolutePath());
+    for (File path : paths) {
+      if (!path.isFile()) {
+        LOG.error("%s in StorageDir is not a file", path.getAbsolutePath());
+        try {
+          FileUtils.deleteDirectory(path);
+        } catch (IOException ioe) {
+          LOG.error("can not delete directory %s: %s", path.getAbsolutePath(), ioe);
+        }
+      } else {
+        boolean success = false;
+        try {
+          long blockId = Long.valueOf(path.getName());
+          addBlockMeta(new BlockMeta(blockId, path.length(), this));
+          success = true;
+        } catch (NumberFormatException nfe) {
+          LOG.error("filename of %s in StorageDir can not be parsed into long",
+              path.getAbsolutePath());
+        } catch (IOException ioe) {
+          LOG.error("can not add block meta of file %s: %s", path.getAbsolutePath(), ioe);
+        }
+        if (!success) {
+          if (path.delete()) {
+            LOG.warn("file %s has been deleted", path.getAbsolutePath());
+          } else {
+            LOG.error("can not delete file %s", path.getAbsolutePath());
+          }
         }
       }
     }
