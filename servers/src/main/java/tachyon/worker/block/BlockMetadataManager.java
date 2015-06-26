@@ -168,6 +168,7 @@ public class BlockMetadataManager {
   public synchronized BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)
       throws IOException {
     // If move target can be any tier, then simply return the current block meta.
+    // TODO: change this to belongTo
     if (newLocation.equals(BlockStoreLocation.anyTier())) {
       return blockMeta;
     }
@@ -182,12 +183,15 @@ public class BlockMetadataManager {
         }
       }
     } else {
-      newDir = newTier.getDir(newLocation.dir());
+      StorageDir dir = newTier.getDir(newLocation.dir());
+      if (dir.getAvailableBytes() >= blockMeta.getBlockSize()) {
+        newDir = dir;
+      }
     }
 
     if (newDir == null) {
       throw new IOException("Failed to move BlockMeta: newLocation " + newLocation
-          + " has not enough space for " + blockMeta.getBlockSize() + " bytes");
+          + " does not have enough space for " + blockMeta.getBlockSize() + " bytes");
     }
     StorageDir oldDir = blockMeta.getParentDir();
     oldDir.removeBlockMeta(blockMeta);
