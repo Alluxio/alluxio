@@ -26,9 +26,8 @@ import tachyon.worker.BlockStoreLocation;
 
 /**
  * Represents the delta of the block store within one heartbeat period. For now, newly committed
- * blocks do not pass through this master communication mechanism, instead it is synchronise
- * through {@link tachyon.worker.block.BlockDataManager#commitBlock(long, long)}. This class is
- * thread safe.
+ * blocks do not pass through this master communication mechanism, instead it is synchronise through
+ * {@link tachyon.worker.block.BlockDataManager#commitBlock(long, long)}. This class is thread safe.
  */
 public class BlockHeartbeatReporter implements BlockMetaEventListener {
   /** Lock for operations on the removed and added block collections */
@@ -46,8 +45,9 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
   }
 
   /**
-   * Generates the report of the block store delta in the last heartbeat period. Calling this
-   * method marks the end of a period and the start of a new heartbeat period.
+   * Generates the report of the block store delta in the last heartbeat period. Calling this method
+   * marks the end of a period and the start of a new heartbeat period.
+   *
    * @return the block store delta report for the last heartbeat period
    */
   public BlockHeartbeatReport generateReport() {
@@ -70,19 +70,21 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
   // TODO: Add this functionality back when block creation between client and master is changed
   @Override
   public void postCommitBlock(long userId, long blockId, BlockStoreLocation location) {
-  //  Long storageDirId = location.getStorageDirId();
-  //  synchronized (mLock) {
-  //    addBlockToAddedBlocks(blockId, storageDirId);
-  //  }
+    // Long storageDirId = location.getStorageDirId();
+    // synchronized (mLock) {
+    // addBlockToAddedBlocks(blockId, storageDirId);
+    // }
   }
 
   @Override
-  public void preMoveBlock(long userId, long blockId, BlockStoreLocation newLocation) {
+  public void preMoveBlock(long userId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation) {
     // Do nothing
   }
 
   @Override
-  public void postMoveBlock(long userId, long blockId, BlockStoreLocation newLocation) {
+  public void postMoveBlock(long userId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation) {
     Long storageDirId = newLocation.getStorageDirId();
     synchronized (mLock) {
       // Add the block to the removed block list to remove the previous location
@@ -113,8 +115,29 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
     }
   }
 
+  @Override
+  public void preEvictBlock(long userId, long blockId) {
+    // Do nothing
+  }
+
+  @Override
+  public void postEvictBlock(long userId, long blockId) {
+    // Do nothing
+  }
+
+  @Override
+  public void preAbortBlock(long userId, long blockId) {
+    // Do nothing
+  }
+
+  @Override
+  public void postAbortBlock(long userId, long blockId) {
+    // Do nothing
+  }
+
   /**
    * Adds a block to the list of added blocks in this heartbeat period.
+   *
    * @param blockId The id of the block to add
    * @param storageDirId The storage directory id containing the block
    */
@@ -128,6 +151,7 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
 
   /**
    * Removes the block from the added blocks map, if it exists.
+   *
    * @param blockId The block to remove
    */
   private void removeBlockFromAddedBlocks(long blockId) {
