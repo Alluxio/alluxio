@@ -41,7 +41,7 @@ public class BlockMetaTest {
   @Before
   public void before() throws IOException {
     TachyonConf tachyonConf = new TachyonConf();
-    StorageTier tier = new StorageTier(tachyonConf, 0 /* level */, 1 /* alias */);
+    StorageTier tier = StorageTier.newStorageTier(tachyonConf, 0 /* level */, 1 /* alias */);
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
     mDir = StorageDir.newStorageDir(tier, 0 /* index */, 100 /* capacity */, mTestDirPath);
   }

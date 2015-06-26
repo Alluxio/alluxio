@@ -73,7 +73,7 @@ public class BlockDataManager {
    *
    * @param tachyonConf the configuration values to use
    */
-  public BlockDataManager(TachyonConf tachyonConf) {
+  public BlockDataManager(TachyonConf tachyonConf) throws IOException {
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = new TieredBlockStore(tachyonConf);
     mTachyonConf = tachyonConf;

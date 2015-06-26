@@ -69,9 +69,9 @@ public class TieredBlockStore implements BlockStore {
   /** A readwrite lock for meta data **/
   private final ReentrantReadWriteLock mEvictionLock = new ReentrantReadWriteLock();
 
-  public TieredBlockStore(TachyonConf tachyonConf) {
+  public TieredBlockStore(TachyonConf tachyonConf) throws IOException {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mMetaManager = new BlockMetadataManager(mTachyonConf);
+    mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
 
     // TODO: create Allocator according to tachyonConf.

@@ -57,15 +57,15 @@ public class StorageDirTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Before
-  public void before() {
+  public void before() throws IOException {
     TachyonConf tachyonConf = new TachyonConf();
-    mTier = new StorageTier(tachyonConf, 0 /* level */, 1 /* alias */);
+    mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */, 1 /* alias */);
     mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, TEST_DIR_PATH);
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
   }
 
-  private StorageDir newStorageDir(File testDir) {
+  private StorageDir newStorageDir(File testDir) throws IOException {
     return StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY,
         testDir.getAbsolutePath());
   }
@@ -97,10 +97,14 @@ public class StorageDirTest {
     }
   }
 
-  private void assertStorageDirEmpty(File dirPath, StorageDir dir, long capacity) {
+  private void assertMetadataEmpty(StorageDir dir, long capacity) {
     Assert.assertEquals(capacity, dir.getCapacityBytes());
     Assert.assertEquals(capacity, dir.getAvailableBytes());
     Assert.assertTrue(dir.getBlockIds().isEmpty());
+  }
+
+  private void assertStorageDirEmpty(File dirPath, StorageDir dir, long capacity) {
+    assertMetadataEmpty(dir, capacity);
     File[] files = dirPath.listFiles();
     Assert.assertNotNull(files);
     Assert.assertEquals(0, files.length);
@@ -134,8 +138,14 @@ public class StorageDirTest {
 
     newBlockFile(testDir, String.valueOf(TEST_BLOCK_ID), Ints.checkedCast(TEST_DIR_CAPACITY + 1));
 
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Failed to add BlockMeta");
     mDir = newStorageDir(testDir);
-    assertStorageDirEmpty(testDir, mDir, TEST_DIR_CAPACITY);
+    assertMetadataEmpty(mDir, TEST_DIR_CAPACITY);
+    // assert file not deleted
+    File[] files = testDir.listFiles();
+    Assert.assertNotNull(files);
+    Assert.assertEquals(1, files.length);
   }
 
   @Test

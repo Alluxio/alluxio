@@ -49,7 +49,9 @@ public class BlockMetadataManager {
   /** A map from tier alias to StorageTier */
   private Map<Integer, StorageTier> mAliasToTiers;
 
-  public BlockMetadataManager(TachyonConf tachyonConf) {
+  private BlockMetadataManager() {}
+
+  private void initBlockMetadataManager(TachyonConf tachyonConf) throws IOException {
     // Initialize storage tiers
     int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
@@ -57,10 +59,17 @@ public class BlockMetadataManager {
     for (int i = 0; i < totalTiers; i ++) {
       // TODO: Change the following calculation to get alias
       int tierAlias = i + 1;
-      StorageTier tier = new StorageTier(tachyonConf, i, tierAlias);
+      StorageTier tier = StorageTier.newStorageTier(tachyonConf, i, tierAlias);
       mTiers.add(tier);
       mAliasToTiers.put(tierAlias, tier);
     }
+  }
+
+  public static BlockMetadataManager newBlockMetadataManager(TachyonConf tachyonConf)
+      throws IOException {
+    BlockMetadataManager ret = new BlockMetadataManager();
+    ret.initBlockMetadataManager(tachyonConf);
+    return ret;
   }
 
   /**

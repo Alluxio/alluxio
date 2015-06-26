@@ -15,6 +15,8 @@
 
 package tachyon.worker.block.meta;
 
+import java.io.IOException;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,9 +49,9 @@ public class BlockMetaBaseTest {
   private BlockMetaBaseForTest mBlockMeta;
 
   @Before
-  public void before() {
+  public void before() throws IOException {
     TachyonConf tachyonConf = new TachyonConf();
-    mTier = new StorageTier(tachyonConf, 0 /* level */, 1 /* alias */);
+    mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */, 1 /* alias */);
     mDir = StorageDir.newStorageDir(mTier, 0 /* index */, 100 /* capacity */, TEST_DIR_PATH);
     mBlockMeta = new BlockMetaBaseForTest(TEST_BLOCK_ID, mDir);
   }
