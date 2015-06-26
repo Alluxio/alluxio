@@ -17,6 +17,7 @@ package tachyon.worker.block;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,9 +32,12 @@ import tachyon.worker.block.meta.StorageTier;
  * TODO: use proto buf to represent this information
  */
 public class BlockStoreMeta {
-  List<Long> mCapacityBytesOnTiers = new ArrayList<Long>();
-  List<Long> mUsedBytesOnTiers = new ArrayList<Long>();
-  Map<Long, List<Long>> mBlockIdsOnDirs = new HashMap<Long, List<Long>>();
+  private final List<Long> mCapacityBytesOnTiers = new ArrayList<Long>();
+  private final List<Long> mUsedBytesOnTiers = new ArrayList<Long>();
+  private final Map<Long, List<Long>> mBlockIdsOnDirs = new HashMap<Long, List<Long>>();
+  private final Map<Long, Long> mCapacityBytesOnDirs = new HashMap<Long, Long>();
+  private final Map<Long, Long> mUsedBytesOnDirs = new HashMap<Long, Long>();
+  private final Map<Long, String> mDirPaths = new LinkedHashMap<Long, String>();
 
   public BlockStoreMeta(BlockMetadataManager manager) {
     Preconditions.checkNotNull(manager);
@@ -42,12 +46,28 @@ public class BlockStoreMeta {
       mUsedBytesOnTiers.add(tier.getCapacityBytes() - tier.getAvailableBytes());
       for (StorageDir dir : tier.getStorageDirs()) {
         mBlockIdsOnDirs.put(dir.getStorageDirId(), dir.getBlockIds());
+        mCapacityBytesOnDirs.put(dir.getStorageDirId(), dir.getCapacityBytes());
+        mUsedBytesOnDirs.put(dir.getStorageDirId(),
+            dir.getCapacityBytes() - dir.getAvailableBytes());
+        mDirPaths.put(dir.getStorageDirId(), dir.getDirPath());
       }
     }
   }
 
+  public Map<Long, Long> getCapacityBytesOnDirs() {
+    return mCapacityBytesOnDirs;
+  }
+
   public List<Long> getCapacityBytesOnTiers() {
     return mCapacityBytesOnTiers;
+  }
+
+  public Map<Long, String> getDirPaths() {
+    return mDirPaths;
+  }
+
+  public Map<Long, Long> getUsedBytesOnDirs() {
+    return mUsedBytesOnDirs;
   }
 
   public List<Long> getUsedBytesOnTiers() {

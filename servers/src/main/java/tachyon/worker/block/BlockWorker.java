@@ -38,6 +38,8 @@ import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.web.UIWebServer;
+import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
 
 /**
@@ -79,6 +81,10 @@ public class BlockWorker {
   private long mWorkerId;
   /** Under file system folder for temporary files. */
   private String mUfsWorkerFolder;
+  /** Worker start time in milliseconds */
+  private final long mStartTimeMs;
+  /** Worker Web UI server */
+  private final UIWebServer mWebServer;
 
   /**
    * Creates a Tachyon Block Worker.
@@ -86,6 +92,7 @@ public class BlockWorker {
    */
   public BlockWorker(TachyonConf tachyonConf) throws IOException {
     mTachyonConf = tachyonConf;
+    mStartTimeMs = System.currentTimeMillis();
 
     // Set up BlockDataManager
     mBlockDataManager = new BlockDataManager(tachyonConf);
@@ -128,6 +135,12 @@ public class BlockWorker {
     // TODO: Fix this hack when we have a top level register
     mBlockDataManager.setUsers(mUsers);
     mBlockDataManager.setWorkerId(mWorkerId);
+
+    int webPort =
+        mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
+    mWebServer =
+        new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(
+            mWorkerNetAddress.getMHost(), webPort), this, mTachyonConf);
   }
 
   /**
@@ -136,6 +149,7 @@ public class BlockWorker {
    */
   public void process() {
     mSyncExecutorService.submit(mBlockMasterSync);
+    mWebServer.startWebServer();
     mThriftServer.serve();
   }
 
@@ -187,6 +201,22 @@ public class BlockWorker {
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
         .transportFactory(new TFramedTransport.Factory())
         .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+  }
+
+  /**
+   * Get the worker start time (in UTC) in milliseconds.
+   * @return the worker start time in milliseconds
+   */
+  public long getStartTimeMs() {
+    return mStartTimeMs;
+  }
+
+  /**
+   * Gets the meta data of the entire store.
+   * @return store meta data
+   */
+  public BlockStoreMeta getStoreMeta() {
+    return mBlockDataManager.getStoreMeta();
   }
 
   /**
