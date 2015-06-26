@@ -163,6 +163,12 @@ public class BlockWorker {
     mThriftServerSocket.close();
     mBlockMasterSync.stop();
     mSyncExecutorService.shutdown();
+    try {
+      mWebServer.shutdownWebServer();
+    } catch (Exception e) {
+      LOG.error("Failed to stop web server", e);
+    }
+    mBlockDataManager.stop();
     while (!mDataServer.isClosed() || mThriftServer.isServing()) {
       // TODO: The reason to stop and close again is due to some issues in Thrift.
       mThriftServer.stop();
