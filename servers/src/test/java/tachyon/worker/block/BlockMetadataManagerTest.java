@@ -68,7 +68,7 @@ public class BlockMetadataManagerTest {
         + mTachyonHome + "/disk2");
     tachyonConf.set("tachyon.worker.tieredstore.level1.dirs.quota", 3000 + "," + 5000);
 
-    mMetaManager = new BlockMetadataManager(tachyonConf);
+    mMetaManager = BlockMetadataManager.newBlockMetadataManager(tachyonConf);
   }
 
   @Test
