@@ -128,7 +128,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
    */
   public boolean promoteBlock(long blockId) throws TException {
     try {
-      mWorker.promoteBlock(Users.MIGRATE_DATA_USER_ID, blockId);
+      // TODO: Maybe add constant location for First Tier?
+      mWorker.moveBlock(Users.MIGRATE_DATA_USER_ID, blockId, 1);
       return true;
     } catch (IOException ioe) {
       throw new TException(ioe);
