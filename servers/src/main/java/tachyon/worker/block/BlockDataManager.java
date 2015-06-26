@@ -440,7 +440,7 @@ public class BlockDataManager {
     int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     return new InetSocketAddress(masterHostname, masterPort);
   }
-  
+
   /**
    * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
    * @return the worker's address

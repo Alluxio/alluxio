@@ -77,9 +77,10 @@ public class StorageDir {
    * @param capacityBytes the initial capacity of this dir, can not be modified later
    * @param dirPath filesystem path of this dir for actual storage
    * @return the new created StorageDir
+   * @throws IOException when meta data of existing committed blocks can not be loaded
    */
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
-      String dirPath) {
+      String dirPath) throws IOException {
     StorageDir dir = new StorageDir(tier, dirIndex, capacityBytes, dirPath);
     dir.initializeMeta();
     return dir;
@@ -90,8 +91,10 @@ public class StorageDir {
    *
    * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath()} are legal,
    * should be in format like {dir}/{blockId}. other paths will be deleted.
+   *
+   * @throws IOException when meta data of existing committed blocks can not be loaded
    */
-  private void initializeMeta() {
+  private void initializeMeta() throws IOException {
     File dir = new File(mDirPath);
     File[] paths = dir.listFiles();
     if (paths == null) {
@@ -106,23 +109,20 @@ public class StorageDir {
           LOG.error("can not delete directory {}: {}", path.getAbsolutePath(), ioe);
         }
       } else {
-        boolean success = false;
         try {
           long blockId = Long.valueOf(path.getName());
           addBlockMeta(new BlockMeta(blockId, path.length(), this));
-          success = true;
         } catch (NumberFormatException nfe) {
           LOG.error("filename of {} in StorageDir can not be parsed into long",
               path.getAbsolutePath());
-        } catch (IOException ioe) {
-          LOG.error("can not add block meta of file {}: {}", path.getAbsolutePath(), ioe);
-        }
-        if (!success) {
           if (path.delete()) {
             LOG.warn("file {} has been deleted", path.getAbsolutePath());
           } else {
             LOG.error("can not delete file {}", path.getAbsolutePath());
           }
+        } catch (IOException ioe) {
+          LOG.error("can not add block meta of file {}: {}", path.getAbsolutePath(), ioe);
+          throw ioe;
         }
       }
     }

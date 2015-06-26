@@ -39,17 +39,15 @@ public class StorageTier {
   /** Level of this tier in tiered storage, highest level is 0 */
   private final int mTierLevel;
   /** Total capacity of all StorageDirs in bytes */
-  private final long mCapacityBytes;
+  private long mCapacityBytes;
   private List<StorageDir> mDirs;
 
-  public StorageTier(TachyonConf tachyonConf, int tierLevel) {
+  private StorageTier(int tierLevel, int tierAlias) {
     mTierLevel = tierLevel;
+    mTierAlias = tierAlias;
+  }
 
-    String tierLevelAliasProp =
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, tierLevel);
-    StorageLevelAlias alias = tachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
-    mTierAlias = alias.getValue();
-
+  private void initStorageTier(TachyonConf tachyonConf) throws IOException {
     String tierDirPathConf =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, mTierLevel);
     String[] dirPaths = tachyonConf.get(tierDirPathConf, "/mnt/ramdisk").split(",");
@@ -68,6 +66,13 @@ public class StorageTier {
       mDirs.add(StorageDir.newStorageDir(this, i, capacity, dirPaths[i]));
     }
     mCapacityBytes = totalCapacity;
+  }
+
+  public static StorageTier newStorageTier(TachyonConf tachyonConf, int tierLevel, int tierAlias)
+      throws IOException {
+    StorageTier ret = new StorageTier(tierLevel, tierAlias);
+    ret.initStorageTier(tachyonConf);
+    return ret;
   }
 
   public int getTierAlias() {
