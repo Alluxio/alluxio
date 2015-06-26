@@ -159,6 +159,7 @@ public class BlockWorker {
     mWorkerSource.registerGauges(this);
     mWorkerMetricsSystem.registerSource(mWorkerSource);
     mWorkerMetricsSystem.start();
+    mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
 
     mSyncExecutorService.submit(mBlockMasterSync);
     mWebServer.startWebServer();

@@ -64,7 +64,6 @@ public class TieredBlockStore implements BlockStore {
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
   private final Evictor mEvictor;
-  private final WorkerSource mWorkerSource;
   /** A readwrite lock for meta data **/
   private final ReentrantReadWriteLock mEvictionLock = new ReentrantReadWriteLock();
   private List<BlockAccessEventListener> mAccessEventListeners =
@@ -72,11 +71,10 @@ public class TieredBlockStore implements BlockStore {
   private List<BlockMetaEventListener> mMetaEventListeners =
       new ArrayList<BlockMetaEventListener>();
 
-  public TieredBlockStore(TachyonConf tachyonConf, WorkerSource workerSource) {
+  public TieredBlockStore(TachyonConf tachyonConf) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mMetaManager = new BlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
-    mWorkerSource = workerSource;
 
     // TODO: create Allocator according to tachyonConf.
     mAllocator = new NaiveAllocator(mMetaManager);
@@ -416,7 +414,6 @@ public class TieredBlockStore implements BlockStore {
       }
       try {
         removeBlockNoLock(userId, blockId);
-        mWorkerSource.incBlocksEvicted();
         for (BlockMetaEventListener listener : mMetaEventListeners) {
           listener.postEvictBlock(userId, blockId);
         }

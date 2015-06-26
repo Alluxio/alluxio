@@ -62,6 +62,7 @@ public class BlockDataManager {
   private final TachyonConf mTachyonConf;
   /** WorkerSource for collecting worker metrics */
   private final WorkerSource mWorkerSource;
+  private final BlockMetricsReporter mMetricsReporter;
 
   // TODO: See if this can be removed from the class
   /** MasterClient, only used to inform the master of a new block in commitBlock */
@@ -80,9 +81,10 @@ public class BlockDataManager {
    */
   public BlockDataManager(TachyonConf tachyonConf, WorkerSource workerSource) {
     mHeartbeatReporter = new BlockHeartbeatReporter();
-    mBlockStore = new TieredBlockStore(tachyonConf, workerSource);
+    mBlockStore = new TieredBlockStore(tachyonConf);
     mTachyonConf = tachyonConf;
     mWorkerSource = workerSource;
+    mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-client-heartbeat-%d"));
@@ -105,6 +107,8 @@ public class BlockDataManager {
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerMetaListener(mHeartbeatReporter);
+    mBlockStore.registerMetaListener(mMetricsReporter);
+    mBlockStore.registerAccessListener(mMetricsReporter);
   }
 
   /**
@@ -117,7 +121,6 @@ public class BlockDataManager {
    */
   public void abortBlock(long userId, long blockId) throws IOException {
     mBlockStore.abortBlock(userId, blockId);
-    mWorkerSource.incBlocksCanceled();
   }
 
   /**
@@ -128,7 +131,6 @@ public class BlockDataManager {
    */
   public void accessBlock(long userId, long blockId) throws IOException {
     mBlockStore.accessBlock(userId, blockId);
-    mWorkerSource.incBlocksAccessed();
   }
 
   /**
@@ -258,7 +260,6 @@ public class BlockDataManager {
   // TODO: We should avoid throwing IOException
   public void removeBlock(long userId, long blockId) throws IOException {
     mBlockStore.removeBlock(userId, blockId);
-    mWorkerSource.incBlocksDeleted();
   }
 
   /**
@@ -316,19 +317,6 @@ public class BlockDataManager {
   public void moveBlock(long userId, long blockId, int tier) throws IOException {
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tier);
     mBlockStore.moveBlock(userId, blockId, dst);
-  }
-
-  /**
-   * Promote a block to the first tier.
-   *
-   * @param userId The id of the client
-   * @param blockId The id of the block to promote
-   * @throws IOException if an error occurs during promoting
-   */
-  public void promoteBlock(long userId, long blockId) throws IOException {
-    // TODO: Maybe add constant location for First Tier?
-    moveBlock(userId, blockId, 1);
-    mWorkerSource.incBlocksPromoted();
   }
 
   /**
