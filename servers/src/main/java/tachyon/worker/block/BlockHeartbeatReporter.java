@@ -105,14 +105,7 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
 
   @Override
   public void postRemoveBlock(long userId, long blockId) {
-    synchronized (mLock) {
-      // Remove the block from list of added blocks, in case it was added in this heartbeat period.
-      removeBlockFromAddedBlocks(blockId);
-      // Add to the list of removed blocks in this heartbeat period.
-      if (!mRemovedBlocks.contains(blockId)) {
-        mRemovedBlocks.add(blockId);
-      }
-    }
+    // Do nothing
   }
 
   @Override
@@ -122,7 +115,14 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
 
   @Override
   public void postEvictBlock(long userId, long blockId) {
-    // Do nothing
+    synchronized (mLock) {
+      // Remove the block from list of added blocks, in case it was added in this heartbeat period.
+      removeBlockFromAddedBlocks(blockId);
+      // Add to the list of removed blocks in this heartbeat period.
+      if (!mRemovedBlocks.contains(blockId)) {
+        mRemovedBlocks.add(blockId);
+      }
+    }
   }
 
   @Override
