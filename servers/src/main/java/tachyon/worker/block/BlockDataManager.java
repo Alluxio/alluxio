@@ -392,6 +392,14 @@ public class BlockDataManager {
   public void setWorkerId(long workerId) {
     mWorkerId = workerId;
   }
+  
+  /**
+   * Stop the block data manager. This method should only be called when terminating the worker.
+   */
+  public void stop() {
+    mMasterClient.close();
+    mMasterClientExecutorService.shutdown();
+  }
 
   /**
    * Relinquishes the lock with the specified lock id.
