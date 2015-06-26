@@ -323,6 +323,7 @@ public class StorageDirTest {
     Assert.assertEquals(TEST_DIR_CAPACITY - newSize, mDir.getAvailableBytes());
   }
 
+  // TODO: also test claimed space
   @Test
   public void cleanupUserTest() throws Exception {
     // Create blocks under TEST_USER_ID
