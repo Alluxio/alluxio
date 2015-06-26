@@ -17,7 +17,9 @@ package tachyon.worker.block.evictor;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,43 +36,17 @@ import tachyon.worker.block.meta.BlockMeta;
 public class LRUEvictor implements Evictor, BlockAccessEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final BlockMetadataManager mMeta;
-  private final Object mLock = new Object();
 
-  /** Double-Link List, most recently accessed block is at tail of the list */
-  private class Node extends DoubleLinkListNode {
-    long mBlockId;
-
-    Node() {
-      super();
-      mBlockId = -1;
-    }
-
-    Node(long blkId) {
-      super();
-      mBlockId = blkId;
-    }
-
-    Node next() {
-      return (Node) mNext;
-    }
-
-    Node prev() {
-      return (Node) mPrev;
-    }
-  }
-
-  private Node mHead;
-  private Node mTail;
-  /** Map from blockId to corresponding Node in the Double-Link List */
-  private Map<Long, Node> mCache;
+  /**
+   * access-ordered {@link java.util.LinkedHashMap} from blockId to {@code true}, acts as a LRU
+   * double linked list where most recently accessed element is put at the tail while least recently
+   * accessed element is put at the head
+   */
+  private Map<Long, Boolean> mLRUCache = Collections
+      .synchronizedMap(new LinkedHashMap<Long, Boolean>(200, 0.75f, true));
 
   public LRUEvictor(BlockMetadataManager meta) {
     mMeta = meta;
-
-    mHead = new Node();
-    mTail = new Node();
-    mHead.append(mTail);
-    mCache = new HashMap<Long, Node>();
   }
 
   @Override
@@ -89,35 +65,30 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
 
     EvictionDirCandidates dirCandidates = new EvictionDirCandidates();
 
-    // erase race condition with onAccessBlock on internal data structure
-    synchronized (mLock) {
-      Node p = mHead.next();
-      while (p != mTail && dirCandidates.maxAvailableBytes() < toEvictBytes) {
-        Node next = p.next();
+    Iterator<Map.Entry<Long, Boolean>> it = mLRUCache.entrySet().iterator();
+    while (it.hasNext() && dirCandidates.maxAvailableBytes() < toEvictBytes) {
+      long blockId = it.next().getKey();
 
-        try {
-          BlockMeta meta = mMeta.getBlockMeta(p.mBlockId);
+      try {
+        BlockMeta meta = mMeta.getBlockMeta(blockId);
 
-          BlockStoreLocation dir = meta.getBlockLocation();
-          if (dir.belongTo(location)) {
-            dirCandidates.add(dir, meta.getBlockId(), meta.getBlockSize());
-          }
-        } catch (IOException ioe) {
-          LOG.warn("Remove block %d from LRU Cache because %s", p.mBlockId, ioe);
-          removeNode(p);
+        BlockStoreLocation dir = meta.getBlockLocation();
+        if (dir.belongTo(location)) {
+          dirCandidates.add(dir, meta.getBlockId(), meta.getBlockSize());
         }
-
-        p = next;
+      } catch (IOException ioe) {
+        LOG.warn("Remove block %d from LRU Cache because %s", blockId, ioe);
+        it.remove();
       }
+    }
 
-      // enough free space
-      if (dirCandidates.maxAvailableBytes() >= toEvictBytes) {
-        toEvict = dirCandidates.toEvict();
-        for (Long blockId : toEvict) {
-          removeNode(mCache.get(blockId));
-        }
-        plan = new EvictionPlan(toMove, toEvict);
+    // enough free space
+    if (dirCandidates.maxAvailableBytes() >= toEvictBytes) {
+      toEvict = dirCandidates.toEvict();
+      for (Long blockId : toEvict) {
+        mLRUCache.remove(blockId);
       }
+      plan = new EvictionPlan(toMove, toEvict);
     }
 
     return plan;
@@ -128,21 +99,10 @@ public class LRUEvictor implements Evictor, BlockAccessEventListener {
    */
   @Override
   public void onAccessBlock(long userId, long blockId) {
-    Node node;
-    synchronized (mLock) {
-      if (mCache.containsKey(blockId)) {
-        node = mCache.get(blockId);
-        node.remove();
-      } else {
-        node = new Node(blockId);
-        mCache.put(blockId, node);
-      }
-      mTail.prev().append(node);
+    if (mLRUCache.containsKey(blockId)) {
+      mLRUCache.get(blockId);
+    } else {
+      mLRUCache.put(blockId, true);
     }
-  }
-
-  private void removeNode(Node p) {
-    p.remove();
-    mCache.remove(p.mBlockId);
   }
 }
