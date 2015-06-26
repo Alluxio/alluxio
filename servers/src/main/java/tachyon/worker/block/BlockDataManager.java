@@ -62,6 +62,7 @@ public class BlockDataManager {
   private final TachyonConf mTachyonConf;
   /** WorkerSource for collecting worker metrics */
   private final WorkerSource mWorkerSource;
+  /** Metrics reporter that listens on block events and increases metrics counters*/
   private final BlockMetricsReporter mMetricsReporter;
 
   // TODO: See if this can be removed from the class

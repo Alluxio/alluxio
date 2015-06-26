@@ -19,7 +19,7 @@ import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.WorkerSource;
 
 /**
- * This class listens on block events and increase the metrics counters.
+ * This class listens on block events and increases the metrics counters.
  */
 public class BlockMetricsReporter implements BlockMetaEventListener, BlockAccessEventListener {
   private final WorkerSource mWorkerSource;
