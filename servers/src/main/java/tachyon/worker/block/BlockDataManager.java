@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.google.common.base.Throwables;
+
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +89,14 @@ public class BlockDataManager {
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
-    // TODO: Handle UFS security
+    // Connect to UFS to handle UFS security
+    InetSocketAddress workerAddress = getWorkerAddress();
+    try {
+      mUfs.connectFromWorker(mTachyonConf, NetworkUtils.getFqdnHost(workerAddress));
+    } catch (IOException e) {
+      LOG.error("Worker @ " + workerAddress + " failed to connect to the under file system", e);
+      throw Throwables.propagate(e);
+    }
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerMetaListener(mHeartbeatReporter);
@@ -401,5 +410,16 @@ public class BlockDataManager {
         mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
     int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     return new InetSocketAddress(masterHostname, masterPort);
+  }
+  
+  /**
+   * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
+   * @return the worker's address
+   */
+  //TODO: BlockWorker has the same function. Share these to a utility function.
+  private InetSocketAddress getWorkerAddress() {
+    String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
+    int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
+    return new InetSocketAddress(workerHostname, workerPort);
   }
 }
