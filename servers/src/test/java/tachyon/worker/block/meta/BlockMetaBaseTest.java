@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -14,6 +14,8 @@
  */
 
 package tachyon.worker.block.meta;
+
+import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -47,10 +49,10 @@ public class BlockMetaBaseTest {
   private BlockMetaBaseForTest mBlockMeta;
 
   @Before
-  public void before() {
+  public void before() throws IOException {
     TachyonConf tachyonConf = new TachyonConf();
-    mTier = new StorageTier(tachyonConf, 0 /* level */);
-    mDir = new StorageDir(mTier, 0 /* index */, 100 /* capacity */, TEST_DIR_PATH);
+    mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
+    mDir = StorageDir.newStorageDir(mTier, 0 /* index */, 100 /* capacity */, TEST_DIR_PATH);
     mBlockMeta = new BlockMetaBaseForTest(TEST_BLOCK_ID, mDir);
   }
 

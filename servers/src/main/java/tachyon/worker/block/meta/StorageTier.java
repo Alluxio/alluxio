@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -17,9 +17,7 @@ package tachyon.worker.block.meta;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import tachyon.Constants;
 import tachyon.StorageLevelAlias;
@@ -38,16 +36,20 @@ public class StorageTier {
   private final int mTierAlias;
   /** Level of this tier in tiered storage, highest level is 0 */
   private final int mTierLevel;
+  /** Total capacity of all StorageDirs in bytes */
+  private long mCapacityBytes;
   private List<StorageDir> mDirs;
 
-  public StorageTier(TachyonConf tachyonConf, int tierLevel) {
+  private StorageTier(TachyonConf tachyonConf, int tierLevel) {
     mTierLevel = tierLevel;
 
     String tierLevelAliasProp =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, tierLevel);
     StorageLevelAlias alias = tachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
     mTierAlias = alias.getValue();
+  }
 
+  private void initStorageTier(TachyonConf tachyonConf) throws IOException {
     String tierDirPathConf =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, mTierLevel);
     String[] dirPaths = tachyonConf.get(tierDirPathConf, "/mnt/ramdisk").split(",");
@@ -58,11 +60,21 @@ public class StorageTier {
 
     mDirs = new ArrayList<StorageDir>(dirPaths.length);
 
+    long totalCapacity = 0;
     for (int i = 0; i < dirPaths.length; i ++) {
       int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
       long capacity = CommonUtils.parseSpaceSize(dirQuotas[index]);
-      mDirs.add(new StorageDir(this, i, capacity, dirPaths[i]));
+      totalCapacity += capacity;
+      mDirs.add(StorageDir.newStorageDir(this, i, capacity, dirPaths[i]));
     }
+    mCapacityBytes = totalCapacity;
+  }
+
+  public static StorageTier newStorageTier(TachyonConf tachyonConf, int tierLevel)
+      throws IOException {
+    StorageTier ret = new StorageTier(tachyonConf, tierLevel);
+    ret.initStorageTier(tachyonConf);
+    return ret;
   }
 
   public int getTierAlias() {
@@ -74,11 +86,7 @@ public class StorageTier {
   }
 
   public long getCapacityBytes() {
-    long capacityBytes = 0;
-    for (StorageDir dir : mDirs) {
-      capacityBytes += dir.getCapacityBytes();
-    }
-    return capacityBytes;
+    return mCapacityBytes;
   }
 
   public long getAvailableBytes() {
@@ -96,5 +104,4 @@ public class StorageTier {
   public List<StorageDir> getStorageDirs() {
     return mDirs;
   }
-
 }

@@ -49,16 +49,25 @@ public class BlockMetadataManager {
   /** A map from tier alias to StorageTier */
   private Map<Integer, StorageTier> mAliasToTiers;
 
-  public BlockMetadataManager(TachyonConf tachyonConf) {
+  private BlockMetadataManager() {}
+
+  private void initBlockMetadataManager(TachyonConf tachyonConf) throws IOException {
     // Initialize storage tiers
     int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
     mTiers = new ArrayList<StorageTier>(totalTiers);
     for (int level = 0; level < totalTiers; level ++) {
-      StorageTier tier = new StorageTier(tachyonConf, level);
+      StorageTier tier = StorageTier.newStorageTier(tachyonConf, level);
       mTiers.add(tier);
       mAliasToTiers.put(tier.getTierAlias(), tier);
     }
+  }
+
+  public static BlockMetadataManager newBlockMetadataManager(TachyonConf tachyonConf)
+      throws IOException {
+    BlockMetadataManager ret = new BlockMetadataManager();
+    ret.initBlockMetadataManager(tachyonConf);
+    return ret;
   }
 
   /**
@@ -159,6 +168,7 @@ public class BlockMetadataManager {
   public synchronized BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)
       throws IOException {
     // If move target can be any tier, then simply return the current block meta.
+    // TODO: change this to belongTo
     if (newLocation.equals(BlockStoreLocation.anyTier())) {
       return blockMeta;
     }
@@ -173,12 +183,15 @@ public class BlockMetadataManager {
         }
       }
     } else {
-      newDir = newTier.getDir(newLocation.dir());
+      StorageDir dir = newTier.getDir(newLocation.dir());
+      if (dir.getAvailableBytes() >= blockMeta.getBlockSize()) {
+        newDir = dir;
+      }
     }
 
     if (newDir == null) {
       throw new IOException("Failed to move BlockMeta: newLocation " + newLocation
-          + " has not enough space for " + blockMeta.getBlockSize() + " bytes");
+          + " does not have enough space for " + blockMeta.getBlockSize() + " bytes");
     }
     StorageDir oldDir = blockMeta.getParentDir();
     oldDir.removeBlockMeta(blockMeta);

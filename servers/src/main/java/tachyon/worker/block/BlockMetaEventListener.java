@@ -26,21 +26,28 @@ public interface BlockMetaEventListener {
 
   void postCommitBlock(long userId, long blockId, BlockStoreLocation location);
 
-  void preMoveBlock(long userId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation);
-
-  void postMoveBlock(long userId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation);
-
-  void preRemoveBlock(long userId, long blockId);
-
-  void postRemoveBlock(long userId, long blockId);
-
-  void preEvictBlock(long userId, long blockId);
-
-  void postEvictBlock(long userId, long blockId);
-
   void preAbortBlock(long userId, long blockId);
 
   void postAbortBlock(long userId, long blockId);
+
+  void preMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation);
+
+  void postMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation);
+
+  void preRemoveBlockByClient(long userId, long blockId);
+
+  void postRemoveBlockByClient(long userId, long blockId);
+
+  void preMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation);
+
+  void postMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation);
+
+  void preRemoveBlockByWorker(long userId, long blockId);
+
+  void postRemoveBlockByWorker(long userId, long blockId);
+
 }

@@ -38,11 +38,11 @@ public class BlockHeartbeatReporterTest {
 
   private void moveBlock(long blockId, BlockStoreLocation newLocation) {
     BlockStoreLocation unusedOldLocation = new BlockStoreLocation(1, 0);
-    mReporter.postMoveBlock(USER_ID, blockId, unusedOldLocation, newLocation);
+    mReporter.postMoveBlockByWorker(USER_ID, blockId, unusedOldLocation, newLocation);
   }
 
   private void removeBlock(long blockId) {
-    mReporter.postRemoveBlock(USER_ID, blockId);
+    mReporter.postRemoveBlockByWorker(USER_ID, blockId);
   }
 
   // Tests Empty Report
