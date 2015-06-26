@@ -77,13 +77,13 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
   }
 
   @Override
-  public void preMoveBlock(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void preMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     // Do nothing
   }
 
   @Override
-  public void postMoveBlock(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void postMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     Long storageDirId = newLocation.getStorageDirId();
     synchronized (mLock) {
@@ -99,22 +99,22 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
   }
 
   @Override
-  public void preRemoveBlock(long userId, long blockId) {
+  public void preRemoveBlockByClient(long userId, long blockId) {
     // Do nothing
   }
 
   @Override
-  public void postRemoveBlock(long userId, long blockId) {
+  public void postRemoveBlockByClient(long userId, long blockId) {
     // Do nothing
   }
 
   @Override
-  public void preEvictBlock(long userId, long blockId) {
+  public void preRemoveBlockByWorker(long userId, long blockId) {
     // Do nothing
   }
 
   @Override
-  public void postEvictBlock(long userId, long blockId) {
+  public void postRemoveBlockByWorker(long userId, long blockId) {
     synchronized (mLock) {
       // Remove the block from list of added blocks, in case it was added in this heartbeat period.
       removeBlockFromAddedBlocks(blockId);
@@ -124,6 +124,29 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
       }
     }
   }
+
+  @Override
+  public void preMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation) {
+    // Do nothing
+  }
+
+  @Override
+  public void postMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation) {
+    Long storageDirId = newLocation.getStorageDirId();
+    synchronized (mLock) {
+      // Add the block to the removed block list to remove the previous location
+      // TODO: We should have a better mechanism to indicate block movement
+      mRemovedBlocks.add(blockId);
+      // Remove the block from our list of added blocks in this heartbeat, if it was added to
+      // prevent adding the block twice.
+      removeBlockFromAddedBlocks(blockId);
+      // Add the block back with the new storagedir.
+      addBlockToAddedBlocks(blockId, storageDirId);
+    }
+  }
+
 
   @Override
   public void preAbortBlock(long userId, long blockId) {
