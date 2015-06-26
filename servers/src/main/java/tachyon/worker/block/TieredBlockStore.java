@@ -346,8 +346,8 @@ public class TieredBlockStore implements BlockStore {
     }
   }
 
-  private void freeSpaceNoEvictionLock(long userId, long availableBytes, BlockStoreLocation location)
-      throws IOException {
+  private void freeSpaceNoEvictionLock(long userId, long availableBytes,
+      BlockStoreLocation location) throws IOException {
     Optional<EvictionPlan> optPlan = mEvictor.freeSpace(availableBytes, location);
     // Absent plan means failed to evict enough space.
     if (!optPlan.isPresent()) {
