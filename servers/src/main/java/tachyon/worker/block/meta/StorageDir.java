@@ -376,6 +376,7 @@ public class StorageDir {
         TempBlockMeta tempBlock = mBlockIdToTempBlockMap.remove(blockId);
         if (tempBlock != null) {
           blocksToRemove.add(tempBlock);
+          reclaimSpace(tempBlock.getBlockSize());
         } else {
           LOG.error("Cannot find blockId {} when cleanup userId {}", blockId, userId);
         }
