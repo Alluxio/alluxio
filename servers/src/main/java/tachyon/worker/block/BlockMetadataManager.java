@@ -57,7 +57,7 @@ public class BlockMetadataManager {
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
     mTiers = new ArrayList<StorageTier>(totalTiers);
     for (int level = 0; level < totalTiers; level ++) {
-      StorageTier tier = new StorageTier(tachyonConf, level);
+      StorageTier tier = StorageTier.newStorageTier(tachyonConf, level);
       mTiers.add(tier);
       mAliasToTiers.put(tier.getTierAlias(), tier);
     }

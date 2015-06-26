@@ -57,7 +57,7 @@ public class StorageTierTest {
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, TEST_TIER_LEVEL),
         TEST_DIR1_CAPACITY + "," + TEST_DIR2_CAPACITY);
 
-    mTier = new StorageTier(tachyonConf, TEST_TIER_LEVEL);
+    mTier = StorageTier.newStorageTier(tachyonConf, TEST_TIER_LEVEL);
     mDir1 = mTier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
 

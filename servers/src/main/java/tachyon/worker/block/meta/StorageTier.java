@@ -17,9 +17,7 @@ package tachyon.worker.block.meta;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import tachyon.Constants;
 import tachyon.StorageLevelAlias;
@@ -42,9 +40,13 @@ public class StorageTier {
   private long mCapacityBytes;
   private List<StorageDir> mDirs;
 
-  private StorageTier(int tierLevel, int tierAlias) {
+  private StorageTier(TachyonConf tachyonConf, int tierLevel) {
     mTierLevel = tierLevel;
-    mTierAlias = tierAlias;
+
+    String tierLevelAliasProp =
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, tierLevel);
+    StorageLevelAlias alias = tachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
+    mTierAlias = alias.getValue();
   }
 
   private void initStorageTier(TachyonConf tachyonConf) throws IOException {
@@ -68,9 +70,9 @@ public class StorageTier {
     mCapacityBytes = totalCapacity;
   }
 
-  public static StorageTier newStorageTier(TachyonConf tachyonConf, int tierLevel, int tierAlias)
+  public static StorageTier newStorageTier(TachyonConf tachyonConf, int tierLevel)
       throws IOException {
-    StorageTier ret = new StorageTier(tierLevel, tierAlias);
+    StorageTier ret = new StorageTier(tachyonConf, tierLevel);
     ret.initStorageTier(tachyonConf);
     return ret;
   }
