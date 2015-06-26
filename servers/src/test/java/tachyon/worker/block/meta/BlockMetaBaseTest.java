@@ -49,7 +49,7 @@ public class BlockMetaBaseTest {
   @Before
   public void before() {
     TachyonConf tachyonConf = new TachyonConf();
-    mTier = new StorageTier(tachyonConf, 0 /* level */, 1 /* alias */);
+    mTier = new StorageTier(tachyonConf, 0 /* level */);
     mDir = new StorageDir(mTier, 0 /* index */, 100 /* capacity */, TEST_DIR_PATH);
     mBlockMeta = new BlockMetaBaseForTest(TEST_BLOCK_ID, mDir);
   }

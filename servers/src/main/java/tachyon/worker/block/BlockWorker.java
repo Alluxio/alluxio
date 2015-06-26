@@ -39,6 +39,8 @@ import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.web.UIWebServer;
+import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
 import tachyon.worker.WorkerSource;
 
@@ -85,6 +87,10 @@ public class BlockWorker {
   private MetricsSystem mWorkerMetricsSystem;
   /** WorkerSource for collecting worker metrics */
   private WorkerSource mWorkerSource;
+  /** Worker start time in milliseconds */
+  private final long mStartTimeMs;
+  /** Worker Web UI server */
+  private final UIWebServer mWebServer;
 
   /**
    * Creates a Tachyon Block Worker.
@@ -92,6 +98,7 @@ public class BlockWorker {
    */
   public BlockWorker(TachyonConf tachyonConf) throws IOException {
     mTachyonConf = tachyonConf;
+    mStartTimeMs = System.currentTimeMillis();
 
     mWorkerSource = new WorkerSource();
     // Set up BlockDataManager
@@ -135,6 +142,12 @@ public class BlockWorker {
     // TODO: Fix this hack when we have a top level register
     mBlockDataManager.setUsers(mUsers);
     mBlockDataManager.setWorkerId(mWorkerId);
+
+    int webPort =
+        mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
+    mWebServer =
+        new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(
+            mWorkerNetAddress.getMHost(), webPort), this, mTachyonConf);
   }
 
   /**
@@ -148,6 +161,7 @@ public class BlockWorker {
     mWorkerMetricsSystem.start();
 
     mSyncExecutorService.submit(mBlockMasterSync);
+    mWebServer.startWebServer();
     mThriftServer.serve();
   }
 
@@ -201,6 +215,18 @@ public class BlockWorker {
         .protocolFactory(new TBinaryProtocol.Factory(true, true)));
   }
 
+  /**
+   * Get the worker start time (in UTC) in milliseconds.
+   * @return the worker start time in milliseconds
+   */
+  public long getStartTimeMs() {
+    return mStartTimeMs;
+  }
+
+  /**
+   * Gets the meta data of the entire store.
+   * @return store meta data
+   */
   public BlockStoreMeta getStoreMeta() {
     return mBlockDataManager.getStoreMeta();
   }

@@ -48,7 +48,7 @@ public class StorageDirTest {
   @Before
   public void before() {
     TachyonConf tachyonConf = new TachyonConf();
-    mTier = new StorageTier(tachyonConf, 0 /* level */, 1 /* alias */);
+    mTier = new StorageTier(tachyonConf, 0 /* level */);
     mDir = new StorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, TEST_DIR_PATH);
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir);

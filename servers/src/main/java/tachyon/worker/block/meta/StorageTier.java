@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.Constants;
+import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
@@ -39,9 +40,14 @@ public class StorageTier {
   private final int mTierLevel;
   private List<StorageDir> mDirs;
 
-  public StorageTier(TachyonConf tachyonConf, int tierLevel, int tierAlias) {
-    mTierAlias = tierAlias;
+  public StorageTier(TachyonConf tachyonConf, int tierLevel) {
     mTierLevel = tierLevel;
+
+    String tierLevelAliasProp =
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, tierLevel);
+    StorageLevelAlias alias = tachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
+    mTierAlias = alias.getValue();
+
     String tierDirPathConf =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, mTierLevel);
     String[] dirPaths = tachyonConf.get(tierDirPathConf, "/mnt/ramdisk").split(",");

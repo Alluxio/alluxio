@@ -24,6 +24,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import tachyon.Constants;
+import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 
 public class StorageTierTest {
@@ -35,7 +37,7 @@ public class StorageTierTest {
   private static final long TEST_DIR1_CAPACITY = 2000;
   private static final long TEST_DIR2_CAPACITY = 3000;
   private static final int TEST_TIER_LEVEL = 0;
-  private static final int TEST_TIER_ALIAS = 1;
+  private static final int TEST_TIER_ALIAS = StorageLevelAlias.MEM.getValue();
   private StorageTier mTier;
   private StorageDir mDir1;
   private TempBlockMeta mTempBlockMeta;
@@ -46,13 +48,16 @@ public class StorageTierTest {
   @Before
   public final void before() throws Exception {
     TachyonConf tachyonConf = new TachyonConf();
-    tachyonConf.set("tachyon.worker.tieredstore.level0.alias", "MEM");
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", TEST_DIR1_PATH + ","
-        + TEST_DIR2_PATH);
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", TEST_DIR1_CAPACITY + ","
-        + TEST_DIR2_CAPACITY);
+    tachyonConf.set(
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, TEST_TIER_LEVEL), "MEM");
+    tachyonConf.set(
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, TEST_TIER_LEVEL),
+        TEST_DIR1_PATH + "," + TEST_DIR2_PATH);
+    tachyonConf.set(
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, TEST_TIER_LEVEL),
+        TEST_DIR1_CAPACITY + "," + TEST_DIR2_CAPACITY);
 
-    mTier = new StorageTier(tachyonConf, TEST_TIER_LEVEL, TEST_TIER_ALIAS);
+    mTier = new StorageTier(tachyonConf, TEST_TIER_LEVEL);
     mDir1 = mTier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
 

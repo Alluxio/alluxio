@@ -54,12 +54,10 @@ public class BlockMetadataManager {
     int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
     mTiers = new ArrayList<StorageTier>(totalTiers);
-    for (int i = 0; i < totalTiers; i ++) {
-      // TODO: Change the following calculation to get alias
-      int tierAlias = i + 1;
-      StorageTier tier = new StorageTier(tachyonConf, i, tierAlias);
+    for (int level = 0; level < totalTiers; level ++) {
+      StorageTier tier = new StorageTier(tachyonConf, level);
       mTiers.add(tier);
-      mAliasToTiers.put(tierAlias, tier);
+      mAliasToTiers.put(tier.getTierAlias(), tier);
     }
   }
 
@@ -153,16 +151,13 @@ public class BlockMetadataManager {
   /**
    * Moves the metadata of an existing block to another location or throws IOExceptions.
    *
-   * @param blockId the block ID
+   * @param blockMeta the meta data of the block to move
    * @param newLocation new location of the block
    * @return the new block metadata if success, absent otherwise
    * @throws IOException if this block is not found
    */
-  public synchronized BlockMeta moveBlockMeta(long blockId, BlockStoreLocation newLocation)
+  public synchronized BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)
       throws IOException {
-    // Check if the blockId is valid.
-    BlockMeta blockMeta = getBlockMeta(blockId);
-
     // If move target can be any tier, then simply return the current block meta.
     if (newLocation.equals(BlockStoreLocation.anyTier())) {
       return blockMeta;
@@ -187,8 +182,10 @@ public class BlockMetadataManager {
     }
     StorageDir oldDir = blockMeta.getParentDir();
     oldDir.removeBlockMeta(blockMeta);
-    newDir.addBlockMeta(blockMeta);
-    return blockMeta;
+    BlockMeta newBlockMeta =
+        new BlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), newDir);
+    newDir.addBlockMeta(newBlockMeta);
+    return newBlockMeta;
   }
 
   /**
@@ -234,7 +231,7 @@ public class BlockMetadataManager {
         }
       }
     }
-    throw new IOException("Failed to get BlockWriter: temp blockId " + blockId + "not found");
+    throw new IOException("Failed to get TempBlockMeta: temp blockId " + blockId + " not found");
   }
 
   /**
