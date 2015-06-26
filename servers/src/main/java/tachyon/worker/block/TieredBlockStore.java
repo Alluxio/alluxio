@@ -65,7 +65,6 @@ public class TieredBlockStore implements BlockStore {
   private final Allocator mAllocator;
   private final Evictor mEvictor;
   private final WorkerSource mWorkerSource;
-
   private List<BlockAccessEventListener> mAccessEventListeners =
       new ArrayList<BlockAccessEventListener>();
   private List<BlockMetaEventListener> mMetaEventListeners =
@@ -78,7 +77,6 @@ public class TieredBlockStore implements BlockStore {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
-    mWorkerSource = workerSource;
 
     // TODO: create Allocator according to tachyonConf.
     mAllocator = new NaiveAllocator(mMetaManager);
