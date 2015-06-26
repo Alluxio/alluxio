@@ -16,15 +16,21 @@
 package tachyon.worker.block.evictor;
 
 /**
- * Different types of EvictionStrategy. Currently only LRU-based strategies are implemented.
+ * Different types of {@link Evictor}.
  */
-public enum EvictStrategyType {
+public enum EvictorType {
+  /**
+   * Default type which will be determined in {@link Evictors} mainly used in
+   * {@link tachyon.conf.TachyonConf#getEnum} as default value when get EvictorType from
+   * configuration
+   */
+  DEFAULT,
   /**
    * Evict old blocks among several StorageDirs by LRU
    */
   LRU,
   /**
-   * Evict old blocks in certain StorageDir by LRU.
+   * Evict old blocks among several StorageDirs by LFU
    */
-  PARTIAL_LRU;
+  LFU,
 }

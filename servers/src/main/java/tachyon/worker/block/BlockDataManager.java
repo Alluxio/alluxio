@@ -45,8 +45,10 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * Class responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
- * thread-safe.
+ * Class responsible for managing the Tachyon {@link tachyon.worker.block.BlockStore} and Under
+ * FileSystem.
+ * <p>
+ * This class is thread-safe.
  */
 public class BlockDataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -192,8 +194,7 @@ public class BlockDataManager {
     BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
     Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierLevel());
     try {
-      mMasterClient
-          .worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);
+      mMasterClient.worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);
     } catch (TException te) {
       mBlockStore.unlockBlock(userId, blockId);
       throw new IOException("Failed to commit block to master.", te);

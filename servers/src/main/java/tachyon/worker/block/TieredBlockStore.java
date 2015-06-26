@@ -38,7 +38,8 @@ import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.allocator.NaiveAllocator;
 import tachyon.worker.block.evictor.EvictionPlan;
 import tachyon.worker.block.evictor.Evictor;
-import tachyon.worker.block.evictor.NaiveEvictor;
+import tachyon.worker.block.evictor.EvictorType;
+import tachyon.worker.block.evictor.Evictors;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockReader;
@@ -77,8 +78,13 @@ public class TieredBlockStore implements BlockStore {
 
     // TODO: create Allocator according to tachyonConf.
     mAllocator = new NaiveAllocator(mMetaManager);
-    // TODO: create Evictor according to tachyonConf
-    mEvictor = new NaiveEvictor(mMetaManager);
+
+    EvictorType evictorType =
+        mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
+    mEvictor = Evictors.create(evictorType, mMetaManager);
+    if (mEvictor instanceof BlockAccessEventListener) {
+      registerAccessListener((BlockAccessEventListener) mEvictor);
+    }
   }
 
   @Override
@@ -314,6 +320,9 @@ public class TieredBlockStore implements BlockStore {
     for (BlockMetaEventListener listener : mMetaEventListeners) {
       listener.postCommitBlock(userId, blockId, tempBlockMeta.getBlockLocation());
     }
+
+    // since the temp block has been committed, call accessBlock to update Evictor
+    accessBlock(userId, blockId);
   }
 
   private void abortBlockNoLock(long userId, long blockId) throws IOException {
