@@ -76,7 +76,7 @@ public class TieredBlockStore implements BlockStore {
 
   public TieredBlockStore(TachyonConf tachyonConf, WorkerSource workerSource) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mMetaManager = new BlockMetadataManager(mTachyonConf);
+    mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
     mWorkerSource = workerSource;
 
