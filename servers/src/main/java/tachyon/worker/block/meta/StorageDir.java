@@ -64,6 +64,20 @@ public class StorageDir {
     mUserIdToTempBlockIdsMap = new HashMap<Long, Set<Long>>(200);
   }
 
+  /**
+   * Factory method to create {@link StorageDir}
+   *
+   * It will load meta data of existing committed blocks in the dirPath specified. Only files with
+   * directory depth 1 under dirPath and whose file name can be parsed into {@code long} will be
+   * considered as existing committed blocks, these files will be preserved, others files or
+   * directories will be deleted.
+   * 
+   * @param tier the {@link StorageTier} this dir belongs to
+   * @param dirIndex the index of this dir in its tier
+   * @param capacityBytes the initial capacity of this dir, can not be modified later
+   * @param dirPath filesystem path of this dir for actual storage
+   * @return the new created StorageDir
+   */
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
       String dirPath) {
     StorageDir dir = new StorageDir(tier, dirIndex, capacityBytes, dirPath);
