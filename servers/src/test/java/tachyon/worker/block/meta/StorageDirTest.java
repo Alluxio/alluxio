@@ -20,17 +20,17 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
+import com.google.common.primitives.Ints;
 
 import tachyon.Constants;
 import tachyon.TestUtils;
@@ -53,6 +53,9 @@ public class StorageDirTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
+
   @Before
   public void before() {
     TachyonConf tachyonConf = new TachyonConf();
@@ -67,23 +70,16 @@ public class StorageDirTest {
         testDir.getAbsolutePath());
   }
 
-  private File newBlockFile(File dir, String name, int lenBytes) throws IOException {
+  private void newBlockFile(File dir, String name, int lenBytes) throws IOException {
     File block = new File(dir, name);
     block.createNewFile();
     byte[] data = TestUtils.getIncreasingByteArray(lenBytes);
     TestUtils.writeBufferToFile(block.getAbsolutePath(), data);
-    return block;
-  }
-
-  private File newTestDir() {
-    File testDir = Files.createTempDir();
-    LOG.debug("new TEST_DIR = {}", testDir.getAbsolutePath());
-    return testDir;
   }
 
   @Test
   public void initializeMetaNoExceptionTest() throws IOException {
-    File testDir = newTestDir();
+    File testDir = mFolder.newFolder();
 
     int nBlock = 10;
     long availableBytes = TEST_DIR_CAPACITY;
@@ -99,8 +95,6 @@ public class StorageDirTest {
     for (int blockId = 0; blockId < nBlock; blockId ++) {
       Assert.assertTrue(mDir.hasBlockMeta(blockId));
     }
-
-    FileUtils.deleteDirectory(testDir);
   }
 
   private void assertStorageDirEmpty(File dirPath, StorageDir dir, long capacity) {
@@ -114,19 +108,17 @@ public class StorageDirTest {
 
   @Test
   public void initializeMetaDeleteInappropriateFileTest() throws IOException {
-    File testDir = newTestDir();
+    File testDir = mFolder.newFolder();
 
     newBlockFile(testDir, "block", 1);
 
     mDir = newStorageDir(testDir);
     assertStorageDirEmpty(testDir, mDir, TEST_DIR_CAPACITY);
-
-    FileUtils.deleteDirectory(testDir);
   }
 
   @Test
   public void initializeMetaDeleteInappropriateDirTest() throws IOException {
-    File testDir = newTestDir();
+    File testDir = mFolder.newFolder();
 
     File newDir = new File(testDir, "dir");
     boolean created = newDir.mkdir();
@@ -134,22 +126,16 @@ public class StorageDirTest {
 
     mDir = newStorageDir(testDir);
     assertStorageDirEmpty(testDir, mDir, TEST_DIR_CAPACITY);
-
-    FileUtils.deleteDirectory(testDir);
   }
 
   @Test
   public void initializeMetaBlockLargerThanCapacityTest() throws IOException {
-    File testDir = newTestDir();
+    File testDir = mFolder.newFolder();
 
-    long blockId = 1001;
-    int capacity = 10;
-    newBlockFile(testDir, String.valueOf(blockId), capacity + 1);
+    newBlockFile(testDir, String.valueOf(TEST_BLOCK_ID), Ints.checkedCast(TEST_DIR_CAPACITY + 1));
 
-    mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, capacity, testDir.getAbsolutePath());
-    assertStorageDirEmpty(testDir, mDir, capacity);
-
-    FileUtils.deleteDirectory(testDir);
+    mDir = newStorageDir(testDir);
+    assertStorageDirEmpty(testDir, mDir, TEST_DIR_CAPACITY);
   }
 
   @Test
