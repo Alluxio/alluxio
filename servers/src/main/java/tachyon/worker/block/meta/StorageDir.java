@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -15,6 +15,7 @@
 
 package tachyon.worker.block.meta;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +53,7 @@ public class StorageDir {
   private int mDirIndex;
   private StorageTier mTier;
 
-  public StorageDir(StorageTier tier, int dirIndex, long capacityBytes, String dirPath) {
+  private StorageDir(StorageTier tier, int dirIndex, long capacityBytes, String dirPath) {
     mTier = Preconditions.checkNotNull(tier);
     mDirIndex = dirIndex;
     mCapacityBytes = capacityBytes;
@@ -60,6 +62,70 @@ public class StorageDir {
     mBlockIdToBlockMap = new HashMap<Long, BlockMeta>(200);
     mBlockIdToTempBlockMap = new HashMap<Long, TempBlockMeta>(200);
     mUserIdToTempBlockIdsMap = new HashMap<Long, Set<Long>>(200);
+  }
+
+  /**
+   * Factory method to create {@link StorageDir}
+   *
+   * It will load meta data of existing committed blocks in the dirPath specified. Only files with
+   * directory depth 1 under dirPath and whose file name can be parsed into {@code long} will be
+   * considered as existing committed blocks, these files will be preserved, others files or
+   * directories will be deleted.
+   *
+   * @param tier the {@link StorageTier} this dir belongs to
+   * @param dirIndex the index of this dir in its tier
+   * @param capacityBytes the initial capacity of this dir, can not be modified later
+   * @param dirPath filesystem path of this dir for actual storage
+   * @return the new created StorageDir
+   * @throws IOException when meta data of existing committed blocks can not be loaded
+   */
+  public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
+      String dirPath) throws IOException {
+    StorageDir dir = new StorageDir(tier, dirIndex, capacityBytes, dirPath);
+    dir.initializeMeta();
+    return dir;
+  }
+
+  /**
+   * Initialize meta data for existing blocks in this StorageDir
+   *
+   * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath()} are legal,
+   * should be in format like {dir}/{blockId}. other paths will be deleted.
+   *
+   * @throws IOException when meta data of existing committed blocks can not be loaded
+   */
+  private void initializeMeta() throws IOException {
+    File dir = new File(mDirPath);
+    File[] paths = dir.listFiles();
+    if (paths == null) {
+      return;
+    }
+    for (File path : paths) {
+      if (!path.isFile()) {
+        LOG.error("{} in StorageDir is not a file", path.getAbsolutePath());
+        try {
+          FileUtils.deleteDirectory(path);
+        } catch (IOException ioe) {
+          LOG.error("can not delete directory {}: {}", path.getAbsolutePath(), ioe);
+        }
+      } else {
+        try {
+          long blockId = Long.valueOf(path.getName());
+          addBlockMeta(new BlockMeta(blockId, path.length(), this));
+        } catch (NumberFormatException nfe) {
+          LOG.error("filename of {} in StorageDir can not be parsed into long",
+              path.getAbsolutePath());
+          if (path.delete()) {
+            LOG.warn("file {} has been deleted", path.getAbsolutePath());
+          } else {
+            LOG.error("can not delete file {}", path.getAbsolutePath());
+          }
+        } catch (IOException ioe) {
+          LOG.error("can not add block meta of file {}: {}", path.getAbsolutePath(), ioe);
+          throw ioe;
+        }
+      }
+    }
   }
 
   public long getCapacityBytes() {

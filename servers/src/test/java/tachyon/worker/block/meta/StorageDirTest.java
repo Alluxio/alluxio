@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -15,6 +15,7 @@
 
 package tachyon.worker.block.meta;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -24,12 +25,19 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Ints;
 
+import tachyon.Constants;
+import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
 
 public class StorageDirTest {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final long TEST_USER_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_TEMP_BLOCK_ID = 10;
@@ -45,13 +53,99 @@ public class StorageDirTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
+
   @Before
-  public void before() {
+  public void before() throws IOException {
     TachyonConf tachyonConf = new TachyonConf();
-    mTier = new StorageTier(tachyonConf, 0 /* level */);
-    mDir = new StorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, TEST_DIR_PATH);
+    mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
+    mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, TEST_DIR_PATH);
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
+  }
+
+  private StorageDir newStorageDir(File testDir) throws IOException {
+    return StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY,
+        testDir.getAbsolutePath());
+  }
+
+  private void newBlockFile(File dir, String name, int lenBytes) throws IOException {
+    File block = new File(dir, name);
+    block.createNewFile();
+    byte[] data = TestUtils.getIncreasingByteArray(lenBytes);
+    TestUtils.writeBufferToFile(block.getAbsolutePath(), data);
+  }
+
+  @Test
+  public void initializeMetaNoExceptionTest() throws IOException {
+    File testDir = mFolder.newFolder();
+
+    int nBlock = 10;
+    long availableBytes = TEST_DIR_CAPACITY;
+    for (int blockId = 0; blockId < nBlock; blockId ++) {
+      int blockSizeBytes = blockId + 1;
+      newBlockFile(testDir, String.valueOf(blockId), blockSizeBytes);
+      availableBytes -= blockSizeBytes;
+    }
+
+    mDir = newStorageDir(testDir);
+    Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getCapacityBytes());
+    Assert.assertEquals(availableBytes, mDir.getAvailableBytes());
+    for (int blockId = 0; blockId < nBlock; blockId ++) {
+      Assert.assertTrue(mDir.hasBlockMeta(blockId));
+    }
+  }
+
+  private void assertMetadataEmpty(StorageDir dir, long capacity) {
+    Assert.assertEquals(capacity, dir.getCapacityBytes());
+    Assert.assertEquals(capacity, dir.getAvailableBytes());
+    Assert.assertTrue(dir.getBlockIds().isEmpty());
+  }
+
+  private void assertStorageDirEmpty(File dirPath, StorageDir dir, long capacity) {
+    assertMetadataEmpty(dir, capacity);
+    File[] files = dirPath.listFiles();
+    Assert.assertNotNull(files);
+    Assert.assertEquals(0, files.length);
+  }
+
+  @Test
+  public void initializeMetaDeleteInappropriateFileTest() throws IOException {
+    File testDir = mFolder.newFolder();
+
+    newBlockFile(testDir, "block", 1);
+
+    mDir = newStorageDir(testDir);
+    assertStorageDirEmpty(testDir, mDir, TEST_DIR_CAPACITY);
+  }
+
+  @Test
+  public void initializeMetaDeleteInappropriateDirTest() throws IOException {
+    File testDir = mFolder.newFolder();
+
+    File newDir = new File(testDir, "dir");
+    boolean created = newDir.mkdir();
+    Assert.assertTrue(created);
+
+    mDir = newStorageDir(testDir);
+    assertStorageDirEmpty(testDir, mDir, TEST_DIR_CAPACITY);
+  }
+
+  @Test
+  public void initializeMetaBlockLargerThanCapacityTest() throws IOException {
+    File testDir = mFolder.newFolder();
+
+    newBlockFile(testDir, String.valueOf(TEST_BLOCK_ID), Ints.checkedCast(TEST_DIR_CAPACITY + 1));
+
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("Failed to add BlockMeta");
+    mDir = newStorageDir(testDir);
+    assertMetadataEmpty(mDir, TEST_DIR_CAPACITY);
+    // assert file not deleted
+    File[] files = testDir.listFiles();
+    Assert.assertNotNull(files);
+    Assert.assertEquals(1, files.length);
   }
 
   @Test
