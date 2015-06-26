@@ -189,8 +189,10 @@ public class TieredBlockStore implements BlockStore {
       }
       try {
         moveBlockNoLock(blockId, newLocation);
+        blockMeta = mMetaManager.getBlockMeta(blockId);
+        BlockStoreLocation actualNewLocation = blockMeta.getBlockLocation();
         for (BlockMetaEventListener listener : mMetaEventListeners) {
-          listener.postMoveBlock(userId, blockId, oldLocation, newLocation);
+          listener.postMoveBlock(userId, blockId, oldLocation, actualNewLocation);
         }
       } finally {
         mLockManager.unlockBlock(lockId);
