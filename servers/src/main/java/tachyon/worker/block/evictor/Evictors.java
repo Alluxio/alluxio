@@ -32,8 +32,6 @@ public class Evictors {
     switch (evictorType) {
       case LRU:
         return new LRUEvictor(metaManager);
-      case LFU:
-        return new LFUEvictor(metaManager);
       default:
         // TODO may not default to LRU
         return new LRUEvictor(metaManager);
