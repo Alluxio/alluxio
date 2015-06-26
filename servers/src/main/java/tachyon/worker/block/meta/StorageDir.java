@@ -147,7 +147,8 @@ public class StorageDir {
   public BlockMeta getBlockMeta(long blockId) throws IOException {
     BlockMeta blockMeta = mBlockIdToBlockMap.get(blockId);
     if (blockMeta == null) {
-      throw new IOException("Cannot find BlockMeta for blockId " + blockId + " in " + toString());
+      throw new IOException("Failed to get BlockMeta: blockId " + blockId + " not found in "
+          + toString());
     }
     return blockMeta;
   }
@@ -162,7 +163,7 @@ public class StorageDir {
   public TempBlockMeta getTempBlockMeta(long blockId) throws IOException {
     TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.get(blockId);
     if (tempBlockMeta == null) {
-      throw new IOException("Cannot find TempBlockMeta for blockId " + blockId + " in "
+      throw new IOException("Failed to get TempBlockMeta: blockId " + blockId + " not found in "
           + toString());
     }
     return tempBlockMeta;
@@ -206,7 +207,7 @@ public class StorageDir {
       throw new IOException("Failed to add TempBlockMeta: blockId " + blockId + " is " + blockSize
           + " bytes, but only " + getAvailableBytes() + " bytes available");
     }
-    if (hasBlockMeta(blockId)) {
+    if (hasTempBlockMeta(blockId)) {
       throw new IOException("Failed to add TempBlockMeta: blockId " + blockId + " exists");
     }
 
@@ -228,9 +229,10 @@ public class StorageDir {
    */
   public void removeBlockMeta(BlockMeta blockMeta) throws IOException {
     Preconditions.checkNotNull(blockMeta);
-    BlockMeta deletedBlockMeta = mBlockIdToBlockMap.remove(blockMeta.getBlockId());
+    long blockId = blockMeta.getBlockId();
+    BlockMeta deletedBlockMeta = mBlockIdToBlockMap.remove(blockId);
     if (deletedBlockMeta == null) {
-      throw new IOException("Failed to remove BlockMeta: No block meta found");
+      throw new IOException("Failed to remove BlockMeta: blockId " + blockId + " not found");
     }
     reclaimSpace(blockMeta.getBlockSize());
   }
@@ -243,23 +245,26 @@ public class StorageDir {
    */
   public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) throws IOException {
     Preconditions.checkNotNull(tempBlockMeta);
-    long blockId = tempBlockMeta.getBlockId();
+    final long blockId = tempBlockMeta.getBlockId();
+    final long userId = tempBlockMeta.getUserId();
     TempBlockMeta deletedTempBlockMeta = mBlockIdToTempBlockMap.remove(blockId);
     if (deletedTempBlockMeta == null) {
-      throw new IOException("Failed to remove TempBlockMeta: No block meta found");
+      throw new IOException("Failed to remove TempBlockMeta: blockId " + blockId + " not found");
     }
-    for (Map.Entry<Long, Set<Long>> entry : mUserIdToTempBlockIdsMap.entrySet()) {
-      Long userId = entry.getKey();
-      Set<Long> userBlocks = entry.getValue();
-      if (userBlocks.contains(blockId)) {
-        Preconditions.checkState(userBlocks.remove(blockId));
-        if (userBlocks.isEmpty()) {
-          mUserIdToTempBlockIdsMap.remove(userId);
-        }
-        reclaimSpace(tempBlockMeta.getBlockSize());
-      }
+    Set<Long> userBlocks = mUserIdToTempBlockIdsMap.get(userId);
+    if (userBlocks == null) {
+      throw new IOException("Failed to remove TempBlockMeta: blockId " + blockId + " has userId "
+          + userId + " not found");
     }
-    throw new IOException("Failed to remove TempBlockMeta: No owner userId associated");
+    if (!userBlocks.contains(blockId)) {
+      throw new IOException("Failed to remove TempBlockMeta: blockId " + blockId + " not "
+          + "associated with userId " + userId);
+    }
+    Preconditions.checkState(userBlocks.remove(blockId));
+    if (userBlocks.isEmpty()) {
+      mUserIdToTempBlockIdsMap.remove(userId);
+    }
+    reclaimSpace(tempBlockMeta.getBlockSize());
   }
 
   /**
@@ -295,15 +300,22 @@ public class StorageDir {
    * Cleans up the temp block meta data of a specific user.
    *
    * @param userId the ID of the user to cleanup
+   * @return A list of temp blocks removed from this dir
    */
-  public void cleanupUser(long userId) {
+  public List<TempBlockMeta> cleanupUser(long userId) {
+    List<TempBlockMeta> blocksToRemove = new ArrayList<TempBlockMeta>();
     Set<Long> userTempBlocks = mUserIdToTempBlockIdsMap.get(userId);
-    if (null == userTempBlocks) {
-      return;
+    if (userTempBlocks != null) {
+      for (long blockId : userTempBlocks) {
+        TempBlockMeta tempBlock = mBlockIdToTempBlockMap.remove(blockId);
+        if (tempBlock != null) {
+          blocksToRemove.add(tempBlock);
+        } else {
+          LOG.error("Cannot find blockId {} when cleanup userId {}", blockId, userId);
+        }
+      }
+      mUserIdToTempBlockIdsMap.remove(userId);
     }
-    for (long blockId : userTempBlocks) {
-      mBlockIdToTempBlockMap.remove(blockId);
-    }
-    mUserIdToTempBlockIdsMap.remove(userId);
+    return blocksToRemove;
   }
 }

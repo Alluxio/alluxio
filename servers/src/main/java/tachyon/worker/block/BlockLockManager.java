@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -84,7 +84,7 @@ public class BlockLockManager {
     lock.lock();
     if (!mMetaManager.hasBlockMeta(blockId)) {
       lock.unlock();
-      throw new IOException("No blockId " + blockId + "found");
+      throw new IOException("Failed to lockBlock: no blockId " + blockId + " found");
     }
     long lockId = LOCK_ID_GEN.getAndIncrement();
     synchronized (mSharedMapsLock) {
@@ -110,7 +110,7 @@ public class BlockLockManager {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
-        throw new IOException("Failed to unlock lockId " + lockId + ": no lock record found");
+        throw new IOException("Failed to unlockBlock: lockId " + lockId + " has no lock record");
       }
       long userId = record.userId();
       lock = record.lock();
@@ -131,7 +131,7 @@ public class BlockLockManager {
       for (long lockId : userLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (null == record) {
-          throw new IOException("Failed to unlock lockId " + lockId + ": no lock record found");
+          throw new IOException("Failed to unlockBlock: lockId " + lockId + " has no lock record");
         }
         if (blockId == record.blockId()) {
           mLockIdToRecordMap.remove(lockId);
@@ -159,15 +159,15 @@ public class BlockLockManager {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
-        throw new IOException("Fail to validate lockId " + lockId + ": no lock record found");
+        throw new IOException("Failed to validateLockId: lockId " + lockId + " has no lock record");
       }
       if (userId != record.userId()) {
-        throw new IOException("Fail to validate lockId " + lockId + ": expect userId " + userId
-            + " but found " + record.userId());
+        throw new IOException("Failed to validateLockId: lockId " + lockId + " is owned by userId "
+            + record.userId() + ", not " + userId);
       }
       if (blockId != record.blockId()) {
-        throw new IOException("Fail to validate lockId " + lockId + ": expect blockId " + blockId
-            + " but found " + record.blockId());
+        throw new IOException("Failed to validateLockId: lockId " + lockId + " is for blockId "
+            + record.blockId() + ", not " + blockId);
       }
     }
   }
@@ -181,7 +181,6 @@ public class BlockLockManager {
     synchronized (mSharedMapsLock) {
       Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
       if (null == userLockIds) {
-        LOG.error("Failed to cleanup userId {}: no acquired lock found", userId);
         return;
       }
       for (long lockId : userLockIds) {

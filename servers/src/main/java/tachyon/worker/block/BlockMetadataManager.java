@@ -21,9 +21,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -53,12 +54,10 @@ public class BlockMetadataManager {
     int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
     mTiers = new ArrayList<StorageTier>(totalTiers);
-    for (int i = 0; i < totalTiers; i ++) {
-      // TODO: Change the following calculation to get alias
-      int tierAlias = i + 1;
-      StorageTier tier = new StorageTier(tachyonConf, i, tierAlias);
+    for (int level = 0; level < totalTiers; level ++) {
+      StorageTier tier = new StorageTier(tachyonConf, level);
       mTiers.add(tier);
-      mAliasToTiers.put(tierAlias, tier);
+      mAliasToTiers.put(tier.getTierAlias(), tier);
     }
   }
 
@@ -152,16 +151,13 @@ public class BlockMetadataManager {
   /**
    * Moves the metadata of an existing block to another location or throws IOExceptions.
    *
-   * @param blockId the block ID
+   * @param blockMeta the meta data of the block to move
    * @param newLocation new location of the block
    * @return the new block metadata if success, absent otherwise
    * @throws IOException if this block is not found
    */
-  public synchronized BlockMeta moveBlockMeta(long blockId, BlockStoreLocation newLocation)
+  public synchronized BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)
       throws IOException {
-    // Check if the blockId is valid.
-    BlockMeta blockMeta = getBlockMeta(blockId);
-
     // If move target can be any tier, then simply return the current block meta.
     if (newLocation.equals(BlockStoreLocation.anyTier())) {
       return blockMeta;
@@ -186,8 +182,10 @@ public class BlockMetadataManager {
     }
     StorageDir oldDir = blockMeta.getParentDir();
     oldDir.removeBlockMeta(blockMeta);
-    newDir.addBlockMeta(blockMeta);
-    return blockMeta;
+    BlockMeta newBlockMeta =
+        new BlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), newDir);
+    newDir.addBlockMeta(newBlockMeta);
+    return newBlockMeta;
   }
 
   /**
@@ -199,6 +197,23 @@ public class BlockMetadataManager {
   public synchronized void removeBlockMeta(BlockMeta block) throws IOException {
     StorageDir dir = block.getParentDir();
     dir.removeBlockMeta(block);
+  }
+
+  /**
+   * Checks if the storage has a given temp block.
+   *
+   * @param blockId the temp block ID
+   * @return true if the block is contained, false otherwise
+   */
+  public synchronized boolean hasTempBlockMeta(long blockId) {
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.hasTempBlockMeta(blockId)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
@@ -216,7 +231,7 @@ public class BlockMetadataManager {
         }
       }
     }
-    throw new IOException("Failed to get BlockWriter: temp blockId " + blockId + "not found");
+    throw new IOException("Failed to get TempBlockMeta: temp blockId " + blockId + " not found");
   }
 
   /**
@@ -266,16 +281,24 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Cleans up the temp blocks meta data created by the given user.
+   * Cleans up the meta data of temp blocks created by the given user.
    *
    * @param userId the ID of the user
+   * @return A list of temp blocks created by the user in this block store
    */
-  public synchronized void cleanupUser(long userId) {
+  public synchronized List<TempBlockMeta> cleanupUser(long userId) {
+    List<TempBlockMeta> ret = new ArrayList<TempBlockMeta>();
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        dir.cleanupUser(userId);
+        List<TempBlockMeta> blocksToRemove = dir.cleanupUser(userId);
+        if (blocksToRemove != null) {
+          for (TempBlockMeta block : blocksToRemove) {
+            ret.add(block);
+          }
+        }
       }
     }
+    return ret;
   }
 
   /**

@@ -18,15 +18,11 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.List;
 
-import com.google.common.base.Optional;
-
 import org.apache.thrift.TException;
 
 import tachyon.Users;
-import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
-import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
 
 /**
@@ -41,120 +37,15 @@ public class BlockServiceHandler implements WorkerService.Iface {
     mWorker = worker;
   }
 
-  /**
-   * Used when a client wishes to abort a temporary block it is managing.
-   *
-   * @param userId The user id of the client
-   * @param blockId The id of the block to be aborted
-   * @return true if successful, false otherwise
-   * @throws TException if the block does not exist or is committed
-   */
-  public boolean abortBlock(long userId, long blockId) throws TException {
+  public void accessBlock(long blockId) throws TException {
     try {
-      return mWorker.abortBlock(userId, blockId);
+      mWorker.accessBlock(-1, blockId);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
   }
 
-  /**
-   * Used to close a block. Calling this method will move the block from the user temporary folder
-   * to the worker's data folder.
-   *
-   * @param userId The id of the client
-   * @param blockId The block id to complete
-   * @throws TException if the block fails to be completed
-   */
-  public void commitBlock(long userId, long blockId) throws TException {
-    try {
-      mWorker.commitBlock(userId, blockId);
-    } catch (IOException ioe) {
-      throw new TException(ioe);
-    }
-  }
-
-  /**
-   * Used to create a new block on this worker. This is only used for local clients.
-   *
-   * @param userId The id of the client
-   * @param blockId The id of the block
-   * @param location The tier to place the block in, 0 for any tier
-   * @param initialBytes The amount of space to request for the block initially
-   * @return Path to the local file, or null if it failed
-   * @throws OutOfSpaceException if there is not enough space in location to create the block
-   * @throws FileAlreadyExistException if the block already exists
-   */
-  public String createBlock(long userId, long blockId, int location, long initialBytes)
-      throws TException {
-    try {
-      return mWorker.createBlock(userId, blockId, location, initialBytes);
-    } catch (IOException ioe) {
-      throw new TException(ioe);
-    }
-  }
-
-  // TODO: Rename this method when complete, currently is V2 to avoid checkstyle errors
-  /**
-   * Obtains a read lock on the block.
-   *
-   * @param userId The id of the client
-   * @param blockId The id of the block to lock
-   * @return the lockId of the lock obtained
-   */
-  public long lockBlockV2(long userId, long blockId) {
-    Optional<Long> optLock = mWorker.lockBlock(userId, blockId);
-    if (optLock.isPresent()) {
-      return optLock.get();
-    }
-    return -1;
-  }
-
-  /**
-   * Used to get a completed block for reading. This method should only be used if the block is in
-   * Tachyon managed space on this worker.
-   *
-   * @param userId The id of the client
-   * @param blockId The id of the block to read
-   * @param lockId The lock id of the lock acquired on the block
-   * @return the path of the block on local disk
-   * @throws TException if the block does not exist
-   */
-  public String readBlock(long userId, long blockId, int lockId) throws TException {
-    return mWorker.readBlock(userId, blockId, lockId);
-  }
-
-  /**
-   * Used to remove a block from the Tachyon storage managed by this worker.
-   *
-   * @param blockId The id of the block
-   * @return true if the block is freed successfully, false otherwise
-   * @throws TException if the block does not exist
-   */
-  public boolean removeBlock(long blockId) throws TException {
-    try {
-      return mWorker.removeBlock(Users.MIGRATE_DATA_USER_ID, blockId);
-    } catch (IOException ioe) {
-      throw new TException(ioe);
-    }
-  }
-
-  // TODO: Rename this method when complete, currently is V2 to avoid checkstyle errors
-  /**
-   * Relinquishes the lock on the block.
-   *
-   * @param lockId The id of the lock to relinquish
-   * @return true if successful, false otherwise
-   */
-  public boolean unlockBlockV2(long lockId) {
-    return mWorker.unlockBlock(lockId);
-  }
-
-  // ================================ WORKER V1 INTERFACE =======================================
-  public void accessBlock(long blockId) throws org.apache.thrift.TException {
-    mWorker.accessBlock(-1, blockId);
-  }
-
-  public void addCheckpoint(long userId, int fileId) throws org.apache.thrift.TException {
+  public void addCheckpoint(long userId, int fileId) throws TException {
     try {
       mWorker.addCheckpoint(userId, fileId);
     } catch (IOException ioe) {
@@ -162,7 +53,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
     }
   }
 
-  public boolean asyncCheckpoint(int fileId) throws TachyonException, org.apache.thrift.TException {
+  // TODO: Make this supported again
+  public boolean asyncCheckpoint(int fileId) throws TException {
     return false;
   }
 
@@ -219,11 +111,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId
    */
   public String lockBlock(long blockId, long userId) throws TException {
-    Optional<Long> optLock = mWorker.lockBlock(userId, blockId);
-    if (optLock.isPresent()) {
-      return mWorker.readBlock(userId, blockId, optLock.get());
+    try {
+      long lockId = mWorker.lockBlock(userId, blockId);
+      return mWorker.readBlock(userId, blockId, lockId);
+    } catch (IOException ioe) {
+      throw new FileDoesNotExistException("Block " + blockId + " does not exist on this worker.");
     }
-    throw new FileDoesNotExistException("Block does not exist " + blockId);
   }
 
   /**
@@ -236,7 +129,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
   public boolean promoteBlock(long blockId) throws TException {
     try {
       // TODO: Maybe add constant location for First Tier?
-      return mWorker.moveBlock(Users.MIGRATE_DATA_USER_ID, blockId, 1);
+      mWorker.moveBlock(Users.MIGRATE_DATA_USER_ID, blockId, 1);
+      return true;
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -261,7 +155,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
       // TODO: Maybe add a constant for anyTier?
       return mWorker.createBlock(userId, blockId, 1, initialBytes);
     } catch (IOException ioe) {
-      throw new TException(ioe);
+      throw new OutOfSpaceException("Failed to allocate " + initialBytes + " for user " + userId);
     }
   }
 
@@ -274,12 +168,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId
    * @param requestBytes
    */
-  public boolean requestSpace(long userId, long blockId, long requestBytes)
-      throws TException {
+  public boolean requestSpace(long userId, long blockId, long requestBytes) throws TException {
     try {
-      return mWorker.requestSpace(userId, blockId, requestBytes);
+      mWorker.requestSpace(userId, blockId, requestBytes);
+      return true;
     } catch (IOException ioe) {
-      throw new TException(ioe);
+      return false;
     }
   }
 
@@ -291,9 +185,13 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId
    * @param userId
    */
-  public boolean unlockBlock(long blockId, long userId) {
-    // return mWorker.unlockBlock(blockId);
-    return mWorker.unlockBlock(userId, blockId);
+  public boolean unlockBlock(long blockId, long userId) throws TException {
+    try {
+      mWorker.unlockBlock(userId, blockId);
+      return true;
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    }
   }
 
   /**

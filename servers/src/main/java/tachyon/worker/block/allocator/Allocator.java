@@ -15,7 +15,7 @@
 
 package tachyon.worker.block.allocator;
 
-import com.google.common.base.Optional;
+import java.io.IOException;
 
 import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.meta.TempBlockMeta;
@@ -32,8 +32,9 @@ public interface Allocator {
    * @param blockId the ID of the block
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @return a temp block meta if success, absent otherwise
+   * @return a temp block meta if success, null otherwise
+   * @throws IOException if block location is invalid
    */
-  Optional<TempBlockMeta> allocateBlock(long userId, long blockId, long blockSize,
-      BlockStoreLocation location);
+  TempBlockMeta allocateBlock(
+      long userId, long blockId, long blockSize, BlockStoreLocation location) throws IOException;
 }
