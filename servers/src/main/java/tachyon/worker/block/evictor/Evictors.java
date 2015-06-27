@@ -13,14 +13,30 @@
  * the License.
  */
 
-package tachyon.worker.block;
+package tachyon.worker.block.evictor;
+
+import tachyon.worker.block.BlockMetadataManager;
 
 /**
- * Interface for listening on reading/writing blocks of {@link TieredBlockStore}.
+ * Factory of {@link Evictor} based on {@link EvictorType}
  */
-public interface BlockAccessEventListener {
+public class Evictors {
+  /**
+   * New a {@link Evictor}
+   *
+   * @param evictorType EvictorType of the Evictor to create
+   * @param metaManager BlockMetadataManager to pass to Evictor
+   * @return the generated Evictor
+   */
+  public static Evictor create(EvictorType evictorType, BlockMetadataManager metaManager) {
+    switch (evictorType) {
+      case LRU:
+        return new LRUEvictor(metaManager);
+      default:
+        // TODO may not default to LRU
+        return new LRUEvictor(metaManager);
+    }
+  }
 
-  /** This method may be called concurrently, needs to be thread safe. */
-  void onAccessBlock(long userId, long blockId);
-
+  private Evictors() {}
 }
