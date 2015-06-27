@@ -32,5 +32,6 @@ public enum EvictorType {
   /**
    * Evict old blocks among several StorageDirs by LFU
    */
-  LFU,
+  // TODO
+  //LFU,
 }
