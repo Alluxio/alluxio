@@ -147,6 +147,8 @@ public class TieredBlockStore implements BlockStore {
       for (BlockMetaEventListener listener : mMetaEventListeners) {
         listener.postCommitBlock(userId, blockId, tempBlockMeta.getBlockLocation());
       }
+      // since the temp block has been committed, inform Evictor about the new added blocks
+      accessBlock(userId, blockId);
     } finally {
       mEvictionLock.readLock().unlock();
     }
