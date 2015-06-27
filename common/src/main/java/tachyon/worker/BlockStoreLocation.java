@@ -64,19 +64,19 @@ public class BlockStoreLocation {
 
   @Override
   public String toString() {
-    String result = "";
+    StringBuilder result = new StringBuilder();
     if (mDirIndex == ANY_DIR) {
-      result += "any dir";
+      result.append("any dir");
     } else {
-      result += "dir " + mDirIndex;
+      result.append("dir ").append(mDirIndex);
     }
 
     if (mTierAlias == ANY_TIER) {
-      result += ", any tier";
+      result.append(", any tier");
     } else {
-      result += ", tierAlias " + mTierAlias;
+      result.append(", tierAlias ").append(mTierAlias);
     }
-    return result;
+    return result.toString();
   }
 
   @Override
@@ -85,8 +85,7 @@ public class BlockStoreLocation {
         && ((BlockStoreLocation) object).tierAlias() == tierAlias()
         && ((BlockStoreLocation) object).dir() == dir()) {
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 }
