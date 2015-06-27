@@ -39,6 +39,7 @@ import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.BlockStoreLocation;
+import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
@@ -59,6 +60,10 @@ public class BlockDataManager {
   private final ExecutorService mMasterClientExecutorService;
   /** Configuration values */
   private final TachyonConf mTachyonConf;
+  /** WorkerSource for collecting worker metrics */
+  private final WorkerSource mWorkerSource;
+  /** Metrics reporter that listens on block events and increases metrics counters*/
+  private final BlockMetricsReporter mMetricsReporter;
 
   // TODO: See if this can be removed from the class
   /** MasterClient, only used to inform the master of a new block in commitBlock */
@@ -75,10 +80,13 @@ public class BlockDataManager {
    *
    * @param tachyonConf the configuration values to use
    */
-  public BlockDataManager(TachyonConf tachyonConf) throws IOException {
+  public BlockDataManager(TachyonConf tachyonConf, WorkerSource workerSource) throws IOException {
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = new TieredBlockStore(tachyonConf);
     mTachyonConf = tachyonConf;
+    mWorkerSource = workerSource;
+    mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
+
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-client-heartbeat-%d"));
     mMasterClient =
@@ -100,6 +108,8 @@ public class BlockDataManager {
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerMetaListener(mHeartbeatReporter);
+    mBlockStore.registerMetaListener(mMetricsReporter);
+    mBlockStore.registerAccessListener(mMetricsReporter);
   }
 
   /**
@@ -302,7 +312,6 @@ public class BlockDataManager {
    * @param userId The id of the client
    * @param blockId The id of the block to move
    * @param tier The tier to move the block to
-   * @return true if successful, false otherwise
    * @throws IOException if an error occurs during move
    */
   // TODO: We should avoid throwing IOException
@@ -372,7 +381,7 @@ public class BlockDataManager {
   public void setWorkerId(long workerId) {
     mWorkerId = workerId;
   }
-  
+
   /**
    * Stop the block data manager. This method should only be called when terminating the worker.
    */
@@ -403,9 +412,18 @@ public class BlockDataManager {
    * @param metrics The set of metrics the client has gathered since the last heartbeat
    * @return true if successful, false otherwise
    */
-  // TODO: Add Metrics Collection
   public void userHeartbeat(long userId, List<Long> metrics) {
     mUsers.userHeartbeat(userId);
+    if (metrics.get(Constants.CLIENT_METRICS_VERSION_INDEX) == Constants.CLIENT_METRICS_VERSION) {
+      mWorkerSource.incBlocksReadLocal(metrics.get(Constants.BLOCKS_READ_LOCAL_INDEX));
+      mWorkerSource.incBlocksReadRemote(metrics.get(Constants.BLOCKS_READ_REMOTE_INDEX));
+      mWorkerSource.incBlocksWrittenLocal(metrics.get(Constants.BLOCKS_WRITTEN_LOCAL_INDEX));
+      mWorkerSource.incBytesReadLocal(metrics.get(Constants.BYTES_READ_LOCAL_INDEX));
+      mWorkerSource.incBytesReadRemote(metrics.get(Constants.BYTES_READ_REMOTE_INDEX));
+      mWorkerSource.incBytesReadUfs(metrics.get(Constants.BYTES_READ_UFS_INDEX));
+      mWorkerSource.incBytesWrittenLocal(metrics.get(Constants.BYTES_WRITTEN_LOCAL_INDEX));
+      mWorkerSource.incBytesWrittenUfs(metrics.get(Constants.BYTES_WRITTEN_UFS_INDEX));
+    }
   }
 
   /**
@@ -419,7 +437,7 @@ public class BlockDataManager {
     int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     return new InetSocketAddress(masterHostname, masterPort);
   }
-  
+
   /**
    * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
    * @return the worker's address
