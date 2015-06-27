@@ -44,13 +44,13 @@ public class BlockMetricsReporter implements BlockMetaEventListener, BlockAccess
   }
 
   @Override
-  public void preMoveBlock(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void preMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     // Do nothing
   }
 
   @Override
-  public void postMoveBlock(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void postMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     int oldTier = oldLocation.tierAlias();
     int newTier = newLocation.tierAlias();
@@ -60,22 +60,38 @@ public class BlockMetricsReporter implements BlockMetaEventListener, BlockAccess
   }
 
   @Override
-  public void preRemoveBlock(long userId, long blockId) {
+  public void preRemoveBlockByClient(long userId, long blockId) {
     // Do nothing
   }
 
   @Override
-  public void postRemoveBlock(long userId, long blockId) {
+  public void postRemoveBlockByClient(long userId, long blockId) {
     mWorkerSource.incBlocksDeleted();
   }
 
   @Override
-  public void preEvictBlock(long userId, long blockId) {
+  public void preMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation) {
     // Do nothing
   }
 
   @Override
-  public void postEvictBlock(long userId, long blockId) {
+  public void postMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation) {
+    int oldTier = oldLocation.tierAlias();
+    int newTier = newLocation.tierAlias();
+    if (newTier == 1 && oldTier != newTier) {
+      mWorkerSource.incBlocksPromoted();
+    }
+  }
+
+  @Override
+  public void preRemoveBlockByWorker(long userId, long blockId) {
+    // Do nothing
+  }
+
+  @Override
+  public void postRemoveBlockByWorker(long userId, long blockId) {
     mWorkerSource.incBlocksEvicted();
   }
 

@@ -80,7 +80,7 @@ public class BlockDataManager {
    *
    * @param tachyonConf the configuration values to use
    */
-  public BlockDataManager(TachyonConf tachyonConf, WorkerSource workerSource) {
+  public BlockDataManager(TachyonConf tachyonConf, WorkerSource workerSource) throws IOException {
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = new TieredBlockStore(tachyonConf);
     mTachyonConf = tachyonConf;
@@ -381,7 +381,7 @@ public class BlockDataManager {
   public void setWorkerId(long workerId) {
     mWorkerId = workerId;
   }
-  
+
   /**
    * Stop the block data manager. This method should only be called when terminating the worker.
    */
@@ -437,7 +437,7 @@ public class BlockDataManager {
     int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     return new InetSocketAddress(masterHostname, masterPort);
   }
-  
+
   /**
    * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
    * @return the worker's address
