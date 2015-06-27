@@ -54,6 +54,18 @@ public class BlockStoreMeta {
     }
   }
 
+  public Map<Long, List<Long>> getBlockList() {
+    return mBlockIdsOnDirs;
+  }
+
+  public long getCapacityBytes() {
+    long capacityBytes = 0L;
+    for (long capacityBytesOnTier : mCapacityBytesOnTiers) {
+      capacityBytes += capacityBytesOnTier;
+    }
+    return capacityBytes;
+  }
+
   public Map<Long, Long> getCapacityBytesOnDirs() {
     return mCapacityBytesOnDirs;
   }
@@ -82,12 +94,11 @@ public class BlockStoreMeta {
     return usedBytes;
   }
 
+  public Map<Long, Long> getUsedBytesOnDirs() {
+    return mUsedBytesOnDirs;
+  }
+
   public List<Long> getUsedBytesOnTiers() {
     return mUsedBytesOnTiers;
   }
-
-  public Map<Long, List<Long>> getBlockList() {
-    return mBlockIdsOnDirs;
-  }
-
 }

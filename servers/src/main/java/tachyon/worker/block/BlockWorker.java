@@ -123,7 +123,7 @@ public class BlockWorker {
 
     // Setup Worker to Master Syncer
     mSyncExecutorService =
-        Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-heartbeat-%d"));
+        Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
     mBlockMasterSync.registerWithMaster();
 
