@@ -26,9 +26,9 @@ import tachyon.worker.BlockStoreLocation;
 public abstract class BlockMetaBase {
   /**
    * All blocks are created as temp blocks before committed. They are stored in BlockStore under a
-   * subdir of its StorageDir, the subdir is the same as the creator's userId, and the block file
-   * is the same as its blockId. e .g. userId 2 creates a temp Block 100 in StorageDir
-   * "/mnt/mem/0", this temp block has path:
+   * subdir of its StorageDir, the subdir is the same as the creator's userId, and the block file is
+   * the same as its blockId. e .g. userId 2 creates a temp Block 100 in StorageDir "/mnt/mem/0",
+   * this temp block has path:
    * <p>
    * /mnt/mem/0/2/100
    *
@@ -67,7 +67,7 @@ public abstract class BlockMetaBase {
    */
   public BlockStoreLocation getBlockLocation() {
     StorageTier tier = mDir.getParentTier();
-    return new BlockStoreLocation(tier.getTierAlias(), mDir.getDirIndex());
+    return new BlockStoreLocation(tier.getTierAlias(), tier.getTierLevel(), mDir.getDirIndex());
   }
 
   public StorageDir getParentDir() {

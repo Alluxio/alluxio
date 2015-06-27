@@ -105,9 +105,9 @@ public class BlockMetadataManagerTest {
     Assert.assertEquals(9000, mMetaManager.getAvailableBytes(BlockStoreLocation.anyTier()));
     Assert.assertEquals(1000, mMetaManager.getAvailableBytes(BlockStoreLocation.anyDirInTier(1)));
     Assert.assertEquals(8000, mMetaManager.getAvailableBytes(BlockStoreLocation.anyDirInTier(3)));
-    Assert.assertEquals(1000, mMetaManager.getAvailableBytes(new BlockStoreLocation(1, 0)));
-    Assert.assertEquals(3000, mMetaManager.getAvailableBytes(new BlockStoreLocation(3, 0)));
-    Assert.assertEquals(5000, mMetaManager.getAvailableBytes(new BlockStoreLocation(3, 1)));
+    Assert.assertEquals(1000, mMetaManager.getAvailableBytes(new BlockStoreLocation(1, 0, 0)));
+    Assert.assertEquals(3000, mMetaManager.getAvailableBytes(new BlockStoreLocation(3, 1, 0)));
+    Assert.assertEquals(5000, mMetaManager.getAvailableBytes(new BlockStoreLocation(3, 1, 1)));
   }
 
   @Test
@@ -178,7 +178,7 @@ public class BlockMetadataManagerTest {
     Assert.assertEquals(3, blockMeta.getBlockLocation().tierAlias());
 
     // Move to tier MEM and dir 0
-    blockMeta = mMetaManager.moveBlockMeta(blockMeta, new BlockStoreLocation(1, 0));
+    blockMeta = mMetaManager.moveBlockMeta(blockMeta, new BlockStoreLocation(1, 0, 0));
     Assert.assertEquals(1, blockMeta.getBlockLocation().tierAlias());
     Assert.assertEquals(0, blockMeta.getBlockLocation().dir());
   }
@@ -191,7 +191,7 @@ public class BlockMetadataManagerTest {
 
     mThrown.expect(IOException.class);
     mThrown.expectMessage("does not have enough space");
-    mMetaManager.moveBlockMeta(blockMeta, new BlockStoreLocation(1, 0));
+    mMetaManager.moveBlockMeta(blockMeta, new BlockStoreLocation(1, 0, 0));
   }
 
   @Test
