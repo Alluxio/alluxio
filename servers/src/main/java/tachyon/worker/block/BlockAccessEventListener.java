@@ -21,7 +21,5 @@ import tachyon.worker.BlockStoreLocation;
  * Interface for listening on reading/writing blocks of {@link TieredBlockStore}.
  */
 public interface BlockAccessEventListener {
-
   void onAccessBlock(long userId, long blockId);
-
 }
