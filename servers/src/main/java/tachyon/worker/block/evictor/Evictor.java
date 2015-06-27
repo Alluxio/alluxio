@@ -32,7 +32,7 @@ public interface Evictor {
    * The returned eviction plan can have toMove and toEvict fields empty lists, which indicates
    * no necessary actions to meet the requirement.
    *
-   * @param availableBytes the size in bytes
+   * @param availableBytes the amount of free space in bytes to be ensured after eviction
    * @param location the location in block store
    * @return an eviction plan (possibly empty) to get the free space, or null if no plan is feasible
    * @throws IOException if given block location is invalid
