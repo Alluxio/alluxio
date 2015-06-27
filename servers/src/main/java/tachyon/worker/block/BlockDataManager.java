@@ -88,7 +88,8 @@ public class BlockDataManager {
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
     mMasterClientExecutorService =
-        Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-client-heartbeat-%d"));
+        Executors.newFixedThreadPool(1,
+            ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
     mMasterClient =
         new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
 
