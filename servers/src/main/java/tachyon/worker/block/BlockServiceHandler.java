@@ -39,7 +39,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
 
   public void accessBlock(long blockId) throws TException {
     try {
-      mWorker.accessBlock(-1, blockId);
+      mWorker.accessBlock(Users.ACCESS_BLOCK_USER_ID, blockId);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }

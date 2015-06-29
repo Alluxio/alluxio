@@ -193,6 +193,7 @@ public class BlockMasterSync implements Runnable {
    * @throws IOException if an error occurs when executing the command
    */
   // TODO: Evaluate the necessity of each command
+  // TODO: Do this in a non blocking way
   private void handleMasterCommand(Command cmd) throws IOException {
     if (cmd == null) {
       return;
@@ -204,7 +205,7 @@ public class BlockMasterSync implements Runnable {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
-          mBlockDataManager.removeBlock(Users.MASTER_COMMAND_ID, block);
+          mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
         }
         break;
       // No action required

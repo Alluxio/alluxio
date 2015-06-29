@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.worker.block;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;

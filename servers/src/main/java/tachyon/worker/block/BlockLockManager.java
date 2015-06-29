@@ -31,7 +31,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.worker.ClientRWLock;
 
 /**
  * Handle all block locks.
