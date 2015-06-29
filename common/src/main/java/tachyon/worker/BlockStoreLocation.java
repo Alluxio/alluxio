@@ -22,18 +22,23 @@ package tachyon.worker;
 public class BlockStoreLocation {
   private static final int ANY_TIER = -1;
   private static final int ANY_DIR = -1;
+  /** NOTE: only reason to have level here is to calculate StorageDirId */
+  private static final int UNKNOWN_LEVEL = -1;
+
   private final int mTierAlias;
+  private final int mTierLevel;
   private final int mDirIndex;
 
   public static BlockStoreLocation anyTier() {
-    return new BlockStoreLocation(ANY_TIER, ANY_DIR);
+    return new BlockStoreLocation(ANY_TIER, UNKNOWN_LEVEL, ANY_DIR);
   }
 
   public static BlockStoreLocation anyDirInTier(int tierAlias) {
-    return new BlockStoreLocation(tierAlias, ANY_DIR);
+    return new BlockStoreLocation(tierAlias, UNKNOWN_LEVEL, ANY_DIR);
   }
 
-  public BlockStoreLocation(int tierAlias, int dirIndex) {
+  public BlockStoreLocation(int tierAlias, int tierLevel, int dirIndex) {
+    mTierLevel = tierLevel;
     mTierAlias = tierAlias;
     mDirIndex = dirIndex;
   }
@@ -41,10 +46,8 @@ public class BlockStoreLocation {
   // A helper function to derive StorageDirId from a BlockLocation.
   // TODO: remove this method when master also understands BlockLocation
   public long getStorageDirId() {
-    // TODO: level is alias - 1 as alias of MEM is 1, SSD is 2 and HDD is 3.
-    int level = mTierAlias - 1;
     // Calculation copied from {@link StorageDirId.getStorageDirId}
-    return (level << 24) + (mTierAlias << 16) + mDirIndex;
+    return (mTierLevel << 24) + (mTierAlias << 16) + mDirIndex;
   }
 
   public int tierAlias() {
@@ -52,7 +55,7 @@ public class BlockStoreLocation {
   }
 
   public int tierLevel() {
-    return mTierAlias - 1;
+    return mTierLevel;
   }
 
   public int dir() {
@@ -79,19 +82,19 @@ public class BlockStoreLocation {
 
   @Override
   public String toString() {
-    String result = "";
+    StringBuilder result = new StringBuilder();
     if (mDirIndex == ANY_DIR) {
-      result += "any dir";
+      result.append("any dir");
     } else {
-      result += "dir " + mDirIndex;
+      result.append("dir ").append(mDirIndex);
     }
 
     if (mTierAlias == ANY_TIER) {
-      result += ", any tier";
+      result.append(", any tier");
     } else {
-      result += ", tierAlias " + mTierAlias;
+      result.append(", tierAlias ").append(mTierAlias);
     }
-    return result;
+    return result.toString();
   }
 
   @Override
@@ -100,8 +103,7 @@ public class BlockStoreLocation {
         && ((BlockStoreLocation) object).tierAlias() == tierAlias()
         && ((BlockStoreLocation) object).dir() == dir()) {
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 }

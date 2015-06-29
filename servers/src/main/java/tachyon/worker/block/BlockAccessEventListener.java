@@ -19,8 +19,6 @@ package tachyon.worker.block;
  * Interface for listening on reading/writing blocks of {@link TieredBlockStore}.
  */
 public interface BlockAccessEventListener {
-
   /** This method may be called concurrently, needs to be thread safe. */
   void onAccessBlock(long userId, long blockId);
-
 }
