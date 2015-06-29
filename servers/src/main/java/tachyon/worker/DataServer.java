@@ -51,7 +51,6 @@ public interface DataServer extends Closeable {
    */
   int getPort();
 
-
   /**
    * Check if the DataServer is closed.
    *
