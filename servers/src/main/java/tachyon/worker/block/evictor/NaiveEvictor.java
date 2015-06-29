@@ -22,9 +22,9 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import tachyon.Pair;
-import tachyon.worker.block.BlockStoreLocation;
-import tachyon.worker.block.BlockAccessEventListener;
 import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.BlockStoreEventListenerBase;
+import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
@@ -32,7 +32,7 @@ import tachyon.worker.block.meta.StorageTier;
 /**
  * A simple evictor that evicts arbitrary blocks until the required size is met.
  */
-public class NaiveEvictor implements Evictor, BlockAccessEventListener {
+public class NaiveEvictor extends BlockStoreEventListenerBase implements Evictor {
   private final BlockMetadataManager mMetaManager;
 
   public NaiveEvictor(BlockMetadataManager metadata) {
@@ -94,10 +94,4 @@ public class NaiveEvictor implements Evictor, BlockAccessEventListener {
     }
     return null;
   }
-
-  @Override
-  public void onAccessBlock(long userId, long blockId) {
-    // This naive evictor does nothing on block access
-  }
-
 }

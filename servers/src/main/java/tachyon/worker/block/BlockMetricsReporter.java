@@ -20,7 +20,7 @@ import tachyon.worker.WorkerSource;
 /**
  * This class listens on block events and increases the metrics counters.
  */
-public class BlockMetricsReporter implements BlockMetaEventListener, BlockAccessEventListener {
+public class BlockMetricsReporter extends BlockStoreEventListenerBase {
   private final WorkerSource mWorkerSource;
 
   public BlockMetricsReporter(WorkerSource workerSource) {
@@ -33,23 +33,7 @@ public class BlockMetricsReporter implements BlockMetaEventListener, BlockAccess
   }
 
   @Override
-  public void preCommitBlock(long userId, long blockId, BlockStoreLocation location) {
-    // Do nothing
-  }
-
-  @Override
-  public void postCommitBlock(long userId, long blockId, BlockStoreLocation location) {
-    // Do nothing
-  }
-
-  @Override
-  public void preMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation) {
-    // Do nothing
-  }
-
-  @Override
-  public void postMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     int oldTier = oldLocation.tierAlias();
     int newTier = newLocation.tierAlias();
@@ -59,23 +43,12 @@ public class BlockMetricsReporter implements BlockMetaEventListener, BlockAccess
   }
 
   @Override
-  public void preRemoveBlockByClient(long userId, long blockId) {
-    // Do nothing
-  }
-
-  @Override
-  public void postRemoveBlockByClient(long userId, long blockId) {
+  public void onRemoveBlockByClient(long userId, long blockId) {
     mWorkerSource.incBlocksDeleted();
   }
 
   @Override
-  public void preMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation) {
-    // Do nothing
-  }
-
-  @Override
-  public void postMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     int oldTier = oldLocation.tierAlias();
     int newTier = newLocation.tierAlias();
@@ -85,22 +58,12 @@ public class BlockMetricsReporter implements BlockMetaEventListener, BlockAccess
   }
 
   @Override
-  public void preRemoveBlockByWorker(long userId, long blockId) {
-    // Do nothing
-  }
-
-  @Override
-  public void postRemoveBlockByWorker(long userId, long blockId) {
+  public void onRemoveBlockByWorker(long userId, long blockId) {
     mWorkerSource.incBlocksEvicted();
   }
 
   @Override
-  public void preAbortBlock(long userId, long blockId) {
-    // Do nothing
-  }
-
-  @Override
-  public void postAbortBlock(long userId, long blockId) {
+  public void onAbortBlock(long userId, long blockId) {
     mWorkerSource.incBlocksCanceled();
   }
 }

@@ -107,9 +107,8 @@ public class BlockDataManager {
     }
 
     // Register the heartbeat reporter so it can record block store changes
-    mBlockStore.registerMetaListener(mHeartbeatReporter);
-    mBlockStore.registerMetaListener(mMetricsReporter);
-    mBlockStore.registerAccessListener(mMetricsReporter);
+    mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
+    mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
   }
 
   /**

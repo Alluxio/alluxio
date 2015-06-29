@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
  * blocks do not pass through this master communication mechanism, instead it is synchronise through
  * {@link tachyon.worker.block.BlockDataManager#commitBlock(long, long)}. This class is thread safe.
  */
-public class BlockHeartbeatReporter implements BlockMetaEventListener {
+public class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   /** Lock for operations on the removed and added block collections */
   private final Object mLock;
 
@@ -60,14 +60,9 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
     }
   }
 
-  @Override
-  public void preCommitBlock(long userId, long blockId, BlockStoreLocation location) {
-    // Do nothing
-  }
-
   // TODO: Add this functionality back when block creation between client and master is changed
   @Override
-  public void postCommitBlock(long userId, long blockId, BlockStoreLocation location) {
+  public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {
     // Long storageDirId = location.getStorageDirId();
     // synchronized (mLock) {
     // addBlockToAddedBlocks(blockId, storageDirId);
@@ -75,13 +70,7 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
   }
 
   @Override
-  public void preMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation) {
-    // Do nothing
-  }
-
-  @Override
-  public void postMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     Long storageDirId = newLocation.getStorageDirId();
     synchronized (mLock) {
@@ -97,12 +86,7 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
   }
 
   @Override
-  public void preRemoveBlockByClient(long userId, long blockId) {
-    // Do nothing
-  }
-
-  @Override
-  public void postRemoveBlockByClient(long userId, long blockId) {
+  public void onRemoveBlockByClient(long userId, long blockId) {
     synchronized (mLock) {
       // Remove the block from list of added blocks, in case it was added in this heartbeat period.
       removeBlockFromAddedBlocks(blockId);
@@ -114,12 +98,7 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
   }
 
   @Override
-  public void preRemoveBlockByWorker(long userId, long blockId) {
-    // Do nothing
-  }
-
-  @Override
-  public void postRemoveBlockByWorker(long userId, long blockId) {
+  public void onRemoveBlockByWorker(long userId, long blockId) {
     synchronized (mLock) {
       // Remove the block from list of added blocks, in case it was added in this heartbeat period.
       removeBlockFromAddedBlocks(blockId);
@@ -131,13 +110,7 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
   }
 
   @Override
-  public void preMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation) {
-    // Do nothing
-  }
-
-  @Override
-  public void postMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     Long storageDirId = newLocation.getStorageDirId();
     synchronized (mLock) {
@@ -150,17 +123,6 @@ public class BlockHeartbeatReporter implements BlockMetaEventListener {
       // Add the block back with the new storagedir.
       addBlockToAddedBlocks(blockId, storageDirId);
     }
-  }
-
-
-  @Override
-  public void preAbortBlock(long userId, long blockId) {
-    // Do nothing
-  }
-
-  @Override
-  public void postAbortBlock(long userId, long blockId) {
-    // Do nothing
   }
 
   /**
