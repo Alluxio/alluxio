@@ -48,8 +48,7 @@ public class TachyonWorker {
           worker.stop();
         }
       } catch (Exception ex) {
-        LOG.error("Failed to stop block worker. Exiting.", e);
-        System.exit(-1);
+        LOG.error("Failed to stop block worker. Exiting.", ex);
       }
       System.exit(-1);
     }

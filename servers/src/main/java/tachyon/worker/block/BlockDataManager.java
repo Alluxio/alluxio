@@ -413,6 +413,7 @@ public class BlockDataManager {
    */
   public void userHeartbeat(long userId, List<Long> metrics) {
     mUsers.userHeartbeat(userId);
+    // TODO: Provide a way to disable the metrics collection
     if (metrics.get(Constants.CLIENT_METRICS_VERSION_INDEX) == Constants.CLIENT_METRICS_VERSION) {
       mWorkerSource.incBlocksReadLocal(metrics.get(Constants.BLOCKS_READ_LOCAL_INDEX));
       mWorkerSource.incBlocksReadRemote(metrics.get(Constants.BLOCKS_READ_REMOTE_INDEX));
