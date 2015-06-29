@@ -363,10 +363,10 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return the normalized path.
    */
   private String normalizePath(String path) {
-    while (path.indexOf("\\") != -1) {
+    while (path.contains("\\")) {
       path = path.replace("\\", "/");
     }
-    while (path.indexOf("//") != -1) {
+    while (path.contains("//")) {
       path = path.replace("//", "/");
     }
 
