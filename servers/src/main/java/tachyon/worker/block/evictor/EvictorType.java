@@ -13,12 +13,25 @@
  * the License.
  */
 
-package tachyon.worker.block;
+package tachyon.worker.block.evictor;
 
 /**
- * Interface for listening on reading/writing blocks of {@link TieredBlockStore}.
+ * Different types of {@link Evictor}.
  */
-public interface BlockAccessEventListener {
-  /** This method may be called concurrently, needs to be thread safe. */
-  void onAccessBlock(long userId, long blockId);
+public enum EvictorType {
+  /**
+   * Default type which will be determined in {@link Evictors} mainly used in
+   * {@link tachyon.conf.TachyonConf#getEnum} as default value when get EvictorType from
+   * configuration
+   */
+  DEFAULT,
+  /**
+   * Evict old blocks among several StorageDirs by LRU
+   */
+  LRU,
+  /**
+   * Evict old blocks among several StorageDirs by LFU
+   */
+  // TODO
+  //LFU,
 }
