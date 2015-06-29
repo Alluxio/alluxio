@@ -26,7 +26,7 @@ for d in $ephemeral; do sudo umount /media/$d; done
 # find those in the set of the user specified devices but not in the results of `df` yet
 dev=`ls /dev | egrep '^sd|^hd|^xvd' | grep -v da`
 # Ansible will create symbolic links for /dev/xvd? to /dev/sd?, resolve the links
-real_dev=`for d in $dev; do realpath /dev/$d; done`
+real_dev=`for d in $dev; do readlink -f /dev/$d; done`
 dev=`echo $real_dev | sed "s/\/dev\///g" | tr ' ' '\n' | sort | uniq`
 echo "possible devices defined in block device mapping: "
 printf "%s\n" $dev
