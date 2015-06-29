@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.worker.BlockStoreLocation;
+import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.BlockAccessEventListener;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.meta.BlockMeta;

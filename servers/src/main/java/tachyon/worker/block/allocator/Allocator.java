@@ -17,7 +17,7 @@ package tachyon.worker.block.allocator;
 
 import java.io.IOException;
 
-import tachyon.worker.BlockStoreLocation;
+import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**

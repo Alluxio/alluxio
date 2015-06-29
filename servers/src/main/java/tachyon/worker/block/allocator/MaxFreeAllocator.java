@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.worker.BlockStoreLocation;
+import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;

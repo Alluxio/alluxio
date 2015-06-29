@@ -15,8 +15,6 @@
 
 package tachyon.worker.block;
 
-import tachyon.worker.BlockStoreLocation;
-
 /**
  * Interface for listening on meta data mutation methods of {@link TieredBlockStore}.
  */

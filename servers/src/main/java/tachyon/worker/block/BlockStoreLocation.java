@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.worker.block;
 
 /**
  * Where to store a block within a block store. Currently, this is a wrapper on an integer

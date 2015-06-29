@@ -22,7 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.conf.TachyonConf;
-import tachyon.worker.BlockStoreLocation;
+import tachyon.worker.block.BlockStoreLocation;
 
 public class BlockMetaBaseTest {
   // This class extending BlockMetaBase is only for test purpose
