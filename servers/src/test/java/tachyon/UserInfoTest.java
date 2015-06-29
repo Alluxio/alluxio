@@ -33,7 +33,6 @@ public class UserInfoTest {
 
   private int mUserTimeoutMs;
 
-
   @Before
   public final void before() {
     TachyonConf tachyonConf = new TachyonConf();

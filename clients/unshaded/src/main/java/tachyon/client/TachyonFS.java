@@ -119,7 +119,6 @@ public class TachyonFS extends AbstractTachyonFS {
     return get(tachyonConf);
   }
 
-
   /**
    * Create a TachyonFS handler.
    *
