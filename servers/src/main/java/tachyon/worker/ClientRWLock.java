@@ -28,12 +28,14 @@ import tachyon.Constants;
 
 /**
  * Read/write lock associated with clients rather than threads. Either its read lock or write lock
- * can be released by a thread different from the thread acquiring them.
+ * can be released by a thread different from the one acquiring them (but supposed to be requested
+ * by the same client).
  */
 public class ClientRWLock implements ReadWriteLock {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
+  /** Total number of permits. This value is the max number of concurrent readers */
   private static final int MAX_AVAILABLE = 100;
+  /** Underlying Semaphore */
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, true);
 
   @Override
@@ -86,8 +88,7 @@ public class ClientRWLock implements ReadWriteLock {
 
     @Override
     public Condition newCondition() {
-      // Not supported
-      return null;
+      throw new UnsupportedOperationException("newCondition() is not supported");
     }
   }
 }
