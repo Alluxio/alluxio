@@ -202,16 +202,10 @@ public interface BlockStore {
   void freeSpace(long userId, long availableBytes, BlockStoreLocation location) throws IOException;
 
   /**
-   * Registers a {@link BlockMetaEventListener} to this block store.
+   * Registers a {@link BlockStoreEventListener} to this block store.
    *
    * @param listener the listener to those events
    */
-  void registerMetaListener(BlockMetaEventListener listener);
+  void registerBlockStoreEventListener(BlockStoreEventListener listener);
 
-  /**
-   * Registers a {@link BlockAccessEventListener} to this block store.
-   *
-   * @param listener the listener to those events
-   */
-  void registerAccessListener(BlockAccessEventListener listener);
 }

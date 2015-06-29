@@ -28,12 +28,12 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.worker.block.BlockStoreLocation;
-import tachyon.worker.block.BlockAccessEventListener;
 import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.BlockStoreEventListenerBase;
+import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
 
-public class LRUEvictor implements Evictor, BlockAccessEventListener {
+public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final BlockMetadataManager mMeta;
 

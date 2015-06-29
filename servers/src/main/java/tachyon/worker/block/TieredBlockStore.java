@@ -63,10 +63,8 @@ public class TieredBlockStore implements BlockStore {
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
   private final Evictor mEvictor;
-  private List<BlockAccessEventListener> mAccessEventListeners =
-      new ArrayList<BlockAccessEventListener>();
-  private List<BlockMetaEventListener> mMetaEventListeners =
-      new ArrayList<BlockMetaEventListener>();
+  private List<BlockStoreEventListener> mBlockStoreEventListeners =
+      new ArrayList<BlockStoreEventListener>();
 
   /** A readwrite lock for meta data **/
   private final ReentrantReadWriteLock mEvictionLock = new ReentrantReadWriteLock();
@@ -82,8 +80,8 @@ public class TieredBlockStore implements BlockStore {
     EvictorType evictorType =
         mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
     mEvictor = Evictors.create(evictorType, mMetaManager);
-    if (mEvictor instanceof BlockAccessEventListener) {
-      registerAccessListener((BlockAccessEventListener) mEvictor);
+    if (mEvictor instanceof BlockStoreEventListener) {
+      registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
   }
 
@@ -138,13 +136,10 @@ public class TieredBlockStore implements BlockStore {
   public void commitBlock(long userId, long blockId) throws IOException {
     mEvictionLock.readLock().lock();
     TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-    for (BlockMetaEventListener listener : mMetaEventListeners) {
-      listener.preCommitBlock(userId, blockId, tempBlockMeta.getBlockLocation());
-    }
     try {
       commitBlockNoLock(userId, blockId, tempBlockMeta);
-      for (BlockMetaEventListener listener : mMetaEventListeners) {
-        listener.postCommitBlock(userId, blockId, tempBlockMeta.getBlockLocation());
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        listener.onCommitBlock(userId, blockId, tempBlockMeta.getBlockLocation());
       }
       // since the temp block has been committed, inform Evictor about the new added blocks
       accessBlock(userId, blockId);
@@ -156,13 +151,10 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void abortBlock(long userId, long blockId) throws IOException {
     mEvictionLock.readLock().lock();
-    for (BlockMetaEventListener listener : mMetaEventListeners) {
-      listener.preAbortBlock(userId, blockId);
-    }
     try {
       abortBlockNoLock(userId, blockId);
-      for (BlockMetaEventListener listener : mMetaEventListeners) {
-        listener.postAbortBlock(userId, blockId);
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        listener.onAbortBlock(userId, blockId);
       }
     } finally {
       mEvictionLock.readLock().unlock();
@@ -192,15 +184,12 @@ public class TieredBlockStore implements BlockStore {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
       BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
-      for (BlockMetaEventListener listener : mMetaEventListeners) {
-        listener.preMoveBlockByClient(userId, blockId, oldLocation, newLocation);
-      }
       try {
         moveBlockNoLock(blockId, newLocation);
         blockMeta = mMetaManager.getBlockMeta(blockId);
         BlockStoreLocation actualNewLocation = blockMeta.getBlockLocation();
-        for (BlockMetaEventListener listener : mMetaEventListeners) {
-          listener.postMoveBlockByClient(userId, blockId, oldLocation, actualNewLocation);
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          listener.onMoveBlockByClient(userId, blockId, oldLocation, actualNewLocation);
         }
       } finally {
         mLockManager.unlockBlock(lockId);
@@ -216,13 +205,10 @@ public class TieredBlockStore implements BlockStore {
     mEvictionLock.readLock().lock();
     try {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
-      for (BlockMetaEventListener listener : mMetaEventListeners) {
-        listener.preRemoveBlockByClient(userId, blockId);
-      }
       try {
         removeBlockNoLock(userId, blockId);
-        for (BlockMetaEventListener listener : mMetaEventListeners) {
-          listener.postRemoveBlockByClient(userId, blockId);
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          listener.onRemoveBlockByClient(userId, blockId);
         }
       } finally {
         mLockManager.unlockBlock(lockId);
@@ -235,7 +221,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void accessBlock(long userId, long blockId) {
-    for (BlockAccessEventListener listener : mAccessEventListeners) {
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       listener.onAccessBlock(userId, blockId);
     }
   }
@@ -286,13 +272,8 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void registerMetaListener(BlockMetaEventListener listener) {
-    mMetaEventListeners.add(listener);
-  }
-
-  @Override
-  public void registerAccessListener(BlockAccessEventListener listener) {
-    mAccessEventListeners.add(listener);
+  public void registerBlockStoreEventListener(BlockStoreEventListener listener) {
+    mBlockStoreEventListeners.add(listener);
   }
 
   private TempBlockMeta createBlockMetaNoLock(long userId, long blockId,
@@ -416,13 +397,10 @@ public class TieredBlockStore implements BlockStore {
     // Step1: remove blocks to make room.
     for (long blockId : plan.toEvict()) {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
-      for (BlockMetaEventListener listener : mMetaEventListeners) {
-        listener.preRemoveBlockByWorker(userId, blockId);
-      }
       try {
         removeBlockNoLock(userId, blockId);
-        for (BlockMetaEventListener listener : mMetaEventListeners) {
-          listener.postRemoveBlockByWorker(userId, blockId);
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          listener.onRemoveBlockByWorker(userId, blockId);
         }
       } catch (IOException e) {
         throw new IOException("Failed to free space: cannot evict block " + blockId);
@@ -438,13 +416,10 @@ public class TieredBlockStore implements BlockStore {
       BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
 
-      for (BlockMetaEventListener listener : mMetaEventListeners) {
-        listener.preMoveBlockByWorker(userId, blockId, oldLocation, newLocation);
-      }
       try {
         moveBlockNoLock(blockId, newLocation);
-        for (BlockMetaEventListener listener : mMetaEventListeners) {
-          listener.postMoveBlockByWorker(userId, blockId, oldLocation, newLocation);
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          listener.onMoveBlockByWorker(userId, blockId, oldLocation, newLocation);
         }
       } catch (IOException e) {
         throw new IOException("Failed to free space: cannot move block " + blockId + " to "
