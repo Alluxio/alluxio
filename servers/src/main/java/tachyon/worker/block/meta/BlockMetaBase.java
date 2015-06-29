@@ -18,7 +18,7 @@ package tachyon.worker.block.meta;
 import com.google.common.base.Preconditions;
 
 import tachyon.util.CommonUtils;
-import tachyon.worker.BlockStoreLocation;
+import tachyon.worker.block.BlockStoreLocation;
 
 /**
  * A base class of the metadata of blocks in Tachyon managed storage.

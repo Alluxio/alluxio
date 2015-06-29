@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import com.google.common.base.Optional;
 
-import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;

@@ -22,7 +22,7 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import tachyon.Pair;
-import tachyon.worker.BlockStoreLocation;
+import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.BlockAccessEventListener;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.meta.BlockMeta;

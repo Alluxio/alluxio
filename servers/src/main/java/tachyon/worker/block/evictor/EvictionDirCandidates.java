@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.worker.BlockStoreLocation;
+import tachyon.worker.block.BlockStoreLocation;
 
 /**
  * A collection of candidate blocks for eviction organized by directory

@@ -22,8 +22,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.worker.BlockStoreLocation;
-
 public class BlockHeartbeatReporterTest {
   private static final int USER_ID = 1;
   private static final BlockStoreLocation MEM_LOC = new BlockStoreLocation(1, 0, 0);

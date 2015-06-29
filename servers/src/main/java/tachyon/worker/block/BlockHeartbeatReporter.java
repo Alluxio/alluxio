@@ -22,8 +22,6 @@ import java.util.Map;
 
 import com.google.common.collect.Lists;
 
-import tachyon.worker.BlockStoreLocation;
-
 /**
  * Represents the delta of the block store within one heartbeat period. For now, newly committed
  * blocks do not pass through this master communication mechanism, instead it is synchronise through

@@ -33,7 +33,6 @@ import tachyon.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
-import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.allocator.NaiveAllocator;
 import tachyon.worker.block.evictor.EvictionPlan;

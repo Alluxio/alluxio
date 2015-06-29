@@ -20,7 +20,7 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import tachyon.Pair;
-import tachyon.worker.BlockStoreLocation;
+import tachyon.worker.block.BlockStoreLocation;
 
 /**
  * This class provides information about the blocks that need to be moved when evicting.

@@ -15,7 +15,6 @@
 
 package tachyon.worker.block;
 
-import tachyon.worker.BlockStoreLocation;
 import tachyon.worker.WorkerSource;
 
 /**
