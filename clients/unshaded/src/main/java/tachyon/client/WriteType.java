@@ -42,7 +42,7 @@ public enum WriteType {
 
   private final int mValue;
 
-  private WriteType(int value) {
+  WriteType(int value) {
     mValue = value;
   }
 

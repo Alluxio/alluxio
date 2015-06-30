@@ -36,7 +36,7 @@ public enum ReadType {
 
   private final int mValue;
 
-  private ReadType(int value) {
+  ReadType(int value) {
     mValue = value;
   }
 
