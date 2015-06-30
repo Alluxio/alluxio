@@ -26,7 +26,8 @@ import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * A naive allocator that returns the first Storage dir fitting the size of block to allocate.
+ * A greedy allocator that returns the first Storage dir fitting the size of block to allocate.
+ * This class serves as an example how to implement an allocator.
  */
 public class GreedyAllocator implements Allocator {
   private final BlockMetadataManager mMetaManager;

@@ -30,7 +30,8 @@ import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
 /**
- * A simple evictor that evicts arbitrary blocks until the required size is met.
+ * A simple evictor that evicts arbitrary blocks until the required size is met. This Evictor
+ * serves as an example how to implement an Evictor.
  */
 public class GreedyEvictor extends BlockStoreEventListenerBase implements Evictor {
   private final BlockMetadataManager mMetaManager;
