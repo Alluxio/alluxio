@@ -36,7 +36,6 @@ import tachyon.util.CommonUtils;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.allocator.AllocatorFactory;
 import tachyon.worker.block.allocator.AllocatorType;
-import tachyon.worker.block.allocator.GreedyAllocator;
 import tachyon.worker.block.evictor.EvictionPlan;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.evictor.EvictorType;
