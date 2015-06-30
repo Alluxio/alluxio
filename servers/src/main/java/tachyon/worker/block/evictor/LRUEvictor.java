@@ -32,6 +32,8 @@ import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.meta.StorageTier;
 
 public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -84,7 +86,32 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
 
     // enough free space
     if (dirCandidates.maxAvailableBytes() >= toEvictBytes) {
+      // candidate blockIds for eviction from current tier
       toEvict = dirCandidates.toEvict();
+      // move as many blocks to next tier as possible
+      int nextTierLevel = mMeta.getBlockMeta(toEvict.get(0)).getBlockLocation().tierLevel() + 1;
+      List<StorageTier> tiers = mMeta.getTiers();
+      int nTotalTiers = tiers.size();
+      while (nextTierLevel < nTotalTiers && toEvict.size() > 0) {
+        // find space in next tier
+        List<StorageDir> dirs = tiers.get(nextTierLevel).getStorageDirs();
+        for (StorageDir dir : dirs) {
+          BlockStoreLocation dest = dir.toBlockStoreLocation();
+          Iterator<Long> blocks = toEvict.iterator();
+          long remainBytes = dir.getAvailableBytes();
+          while (blocks.hasNext() && remainBytes >= 0) {
+            long blockId = blocks.next();
+            long blockSize = mMeta.getBlockMeta(blockId).getBlockSize();
+            if (blockSize <= remainBytes) {
+              // the block can be moved to the dir
+              toMove.add(new Pair<Long, BlockStoreLocation>(blockId, dest));
+              blocks.remove();
+              remainBytes -= blockSize;
+            }
+          }
+        }
+        nextTierLevel ++;
+      }
       for (Long blockId : toEvict) {
         mLRUCache.remove(blockId);
       }
@@ -99,20 +126,12 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    */
   @Override
   public void onAccessBlock(long userId, long blockId) {
-    if (mLRUCache.containsKey(blockId)) {
-      mLRUCache.get(blockId);
-    } else {
-      mLRUCache.put(blockId, true);
-    }
+    mLRUCache.put(blockId, true);
   }
 
   @Override
   public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {
     // Since the temp block has been committed, update Evictor about the new added blocks
-    if (mLRUCache.containsKey(blockId)) {
-      mLRUCache.get(blockId);
-    } else {
-      mLRUCache.put(blockId, true);
-    }
+    mLRUCache.put(blockId, true);
   }
 }
