@@ -13,18 +13,33 @@
  * the License.
  */
 
-package tachyon.worker.block.evictor;
+package tachyon.worker.block.allocator;
+
+
+import tachyon.worker.block.BlockMetadataManager;
 
 /**
- * Different types of EvictionStrategy. Currently only LRU-based strategies are implemented.
+ * Factory of {@link Allocator} based on {@link AllocatorType}
  */
-public enum EvictStrategyType {
+public class AllocatorFactory {
   /**
-   * Evict old blocks among several StorageDirs by LRU
+   * Create a new {@link Allocator}
+   *
+   * @param allocatorType AllocatorType which determines the class of allocator to create
+   * @param metaManager BlockMetadataManager to pass to Allocator
+   * @return the generated Allocator
    */
-  LRU,
-  /**
-   * Evict old blocks in certain StorageDir by LRU.
-   */
-  PARTIAL_LRU;
+  public static Allocator create(AllocatorType allocatorType, BlockMetadataManager metaManager) {
+    switch (allocatorType) {
+      case GREEDY:
+        return new GreedyAllocator(metaManager);
+      case MAX_FREE:
+        return new MaxFreeAllocator(metaManager);
+      default:
+        return new MaxFreeAllocator(metaManager);
+    }
+  }
+
+  private AllocatorFactory() {}
 }
+

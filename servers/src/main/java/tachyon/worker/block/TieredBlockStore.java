@@ -34,11 +34,13 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.allocator.Allocator;
-import tachyon.worker.block.allocator.NaiveAllocator;
+import tachyon.worker.block.allocator.AllocatorFactory;
+import tachyon.worker.block.allocator.AllocatorType;
+import tachyon.worker.block.allocator.GreedyAllocator;
 import tachyon.worker.block.evictor.EvictionPlan;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.evictor.EvictorType;
-import tachyon.worker.block.evictor.Evictors;
+import tachyon.worker.block.evictor.EvictorFactory;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockReader;
@@ -74,12 +76,13 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
 
-    // TODO: create Allocator according to tachyonConf.
-    mAllocator = new NaiveAllocator(mMetaManager);
+    AllocatorType allocatorType =
+        mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
+    mAllocator = AllocatorFactory.create(allocatorType, mMetaManager);
 
     EvictorType evictorType =
         mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
-    mEvictor = Evictors.create(evictorType, mMetaManager);
+    mEvictor = EvictorFactory.create(evictorType, mMetaManager);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }

@@ -32,10 +32,10 @@ import tachyon.worker.block.meta.StorageTier;
 /**
  * A simple evictor that evicts arbitrary blocks until the required size is met.
  */
-public class NaiveEvictor extends BlockStoreEventListenerBase implements Evictor {
+public class GreedyEvictor extends BlockStoreEventListenerBase implements Evictor {
   private final BlockMetadataManager mMetaManager;
 
-  public NaiveEvictor(BlockMetadataManager metadata) {
+  public GreedyEvictor(BlockMetadataManager metadata) {
     mMetaManager = Preconditions.checkNotNull(metadata);
   }
 

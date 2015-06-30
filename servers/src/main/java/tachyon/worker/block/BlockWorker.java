@@ -94,7 +94,9 @@ public class BlockWorker {
 
   /**
    * Creates a Tachyon Block Worker.
+   *
    * @param tachyonConf the configuration values to be used
+   * @throws IOException if the block data manager cannot be initialized
    */
   public BlockWorker(TachyonConf tachyonConf) throws IOException {
     mTachyonConf = tachyonConf;
@@ -168,6 +170,7 @@ public class BlockWorker {
 
   /**
    * Stops the block worker. This method should only be called to terminate the worker.
+   *
    * @throws IOException if the data server fails to close.
    */
   public void stop() throws IOException {
@@ -191,7 +194,8 @@ public class BlockWorker {
   }
 
   /**
-   * Helper method to create a thrift server socket.
+   * Helper method to create a {@link org.apache.thrift.transport.TServerSocket} for the RPC server
+   *
    * @return a thrift server socket
    */
   private TServerSocket createThriftServerSocket() {
@@ -204,7 +208,9 @@ public class BlockWorker {
   }
 
   /**
-   * Helper method to create a thrift server.
+   * Helper method to create a {@link org.apache.thrift.server.TThreadPoolServer} for handling
+   * incoming RPC requests.
+   *
    * @return a thrift server
    */
   private TThreadPoolServer createThriftServer() {
@@ -224,6 +230,7 @@ public class BlockWorker {
 
   /**
    * Get the worker start time (in UTC) in milliseconds.
+   *
    * @return the worker start time in milliseconds
    */
   public long getStartTimeMs() {
@@ -231,8 +238,10 @@ public class BlockWorker {
   }
 
   /**
-   * Gets the meta data of the entire store.
-   * @return store meta data
+   * Gets the meta data of the entire store in the form of a
+   * {@link tachyon.worker.block.BlockStoreMeta} object.
+   *
+   * @return the metadata of the worker's block store
    */
   public BlockStoreMeta getStoreMeta() {
     return mBlockDataManager.getStoreMeta();
@@ -240,6 +249,7 @@ public class BlockWorker {
 
   /**
    * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
+   *
    * @return the worker's address
    */
   private InetSocketAddress getWorkerAddress() {

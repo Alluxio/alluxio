@@ -20,7 +20,7 @@ package tachyon.worker.block.evictor;
  */
 public enum EvictorType {
   /**
-   * Default type which will be determined in {@link Evictors} mainly used in
+   * Default type which will be determined in {@link EvictorFactory} mainly used in
    * {@link tachyon.conf.TachyonConf#getEnum} as default value when get EvictorType from
    * configuration
    */
@@ -30,8 +30,7 @@ public enum EvictorType {
    */
   LRU,
   /**
-   * Evict old blocks among several StorageDirs by LFU
+   * Evict blocks continually until a StorageDir has enough space
    */
-  // TODO
-  //LFU,
+  GREEDY,
 }
