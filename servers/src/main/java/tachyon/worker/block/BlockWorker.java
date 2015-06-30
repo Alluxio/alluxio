@@ -102,7 +102,12 @@ public class BlockWorker {
     mTachyonConf = tachyonConf;
     mStartTimeMs = System.currentTimeMillis();
 
+    // Setup metrics collection
     mWorkerSource = new WorkerSource();
+    mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
+    mWorkerSource.registerGauges(this);
+    mWorkerMetricsSystem.registerSource(mWorkerSource);
+
     // Set up BlockDataManager
     mBlockDataManager = new BlockDataManager(tachyonConf, mWorkerSource);
 
@@ -122,6 +127,12 @@ public class BlockWorker {
     mWorkerNetAddress =
         new NetAddress(getWorkerAddress().getAddress().getCanonicalHostName(), mThriftPort,
             mDataServer.getPort());
+
+    // Set up web server
+    int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
+    mWebServer =
+        new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(mWorkerNetAddress.getMHost(),
+            webPort), this, mTachyonConf);
 
     // Setup Worker to Master Syncer
     mSyncExecutorService =
@@ -144,12 +155,36 @@ public class BlockWorker {
     // TODO: Fix this hack when we have a top level register
     mBlockDataManager.setUsers(mUsers);
     mBlockDataManager.setWorkerId(mWorkerId);
+  }
 
-    int webPort =
-        mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
-    mWebServer =
-        new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(
-            mWorkerNetAddress.getMHost(), webPort), this, mTachyonConf);
+  /**
+   * Get the worker start time (in UTC) in milliseconds.
+   *
+   * @return the worker start time in milliseconds
+   */
+  public long getStartTimeMs() {
+    return mStartTimeMs;
+  }
+
+  /**
+   * Gets the meta data of the entire store in the form of a
+   * {@link tachyon.worker.block.BlockStoreMeta} object.
+   *
+   * @return the metadata of the worker's block store
+   */
+  public BlockStoreMeta getStoreMeta() {
+    return mBlockDataManager.getStoreMeta();
+  }
+
+
+  /**
+   * Gets this worker's {@link tachyon.thrift.NetAddress}, which is the worker's hostname, rpc
+   * server port, and data server port
+   *
+   * @return the worker's net address
+   */
+  public NetAddress getWorkerNetAddress() {
+    return mWorkerNetAddress;
   }
 
   /**
@@ -157,10 +192,9 @@ public class BlockWorker {
    * down.
    */
   public void process() {
-    mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
-    mWorkerSource.registerGauges(this);
-    mWorkerMetricsSystem.registerSource(mWorkerSource);
     mWorkerMetricsSystem.start();
+
+    // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
 
     mSyncExecutorService.submit(mBlockMasterSync);
@@ -194,20 +228,6 @@ public class BlockWorker {
   }
 
   /**
-   * Helper method to create a {@link org.apache.thrift.transport.TServerSocket} for the RPC server
-   *
-   * @return a thrift server socket
-   */
-  private TServerSocket createThriftServerSocket() {
-    try {
-      return new TServerSocket(getWorkerAddress());
-    } catch (TTransportException tte) {
-      LOG.error(tte.getMessage(), tte);
-      throw Throwables.propagate(tte);
-    }
-  }
-
-  /**
    * Helper method to create a {@link org.apache.thrift.server.TThreadPoolServer} for handling
    * incoming RPC requests.
    *
@@ -229,22 +249,17 @@ public class BlockWorker {
   }
 
   /**
-   * Get the worker start time (in UTC) in milliseconds.
+   * Helper method to create a {@link org.apache.thrift.transport.TServerSocket} for the RPC server
    *
-   * @return the worker start time in milliseconds
+   * @return a thrift server socket
    */
-  public long getStartTimeMs() {
-    return mStartTimeMs;
-  }
-
-  /**
-   * Gets the meta data of the entire store in the form of a
-   * {@link tachyon.worker.block.BlockStoreMeta} object.
-   *
-   * @return the metadata of the worker's block store
-   */
-  public BlockStoreMeta getStoreMeta() {
-    return mBlockDataManager.getStoreMeta();
+  private TServerSocket createThriftServerSocket() {
+    try {
+      return new TServerSocket(getWorkerAddress());
+    } catch (TTransportException tte) {
+      LOG.error(tte.getMessage(), tte);
+      throw Throwables.propagate(tte);
+    }
   }
 
   /**
@@ -258,11 +273,7 @@ public class BlockWorker {
     return new InetSocketAddress(workerHostname, workerPort);
   }
 
-  // Methods for unit test purposes only
-
-  public NetAddress getWorkerNetAddress() {
-    return mWorkerNetAddress;
-  }
+  // For unit test purposes only
 
   public BlockServiceHandler getWorkerServiceHandler() {
     return mServiceHandler;
