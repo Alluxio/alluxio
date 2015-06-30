@@ -105,4 +105,14 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       mLRUCache.put(blockId, true);
     }
   }
+
+  @Override
+  public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {
+    // Since the temp block has been committed, update Evictor about the new added blocks
+    if (mLRUCache.containsKey(blockId)) {
+      mLRUCache.get(blockId);
+    } else {
+      mLRUCache.put(blockId, true);
+    }
+  }
 }
