@@ -20,9 +20,11 @@ import tachyon.worker.block.BlockMetadataManager;
 /**
  * Factory of {@link Evictor} based on {@link EvictorType}
  */
-public class Evictors {
+public class EvictorFactory {
+  private EvictorFactory() {}
+
   /**
-   * New a {@link Evictor}
+   * Creates an {@link Evictor} instance according to {@link EvictorType}
    *
    * @param evictorType EvictorType of the Evictor to create
    * @param metaManager BlockMetadataManager to pass to Evictor
@@ -32,11 +34,10 @@ public class Evictors {
     switch (evictorType) {
       case LRU:
         return new LRUEvictor(metaManager);
+      case GREEDY:
+        return new GreedyEvictor(metaManager);
       default:
-        // TODO may not default to LRU
         return new LRUEvictor(metaManager);
     }
   }
-
-  private Evictors() {}
 }

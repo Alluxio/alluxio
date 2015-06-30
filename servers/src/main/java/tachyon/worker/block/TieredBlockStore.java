@@ -38,7 +38,7 @@ import tachyon.worker.block.allocator.GreedyAllocator;
 import tachyon.worker.block.evictor.EvictionPlan;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.evictor.EvictorType;
-import tachyon.worker.block.evictor.Evictors;
+import tachyon.worker.block.evictor.EvictorFactory;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockReader;
@@ -79,7 +79,7 @@ public class TieredBlockStore implements BlockStore {
 
     EvictorType evictorType =
         mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
-    mEvictor = Evictors.create(evictorType, mMetaManager);
+    mEvictor = EvictorFactory.create(evictorType, mMetaManager);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
