@@ -24,17 +24,20 @@ import tachyon.worker.block.BlockStoreLocation;
  */
 public interface Evictor {
   /**
-   * Frees space in the given block store location to ensure a specific amount of free space
-   * available after eviction. The location can be a specific location with StorageTier and
-   * StorageDir, or {@link BlockStoreLocation#anyTier()} or
-   * {@link BlockStoreLocation#anyDirInTier(int)}. This operation returns null if Evictor fails to
-   * propose a feasible plan to meet its requirement, or an eviction plan to ensure the free space.
-   * The returned eviction plan can have toMove and toEvict fields empty lists, which indicates
-   * no necessary actions to meet the requirement.
+   * Frees space in the given block store location, so that a least one StorageDir in the location
+   * has the specific amount of free space after eviction. The location can be a specific
+   * StorageDir, or {@link BlockStoreLocation#anyTier} or {@link BlockStoreLocation#anyDirInTier}.
+   *
+   * <P>
+   * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,
+   * or an eviction plan with toMove and toEvict fields to indicate how to free space. If both
+   * toMove and toEvict of the plan are empty, it indicates that Evictor has no actions to take and
+   * the requirement is already met.
    *
    * @param availableBytes the amount of free space in bytes to be ensured after eviction
    * @param location the location in block store
-   * @return an eviction plan (possibly empty) to get the free space, or null if no plan is feasible
+   * @return an eviction plan (possibly with empty fields) to get the free space, or null if no plan
+   *         is feasible
    * @throws IOException if given block location is invalid
    */
   EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location) throws IOException;
