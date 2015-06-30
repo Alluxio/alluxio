@@ -53,10 +53,14 @@ public class FileOutStreamIntegrationTest {
   @AfterClass
   public static final void afterClass() throws Exception {
     sLocalTachyonCluster.stop();
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     sLocalTachyonCluster = new LocalTachyonCluster(10000, 128, 128);
     TachyonConf tachyonConf = new TachyonConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
