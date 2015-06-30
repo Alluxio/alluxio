@@ -13,23 +13,32 @@
  * the License.
  */
 
-// TODO: Implement with new framework
-//package tachyon.worker.block.allocator;
-//
-//import tachyon.worker.block.meta.StorageDir;
-//
-///**
-// * Base class for AllocateStrategy, which provides basic function for AllocateStrategy
-// */
-//public abstract class AllocateStrategyBase implements AllocateStrategy {
-//  @Override
-//  public boolean fitInPossible(StorageDir[] storageDirs, long requestSizeBytes) {
-//    for (StorageDir dir : storageDirs) {
-//      if (dir.getCapacityBytes() - dir.getLockedSizeBytes() >= requestSizeBytes) {
-//        return true;
-//      }
-//    }
-//    return false;
-//  }
-//}
+package tachyon.worker.block.evictor;
 
+import tachyon.worker.block.BlockMetadataManager;
+
+/**
+ * Factory of {@link Evictor} based on {@link EvictorType}
+ */
+public class EvictorFactory {
+  /**
+   * New a {@link Evictor}
+   *
+   * @param evictorType EvictorType of the Evictor to create
+   * @param metaManager BlockMetadataManager to pass to Evictor
+   * @return the generated Evictor
+   */
+  public static Evictor create(EvictorType evictorType, BlockMetadataManager metaManager) {
+    switch (evictorType) {
+      case GREEDY:
+        return new GreedyEvictor(metaManager);
+      case LRU:
+        return new LRUEvictor(metaManager);
+      default:
+        // TODO may not default to LRU
+        return new LRUEvictor(metaManager);
+    }
+  }
+
+  private EvictorFactory() {}
+}

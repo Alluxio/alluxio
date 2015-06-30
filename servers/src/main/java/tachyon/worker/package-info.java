@@ -4,7 +4,7 @@
  * Main entry point for the worker is {@link tachyon.worker.TachyonWorker#main(String[])} which gets
  * started by the tachyon start scripts. The {@link tachyon.worker.TachyonWorker} class spins up the
  * different RPC services (thrift, data) which are mostly wrappers around
- * {@link tachyon.worker.WorkerStorage}.
+ * {@link tachyon.worker.block.BlockDataManager}.
  *
  * <h1>Services</h1>
  *
@@ -18,22 +18,25 @@
  * The act of moving temporary data into accessible data on {@link tachyon.underfs.UnderFileSystem}.
  * This is triggered by {@link tachyon.client.WriteType#isThrough()} operations.
  *
- * Implementation can be found at {@link tachyon.worker.WorkerStorage#addCheckpoint(long, int)}
+ * Implementation can be found at
+ * {@link tachyon.worker.block.BlockDataManager#addCheckpoint(long, int)}
  *
  * <h3>Cache Block</h3>
  *
  * Move's user generated blocks to the tachyon data directory. This operation expects that the
  * caller is a local (to the node) caller, and that the input are under the user directories.
  *
- * Implementation can be found at {@link tachyon.worker.WorkerStorage#cacheBlock(long, long)}
+ * Implementation can be found at
+ * {@link tachyon.worker.block.BlockDataManager#commitBlock(long, long)}
  *
  * <h3>Lock / Unlock</h3>
  *
  * Tachyon supports caching blocks to local disk (client side). When this happens, a lock is given
  * to the client to protect it from the remote block changing.
  *
- * Implementation can be found at {@link tachyon.worker.WorkerStorage#lockBlock(long, long)} and
- * {@link tachyon.worker.WorkerStorage#unlockBlock(long, long)}.
+ * Implementation can be found at
+ * {@link tachyon.worker.block.BlockDataManager#lockBlock(long, long)} and
+ * {@link tachyon.worker.block.BlockDataManager#unlockBlock(long, long)}.
  *
  * <h2>Data</h2>
  *
@@ -56,4 +59,3 @@
  * {@link tachyon.network.protocol.RPCBlockResponse}; theses classes are network compatible.
  */
 package tachyon.worker;
-

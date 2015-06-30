@@ -28,10 +28,10 @@ import tachyon.worker.block.meta.TempBlockMeta;
 /**
  * A naive allocator that returns the first Storage dir fitting the size of block to allocate.
  */
-public class NaiveAllocator implements Allocator {
+public class GreedyAllocator implements Allocator {
   private final BlockMetadataManager mMetaManager;
 
-  public NaiveAllocator(BlockMetadataManager metadata) {
+  public GreedyAllocator(BlockMetadataManager metadata) {
     mMetaManager = Preconditions.checkNotNull(metadata);
   }
 
