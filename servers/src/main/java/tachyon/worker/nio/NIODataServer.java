@@ -308,7 +308,7 @@ public class NIODataServer implements Runnable, DataServer {
       try {
         mDataManager.unlockBlock(sendMessage.getLockId());
       } catch (IOException ioe) {
-        LOG.error("Failed to unlock block!", ioe);
+        LOG.error("Failed to unlock block: " + sendMessage.getBlockId(), ioe);
       }
     }
   }
