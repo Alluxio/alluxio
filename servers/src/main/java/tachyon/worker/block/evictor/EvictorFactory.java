@@ -32,10 +32,10 @@ public class EvictorFactory {
    */
   public static Evictor create(EvictorType evictorType, BlockMetadataManager metaManager) {
     switch (evictorType) {
-      case LRU:
-        return new LRUEvictor(metaManager);
       case GREEDY:
         return new GreedyEvictor(metaManager);
+      case LRU:
+        return new LRUEvictor(metaManager);
       default:
         return new LRUEvictor(metaManager);
     }

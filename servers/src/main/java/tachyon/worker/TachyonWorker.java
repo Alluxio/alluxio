@@ -32,6 +32,7 @@ public class TachyonWorker {
   /**
    * Main method for Tachyon Worker. A Block Worker will be started and the Tachyon Worker will
    * continue to run until the Block Worker thread exits.
+   *
    * @param args command line arguments, should be empty
    */
   public static void main(String[] args) {
@@ -57,6 +58,7 @@ public class TachyonWorker {
 
   /**
    * Verifies that no parameters are passed in
+   *
    * @param args command line arguments
    */
   private static void checkArgs(String[] args) {

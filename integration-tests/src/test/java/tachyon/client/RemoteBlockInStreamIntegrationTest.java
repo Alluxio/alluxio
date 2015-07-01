@@ -77,10 +77,14 @@ public class RemoteBlockInStreamIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Before
   public final void before() throws IOException {
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
     System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);

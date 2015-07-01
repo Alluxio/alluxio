@@ -30,10 +30,7 @@ public enum EvictorType {
    */
   LRU,
   /**
-   * TODO: Evict old blocks among several StorageDirs by LFU
-   */
-  /**
-   * Evict blocks among StorageDirs by greedy algorithm
+   * Evict blocks continually until a StorageDir has enough space
    */
   GREEDY,
 }
