@@ -16,25 +16,74 @@
 package tachyon.worker.block;
 
 /**
- * Interface for listening on meta data mutation methods of {@link TieredBlockStore}. Methods may be
- * called concurrently, and listener implementation needs to ensure thread safety.
+ * A listener interface for receiving meta data mutation events of {@link BlockStore}.
+ * <p>
+ * All methods may be called concurrently, thus listener implementation needs to ensure
+ * thread-safety.
  */
 public interface BlockStoreEventListener {
 
+  /**
+   * Actions when accessing a block.
+   *
+   * @param userId the ID of the user to access this block
+   * @param blockId the ID of the block to access
+   */
   void onAccessBlock(long userId, long blockId);
 
+  /**
+   * Actions when committing a temporary block to a {@link BlockStoreLocation}.
+   *
+   * @param userId the ID of the user to commit to this block
+   * @param blockId the ID of the block to commit
+   * @param location the location of the block to be committed
+   */
   void onCommitBlock(long userId, long blockId, BlockStoreLocation location);
 
+  /**
+   * Actions when aborting a temporary block.
+   *
+   * @param userId the ID of the user to abort on this block
+   * @param blockId the ID of the block where the mutation to abort
+   */
   void onAbortBlock(long userId, long blockId);
 
+  /**
+   * Actions when moving a block by a client from a {@link BlockStoreLocation} to another.
+   *
+   * @param userId the ID of the user to move this block
+   * @param blockId the ID of the block to be moved
+   * @param oldLocation the source location of the block to be moved
+   * @param newLocation the destination location where the block is to be moved to
+   */
   void onMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation);
 
+  /**
+   * Actions when removing an existing block.
+   *
+   * @param userId the ID of the user to remove this block
+   * @param blockId the ID of the block to be removed
+   */
   void onRemoveBlockByClient(long userId, long blockId);
 
+  /**
+   * Actions when moving a block by a worker from a {@link BlockStoreLocation} to another.
+   *
+   * @param userId the ID of the user to move this block
+   * @param blockId the ID of the block to be moved
+   * @param oldLocation the source location of the block to be moved
+   * @param newLocation the destination location where the block is to be moved to
+   */
   void onMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation);
 
+  /**
+   * Actions when removing an existing block by worker.
+   *
+   * @param userId the ID of the user to remove this block
+   * @param blockId the ID of the block to be removed
+   */
   void onRemoveBlockByWorker(long userId, long blockId);
 
 }
