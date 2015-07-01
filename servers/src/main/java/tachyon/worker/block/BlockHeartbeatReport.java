@@ -32,10 +32,20 @@ public class BlockHeartbeatReport {
     mAddedBlocks = addedBlocks;
   }
 
+  /**
+   * Gets the list of blocks added by the worker in the heartbeat this report represents
+   *
+   * @return a map of storage dir id -> set of blocks added
+   */
   public Map<Long, List<Long>> getAddedBlocks() {
     return mAddedBlocks;
   }
 
+  /**
+   * Gets the list of blocks removed from this worker in the heartbeat this report represents
+   *
+   * @return a list of block ids which have been removed
+   */
   public List<Long> getRemovedBlocks() {
     return mRemovedBlocks;
   }
