@@ -176,7 +176,6 @@ public class BlockWorker {
     return mBlockDataManager.getStoreMeta();
   }
 
-
   /**
    * Gets this worker's {@link tachyon.thrift.NetAddress}, which is the worker's hostname, rpc
    * server port, and data server port
@@ -274,7 +273,6 @@ public class BlockWorker {
   }
 
   // For unit test purposes only
-
   public BlockServiceHandler getWorkerServiceHandler() {
     return mServiceHandler;
   }
