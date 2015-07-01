@@ -15,6 +15,11 @@
 
 package tachyon.worker.block;
 
+/**
+ * A block store event listener base class implementing the listener interface.
+ *
+ * @see BlockStoreEventListener
+ */
 public class BlockStoreEventListenerBase implements BlockStoreEventListener {
 
   @Override
