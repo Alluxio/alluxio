@@ -52,19 +52,10 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
       throws IOException {
     // 1. Select a StorageDir that has enough capacity for required bytes.
     StorageDir selectedDir = null;
-    if (location.belongTo(BlockStoreLocation.anyTier())) {
-      selectedDir = selectDirToEvictBlocksFromAnyTier(availableBytes);
-    } else {
-      int tierAlias = location.tierAlias();
-      StorageTier tier = mMetaManager.getTier(tierAlias);
-      if (location.belongTo(BlockStoreLocation.anyDirInTier(tierAlias))) {
-        selectedDir = selectDirToEvictBlocksFromTier(tier, availableBytes);
-      } else {
-        int dirIndex = location.dir();
-        StorageDir dir = tier.getDir(dirIndex);
-        if (canEvictBlocksFromDir(dir, availableBytes)) {
-          selectedDir = dir;
-        }
+    for (StorageDir dir : IterableLocation.create(mMetaManager, location)) {
+      if (dir.getCapacityBytes() >= availableBytes) {
+        selectedDir = dir;
+        break;
       }
     }
     if (selectedDir == null) {
@@ -117,30 +108,6 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
       }
     }
     return new EvictionPlan(toTransfer, toEvict);
-  }
-
-  private boolean canEvictBlocksFromDir(StorageDir dir, long availableBytes) {
-    return dir.getCapacityBytes() > availableBytes;
-  }
-
-  private StorageDir selectDirToEvictBlocksFromAnyTier(long availableBytes) {
-    for (StorageTier tier : mMetaManager.getTiers()) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (canEvictBlocksFromDir(dir, availableBytes)) {
-          return dir;
-        }
-      }
-    }
-    return null;
-  }
-
-  private StorageDir selectDirToEvictBlocksFromTier(StorageTier tier, long availableBytes) {
-    for (StorageDir dir : tier.getStorageDirs()) {
-      if (canEvictBlocksFromDir(dir, availableBytes)) {
-        return dir;
-      }
-    }
-    return null;
   }
 
   private StorageDir selectDirToTransferBlock(BlockMeta block, List<StorageTier> toTiers,
