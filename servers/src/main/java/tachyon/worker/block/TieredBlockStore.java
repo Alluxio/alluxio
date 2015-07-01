@@ -38,8 +38,8 @@ import tachyon.worker.block.allocator.AllocatorFactory;
 import tachyon.worker.block.allocator.AllocatorType;
 import tachyon.worker.block.evictor.EvictionPlan;
 import tachyon.worker.block.evictor.Evictor;
-import tachyon.worker.block.evictor.EvictorType;
 import tachyon.worker.block.evictor.EvictorFactory;
+import tachyon.worker.block.evictor.EvictorType;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockReader;
@@ -56,6 +56,9 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * <p>
  * This class is thread-safe.
  */
+// TODO: This atomicity comes with cost of heavy locking, improve locking by not guard eviction
+// (and its IO performance) with heavy write lock (TACHYON-584)
+// TODO: If a method requires certain locks being hold, validate it.
 public class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -67,7 +70,13 @@ public class TieredBlockStore implements BlockStore {
   private List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
 
-  /** A readwrite lock for meta data **/
+  /**
+   * A read/write lock to ensure eviction is atomic w.r.t. other operations. An eviction may trigger
+   * a sequence of block remove and move and we want eviction to be atomic so no remove or move
+   * interleaves during eviction is working. The current workaround is to wrap single block
+   * operations like remove and move by read lock and wrap eviction operations by write lock that
+   * can wait for previous operations and block following operations.
+   */
   private final ReentrantReadWriteLock mEvictionLock = new ReentrantReadWriteLock();
 
   public TieredBlockStore(TachyonConf tachyonConf) throws IOException {
@@ -78,6 +87,9 @@ public class TieredBlockStore implements BlockStore {
     AllocatorType allocatorType =
         mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
     mAllocator = AllocatorFactory.create(allocatorType, mMetaManager);
+    if (mAllocator instanceof BlockStoreEventListener) {
+      registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
+    }
 
     EvictorType evictorType =
         mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
@@ -276,6 +288,7 @@ public class TieredBlockStore implements BlockStore {
     mBlockStoreEventListeners.add(listener);
   }
 
+  // Create a temp block meta. This method requires {@link mEvictionLock} is acquired in read mode.
   private TempBlockMeta createBlockMetaNoLock(long userId, long blockId,
       BlockStoreLocation location, long initialBlockSize) throws IOException {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
@@ -288,13 +301,14 @@ public class TieredBlockStore implements BlockStore {
     if (tempBlock == null) {
       // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
 
-      // Upgrade to write lock to guard evictor.
+      // Upgrade to write lock to guard evictor. This is not a real "upgrade" and things can
+      // happen between unlock and lock.
       mEvictionLock.readLock().unlock();
       mEvictionLock.writeLock().lock();
       try {
         freeSpaceInternal(userId, initialBlockSize, location);
       } finally {
-        // Downgrade to read lock again after eviction
+        // Downgrade to read lock again after eviction. Lock before unlock is intentional.
         mEvictionLock.readLock().lock();
         mEvictionLock.writeLock().unlock();
       }
@@ -306,6 +320,7 @@ public class TieredBlockStore implements BlockStore {
     return tempBlock;
   }
 
+  // Commit a temp block. This method requires no eviction lock acquired.
   private void commitBlockNoLock(long userId, long blockId, TempBlockMeta tempBlockMeta)
       throws IOException {
     if (mMetaManager.hasBlockMeta(blockId)) {
@@ -327,6 +342,7 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.commitTempBlockMeta(tempBlockMeta);
   }
 
+  // Abort a temp block. This method requires no eviction lock acquired.
   private void abortBlockNoLock(long userId, long blockId) throws IOException {
     if (mMetaManager.hasBlockMeta(blockId)) {
       throw new IOException("Failed to abort block " + blockId + ": block is committed");
@@ -347,6 +363,7 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.abortTempBlockMeta(tempBlockMeta);
   }
 
+  // Move a block. This method requires block lock required but no eviction lock acquired.
   private void moveBlockNoLock(long blockId, BlockStoreLocation newLocation) throws IOException {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
       throw new IOException("Failed to move block " + blockId + ": block is uncommited");
@@ -364,6 +381,7 @@ public class TieredBlockStore implements BlockStore {
 
   // TODO: refactor this method: currently, it is shared by code path of both remove, eviction
   // and remove temp data. Let us separate it.
+  // Remove a block. This method requires block lock required but no eviction lock acquired.
   private void removeBlockNoLock(long userId, long blockId) throws IOException {
     // Delete metadata of the block---no matter it is a temp block.
     String filePath;
@@ -376,7 +394,7 @@ public class TieredBlockStore implements BlockStore {
       mMetaManager.removeBlockMeta(blockMeta);
       filePath = blockMeta.getPath();
     } else {
-      throw new IOException("Failed to move block " + blockId + ": block is not found");
+      throw new IOException("Failed to remove block " + blockId + ": block is not found");
     }
 
     // Delete the data of the block on "disk"
