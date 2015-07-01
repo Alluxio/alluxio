@@ -134,4 +134,9 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     // Since the temp block has been committed, update Evictor about the new added blocks
     mLRUCache.put(blockId, true);
   }
+
+  @Override
+  public void onPreloadBlock(long blockId) {
+    mLRUCache.put(blockId, true);
+  }
 }

@@ -37,13 +37,15 @@ import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.allocator.GreedyAllocator;
 import tachyon.worker.block.evictor.EvictionPlan;
 import tachyon.worker.block.evictor.Evictor;
-import tachyon.worker.block.evictor.EvictorType;
 import tachyon.worker.block.evictor.EvictorFactory;
+import tachyon.worker.block.evictor.EvictorType;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockReader;
 import tachyon.worker.block.io.LocalFileBlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -82,6 +84,17 @@ public class TieredBlockStore implements BlockStore {
     mEvictor = EvictorFactory.create(evictorType, mMetaManager);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
+    }
+
+    // preload existing blocks loaded by StorageDir to Evictor
+    for (StorageTier tier : mMetaManager.getTiers()) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        for (long blockId : dir.getBlockIds()) {
+          for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+            listener.onPreloadBlock(blockId);
+          }
+        }
+      }
     }
   }
 
