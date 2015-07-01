@@ -122,7 +122,7 @@ public class BlockLockManager {
     lock.unlock();
   }
 
-  // TODO: debug only, remove me later.
+  // TODO: temporary, remove me later.
   public void unlockBlock(long userId, long blockId) throws IOException {
     synchronized (mSharedMapsLock) {
       Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
