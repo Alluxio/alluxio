@@ -89,4 +89,12 @@ class EvictionDirCandidates {
     }
     return evict.getFirst();
   }
+
+  /**
+   * @return the StorageDir that has the maximum {@link #candidateSize}, otherwise null if no
+   *         directory has been added
+   */
+  public StorageDir candidateDir() {
+    return mDirWithMaxBytes;
+  }
 }
