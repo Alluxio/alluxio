@@ -40,9 +40,9 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private final BlockMetadataManager mMeta;
 
   /**
-   * access-ordered {@link java.util.LinkedHashMap} from blockId to {@code true}, acts as a LRU
-   * double linked list where most recently accessed element is put at the tail while least recently
-   * accessed element is put at the head
+   * access-ordered {@link java.util.LinkedHashMap} from blockId to {@code true}(just to occupy the
+   * value), acts as a LRU double linked list where most recently accessed element is put at the
+   * tail while least recently accessed element is put at the head.
    */
   private Map<Long, Boolean> mLRUCache = Collections
       .synchronizedMap(new LinkedHashMap<Long, Boolean>(200, 0.75f, true));
@@ -86,8 +86,11 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
 
     // enough free space
     if (dirCandidates.maxAvailableBytes() >= toEvictBytes) {
-      // candidate blockIds for eviction from current tier
+      // candidate blockIds for eviction from current tier, sorted from less recently used to more
+      // recently used
       toEvict = dirCandidates.toEvict();
+      // reverse list so that the more recently used blocks are moved to next tier first
+      Collections.reverse(toEvict);
       // move as many blocks to next tier as possible
       int nextTierLevel = mMeta.getBlockMeta(toEvict.get(0)).getBlockLocation().tierLevel() + 1;
       List<StorageTier> tiers = mMeta.getTiers();
