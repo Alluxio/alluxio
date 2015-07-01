@@ -125,17 +125,16 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
         nextTierLevel ++;
       }
 
-      for (Long blockId : toEvict) {
-        mLRUCache.remove(blockId);
-      }
-
       // assure all blocks are in the store, if not, remove from plan and lru cache
+      long toFree = 0L;
       Iterator<Pair<Long, BlockStoreLocation>> moveIt = toMove.iterator();
       while (moveIt.hasNext()) {
         long id = moveIt.next().getFirst();
         if (!mMeta.hasBlockMeta(id)) {
           moveIt.remove();
           mLRUCache.remove(id);
+        } else {
+          toFree += mMeta.getBlockMeta(id).getBlockSize();
         }
       }
       Iterator<Long> evictIt = toEvict.iterator();
@@ -144,10 +143,18 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
         if (!mMeta.hasBlockMeta(id)) {
           evictIt.remove();
           mLRUCache.remove(id);
+        } else {
+          toFree += mMeta.getBlockMeta(id).getBlockSize();
         }
       }
 
-      plan = new EvictionPlan(toMove, toEvict);
+      // reassure the plan is feasible
+      if (mMeta.getAvailableBytes(location) + toFree >= availableBytes) {
+        for (Long blockId : toEvict) {
+          mLRUCache.remove(blockId);
+        }
+        plan = new EvictionPlan(toMove, toEvict);
+      }
     }
 
     return plan;
