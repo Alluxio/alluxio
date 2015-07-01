@@ -16,9 +16,8 @@
 package tachyon.worker.block;
 
 /**
- * A block store event listener base class implementing the listener interface.
- *
- * @see BlockStoreEventListener
+ * A block store event listener base class implementing the {@link BlockStoreEventListener}
+ * interface with empty methods bodies.
  */
 public class BlockStoreEventListenerBase implements BlockStoreEventListener {
 
