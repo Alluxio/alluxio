@@ -34,7 +34,8 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.allocator.Allocator;
-import tachyon.worker.block.allocator.GreedyAllocator;
+import tachyon.worker.block.allocator.AllocatorFactory;
+import tachyon.worker.block.allocator.AllocatorType;
 import tachyon.worker.block.evictor.EvictionPlan;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.evictor.EvictorFactory;
@@ -74,8 +75,9 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
 
-    // TODO: create Allocator according to tachyonConf.
-    mAllocator = new GreedyAllocator(mMetaManager);
+    AllocatorType allocatorType =
+        mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
+    mAllocator = AllocatorFactory.create(allocatorType, mMetaManager);
 
     EvictorType evictorType =
         mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);

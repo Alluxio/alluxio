@@ -103,9 +103,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     // To disable the instance cache for hdfs client, otherwise it causes the
     // FileSystem closed exception. Being configurable for unit/integration
     // test only, and not expose to the end-user currently.
-    // TODO: Change this back to false by default, and change to true only for unit-tests
     config.set("fs.hdfs.impl.disable.cache",
-        System.getProperty("fs.hdfs.impl.disable.cache", "true"));
+        System.getProperty("fs.hdfs.impl.disable.cache", "false"));
 
     HdfsUnderFileSystemUtils.addKey(config, tachyonConf, Constants.UNDERFS_HADOOP_CONFIGURATION);
   }

@@ -94,6 +94,18 @@ public class BlockMetadataManager {
   }
 
   /**
+   * Gets the list of StorageTier below the tier with the given tierAlias.
+   *
+   * @param tierAlias the alias of a tier
+   * @return the list of StorageTier
+   * @throws IOException if tierAlias is not found
+   */
+  public synchronized List<StorageTier> getTiersBelow(int tierAlias) throws IOException {
+    int level = getTier(tierAlias).getTierLevel();
+    return mTiers.subList(level + 1, mTiers.size());
+  }
+
+  /**
    * Gets the amount of available space in given location in bytes.
    *
    * @param location location the check available bytes

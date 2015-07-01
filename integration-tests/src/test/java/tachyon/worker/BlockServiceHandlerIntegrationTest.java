@@ -62,10 +62,14 @@ public class BlockServiceHandlerIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Before
   public final void before() throws IOException {
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     mLocalTachyonCluster.start();

@@ -16,19 +16,21 @@
 package tachyon.worker.block.allocator;
 
 /**
- * Different types of AllocationStrategy, which are used to allocate space among StorageDirs
+ * Different types of {@link Allocator}.
  */
-public enum AllocateStrategyType {
+public enum AllocatorType {
   /**
-   * Allocate space on StorageDir that has max free space
+   * Default type which will be determined in {@link AllocatorFactory} mainly used in
+   * {@link tachyon.conf.TachyonConf#getEnum} as default value when getting the AllocatorType
+   * from the TachyonConf
+   */
+  DEFAULT,
+  /**
+   * Allocate to the storage dir with the most free space
    */
   MAX_FREE,
   /**
-   * Allocate space on StorageDirs randomly
+   * Allocate to the first storage dir with space
    */
-  RANDOM,
-  /**
-   * Allocate space on StorageDirs by round robin
-   */
-  ROUND_ROBIN;
+  GREEDY,
 }

@@ -50,10 +50,14 @@ public class CapacityUsageIntegrationTest {
     System.clearProperty("tachyon.worker.tieredstore.level1.alias");
     System.clearProperty("tachyon.worker.tieredstore.level1.dirs.path");
     System.clearProperty("tachyon.worker.tieredstore.level1.dirs.quota");
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Before
   public final void before() throws IOException {
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     // TODO Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
     System.setProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
     System.setProperty("tachyon.worker.tieredstore.level1.alias", "HDD");
