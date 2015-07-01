@@ -107,13 +107,10 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       // reverse list so that the more recently used blocks are moved to next tier first
       Collections.reverse(toEvict);
       // move as many blocks to next tier as possible
-      int nextTierLevel = mMeta.getBlockMeta(toEvict.get(0)).getBlockLocation().tierLevel() + 1;
-      List<StorageTier> tiers = mMeta.getTiers();
-      int nTotalTiers = tiers.size();
-      while (nextTierLevel < nTotalTiers && toEvict.size() > 0) {
-        // find space in next tier
-        List<StorageDir> dirs = tiers.get(nextTierLevel).getStorageDirs();
-        for (StorageDir dir : dirs) {
+      List<StorageTier> tiersBelow =
+          mMeta.getTiersBelow(dirCandidates.candidateDir().getParentTier().getTierAlias());
+      for (StorageTier tier : tiersBelow) {
+        for (StorageDir dir : tier.getStorageDirs()) {
           BlockStoreLocation dest = dir.toBlockStoreLocation();
           Iterator<Long> blocks = toEvict.iterator();
           long remainBytes = dir.getAvailableBytes();
@@ -128,7 +125,6 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
             }
           }
         }
-        nextTierLevel ++;
       }
 
       // assure all blocks are in the store, if not, remove from plan and lru cache
