@@ -106,6 +106,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       toEvict = dirCandidates.candidateBlocks();
       // reverse list so that the more recently used blocks are moved to next tier first
       Collections.reverse(toEvict);
+      // TODO: maybe we should abstract the strategy of moving blocks to lower tier
       // move as many blocks to next tier as possible
       List<StorageTier> tiersBelow =
           mMeta.getTiersBelow(dirCandidates.candidateDir().getParentTier().getTierAlias());

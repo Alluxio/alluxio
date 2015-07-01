@@ -95,6 +95,7 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
     }
 
     // 4. Make best effort to transfer victim blocks to lower tiers rather than evict them.
+    // TODO: maybe we should abstract the strategy of moving blocks to lower tier
     Map<StorageDir, Long> pendingBytesInDir = new HashMap<StorageDir, Long>();
     for (BlockMeta block : victimBlocks) {
       StorageTier fromTier = block.getParentDir().getParentTier();
