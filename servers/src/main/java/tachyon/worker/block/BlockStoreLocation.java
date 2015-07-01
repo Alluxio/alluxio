@@ -63,7 +63,7 @@ public class BlockStoreLocation {
   }
 
   /**
-   * Whether this location belongs to the specific location.
+   * Returns whether this location belongs to the specific location.
    *
    * location A belongs to B either when A.equals(B) or tier and dir of A are all in the range of B.
    *
@@ -97,6 +97,12 @@ public class BlockStoreLocation {
     return result.toString();
   }
 
+  /**
+   * Compares to a specific object.
+   *
+   * @param object the object to compare
+   * @return true if object is also {@link BlockStoreLocation} and represents the same tier and dir.
+   */
   @Override
   public boolean equals(Object object) {
     if (object instanceof BlockStoreLocation

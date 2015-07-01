@@ -39,7 +39,7 @@ public interface BlockStore {
    *
    * @param userId the ID of the user to lock this block
    * @param blockId the ID of the block to lock
-   * @return the lock ID if the lock is acquired successfully, {@link Optional#absent()} otherwise
+   * @return the lock ID if the lock is acquired successfully
    * @throws IOException if blockId is invalid
    */
   long lockBlock(long userId, long blockId) throws IOException;
@@ -53,7 +53,7 @@ public interface BlockStore {
   void unlockBlock(long lockId) throws IOException;
 
   /**
-   * NOTE: debug only, will be removed after changing client side code.
+   * NOTE: temporary, will be removed after changing client side code.
    */
   void unlockBlock(long userId, long blockId) throws IOException;
 
@@ -72,7 +72,7 @@ public interface BlockStore {
    * @param location location to create this block
    * @param initialBlockSize initial size of this block in bytes
    * @return metadata of the temp block created
-   * @throws IOException
+   * @throws IOException if blockId or location is invalid, or this Store has no space
    */
   TempBlockMeta createBlockMeta(long userId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws IOException;
@@ -80,70 +80,70 @@ public interface BlockStore {
   /**
    * Gets the meta data of a specific block from local storage.
    * <p>
-   * This method requires the lock ID returned by a proceeding {@link #lockBlock}.
+   * This method requires the lock ID returned by a previously acquired {@link #lockBlock}.
    *
    * @param userId the ID of the user to get this file
    * @param blockId the ID of the block
    * @param lockId the ID of the lock
    * @return metadata of the block
-   * @throws IOException if the block can not be found.
+   * @throws IOException if the block can not be found
    */
   BlockMeta getBlockMeta(long userId, long blockId, long lockId) throws IOException;
 
   /**
    * Commits a temporary block to the local store. After commit, the block will be available in this
    * block store for all clients to access. Since a temp block is "private" to the writer, this
-   * method requires no proceeding lock acquired.
+   * method requires no previously acquired lock.
    *
    * @param userId the ID of the user
    * @param blockId the ID of a temp block
-   * @throws IOException
+   * @throws IOException if the block can not be found or moved
    */
   void commitBlock(long userId, long blockId) throws IOException;
 
   /**
    * Aborts a temporary block. The meta data of this block will not be added, its data will be
    * deleted and the space will be reclaimed. Since a temp block is "private" to the writer, this
-   * requires no proceeding lock acquired.
+   * requires no previously acquired lock.
    *
    * @param userId the ID of the user
    * @param blockId the ID of a temp block
-   * @throws IOException
+   * @throws IOException if the block is invalid or committed or can not be removed
    */
   void abortBlock(long userId, long blockId) throws IOException;
 
   /**
    * Requests to increase the size of a temp block. Since a temp block is "private" to the writer
-   * client, this operation requires no proceeding lock acquired.
+   * client, this operation requires no previously acquired lock.
    *
    * @param userId the ID of the user to request space
    * @param blockId the ID of the temp block
-   * @param moreBytes the amount of more space to request in bytes
-   * @throws IOException
+   * @param additionalBytes the amount of more space to request in bytes
+   * @throws IOException if there is not enough space or other blocks fail to be moved/evicted
    */
-  void requestSpace(long userId, long blockId, long moreBytes) throws IOException;
+  void requestSpace(long userId, long blockId, long additionalBytes) throws IOException;
 
   /**
    * Creates a writer to write data to a temp block. Since the temp block is "private" to the
-   * writer, this operation requires no proceeding lock acquired.
+   * writer, this operation requires no previously acquired lock.
    *
    * @param userId the ID of the user to get the writer
    * @param blockId the ID of the temp block
    * @return a {@link BlockWriter} instance on this block
-   * @throws IOException
+   * @throws IOException if the blockId is invalid, or block can not be created
    */
   BlockWriter getBlockWriter(long userId, long blockId) throws IOException;
 
   /**
    * Creates a reader of an existing block to read data from this block.
    * <p>
-   * This operation requires the lock ID returned by a proceeding {@link #lockBlock}.
+   * This operation requires the lock ID returned by a previously acquired {@link #lockBlock}.
    *
    * @param userId the ID of the user to get the reader
    * @param blockId the ID of an existing block
    * @param lockId the ID of the lock returned by {@link #lockBlock}
    * @return a {@link BlockReader} instance on this block
-   * @throws IOException
+   * @throws IOException if the blockId or lockId is invalid, or block can not be read
    */
   BlockReader getBlockReader(long userId, long blockId, long lockId) throws IOException;
 
@@ -153,7 +153,7 @@ public interface BlockStore {
    * @param userId the ID of the user to remove a block
    * @param blockId the ID of an existing block
    * @param newLocation the location of the destination
-   * @throws IOException
+   * @throws IOException if blockId or newLocation is invalid, or block cannot be moved
    */
   void moveBlock(long userId, long blockId, BlockStoreLocation newLocation) throws IOException;
 
@@ -162,7 +162,7 @@ public interface BlockStore {
    *
    * @param userId the ID of the user to remove a block
    * @param blockId the ID of an existing block
-   * @throws IOException
+   * @throws IOException if blockId is invalid, or block cannot be removed
    */
   void removeBlock(long userId, long blockId) throws IOException;
 
@@ -187,7 +187,7 @@ public interface BlockStore {
    * unreleased locks by this user, reclaim space of temp blocks created by this user.
    *
    * @param userId the user ID
-   * @throws IOException if failed to clean up (e.g., cannot delete file)
+   * @throws IOException if block can not be deleted or locks can not be released
    */
   void cleanupUser(long userId) throws IOException;
 
@@ -197,7 +197,7 @@ public interface BlockStore {
    * @param userId the user ID
    * @param availableBytes the amount of free space in bytes
    * @param location the location to free space
-   * @throws IOException
+   * @throws IOException if location is invalid, or there is not enough space, or eviction failed
    */
   void freeSpace(long userId, long availableBytes, BlockStoreLocation location) throws IOException;
 

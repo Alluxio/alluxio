@@ -130,14 +130,12 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public TempBlockMeta createBlockMeta(long userId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws IOException {
-    TempBlockMeta tempBlock;
     mEvictionLock.readLock().lock();
     try {
-      tempBlock = createBlockMetaNoLock(userId, blockId, location, initialBlockSize);
+      return createBlockMetaNoLock(userId, blockId, location, initialBlockSize);
     } finally {
       mEvictionLock.readLock().unlock();
     }
-    return tempBlock;
   }
 
   @Override
@@ -149,9 +147,10 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void commitBlock(long userId, long blockId) throws IOException {
     mEvictionLock.readLock().lock();
-    TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
     try {
+      TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
       commitBlockNoLock(userId, blockId, tempBlockMeta);
+      // TODO: move listeners outside of the lock.
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         listener.onCommitBlock(userId, blockId, tempBlockMeta.getBlockLocation());
       }
@@ -174,15 +173,15 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void requestSpace(long userId, long blockId, long moreBytes) throws IOException {
+  public void requestSpace(long userId, long blockId, long additionalBytes) throws IOException {
     // TODO: Change the lock to read lock and only upgrade to write lock if necessary
     mEvictionLock.writeLock().lock();
     try {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-      BlockStoreLocation location = tempBlockMeta.getBlockLocation();
-      freeSpaceInternal(userId, moreBytes, location);
+      freeSpaceInternal(userId, additionalBytes, tempBlockMeta.getBlockLocation());
       // Increase the size of this temp block
-      mMetaManager.resizeTempBlockMeta(tempBlockMeta, tempBlockMeta.getBlockSize() + moreBytes);
+      mMetaManager.resizeTempBlockMeta(tempBlockMeta, tempBlockMeta.getBlockSize()
+          + additionalBytes);
     } finally {
       mEvictionLock.writeLock().unlock();
     }
@@ -194,9 +193,9 @@ public class TieredBlockStore implements BlockStore {
     mEvictionLock.readLock().lock();
     try {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
-      BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-      BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
       try {
+        BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
+        BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
         moveBlockNoLock(blockId, newLocation);
         blockMeta = mMetaManager.getBlockMeta(blockId);
         BlockStoreLocation actualNewLocation = blockMeta.getBlockLocation();
@@ -255,25 +254,25 @@ public class TieredBlockStore implements BlockStore {
     List<TempBlockMeta> tempBlocksToRemove = mMetaManager.cleanupUser(userId);
     mLockManager.cleanupUser(userId);
     mEvictionLock.readLock().unlock();
-    Set<String> dirs = new HashSet<String>();
+
+    // TODO: fix the block removing below,
+    Set<String> dirs = new HashSet<String>(tempBlocksToRemove.size());
     for (TempBlockMeta tempBlockMeta : tempBlocksToRemove) {
       String fileName = tempBlockMeta.getPath();
       try {
         String dirName = CommonUtils.getParent(fileName);
         dirs.add(dirName);
       } catch (InvalidPathException e) {
-        LOG.error("Cannot parse parent dir of {}", fileName);
+        LOG.error("Error in cleanup userId {}: cannot parse parent dir of {}", userId, fileName);
       }
       if (!new File(fileName).delete()) {
-        throw new IOException("Failed to cleanup userId " + userId + ": cannot delete file "
-            + fileName);
+        LOG.error("Error in cleanup userId {}: cannot delete file {}", userId, fileName);
       }
     }
     // Cleanup the user folder
     for (String dirName : dirs) {
       if (!new File(dirName).delete()) {
-        throw new IOException("Failed to cleanup userId " + userId + ": cannot delete directory "
-            + dirName);
+        LOG.error("Error in cleanup userId {}: cannot delete directory ", userId, dirName);
       }
     }
   }
@@ -285,7 +284,9 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void registerBlockStoreEventListener(BlockStoreEventListener listener) {
-    mBlockStoreEventListeners.add(listener);
+    synchronized (mBlockStoreEventListeners) {
+      mBlockStoreEventListeners.add(listener);
+    }
   }
 
   // Create a temp block meta. This method requires {@link mEvictionLock} is acquired in read mode.

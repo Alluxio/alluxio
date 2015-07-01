@@ -25,21 +25,22 @@ public class BlockStoreEventListenerBase implements BlockStoreEventListener {
   public void onAccessBlock(long userId, long blockId) {}
 
   @Override
-  public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {}
+  public void onAbortBlock(long userId, long blockId) {}
 
   @Override
-  public void onAbortBlock(long userId, long blockId) {}
+  public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {}
 
   @Override
   public void onMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {}
 
   @Override
-  public void onRemoveBlockByClient(long userId, long blockId) {}
-
-  @Override
   public void onMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {}
+
+  @Override
+  public void onRemoveBlockByClient(long userId, long blockId) {}
+
 
   @Override
   public void onRemoveBlockByWorker(long userId, long blockId) {}

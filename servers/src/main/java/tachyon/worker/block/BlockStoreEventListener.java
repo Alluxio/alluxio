@@ -16,7 +16,8 @@
 package tachyon.worker.block;
 
 /**
- * A listener interface for receiving meta data mutation events of {@link BlockStore}.
+ * A listener interface for receiving meta data mutation events of {@link BlockStore}. All the
+ * callback methods are triggered only after the actual event has been completed successfully.
  * <p>
  * All methods may be called concurrently, thus listener implementation needs to ensure
  * thread-safety.
@@ -32,6 +33,14 @@ public interface BlockStoreEventListener {
   void onAccessBlock(long userId, long blockId);
 
   /**
+   * Actions when aborting a temporary block.
+   *
+   * @param userId the ID of the user to abort on this block
+   * @param blockId the ID of the block where the mutation to abort
+   */
+  void onAbortBlock(long userId, long blockId);
+
+  /**
    * Actions when committing a temporary block to a {@link BlockStoreLocation}.
    *
    * @param userId the ID of the user to commit to this block
@@ -39,14 +48,6 @@ public interface BlockStoreEventListener {
    * @param location the location of the block to be committed
    */
   void onCommitBlock(long userId, long blockId, BlockStoreLocation location);
-
-  /**
-   * Actions when aborting a temporary block.
-   *
-   * @param userId the ID of the user to abort on this block
-   * @param blockId the ID of the block where the mutation to abort
-   */
-  void onAbortBlock(long userId, long blockId);
 
   /**
    * Actions when moving a block by a client from a {@link BlockStoreLocation} to another.
@@ -60,14 +61,6 @@ public interface BlockStoreEventListener {
       BlockStoreLocation newLocation);
 
   /**
-   * Actions when removing an existing block.
-   *
-   * @param userId the ID of the user to remove this block
-   * @param blockId the ID of the block to be removed
-   */
-  void onRemoveBlockByClient(long userId, long blockId);
-
-  /**
    * Actions when moving a block by a worker from a {@link BlockStoreLocation} to another.
    *
    * @param userId the ID of the user to move this block
@@ -77,6 +70,14 @@ public interface BlockStoreEventListener {
    */
   void onMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation);
+
+  /**
+   * Actions when removing an existing block.
+   *
+   * @param userId the ID of the user to remove this block
+   * @param blockId the ID of the block to be removed
+   */
+  void onRemoveBlockByClient(long userId, long blockId);
 
   /**
    * Actions when removing an existing block by worker.

@@ -32,10 +32,13 @@ import tachyon.worker.block.meta.StorageTier;
  * TODO: use proto buf to represent this information
  */
 public class BlockStoreMeta {
+  // TODO: the following two fields don't need to be computed on the creation of each
+  // {@link BlockStoreMeta} instance.
   private final List<Long> mCapacityBytesOnTiers = new ArrayList<Long>();
+  private final Map<Long, Long> mCapacityBytesOnDirs = new HashMap<Long, Long>();
+
   private final List<Long> mUsedBytesOnTiers = new ArrayList<Long>();
   private final Map<Long, List<Long>> mBlockIdsOnDirs = new HashMap<Long, List<Long>>();
-  private final Map<Long, Long> mCapacityBytesOnDirs = new HashMap<Long, Long>();
   private final Map<Long, Long> mUsedBytesOnDirs = new HashMap<Long, Long>();
   private final Map<Long, String> mDirPaths = new LinkedHashMap<Long, String>();
 
