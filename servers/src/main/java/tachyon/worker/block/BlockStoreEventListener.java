@@ -26,16 +26,16 @@ public interface BlockStoreEventListener {
   /**
    * Actions when accessing a block.
    *
-   * @param userID the ID of the user to access this block
-   * @param blockID the ID of the block to access
+   * @param userId the ID of the user to access this block
+   * @param blockId the ID of the block to access
    */
   void onAccessBlock(long userId, long blockId);
 
   /**
    * Actions when committing a temporary block to a {@link BlockStoreLocation}.
    *
-   * @param userID the ID of the user to commit to this block
-   * @param blockID the ID of the block to commit
+   * @param userId the ID of the user to commit to this block
+   * @param blockId the ID of the block to commit
    * @param location the location of the block to be committed
    */
   void onCommitBlock(long userId, long blockId, BlockStoreLocation location);
@@ -43,16 +43,16 @@ public interface BlockStoreEventListener {
   /**
    * Actions when aborting a temporary block.
    *
-   * @param userID the ID of the user to abort on this block
-   * @param blockID the ID of the block where the mutation to abort
+   * @param userId the ID of the user to abort on this block
+   * @param blockId the ID of the block where the mutation to abort
    */
   void onAbortBlock(long userId, long blockId);
 
   /**
    * Actions when moving a block by a client from a {@link BlockStoreLocation} to another.
    *
-   * @param userID the ID of the user to move this block
-   * @param blockID the ID of the block to be moved
+   * @param userId the ID of the user to move this block
+   * @param blockId the ID of the block to be moved
    * @param oldLocation the source location of the block to be moved
    * @param newLocation the destination location where the block is to be moved to
    */
@@ -62,16 +62,16 @@ public interface BlockStoreEventListener {
   /**
    * Actions when removing an existing block.
    *
-   * @param userID the ID of the user to remove this block
-   * @param blockID the ID of the block to be removed
+   * @param userId the ID of the user to remove this block
+   * @param blockId the ID of the block to be removed
    */
   void onRemoveBlockByClient(long userId, long blockId);
 
   /**
    * Actions when moving a block by a worker from a {@link BlockStoreLocation} to another.
    *
-   * @param userID the ID of the user to move this block
-   * @param blockID the ID of the block to be moved
+   * @param userId the ID of the user to move this block
+   * @param blockId the ID of the block to be moved
    * @param oldLocation the source location of the block to be moved
    * @param newLocation the destination location where the block is to be moved to
    */
@@ -81,8 +81,8 @@ public interface BlockStoreEventListener {
   /**
    * Actions when removing an existing block by worker.
    *
-   * @param userID the ID of the user to remove this block
-   * @param blockID the ID of the block to be removed
+   * @param userId the ID of the user to remove this block
+   * @param blockId the ID of the block to be removed
    */
   void onRemoveBlockByWorker(long userId, long blockId);
 
