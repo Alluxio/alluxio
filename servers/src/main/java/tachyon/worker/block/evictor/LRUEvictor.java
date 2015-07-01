@@ -139,4 +139,14 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   public void onPreloadBlock(long blockId) {
     mLRUCache.put(blockId, true);
   }
+
+  @Override
+  public void onRemoveBlockByClient(long userId, long blockId) {
+    mLRUCache.remove(blockId);
+  }
+
+  @Override
+  public void onRemoveBlockByWorker(long userId, long blockId) {
+    mLRUCache.remove(blockId);
+  }
 }
