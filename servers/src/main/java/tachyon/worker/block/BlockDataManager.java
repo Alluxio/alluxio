@@ -151,7 +151,8 @@ public class BlockDataManager {
   public void addCheckpoint(long userId, int fileId) throws TException, IOException {
     // TODO This part needs to be changed.
     String srcPath = CommonUtils.concatPath(getUserUfsTmpFolder(userId), fileId);
-    String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data");
+    String ufsDataFolder =
+        mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
     String dstPath = CommonUtils.concatPath(ufsDataFolder, fileId);
     try {
       if (!mUfs.rename(srcPath, dstPath)) {
@@ -180,7 +181,10 @@ public class BlockDataManager {
   }
 
   /**
-   * Commits a block to Tachyon managed space. The block must be temporary.
+   * Commits a block to Tachyon managed space. The block must be temporary. The block is
+   * persisted after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible
+   * until {@link MasterClient#worker_cacheBlock(long, long, long, long, long)}
+   * succeeds
    *
    * @param userId The id of the client
    * @param blockId The id of the block to commit
@@ -284,7 +288,9 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to be locked
-   * @return the lockId, or -1 if we failed to obtain a lock
+   * @return the lockId that uniquely identifies the lock obtained
+   * @throws IOException if the lock cannot be obtained, for example because the block does not
+   * exist
    */
   // TODO: We should avoid throwing IOException
   public long lockBlock(long userId, long blockId) throws IOException {
