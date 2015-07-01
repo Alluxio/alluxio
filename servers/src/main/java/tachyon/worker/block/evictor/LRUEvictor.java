@@ -37,6 +37,10 @@ import tachyon.worker.block.meta.StorageTier;
 
 public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final int LINKED_HASH_MAP_INIT_CAPACITY = 200;
+  private static final float LINKED_HASH_MAP_INIT_LOAD_FACTOR = 0.75f;
+  private static final boolean LINKED_HASH_MAP_ACCESS_ORDERED = true;
+
   private final BlockMetadataManager mMeta;
 
   /**
@@ -45,7 +49,8 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    * tail while least recently accessed element is put at the head.
    */
   private Map<Long, Boolean> mLRUCache = Collections
-      .synchronizedMap(new LinkedHashMap<Long, Boolean>(200, 0.75f, true));
+      .synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
+          LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
   public LRUEvictor(BlockMetadataManager meta) {
     mMeta = meta;
