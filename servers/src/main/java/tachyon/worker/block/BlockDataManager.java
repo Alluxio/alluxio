@@ -439,7 +439,7 @@ public class BlockDataManager {
    *
    * @return the worker's address
    */
-  //TODO: BlockWorker has the same function. Share these to a utility function.
+  // TODO: BlockWorker has the same function. Share these to a utility function.
   private InetSocketAddress getWorkerAddress() {
     String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
     int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
