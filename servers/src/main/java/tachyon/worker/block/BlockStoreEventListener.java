@@ -21,8 +21,6 @@ package tachyon.worker.block;
  */
 public interface BlockStoreEventListener {
 
-  void onPreloadBlock(long blockId);
-
   void onAccessBlock(long userId, long blockId);
 
   void onCommitBlock(long userId, long blockId, BlockStoreLocation location);

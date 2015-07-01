@@ -49,6 +49,15 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
 
   public LRUEvictor(BlockMetadataManager meta) {
     mMeta = meta;
+
+    // preload existing blocks loaded by StorageDir to Evictor
+    for (StorageTier tier : mMeta.getTiers()) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        for (long blockId : dir.getBlockIds()) {
+          mLRUCache.put(blockId, true);
+        }
+      }
+    }
   }
 
   @Override
@@ -155,11 +164,6 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   @Override
   public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {
     // Since the temp block has been committed, update Evictor about the new added blocks
-    mLRUCache.put(blockId, true);
-  }
-
-  @Override
-  public void onPreloadBlock(long blockId) {
     mLRUCache.put(blockId, true);
   }
 
