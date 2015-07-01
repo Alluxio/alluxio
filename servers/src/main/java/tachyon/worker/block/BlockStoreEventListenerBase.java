@@ -18,9 +18,6 @@ package tachyon.worker.block;
 public class BlockStoreEventListenerBase implements BlockStoreEventListener {
 
   @Override
-  public void onPreloadBlock(long blockId) {}
-
-  @Override
   public void onAccessBlock(long userId, long blockId) {}
 
   @Override
