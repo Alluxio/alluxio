@@ -41,13 +41,12 @@ public class BlockMetadataManagerTest {
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_TEMP_BLOCK_ID = 10;
   private static final long TEST_BLOCK_SIZE = 20;
-
   private BlockMetadataManager mMetaManager;
   private String mTachyonHome;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
-
+  
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -97,6 +96,17 @@ public class BlockMetadataManagerTest {
     Assert.assertEquals(0, tiers.get(0).getTierLevel());
     Assert.assertEquals(3, tiers.get(1).getTierAlias());
     Assert.assertEquals(1, tiers.get(1).getTierLevel());
+  }
+
+  @Test
+  public void getTiersBelowTest() throws Exception {
+    List<StorageTier> tiersBelow = mMetaManager.getTiersBelow(1);
+    Assert.assertEquals(1, tiersBelow.size());
+    Assert.assertEquals(3, tiersBelow.get(0).getTierAlias());
+    Assert.assertEquals(1, tiersBelow.get(0).getTierLevel());
+
+    tiersBelow = mMetaManager.getTiersBelow(3);
+    Assert.assertEquals(0, tiersBelow.size());
   }
 
   @Test
