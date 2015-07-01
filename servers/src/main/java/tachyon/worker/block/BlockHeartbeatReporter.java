@@ -39,7 +39,7 @@ public class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   public BlockHeartbeatReporter() {
     mLock = new Object();
     mRemovedBlocks = new ArrayList<Long>(100);
-    mAddedBlocks = new HashMap<Long, List<Long>>();
+    mAddedBlocks = new HashMap<Long, List<Long>>(20);
   }
 
   /**
@@ -58,15 +58,6 @@ public class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
       mRemovedBlocks.clear();
       return new BlockHeartbeatReport(addedBlocks, removedBlocks);
     }
-  }
-
-  // TODO: Add this functionality back when block creation between client and master is changed
-  @Override
-  public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {
-    // Long storageDirId = location.getStorageDirId();
-    // synchronized (mLock) {
-    // addBlockToAddedBlocks(blockId, storageDirId);
-    // }
   }
 
   @Override

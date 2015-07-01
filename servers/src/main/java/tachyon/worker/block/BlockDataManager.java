@@ -118,7 +118,6 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to be aborted
-   * @return true if successful, false if unsuccessful
    * @throws IOException if the block does not exist
    */
   public void abortBlock(long userId, long blockId) throws IOException {
@@ -315,7 +314,6 @@ public class BlockDataManager {
    * @param blockId The id of the block to read
    * @param lockId The id of the lock on this block
    * @return a string representing the path to this block in local storage
-   * @throws FileDoesNotExistException if the block does not exist
    */
   public String readBlock(long userId, long blockId, long lockId) throws IOException {
     BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
@@ -329,7 +327,6 @@ public class BlockDataManager {
    * @param blockId The id of the block to read
    * @param lockId The id of the lock on this block
    * @return the block reader for the block
-   * @throws FileDoesNotExistException if the block does not exist
    * @throws IOException if an error occurs when obtaining the reader
    */
   // TODO: We should avoid throwing IOException
@@ -342,7 +339,6 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to be freed
-   * @return true if successful, false otherwise
    * @throws IOException if an error occurs when removing the block
    */
   // TODO: We should avoid throwing IOException
@@ -357,7 +353,6 @@ public class BlockDataManager {
    * @param userId The id of the client
    * @param blockId The id of the block to allocate space to
    * @param bytesRequested The amount of bytes to allocate
-   * @return true if the space was allocated, false otherwise
    * @throws IOException if an error occurs when allocating space
    */
   // TODO: We should avoid throwing IOException
@@ -377,6 +372,8 @@ public class BlockDataManager {
 
   /**
    * Sets the workerId. This should only be called once and is a temporary work around.
+   *
+   * @param workerId Worker id to update to
    */
   public void setWorkerId(long workerId) {
     mWorkerId = workerId;
@@ -394,7 +391,6 @@ public class BlockDataManager {
    * Relinquishes the lock with the specified lock id.
    *
    * @param lockId The id of the lock to relinquish
-   * @return true if successful, false otherwise
    */
   public void unlockBlock(long lockId) throws IOException {
     mBlockStore.unlockBlock(lockId);
@@ -410,7 +406,6 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param metrics The set of metrics the client has gathered since the last heartbeat
-   * @return true if successful, false otherwise
    */
   public void userHeartbeat(long userId, List<Long> metrics) {
     mUsers.userHeartbeat(userId);
@@ -441,9 +436,10 @@ public class BlockDataManager {
 
   /**
    * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
+   *
    * @return the worker's address
    */
-  //TODO: BlockWorker has the same function. Share these to a utility function.
+  // TODO: BlockWorker has the same function. Share these to a utility function.
   private InetSocketAddress getWorkerAddress() {
     String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
     int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
