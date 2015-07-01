@@ -67,6 +67,34 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     }
   }
 
+  private boolean alreadyAvailable(long bytesToBeAvailable, BlockStoreLocation location)
+      throws IOException {
+    if (location.equals(BlockStoreLocation.anyTier())) {
+      for (StorageTier tier : mMeta.getTiers()) {
+        for (StorageDir dir : tier.getStorageDirs()) {
+          if (dir.getAvailableBytes() >= bytesToBeAvailable) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    int tierAlias = location.tierAlias();
+    StorageTier tier = mMeta.getTier(tierAlias);
+    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.getAvailableBytes() >= bytesToBeAvailable) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    StorageDir dir = tier.getDir(location.dir());
+    return dir.getAvailableBytes() >= bytesToBeAvailable;
+  }
+
   @Override
   public EvictionPlan freeSpace(long bytesToBeAvailable, BlockStoreLocation location)
       throws IOException {
@@ -74,11 +102,9 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     List<Long> toEvict = new ArrayList<Long>();
     EvictionPlan plan = null;
 
-    for (StorageDir dir : IterableLocation.create(mMeta, location)) {
-      if (dir.getAvailableBytes() >= bytesToBeAvailable) {
-        plan = new EvictionPlan(toMove, toEvict);
-        return plan;
-      }
+    if (alreadyAvailable(bytesToBeAvailable, location)) {
+      plan = new EvictionPlan(toMove, toEvict);
+      return plan;
     }
 
     EvictionDirCandidates dirCandidates = new EvictionDirCandidates();

@@ -52,10 +52,19 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
       throws IOException {
     // 1. Select a StorageDir that has enough capacity for required bytes.
     StorageDir selectedDir = null;
-    for (StorageDir dir : IterableLocation.create(mMetaManager, location)) {
-      if (dir.getCapacityBytes() >= availableBytes) {
-        selectedDir = dir;
-        break;
+    if (location.belongTo(BlockStoreLocation.anyTier())) {
+      selectedDir = selectDirToEvictBlocksFromAnyTier(availableBytes);
+    } else {
+      int tierAlias = location.tierAlias();
+      StorageTier tier = mMetaManager.getTier(tierAlias);
+      if (location.belongTo(BlockStoreLocation.anyDirInTier(tierAlias))) {
+        selectedDir = selectDirToEvictBlocksFromTier(tier, availableBytes);
+      } else {
+        int dirIndex = location.dir();
+        StorageDir dir = tier.getDir(dirIndex);
+        if (canEvictBlocksFromDir(dir, availableBytes)) {
+          selectedDir = dir;
+        }
       }
     }
     if (selectedDir == null) {
@@ -86,7 +95,6 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
     }
 
     // 4. Make best effort to transfer victim blocks to lower tiers rather than evict them.
-    // TODO: maybe we should abstract the strategy of moving blocks to lower tier
     Map<StorageDir, Long> pendingBytesInDir = new HashMap<StorageDir, Long>();
     for (BlockMeta block : victimBlocks) {
       StorageTier fromTier = block.getParentDir().getParentTier();
@@ -108,6 +116,30 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
       }
     }
     return new EvictionPlan(toTransfer, toEvict);
+  }
+
+  private boolean canEvictBlocksFromDir(StorageDir dir, long availableBytes) {
+    return dir.getCapacityBytes() > availableBytes;
+  }
+
+  private StorageDir selectDirToEvictBlocksFromAnyTier(long availableBytes) {
+    for (StorageTier tier : mMetaManager.getTiers()) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (canEvictBlocksFromDir(dir, availableBytes)) {
+          return dir;
+        }
+      }
+    }
+    return null;
+  }
+
+  private StorageDir selectDirToEvictBlocksFromTier(StorageTier tier, long availableBytes) {
+    for (StorageDir dir : tier.getStorageDirs()) {
+      if (canEvictBlocksFromDir(dir, availableBytes)) {
+        return dir;
+      }
+    }
+    return null;
   }
 
   private StorageDir selectDirToTransferBlock(BlockMeta block, List<StorageTier> toTiers,
