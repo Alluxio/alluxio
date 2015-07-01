@@ -40,6 +40,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * This class is thread-safe and all operations on block metadata such as StorageTier, StorageDir
  * should go through this class.
  */
+// TODO: consider how to better expose information to Evictor and Allocator.
 public class BlockMetadataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -106,7 +107,9 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Gets the amount of available space in given location in bytes.
+   * Gets the amount of available space of given location in bytes. Master queries the total
+   * number of bytes available on each tier of the worker, and Evictor/Allocator often cares about
+   * the bytes at a {@link StorageDir}.
    *
    * @param location location the check available bytes
    * @return available bytes
@@ -178,9 +181,10 @@ public class BlockMetadataManager {
    */
   public synchronized BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)
       throws IOException {
-    // If move target can be any tier, then simply return the current block meta.
-    // TODO: change this to belongTo
-    if (newLocation.equals(BlockStoreLocation.anyTier())) {
+    // If existing location belongs to the target location, simply return the current block meta.
+    BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
+    if (oldLocation.belongTo(newLocation)) {
+      LOG.info("moveBlockMeta: moving {} to {} is a noop", oldLocation, newLocation);
       return blockMeta;
     }
 

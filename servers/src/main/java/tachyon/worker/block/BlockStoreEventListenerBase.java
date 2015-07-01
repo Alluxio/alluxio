@@ -41,7 +41,6 @@ public class BlockStoreEventListenerBase implements BlockStoreEventListener {
   @Override
   public void onRemoveBlockByClient(long userId, long blockId) {}
 
-
   @Override
   public void onRemoveBlockByWorker(long userId, long blockId) {}
 

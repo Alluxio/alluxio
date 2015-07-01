@@ -151,8 +151,10 @@ public class TieredBlockStore implements BlockStore {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
       commitBlockNoLock(userId, blockId, tempBlockMeta);
       // TODO: move listeners outside of the lock.
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        listener.onCommitBlock(userId, blockId, tempBlockMeta.getBlockLocation());
+      synchronized (mBlockStoreEventListeners) {
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          listener.onCommitBlock(userId, blockId, tempBlockMeta.getBlockLocation());
+        }
       }
     } finally {
       mEvictionLock.readLock().unlock();
@@ -164,8 +166,10 @@ public class TieredBlockStore implements BlockStore {
     mEvictionLock.readLock().lock();
     try {
       abortBlockNoLock(userId, blockId);
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        listener.onAbortBlock(userId, blockId);
+      synchronized (mBlockStoreEventListeners) {
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          listener.onAbortBlock(userId, blockId);
+        }
       }
     } finally {
       mEvictionLock.readLock().unlock();
@@ -199,8 +203,10 @@ public class TieredBlockStore implements BlockStore {
         moveBlockNoLock(blockId, newLocation);
         blockMeta = mMetaManager.getBlockMeta(blockId);
         BlockStoreLocation actualNewLocation = blockMeta.getBlockLocation();
-        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-          listener.onMoveBlockByClient(userId, blockId, oldLocation, actualNewLocation);
+        synchronized (mBlockStoreEventListeners) {
+          for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+            listener.onMoveBlockByClient(userId, blockId, oldLocation, actualNewLocation);
+          }
         }
       } finally {
         mLockManager.unlockBlock(lockId);
@@ -218,8 +224,10 @@ public class TieredBlockStore implements BlockStore {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
       try {
         removeBlockNoLock(userId, blockId);
-        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-          listener.onRemoveBlockByClient(userId, blockId);
+        synchronized (mBlockStoreEventListeners) {
+          for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+            listener.onRemoveBlockByClient(userId, blockId);
+          }
         }
       } finally {
         mLockManager.unlockBlock(lockId);
@@ -232,8 +240,10 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void accessBlock(long userId, long blockId) {
-    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      listener.onAccessBlock(userId, blockId);
+    synchronized (mBlockStoreEventListeners) {
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        listener.onAccessBlock(userId, blockId);
+      }
     }
   }
 
@@ -255,7 +265,10 @@ public class TieredBlockStore implements BlockStore {
     mLockManager.cleanupUser(userId);
     mEvictionLock.readLock().unlock();
 
-    // TODO: fix the block removing below,
+    // TODO: fix the block removing below, there is possible risk condition when the client which
+    // is considered "dead" may still be using or committing this block.
+    // A user may have multiple temporary directories for temp blocks, in diffrent StorageTier
+    // and StorageDir.
     Set<String> dirs = new HashSet<String>(tempBlocksToRemove.size());
     for (TempBlockMeta tempBlockMeta : tempBlocksToRemove) {
       String fileName = tempBlockMeta.getPath();
@@ -269,7 +282,7 @@ public class TieredBlockStore implements BlockStore {
         LOG.error("Error in cleanup userId {}: cannot delete file {}", userId, fileName);
       }
     }
-    // Cleanup the user folder
+    // TODO: Cleanup the user folder across tiered storage.
     for (String dirName : dirs) {
       if (!new File(dirName).delete()) {
         LOG.error("Error in cleanup userId {}: cannot delete directory ", userId, dirName);
@@ -324,6 +337,8 @@ public class TieredBlockStore implements BlockStore {
   // Commit a temp block. This method requires no eviction lock acquired.
   private void commitBlockNoLock(long userId, long blockId, TempBlockMeta tempBlockMeta)
       throws IOException {
+    // TODO: share the condition checking among commitBlockNoLock and abortBlockNoLock in a helper
+    // function.
     if (mMetaManager.hasBlockMeta(blockId)) {
       throw new IOException("Failed to commit block " + blockId + ": block is committed");
     }
@@ -418,8 +433,10 @@ public class TieredBlockStore implements BlockStore {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
       try {
         removeBlockNoLock(userId, blockId);
-        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-          listener.onRemoveBlockByWorker(userId, blockId);
+        synchronized (mBlockStoreEventListeners) {
+          for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+            listener.onRemoveBlockByWorker(userId, blockId);
+          }
         }
       } catch (IOException e) {
         throw new IOException("Failed to free space: cannot evict block " + blockId);
@@ -437,8 +454,10 @@ public class TieredBlockStore implements BlockStore {
 
       try {
         moveBlockNoLock(blockId, newLocation);
-        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-          listener.onMoveBlockByWorker(userId, blockId, oldLocation, newLocation);
+        synchronized (mBlockStoreEventListeners) {
+          for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+            listener.onMoveBlockByWorker(userId, blockId, oldLocation, newLocation);
+          }
         }
       } catch (IOException e) {
         throw new IOException("Failed to free space: cannot move block " + blockId + " to "
