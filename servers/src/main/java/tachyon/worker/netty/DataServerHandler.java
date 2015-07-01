@@ -83,7 +83,6 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     ctx.close();
   }
 
-  // TODO: Implement this with the BlockReader API
   private void handleBlockRequest(final ChannelHandlerContext ctx, final RPCBlockRequest req)
       throws IOException {
     final long blockId = req.getBlockId();
@@ -93,7 +92,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     try {
       lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
     } catch (IOException ioe) {
-      LOG.error("failed to lock block", ioe);
+      LOG.error("Failed to lock block: " + blockId, ioe);
       RPCBlockResponse resp = RPCBlockResponse.createErrorResponse(blockId);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
@@ -149,26 +148,25 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
    * transfer type.
    *
    * @param req The initiating RPCBlockRequest
-   * @param handler The BlockHandler for the block to read
+   * @param reader The BlockHandler for the block to read
    * @param readLength The length, in bytes, of the data to read from the block
    * @return a DataBuffer representing the data
    * @throws IOException
    * @throws IllegalArgumentException
    */
-  private DataBuffer getDataBuffer(RPCBlockRequest req, BlockReader handler, long readLength)
+  private DataBuffer getDataBuffer(RPCBlockRequest req, BlockReader reader, long readLength)
       throws IOException, IllegalArgumentException {
     switch (mTransferType) {
       case MAPPED:
-        ByteBuffer data = handler.read(req.getOffset(), (int) readLength);
+        ByteBuffer data = reader.read(req.getOffset(), (int) readLength);
         return new DataByteBuffer(data, readLength);
       case TRANSFER: // intend to fall through as TRANSFER is the default type.
       default:
-        if (handler.getChannel() instanceof FileChannel) {
-          return new DataFileChannel((FileChannel) handler.getChannel(), req.getOffset(),
+        if (reader.getChannel() instanceof FileChannel) {
+          return new DataFileChannel((FileChannel) reader.getChannel(), req.getOffset(),
               readLength);
         }
-        // TODO: Implement close
-        handler.close();
+        reader.close();
         throw new IllegalArgumentException("Only FileChannel is supported!");
     }
   }
