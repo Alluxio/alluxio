@@ -63,7 +63,7 @@ public enum ReadType {
    * @return true if the read type is CACHE_PROMOTE, false otherwise
    * TODO: Add this function back when CACHE_PROMOTE is enabled again
    */
-// public boolean isPromote() {
-//   return mValue == CACHE_PROMOTE.mValue;
-// }
+//  public boolean isPromote() {
+//    return mValue == CACHE_PROMOTE.mValue;
+//  }
 }
