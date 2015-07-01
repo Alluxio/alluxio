@@ -115,9 +115,29 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
         }
         nextTierLevel ++;
       }
+
       for (Long blockId : toEvict) {
         mLRUCache.remove(blockId);
       }
+
+      // assure all blocks are in the store, if not, remove from plan and lru cache
+      Iterator<Pair<Long, BlockStoreLocation>> moveIt = toMove.iterator();
+      while (moveIt.hasNext()) {
+        long id = moveIt.next().getFirst();
+        if (!mMeta.hasBlockMeta(id)) {
+          moveIt.remove();
+          mLRUCache.remove(id);
+        }
+      }
+      Iterator<Long> evictIt = toEvict.iterator();
+      while (evictIt.hasNext()) {
+        long id = evictIt.next();
+        if (!mMeta.hasBlockMeta(id)) {
+          evictIt.remove();
+          mLRUCache.remove(id);
+        }
+      }
+
       plan = new EvictionPlan(toMove, toEvict);
     }
 
