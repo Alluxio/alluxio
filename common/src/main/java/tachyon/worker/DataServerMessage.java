@@ -160,6 +160,7 @@ public class DataServerMessage {
 
   private long mLength;
 
+  // TODO: Investigate how to remove this since it is not transferred over the wire.
   private long mLockId = -1L;
 
   private ByteBuffer mData = null;
