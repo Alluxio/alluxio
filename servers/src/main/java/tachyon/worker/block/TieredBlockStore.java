@@ -18,8 +18,11 @@ package tachyon.worker.block;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -428,7 +431,7 @@ public class TieredBlockStore implements BlockStore {
       throw new IOException("Failed to free space: no eviction plan by evictor");
     }
 
-    // Step1: remove blocks to make room.
+    // 1. remove blocks to make room.
     for (long blockId : plan.toEvict()) {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
       try {
@@ -444,26 +447,42 @@ public class TieredBlockStore implements BlockStore {
         mLockManager.unlockBlock(lockId);
       }
     }
-    // Step2: transfer blocks among tiers.
+    // 2. transfer blocks among tiers.
+    // 2.1. group blocks move plan by the destination tier.
+    Map<Integer, Set<Pair<Long, BlockStoreLocation>>> blocksGroupedByDestTier =
+        new HashMap<Integer, Set<Pair<Long, BlockStoreLocation>>>();
     for (Pair<Long, BlockStoreLocation> entry : plan.toMove()) {
-      long blockId = entry.getFirst();
-      BlockStoreLocation newLocation = entry.getSecond();
-      BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-      BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
-      long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
-
-      try {
-        moveBlockNoLock(blockId, newLocation);
-        synchronized (mBlockStoreEventListeners) {
-          for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-            listener.onMoveBlockByWorker(userId, blockId, oldLocation, newLocation);
+      int alias = entry.getSecond().tierAlias();
+      if (!blocksGroupedByDestTier.containsKey(alias)) {
+        blocksGroupedByDestTier.put(alias, new HashSet<Pair<Long, BlockStoreLocation>>());
+      }
+      blocksGroupedByDestTier.get(alias).add(entry);
+    }
+    // 2.2. sort tiers according in reversed order: bottom tier first and top tier last.
+    List<Integer> destTierAlias = new ArrayList<Integer>(blocksGroupedByDestTier.keySet());
+    Collections.sort(destTierAlias, Collections.reverseOrder());
+    // 2.3. move blocks in the order of their dest tiers.
+    for (int alias : destTierAlias) {
+      Set<Pair<Long, BlockStoreLocation>> toMove = blocksGroupedByDestTier.get(alias);
+      for (Pair<Long, BlockStoreLocation> entry : toMove) {
+        long blockId = entry.getFirst();
+        BlockStoreLocation newLocation = entry.getSecond();
+        BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
+        BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
+        long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
+        try {
+          moveBlockNoLock(blockId, newLocation);
+          synchronized (mBlockStoreEventListeners) {
+            for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+              listener.onMoveBlockByWorker(userId, blockId, oldLocation, newLocation);
+            }
           }
+        } catch (IOException e) {
+          throw new IOException("Failed to free space: cannot move block " + blockId + " to "
+              + newLocation);
+        } finally {
+          mLockManager.unlockBlock(lockId);
         }
-      } catch (IOException e) {
-        throw new IOException("Failed to free space: cannot move block " + blockId + " to "
-            + newLocation);
-      } finally {
-        mLockManager.unlockBlock(lockId);
       }
     }
   }
