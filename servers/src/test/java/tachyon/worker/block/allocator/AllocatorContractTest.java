@@ -45,17 +45,28 @@ public class AllocatorContractTest extends BaseAllocatorTest {
   @Test
   public void shouldAllocateTest() throws IOException {
     for (AllocatorType type : AllocatorType.values()) {
-      TachyonConf tachyonConf = createTestTachyonConf();
-      BlockMetadataManager metaManager = BlockMetadataManager.newBlockMetadataManager(tachyonConf);
-      Allocator allocator = AllocatorFactory.create(type, metaManager);
+      Allocator tierAllocator = AllocatorFactory.create(type, 
+          BlockMetadataManager.newBlockMetadataManager(createTestTachyonConf()));
       for (int i = 0; i < DEFAULT_RAM_NUM; i ++) {
-        assertTempBlockMeta(allocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE - 1, true);
+        assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE - 1, true);
       }
       for (int i = 0; i < DEFAULT_SSD_NUM; i ++) {
-        assertTempBlockMeta(allocator, mAnyDirInTierLoc2, DEFAULT_SSD_SIZE - 1, true);
+        assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc2, DEFAULT_SSD_SIZE - 1, true);
       }
       for (int i = 0; i < DEFAULT_HDD_NUM; i ++) {
-        assertTempBlockMeta(allocator, mAnyDirInTierLoc3, DEFAULT_HDD_SIZE - 1, true);
+        assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc3, DEFAULT_HDD_SIZE - 1, true);
+      }
+      
+      Allocator anyAllocator = AllocatorFactory.create(type, 
+          BlockMetadataManager.newBlockMetadataManager(createTestTachyonConf()));
+      for (int i = 0; i < DEFAULT_RAM_NUM; i ++) {
+        assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_RAM_SIZE - 1, true);
+      }
+      for (int i = 0; i < DEFAULT_SSD_NUM; i ++) {
+        assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_SSD_SIZE - 1, true);
+      }
+      for (int i = 0; i < DEFAULT_HDD_NUM; i ++) {
+        assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_HDD_SIZE - 1, true);
       }
     }
   }
