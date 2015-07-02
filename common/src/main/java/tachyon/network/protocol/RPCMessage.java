@@ -31,6 +31,7 @@ public abstract class RPCMessage implements EncodedMessage {
 
   // The possible types of RPC messages.
   public enum Type implements EncodedMessage {
+    // TODO: rename these to RPC_BLOCK_READ_*
     RPC_BLOCK_REQUEST(0),
     RPC_BLOCK_RESPONSE(1),
     RPC_BLOCK_WRITE_REQUEST(2),
