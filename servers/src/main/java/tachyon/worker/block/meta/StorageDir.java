@@ -50,6 +50,7 @@ public class StorageDir {
   /** A map from user ID to the set of temp blocks created by this user */
   private Map<Long, Set<Long>> mUserIdToTempBlockIdsMap;
   private AtomicLong mAvailableBytes;
+  private AtomicLong mCommittedBytes;
   private String mDirPath;
   private int mDirIndex;
   private StorageTier mTier;
@@ -59,6 +60,7 @@ public class StorageDir {
     mDirIndex = dirIndex;
     mCapacityBytes = capacityBytes;
     mAvailableBytes = new AtomicLong(capacityBytes);
+    mCommittedBytes = new AtomicLong(0);
     mDirPath = dirPath;
     mBlockIdToBlockMap = new HashMap<Long, BlockMeta>(200);
     mBlockIdToTempBlockMap = new HashMap<Long, TempBlockMeta>(200);
@@ -90,7 +92,7 @@ public class StorageDir {
   /**
    * Initialize meta data for existing blocks in this StorageDir
    *
-   * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath()} are legal,
+   * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath} are legal,
    * should be in format like {dir}/{blockId}. other paths will be deleted.
    *
    * @throws IOException when meta data of existing committed blocks can not be loaded
@@ -129,12 +131,33 @@ public class StorageDir {
     }
   }
 
+  /**
+   * Gets the total capacity of this StorageDir in bytes, which is a constant once this StorageDir
+   * has been initialized.
+   *
+   * @return the total capacity of this StorageDir in bytes.
+   */
   public long getCapacityBytes() {
     return mCapacityBytes;
   }
 
+  /**
+   * Gets the total available capacity of this StorageDir in bytes. This value equals the
+   * total capacity of this StorageDir, minus the used bytes by committed blocks and temp blocks.
+   *
+   * @return available capacity in bytes
+   */
   public long getAvailableBytes() {
     return mAvailableBytes.get();
+  }
+
+  /**
+   * Gets the total size of committed blocks in this StorageDir in bytes.
+   *
+   * @return number of committed bytes.
+   */
+  public long getCommittedBytes() {
+    return mCommittedBytes.get();
   }
 
   public String getDirPath() {
@@ -255,7 +278,7 @@ public class StorageDir {
       throw new IOException("Failed to add BlockMeta: blockId " + blockId + " exists");
     }
     mBlockIdToBlockMap.put(blockId, blockMeta);
-    reserveSpace(blockSize);
+    reserveSpace(blockSize, true);
   }
 
   /**
@@ -285,7 +308,7 @@ public class StorageDir {
     } else {
       userTempBlocks.add(blockId);
     }
-    reserveSpace(blockSize);
+    reserveSpace(blockSize, false);
   }
 
   /**
@@ -301,7 +324,7 @@ public class StorageDir {
     if (deletedBlockMeta == null) {
       throw new IOException("Failed to remove BlockMeta: blockId " + blockId + " not found");
     }
-    reclaimSpace(blockMeta.getBlockSize());
+    reclaimSpace(blockMeta.getBlockSize(), true);
   }
 
   /**
@@ -331,7 +354,7 @@ public class StorageDir {
     if (userBlocks.isEmpty()) {
       mUserIdToTempBlockIdsMap.remove(userId);
     }
-    reclaimSpace(tempBlockMeta.getBlockSize());
+    reclaimSpace(tempBlockMeta.getBlockSize(), false);
   }
 
   /**
@@ -345,22 +368,28 @@ public class StorageDir {
     long oldSize = tempBlockMeta.getBlockSize();
     tempBlockMeta.setBlockSize(newSize);
     if (newSize > oldSize) {
-      reserveSpace(newSize - oldSize);
+      reserveSpace(newSize - oldSize, false);
     } else if (newSize < oldSize) {
       throw new IOException("Shrinking block, not supported!");
     }
   }
 
-  private void reserveSpace(long size) {
+  private void reserveSpace(long size, boolean committed) {
     Preconditions.checkState(size <= mAvailableBytes.get(),
         "Available bytes should always be non-negative ");
     mAvailableBytes.addAndGet(-size);
+    if (committed) {
+      mCommittedBytes.addAndGet(size);
+    }
   }
 
-  private void reclaimSpace(long size) {
+  private void reclaimSpace(long size, boolean committed) {
     Preconditions.checkState(mCapacityBytes >= mAvailableBytes.get() + size,
         "Available bytes should always be less than total capacity bytes");
     mAvailableBytes.addAndGet(size);
+    if (committed) {
+      mCommittedBytes.addAndGet(-size);
+    }
   }
 
   /**
@@ -377,7 +406,7 @@ public class StorageDir {
         TempBlockMeta tempBlock = mBlockIdToTempBlockMap.remove(blockId);
         if (tempBlock != null) {
           blocksToRemove.add(tempBlock);
-          reclaimSpace(tempBlock.getBlockSize());
+          reclaimSpace(tempBlock.getBlockSize(), false);
         } else {
           LOG.error("Cannot find blockId {} when cleanup userId {}", blockId, userId);
         }
