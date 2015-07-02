@@ -35,6 +35,8 @@ public class AllocatorFactory {
         return new GreedyAllocator(metaManager);
       case MAX_FREE:
         return new MaxFreeAllocator(metaManager);
+      case ROUND_ROBIN:
+        return new RRAllocator(metaManager);
       default:
         return new MaxFreeAllocator(metaManager);
     }
