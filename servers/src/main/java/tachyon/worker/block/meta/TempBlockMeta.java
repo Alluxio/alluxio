@@ -22,6 +22,14 @@ public class TempBlockMeta extends BlockMetaBase {
   private final long mUserId;
   private long mTempBlockSize;
 
+  /**
+   * Construct the metadata of a temp block.
+   *
+   * @param userId the user ID
+   * @param blockId the block ID
+   * @param initialBlockSize initial size of this block in bytes
+   * @param dir StorageDir of this temp block belonging to
+   */
   public TempBlockMeta(long userId, long blockId, long initialBlockSize, StorageDir dir) {
     super(blockId, dir);
     mUserId = userId;

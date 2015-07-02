@@ -30,17 +30,17 @@ public interface BlockReader extends Closeable {
   /**
    * Reads data from the block.
    *
-   * @param offset the offset from starting of the block file
-   * @param length the length of data to read
+   * @param offset the offset from starting of the block file in bytes
+   * @param length the length of data to read in bytes, -1 for the rest of the block
    * @return ByteBuffer the data that was read
    * @throws IOException
    */
   ByteBuffer read(long offset, long length) throws IOException;
 
   /**
-   * Gets the length of the block
+   * Gets the length of the block in bytes.
    *
-   * @return the length of the block
+   * @return the length of the block in bytes
    */
   long getLength();
 

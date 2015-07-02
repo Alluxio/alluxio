@@ -43,10 +43,22 @@ public class LocalFileBlockReader implements BlockReader {
   private final Closer mCloser = Closer.create();
   private final long mFileSize;
 
+  /**
+   * Construct a Block reader given the metadata of this block
+   *
+   * @param blockMeta metadata of this block
+   * @throws IOException if its file can not be open with "r" mode
+   */
   public LocalFileBlockReader(BlockMeta blockMeta) throws IOException {
     this(Preconditions.checkNotNull(blockMeta).getPath());
   }
 
+  /**
+   * Construct a Block reader given the file path of the block
+   *
+   * @param path file path of the block
+   * @throws IOException if its file can not be open with "r" mode
+   */
   public LocalFileBlockReader(String path) throws IOException {
     mFilePath = Preconditions.checkNotNull(path);
     mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "r"));
