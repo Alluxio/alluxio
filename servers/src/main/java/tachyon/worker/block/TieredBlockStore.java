@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Files;
 
 import tachyon.Constants;
 import tachyon.Pair;
@@ -388,14 +389,12 @@ public class TieredBlockStore implements BlockStore {
       throw new IOException("Failed to move block " + blockId + ": block is uncommited");
     }
     BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-    String srcPath = blockMeta.getPath();
+    File src = new File(blockMeta.getPath());
     blockMeta = mMetaManager.moveBlockMeta(blockMeta, newLocation);
-    String destPath = blockMeta.getPath();
+    File dst = new File(blockMeta.getPath());
 
-    if (!new File(srcPath).renameTo(new File(destPath))) {
-      throw new IOException("Failed to move block " + blockId + ": cannot rename from " + srcPath
-          + " to " + destPath);
-    }
+    // Because this move is across storage devices, renameTo may not work, use guava's move instead
+    Files.move(src, dst);
   }
 
   // TODO: refactor this method: currently, it is shared by code path of both remove, eviction
