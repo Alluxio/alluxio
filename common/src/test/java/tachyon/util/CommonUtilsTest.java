@@ -65,6 +65,7 @@ public class CommonUtilsTest {
   @Test
   public void concatPath() {
     Assert.assertEquals("", CommonUtils.concatPath());
+    Assert.assertEquals("/", CommonUtils.concatPath("/", ""));
     Assert.assertEquals("/bar", CommonUtils.concatPath("/", "bar"));
 
     Assert.assertEquals("foo", CommonUtils.concatPath("foo"));
