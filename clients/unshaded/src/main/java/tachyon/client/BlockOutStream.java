@@ -24,7 +24,8 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 /**
- * <code>BlockOutStream</code> implementation of TachyonFile. This class is not client facing.
+ * <code>BlockOutStream</code> interface for writing data to a block. This class is not client
+ * facing.
  */
 public abstract class BlockOutStream extends OutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -69,7 +70,7 @@ public abstract class BlockOutStream extends OutStream {
     return new RemoteBlockOutStream(tachyonFile, opType, blockIndex, initialBytes, tachyonConf);
   }
 
-  public BlockOutStream(TachyonFile tachyonFile, WriteType opType, TachyonConf tachyonConf) {
+  protected BlockOutStream(TachyonFile tachyonFile, WriteType opType, TachyonConf tachyonConf) {
     super(tachyonFile, opType, tachyonConf);
   }
 

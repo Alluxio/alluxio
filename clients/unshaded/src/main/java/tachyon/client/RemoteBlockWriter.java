@@ -26,7 +26,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
- * The interface to read remote block from data server.
+ * The interface to write a remote block to the data server.
  */
 public interface RemoteBlockWriter extends Closeable {
 

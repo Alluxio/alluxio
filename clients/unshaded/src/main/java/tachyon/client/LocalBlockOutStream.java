@@ -33,7 +33,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
- * <code>LocalBlockOutStream</code> implementation of TachyonFile. This class is not client facing.
+ * This implementation of {@link BlockOutStream} writes a single block to the local file system.
  */
 public class LocalBlockOutStream extends BlockOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -89,13 +89,12 @@ public class LocalBlockOutStream extends BlockOutStream {
     mBlockId = mFile.getBlockId(mBlockIndex);
     mBlockOffset = mBlockCapacityByte * blockIndex;
 
+    if (!mTachyonFS.hasLocalWorker()) {
+      throw new IOException("The machine does not have any local worker.");
+    }
     mCanWrite = true;
 
-    if (!mTachyonFS.hasLocalWorker()) {
-      mCanWrite = false;
-      String msg = "The machine does not have any local worker.";
-      throw new IOException(msg);
-    }
+    // TODO: Use the new LocalFileBlockWriter api for writing local files.
     mLocalFilePath = mTachyonFS.getLocalBlockTemporaryPath(mBlockId, initialBytes);
     mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
