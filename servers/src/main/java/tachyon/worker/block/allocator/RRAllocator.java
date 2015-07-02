@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -16,6 +16,8 @@
 package tachyon.worker.block.allocator;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.base.Preconditions;
 
@@ -26,49 +28,70 @@ import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * An allocator that allocates a block in the storage dir with most free space.
- * The implementation prefers to get the dir from lower-level storage
+ * A Round robin allocator that allocates a block in the storage dir.
  */
-public class MaxFreeAllocator implements Allocator {
+public class RRAllocator implements Allocator {
   private final BlockMetadataManager mMetaManager;
 
-  public MaxFreeAllocator(BlockMetadataManager metadata) {
+  // We need to remember the last dir index for every storage tier
+  private Map<StorageTier, Integer> mTierDirs = new HashMap<StorageTier, Integer>();
+
+  public RRAllocator(BlockMetadataManager metadata) {
     mMetaManager = Preconditions.checkNotNull(metadata);
+    
+    for (StorageTier tier : mMetaManager.getTiers()) {
+      mTierDirs.put(tier, -1);
+    }
   }
 
   @Override
   public TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location) throws IOException {
 
-    StorageDir candidateDir = null;
-    long maxFreeBytes = blockSize;
-
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTier tier : mMetaManager.getTiers()) {
-        for (StorageDir dir : tier.getStorageDirs()) {
-          if (dir.getAvailableBytes() >= maxFreeBytes) {
-            maxFreeBytes = dir.getAvailableBytes();
-            candidateDir = dir;
-          }
+      int tierAlias = 0; //always starting from the first tier
+      for (int i = 0; i < mMetaManager.getTiers().size(); i ++) {
+        StorageTier tier = mMetaManager.getTiers().get(tierAlias);
+        int dirIndex = getNextDirInTier(tier, blockSize);
+        if (dirIndex >= 0) {
+          mTierDirs.put(tier, dirIndex); // update
+          return new TempBlockMeta(userId, blockId, blockSize, tier.getDir(dirIndex));
+        } else { // we didn't find one in this tier, go to next tier
+          tierAlias = (tierAlias + 1) % mMetaManager.getTiers().size();
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
       StorageTier tier = mMetaManager.getTier(location.tierAlias());
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (dir.getAvailableBytes() >= maxFreeBytes) {
-          maxFreeBytes = dir.getAvailableBytes();
-          candidateDir = dir;
-        }
+      int dirIndex = getNextDirInTier(tier, blockSize);
+      if (dirIndex >= 0) {
+        mTierDirs.put(tier, dirIndex); // update
+        return new TempBlockMeta(userId, blockId, blockSize, tier.getDir(dirIndex));
       }
     } else {
       StorageTier tier = mMetaManager.getTier(location.tierAlias());
       StorageDir dir = tier.getDir(location.dir());
       if (dir.getAvailableBytes() >= blockSize) {
-        candidateDir = dir;
+        return new TempBlockMeta(userId, blockId, blockSize, dir);
       }
     }
 
-    return candidateDir != null ? new TempBlockMeta(userId, blockId, blockSize, candidateDir)
-        : null;
+    return null;
+  }
+
+  /**
+   * Find an available dir in a given tier
+   * @param tier
+   * @param blockSize
+   * @return
+   */
+  private int getNextDirInTier(StorageTier tier, long blockSize) {
+    int dirIndex = mTierDirs.get(tier);
+    for (int i = 0; i < tier.getStorageDirs().size(); i ++) { //try this many times
+      dirIndex = (dirIndex + 1) % tier.getStorageDirs().size();
+      if (tier.getDir(dirIndex).getAvailableBytes() >= blockSize) {
+        return dirIndex;
+      }
+    }
+    return -1;
   }
 }
