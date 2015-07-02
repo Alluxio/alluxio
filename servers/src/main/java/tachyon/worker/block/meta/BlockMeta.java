@@ -40,6 +40,6 @@ public class BlockMeta extends BlockMetaBase {
 
   @Override
   public String getPath() {
-    return commitPath();
+    return commitPath(mDir, mBlockId);
   }
 }

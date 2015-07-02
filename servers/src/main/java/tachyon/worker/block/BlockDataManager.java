@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.google.common.base.Throwables;
-
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,14 +97,10 @@ public class BlockDataManager {
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
+
     // Connect to UFS to handle UFS security
     InetSocketAddress workerAddress = getWorkerAddress();
-    try {
-      mUfs.connectFromWorker(mTachyonConf, NetworkUtils.getFqdnHost(workerAddress));
-    } catch (IOException e) {
-      LOG.error("Worker @ " + workerAddress + " failed to connect to the under file system", e);
-      throw Throwables.propagate(e);
-    }
+    mUfs.connectFromWorker(mTachyonConf, NetworkUtils.getFqdnHost(workerAddress));
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
@@ -230,7 +224,8 @@ public class BlockDataManager {
   // TODO: We should avoid throwing IOException
   public String createBlock(long userId, long blockId, int tierAlias, long initialBytes)
       throws IOException, OutOfSpaceException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation loc =
+        tierAlias == -1 ? BlockStoreLocation.anyTier() : BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     return createdBlock.getPath();
   }
@@ -321,6 +316,7 @@ public class BlockDataManager {
    * @param blockId The id of the block to read
    * @param lockId The id of the lock on this block
    * @return a string representing the path to this block in local storage
+   * @throws IOException if the block cannot be found
    */
   public String readBlock(long userId, long blockId, long lockId) throws IOException {
     BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
@@ -359,12 +355,12 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to allocate space to
-   * @param bytesRequested The amount of bytes to allocate
+   * @param additionalBytes The amount of bytes to allocate
    * @throws IOException if an error occurs when allocating space
    */
   // TODO: We should avoid throwing IOException
-  public void requestSpace(long userId, long blockId, long bytesRequested) throws IOException {
-    mBlockStore.requestSpace(userId, blockId, bytesRequested);
+  public void requestSpace(long userId, long blockId, long additionalBytes) throws IOException {
+    mBlockStore.requestSpace(userId, blockId, additionalBytes);
   }
 
   /**

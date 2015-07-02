@@ -29,6 +29,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.BlockMetaBase;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
@@ -86,6 +87,21 @@ public class BlockMetadataManager {
   }
 
   /**
+   * Gets the StorageDir given its location in the store.
+   *
+   * @param location Location of the dir
+   * @return the StorageDir object
+   * @throws IOException if location is not a specific dir or the location is invalid
+   */
+  public synchronized StorageDir getDir(BlockStoreLocation location) throws IOException {
+    if (location.equals(BlockStoreLocation.anyTier())
+        || location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
+      throw new IOException("Failed to get block path: " + location + " is not a specific dir.");
+    }
+    return getTier(location.tierAlias()).getDir(location.dir());
+  }
+
+  /**
    * Gets the list of StorageTier managed.
    *
    * @return the list of StorageTiers
@@ -107,9 +123,9 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Gets the amount of available space of given location in bytes. Master queries the total
-   * number of bytes available on each tier of the worker, and Evictor/Allocator often cares about
-   * the bytes at a {@link StorageDir}.
+   * Gets the amount of available space of given location in bytes. Master queries the total number
+   * of bytes available on each tier of the worker, and Evictor/Allocator often cares about the
+   * bytes at a {@link StorageDir}.
    *
    * @param location location the check available bytes
    * @return available bytes
@@ -337,4 +353,20 @@ public class BlockMetadataManager {
   public synchronized BlockStoreMeta getBlockStoreMeta() {
     return new BlockStoreMeta(this);
   }
+
+
+  /**
+   * Returns the path of a block given its location, or null if the location is not a specific
+   * StorageDir.
+   *
+   * @param blockId the ID of the block
+   * @param location location of a particular StorageDir to store this block
+   * @return the path of this block in this location
+   * @throws IOException if location is not a specific StorageDir
+   */
+  public synchronized String getBlockPath(long blockId, BlockStoreLocation location)
+      throws IOException {
+    return BlockMetaBase.commitPath(getDir(location), blockId);
+  }
+
 }
