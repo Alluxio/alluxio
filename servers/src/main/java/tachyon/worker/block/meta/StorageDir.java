@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -48,7 +49,7 @@ public class StorageDir {
   private Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
   /** A map from user ID to the set of temp blocks created by this user */
   private Map<Long, Set<Long>> mUserIdToTempBlockIdsMap;
-  private long mAvailableBytes;
+  private AtomicLong mAvailableBytes;
   private String mDirPath;
   private int mDirIndex;
   private StorageTier mTier;
@@ -57,7 +58,7 @@ public class StorageDir {
     mTier = Preconditions.checkNotNull(tier);
     mDirIndex = dirIndex;
     mCapacityBytes = capacityBytes;
-    mAvailableBytes = capacityBytes;
+    mAvailableBytes = new AtomicLong(capacityBytes);
     mDirPath = dirPath;
     mBlockIdToBlockMap = new HashMap<Long, BlockMeta>(200);
     mBlockIdToTempBlockMap = new HashMap<Long, TempBlockMeta>(200);
@@ -133,7 +134,7 @@ public class StorageDir {
   }
 
   public long getAvailableBytes() {
-    return mAvailableBytes;
+    return mAvailableBytes.get();
   }
 
   public String getDirPath() {
@@ -351,15 +352,15 @@ public class StorageDir {
   }
 
   private void reserveSpace(long size) {
-    Preconditions.checkState(size <= mAvailableBytes,
+    Preconditions.checkState(size <= mAvailableBytes.get(),
         "Available bytes should always be non-negative ");
-    mAvailableBytes -= size;
+    mAvailableBytes.addAndGet(-size);
   }
 
   private void reclaimSpace(long size) {
-    Preconditions.checkState(mCapacityBytes >= mAvailableBytes + size,
+    Preconditions.checkState(mCapacityBytes >= mAvailableBytes.get() + size,
         "Available bytes should always be less than total capacity bytes");
-    mAvailableBytes += size;
+    mAvailableBytes.addAndGet(size);
   }
 
   /**
