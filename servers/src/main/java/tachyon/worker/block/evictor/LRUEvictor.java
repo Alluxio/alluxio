@@ -42,13 +42,14 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final int LINKED_HASH_MAP_INIT_CAPACITY = 200;
   private static final float LINKED_HASH_MAP_INIT_LOAD_FACTOR = 0.75f;
   private static final boolean LINKED_HASH_MAP_ACCESS_ORDERED = true;
+  private static final boolean UNUSED_MAP_VALUE = true;
 
   private final BlockMetadataManager mMeta;
 
   /**
-   * access-ordered {@link java.util.LinkedHashMap} from blockId to {@code true}(just to occupy the
-   * value), acts as a LRU double linked list where most recently accessed element is put at the
-   * tail while least recently accessed element is put at the head.
+   * access-ordered {@link java.util.LinkedHashMap} from blockId to {@link #UNUSED_MAP_VALUE}(just a
+   * placeholder to occupy the value), acts as a LRU double linked list where most recently accessed
+   * element is put at the tail while least recently accessed element is put at the head.
    */
   private Map<Long, Boolean> mLRUCache = Collections
       .synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
@@ -61,7 +62,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     for (StorageTier tier : mMeta.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         for (long blockId : dir.getBlockIds()) {
-          mLRUCache.put(blockId, true);
+          mLRUCache.put(blockId, UNUSED_MAP_VALUE);
         }
       }
     }
@@ -192,13 +193,13 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    */
   @Override
   public void onAccessBlock(long userId, long blockId) {
-    mLRUCache.put(blockId, true);
+    mLRUCache.put(blockId, UNUSED_MAP_VALUE);
   }
 
   @Override
   public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {
     // Since the temp block has been committed, update Evictor about the new added blocks
-    mLRUCache.put(blockId, true);
+    mLRUCache.put(blockId, UNUSED_MAP_VALUE);
   }
 
   @Override
