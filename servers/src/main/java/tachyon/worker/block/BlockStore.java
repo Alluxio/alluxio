@@ -176,6 +176,13 @@ public interface BlockStore {
   void accessBlock(long userId, long blockId) throws IOException;
 
   /**
+   * Get the block metadata manager.
+   *
+   * @return block metadata manager
+   */
+  BlockMetadataManager getBlockMetadataManager();
+
+  /**
    * Gets the meta data of the entire store.
    *
    * @return store meta data

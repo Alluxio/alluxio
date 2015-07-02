@@ -430,6 +430,15 @@ public class BlockDataManager {
   }
 
   /**
+   * Get the block metadata manager.
+   *
+   * @return block metadata manager
+   */
+  public BlockMetadataManager getBlockMetadataManager() {
+    return mBlockStore.getBlockMetadataManager();
+  }
+
+  /**
    * Gets the Tachyon master address from the configuration
    *
    * @return the InetSocketAddress of the master

@@ -242,7 +242,9 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void accessBlock(long userId, long blockId) {
+  public void accessBlock(long userId, long blockId) throws IOException {
+    BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
+    blockMeta.setLastAccessTimeMs(System.currentTimeMillis());
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         listener.onAccessBlock(userId, blockId);
@@ -291,6 +293,11 @@ public class TieredBlockStore implements BlockStore {
         LOG.error("Error in cleanup userId {}: cannot delete directory ", userId, dirName);
       }
     }
+  }
+
+  @Override
+  public BlockMetadataManager getBlockMetadataManager() {
+    return mMetaManager;
   }
 
   @Override
