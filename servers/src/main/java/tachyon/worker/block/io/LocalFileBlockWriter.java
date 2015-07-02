@@ -43,10 +43,22 @@ public class LocalFileBlockWriter implements BlockWriter {
   private final FileChannel mLocalFileChannel;
   private final Closer mCloser = Closer.create();
 
+  /**
+   * Construct a Block writer given the metadata of a temp block
+   *
+   * @param tempBlockMeta metadata of this temp block
+   * @throws IOException if its file can not be open with "rw" mode
+   */
   public LocalFileBlockWriter(TempBlockMeta tempBlockMeta) throws IOException {
     this(Preconditions.checkNotNull(tempBlockMeta).getPath());
   }
 
+  /**
+   * Construct a Block writer given the file path of the block
+   *
+   * @param path file path of the block
+   * @throws IOException if its file can not be open with "rw" mode
+   */
   public LocalFileBlockWriter(String path) throws IOException {
     mFilePath = Preconditions.checkNotNull(path);
     mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));

@@ -302,7 +302,7 @@ public class TieredBlockStore implements BlockStore {
     }
   }
 
-  // Create a temp block meta. This method requires {@link mEvictionLock} is acquired in read mode.
+  // Create a temp block meta. This method requires eviction lock in READ mode.
   private TempBlockMeta createBlockMetaNoLock(long userId, long blockId,
       BlockStoreLocation location, long initialBlockSize) throws IOException {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
@@ -334,7 +334,7 @@ public class TieredBlockStore implements BlockStore {
     return tempBlock;
   }
 
-  // Commit a temp block. This method requires no eviction lock acquired.
+  // Commit a temp block. This method requires eviction lock in READ mode.
   private void commitBlockNoLock(long userId, long blockId, TempBlockMeta tempBlockMeta)
       throws IOException {
     // TODO: share the condition checking among commitBlockNoLock and abortBlockNoLock in a helper
@@ -358,7 +358,7 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.commitTempBlockMeta(tempBlockMeta);
   }
 
-  // Abort a temp block. This method requires no eviction lock acquired.
+  // Abort a temp block. This method requires eviction lock in READ mode.
   private void abortBlockNoLock(long userId, long blockId) throws IOException {
     if (mMetaManager.hasBlockMeta(blockId)) {
       throw new IOException("Failed to abort block " + blockId + ": block is committed");
@@ -379,7 +379,7 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.abortTempBlockMeta(tempBlockMeta);
   }
 
-  // Move a block. This method requires block lock required but no eviction lock acquired.
+  // Move a block. This method requires block lock in WRITE mode and eviction lock in READ mode.
   private void moveBlockNoLock(long blockId, BlockStoreLocation newLocation) throws IOException {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
       throw new IOException("Failed to move block " + blockId + ": block is uncommited");
@@ -397,7 +397,7 @@ public class TieredBlockStore implements BlockStore {
 
   // TODO: refactor this method: currently, it is shared by code path of both remove, eviction
   // and remove temp data. Let us separate it.
-  // Remove a block. This method requires block lock required but no eviction lock acquired.
+  // Remove a block. This method requires block lock in WRITE mode and eviction lock in READ mode.
   private void removeBlockNoLock(long userId, long blockId) throws IOException {
     // Delete metadata of the block---no matter it is a temp block.
     String filePath;

@@ -33,49 +33,48 @@ import tachyon.Constants;
  */
 public class ClientRWLock implements ReadWriteLock {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** Total number of permits. This value is the max number of concurrent readers */
+  // TODO: make this const a configurable
+  /** Total number of permits. This value decides the max number of concurrent readers */
   private static final int MAX_AVAILABLE = 100;
   /** Underlying Semaphore */
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, true);
 
   @Override
   public Lock readLock() {
-    return new UserLock(mAvailable, 1);
+    return new UserLock(1);
   }
 
   @Override
   public Lock writeLock() {
-    return new UserLock(mAvailable, MAX_AVAILABLE);
+    return new UserLock(MAX_AVAILABLE);
   }
 
   private class UserLock implements Lock {
     private final int mPermits;
-    private Semaphore mSemaphore;
 
-    private UserLock(Semaphore semaphore, int permits) {
-      mSemaphore = semaphore;
+    private UserLock(int permits) {
       mPermits = permits;
     }
 
     @Override
     public void lock() {
-      mSemaphore.acquireUninterruptibly(mPermits);
+      mAvailable.acquireUninterruptibly(mPermits);
     }
 
     @Override
     public void lockInterruptibly() throws InterruptedException {
-      mSemaphore.acquire(mPermits);
+      mAvailable.acquire(mPermits);
     }
 
     @Override
     public boolean tryLock() {
-      return mSemaphore.tryAcquire(mPermits);
+      return mAvailable.tryAcquire(mPermits);
     }
 
     @Override
     public boolean tryLock(long time, TimeUnit unit) {
       try {
-        return mSemaphore.tryAcquire(mPermits, time, unit);
+        return mAvailable.tryAcquire(mPermits, time, unit);
       } catch (InterruptedException e) {
         return false;
       }
@@ -83,7 +82,7 @@ public class ClientRWLock implements ReadWriteLock {
 
     @Override
     public void unlock() {
-      mSemaphore.release(mPermits);
+      mAvailable.release(mPermits);
     }
 
     @Override
