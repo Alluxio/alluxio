@@ -161,7 +161,6 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
         long id = moveIt.next().getFirst();
         if (!mMeta.hasBlockMeta(id)) {
           moveIt.remove();
-          mLRUCache.remove(id);
         } else {
           toFree += mMeta.getBlockMeta(id).getBlockSize();
         }
@@ -171,7 +170,6 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
         long id = evictIt.next();
         if (!mMeta.hasBlockMeta(id)) {
           evictIt.remove();
-          mLRUCache.remove(id);
         } else {
           toFree += mMeta.getBlockMeta(id).getBlockSize();
         }
