@@ -152,7 +152,6 @@ public class BlockServiceHandler implements WorkerService.Iface {
     try {
       // NOTE: right now, we ask allocator to allocate new blocks in MEM tier by setting location
       // to be 1.
-      // TODO: Maybe add a constant for anyTier?
       return mWorker.createBlock(userId, blockId, 1, initialBytes);
     } catch (IOException ioe) {
       throw new OutOfSpaceException("Failed to allocate " + initialBytes + " for user " + userId);

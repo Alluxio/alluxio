@@ -230,7 +230,8 @@ public class BlockDataManager {
   // TODO: We should avoid throwing IOException
   public String createBlock(long userId, long blockId, int tierAlias, long initialBytes)
       throws IOException, OutOfSpaceException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation loc =
+        tierAlias == -1 ? BlockStoreLocation.anyTier() : BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     return createdBlock.getPath();
   }
