@@ -129,6 +129,7 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to access
+   * @throws IOException this exception is not thrown in the tiered block store implementation
    */
   public void accessBlock(long userId, long blockId) throws IOException {
     mBlockStore.accessBlock(userId, blockId);
@@ -198,20 +199,20 @@ public class BlockDataManager {
     // TODO: Reconsider how to do this without heavy locking
     // Block successfully committed, update master with new block metadata
     Long lockId = mBlockStore.lockBlock(userId, blockId);
-    BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
-    BlockStoreLocation loc = meta.getBlockLocation();
-    Long storageDirId = loc.getStorageDirId();
-    Long length = meta.getBlockSize();
-    BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
-    Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierLevel());
     try {
+      BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
+      BlockStoreLocation loc = meta.getBlockLocation();
+      Long storageDirId = loc.getStorageDirId();
+      Long length = meta.getBlockSize();
+      BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
+      Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierLevel());
       mMasterClient
           .worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);
     } catch (TException te) {
-      mBlockStore.unlockBlock(userId, blockId);
       throw new IOException("Failed to commit block to master.", te);
+    } finally {
+      mBlockStore.unlockBlock(userId, blockId);
     }
-    mBlockStore.unlockBlock(userId, blockId);
     return true;
   }
 
@@ -220,16 +221,16 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to create
-   * @param location The tier to place the new block in, -1 for any tier
+   * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
    * @param initialBytes The initial amount of bytes to be allocated
    * @return A string representing the path to the local file
    * @throws IOException if the block already exists
    * @throws OutOfSpaceException if there is no more space to store the block
    */
   // TODO: We should avoid throwing IOException
-  public String createBlock(long userId, long blockId, int location, long initialBytes)
+  public String createBlock(long userId, long blockId, int tierAlias, long initialBytes)
       throws IOException, OutOfSpaceException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     return createdBlock.getPath();
   }
@@ -239,16 +240,16 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to be created
-   * @param location The tier to create this block, -1 for any tier
+   * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
    * @param initialBytes The initial amount of bytes to be allocated
    * @return the block writer for the local block file
    * @throws FileDoesNotExistException if the block is not on the worker
    * @throws IOException if the block writer cannot be obtained
    */
   // TODO: We should avoid throwing IOException
-  public BlockWriter createBlockRemote(long userId, long blockId, int location, long initialBytes)
+  public BlockWriter createBlockRemote(long userId, long blockId, int tierAlias, long initialBytes)
       throws FileDoesNotExistException, IOException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     return mBlockStore.getBlockWriter(userId, blockId);
   }
@@ -303,12 +304,12 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to move
-   * @param tier The tier to move the block to
+   * @param tierAlias The tier to move the block to
    * @throws IOException if an error occurs during move
    */
   // TODO: We should avoid throwing IOException
-  public void moveBlock(long userId, long blockId, int tier) throws IOException {
-    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tier);
+  public void moveBlock(long userId, long blockId, int tierAlias) throws IOException {
+    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tierAlias);
     mBlockStore.moveBlock(userId, blockId, dst);
   }
 
