@@ -26,7 +26,8 @@ import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * An allocator that allocates a block in the storage dir with most free space.
+ * An allocator that allocates a block in the storage dir with the most bytes of free space.
+ * It prefers to use lower-level storage in the case of a tie.
  */
 public class MaxFreeAllocator implements Allocator {
   private final BlockMetadataManager mMetaManager;
