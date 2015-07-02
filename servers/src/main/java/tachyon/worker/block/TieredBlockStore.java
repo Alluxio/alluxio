@@ -49,6 +49,7 @@ import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockReader;
 import tachyon.worker.block.io.LocalFileBlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.BlockMetaBase;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -376,8 +377,7 @@ public class TieredBlockStore implements BlockStore {
           + ownerUserId + " but userId " + userId);
     }
     String path = tempBlockMeta.getPath();
-    boolean deleted = new File(path).delete();
-    if (!deleted) {
+    if (!new File(path).delete()) {
       throw new IOException("Failed to abort temp block " + blockId + ": cannot delete " + path);
     }
     mMetaManager.abortTempBlockMeta(tempBlockMeta);
@@ -389,36 +389,26 @@ public class TieredBlockStore implements BlockStore {
       throw new IOException("Failed to move block " + blockId + ": block is uncommited");
     }
     BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-    File src = new File(blockMeta.getPath());
-    blockMeta = mMetaManager.moveBlockMeta(blockMeta, newLocation);
-    File dst = new File(blockMeta.getPath());
-
-    // Because this move is across storage devices, renameTo may not work, use guava's move instead
-    Files.move(src, dst);
+    String srcFilePath = blockMeta.getPath();
+    String dstFilePath = mMetaManager.getBlockPath(blockId, newLocation);
+    // NOTE: Because this move can possibly across storage devices (e.g., from memory to SSD),
+    // renameTo may not work, use guava's move instead.
+    Files.move(new File(srcFilePath), new File(dstFilePath));
+    mMetaManager.moveBlockMeta(blockMeta, newLocation);
   }
 
-  // TODO: refactor this method: currently, it is shared by code path of both remove, eviction
-  // and remove temp data. Let us separate it.
   // Remove a block. This method requires block lock in WRITE mode and eviction lock in READ mode.
   private void removeBlockNoLock(long userId, long blockId) throws IOException {
-    // Delete metadata of the block---no matter it is a temp block.
-    String filePath;
-    if (mMetaManager.hasTempBlockMeta(blockId)) {
-      TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-      mMetaManager.abortTempBlockMeta(tempBlockMeta);
-      filePath = tempBlockMeta.getPath();
-    } else if (mMetaManager.hasBlockMeta(blockId)) {
-      BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-      mMetaManager.removeBlockMeta(blockMeta);
-      filePath = blockMeta.getPath();
-    } else {
+    if (!mMetaManager.hasBlockMeta(blockId)) {
       throw new IOException("Failed to remove block " + blockId + ": block is not found");
     }
-
+    BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
+    String filePath = blockMeta.getPath();
     // Delete the data of the block on "disk"
     if (!new File(filePath).delete()) {
       throw new IOException("Failed to remove block " + blockId + ": cannot delete " + filePath);
     }
+    mMetaManager.removeBlockMeta(blockMeta);
   }
 
   // This method must be guarded by WRITE lock of mEvictionLock
