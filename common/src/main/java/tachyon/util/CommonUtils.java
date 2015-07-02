@@ -164,11 +164,15 @@ public final class CommonUtils {
    */
   public static String concatPath(Object... paths) {
     List<String> trimmedPathList = new ArrayList<String>();
+    boolean isAbsPath = false;
     for (int k = 0; k < paths.length; k ++) {
       String path = paths[k].toString().trim();
       String trimmedPath;
       if (k == 0) {
         trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
+        if (path.startsWith("/")) {
+          isAbsPath = true;
+        }
       } else {
         trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
         if (trimmedPath == null || trimmedPath.isEmpty()) {
@@ -176,6 +180,9 @@ public final class CommonUtils {
         }
       }
       trimmedPathList.add(trimmedPath);
+    }
+    if (trimmedPathList.size() == 1 && trimmedPathList.get(0).isEmpty() && isAbsPath) {
+      return "/";
     }
     return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
   }
