@@ -46,7 +46,7 @@ public class BlockMetadataManagerTest {
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
-  
+
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -78,6 +78,22 @@ public class BlockMetadataManagerTest {
     tier = mMetaManager.getTier(3); // HDD
     Assert.assertEquals(3, tier.getTierAlias());
     Assert.assertEquals(1, tier.getTierLevel());
+  }
+
+  @Test
+  public void getDirTest() throws Exception {
+    BlockStoreLocation loc;
+    StorageDir dir;
+
+    loc = new BlockStoreLocation(1, 0, 0);
+    dir = mMetaManager.getDir(loc);
+    Assert.assertEquals(loc.tierAlias(), dir.getParentTier().getTierAlias());
+    Assert.assertEquals(loc.dir(), dir.getDirIndex());
+
+    loc = new BlockStoreLocation(3, 0, 1);
+    dir = mMetaManager.getDir(loc);
+    Assert.assertEquals(loc.tierAlias(), dir.getParentTier().getTierAlias());
+    Assert.assertEquals(loc.dir(), dir.getDirIndex());
   }
 
   @Test
