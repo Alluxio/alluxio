@@ -27,6 +27,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
  * An allocator that allocates a block in the storage dir with most free space.
+ * The implementation prefers to get the dir from lower-level storage
  */
 public class MaxFreeAllocator implements Allocator {
   private final BlockMetadataManager mMetaManager;
