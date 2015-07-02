@@ -65,8 +65,6 @@ public class RPCBlockResponse extends RPCResponse {
    * @return The decoded RPCBlockResponse object
    */
   public static RPCBlockResponse decode(ByteBuf in) {
-    // TODO: remove this short when client also uses netty.
-    in.readShort();
     long blockId = in.readLong();
     long offset = in.readLong();
     long length = in.readLong();
@@ -82,15 +80,12 @@ public class RPCBlockResponse extends RPCResponse {
 
   @Override
   public int getEncodedLength() {
-    // TODO: adjust the length when client also uses netty.
-    // 3 longs (mBlockId, mOffset, mLength) + 1 short (DATA_SERVER_REQUEST_MESSAGE)
-    return Longs.BYTES * 3 + Shorts.BYTES;
+    // 3 longs (mBLockId, mOffset, mLength)
+    return Longs.BYTES * 3;
   }
 
   @Override
   public void encode(ByteBuf out) {
-    // TODO: remove this short when client also uses netty.
-    out.writeShort(DataServerMessage.DATA_SERVER_RESPONSE_MESSAGE);
     out.writeLong(mBlockId);
     out.writeLong(mOffset);
     out.writeLong(mLength);

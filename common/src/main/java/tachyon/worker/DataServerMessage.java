@@ -36,8 +36,7 @@ public class DataServerMessage {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  // TODO: convert client to netty to better deal with headers.
-  private static final int HEADER_LENGTH = 38;
+  private static final int HEADER_LENGTH = 36;
 
   /**
    * Create a default block request message, just allocate the message header, and no attribute is
@@ -46,7 +45,7 @@ public class DataServerMessage {
    * @return the created block request message
    */
   public static DataServerMessage createBlockRequestMessage() {
-    DataServerMessage ret = new DataServerMessage(false, DATA_SERVER_REQUEST_MESSAGE);
+    DataServerMessage ret = new DataServerMessage(false, RPCMessage.Type.RPC_BLOCK_REQUEST);
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
     return ret;
   }
@@ -74,8 +73,7 @@ public class DataServerMessage {
    * @return The created block request message
    */
   public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len) {
-    DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
-    ret.mRPCMessageType = RPCMessage.Type.RPC_BLOCK_REQUEST;
+    DataServerMessage ret = new DataServerMessage(true, RPCMessage.Type.RPC_BLOCK_REQUEST);
 
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
     ret.mBlockId = blockId;
@@ -118,8 +116,7 @@ public class DataServerMessage {
    */
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
       long offset, long len, ByteBuffer data) {
-    DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
-    ret.mRPCMessageType = RPCMessage.Type.RPC_BLOCK_RESPONSE;
+    DataServerMessage ret = new DataServerMessage(toSend, RPCMessage.Type.RPC_BLOCK_RESPONSE);
 
     if (toSend) {
       if (data != null) {
@@ -149,7 +146,7 @@ public class DataServerMessage {
   }
 
   private final boolean mToSendData;
-  private final short mMessageType;
+  private final RPCMessage.Type mMessageType;
   private boolean mIsMessageReady;
 
   private ByteBuffer mHeader;
@@ -165,18 +162,13 @@ public class DataServerMessage {
 
   private ByteBuffer mData = null;
 
-  // This is the new message type. For now, DataServerMessage must manually send this type on the
-  // network. When the client is converted to to use Netty, this DataServerMessage class will be
-  // removed.
-  private RPCMessage.Type mRPCMessageType;
-
   /**
    * New a DataServerMessage. Notice that it's not ready.
    *
    * @param isToSendData true if this is a send message, otherwise this is a recv message
    * @param msgType The message type
    */
-  private DataServerMessage(boolean isToSendData, short msgType) {
+  private DataServerMessage(boolean isToSendData, RPCMessage.Type msgType) {
     mToSendData = isToSendData;
     mMessageType = msgType;
     mIsMessageReady = false;
@@ -210,15 +202,14 @@ public class DataServerMessage {
   private void generateHeader() {
     mHeader.clear();
 
-    // These two fields are hard coded for now, until the client is converted to use netty.
-    if (mMessageType == DATA_SERVER_REQUEST_MESSAGE) {
+    // These two fields are set to match the Netty RPC messages.
+    if (mMessageType == RPCMessage.Type.RPC_BLOCK_REQUEST) {
       mHeader.putLong(HEADER_LENGTH); // frame length
     } else {
       mHeader.putLong(HEADER_LENGTH + mLength); // frame length
     }
-    mHeader.putInt(mRPCMessageType.getId()); // RPC message type
+    mHeader.putInt(mMessageType.getId()); // RPC message type
 
-    mHeader.putShort(mMessageType);
     mHeader.putLong(mBlockId);
     mHeader.putLong(mOffset);
     mHeader.putLong(mLength);
@@ -313,20 +304,15 @@ public class DataServerMessage {
       if (mHeader.remaining() == 0) {
         mHeader.flip();
 
-        // These two fields are hard coded for now, until the client is converted to use netty.
         long frameLength = mHeader.getLong(); // frame length
-        int msgRPCType = mHeader.getInt(); // RPC message type
-
-        // TODO: this msgType will be replaced by the newer msgRPCType when the client is converted
-        // to netty.
-        short msgType = mHeader.getShort();
-        assert (mMessageType == msgType);
+        int receivedMessageType = mHeader.getInt(); // RPC message type
+        assert (mMessageType.getId() == receivedMessageType);
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();
         // TODO make this better to truncate the file.
         assert mLength < Integer.MAX_VALUE;
-        if (mMessageType == DATA_SERVER_RESPONSE_MESSAGE) {
+        if (mMessageType == RPCMessage.Type.RPC_BLOCK_RESPONSE) {
           if (mLength == -1) {
             mData = ByteBuffer.allocate(0);
           } else {
@@ -334,7 +320,7 @@ public class DataServerMessage {
           }
         }
         LOG.info("data {}, blockId:{} offset:{} dataLength:{}", mData, mBlockId, mOffset, mLength);
-        if (mMessageType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
+        if (mMessageType == RPCMessage.Type.RPC_BLOCK_REQUEST || mLength <= 0) {
           mIsMessageReady = true;
         }
       }
