@@ -170,7 +170,7 @@ public final class CommonUtils {
       String trimmedPath;
       if (k == 0) {
         trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
-        if (path.startsWith("/")) {
+        if (path.startsWith(TachyonURI.SEPARATOR)) {
           isAbsPath = true;
         }
       } else {
@@ -182,7 +182,7 @@ public final class CommonUtils {
       trimmedPathList.add(trimmedPath);
     }
     if (trimmedPathList.size() == 1 && trimmedPathList.get(0).isEmpty() && isAbsPath) {
-      return "/";
+      return TachyonURI.SEPARATOR;
     }
     return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
   }
