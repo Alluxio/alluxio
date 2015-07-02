@@ -22,9 +22,9 @@ import java.util.Map;
  * Container for the delta information in each worker to master heartbeat.
  */
 public class BlockHeartbeatReport {
-  /** Map of storage dirs to list of blocks added in the last heartbeat period */
+  /** Map of storage dir ids to a list of blocks ids added in the last heartbeat period */
   private final Map<Long, List<Long>> mAddedBlocks;
-  /** List of blocks removed in the last heartbeat period */
+  /** List of block ids removed in the last heartbeat period */
   private final List<Long> mRemovedBlocks;
 
   public BlockHeartbeatReport(Map<Long, List<Long>> addedBlocks, List<Long> removedBlocks) {
@@ -35,7 +35,7 @@ public class BlockHeartbeatReport {
   /**
    * Gets the list of blocks added by the worker in the heartbeat this report represents
    *
-   * @return a map of storage dir id -> set of blocks added
+   * @return a map of storage dir id -> set of block ids added
    */
   public Map<Long, List<Long>> getAddedBlocks() {
     return mAddedBlocks;
