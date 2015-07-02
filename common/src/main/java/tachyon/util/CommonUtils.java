@@ -171,7 +171,7 @@ public final class CommonUtils {
         trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
       } else {
         trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
-        if (trimmedPath == NULL || trimmedPath.isEmpty()) {
+        if (trimmedPath == null || trimmedPath.isEmpty()) {
           continue;
         }
       }
