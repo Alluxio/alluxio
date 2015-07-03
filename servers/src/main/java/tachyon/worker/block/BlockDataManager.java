@@ -90,7 +90,8 @@ public class BlockDataManager {
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.daemon("worker-client-heartbeat-%d"));
     mMasterClient =
-        new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
+        new MasterClient(BlockWorkerUtils.getMasterAddress(mTachyonConf), 
+            mMasterClientExecutorService, mTachyonConf);
 
     // Create Under FileSystem Client
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
@@ -98,7 +99,7 @@ public class BlockDataManager {
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
     // Connect to UFS to handle UFS security
-    InetSocketAddress workerAddress = getWorkerAddress();
+    InetSocketAddress workerAddress = BlockWorkerUtils.getWorkerAddress(mTachyonConf);
     try {
       mUfs.connectFromWorker(mTachyonConf, NetworkUtils.getFqdnHost(workerAddress));
     } catch (IOException e) {
@@ -424,28 +425,5 @@ public class BlockDataManager {
       mWorkerSource.incBytesWrittenLocal(metrics.get(Constants.BYTES_WRITTEN_LOCAL_INDEX));
       mWorkerSource.incBytesWrittenUfs(metrics.get(Constants.BYTES_WRITTEN_UFS_INDEX));
     }
-  }
-
-  /**
-   * Gets the Tachyon master address from the configuration
-   *
-   * @return the InetSocketAddress of the master
-   */
-  private InetSocketAddress getMasterAddress() {
-    String masterHostname =
-        mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
-    int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    return new InetSocketAddress(masterHostname, masterPort);
-  }
-
-  /**
-   * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
-   * @return the worker's address
-   */
-  //TODO: BlockWorker has the same function. Share these to a utility function.
-  private InetSocketAddress getWorkerAddress() {
-    String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
-    int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
-    return new InetSocketAddress(workerHostname, workerPort);
   }
 }
