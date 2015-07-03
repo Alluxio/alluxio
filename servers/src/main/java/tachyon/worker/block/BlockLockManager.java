@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
 
 import tachyon.Constants;
 
@@ -70,8 +71,8 @@ public class BlockLockManager {
    * @throws IOException
    */
   public long lockBlock(long userId, long blockId, BlockLockType blockLockType) throws IOException {
-    // TODO: generate real hashValue on blockID.
-    int hashValue = (int) (blockId % (long) NUM_LOCKS);
+    // hash blockId to one of the locks
+    int hashValue = Hashing.consistentHash(blockId, NUM_LOCKS);
     ClientRWLock blockLock = mLockArray[hashValue];
     Lock lock;
     if (blockLockType == BlockLockType.READ) {
