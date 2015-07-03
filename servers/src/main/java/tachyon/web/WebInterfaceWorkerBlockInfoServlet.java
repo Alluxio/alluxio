@@ -36,7 +36,6 @@ import tachyon.master.BlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.worker.block.BlockDataManager;
-import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreMeta;
 import tachyon.worker.block.meta.BlockMeta;
 
@@ -202,16 +201,15 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
 
     UiFileInfo uiFileInfo = new UiFileInfo(fileInfo);
     boolean blockExistOnWorker = false;
-    BlockMetadataManager blockMetadataManager = mBlockDataManager.getBlockMetadataManager();
     for (long blockId : fileInfo.getBlockIds()) {
-      if (blockMetadataManager.hasBlockMeta(blockId)) {
+      if (mBlockDataManager.hasBlockMeta(blockId)) {
         blockExistOnWorker = true;
-        BlockMeta blockMeta = blockMetadataManager.getBlockMeta(blockId);
+        BlockMeta blockMeta = mBlockDataManager.getBlockMeta(blockId);
         long blockSize = blockMeta.getBlockSize();
-        long blockLastAccessTimeMs = blockMeta.getLastAccessTimeMs();
         StorageLevelAlias storageLevelAlias =
             StorageDirId.getStorageLevelAlias(blockMeta.getParentDir().getStorageDirId());
-        uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, blockLastAccessTimeMs);
+        // The block last access time is not available. Use -1 for now.
+        uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, -1);
       }
     }
     if (!blockExistOnWorker) {

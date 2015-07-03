@@ -242,9 +242,7 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void accessBlock(long userId, long blockId) throws IOException {
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-    blockMeta.setLastAccessTimeMs(System.currentTimeMillis());
+  public void accessBlock(long userId, long blockId) {
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         listener.onAccessBlock(userId, blockId);

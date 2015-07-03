@@ -22,18 +22,15 @@ import java.io.File;
  */
 public class BlockMeta extends BlockMetaBase {
   private final long mBlockSize;
-  private long mLastAccessTimeMs;
 
   public BlockMeta(long blockId, long blockSize, StorageDir dir) {
     super(blockId, dir);
     mBlockSize = blockSize;
-    mLastAccessTimeMs = System.currentTimeMillis();
   }
 
   public BlockMeta(TempBlockMeta tempBlock) {
     super(tempBlock.getBlockId(), tempBlock.getParentDir());
     mBlockSize = new File(tempBlock.getCommitPath()).length();
-    mLastAccessTimeMs = System.currentTimeMillis();
   }
 
   @Override
@@ -41,16 +38,8 @@ public class BlockMeta extends BlockMetaBase {
     return mBlockSize;
   }
 
-  public long getLastAccessTimeMs() {
-    return mLastAccessTimeMs;
-  }
-
   @Override
   public String getPath() {
     return commitPath();
-  }
-
-  public void setLastAccessTimeMs(long lastAccessTimeMs) {
-    mLastAccessTimeMs = lastAccessTimeMs;
   }
 }
