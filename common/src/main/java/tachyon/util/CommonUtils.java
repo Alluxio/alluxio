@@ -157,34 +157,41 @@ public final class CommonUtils {
    * Join each element in paths in order, separated by {@code TachyonURI.SEPARATOR}.
    * <p>
    * For example, {@code concatPath("/myroot/", "dir", 1L, "filename")} returns
-   * {@code "/myroot/dir/1/filename"}
+   * {@code "/myroot/dir/1/filename"}, or
+   * {@code concatPath("tachyon://myroot", "dir", "filename")} returns
+   * {@code "tachyon://myroot/dir/filename"}.
    *
    * @param paths to concatenate
    * @return joined path
    */
   public static String concatPath(Object... paths) {
     List<String> trimmedPathList = new ArrayList<String>();
-    boolean isAbsPath = false;
-    for (int k = 0; k < paths.length; k ++) {
+    String joinedPath;
+    String prefix = null;
+    if (paths.length == 0) {
+      return "";
+    }
+    if (paths[0] != null && !paths[0].toString().isEmpty()) {
+      prefix = paths[0].toString().trim();
+      prefix = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(prefix);
+    }
+    for (int k = 1; k < paths.length; ++ k) {
       String path = paths[k].toString().trim();
-      String trimmedPath;
-      if (k == 0) {
-        trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
-        if (path.startsWith(TachyonURI.SEPARATOR)) {
-          isAbsPath = true;
-        }
+      trimmedPathList.add(CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path));
+    }
+    joinedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).collapseFrom(
+      Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList), TachyonURI.SEPARATOR.charAt(0));
+    if (prefix == null) {
+      return joinedPath;
+    }
+    if (joinedPath.isEmpty()) {
+      if (prefix.isEmpty()) {
+        return TachyonURI.SEPARATOR;
       } else {
-        trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
-        if (trimmedPath == null || trimmedPath.isEmpty()) {
-          continue;
-        }
+        return prefix;
       }
-      trimmedPathList.add(trimmedPath);
     }
-    if (trimmedPathList.size() == 1 && trimmedPathList.get(0).isEmpty() && isAbsPath) {
-      return TachyonURI.SEPARATOR;
-    }
-    return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
+    return prefix + TachyonURI.SEPARATOR + joinedPath;
   }
 
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
