@@ -66,7 +66,7 @@ public class BlockMasterSync implements Runnable {
   /** Client for all master communication */
   private MasterClient mMasterClient;
   /** Flag to indicate if the sync should continue */
-  private boolean mRunning;
+  private volatile boolean mRunning;
   /** The id of the worker */
   private long mWorkerId;
 
