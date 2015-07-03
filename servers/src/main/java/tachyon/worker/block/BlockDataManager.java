@@ -425,6 +425,27 @@ public class BlockDataManager {
   }
 
   /**
+   * Gets the metadata of a block given its blockId or throws IOException.
+   *
+   * @param blockId the block ID
+   * @return metadata of the block or null
+   * @throws IOException if no BlockMeta for this blockId is found
+   */
+  public BlockMeta getBlockMeta(long blockId) throws IOException {
+    return mBlockStore.getBlockMeta(blockId);
+  }
+
+  /**
+   * Checks if the storage has a given block.
+   *
+   * @param blockId the block ID
+   * @return true if the block is contained, false otherwise
+   */
+  public boolean hasBlockMeta(long blockId) {
+    return mBlockStore.hasBlockMeta(blockId);
+  }
+
+  /**
    * Gets the Tachyon master address from the configuration
    *
    * @return the InetSocketAddress of the master

@@ -173,7 +173,7 @@ public class BlockMetadataManager {
    * Gets the metadata of a block given its blockId or throws IOException.
    *
    * @param blockId the block ID
-   * @return metadata of the block or null
+   * @return metadata of the block
    * @throws IOException if no BlockMeta for this blockId is found
    */
   public synchronized BlockMeta getBlockMeta(long blockId) throws IOException {
