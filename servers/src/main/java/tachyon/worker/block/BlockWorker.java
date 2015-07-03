@@ -118,8 +118,8 @@ public class BlockWorker {
     mThriftPort = NetworkUtils.getPort(mThriftServerSocket);
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
-        new NetAddress(getWorkerAddress().getAddress().getCanonicalHostName(), mThriftPort,
-            mDataServer.getPort());
+        new NetAddress(BlockWorkerUtils.getWorkerAddress(mTachyonConf).getAddress()
+            .getCanonicalHostName(), mThriftPort, mDataServer.getPort());
 
     // Setup Worker to Master Syncer
     mSyncExecutorService =
@@ -196,7 +196,7 @@ public class BlockWorker {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(getWorkerAddress());
+      return new TServerSocket(BlockWorkerUtils.getWorkerAddress(mTachyonConf));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);
