@@ -44,6 +44,16 @@ public class EvictionPlan {
     return mToEvict;
   }
 
+  /**
+   * Whether the plan is empty, an empty plan means it is not null and both toMove and toEvict are
+   * empty.
+   *
+   * @return true if empty otherwise false
+   */
+  public boolean isEmpty() {
+    return mToEvict.isEmpty() && mToMove.isEmpty();
+  }
+
   @Override
   public String toString() {
     return "toMove: " + mToMove.toString() + ", toEvict: " + mToEvict.toString();
