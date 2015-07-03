@@ -33,4 +33,8 @@ public enum AllocatorType {
    * Allocate to the first storage dir with space
    */
   GREEDY,
+  /**
+   * Round robin allocation to the storage dir
+   */
+  ROUND_ROBIN,
 }

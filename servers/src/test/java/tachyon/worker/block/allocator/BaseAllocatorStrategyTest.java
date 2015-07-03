@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -15,33 +15,19 @@
 
 package tachyon.worker.block.allocator;
 
+import java.io.IOException;
+
+import org.junit.Before;
 
 import tachyon.worker.block.BlockMetadataManager;
 
-/**
- * Factory of {@link Allocator} based on {@link AllocatorType}
- */
-public class AllocatorFactory {
-  /**
-   * Create a new {@link Allocator}
-   *
-   * @param allocatorType AllocatorType which determines the class of allocator to create
-   * @param metaManager BlockMetadataManager to pass to Allocator
-   * @return the generated Allocator
-   */
-  public static Allocator create(AllocatorType allocatorType, BlockMetadataManager metaManager) {
-    switch (allocatorType) {
-      case GREEDY:
-        return new GreedyAllocator(metaManager);
-      case MAX_FREE:
-        return new MaxFreeAllocator(metaManager);
-      case ROUND_ROBIN:
-        return new RRAllocator(metaManager);
-      default:
-        return new GreedyAllocator(metaManager);
-    }
+public class BaseAllocatorStrategyTest extends BaseAllocatorTest {
+  
+  protected BlockMetadataManager mMetaManager = null;
+  protected Allocator mAllocator = null;
+  
+  @Before
+  public final void before() throws IOException {
+    mMetaManager = BlockMetadataManager.newBlockMetadataManager(createTestTachyonConf());
   }
-
-  private AllocatorFactory() {}
 }
-
