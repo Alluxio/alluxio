@@ -99,5 +99,9 @@ public class CommonUtilsTest {
     // Non-string
     Assert.assertEquals("/foo/bar/1", CommonUtils.concatPath("/foo", "bar", 1));
     Assert.assertEquals("/foo/bar/2", CommonUtils.concatPath("/foo", "bar", 2L));
+
+    // Header
+    Assert.assertEquals(Constants.HEADER + "host:port/foo/bar",
+        CommonUtils.concatPath(Constants.HEADER + "host:port", "/foo", "bar"));
   }
 }
