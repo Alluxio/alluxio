@@ -142,6 +142,11 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
+  public BlockMeta getBlockMeta(long blockId) throws IOException {
+    return mMetaManager.getBlockMeta(blockId);
+  }
+
+  @Override
   public BlockMeta getBlockMeta(long userId, long blockId, long lockId) throws IOException {
     mLockManager.validateLockId(userId, blockId, lockId);
     return mMetaManager.getBlockMeta(blockId);
@@ -294,8 +299,8 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public BlockMetadataManager getBlockMetadataManager() {
-    return mMetaManager;
+  public boolean hasBlockMeta(long blockId) {
+    return mMetaManager.hasBlockMeta(blockId);
   }
 
   @Override

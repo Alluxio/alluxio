@@ -437,7 +437,7 @@ public class BlockDataManager {
    * @throws IOException if no BlockMeta for this blockId is found
    */
   public BlockMeta getBlockMeta(long blockId) throws IOException {
-    return mBlockStore.getBlockMetadataManager().getBlockMeta(blockId);
+    return mBlockStore.getBlockMeta(blockId);
   }
 
   /**
@@ -447,7 +447,7 @@ public class BlockDataManager {
    * @return true if the block is contained, false otherwise
    */
   public boolean hasBlockMeta(long blockId) {
-    return mBlockStore.getBlockMetadataManager().hasBlockMeta(blockId);
+    return mBlockStore.hasBlockMeta(blockId);
   }
 
   /**
