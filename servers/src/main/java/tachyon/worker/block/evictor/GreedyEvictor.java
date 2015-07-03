@@ -118,6 +118,7 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
     return new EvictionPlan(toTransfer, toEvict);
   }
 
+  // TODO: share this as a util function as it may be useful for other Evictors.
   private boolean canEvictBlocksFromDir(StorageDir dir, long availableBytes) {
     return dir.getAvailableBytes() + dir.getCommittedBytes() >= availableBytes;
   }
