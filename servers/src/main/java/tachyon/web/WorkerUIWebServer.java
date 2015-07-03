@@ -34,6 +34,7 @@ public class WorkerUIWebServer extends UIWebServer {
       TachyonConf conf) {
     super(serverName, webAddress, conf);
     Preconditions.checkNotNull(blockdataManager, "Block data manager cannot be null");
+    Preconditions.checkNotNull(workerAddress, "Worker address cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerGeneralServlet(
         blockdataManager, workerAddress, startTimeMs)), "/home");

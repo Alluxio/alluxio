@@ -430,12 +430,24 @@ public class BlockDataManager {
   }
 
   /**
-   * Get the block metadata manager.
+   * Gets the metadata of a block given its blockId or throws IOException.
    *
-   * @return block metadata manager
+   * @param blockId the block ID
+   * @return metadata of the block or null
+   * @throws IOException if no BlockMeta for this blockId is found
    */
-  public BlockMetadataManager getBlockMetadataManager() {
-    return mBlockStore.getBlockMetadataManager();
+  public BlockMeta getBlockMeta(long blockId) throws IOException {
+    return mBlockStore.getBlockMetadataManager().getBlockMeta(blockId);
+  }
+
+  /**
+   * Checks if the storage has a given block.
+   *
+   * @param blockId the block ID
+   * @return true if the block is contained, false otherwise
+   */
+  public boolean hasBlockMeta(long blockId) {
+    return mBlockStore.getBlockMetadataManager().hasBlockMeta(blockId);
   }
 
   /**
