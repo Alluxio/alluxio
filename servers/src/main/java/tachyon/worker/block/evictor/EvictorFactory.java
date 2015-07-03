@@ -37,7 +37,7 @@ public class EvictorFactory {
       case LRU:
         return new LRUEvictor(metaManager);
       default:
-        return new LRUEvictor(metaManager);
+        return new GreedyEvictor(metaManager);
     }
   }
 }
