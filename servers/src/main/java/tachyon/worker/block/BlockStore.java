@@ -78,6 +78,15 @@ public interface BlockStore {
       long initialBlockSize) throws IOException;
 
   /**
+   * Gets the metadata of a block given its blockId or throws IOException.
+   *
+   * @param blockId the block ID
+   * @return metadata of the block
+   * @throws IOException if no BlockMeta for this blockId is found
+   */
+  BlockMeta getBlockMeta(long blockId) throws IOException;
+
+  /**
    * Gets the meta data of a specific block from local storage.
    * <p>
    * This method requires the lock ID returned by a previously acquired {@link #lockBlock}.
@@ -176,11 +185,12 @@ public interface BlockStore {
   void accessBlock(long userId, long blockId) throws IOException;
 
   /**
-   * Get the block metadata manager.
+   * Checks if the storage has a given block.
    *
-   * @return block metadata manager
+   * @param blockId the block ID
+   * @return true if the block is contained, false otherwise
    */
-  BlockMetadataManager getBlockMetadataManager();
+  boolean hasBlockMeta(long blockId);
 
   /**
    * Gets the meta data of the entire store.
