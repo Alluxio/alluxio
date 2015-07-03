@@ -22,8 +22,8 @@ public class User implements Principal {
 
   // TODO: add more attributes and methods for supporting Kerberos
 
-  public User(String mName) {
-    this.mName = mName;
+  public User(String name) {
+    mName = name;
   }
 
   @Override
@@ -33,9 +33,7 @@ public class User implements Principal {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    } else if (o == null || getClass() != o.getClass()) {
+    if (o == null || getClass() != o.getClass()) {
       return false;
     } else {
       return mName.equals(((User) o).mName);
