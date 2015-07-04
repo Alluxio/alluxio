@@ -30,6 +30,10 @@ public enum EvictorType {
    */
   LRU,
   /**
+   * Evict old blocks among several StorageDirs by PartialLRU
+   */
+  PARTIAL_LRU,
+  /**
    * Evict blocks continually until a StorageDir has enough space
    */
   GREEDY,
