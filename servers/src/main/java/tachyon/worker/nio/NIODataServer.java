@@ -28,17 +28,19 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.Users;
 import tachyon.conf.TachyonConf;
-import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
 import tachyon.worker.DataServerMessage;
-import tachyon.worker.tiered.StorageDir;
+import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.io.BlockReader;
 
 /**
  * The Server to serve data file read requests from remote machines. The current implementation is
@@ -64,8 +66,8 @@ public class NIODataServer implements Runnable, DataServer {
   private final Map<SocketChannel, DataServerMessage> mReceivingData = Collections
       .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
-  // The blocks locker manager.
-  private final BlocksLocker mBlockLocker;
+  // The block data manager.
+  private final BlockDataManager mDataManager;
   private final Thread mListenerThread;
 
   private volatile boolean mShutdown = false;
@@ -75,15 +77,15 @@ public class NIODataServer implements Runnable, DataServer {
    * Create a data server with direct access to worker storage.
    *
    * @param address The address of the data server.
-   * @param locker The lock system for lock blocks.
+   * @param dataManager The lock system for lock blocks.
    */
-  public NIODataServer(final InetSocketAddress address, final BlocksLocker locker,
+  public NIODataServer(final InetSocketAddress address, final BlockDataManager dataManager,
       TachyonConf tachyonConf) {
     LOG.info("Starting DataServer @ " + address);
     mTachyonConf = tachyonConf;
     TachyonConf.assertValidPort(address, mTachyonConf);
     mAddress = address;
-    mBlockLocker = locker;
+    mDataManager = dataManager;
     try {
       mSelector = initSelector();
       mListenerThread = new Thread(this);
@@ -217,17 +219,19 @@ public class NIODataServer implements Runnable, DataServer {
       final long blockId = tMessage.getBlockId();
       LOG.info("Get request for blockId: {}", blockId);
 
-      final int lockId = mBlockLocker.getLockId();
-      final StorageDir storageDir = mBlockLocker.lock(blockId, lockId);
+      long lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
+      BlockReader reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
       ByteBuffer data;
       int dataLen = 0;
       try {
-        data = storageDir.getBlockData(blockId, tMessage.getOffset(), (int) tMessage.getLength());
-        storageDir.accessBlock(blockId);
+        data = reader.read(tMessage.getOffset(), tMessage.getLength());
+        mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
         dataLen = data.limit();
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
         data = null;
+      } finally {
+        reader.close();
       }
       DataServerMessage tResponseMessage =
           DataServerMessage.createBlockResponseMessage(true, blockId, tMessage.getOffset(),
@@ -300,7 +304,12 @@ public class NIODataServer implements Runnable, DataServer {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
-      mBlockLocker.unlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
+      // TODO: Reconsider how we handle this exception
+      try {
+        mDataManager.unlockBlock(sendMessage.getLockId());
+      } catch (IOException ioe) {
+        LOG.error("Failed to unlock block: " + sendMessage.getBlockId(), ioe);
+      }
     }
   }
 }

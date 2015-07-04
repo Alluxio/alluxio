@@ -53,10 +53,14 @@ public class HdfsFileInputStreamIntegrationTest {
   @AfterClass
   public static final void afterClass() throws Exception {
     sLocalTachyonCluster.stop();
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     sLocalTachyonCluster.start();
