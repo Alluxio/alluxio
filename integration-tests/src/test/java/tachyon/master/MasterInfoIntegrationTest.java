@@ -297,8 +297,6 @@ public class MasterInfoIntegrationTest {
     Assert.assertFalse(fileInfo.isComplete);
   }
 
-  // TODO: This test currently relies on the fact the HDFS client is a cached instance to avoid
-  // TODO: invalid lease exception. This should be fixed.
   @Test
   public void concurrentCreateJournalTest() throws Exception {
     // Makes sure the file id's are the same between a master info and the journal it creates
