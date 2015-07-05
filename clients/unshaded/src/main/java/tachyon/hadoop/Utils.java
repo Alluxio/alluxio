@@ -109,7 +109,6 @@ public final class Utils {
     return sb.toString();
   }
 
-
   /**
    * TODO: This function is duplicated from tachyon.underfs.hdfs.HdfsUnderFileSystemUtils, to avoid
    * making module tachyon-client depending on tachyon-underfs. Remove duplication in the future.

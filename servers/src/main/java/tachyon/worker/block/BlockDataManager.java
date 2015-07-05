@@ -186,8 +186,7 @@ public class BlockDataManager {
    * @return true if successful, false otherwise
    * @throws IOException if the block to commit does not exist
    */
-  // TODO: This may be better as void
-  public boolean commitBlock(long userId, long blockId) throws IOException {
+  public void commitBlock(long userId, long blockId) throws IOException {
     mBlockStore.commitBlock(userId, blockId);
 
     // TODO: Reconsider how to do this without heavy locking
@@ -207,7 +206,6 @@ public class BlockDataManager {
     } finally {
       mBlockStore.unlockBlock(userId, blockId);
     }
-    return true;
   }
 
   /**
