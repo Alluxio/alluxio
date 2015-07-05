@@ -2,7 +2,8 @@
 <%@ page import="tachyon.StorageDirId" %>
 <%@ page import="tachyon.StorageLevelAlias" %>
 <%@ page import="tachyon.util.*" %>
-<%@ page import="tachyon.web.WebInterfaceWorkerGeneralServlet.UiStorageDir" %>
+<%@ page import="tachyon.web.*" %>
+<%@ page import="tachyon.worker.tiered.StorageDir" %>
 
 <html>
 <head>
@@ -69,7 +70,7 @@
                 </tr>
                 <% List<Long> capacityBytesOnTiers = (List<Long>) request.getAttribute("capacityBytesOnTiers"); %>
                 <% List<Long> usedBytesOnTiers = (List<Long>) request.getAttribute("usedBytesOnTiers"); %>
-                <% for (int i = 0; i < capacityBytesOnTiers.size(); i ++) { %>
+                <% for (int i = 0; i < StorageLevelAlias.SIZE; i ++) { %>
                 <tr>
                   <th><%= StorageLevelAlias.values()[i].name() %> Capacity / Used</th>
                   <th>
@@ -104,7 +105,7 @@
                 <th>Space Usage</th>
               </thead>
               <tbody>
-                <% for (UiStorageDir dir : ((List<UiStorageDir>) request.getAttribute("storageDirs"))) { %>
+                <% for (StorageDir dir : ((StorageDir[]) request.getAttribute("storageDirs"))) { %>
                   <tr>
                     <th><%= StorageDirId.getStorageLevelAlias(dir.getStorageDirId()) %></th>
                     <th><%= dir.getDirPath() %></th>

@@ -160,8 +160,7 @@ public class DataServerMessage {
 
   private long mLength;
 
-  // TODO: Investigate how to remove this since it is not transferred over the wire.
-  private long mLockId = -1L;
+  private int mLockId = -1;
 
   private ByteBuffer mData = null;
 
@@ -251,7 +250,7 @@ public class DataServerMessage {
    *
    * @return The id of the block's locker
    */
-  public long getLockId() {
+  public int getLockId() {
     return mLockId;
   }
 
@@ -369,7 +368,7 @@ public class DataServerMessage {
    *
    * @param lockId The id of the block's locker
    */
-  public void setLockId(long lockId) {
+  public void setLockId(int lockId) {
     mLockId = lockId;
   }
 }

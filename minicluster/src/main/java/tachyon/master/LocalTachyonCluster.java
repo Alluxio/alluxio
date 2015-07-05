@@ -26,7 +26,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.block.BlockWorker;
+import tachyon.worker.TachyonWorker;
 
 /**
  * Local Tachyon cluster for unit tests.
@@ -46,7 +46,7 @@ public final class LocalTachyonCluster {
     CommonUtils.sleepMs(null, Constants.SECOND_MS);
   }
 
-  private BlockWorker mWorker = null;
+  private TachyonWorker mWorker = null;
 
   private long mWorkerCapacityBytes;
   private int mUserBlockSize;
@@ -115,7 +115,7 @@ public final class LocalTachyonCluster {
     return mMasterConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
   }
 
-  public BlockWorker getWorker() {
+  public TachyonWorker getWorker() {
     return mWorker;
   }
 
@@ -124,11 +124,19 @@ public final class LocalTachyonCluster {
   }
 
   public NetAddress getWorkerAddress() {
-    return mWorker.getWorkerNetAddress();
+    return new NetAddress(mLocalhostName, getWorkerPort(), getWorkerDataPort());
   }
 
   public String getWorkerDataFolder() {
     return mWorkerDataFolder;
+  }
+
+  public int getWorkerPort() {
+    return mWorker.getMetaPort();
+  }
+
+  public int getWorkerDataPort() {
+    return mWorker.getDataPort();
   }
 
   private void deleteDir(String path) throws IOException {
@@ -228,12 +236,12 @@ public final class LocalTachyonCluster {
           newPath.substring(0, newPath.length() - 1));
     }
 
-    mWorker = new BlockWorker(mWorkerConf);
+    mWorker = TachyonWorker.createWorker(mWorkerConf);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
         try {
-          mWorker.process();
+          mWorker.start();
         } catch (Exception e) {
           throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
         }

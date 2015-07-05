@@ -32,8 +32,8 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.network.ChannelType;
 import tachyon.network.NettyUtils;
+import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
-import tachyon.worker.block.BlockDataManager;
 
 /**
  * Runs a netty data server that responses to block requests.
@@ -43,10 +43,10 @@ public final class NettyDataServer implements DataServer {
   private final ChannelFuture mChannelFuture;
   private final TachyonConf mTachyonConf;
 
-  public NettyDataServer(final InetSocketAddress address, final BlockDataManager dataManager,
+  public NettyDataServer(final InetSocketAddress address, final BlocksLocker locker,
       final TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(dataManager, mTachyonConf));
+    mBootstrap = createBootstrap().childHandler(new PipelineHandler(locker, mTachyonConf));
 
     try {
       mChannelFuture = mBootstrap.bind(address).sync();

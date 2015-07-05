@@ -66,10 +66,9 @@ public abstract class BlockInStream extends InStream {
       LOG.info("Reading with local stream.");
       TachyonByteBuffer buf = tachyonFile.readLocalByteBuffer(blockIndex);
       if (buf != null) {
-//      TODO: Rethink this code path to work with the worker locking design
-//      if (readType.isPromote()) {
-//        tachyonFile.promoteBlock(blockIndex);
-//      }
+        if (readType.isPromote()) {
+          tachyonFile.promoteBlock(blockIndex);
+        }
         return new LocalBlockInStream(tachyonFile, readType, blockIndex, buf, tachyonConf);
       }
     }
