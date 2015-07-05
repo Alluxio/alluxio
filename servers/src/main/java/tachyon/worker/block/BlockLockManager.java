@@ -74,7 +74,7 @@ public class BlockLockManager {
    * @throws IOException
    */
   public long lockBlock(long userId, long blockId, BlockLockType blockLockType) throws IOException {
-    // hashing blockId into the range of (0, NUM_LOCKS-1)
+    // hashing blockId into the range of [0, NUM_LOCKS-1]
     int hashValue = Math.abs(mHashFunc.hashLong(blockId).asInt()) % NUM_LOCKS;
     ClientRWLock blockLock = mLockArray[hashValue];
     Lock lock;
