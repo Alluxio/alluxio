@@ -166,32 +166,22 @@ public final class CommonUtils {
    */
   public static String concatPath(Object... paths) {
     List<String> trimmedPathList = new ArrayList<String>();
-    String joinedPath;
-    String prefix = null;
-    if (paths.length == 0) {
-      return "";
-    }
-    if (paths[0] != null && !paths[0].toString().isEmpty()) {
-      prefix = paths[0].toString().trim();
-      prefix = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(prefix);
+    if (paths.length > 0 && paths[0] != null && !paths[0].toString().isEmpty()) {
+      trimmedPathList.add(CharMatcher.is(
+          TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(paths[0].toString().trim()));
     }
     for (int k = 1; k < paths.length; ++ k) {
       String path = paths[k].toString().trim();
-      trimmedPathList.add(CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path));
-    }
-    joinedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).collapseFrom(
-      Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList), TachyonURI.SEPARATOR.charAt(0));
-    if (prefix == null) {
-      return joinedPath;
-    }
-    if (joinedPath.isEmpty()) {
-      if (prefix.isEmpty()) {
-        return TachyonURI.SEPARATOR;
-      } else {
-        return prefix;
+      String trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
+      if (!trimmedPath.isEmpty()) {
+        trimmedPathList.add(trimmedPath);
       }
     }
-    return prefix + TachyonURI.SEPARATOR + joinedPath;
+    if (trimmedPathList.size() == 1 && trimmedPathList.get(0).isEmpty()) {
+      // path[0] must be "[/]+"
+      return TachyonURI.SEPARATOR;
+    }
+    return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
   }
 
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
