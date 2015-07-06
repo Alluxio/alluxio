@@ -21,11 +21,15 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.NetworkUtils;
 
+/**
+ * Utils for tachyon.worker.block package
+ */
 public final class BlockWorkerUtils {
 
   /**
    * Gets the Tachyon master address from the configuration
    *
+   * @param conf the configuration of Tachyon
    * @return the InetSocketAddress of the master
    */
   public static InetSocketAddress getMasterAddress(TachyonConf conf) {
@@ -38,6 +42,7 @@ public final class BlockWorkerUtils {
   /**
    * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
    * 
+   * @param conf the configuration of Tachyon
    * @return the worker's address
    */
   public static InetSocketAddress getWorkerAddress(TachyonConf conf) {
