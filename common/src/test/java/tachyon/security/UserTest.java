@@ -15,42 +15,33 @@
 
 package tachyon.security;
 
-import java.security.Principal;
+import javax.security.auth.Subject;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * This class represents a user in Tachyon. It implements {@link java.security.Principal} in the
- * context of Java security frameworks.
+ * Unit test for {@link tachyon.security.User}
  */
-public class User implements Principal {
-  private final String mName;
+public class UserTest {
 
-  // TODO: add more attributes and methods for supporting Kerberos
+  /**
+   * This test verifies whether the {@link tachyon.security.User} could be used in Java security
+   * framework.
+   * @throws Exception
+   */
+  @Test
+  public void usedInSecurityContextTest() throws Exception {
+    // add new users into Subject
+    Subject subject = new Subject();
+    subject.getPrincipals().add(new User("realUser"));
+    subject.getPrincipals().add(new User("proxyUser"));
 
-  public User(String name) {
-    mName = name;
-  }
+    // fetch added users
+    User[] users = subject.getPrincipals(User.class).toArray(new User[0]);
 
-  @Override
-  public String getName() {
-    return mName;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    } else {
-      return mName.equals(((User) o).mName);
-    }
-  }
-
-  @Override
-  public int hashCode() {
-    return mName.hashCode();
-  }
-
-  @Override
-  public String toString() {
-    return mName;
+    // verification
+    Assert.assertEquals("There should be 2 users.", 2, users.length);
+    Assert.assertFalse("The 2 users should be different.", users[0].equals(users[1]));
   }
 }
