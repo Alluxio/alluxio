@@ -243,7 +243,8 @@ public class BlockDataManager {
   public BlockWriter createBlockRemote(long userId, long blockId, int tierAlias, long initialBytes)
       throws FileDoesNotExistException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
-    mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
+    TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
+    CommonUtils.createBlockPath(createdBlock.getPath());
     return mBlockStore.getBlockWriter(userId, blockId);
   }
 
