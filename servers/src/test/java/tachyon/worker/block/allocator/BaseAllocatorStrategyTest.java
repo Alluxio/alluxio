@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -15,27 +15,20 @@
 
 package tachyon.worker.block.allocator;
 
-/**
- * Different types of {@link Allocator}.
- */
-public enum AllocatorType {
-  /**
-   * Default type which will be determined in {@link AllocatorFactory} mainly used in
-   * {@link tachyon.conf.TachyonConf#getEnum} as default value when getting the AllocatorType
-   * from the TachyonConf
-   */
-  DEFAULT,
-  /**
-   * Allocate to the storage dir with the most free space
-   */
-  MAX_FREE,
-  /**
-   * Allocate to the first storage dir with space
-   */
-  GREEDY,
-  /**
-   * Round-robin allocation to the storage dir across tiers, but
-   * it will allocate the block in the highest tier possible.
-   */
-  ROUND_ROBIN,
+import java.io.IOException;
+
+import org.junit.Before;
+
+import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.allocator.Allocator;
+
+public class BaseAllocatorStrategyTest extends BaseAllocatorTest {
+  
+  protected BlockMetadataManager mMetaManager = null;
+  protected Allocator mAllocator = null;
+  
+  @Before
+  public final void before() throws IOException {
+    mMetaManager = BlockMetadataManager.newBlockMetadataManager(createTestTachyonConf());
+  }
 }
