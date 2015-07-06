@@ -55,11 +55,10 @@ public class BlockWorkerUtilsTest {
 
     // initialize the null master port test properties.
     sNullMasterPortTestProperties.put(Constants.MASTER_HOSTNAME, "RemoteMaster3");
-
   }
 
   @Before
-  public void beforeTests() {
+  public void before() {
     // init TachyonConf
     mCustomPropsTachyonConf = new TachyonConf(sTestProperties);
     mNullMasterHostNameTachyonConf = new TachyonConf(sNullMasterHostNameTestProperties);
@@ -67,27 +66,26 @@ public class BlockWorkerUtilsTest {
     mNullTachyonConf = new TachyonConf(sNullTestProperties);
   }
 
-
   @Test
   public void getMasterAddressTest() {
     String defaultHostname = NetworkUtils.getLocalHostName(mCustomPropsTachyonConf);
     int defaultPort = Constants.DEFAULT_MASTER_PORT;
 
     InetSocketAddress masterAddress = BlockWorkerUtils.getMasterAddress(mCustomPropsTachyonConf);
-    Assert.assertTrue(masterAddress != null);
-    Assert.assertTrue(masterAddress.equals(new InetSocketAddress("RemoteMaster1", 10000)));
+    Assert.assertNotNull(masterAddress);
+    Assert.assertEquals(masterAddress, new InetSocketAddress("RemoteMaster1", 10000));
 
     masterAddress = BlockWorkerUtils.getMasterAddress(mNullMasterHostNameTachyonConf);
-    Assert.assertTrue(masterAddress != null);
-    Assert.assertTrue(masterAddress.equals(new InetSocketAddress(defaultHostname, 20000)));
+    Assert.assertNotNull(masterAddress);
+    Assert.assertEquals(masterAddress, new InetSocketAddress(defaultHostname, 20000));
 
     masterAddress = BlockWorkerUtils.getMasterAddress(mNullMasterPortTachyonConf);
-    Assert.assertTrue(masterAddress != null);
-    Assert.assertTrue(masterAddress.equals(new InetSocketAddress("RemoteMaster3", defaultPort)));
+    Assert.assertNotNull(masterAddress);
+    Assert.assertEquals(masterAddress, new InetSocketAddress("RemoteMaster3", defaultPort));
 
     masterAddress = BlockWorkerUtils.getMasterAddress(mNullTachyonConf);
-    Assert.assertTrue(masterAddress != null);
-    Assert.assertTrue(masterAddress.equals(new InetSocketAddress(defaultHostname, defaultPort)));
+    Assert.assertNotNull(masterAddress);
+    Assert.assertEquals(masterAddress, new InetSocketAddress(defaultHostname, defaultPort));
   }
 
   @Test
@@ -96,11 +94,11 @@ public class BlockWorkerUtilsTest {
     int defaultPort = Constants.DEFAULT_WORKER_PORT;
 
     InetSocketAddress workerAddress = BlockWorkerUtils.getWorkerAddress(mCustomPropsTachyonConf);
-    Assert.assertTrue(workerAddress != null);
-    Assert.assertTrue(workerAddress.equals(new InetSocketAddress(defaultHostname, 10001)));
+    Assert.assertNotNull(workerAddress);
+    Assert.assertEquals(workerAddress, new InetSocketAddress(defaultHostname, 10001));
 
     workerAddress = BlockWorkerUtils.getWorkerAddress(mNullTachyonConf);
-    Assert.assertTrue(workerAddress != null);
-    Assert.assertTrue(workerAddress.equals(new InetSocketAddress(defaultHostname, defaultPort)));
+    Assert.assertNotNull(workerAddress);
+    Assert.assertEquals(workerAddress, new InetSocketAddress(defaultHostname, defaultPort));
   }
 }
