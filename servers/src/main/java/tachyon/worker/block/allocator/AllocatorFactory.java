@@ -35,6 +35,8 @@ public class AllocatorFactory {
         return new GreedyAllocator(view);
       case MAX_FREE:
         return new MaxFreeAllocator(view);
+      case ROUND_ROBIN:
+        return new RoundRobinAllocator(view);
       default:
         return new MaxFreeAllocator(view);
     }
