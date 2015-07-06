@@ -159,20 +159,28 @@ public final class CommonUtils {
    * For example, {@code concatPath("/myroot/", "dir", 1L, "filename")} returns
    * {@code "/myroot/dir/1/filename"}, or
    * {@code concatPath("tachyon://myroot", "dir", "filename")} returns
-   * {@code "tachyon://myroot/dir/filename"}.
+   * {@code "tachyon://myroot/dir/filename"}. Note that a null element in paths
+   * is treated as empty string, i.e., "".
    *
    * @param paths to concatenate
    * @return joined path
+   * @throws IllegalArgumentException
    */
-  public static String concatPath(Object... paths) {
+  public static String concatPath(Object... paths) throws IllegalArgumentException {
     List<String> trimmedPathList = new ArrayList<String>();
+    if (paths == null) {
+      throw new IllegalArgumentException("Can not concatenate a null set of paths.");
+    }
     if (paths.length > 0 && paths[0] != null && !paths[0].toString().isEmpty()) {
       trimmedPathList.add(CharMatcher.is(
           TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(paths[0].toString().trim()));
     }
     for (int k = 1; k < paths.length; ++ k) {
-      String path = paths[k].toString().trim();
-      String trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
+      if (paths[k] == null) {
+        continue;
+      }
+      String trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(
+          paths[k].toString().trim());
       if (!trimmedPath.isEmpty()) {
         trimmedPathList.add(trimmedPath);
       }
