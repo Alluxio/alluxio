@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.BlockMetadataView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
@@ -41,10 +41,10 @@ import tachyon.worker.block.meta.StorageTier;
  */
 public class GreedyEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final BlockMetadataManager mMetaManager;
+  private final BlockMetadataView mMetaView;
 
-  public GreedyEvictor(BlockMetadataManager metadata) {
-    mMetaManager = Preconditions.checkNotNull(metadata);
+  public GreedyEvictor(BlockMetadataView metadata) {
+    mMetaView = Preconditions.checkNotNull(metadata);
   }
 
   @Override
@@ -56,7 +56,7 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
       selectedDir = selectDirToEvictBlocksFromAnyTier(availableBytes);
     } else {
       int tierAlias = location.tierAlias();
-      StorageTier tier = mMetaManager.getTier(tierAlias);
+      StorageTier tier = mMetaView.getTier(tierAlias);
       if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
         selectedDir = selectDirToEvictBlocksFromTier(tier, availableBytes);
       } else {
@@ -98,7 +98,7 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
     Map<StorageDir, Long> pendingBytesInDir = new HashMap<StorageDir, Long>();
     for (BlockMeta block : victimBlocks) {
       StorageTier fromTier = block.getParentDir().getParentTier();
-      List<StorageTier> toTiers = mMetaManager.getTiersBelow(fromTier.getTierAlias());
+      List<StorageTier> toTiers = mMetaView.getTiersBelow(fromTier.getTierAlias());
       StorageDir toDir = selectDirToTransferBlock(block, toTiers, pendingBytesInDir);
       if (toDir == null) {
         // Not possible to transfer
@@ -124,7 +124,7 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
   }
 
   private StorageDir selectDirToEvictBlocksFromAnyTier(long availableBytes) {
-    for (StorageTier tier : mMetaManager.getTiers()) {
+    for (StorageTier tier : mMetaView.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (canEvictBlocksFromDir(dir, availableBytes)) {
           return dir;
