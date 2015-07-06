@@ -170,6 +170,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       ChannelFuture future =
           ctx.writeAndFlush(new RPCBlockWriteResponse(userId, blockId, offset, length, true));
       future.addListener(ChannelFutureListener.CLOSE);
+      future.addListener(new ClosableResourceChannelListener(writer));
     } catch (Exception e) {
       LOG.error("Error writing remote block : " + e.getMessage(), e);
       RPCBlockWriteResponse resp =
