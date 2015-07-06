@@ -19,8 +19,8 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.worker.block.BlockMetadataView;
 import tachyon.worker.block.BlockStoreLocation;
-import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
@@ -29,10 +29,10 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * An allocator that allocates a block in the storage dir with most free space.
  */
 public class MaxFreeAllocator implements Allocator {
-  private final BlockMetadataManager mMetaManager;
+  private final BlockMetadataView mMetaView;
 
-  public MaxFreeAllocator(BlockMetadataManager metadata) {
-    mMetaManager = Preconditions.checkNotNull(metadata);
+  public MaxFreeAllocator(BlockMetadataView metadata) {
+    mMetaView = Preconditions.checkNotNull(metadata);
   }
 
   @Override
@@ -43,7 +43,7 @@ public class MaxFreeAllocator implements Allocator {
     long maxFreeBytes = blockSize;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTier tier : mMetaManager.getTiers()) {
+      for (StorageTier tier : mMetaView.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
           if (dir.getAvailableBytes() >= maxFreeBytes) {
             maxFreeBytes = dir.getAvailableBytes();
@@ -52,7 +52,7 @@ public class MaxFreeAllocator implements Allocator {
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTier tier = mMetaManager.getTier(location.tierAlias());
+      StorageTier tier = mMetaView.getTier(location.tierAlias());
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.getAvailableBytes() >= maxFreeBytes) {
           maxFreeBytes = dir.getAvailableBytes();
@@ -60,7 +60,7 @@ public class MaxFreeAllocator implements Allocator {
         }
       }
     } else {
-      StorageTier tier = mMetaManager.getTier(location.tierAlias());
+      StorageTier tier = mMetaView.getTier(location.tierAlias());
       StorageDir dir = tier.getDir(location.dir());
       if (dir.getAvailableBytes() >= blockSize) {
         candidateDir = dir;
