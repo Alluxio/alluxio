@@ -168,19 +168,22 @@ public final class CommonUtils {
    */
   public static String concatPath(Object... paths) throws IllegalArgumentException {
     List<String> trimmedPathList = new ArrayList<String>();
+    String path;
+    String trimmedPath;
     if (paths == null) {
       throw new IllegalArgumentException("Can not concatenate a null set of paths.");
     }
     if (paths.length > 0 && paths[0] != null && !paths[0].toString().isEmpty()) {
-      trimmedPathList.add(CharMatcher.is(
-          TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(paths[0].toString().trim()));
+      path = paths[0].toString().trim();
+      trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
+      trimmedPathList.add(trimmedPath);
     }
-    for (int k = 1; k < paths.length; ++ k) {
+    for (int k = 1; k < paths.length; k ++) {
       if (paths[k] == null) {
         continue;
       }
-      String trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(
-          paths[k].toString().trim());
+      path = paths[k].toString().trim();
+      trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
       if (!trimmedPath.isEmpty()) {
         trimmedPathList.add(trimmedPath);
       }
