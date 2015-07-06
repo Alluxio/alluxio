@@ -36,6 +36,8 @@ public class EvictorFactory {
         return new GreedyEvictor(metaManager);
       case LRU:
         return new LRUEvictor(metaManager);
+      case PARTIAL_LRU:
+        return new PartialLRUEvictor(metaManager);
       default:
         return new GreedyEvictor(metaManager);
     }
