@@ -148,6 +148,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     final long length = req.getLength();
     final DataBuffer data = req.getPayloadDataBuffer();
 
+    BlockWriter writer = null;
     try {
       req.validate();
       ByteBuffer buffer = data.getReadOnlyByteBuffer();
@@ -155,7 +156,6 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         throw new IOException("Empty buffer to write.");
       }
 
-      BlockWriter writer = null;
       if (offset == 0) {
         // This is the first write to the block, so create the temp block file. The file will only
         // be created if the first write starts at offset 0.
@@ -177,6 +177,9 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
           new RPCBlockWriteResponse(userId, blockId, offset, length, false);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
+      if (writer != null) {
+        writer.close();
+      }
     }
   }
 
