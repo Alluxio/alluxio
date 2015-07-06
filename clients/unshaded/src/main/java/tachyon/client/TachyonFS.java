@@ -642,6 +642,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized String getLocalBlockTemporaryPath(long blockId, long initialBytes)
       throws IOException {
     String blockPath = mWorkerClient.requestBlockLocation(blockId, initialBytes);
+    // TODO: Handle this in the worker?
     CommonUtils.createBlockPath(blockPath);
     return blockPath;
   }
