@@ -132,24 +132,10 @@ public class BlockMetadataManager {
    */
   public synchronized long getAvailableBytes(BlockStoreLocation location) throws IOException {
     long spaceAvailable = 0;
-
-    if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTier tier : mTiers) {
-        spaceAvailable += tier.getAvailableBytes();
-      }
-      return spaceAvailable;
+    for (StorageDir dir : IterableLocation.create(this, location)) {
+      spaceAvailable += dir.getAvailableBytes();
     }
-
-    int tierAlias = location.tierAlias();
-    StorageTier tier = getTier(tierAlias);
-    // TODO: This should probably be max of the capacity bytes in the dirs?
-    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-      return tier.getAvailableBytes();
-    }
-
-    int dirIndex = location.dir();
-    StorageDir dir = tier.getDir(dirIndex);
-    return dir.getAvailableBytes();
+    return spaceAvailable;
   }
 
   /**
@@ -204,17 +190,8 @@ public class BlockMetadataManager {
       return blockMeta;
     }
 
-    int newTierAlias = newLocation.tierAlias();
-    StorageTier newTier = getTier(newTierAlias);
     StorageDir newDir = null;
-    if (newLocation.equals(BlockStoreLocation.anyDirInTier(newTierAlias))) {
-      for (StorageDir dir : newTier.getStorageDirs()) {
-        if (dir.getAvailableBytes() >= blockMeta.getBlockSize()) {
-          newDir = dir;
-        }
-      }
-    } else {
-      StorageDir dir = newTier.getDir(newLocation.dir());
+    for (StorageDir dir : IterableLocation.create(this, newLocation)) {
       if (dir.getAvailableBytes() >= blockMeta.getBlockSize()) {
         newDir = dir;
       }

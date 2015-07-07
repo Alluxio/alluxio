@@ -31,6 +31,7 @@ import tachyon.Pair;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.IterableLocation;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
@@ -52,19 +53,10 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
       throws IOException {
     // 1. Select a StorageDir that has enough capacity for required bytes.
     StorageDir selectedDir = null;
-    if (location.equals(BlockStoreLocation.anyTier())) {
-      selectedDir = selectDirToEvictBlocksFromAnyTier(availableBytes);
-    } else {
-      int tierAlias = location.tierAlias();
-      StorageTier tier = mMetaManager.getTier(tierAlias);
-      if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-        selectedDir = selectDirToEvictBlocksFromTier(tier, availableBytes);
-      } else {
-        int dirIndex = location.dir();
-        StorageDir dir = tier.getDir(dirIndex);
-        if (canEvictBlocksFromDir(dir, availableBytes)) {
-          selectedDir = dir;
-        }
+    for (StorageDir dir : IterableLocation.create(mMetaManager, location)) {
+      if (dir.getAvailableBytes() + dir.getCommittedBytes() >= availableBytes) {
+        selectedDir = dir;
+        break;
       }
     }
     if (selectedDir == null) {
@@ -121,26 +113,6 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
   // TODO: share this as a util function as it may be useful for other Evictors.
   private boolean canEvictBlocksFromDir(StorageDir dir, long availableBytes) {
     return dir.getAvailableBytes() + dir.getCommittedBytes() >= availableBytes;
-  }
-
-  private StorageDir selectDirToEvictBlocksFromAnyTier(long availableBytes) {
-    for (StorageTier tier : mMetaManager.getTiers()) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (canEvictBlocksFromDir(dir, availableBytes)) {
-          return dir;
-        }
-      }
-    }
-    return null;
-  }
-
-  private StorageDir selectDirToEvictBlocksFromTier(StorageTier tier, long availableBytes) {
-    for (StorageDir dir : tier.getStorageDirs()) {
-      if (canEvictBlocksFromDir(dir, availableBytes)) {
-        return dir;
-      }
-    }
-    return null;
   }
 
   private StorageDir selectDirToTransferBlock(BlockMeta block, List<StorageTier> toTiers,
