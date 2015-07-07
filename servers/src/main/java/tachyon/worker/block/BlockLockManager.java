@@ -213,10 +213,16 @@ public class BlockLockManager {
       mLock = lock;
     }
 
-    long userId() { return mUserId; }
+    long userId() {
+      return mUserId;
+    }
 
-    long blockId() { return mBlockId; }
+    long blockId() {
+      return mBlockId;
+    }
 
-    Lock lock() { return mLock; }
+    Lock lock() {
+      return mLock;
+    }
   }
 }
