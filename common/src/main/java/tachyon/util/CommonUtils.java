@@ -167,19 +167,19 @@ public final class CommonUtils {
    * @throws IllegalArgumentException
    */
   public static String concatPath(Object... paths) throws IllegalArgumentException {
-    List<String> trimmedPathList = new ArrayList<String>();
-    String path;
-    String trimmedPath;
-    if (paths == null) {
+    if (null == paths) {
       throw new IllegalArgumentException("Can not concatenate a null set of paths.");
     }
+    String path;
+    String trimmedPath;
+    List<String> trimmedPathList = new ArrayList<String>();
     if (paths.length > 0 && paths[0] != null && !paths[0].toString().isEmpty()) {
       path = paths[0].toString().trim();
       trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
       trimmedPathList.add(trimmedPath);
     }
     for (int k = 1; k < paths.length; k ++) {
-      if (paths[k] == null) {
+      if (null == paths[k]) {
         continue;
       }
       path = paths[k].toString().trim();
@@ -189,7 +189,7 @@ public final class CommonUtils {
       }
     }
     if (trimmedPathList.size() == 1 && trimmedPathList.get(0).isEmpty()) {
-      // path[0] must be "[/]+"
+      // paths[0] must be "[/]+"
       return TachyonURI.SEPARATOR;
     }
     return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
