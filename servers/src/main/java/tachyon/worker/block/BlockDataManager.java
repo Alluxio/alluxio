@@ -436,7 +436,7 @@ public class BlockDataManager {
    * @return metadata of the block or null
    * @throws IOException if no BlockMeta for this blockId is found
    */
-  public BlockMeta getBlockMeta(long blockId) throws IOException {
+  public BlockMeta getVolatileBlockMeta(long blockId) throws IOException {
     return mBlockStore.getBlockMeta(blockId);
   }
 
