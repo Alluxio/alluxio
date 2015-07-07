@@ -119,7 +119,9 @@ public class RemoteBlockOutStream extends BlockOutStream {
     if (mOpen) {
       mCloser.close();
       mOpen = false;
-      mTachyonFS.cancelBlock(mBlockId);
+      if (mWrittenBytes > 0) {
+        mTachyonFS.cancelBlock(mBlockId);
+      }
       LOG.info(String.format("Canceled output of block. blockId(%d)", mBlockId));
     }
   }
@@ -131,7 +133,9 @@ public class RemoteBlockOutStream extends BlockOutStream {
         writeToRemoteBlock(mBuffer.array(), 0, mBuffer.position());
       }
       mCloser.close();
-      mTachyonFS.cacheBlock(mBlockId);
+      if (mWrittenBytes > 0) {
+        mTachyonFS.cacheBlock(mBlockId);
+      }
       mOpen = false;
     }
   }
