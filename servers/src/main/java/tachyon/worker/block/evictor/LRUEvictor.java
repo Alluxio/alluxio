@@ -71,10 +71,11 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
 
       try {
         BlockMeta meta = mMetaView.getBlockMeta(blockId);
-
-        BlockStoreLocation dir = meta.getBlockLocation();
-        if (dir.belongTo(location)) {
-          dirCandidates.add(dir, meta.getBlockId(), meta.getBlockSize());
+        if (meta != null) {
+          BlockStoreLocation dir = meta.getBlockLocation();
+          if (dir.belongTo(location)) {
+            dirCandidates.add(dir, meta.getBlockId(), meta.getBlockSize());
+          }
         }
       } catch (IOException ioe) {
         LOG.warn("Remove block %d from LRU Cache because %s", blockId, ioe);
