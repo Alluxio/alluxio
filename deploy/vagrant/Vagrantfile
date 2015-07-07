@@ -8,32 +8,29 @@ require "./core/EnvSetup"
 @cmd = YAML.load_file('conf/init.yml')
 puts @cmd.inspect
 
-Total = @cmd['Total']
+Total = @cmd['MachineNumber']
 Provider = @cmd['Provider']
-Memory = @cmd['Memory']
-Addr = @cmd['Addresses']
 
 validate_provider(Provider)
 
 # load version configuration from tachyon_version.yml
-TachyonV = TachyonVersion.new('conf/tachyon_version.yml')
-SparkV = SparkVersion.new('conf/spark_version.yml')
-UfsV = UfsVersion.new('conf/ufs_version.yml')
+TachyonV = TachyonVersion.new('conf/tachyon.yml')
+SparkV = SparkVersion.new('conf/spark.yml')
+UfsV = UfsVersion.new('conf/ufs.yml')
 
 require "./core/config_#{Provider}"
 
-# config cluster and create /etc/hosts
-NameArr = Array.new
-config_hosts(NameArr)
-# generate ssh keys under ./files, will be copied to clusters later
-gen_ssh_key
 # Vagrantfile API/syntax version.
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.require_version ">= 1.6.5"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   (1..Total).each do |i|
     # multi vm config
-    name = NameArr[i]
+    if i == Total
+      name = "TachyonMaster"
+    else
+      name = "TachyonWorker#{i}"
+    end
     config.vm.define "#{name}" do |n|
       n.vm.hostname = "#{name}"
 
@@ -46,39 +43,38 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           spark_repo, spark_version = SparkV.repo_version
           is_vb = Provider == "vb"
           ans.extra_vars = {
-              tachyon_type: TachyonV.type,
-              tachyon_repo: tachyon_repo, 
+              tachyon_type:    TachyonV.type,
+              tachyon_repo:    tachyon_repo, 
+              tachyon_dist:    TachyonV.dist,
+              tachyon_memory:  TachyonV.memory,
               tachyon_version: tachyon_version,
-              tachyon_dist: TachyonV.dist,
 
-              spark_type: SparkV.type,
-              spark_repo: spark_repo,
+              spark_type:    SparkV.type,
+              spark_repo:    spark_repo,
+              spark_dist:    SparkV.dist,
+              spark_profile: UfsV.hadoop.spark_profile,
               spark_version: spark_version,
               spark_version_lessthan_1: SparkV.v_lt_1,
-              spark_dist: SparkV.dist,
-              spark_profile: UfsV.hadoop.spark_profile,
 
               ufs: UfsV.type,
 
+              hadoop_version:     UfsV.hadoop.version,
               hadoop_tarball_url: UfsV.hadoop.tarball_url,
-              hadoop_version: UfsV.hadoop.version,
 
-              s3_id:       UfsV.s3.id,
-              s3_key:      UfsV.s3.key,
-              s3_bucket:          UfsV.s3.bucket,
+              s3_id:     UfsV.s3.id,
+              s3_key:    UfsV.s3.key,
+              s3_bucket: UfsV.s3.bucket,
 
               provider: Provider,
           }
           # ans.verbose = "vvvv"
-          if is_vb
-            ans.raw_arguments = ["--private-key","~/.vagrant.d/insecure_private_key"]
-          end
           ans.raw_ssh_args = ['-o ControlPersist=30m']
         end
       end
 
       # Provider specific init
       if Provider == "vb"
+        system "bash vbox/buildbox.sh"
         config_vb(n, i, Total, name, TachyonV.type == "Local")
       end
 
@@ -88,7 +84,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       if Provider == "aws"
         if (defined?(@ec2)).nil?
-          @ec2 = YAML.load_file('conf/ec2-config.yml')
+          @ec2 = YAML.load_file('conf/ec2.yml')
           puts @ec2.inspect
           KEYPAIR=@ec2['Keypair']
           KEY_PATH=@ec2['Key_Path']
@@ -105,7 +101,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       if Provider == "openstack"
         if (defined?(@os)).nil?
-          @os = YAML.load_file('conf/openstack-config.yml')
+          @os = YAML.load_file('conf/openstack.yml')
           puts @os.inspect
           FLAVOR = @os['Flavor']
           IMAGE =  @os['Image']

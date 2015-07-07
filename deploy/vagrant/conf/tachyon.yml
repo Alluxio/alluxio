@@ -1,0 +1,19 @@
+# Local means copying the Tachyon repo which this directory resides in to remote machines and then compile in remote machines.
+# Release means using binary distribution from https://github.com/amplab/tachyon/releases.
+# Github means cloning and compiling github repo.
+# {Github | Local | Release}
+Type: Local
+
+# github repo and version(can be branch, commit hash)
+Github:
+  Repo: https://github.com/amplab/tachyon
+  Version: branch-0.6
+
+Release:
+  Dist: tachyon-0.6.4-bin.tar.gz # name of release tarball in https://github.com/amplab/tachyon/releases
+
+# how much memory to use (e.g. 1000MB, 2GB) per worker
+# make sure your virtual machine has more memory than what is specified here
+#  for virtualbox, machine memory is configured in conf/init.yml:Memory
+#  for aws, machine memory is decided by instance type
+WorkerMemory: 1GB

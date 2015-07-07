@@ -210,6 +210,9 @@ public class DFSIOIntegrationTest implements Tool {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     // Init DFSIOIntegrationTest
     sBench = new DFSIOIntegrationTest();
     sBench.getConf().setBoolean("dfs.support.append", true);
@@ -246,6 +249,7 @@ public class DFSIOIntegrationTest implements Tool {
 
     // Stop local Tachyon cluster
     sLocalTachyonCluster.stop();
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   public static void testWrite() throws Exception {

@@ -60,7 +60,7 @@ public class MetricsSystemTest {
     Assert.assertNotNull(workerMetricsSystem.getServletHandler());
     Assert.assertEquals(1, workerMetricsSystem.getSinks().size());
     Assert.assertEquals(1, workerMetricsSystem.getSources().size());
-    workerMetricsSystem.registerSource(new WorkerSource(null));
+    workerMetricsSystem.registerSource(new WorkerSource());
     Assert.assertEquals(2, workerMetricsSystem.getSources().size());
     workerMetricsSystem.stop();
   }

@@ -1,7 +1,6 @@
 - hosts: all
   tasks:
     - include: roles/common/tasks/main.yml
-
     - include: roles/lib/tasks/mount.yml
       when: provider == "aws"
 
@@ -13,18 +12,10 @@
       sudo: yes
       when: provider == "os"
 
-    # tachyon starts workers at `hostname -f`, in vb, hostname is set by vagrant to TachyonMaster, TachyonWorker1
-    # and they are set to "127.0.0.1" in /etc/hosts
-    # so, although worker starts at TachyonWorker1, TachyonMaster can not access it because
-    # only TachyonMaster.local, TachyonWorker#.local can be accessed among each other in cluster
-    # AWS provides hostname that will be resolved to the private network ip that is the same as TachyonMaster,
-    # TachyonWorker1, etc.
-    - name: set hostname from TachyonXXX to TachyonXXX.local
-      shell: sudo hostname `hostname | cut -d'.' -f1`.local # in case provisioning happens more than once
-      when: provider == "vb"
-
 - hosts: TachyonMaster
   tasks:
+    - include: roles/vagrant_utils/tasks/main.yml
+
     # Ufs
     - include: roles/ufs_{{ ufs }}/tasks/download_release.yml
     - include: roles/ufs_{{ ufs }}/tasks/config.yml
@@ -43,6 +34,9 @@
       when: tachyon_type != "Release"
 
     - include: roles/tachyon/tasks/config.yml
+
+    - include: roles/lib/tasks/tachyon_tiered.yml
+      when: (ufs != "hadoop1") and (ufs != "hadoop2")
 
     # Spark
     - include: roles/spark/tasks/download_release.yml

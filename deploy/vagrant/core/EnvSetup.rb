@@ -25,46 +25,6 @@ def validate_provider(provider)
 end
 
 
-def gen_ssh_key
-  system "mkdir -p ./files && \
-          if [ ! -f ./files/id_rsa ]; then ssh-keygen -f ./files/id_rsa -t rsa -N ''; fi"
-end
-
-
-def config_hosts(name)
-  system 'mkdir', '-p', './files'
-  # copy ./files/workers in Host to /tachyon/conf/workers in Vagrant
-  file = File.open("./files/workers","w")
-  for i in (1..Total)
-    if i == Total 
-      name[i] = "TachyonMaster"
-    else
-      name[i] = "TachyonWorker#{i}"
-    end
-    if file != nil
-      file.write(name[i] + ".local"  + "\n")
-    end
-  end
-  file.close unless file == nil
-  
-  if not (Provider == "openstack" or
-          Provider == "docker" )
-    hosts = File.open("files/hosts","w")
-    for i in (1..Total)
-      if i == Total 
-        name[i] = "TachyonMaster"
-      else
-        name[i] = "TachyonWorker#{i}"
-      end
-      if hosts != nil
-        hosts.write(Addr[i - 1] + " " + 
-                    name[i] + ".local" + "\n")
-      end
-    end
-    hosts.close unless hosts == nil
-  end
-end
-
 require 'yaml'
 
 # parse tachyon_version.yml
@@ -91,6 +51,8 @@ class TachyonVersion
       puts "Unknown VersionType"
       exit(1)
     end
+
+    @mem = @yml['WorkerMemory']
   end
 
   def dist
@@ -103,6 +65,10 @@ class TachyonVersion
 
   def repo_version
     return @repo, @version
+  end
+
+  def memory
+    return @mem
   end
 end
 
@@ -217,14 +183,14 @@ class S3Version
       puts 'ERROR: S3:Bucket is not set'
       exit(1)
     end
-    @id = yml['AccessKeyID']
+    @id = ENV['AWS_ACCESS_KEY']
     if @id == nil
-      puts 'ERROR: S3:AccessKeyID is not set'
+      puts 'ERROR: AWS_ACCESS_KEY needs to be set as environment variable'
       exit(1)
     end
-    @key = yml['SecretAccessKey']
+    @key = ENV['AWS_SECRET_KEY']
     if @key == nil
-      puts 'ERROR: S3:SecretAccessKey is not set'
+      puts 'ERROR: AWS_SECRET_KEY needs to be set as environment variable'
       exit(1)
     end
   end

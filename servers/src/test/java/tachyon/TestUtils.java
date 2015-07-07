@@ -15,9 +15,15 @@
 
 package tachyon;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 import tachyon.conf.TachyonConf;
+import tachyon.util.CommonUtils;
 
 public final class TestUtils {
 
@@ -94,5 +100,18 @@ public final class TestUtils {
     StackTraceElement caller = new Throwable().getStackTrace()[1];
     long time = System.nanoTime();
     return "/" + caller.getClassName() + "/" + caller.getMethodName() + "/" + time;
+  }
+
+  /**
+   * * Writes buffer to the given file path
+   *
+   * @param path file path to write the data
+   * @param buffer raw data
+   * @throws IOException
+   */
+  public static void writeBufferToFile(String path, byte[] buffer) throws IOException {
+    FileOutputStream os = new FileOutputStream(path);
+    os.write(buffer);
+    os.close();
   }
 }

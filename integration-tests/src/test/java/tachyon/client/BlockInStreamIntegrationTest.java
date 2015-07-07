@@ -43,10 +43,14 @@ public class BlockInStreamIntegrationTest {
   public static final void afterClass() throws Exception {
     sLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
@@ -68,12 +72,14 @@ public class BlockInStreamIntegrationTest {
     TachyonFile file1 = sTfs1.getFile(fileId);
     InStream is1 = file1.getInStream(ReadType.NO_CACHE);
     Assert.assertTrue(is1 instanceof RemoteBlockInStream); // local read is disabled
+    is1.close();
 
     conf.set(Constants.USER_ENABLE_LOCAL_READ, "true");
     TachyonFS sTfs2 = TachyonFS.get(conf);
     TachyonFile file2 = sTfs2.getFile(fileId);
     InStream is2 = file2.getInStream(ReadType.NO_CACHE);
     Assert.assertTrue(is2 instanceof LocalBlockInStream); // local read is enabled
+    is2.close();
   }
 
   /**

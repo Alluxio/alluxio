@@ -339,7 +339,7 @@ public final class CommonUtils {
       BigDecimal pBDecimal = new BigDecimal(Constants.PB);
       return pBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
     } else {
-      throw new IllegalArgumentException("Fail to parse " + ori + " as memory size");
+      throw new IllegalArgumentException("Fail to parse " + ori + " to bytes");
     }
   }
 

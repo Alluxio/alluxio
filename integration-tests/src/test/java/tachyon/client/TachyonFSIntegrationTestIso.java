@@ -60,7 +60,6 @@ public class TachyonFSIntegrationTestIso {
     mWorkerTachyonConf.set(Constants.MAX_COLUMNS, "257");
   }
 
-
   @Test
   public void createFileWithUfsFileTest() throws IOException {
     String tempFolder = mLocalTachyonCluster.getTempFolderInUnderFs();
