@@ -81,7 +81,7 @@ public class LocalBlockOutStream extends BlockOutStream {
     super(file, opType, tachyonConf);
 
     if (!opType.isCache()) {
-      throw new IOException("LocalBlockOutStream only support WriteType.CACHE");
+      throw new IOException("LocalBlockOutStream only supports WriteType.CACHE. opType: " + opType);
     }
 
     mBlockIndex = blockIndex;

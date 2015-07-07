@@ -95,7 +95,14 @@ public class RemoteBlockOutStream extends BlockOutStream {
     mOpen = true;
   }
 
-  // Write data to the remote block.
+  /**
+   * Write data to the remote block. This is synchronized to serialize writes to the block.
+   *
+   * @param bytes An array of bytes representing the source data.
+   * @param offset The offset into the source array of bytes.
+   * @param length The length of the data to write (in bytes).
+   * @throws IOException
+   */
   private synchronized void writeToRemoteBlock(byte[] bytes, int offset, int length)
       throws IOException {
     mRemoteWriter.write(bytes, offset, length);
