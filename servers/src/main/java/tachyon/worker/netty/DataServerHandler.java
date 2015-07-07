@@ -158,13 +158,14 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
 
       if (offset == 0) {
         // This is the first write to the block, so create the temp block file. The file will only
-        // be created if the first write starts at offset 0.
-        writer = mDataManager.createBlockRemote(userId, blockId, StorageLevelAlias.MEM.getValue(),
-            length);
+        // be created if the first write starts at offset 0. This allocates enough space for the
+        // write.
+        mDataManager.createBlockRemote(userId, blockId, StorageLevelAlias.MEM.getValue(), length);
       } else {
-        writer = mDataManager.getTempBlockWriterRemote(userId, blockId);
+        // Allocate enough space in the existing temporary block for the write.
         mDataManager.requestSpace(userId, blockId, length);
       }
+      writer = mDataManager.getTempBlockWriterRemote(userId, blockId);
       writer.append(buffer);
 
       ChannelFuture future =
