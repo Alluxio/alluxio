@@ -41,7 +41,7 @@ public class UserTest {
     User[] users = subject.getPrincipals(User.class).toArray(new User[0]);
 
     // verification
-    Assert.assertEquals("There should be 2 users.", 2, users.length);
-    Assert.assertFalse("The 2 users should be different.", users[0].equals(users[1]));
+    Assert.assertEquals(2, users.length);
+    Assert.assertFalse(users[0].equals(users[1]));
   }
 }
