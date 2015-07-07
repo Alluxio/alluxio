@@ -43,7 +43,7 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * Class responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
+ * Class is responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
  * thread-safe.
  */
 public class BlockDataManager {
@@ -53,7 +53,7 @@ public class BlockDataManager {
   private final BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
   private final BlockStore mBlockStore;
-  /** Master client threadpool */
+  /** Master client thread pool */
   private final ExecutorService mMasterClientExecutorService;
   /** Configuration values */
   private final TachyonConf mTachyonConf;
@@ -70,7 +70,7 @@ public class BlockDataManager {
   /** User metadata, used to keep track of user heartbeats */
   private Users mUsers;
   /** Id of this worker */
-  long mWorkerId;
+  private long mWorkerId;
 
   /**
    * Creates a BlockDataManager based on the configuration values.
