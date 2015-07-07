@@ -142,7 +142,7 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public BlockMeta getBlockMeta(long blockId) throws IOException {
+  public BlockMeta getVolatileBlockMeta(long blockId) throws IOException {
     return mMetaManager.getBlockMeta(blockId);
   }
 
