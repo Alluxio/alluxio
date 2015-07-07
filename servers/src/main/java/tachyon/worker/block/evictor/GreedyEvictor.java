@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,10 +42,17 @@ import tachyon.worker.block.meta.StorageTierView;
  */
 public class GreedyEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final BlockMetadataView mMetaView;
+  private BlockMetadataView mMetaView;
 
   public GreedyEvictor(BlockMetadataView metadata) {
     mMetaView = Preconditions.checkNotNull(metadata);
+  }
+
+  @Override
+  public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
+      BlockMetadataView view) throws IOException {
+    mMetaView = view;
+    return freeSpace(availableBytes, location);
   }
 
   @Override

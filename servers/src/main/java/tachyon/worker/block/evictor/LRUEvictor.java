@@ -35,7 +35,7 @@ import tachyon.worker.block.meta.BlockMeta;
 
 public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final BlockMetadataView mMetaView;
+  private BlockMetadataView mMetaView;
 
   /**
    * access-ordered {@link java.util.LinkedHashMap} from blockId to {@code true}, acts as a LRU
@@ -47,6 +47,13 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
 
   public LRUEvictor(BlockMetadataView metadata) {
     mMetaView = metadata;
+  }
+
+  @Override
+  public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
+      BlockMetadataView view) throws IOException {
+    mMetaView = view;
+    return freeSpace(availableBytes, location);
   }
 
   @Override

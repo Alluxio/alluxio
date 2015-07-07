@@ -74,6 +74,12 @@ public class TieredBlockStore implements BlockStore {
   private final Evictor mEvictor;
   private List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
+  /** A list of pinned blocks fetched from the master */
+  private final List<Long> mPinnedBlocks = new ArrayList<Long>();
+  /** A list of blocks that are currently being read */
+  private final List<Long> mReadingBlocks = new ArrayList<Long>();
+  /** A narrowed view provided to evictors and allocators */
+  private BlockMetadataView mMetadataView;
 
   /**
    * A read/write lock to ensure eviction is atomic w.r.t. other operations. An eviction may trigger
@@ -89,19 +95,20 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
 
-    BlockMetadataView fullMetadataView = new BlockMetadataView(mMetaManager,
+    // initially use empty lists to provide full view
+    mMetadataView = new BlockMetadataView(mMetaManager,
         new ArrayList<Long>(), new ArrayList<Long>());
 
     AllocatorType allocatorType =
         mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
-    mAllocator = AllocatorFactory.create(allocatorType, fullMetadataView);
+    mAllocator = AllocatorFactory.create(allocatorType, mMetadataView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
     EvictorType evictorType =
         mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
-    mEvictor = EvictorFactory.create(evictorType, fullMetadataView);
+    mEvictor = EvictorFactory.create(evictorType, mMetadataView);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
@@ -414,10 +421,18 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.removeBlockMeta(blockMeta);
   }
 
+  // always update the metadata view before doing freeSpacewithNewView
+  private BlockMetadataView getUpdatedView() throws IOException{
+    // TODO: update the view object instead of creating new one every time
+    mMetadataView = new BlockMetadataView(mMetaManager, mPinnedBlocks, mReadingBlocks);
+    return mMetadataView;
+  }
+
   // This method must be guarded by WRITE lock of mEvictionLock
   private void freeSpaceInternal(long userId, long availableBytes, BlockStoreLocation location)
       throws IOException {
-    EvictionPlan plan = mEvictor.freeSpace(availableBytes, location);
+    // always evict using the most updated BlockMetadataView
+    EvictionPlan plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView());
     // Absent plan means failed to evict enough space.
     if (plan == null) {
       throw new IOException("Failed to free space: no eviction plan by evictor");

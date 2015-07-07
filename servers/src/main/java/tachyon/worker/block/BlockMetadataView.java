@@ -43,8 +43,8 @@ public class BlockMetadataView {
    * @param readingBlocks
    * @throws IOException
    */
-  public BlockMetadataView(BlockMetadataManager manager, ArrayList<Long> pinnedBlocks,
-      ArrayList<Long> readingBlocks) throws IOException {
+  public BlockMetadataView(BlockMetadataManager manager, List<Long> pinnedBlocks,
+      List<Long> readingBlocks) throws IOException {
     mMetadataManager = Preconditions.checkNotNull(manager);
     mPinnedBlocks.addAll(Preconditions.checkNotNull(pinnedBlocks));
     mReadingBlocks.addAll(Preconditions.checkNotNull(readingBlocks));
