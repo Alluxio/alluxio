@@ -40,6 +40,7 @@ import tachyon.network.ChannelType;
 import tachyon.network.NettyUtils;
 import tachyon.network.protocol.RPCBlockRequest;
 import tachyon.network.protocol.RPCBlockResponse;
+import tachyon.network.protocol.RPCGenericResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCMessageDecoder;
 import tachyon.network.protocol.RPCMessageEncoder;
@@ -77,22 +78,27 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       RPCResponse response = listener.get(NettyClient.TIMEOUT_SECOND, TimeUnit.SECONDS);
       channel.close().sync();
 
-      if (response.getType() == RPCMessage.Type.RPC_BLOCK_RESPONSE) {
-        RPCBlockResponse blockResponse = (RPCBlockResponse) response;
-        LOG.info("Data " + blockId + " from remote machine " + address + " received");
+      switch (response.getType()) {
+        case RPC_BLOCK_RESPONSE:
+          RPCBlockResponse blockResponse = (RPCBlockResponse) response;
+          LOG.info("Data " + blockId + " from remote machine " + address + " received");
 
-        if (blockResponse.getBlockId() < 0) {
-          LOG.info("Data " + blockResponse.getBlockId() + " is not in remote machine.");
-          return null;
-        }
-        return blockResponse.getPayloadDataBuffer().getReadOnlyByteBuffer();
-      } else {
-        LOG.error("Unexpected response message type: " + response.getType() + " (expected: "
-            + RPCMessage.Type.RPC_BLOCK_RESPONSE + ")");
+          RPCResponse.Status status = blockResponse.getStatus();
+          if (status == RPCResponse.Status.SUCCESS) {
+            return blockResponse.getPayloadDataBuffer().getReadOnlyByteBuffer();
+          }
+          throw new IOException(status.getMessage() + " response: " + blockResponse);
+        case RPC_GENERIC_RESPONSE:
+          RPCGenericResponse error = (RPCGenericResponse) response;
+          throw new IOException(error.getStatus().getMessage());
+        default:
+          throw new IOException("Unexpected response message type: " + response.getType()
+              + " (expected: " + RPCMessage.Type.RPC_BLOCK_RESPONSE + ")");
       }
+    } catch (IOException ioe) {
+      throw ioe;
     } catch (Exception e) {
-      LOG.error("exception in netty client: " + e + " message: " + e.getMessage());
+      throw new IOException(e);
     }
-    return null;
   }
 }
