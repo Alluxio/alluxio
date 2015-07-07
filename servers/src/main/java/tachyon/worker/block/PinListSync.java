@@ -54,6 +54,7 @@ public class PinListSync implements Runnable {
   /** Flag to indicate if the sync should continue */
   private volatile boolean mRunning;
 
+  // constructor for PinListSync, fall back to heartbeat paramters
   PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
     mBlockDataManager = blockDataManager;
     mTachyonConf = tachyonConf;
@@ -84,7 +85,7 @@ public class PinListSync implements Runnable {
       if (toSleepMs > 0) {
         CommonUtils.sleepMs(LOG, toSleepMs);
       } else {
-        LOG.warn("fetch took: " + lastIntervalMs + ", expected: " + mHeartbeatIntervalMs);
+        LOG.warn("Fetch took: " + lastIntervalMs + ", expected: " + mHeartbeatIntervalMs);
       }
 
       // Send the fetch
@@ -101,7 +102,6 @@ public class PinListSync implements Runnable {
           throw new RuntimeException("Master fetch timeout exceeded: " + mHeartbeatTimeoutMs);
         }
       }
-
     }
   }
 
