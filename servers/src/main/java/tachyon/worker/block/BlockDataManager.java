@@ -430,14 +430,15 @@ public class BlockDataManager {
   }
 
   /**
-   * Gets the metadata of a block given its blockId or throws IOException.
+   * Gets the metadata of a block given its blockId or throws IOException. This method does not
+   * require a lock ID so the block is possible to be moved or removed after it returns.
    *
    * @param blockId the block ID
-   * @return metadata of the block or null
+   * @return metadata of the block
    * @throws IOException if no BlockMeta for this blockId is found
    */
   public BlockMeta getVolatileBlockMeta(long blockId) throws IOException {
-    return mBlockStore.getBlockMeta(blockId);
+    return mBlockStore.getVolatileBlockMeta(blockId);
   }
 
   /**
