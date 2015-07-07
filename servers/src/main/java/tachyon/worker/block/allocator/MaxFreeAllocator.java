@@ -68,8 +68,8 @@ public class MaxFreeAllocator implements Allocator {
     }
 
     // TODO: avoid getDirForCreatingBlock()
-    return candidateDir != null ?
-        new TempBlockMeta(userId, blockId, blockSize, candidateDir.getDirForCreatingBlock())
+    return candidateDir != null
+        ? new TempBlockMeta(userId, blockId, blockSize, candidateDir.getDirForCreatingBlock())
         : null;
   }
 }

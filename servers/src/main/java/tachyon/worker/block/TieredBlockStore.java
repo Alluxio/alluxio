@@ -89,7 +89,8 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
 
-    BlockMetadataView fullMetadataView = new BlockMetadataView(mMetaManager, null, null);
+    BlockMetadataView fullMetadataView = new BlockMetadataView(mMetaManager,
+        new ArrayList<Long>(), new ArrayList<Long>());
 
     AllocatorType allocatorType =
         mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);

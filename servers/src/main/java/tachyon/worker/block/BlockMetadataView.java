@@ -17,10 +17,7 @@ package tachyon.worker.block;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.google.common.base.Preconditions;
 
@@ -34,15 +31,23 @@ import tachyon.worker.block.meta.StorageTierView;
 public class BlockMetadataView {
 
   private final BlockMetadataManager mMetadataManager;
-  private List<StorageTierView> mTierViews;
+  private List<StorageTierView> mTierViews = new ArrayList<StorageTierView>();
   private final List<Long> mPinnedBlocks = new ArrayList<Long>();
-  private final List<Long> mdReadingBlocks = new ArrayList<Long>();
+  private final List<Long> mReadingBlocks = new ArrayList<Long>();
 
+  /**
+   * Create a BlockMetadataView
+   *
+   * @param manager
+   * @param pinnedBlocks
+   * @param readingBlocks
+   * @throws IOException
+   */
   public BlockMetadataView(BlockMetadataManager manager, ArrayList<Long> pinnedBlocks,
       ArrayList<Long> readingBlocks) throws IOException {
     mMetadataManager = Preconditions.checkNotNull(manager);
     mPinnedBlocks.addAll(Preconditions.checkNotNull(pinnedBlocks));
-    mdReadingBlocks.addAll(Preconditions.checkNotNull(readingBlocks));
+    mReadingBlocks.addAll(Preconditions.checkNotNull(readingBlocks));
 
     // iteratively create all StorageTierViews and StorageDirViews
     for (StorageTier tier : manager.getTiers()) {
@@ -52,13 +57,29 @@ public class BlockMetadataView {
   }
 
   /**
+   * get pinned list
+   *
+   */
+  public List<Long> getPinnedBlocks() {
+    return mPinnedBlocks;
+  }
+
+  /**
+   * get list of blocks currently being read
+   *
+   */
+  public List<Long> getReadingBlocks() {
+    return mReadingBlocks;
+  }
+
+  /**
    * Provide StorageTierView given tierAlias
    *
    * @param tierAlias the alias of this tierView
    * @return the StorageTierView object associated with the alias
    * @throws IOException if tierAlias is not found
    */
-  public synchronized StorageTierView getTierView(int tierAlias) throws IOException {
+  public StorageTierView getTierView(int tierAlias) throws IOException {
     // TODO: can we ensure the returning tierview is same as
     // new StorageTierView(mMetadataManager.getTier(tierAlias)) ?
     return mTierViews.get(tierAlias);
@@ -68,7 +89,7 @@ public class BlockMetadataView {
    *
    * @return the list of StorageTierViews
    */
-  public synchronized List<StorageTierView> getTierViews() {
+  public List<StorageTierView> getTierViews() {
     return mTierViews;
   }
 
@@ -78,7 +99,7 @@ public class BlockMetadataView {
    * @return the list of StorageTierView
    * @throws IOException if tierAlias is not found
    */
-  public synchronized List<StorageTierView> getTiersBelow(int tierAlias) throws IOException {
+  public List<StorageTierView> getTiersBelow(int tierAlias) throws IOException {
     // TODO: similar concern as in getTierView
     int level = getTierView(tierAlias).getTierViewLevel();
     return mTierViews.subList(level + 1, mTierViews.size());
@@ -90,18 +111,23 @@ public class BlockMetadataView {
    * @param location location the check available bytes
    * @return available bytes
    */
-  public synchronized long getAvailableBytes(BlockStoreLocation location) throws IOException {
+  public long getAvailableBytes(BlockStoreLocation location) throws IOException {
     return mMetadataManager.getAvailableBytes(location);
   }
 
   /**
-   * Redirecting to {@link BlockMetadataManager#getBlockMeta(long)}
+   * return null if block is pinned or currently being read,
+   * otherwise return {@link BlockMetadataManager#getBlockMeta(long)}
    *
    * @param blockId the block ID
    * @return metadata of the block or null
    * @throws IOException if no BlockMeta for this blockId is found
    */
-  public synchronized BlockMeta getBlockMeta(long blockId) throws IOException {
-    return getBlockMeta(blockId);
+  public BlockMeta getBlockMeta(long blockId) throws IOException {
+    if (mPinnedBlocks.contains(blockId) || mReadingBlocks.contains(blockId)) {
+      return null;
+    } else {
+      return getBlockMeta(blockId);
+    }
   }
 }

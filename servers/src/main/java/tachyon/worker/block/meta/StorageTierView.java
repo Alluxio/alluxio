@@ -15,25 +15,12 @@
 
 package tachyon.worker.block.meta;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
-import tachyon.Constants;
-import tachyon.StorageDirId;
-import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataView;
 
 /**
@@ -42,7 +29,7 @@ import tachyon.worker.block.BlockMetadataView;
 public class StorageTierView {
 
   private final StorageTier mTier;
-  private List<StorageDirView> mDirViews;
+  private List<StorageDirView> mDirViews = new ArrayList<StorageDirView>();
   private final BlockMetadataView mView;
 
   public StorageTierView(StorageTier tier, BlockMetadataView view) {

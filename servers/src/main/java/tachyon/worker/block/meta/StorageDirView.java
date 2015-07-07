@@ -15,25 +15,11 @@
 
 package tachyon.worker.block.meta;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
-import tachyon.Constants;
-import tachyon.StorageDirId;
-import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataView;
 
 /**
@@ -56,9 +42,22 @@ public class StorageDirView {
     return mDir.getDirIndex();
   }
 
+  /**
+   * return a filtered list of block metadata,
+   * for blocks that are neither pinned or being read.
+   */
   public List<BlockMeta> getBlocks() {
-    // TODO: filter out blocks
-    return mDir.getBlocks();
+    List<Long> pinnedBlocks = mView.getPinnedBlocks();
+    List<Long> readingBlocks = mView.getReadingBlocks();
+    List<BlockMeta> filteredList = new ArrayList<BlockMeta>();
+
+    for (BlockMeta blockMeta : mDir.getBlocks()) {
+      long blockId = blockMeta.getBlockId();
+      if (!pinnedBlocks.contains(blockId) && !readingBlocks.contains(blockId)) {
+        filteredList.add(blockMeta);
+      }
+    }
+    return filteredList;
   }
 
   public long getAvailableBytes() {
@@ -66,7 +65,7 @@ public class StorageDirView {
   }
 
   public long getCommittedBytes() {
-    // TODO: filter out bytes that are caused by blocks in pinlists, etc
+    // TODO: does pinedList, etc. change this value?
     return mDir.getCommittedBytes();
   }
 
