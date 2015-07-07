@@ -58,6 +58,7 @@ public class BlockOutStreamIntegrationTest {
     TachyonFile file = fs.getFile(fs.createFile(new TachyonURI("/file_no_local_write")));
     BlockOutStream os = BlockOutStream.get(file, WriteType.MUST_CACHE, 0, conf);
     Assert.assertTrue(os instanceof RemoteBlockOutStream);
+    os.close();
   }
 
   /**
@@ -74,5 +75,6 @@ public class BlockOutStreamIntegrationTest {
     TachyonFile file = fs.getFile(fs.createFile(new TachyonURI("/file_local_write")));
     BlockOutStream os = BlockOutStream.get(file, WriteType.MUST_CACHE, 0, conf);
     Assert.assertTrue(os instanceof LocalBlockOutStream);
+    os.close();
   }
 }
