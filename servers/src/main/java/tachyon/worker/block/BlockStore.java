@@ -16,6 +16,7 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.google.common.base.Optional;
 
@@ -208,4 +209,10 @@ interface BlockStore {
    */
   void registerBlockStoreEventListener(BlockStoreEventListener listener);
 
+  /**
+   * Sets the pinned blocks to the given list.
+   *
+   * @param blocks a list of IDs of block that have been pinned
+   */
+  void setPinnedBlocks(List<Long> blocks);
 }
