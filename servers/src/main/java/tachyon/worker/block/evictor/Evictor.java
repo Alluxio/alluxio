@@ -18,6 +18,7 @@ package tachyon.worker.block.evictor;
 import java.io.IOException;
 
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.BlockMetadataView;
 
 /**
  * Interface for the eviction policy in Tachyon
@@ -40,5 +41,9 @@ public interface Evictor {
    *         is feasible
    * @throws IOException if given block location is invalid
    */
+  @Deprecated
   EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location) throws IOException;
+
+  EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
+      BlockMetadataView view) throws IOException;
 }
