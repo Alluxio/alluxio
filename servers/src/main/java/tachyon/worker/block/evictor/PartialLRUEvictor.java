@@ -40,6 +40,12 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
+/**
+ * This class is used to evict old blocks in certain StorageDir by LRU. The main difference
+ * between PartialLRU and LRU is that LRU choose old blocks among several StorageDirs
+ * until one StorageDir satisfies the request space, but PartialLRU select one StorageDir
+ * first and evict old blocks in certain StorageDir by LRU
+ */
 public class PartialLRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final BlockMetadataManager mMeta;
@@ -116,7 +122,15 @@ public class PartialLRUEvictor extends BlockStoreEventListenerBase implements Ev
     return new EvictionPlan(toMove, toEvict);
   }
 
-  public Pair<StorageDir, List<Long>> getDirCandidate(long availableBytes,
+  /**
+   * Get StorageDir with max free space and the blocks to be evicted
+   * 
+   * @param availableBytes space size to be requested
+   * @param location the location that the space will be allocated in
+   * @return the pair of StorageDir to be selected and the blocks to be evicted
+   * @throws IOException
+   */
+  private Pair<StorageDir, List<Long>> getDirCandidate(long availableBytes,
       BlockStoreLocation location) throws IOException {
     Set<StorageDir> ignoreList = new HashSet<StorageDir>();
     StorageDir selectedDir = getDirWithMaxFreeSpace(availableBytes, location, ignoreList);
@@ -153,7 +167,18 @@ public class PartialLRUEvictor extends BlockStoreEventListenerBase implements Ev
     return null;
   }
 
-  public StorageDir getDirWithMaxFreeSpace(long availableBytes, BlockStoreLocation location,
+  /**
+   * Get StorageDir with max free space. IgnoreList here is considering when the first selected
+   * StorageDir with max free space fails to allocate space, then the StorageDir with second
+   * max free space will be selected. IgnoreList here just keeps it more safe.
+   * 
+   * @param availableBytes space size to be requested
+   * @param location location that the space will be allocated in
+   * @param ignoreList StorageDirs that have been ignored
+   * @return the StorageDir selected
+   * @throws IOException
+   */
+  private StorageDir getDirWithMaxFreeSpace(long availableBytes, BlockStoreLocation location,
       Set<StorageDir> ignoreList) throws IOException {
     long maxFreeSize = -1;
     StorageDir selectedDir = null;
@@ -200,6 +225,14 @@ public class PartialLRUEvictor extends BlockStoreEventListenerBase implements Ev
     return selectedDir;
   }
 
+  /**
+   * Select StorageDir for current block to move to
+   * 
+   * @param block block to be moved
+   * @param toTiers StorageTier below the current StorageTier
+   * @param pendingBytesInDir bytes shouldn't be evicted in StorageDirs
+   * @return the StorageDir selected
+   */
   private StorageDir selectDirToMoveBlock(BlockMeta block, List<StorageTier> toTiers,
       Map<StorageDir, Long> pendingBytesInDir) {
     for (StorageTier toTier : toTiers) {
