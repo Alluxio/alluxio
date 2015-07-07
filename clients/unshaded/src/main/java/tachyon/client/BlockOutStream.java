@@ -74,5 +74,8 @@ public abstract class BlockOutStream extends OutStream {
     super(tachyonFile, opType, tachyonConf);
   }
 
+  /**
+   * @return the remaining space of the block, in bytes.
+   */
   public abstract long getRemainingSpaceByte();
 }
