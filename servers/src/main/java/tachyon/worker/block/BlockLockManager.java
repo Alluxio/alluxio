@@ -65,7 +65,7 @@ public class BlockLockManager {
   }
 
   /**
-   * Lock a block if it exists, throw IOException otherwise.
+   * Locks a block if it exists, throws IOException otherwise.
    *
    * @param userId the ID of user
    * @param blockId the ID of block
@@ -213,17 +213,10 @@ public class BlockLockManager {
       mLock = lock;
     }
 
-    long userId() {
-      return mUserId;
-    }
+    long userId() { return mUserId; }
 
-    long blockId() {
-      return mBlockId;
-    }
+    long blockId() { return mBlockId; }
 
-    Lock lock() {
-      return mLock;
-    }
+    Lock lock() { return mLock; }
   }
-
 }
