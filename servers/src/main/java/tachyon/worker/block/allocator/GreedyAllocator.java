@@ -30,10 +30,17 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * This class serves as an example how to implement an allocator.
  */
 public class GreedyAllocator implements Allocator {
-  private final BlockMetadataView mMetaView;
+  private BlockMetadataView mMetaView;
 
   public GreedyAllocator(BlockMetadataView metadata) {
     mMetaView = Preconditions.checkNotNull(metadata);
+  }
+
+  @Override
+  public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
+      BlockStoreLocation location, BlockMetadataView view) throws IOException {
+    mMetaView = view;
+    return allocateBlock(userId, blockId, blockSize, location);
   }
 
   @Override

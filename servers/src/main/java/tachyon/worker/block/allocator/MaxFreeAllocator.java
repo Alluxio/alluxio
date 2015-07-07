@@ -29,10 +29,17 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * An allocator that allocates a block in the storage dir with most free space.
  */
 public class MaxFreeAllocator implements Allocator {
-  private final BlockMetadataView mMetaView;
+  private BlockMetadataView mMetaView;
 
   public MaxFreeAllocator(BlockMetadataView metadata) {
     mMetaView = Preconditions.checkNotNull(metadata);
+  }
+
+  @Override
+  public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
+      BlockStoreLocation location, BlockMetadataView view) throws IOException {
+    mMetaView = view;
+    return allocateBlock(userId, blockId, blockSize, location);
   }
 
   @Override

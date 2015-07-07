@@ -326,7 +326,8 @@ public class TieredBlockStore implements BlockStore {
     if (mMetaManager.hasBlockMeta(blockId)) {
       throw new IOException("Failed to create TempBlockMeta: blockId " + blockId + " committed");
     }
-    TempBlockMeta tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
+    TempBlockMeta tempBlock = mAllocator.allocateBlockWithView(userId, blockId, initialBlockSize,
+        location, getUpdatedView());
     if (tempBlock == null) {
       // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
 
@@ -341,7 +342,8 @@ public class TieredBlockStore implements BlockStore {
         mEvictionLock.readLock().lock();
         mEvictionLock.writeLock().unlock();
       }
-      tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
+      tempBlock = mAllocator.allocateBlockWithView(userId, blockId, initialBlockSize,
+          location, getUpdatedView());
       Preconditions.checkNotNull(tempBlock, "Cannot allocate block %s:", blockId);
     }
     // Add allocated temp block to metadata manager
