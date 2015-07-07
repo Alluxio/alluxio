@@ -19,32 +19,32 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.worker.block.BlockMetadataView;
 import tachyon.worker.block.BlockStoreLocation;
-import tachyon.worker.block.BlockMetadataManager;
-import tachyon.worker.block.meta.StorageDir;
-import tachyon.worker.block.meta.StorageTier;
+import tachyon.worker.block.meta.StorageDirView;
+import tachyon.worker.block.meta.StorageTierView;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
  * An allocator that allocates a block in the storage dir with most free space.
  */
 public class MaxFreeAllocator implements Allocator {
-  private final BlockMetadataManager mMetaManager;
+  private final BlockMetadataView mMetaView;
 
-  public MaxFreeAllocator(BlockMetadataManager metadata) {
-    mMetaManager = Preconditions.checkNotNull(metadata);
+  public MaxFreeAllocator(BlockMetadataView metadata) {
+    mMetaView = Preconditions.checkNotNull(metadata);
   }
 
   @Override
   public TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location) throws IOException {
 
-    StorageDir candidateDir = null;
+    StorageDirView candidateDir = null;
     long maxFreeBytes = blockSize;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTier tier : mMetaManager.getTiers()) {
-        for (StorageDir dir : tier.getStorageDirs()) {
+      for (StorageTierView tier : mMetaView.getTierViews()) {
+        for (StorageDirView dir : tier.getDirViews()) {
           if (dir.getAvailableBytes() >= maxFreeBytes) {
             maxFreeBytes = dir.getAvailableBytes();
             candidateDir = dir;
@@ -52,22 +52,24 @@ public class MaxFreeAllocator implements Allocator {
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTier tier = mMetaManager.getTier(location.tierAlias());
-      for (StorageDir dir : tier.getStorageDirs()) {
+      StorageTierView tier = mMetaView.getTierView(location.tierAlias());
+      for (StorageDirView dir : tier.getDirViews()) {
         if (dir.getAvailableBytes() >= maxFreeBytes) {
           maxFreeBytes = dir.getAvailableBytes();
           candidateDir = dir;
         }
       }
     } else {
-      StorageTier tier = mMetaManager.getTier(location.tierAlias());
-      StorageDir dir = tier.getDir(location.dir());
+      StorageTierView tier = mMetaView.getTierView(location.tierAlias());
+      StorageDirView dir = tier.getDirView(location.dir());
       if (dir.getAvailableBytes() >= blockSize) {
         candidateDir = dir;
       }
     }
 
-    return candidateDir != null ? new TempBlockMeta(userId, blockId, blockSize, candidateDir)
+    // TODO: avoid getDirForCreatingBlock()
+    return candidateDir != null
+        ? new TempBlockMeta(userId, blockId, blockSize, candidateDir.getDirForCreatingBlock())
         : null;
   }
 }
