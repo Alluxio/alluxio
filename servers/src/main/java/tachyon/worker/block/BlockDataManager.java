@@ -231,26 +231,28 @@ public class BlockDataManager {
   /**
    * Creates a block. This method is only called from a data server.
    *
+   * Call {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the block.
+   *
    * @param userId The id of the client
    * @param blockId The id of the block to be created
    * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
    * @param initialBytes The initial amount of bytes to be allocated
-   * @return the block writer for the local block file
    * @throws FileDoesNotExistException if the block is not on the worker
    * @throws IOException if the block writer cannot be obtained
    */
   // TODO: We should avoid throwing IOException
-  public BlockWriter createBlockRemote(long userId, long blockId, int tierAlias, long initialBytes)
+  public void createBlockRemote(long userId, long blockId, int tierAlias, long initialBytes)
       throws FileDoesNotExistException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     CommonUtils.createBlockPath(createdBlock.getPath());
-    return mBlockStore.getBlockWriter(userId, blockId);
   }
 
   /**
    * Opens a {@link BlockWriter} for an existing temporary block. This method is only called from a
    * data server.
+   *
+   * The temporary block must already exist with {@link #createBlockRemote(long, long, int, long)}.
    *
    * @param userId The id of the client
    * @param blockId The id of the block to be opened for writing
