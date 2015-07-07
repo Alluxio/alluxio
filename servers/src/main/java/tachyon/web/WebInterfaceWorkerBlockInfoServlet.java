@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -35,19 +35,19 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.BlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
-import tachyon.worker.WorkerStorage;
-import tachyon.worker.tiered.StorageDir;
+import tachyon.worker.block.BlockWorker;
+import tachyon.worker.block.meta.StorageDir;
 
 /**
  * Servlet that provides data for displaying block info of a worker.
  */
 public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private static final long serialVersionUID = 4148506607369321012L;
-  private final transient WorkerStorage mWorkerStorage;
+  private final transient BlockWorker mWorker;
   private final transient TachyonConf mTachyonConf;
 
-  public WebInterfaceWorkerBlockInfoServlet(WorkerStorage workerStorage, TachyonConf conf) {
-    mWorkerStorage = workerStorage;
+  public WebInterfaceWorkerBlockInfoServlet(BlockWorker worker, TachyonConf conf) {
+    mWorker = worker;
     mTachyonConf = conf;
   }
 
@@ -138,14 +138,15 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    *
    * @return a sorted fileId list
    */
+  // TODO: Add this functionality back
   private List<Integer> getSortedFileIds() {
     Set<Integer> fileIds = new HashSet<Integer>();
-    for (StorageDir storageDir : mWorkerStorage.getStorageDirs()) {
-      for (long blockId : storageDir.getBlockIds()) {
-        int fileId = BlockInfo.computeInodeId(blockId);
-        fileIds.add(fileId);
-      }
-    }
+//    for (StorageDir storageDir : mWorkerStorage.getStorageDirs()) {
+//      for (long blockId : storageDir.getBlockIds()) {
+//        int fileId = BlockInfo.computeInodeId(blockId);
+//        fileIds.add(fileId);
+//      }
+//    }
     List<Integer> sortedFileIds = new ArrayList<Integer>(fileIds);
     Collections.sort(sortedFileIds);
     return sortedFileIds;
@@ -189,6 +190,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws IOException
    */
+  // TODO: Add this functionality back
   private UiFileInfo getUiFileInfo(TachyonFS tachyonClient, int fileId, TachyonURI filePath)
       throws FileDoesNotExistException, IOException {
     ClientFileInfo fileInfo = tachyonClient.getFileStatus(fileId, filePath, true);
@@ -199,19 +201,19 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
 
     UiFileInfo uiFileInfo = new UiFileInfo(fileInfo);
     boolean blockExistOnWorker = false;
-    for (long blockId : fileInfo.getBlockIds()) {
-      for (StorageDir storageDir : mWorkerStorage.getStorageDirs()) {
-        if (storageDir.containsBlock(blockId)) {
-          blockExistOnWorker = true;
-          long blockSize = storageDir.getBlockSize(blockId);
-          long blockLastAccessTime = storageDir.getLastBlockAccessTimeMs(blockId);
-          StorageLevelAlias storageLevelAlias =
-              StorageDirId.getStorageLevelAlias(storageDir.getStorageDirId());
-          uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, blockLastAccessTime);
-          break;
-        }
-      }
-    }
+//    for (long blockId : fileInfo.getBlockIds()) {
+//      for (StorageDir storageDir : mWorkerStorage.getStorageDirs()) {
+//        if (storageDir.containsBlock(blockId)) {
+//          blockExistOnWorker = true;
+//          long blockSize = storageDir.getBlockSize(blockId);
+//          long blockLastAccessTime = storageDir.getLastBlockAccessTimeMs(blockId);
+//          StorageLevelAlias storageLevelAlias =
+//              StorageDirId.getStorageLevelAlias(storageDir.getStorageDirId());
+//          uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, blockLastAccessTime);
+//          break;
+//        }
+//      }
+//    }
     if (!blockExistOnWorker) {
       throw new FileDoesNotExistException(fileId != -1 ? Integer.toString(fileId)
           : filePath.toString());

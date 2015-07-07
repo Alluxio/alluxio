@@ -48,10 +48,14 @@ public class LocalBlockInStreamIntegrationTest {
   @AfterClass
   public static final void afterClass() throws Exception {
     sLocalTachyonCluster.stop();
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
@@ -221,8 +225,9 @@ public class LocalBlockInStreamIntegrationTest {
         } catch (IOException e) {
           // This is expected
           continue;
+        } finally {
+          is.close();
         }
-        is.close();
         throw new IOException("Except seek IOException");
       }
     }
@@ -252,9 +257,11 @@ public class LocalBlockInStreamIntegrationTest {
         } else {
           Assert.assertTrue(is instanceof LocalBlockInStream);
         }
-
-        is.seek(k + 1);
-        is.close();
+        try {
+          is.seek(k + 1);
+        } finally {
+          is.close();
+        }
       }
     }
   }
