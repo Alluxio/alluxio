@@ -204,7 +204,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     for (long blockId : fileInfo.getBlockIds()) {
       if (mBlockDataManager.hasBlockMeta(blockId)) {
         blockExistOnWorker = true;
-        BlockMeta blockMeta = mBlockDataManager.getBlockMeta(blockId);
+        BlockMeta blockMeta = mBlockDataManager.getVolatileBlockMeta(blockId);
         long blockSize = blockMeta.getBlockSize();
         StorageLevelAlias storageLevelAlias =
             StorageDirId.getStorageLevelAlias(blockMeta.getParentDir().getStorageDirId());
