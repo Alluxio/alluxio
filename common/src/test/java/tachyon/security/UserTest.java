@@ -42,6 +42,6 @@ public class UserTest {
 
     // verification
     Assert.assertEquals(2, users.length);
-    Assert.assertFalse(users[0].equals(users[1]));
+    Assert.assertNotEquals(users[0], users[1]);
   }
 }
