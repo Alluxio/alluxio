@@ -15,9 +15,6 @@
 
 package tachyon.network.protocol;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
@@ -31,8 +28,6 @@ import tachyon.worker.DataServerMessage;
  * This represents an RPC request to read a block from a DataServer.
  */
 public class RPCBlockRequest extends RPCRequest {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
