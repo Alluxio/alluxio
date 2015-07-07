@@ -482,6 +482,6 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void setPinnedBlocks(List<Long> blocks) {
     pinnedBlocks.clear();
-    pinnedBlocks.addAll(blocks);
+    pinnedBlocks.addAll(Preconditions.checkNotNull(blocks));
   }
 }
