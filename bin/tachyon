@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 
+LAUNCHER=
+# If debugging is enabled propagate that through to sub-shells
+if [[ "$-" == *x* ]]; then
+  LAUNCHER="bash -x"
+fi
+
 function printUsage {
   echo "Usage: tachyon COMMAND "
   echo "where COMMAND is one of:"
-  echo -e "  format [-s]   \t Format Tachyon (if -s specified, only format if underfs doesn't exist)"
+  echo -e "  format [-s]   \t Format Tachyon (if -s specified, only format if underfs is local and doesn't already exist)"
+  echo -e "  formatWorker  \t Format Tachyon worker storage"
   echo -e "  bootstrap-conf\t Generate a config file if one doesn't exist"
   echo -e "  tfs           \t Command line input for generic filesystem user client."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Tachyon."
@@ -14,6 +21,7 @@ function printUsage {
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
   echo -e "  thriftGen     \t Generate all thrift code."
   echo -e "  version       \t Print Tachyon version and exit."
+  echo -e "  validateConf  \t Validate Tachyon conf and exit."
   echo "Commands print help when invoked without parameters."
 }
 
@@ -44,25 +52,44 @@ function runTest {
     MASTER_ADDRESS=localhost
   fi
 
-  if [[ "$1" == "Basic" ]]; then
-    $bin/tachyon tfs rm /BasicFile_$2
-    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicOperations tachyon://$MASTER_ADDRESS:19998 /BasicFile_$2 $2
-    exit 0
-  elif [[ "$1" == "BasicRawTable" ]]; then
-    $bin/tachyon tfs rm /BasicRawTable_$2
-    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicRawTableOperations tachyon://$MASTER_ADDRESS:19998 /BasicRawTable_$2 $2
-    exit 0
-  elif [[ "$1" == "BasicCheckpoint" ]]; then
-    $bin/tachyon tfs rm /BasicCheckpoint
-    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicCheckpoint tachyon://$MASTER_ADDRESS:19998 /BasicCheckpoint 10
-    exit 0
-  elif [[ "$1" == "BasicNonByteBuffer" ]]; then
-    $bin/tachyon tfs rm /BasicNonByteBuffer_$2
-    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicNonByteBufferOperations tachyon://$MASTER_ADDRESS:19998 /BasicNonByteBuffer_$2 "$2"
-    exit 0
-  fi
+  local file="/default_tests_files"
+  local class=""
+  local args="$2"
+  case "$1" in
+    Basic)
+      file+="/BasicFile_$2"
+      class="tachyon.examples.BasicOperations"
+      ;;
+    BasicRawTable)
+      file+="/BasicRawTable_$2"
+      class="tachyon.examples.BasicRawTableOperations"
+      ;;
+    BasicCheckpoint)
+      file+="/BasicCheckpoint"
+      class="tachyon.examples.BasicCheckpoint"
+      args="10"
+      ;;
+    BasicNonByteBuffer)
+      file+="/BasicNonByteBuffer_$2"
+      class="tachyon.examples.BasicNonByteBufferOperations"
+      ;;
+    *)
+      echo "Unknown test: $1 with type $2" 1>&2
+      echo "$Usage"
+      exit 1
+      ;;
+  esac
+  $LAUNCHER $bin/tachyon tfs rmr "$file"
+  $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS "$class" tachyon://$MASTER_ADDRESS:19998 "$file" "$args"
 
-  echo $Usage
+  # If test process received a signal abort early
+  # Exit Codes for signals terminating a JVM are 128 + signal
+  RET=$?
+  if [ $RET -gt 128 ]; then
+    echo "Test process was terminated due to signal"
+    exit $RET
+  fi
+  return $RET
 }
 
 function killAll {
@@ -74,11 +101,23 @@ function killAll {
 
   keyword=$1
   count=0
-  for pid in `ps -A -o pid,command | grep -i "[j]ava" | grep $keyword | awk '{print $1}'`; do
-    kill -9 $pid 2> /dev/null
+  for pid in `ps -Aww -o pid,command | grep -i "[j]ava" | grep $keyword | awk '{print $1}'`; do
+    kill -15 "$pid" > /dev/null 2>&1
+    local cnt=30
+    while kill -0 "$pid" > /dev/null 2>&1; do
+      if [ $cnt -gt 1 ]; then
+        # still not dead, wait
+        cnt=`expr $cnt - 1`
+        sleep 1
+      else
+        # waited long enough, kill the process
+        echo "Process did not complete after 30 seconds, killing."
+        kill -9 $pid 2> /dev/null
+      fi
+    done
     count=`expr $count + 1`
   done
-  echo "Killed $count processes"
+  echo "Killed $count processes on `hostname`"
 }
 
 function copyDir {
@@ -88,7 +127,7 @@ function copyDir {
   fi
 
   bin=`cd "$( dirname "$0" )"; pwd`
-  SLAVES=`cat $TACHYON_CONF_DIR/slaves`
+  WORKERS=`cat $TACHYON_CONF_DIR/workers`
 
   DIR=`readlink -f "$1"`
   DIR=`echo "$DIR"|sed 's@/$@@'`
@@ -96,10 +135,10 @@ function copyDir {
 
   SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=5"
 
-  echo "RSYNC'ing $DIR to slaves..."
-  for slave in $SLAVES; do
-      echo $slave
-      rsync -e "ssh $SSH_OPTS" -az "$DIR" "$slave:$DEST" & sleep 0.05
+  echo "RSYNC'ing $DIR to workers..."
+  for worker in $WORKERS; do
+      echo $worker
+      rsync -e "ssh $SSH_OPTS" -az "$DIR" "$worker:$DEST" & sleep 0.05
   done
   wait
 }
@@ -135,8 +174,8 @@ PARAMETER=""
 if [ "$COMMAND" == "format" ]; then
   if [ $# -eq 1 ]; then
     if [ "$1" == "-s" ]; then
-      if [ -e $TACHYON_UNDERFS_ADDRESS ] || [[ $TACHYON_UNDERFS_ADDRESS == hdfs://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == s3://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == glusterfs://* ]]; then
-        # already exists, hdfs, or s3, don't format
+      if [ -e $TACHYON_UNDERFS_ADDRESS ] || [[ $TACHYON_UNDERFS_ADDRESS == hdfs://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == s3://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == s3n://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == glusterfs://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == swift://* ]]; then
+        # if ufs is local filesystem and already exists or if ufs is not local filesystem, don't format
         exit 0
       else
         shift # remove -s param
@@ -154,7 +193,7 @@ if [ "$COMMAND" == "format" ]; then
     TACHYON_MASTER_ADDRESS=localhost
   fi
 
-  $bin/tachyon-slaves.sh $bin/tachyon formatWorker
+  $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon formatWorker
 
   echo "Formatting Tachyon Master @ $TACHYON_MASTER_ADDRESS"
   CLASS=tachyon.Format
@@ -167,25 +206,39 @@ elif [ "$COMMAND" == "formatWorker" ]; then
   CLASS=tachyon.Format
   PARAMETER=worker
 elif [ "$COMMAND" == "tfs" ]; then
-  CLASS=tachyon.command.TFsShell
+  CLASS=tachyon.shell.TFsShell
 elif [ "$COMMAND" == "loadufs" ]; then
-  CLASS=tachyon.util.UfsUtils
+  CLASS=tachyon.client.UfsUtils
 elif [ "$COMMAND" == "runTest" ]; then
   runTest "$@"
-  exit 0
+  exit $?
 elif [ "$COMMAND" == "runTests" ]; then
   declare -a opArr=(MUST_CACHE TRY_CACHE CACHE_THROUGH THROUGH ASYNC_THROUGH)
 
+  failed=0
   for op in ${opArr[@]}
   do
     for example in Basic BasicRawTable BasicCheckpoint BasicNonByteBuffer
     do
-      echo $bin/tachyon runTest $example $op
-      $bin/tachyon runTest $example $op
+      echo $LAUNCHER $bin/tachyon runTest $example $op
+      $LAUNCHER $bin/tachyon runTest $example $op
+      st=$?
+
+      # If test process received a signal abort early
+      # Exit Codes for signals terminating a JVM are 128 + signal
+      if [ $st -gt 128 ]; then
+        # Received some kind of signal
+        echo "Test process was terminated due to signal"
+        exit $st
+      fi
+      failed=$(( $failed + $st ))
     done
   done
 
-  exit 0
+  if [ $failed -gt 0 ]; then
+    echo "Number of failed tests: $failed" 1>&2
+  fi
+  exit $failed
 elif [ "$COMMAND" == "killAll" ]; then
   killAll "$@"
   exit 0
@@ -193,17 +246,19 @@ elif [ "$COMMAND" == "copyDir" ]; then
   copyDir "$@"
   exit 0
 elif [ "$COMMAND" == "thriftGen" ]; then
-  rm -rf $bin/../core/src/main/java/tachyon/thrift
-  thrift --gen java -out $bin/../core/src/main/java/. $bin/../core/src/thrift/tachyon.thrift
+  rm -rf $bin/../common/src/main/java/tachyon/thrift
+  thrift --gen java -out $bin/../common/src/main/java/. $bin/../common/src/thrift/tachyon.thrift
   exit 0
 elif [ "$COMMAND" == "clearCache" ]; then
   sync; echo 3 > /proc/sys/vm/drop_caches ;
   exit 0
 elif [ "$COMMAND" == "version" ]; then
   CLASS=tachyon.Version
+elif [ "$COMMAND" == "validateConf" ]; then
+  CLASS=tachyon.ValidateConf
 else
   printUsage
   exit 1
 fi
 
-$JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $PARAMETER $@
+$JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $PARAMETER $@

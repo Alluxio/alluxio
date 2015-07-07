@@ -1,0 +1,71 @@
+- hosts: all
+  tasks:
+    - include: roles/common/tasks/main.yml
+    - include: roles/lib/tasks/mount.yml
+      when: provider == "aws"
+
+    - name: open PasswordAuthentication of sshd for openstack
+      replace: >
+        dest=/etc/ssh/sshd_config
+        regexp='PasswordAuthentication no'
+        replace='PasswordAuthentication yes'
+      sudo: yes
+      when: provider == "os"
+
+- hosts: TachyonMaster
+  tasks:
+    - include: roles/vagrant_utils/tasks/main.yml
+
+    # Ufs
+    - include: roles/ufs_{{ ufs }}/tasks/download_release.yml
+    - include: roles/ufs_{{ ufs }}/tasks/config.yml
+
+    # Tachyon
+    - include: roles/tachyon/tasks/download_release.yml
+      when: tachyon_type == "Release"
+
+    - include: roles/tachyon/tasks/clone_local_repo.yml
+      when: (tachyon_type == "Local") and (provider != "vb") # vb syncs local repo to vm through kernel module instead of rsync
+
+    - include: roles/tachyon/tasks/clone_remote_repo.yml
+      when: tachyon_type == "Github"
+
+    - include: roles/tachyon/tasks/compile.yml
+      when: tachyon_type != "Release"
+
+    - include: roles/tachyon/tasks/config.yml
+
+    - include: roles/lib/tasks/tachyon_tiered.yml
+      when: (ufs != "hadoop1") and (ufs != "hadoop2")
+
+    # Spark
+    - include: roles/spark/tasks/download_release.yml
+      when: spark_type == "Release"
+
+    - include: roles/spark/tasks/clone_remote_repo.yml
+      when: spark_type == "Github"
+
+    - include: roles/spark/tasks/compile.yml
+      when: spark_type == "Github"
+
+    - include: roles/spark/tasks/config.yml
+      when: spark_type != "None"
+
+- hosts: TachyonWorker*
+  tasks:
+    - include: roles/ufs_{{ ufs }}/tasks/rsync_dist.yml
+
+    - include: roles/tachyon/tasks/rsync_dist.yml
+
+    - include: roles/spark/tasks/rsync_dist.yml
+      when: spark_type != "None"
+
+- hosts: TachyonMaster
+  tasks:
+    - include: roles/ufs_{{ ufs }}/tasks/start.yml
+
+    - include: roles/tachyon/tasks/start.yml
+
+    - include: roles/spark/tasks/start.yml
+      when: spark_type != "None"
+

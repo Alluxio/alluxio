@@ -5,9 +5,34 @@ title: Running Spark on Tachyon
 
 ## Compatibility
 
-By default, Spark 1.0.x is bundled with Tachyon 0.4.1. If you run a different version Tachyon,
-please recompile Spark with the right version of Tachyon, by changing the Tachyon version in
-spark/core/pom.xml.
+If you plan to run Spark on Tachyon, the following version pairings will work together
+out-of-the-box. If you plan to use a different version than the default supported version, please
+recompile Spark with the right version of tachyon-client by changing the version in
+`spark/core/pom.xml`.
+
+<table class="table">
+<tr><th>Spark Version</th><th>Tachyon Version</th></tr>
+<tr>
+  <td> 1.0.x and Below </td>
+  <td> v0.4.1 </td>
+</tr>
+<tr>
+  <td> 1.1.x </td>
+  <td> v0.5.0 </td>
+</tr>
+<tr>
+  <td> 1.2.x </td>
+  <td> v0.5.0 </td>
+</tr>
+<tr>
+  <td> 1.3.x </td>
+  <td> v0.5.0 </td>
+</tr>
+<tr>
+  <td> 1.4.x and Above </td>
+  <td> v0.6.4 </td>
+</tr>
+</table>
 
 ## Input/Output data with Tachyon
 
@@ -46,14 +71,14 @@ If you are invoking spark job using sbt or from other frameworks like play using
     val conf = new SparkConf()
     val sc = new SparkContext(conf)
     sc.hadoopConfiguration.set("fs.tachyon.impl", "tachyon.hadoop.TFS")
-    
 
-If you are running tachyon in fault tolerant mode with zookeeper and the hadoop cluster is a 1.x cluster, 
+
+If you are running tachyon in fault tolerant mode with zookeeper and the hadoop cluster is a 1.x cluster,
 additionally add new entry in previously created `spark/conf/core-site.xml`:
 
     <property>
         <name>fs.tachyon-ft.impl</name>
-        <value>tachyon.hadoop.TFS</value>
+        <value>tachyon.hadoop.TFSFT</value>
     </property>
 
 Add the following line to `spark/conf/spark-env.sh`:
@@ -78,9 +103,9 @@ later) and Tachyon (0.4.1 or later).  Please refer to
 [Spark Doc](http://spark.apache.org/docs/latest/programming-guide.html) on the benefit of this
 feature.
 
-Your Spark programs need to set two parameters, `spark.tachyonStore.url` and
-`spark.tachyonStore.baseDir`. `spark.tachyonStore.url` (by default `tachyon://localhost:19998`) is
-the URL of the Tachyon filesystem in the TachyonStore. `spark.tachyonStore.baseDir` (by default
+Your Spark programs need to set two parameters, `spark.externalBlockStore.url` and
+`spark.externalBlockStore.baseDir`. `spark.externalBlockStore.url` (by default `tachyon://localhost:19998`) is
+the URL of the Tachyon filesystem in the TachyonStore. `spark.externalBlockStore.baseDir` (by default
 `java.io.tmpdir`) is the base directory in the Tachyon File System that will store the RDDs. It can
 be a comma-separated list of multiple directories in Tachyon.
 
@@ -91,7 +116,7 @@ is an example with Spark shell:
     $ val rdd = sc.textFile(inputPath)
     $ rdd.persist(StorageLevel.OFF_HEAP)
 
-Take a look at the `spark.tachyonStore.baseDir` on Tachyon's WebUI (the default URI is
+Take a look at the `spark.externalBlockStore.baseDir` on Tachyon's WebUI (the default URI is
 [http://localhost:19999](http://localhost:19999)), when the Spark application is running. There
 should be a bunch of files there; they are RDD blocks. Currently, the files will be cleaned up when
 the spark application finishes.

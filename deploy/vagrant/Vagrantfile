@@ -1,0 +1,120 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require 'yaml'
+require "./core/EnvSetup"
+
+# load configuration from init.yml
+@cmd = YAML.load_file('conf/init.yml')
+puts @cmd.inspect
+
+Total = @cmd['MachineNumber']
+Provider = @cmd['Provider']
+
+validate_provider(Provider)
+
+# load version configuration from tachyon_version.yml
+TachyonV = TachyonVersion.new('conf/tachyon.yml')
+SparkV = SparkVersion.new('conf/spark.yml')
+UfsV = UfsVersion.new('conf/ufs.yml')
+
+require "./core/config_#{Provider}"
+
+# Vagrantfile API/syntax version.
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.require_version ">= 1.6.5"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  (1..Total).each do |i|
+    # multi vm config
+    if i == Total
+      name = "TachyonMaster"
+    else
+      name = "TachyonWorker#{i}"
+    end
+    config.vm.define "#{name}" do |n|
+      n.vm.hostname = "#{name}"
+
+      # Provision when the machine is master
+      if i == Total
+        n.vm.provision :ansible do |ans|
+          ans.playbook = "provision/playbook.yml"
+          ans.limit = "all" # to let "- hosts: all" work in playbooks
+          tachyon_repo, tachyon_version = TachyonV.repo_version
+          spark_repo, spark_version = SparkV.repo_version
+          is_vb = Provider == "vb"
+          ans.extra_vars = {
+              tachyon_type:    TachyonV.type,
+              tachyon_repo:    tachyon_repo, 
+              tachyon_dist:    TachyonV.dist,
+              tachyon_memory:  TachyonV.memory,
+              tachyon_version: tachyon_version,
+
+              spark_type:    SparkV.type,
+              spark_repo:    spark_repo,
+              spark_dist:    SparkV.dist,
+              spark_profile: UfsV.hadoop.spark_profile,
+              spark_version: spark_version,
+              spark_version_lessthan_1: SparkV.v_lt_1,
+
+              ufs: UfsV.type,
+
+              hadoop_version:     UfsV.hadoop.version,
+              hadoop_tarball_url: UfsV.hadoop.tarball_url,
+
+              s3_id:     UfsV.s3.id,
+              s3_key:    UfsV.s3.key,
+              s3_bucket: UfsV.s3.bucket,
+
+              provider: Provider,
+          }
+          # ans.verbose = "vvvv"
+          ans.raw_ssh_args = ['-o ControlPersist=30m']
+        end
+      end
+
+      # Provider specific init
+      if Provider == "vb"
+        system "bash vbox/buildbox.sh"
+        config_vb(n, i, Total, name, TachyonV.type == "Local")
+      end
+
+      if Provider == "docker"
+        config_docker(n, i, Total, name)
+      end
+
+      if Provider == "aws"
+        if (defined?(@ec2)).nil?
+          @ec2 = YAML.load_file('conf/ec2.yml')
+          puts @ec2.inspect
+          KEYPAIR=@ec2['Keypair']
+          KEY_PATH=@ec2['Key_Path']
+          AMI=@ec2['AMI']
+          REGION=@ec2['Region']
+          SECURITY_GROUP=@ec2['Security_Group']
+          INSTANCE_TYPE = @ec2['Instance_Type']
+          AVAILABILITY_ZONE  = @ec2['Availability_Zone']
+          BLOCK_DEVICE_MAPPING = @ec2['Block_Device_Mapping']
+          TAG = @ec2['Tag']
+        end
+        config_aws(n, i, Total, name)
+      end
+
+      if Provider == "openstack"
+        if (defined?(@os)).nil?
+          @os = YAML.load_file('conf/openstack.yml')
+          puts @os.inspect
+          FLAVOR = @os['Flavor']
+          IMAGE =  @os['Image']
+          KEY_PATH = @os['Key_Path']
+          KEYPAIR_NAME = @os['Keypair_Name']
+          TENENT = @os['Tenent']
+          KEYSTONE = @os['Keystone_URL']
+          SECURITY_GROUP = @os['Security_Group']
+          SSH_USERNAME = @os['SSH_Username']
+          TAG = @os['Tag']
+        end
+        config_os(n, i, Total, name)
+      end
+    end
+  end
+end

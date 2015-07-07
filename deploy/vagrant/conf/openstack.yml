@@ -1,0 +1,13 @@
+Flavor: "m1.small"
+# Regex or String
+Image:  "CentOS"
+# e.g. "#{ENV['OS_AUTH_URL']}/tokens"
+Keystone_URL: "http://control.os1.phx2.redhat.com:5000/v2.0/tokens"
+Key_Path: "~/.ssh/os1.pem"
+Security_Group: "default"
+SSH_Username: "centos"
+Keypair_Name: "hchen"
+Tenent: ""
+# Tag to the instance name
+# to avoid name conflict during mutiple deployment
+Tag: "my-"

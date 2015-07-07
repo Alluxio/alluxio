@@ -1,0 +1,23 @@
+# Rsync local Tachyon repo(suppose it's under the relative path: playbook.yml/../../../)
+---
+
+- name: mkdir /tachyon
+  script: mkdir.sh
+
+- name: clone local tachyon repo
+  synchronize:
+    src: ../../../../../../
+    dest: /tachyon
+    rsync_opts: >
+      --exclude=.git,
+      --exclude=.gitignore,
+      --exclude=core/target,
+      --exclude=assembly/target,
+      --exclude=client/target,
+      --exclude=deploy,
+      --exclude=docs,
+      --exclude=journal,
+      --exclude=logs,
+      --exclude=underFSStorage
+
+# vim :set filetype=ansible.yaml:

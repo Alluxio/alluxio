@@ -4,7 +4,7 @@ include FileUtils
 
 puts "Copy over the JavaDoc for all projects to api/java"
 
-source = "../core/target/site/apidocs"
+source = "../target/site/apidocs"
 dest = "api/java"
 
 puts "Making directory " + dest

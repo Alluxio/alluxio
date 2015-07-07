@@ -14,6 +14,10 @@ Checkout the Tachyon master branch from Github and package:
     $ cd tachyon
     $ mvn install
 
+If you getting java.lang.OutOfMemoryError: Java heap space, please execute 
+
+    $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
+
 If you want to build a particular version of Tachyon, for example {{site.TACHYON_RELEASED_VERSION}},
 please do `git checkout v{{site.TACHYON_RELEASED_VERSION}}` after `cd tachyon`.
 
@@ -107,3 +111,21 @@ To build against a Hortonworks release, just use a version like `$apacheRelease.
     -Dhadoop.version=2.1.0.2.0.5.0-67
     -Dhadoop.version=2.2.0.2.1.0.0-92
     -Dhadoop.version=2.4.0.2.1.3.0-563
+
+# System Settings
+
+Some times you will need to play with a few system settings in order to have the unit tests pass locally.  A common setting that may need to be set is ulimit.
+
+## Mac
+
+In order to increase the number of files and procs allowed, run the following
+
+```bash
+sudo launchctl limit maxfiles 16384 16384
+sudo launchctl limit maxproc 2048 2048
+
+sudo ulimit -n 16384
+sudo ulimit -u 2048
+```
+
+It is also recommended to exclude your local clone of Tachyon from Spotlight indexing as otherwise your Mac may hang constantly trying to re-index the file system during the unit tests.  To do this go to `System Preferences > Spotlight > Privacy` and click the `+` button, browse to the folder containing your local clone of Tachyon and click `Choose` to add it to the exclusions list.

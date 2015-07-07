@@ -1,0 +1,8 @@
+# Entry point for roles/common
+---
+
+- include: pkg.yml
+- include: files.yml
+- include: net.yml
+
+# vim: set filetype=ansible.yaml:

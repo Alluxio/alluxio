@@ -10,6 +10,7 @@
       <directory>${basedir}/../bin</directory>
       <outputDirectory>/bin</outputDirectory>
       <fileMode>0755</fileMode>
+      <directoryMode>0755</directoryMode>
     </fileSet>
     <fileSet>
       <directory>${basedir}/../conf</directory>
@@ -52,8 +53,8 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/../core/src/main/webapp</directory>
-      <outputDirectory>/core/src/main/webapp</outputDirectory>
+      <directory>${basedir}/../servers/src/main/webapp</directory>
+      <outputDirectory>/servers/src/main/webapp</outputDirectory>
     </fileSet>
   </fileSets>
   <!-- If bundled dependencies gets supported, uncomment -->

@@ -1,0 +1,9 @@
+- name: mkdir /spark
+  script: mkdir.sh
+
+- name: download spark release
+  script: down_release.sh
+  environment:
+    SPARK_DIST: "{{ spark_dist }}"
+
+# vim :set filetype=ansible.yaml:

@@ -1,0 +1,7 @@
+- name: start spark
+  shell: /spark/sbin/start-all.sh
+
+- name: start spark history server
+  shell: /spark/sbin/start-history-server.sh
+
+# vim :set filetype=ansible.yaml:
