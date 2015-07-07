@@ -80,6 +80,24 @@ public class BlockStoreLocation {
     return tierInRange && dirInRange;
   }
 
+  /**
+   * Whether this location is {@link #anyTier()}.
+   *
+   * @return true if it is otherwise false
+   */
+  public boolean isAnyTier() {
+    return mTierAlias == ANY_TIER && mDirIndex == ANY_DIR;
+  }
+
+  /**
+   * Whether this location is a determined StorageDir
+   *
+   * @return true if it is otherwise false if it is anyTier or anyDirInTier
+   */
+  public boolean isDetermined() {
+    return mTierAlias != ANY_TIER && mDirIndex != ANY_DIR;
+  }
+
   @Override
   public String toString() {
     StringBuilder result = new StringBuilder();
