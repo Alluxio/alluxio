@@ -18,6 +18,7 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -358,8 +359,6 @@ public class BlockDataManager {
    */
   // TODO: We should avoid throwing IOException
   public void requestSpace(long userId, long blockId, long additionalBytes) throws IOException {
-    mMasterClient.worker_getPinIdList();
-
     mBlockStore.requestSpace(userId, blockId, additionalBytes);
   }
 
@@ -448,5 +447,9 @@ public class BlockDataManager {
     String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
     int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
     return new InetSocketAddress(workerHostname, workerPort);
+  }
+
+  public void setPinList(Set<Integer> list) {
+    mBlockStore.setPinnedInodes(list);
   }
 }

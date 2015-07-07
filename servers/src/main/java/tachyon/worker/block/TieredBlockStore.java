@@ -75,7 +75,7 @@ public class TieredBlockStore implements BlockStore {
   private List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
   /** A list of pinned blocks fetched from the master */
-  private final List<Long> mPinnedBlocks = new ArrayList<Long>();
+  private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
   /** A list of blocks that are currently being read */
   private final List<Long> mReadingBlocks = new ArrayList<Long>();
   /** A narrowed view provided to evictors and allocators */
@@ -97,7 +97,7 @@ public class TieredBlockStore implements BlockStore {
 
     // initially use empty lists to provide full view
     mMetadataView = new BlockMetadataView(mMetaManager,
-        new ArrayList<Long>(), new ArrayList<Long>());
+        new HashSet<Integer>(), new ArrayList<Long>());
 
     AllocatorType allocatorType =
         mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
@@ -426,7 +426,7 @@ public class TieredBlockStore implements BlockStore {
   // always update the metadata view before doing freeSpacewithNewView
   private BlockMetadataView getUpdatedView() throws IOException{
     // TODO: update the view object instead of creating new one every time
-    mMetadataView = new BlockMetadataView(mMetaManager, mPinnedBlocks, mReadingBlocks);
+    mMetadataView = new BlockMetadataView(mMetaManager, mPinnedInodes, mReadingBlocks);
     return mMetadataView;
   }
 
@@ -494,5 +494,16 @@ public class TieredBlockStore implements BlockStore {
         }
       }
     }
+  }
+
+  /**
+   * Sets the pinned blocks to the given list.
+   *
+   * @param blocks a list of IDs of block that have been pinned
+   */
+  @Override
+  public void setPinnedInodes(Set<Integer> inodes) {
+    mPinnedInodes.clear();
+    mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
   }
 }

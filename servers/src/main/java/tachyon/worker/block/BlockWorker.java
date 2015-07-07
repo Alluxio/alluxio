@@ -59,6 +59,8 @@ public class BlockWorker {
 
   /** Runnable responsible for heartbeating and registration with master. */
   private BlockMasterSync mBlockMasterSync;
+  /** Runnable responsible for fetching pinlist from master. */
+  private PinListSync mPinListSync;
   /** Logic for handling RPC requests. */
   private BlockServiceHandler mServiceHandler;
   /** Logic for managing block store and under file system store. */
@@ -140,6 +142,9 @@ public class BlockWorker {
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
     mBlockMasterSync.registerWithMaster();
 
+    // start pinlist syncer using the same executor
+    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf);
+
     // Setup user metadata mapping
     // TODO: Have a top level register that gets the worker id.
     mWorkerId = mBlockMasterSync.getWorkerId();
@@ -197,6 +202,9 @@ public class BlockWorker {
     mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
 
     mSyncExecutorService.submit(mBlockMasterSync);
+
+    mSyncExecutorService.submit(mPinListSync);
+
     mWebServer.startWebServer();
     mThriftServer.serve();
   }
@@ -211,6 +219,7 @@ public class BlockWorker {
     mThriftServer.stop();
     mThriftServerSocket.close();
     mBlockMasterSync.stop();
+    mPinListSync.stop();
     mSyncExecutorService.shutdown();
     try {
       mWebServer.shutdownWebServer();

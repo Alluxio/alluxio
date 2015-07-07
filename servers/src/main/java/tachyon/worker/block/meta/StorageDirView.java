@@ -17,9 +17,11 @@ package tachyon.worker.block.meta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.master.BlockInfo;
 import tachyon.worker.block.BlockMetadataView;
 
 /**
@@ -47,13 +49,14 @@ public class StorageDirView {
    * for blocks that are neither pinned or being read.
    */
   public List<BlockMeta> getBlocks() {
-    List<Long> pinnedBlocks = mView.getPinnedBlocks();
+    Set<Integer> pinnedInodes = mView.getPinnedInodes();
     List<Long> readingBlocks = mView.getReadingBlocks();
     List<BlockMeta> filteredList = new ArrayList<BlockMeta>();
 
     for (BlockMeta blockMeta : mDir.getBlocks()) {
       long blockId = blockMeta.getBlockId();
-      if (!pinnedBlocks.contains(blockId) && !readingBlocks.contains(blockId)) {
+      if (!pinnedInodes.contains(BlockInfo.computeInodeId(blockId)) &&
+          !readingBlocks.contains(blockId)) {
         filteredList.add(blockMeta);
       }
     }

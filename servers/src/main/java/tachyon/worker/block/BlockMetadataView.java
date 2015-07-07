@@ -18,9 +18,12 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.master.BlockInfo;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.StorageTierView;
@@ -32,7 +35,7 @@ public class BlockMetadataView {
 
   private final BlockMetadataManager mMetadataManager;
   private List<StorageTierView> mTierViews = new ArrayList<StorageTierView>();
-  private final List<Long> mPinnedBlocks = new ArrayList<Long>();
+  private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
   private final List<Long> mReadingBlocks = new ArrayList<Long>();
 
   /**
@@ -43,10 +46,10 @@ public class BlockMetadataView {
    * @param readingBlocks
    * @throws IOException
    */
-  public BlockMetadataView(BlockMetadataManager manager, List<Long> pinnedBlocks,
+  public BlockMetadataView(BlockMetadataManager manager, Set<Integer> pinnedInodes,
       List<Long> readingBlocks) throws IOException {
     mMetadataManager = Preconditions.checkNotNull(manager);
-    mPinnedBlocks.addAll(Preconditions.checkNotNull(pinnedBlocks));
+    mPinnedInodes.addAll(Preconditions.checkNotNull(mPinnedInodes));
     mReadingBlocks.addAll(Preconditions.checkNotNull(readingBlocks));
 
     // iteratively create all StorageTierViews and StorageDirViews
@@ -60,8 +63,8 @@ public class BlockMetadataView {
    * get pinned list
    *
    */
-  public List<Long> getPinnedBlocks() {
-    return mPinnedBlocks;
+  public Set<Integer> getPinnedInodes() {
+    return mPinnedInodes;
   }
 
   /**
@@ -124,7 +127,8 @@ public class BlockMetadataView {
    * @throws IOException if no BlockMeta for this blockId is found
    */
   public BlockMeta getBlockMeta(long blockId) throws IOException {
-    if (mPinnedBlocks.contains(blockId) || mReadingBlocks.contains(blockId)) {
+    if (mPinnedInodes.contains(BlockInfo.computeInodeId(blockId)) ||
+        mReadingBlocks.contains(blockId)) {
       return null;
     } else {
       return mMetadataManager.getBlockMeta(blockId);
