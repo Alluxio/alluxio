@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.TempBlockMeta;
+import tachyon.worker.block.BlockMetadataView;
 
 /**
  * Interface for the allocation policy of Tachyon managed data.
@@ -35,6 +36,10 @@ public interface Allocator {
    * @return a temp block meta if success, null otherwise
    * @throws IOException if block location is invalid
    */
+  @Deprecated
   TempBlockMeta allocateBlock(
       long userId, long blockId, long blockSize, BlockStoreLocation location) throws IOException;
+
+  TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
+      BlockStoreLocation location, BlockMetadataView view) throws IOException;
 }
