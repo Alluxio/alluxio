@@ -19,10 +19,10 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.IterableLocation;
 import tachyon.worker.block.meta.StorageDir;
-import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -41,28 +41,10 @@ public class MaxFreeAllocator implements Allocator {
 
     StorageDir candidateDir = null;
     long maxFreeBytes = blockSize;
-
-    if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTier tier : mMetaManager.getTiers()) {
-        for (StorageDir dir : tier.getStorageDirs()) {
-          if (dir.getAvailableBytes() >= maxFreeBytes) {
-            maxFreeBytes = dir.getAvailableBytes();
-            candidateDir = dir;
-          }
-        }
-      }
-    } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTier tier = mMetaManager.getTier(location.tierAlias());
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (dir.getAvailableBytes() >= maxFreeBytes) {
-          maxFreeBytes = dir.getAvailableBytes();
-          candidateDir = dir;
-        }
-      }
-    } else {
-      StorageTier tier = mMetaManager.getTier(location.tierAlias());
-      StorageDir dir = tier.getDir(location.dir());
-      if (dir.getAvailableBytes() >= blockSize) {
+    for (StorageDir dir : IterableLocation.create(mMetaManager, location)) {
+      long availableBytes = dir.getAvailableBytes();
+      if (availableBytes >= maxFreeBytes) {
+        maxFreeBytes = availableBytes;
         candidateDir = dir;
       }
     }
