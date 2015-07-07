@@ -127,7 +127,7 @@ public class BlockMetadataView {
     if (mPinnedBlocks.contains(blockId) || mReadingBlocks.contains(blockId)) {
       return null;
     } else {
-      return getBlockMeta(blockId);
+      return mMetadataManager.getBlockMeta(blockId);
     }
   }
 }
