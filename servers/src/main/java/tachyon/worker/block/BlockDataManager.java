@@ -358,6 +358,8 @@ public class BlockDataManager {
    */
   // TODO: We should avoid throwing IOException
   public void requestSpace(long userId, long blockId, long additionalBytes) throws IOException {
+    mMasterClient.worker_getPinIdList();
+
     mBlockStore.requestSpace(userId, blockId, additionalBytes);
   }
 

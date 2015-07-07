@@ -25,8 +25,8 @@ import java.util.Map;
 import com.google.common.base.Preconditions;
 
 import tachyon.worker.block.meta.BlockMeta;
-import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
+import tachyon.worker.block.meta.StorageTierView;
 
 /**
  * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators.
@@ -34,40 +34,54 @@ import tachyon.worker.block.meta.StorageTier;
 public class BlockMetadataView {
 
   private final BlockMetadataManager mMetadataManager;
+  private List<StorageTierView> mTierViews;
+  private final List<Long> mPinnedBlocks = new ArrayList<Long>();
+  private final List<Long> mdReadingBlocks = new ArrayList<Long>();
 
-  public BlockMetadataView(BlockMetadataManager manager) {
+  public BlockMetadataView(BlockMetadataManager manager, ArrayList<Long> pinnedBlocks,
+      ArrayList<Long> readingBlocks) throws IOException {
     mMetadataManager = Preconditions.checkNotNull(manager);
+    mPinnedBlocks.addAll(Preconditions.checkNotNull(pinnedBlocks));
+    mdReadingBlocks.addAll(Preconditions.checkNotNull(readingBlocks));
+
+    // iteratively create all StorageTierViews and StorageDirViews
+    for (StorageTier tier : manager.getTiers()) {
+      StorageTierView tierView = new StorageTierView(tier, this);
+      mTierViews.add(tierView);
+    }
   }
 
   /**
-   * Redirecting to {@link BlockMetadataManager#getTier(int)}
+   * Provide StorageTierView given tierAlias
    *
-   * @param tierAlias the alias of this tier
-   * @return the StorageTier object associated with the alias
+   * @param tierAlias the alias of this tierView
+   * @return the StorageTierView object associated with the alias
    * @throws IOException if tierAlias is not found
    */
-  public synchronized StorageTier getTier(int tierAlias) throws IOException {
-    return mMetadataManager.getTier(tierAlias);
+  public synchronized StorageTierView getTierView(int tierAlias) throws IOException {
+    // TODO: can we ensure the returning tierview is same as
+    // new StorageTierView(mMetadataManager.getTier(tierAlias)) ?
+    return mTierViews.get(tierAlias);
   }
 
   /**
-   * Redirecting to {@link BlockMetadataManager#getTiers()}
    *
-   * @return the list of StorageTiers
+   * @return the list of StorageTierViews
    */
-  public synchronized List<StorageTier> getTiers() {
-    return mMetadataManager.getTiers();
+  public synchronized List<StorageTierView> getTierViews() {
+    return mTierViews;
   }
 
   /**
-   * Redirecting to {@link BlockMetadataManager#getTiersBelow(int)}
    *
    * @param tierAlias the alias of a tier
-   * @return the list of StorageTier
+   * @return the list of StorageTierView
    * @throws IOException if tierAlias is not found
    */
-  public synchronized List<StorageTier> getTiersBelow(int tierAlias) throws IOException {
-    return mMetadataManager.getTiersBelow(tierAlias);
+  public synchronized List<StorageTierView> getTiersBelow(int tierAlias) throws IOException {
+    // TODO: similar concern as in getTierView
+    int level = getTierView(tierAlias).getTierViewLevel();
+    return mTierViews.subList(level + 1, mTierViews.size());
   }
 
   /**

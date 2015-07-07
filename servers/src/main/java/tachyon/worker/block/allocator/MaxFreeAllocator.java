@@ -21,8 +21,8 @@ import com.google.common.base.Preconditions;
 
 import tachyon.worker.block.BlockMetadataView;
 import tachyon.worker.block.BlockStoreLocation;
-import tachyon.worker.block.meta.StorageDir;
-import tachyon.worker.block.meta.StorageTier;
+import tachyon.worker.block.meta.StorageDirView;
+import tachyon.worker.block.meta.StorageTierView;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -39,12 +39,12 @@ public class MaxFreeAllocator implements Allocator {
   public TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location) throws IOException {
 
-    StorageDir candidateDir = null;
+    StorageDirView candidateDir = null;
     long maxFreeBytes = blockSize;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTier tier : mMetaView.getTiers()) {
-        for (StorageDir dir : tier.getStorageDirs()) {
+      for (StorageTierView tier : mMetaView.getTierViews()) {
+        for (StorageDirView dir : tier.getDirViews()) {
           if (dir.getAvailableBytes() >= maxFreeBytes) {
             maxFreeBytes = dir.getAvailableBytes();
             candidateDir = dir;
@@ -52,22 +52,24 @@ public class MaxFreeAllocator implements Allocator {
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTier tier = mMetaView.getTier(location.tierAlias());
-      for (StorageDir dir : tier.getStorageDirs()) {
+      StorageTierView tier = mMetaView.getTierView(location.tierAlias());
+      for (StorageDirView dir : tier.getDirViews()) {
         if (dir.getAvailableBytes() >= maxFreeBytes) {
           maxFreeBytes = dir.getAvailableBytes();
           candidateDir = dir;
         }
       }
     } else {
-      StorageTier tier = mMetaView.getTier(location.tierAlias());
-      StorageDir dir = tier.getDir(location.dir());
+      StorageTierView tier = mMetaView.getTierView(location.tierAlias());
+      StorageDirView dir = tier.getDirView(location.dir());
       if (dir.getAvailableBytes() >= blockSize) {
         candidateDir = dir;
       }
     }
 
-    return candidateDir != null ? new TempBlockMeta(userId, blockId, blockSize, candidateDir)
+    // TODO: avoid getDirForCreatingBlock()
+    return candidateDir != null ?
+        new TempBlockMeta(userId, blockId, blockSize, candidateDir.getDirForCreatingBlock())
         : null;
   }
 }
