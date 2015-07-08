@@ -93,6 +93,7 @@ public class Constants {
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String TACHYON_DEBUG = "tachyon.debug";
   public static final String TACHYON_LOGGER_TYPE = "tachyon.logger.type";
+  public static final String TACHYON_VERSION = "tachyon.version";
   public static final String WEB_RESOURCES = "tachyon.web.resources";
   public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
   public static final String LOGS_DIR = "tachyon.logs.dir";
