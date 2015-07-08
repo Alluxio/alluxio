@@ -44,6 +44,24 @@ public interface Evictor {
   @Deprecated
   EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location) throws IOException;
 
+  /**
+   * Frees space in the given block store location, so that a least one StorageDir in the location
+   * has the specific amount of free space after eviction. The location can be a specific
+   * StorageDir, or {@link BlockStoreLocation#anyTier} or {@link BlockStoreLocation#anyDirInTier}.
+   *
+   * <P>
+   * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,
+   * or an eviction plan with toMove and toEvict fields to indicate how to free space. If both
+   * toMove and toEvict of the plan are empty, it indicates that Evictor has no actions to take and
+   * the requirement is already met.
+   *
+   * @param availableBytes the amount of free space in bytes to be ensured after eviction
+   * @param location the location in block store
+   * @param narrowed view of metadata
+   * @return an eviction plan (possibly with empty fields) to get the free space, or null if no plan
+   *         is feasible
+   * @throws IOException if given block location is invalid
+   */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
       BlockMetadataManagerView view) throws IOException;
 }
