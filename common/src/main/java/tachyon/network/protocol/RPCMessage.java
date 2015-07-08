@@ -31,7 +31,11 @@ public abstract class RPCMessage implements EncodedMessage {
 
   // The possible types of RPC messages.
   public enum Type implements EncodedMessage {
-    RPC_BLOCK_REQUEST(0), RPC_BLOCK_RESPONSE(1);
+    // TODO: rename these to RPC_BLOCK_READ_*
+    RPC_BLOCK_REQUEST(0),
+    RPC_BLOCK_RESPONSE(1),
+    RPC_BLOCK_WRITE_REQUEST(2),
+    RPC_BLOCK_WRITE_RESPONSE(3);
 
     private final int mId;
 
@@ -78,6 +82,10 @@ public abstract class RPCMessage implements EncodedMessage {
           return RPC_BLOCK_REQUEST;
         case 1:
           return RPC_BLOCK_RESPONSE;
+        case 2:
+          return RPC_BLOCK_WRITE_REQUEST;
+        case 3:
+          return RPC_BLOCK_WRITE_RESPONSE;
         default:
           throw new IllegalArgumentException("Unknown RPCMessage type id. id: " + id);
       }
@@ -145,6 +153,10 @@ public abstract class RPCMessage implements EncodedMessage {
         return RPCBlockRequest.decode(in);
       case RPC_BLOCK_RESPONSE:
         return RPCBlockResponse.decode(in);
+      case RPC_BLOCK_WRITE_REQUEST:
+        return RPCBlockWriteRequest.decode(in);
+      case RPC_BLOCK_WRITE_RESPONSE:
+        return RPCBlockWriteResponse.decode(in);
       default:
         throw new IllegalArgumentException("Unknown RPCMessage type. type: " + type);
     }
