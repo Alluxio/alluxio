@@ -49,7 +49,6 @@ import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockReader;
 import tachyon.worker.block.io.LocalFileBlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
-import tachyon.worker.block.meta.BlockMetaBase;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -74,6 +73,8 @@ public class TieredBlockStore implements BlockStore {
   private final Evictor mEvictor;
   private List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
+  /** A set of pinned blocks fetched from the master */
+  private final Set<Long> mPinnedBlockIds = new HashSet<Long>();
 
   /**
    * A read/write lock to ensure eviction is atomic w.r.t. other operations. An eviction may trigger
@@ -476,5 +477,11 @@ public class TieredBlockStore implements BlockStore {
         }
       }
     }
+  }
+
+  @Override
+  public void setPinnedBlocks(Set<Long> blockIds) {
+    mPinnedBlockIds.clear();
+    mPinnedBlockIds.addAll(Preconditions.checkNotNull(blockIds));
   }
 }
