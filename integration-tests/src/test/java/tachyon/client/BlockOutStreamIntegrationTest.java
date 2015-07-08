@@ -45,18 +45,31 @@ public class BlockOutStreamIntegrationTest {
   }
 
   /**
+   * Returns a local or remote BlockOutStream with a given filename.
+   *
+   * @param filename The filename for the TachyonFile.
+   * @param isLocalWrite If true, a local write will be used.
+   * @return a BlockOutStream for the given filename, and specified write location (local/remote).
+   * @throws IOException
+   */
+  private BlockOutStream getBlockOutStream(String filename, boolean isLocalWrite)
+      throws IOException {
+    TachyonConf conf = sLocalTachyonCluster.getWorkerTachyonConf();
+    conf.set(Constants.USER_ENABLE_LOCAL_WRITE, Boolean.toString(isLocalWrite));
+    TachyonFS fs = TachyonFS.get(conf);
+
+    TachyonFile file = fs.getFile(fs.createFile(new TachyonURI(filename)));
+    return BlockOutStream.get(file, WriteType.MUST_CACHE, 0, conf);
+  }
+
+  /**
    * Test disabling local writes.
    *
    * @throws IOException
    */
   @Test
   public void disableLocalWriteTest() throws IOException {
-    TachyonConf conf = sLocalTachyonCluster.getWorkerTachyonConf();
-    conf.set(Constants.USER_ENABLE_LOCAL_WRITE, "false");
-    TachyonFS fs = TachyonFS.get(conf);
-
-    TachyonFile file = fs.getFile(fs.createFile(new TachyonURI("/file_no_local_write")));
-    BlockOutStream os = BlockOutStream.get(file, WriteType.MUST_CACHE, 0, conf);
+    BlockOutStream os = getBlockOutStream("/file_no_local_write", false);
     Assert.assertTrue(os instanceof RemoteBlockOutStream);
     os.close();
   }
@@ -68,13 +81,33 @@ public class BlockOutStreamIntegrationTest {
    */
   @Test
   public void enableLocalWriteTest() throws IOException {
-    TachyonConf conf = sLocalTachyonCluster.getWorkerTachyonConf();
-    conf.set(Constants.USER_ENABLE_LOCAL_WRITE, "true");
-    TachyonFS fs = TachyonFS.get(conf);
-
-    TachyonFile file = fs.getFile(fs.createFile(new TachyonURI("/file_local_write")));
-    BlockOutStream os = BlockOutStream.get(file, WriteType.MUST_CACHE, 0, conf);
+    BlockOutStream os = getBlockOutStream("/file_local_write", true);
     Assert.assertTrue(os instanceof LocalBlockOutStream);
     os.close();
   }
+
+  /**
+   * Test cancelling RemoteBlockOutStream.
+   *
+   * @throws IOException
+   */
+  @Test
+  public void cancelRemoteWriteTest() throws IOException {
+    BlockOutStream os = getBlockOutStream("/file_cancel_remote_write", false);
+    Assert.assertTrue(os instanceof RemoteBlockOutStream);
+    os.cancel();
+  }
+
+  /**
+   * Test cancelling LocalBlockOutStream.
+   *
+   * @throws IOException
+   */
+  @Test
+  public void cancelLocalWriteTest() throws IOException {
+    BlockOutStream os = getBlockOutStream("/file_cancel_local_write", true);
+    Assert.assertTrue(os instanceof LocalBlockOutStream);
+    os.cancel();
+  }
+
 }
