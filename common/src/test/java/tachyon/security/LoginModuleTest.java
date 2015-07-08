@@ -33,7 +33,9 @@ public class LoginModuleTest {
    */
   @Test
   public void osLoginModuleTest() throws Exception {
-    Class<? extends Principal> clazz = UserInformation.getOsPrincipalClass();
+    String clazzName = UserInformation.getOsPrincipalClassName();
+    Class<? extends Principal> clazz = (Class<? extends Principal>) ClassLoader
+        .getSystemClassLoader().loadClass(clazzName);
     Subject subject = new Subject();
 
     // login and add OS user into subject

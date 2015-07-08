@@ -15,7 +15,6 @@
 
 package tachyon.security;
 
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +34,7 @@ public class UserInformation {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final String OS_LOGIN_MODULE_NAME;
-  private static final Class<? extends Principal> OS_PRINCIPAL_CLASS;
+  private static final String OS_PRINCIPAL_CLASS_NAME;
   private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
   private static final boolean IS_64_BIT = System.getProperty("os.arch").contains("64");
   private static final boolean AIX = System.getProperty("os.name").equals("AIX");
@@ -44,7 +43,7 @@ public class UserInformation {
 
   static {
     OS_LOGIN_MODULE_NAME = getOSLoginModuleName();
-    OS_PRINCIPAL_CLASS = getOsPrincipalClass();
+    OS_PRINCIPAL_CLASS_NAME = getOsPrincipalClassName();
   }
 
   // Return the OS login module class name.
@@ -65,32 +64,26 @@ public class UserInformation {
     }
   }
 
-  // Return the OS principal class
-  static Class<? extends Principal> getOsPrincipalClass() {
-    ClassLoader cl = ClassLoader.getSystemClassLoader();
-    try {
-      String principalClass = null;
-      if (IBM_JAVA) {
-        if (IS_64_BIT) {
-          principalClass = "com.ibm.security.auth.UsernamePrincipal";
-        } else {
-          if (WINDOWS) {
-            principalClass = "com.ibm.security.auth.NTUserPrincipal";
-          } else if (AIX) {
-            principalClass = "com.ibm.security.auth.AIXPrincipal";
-          } else {
-            principalClass = "com.ibm.security.auth.LinuxPrincipal";
-          }
-        }
+  // Return the OS principal class name
+  static String getOsPrincipalClassName() {
+    String principalClassName = null;
+    if (IBM_JAVA) {
+      if (IS_64_BIT) {
+        principalClassName = "com.ibm.security.auth.UsernamePrincipal";
       } else {
-        principalClass = WINDOWS ? "com.sun.security.auth.NTUserPrincipal"
-            : "com.sun.security.auth.UnixPrincipal";
+        if (WINDOWS) {
+          principalClassName = "com.ibm.security.auth.NTUserPrincipal";
+        } else if (AIX) {
+          principalClassName = "com.ibm.security.auth.AIXPrincipal";
+        } else {
+          principalClassName = "com.ibm.security.auth.LinuxPrincipal";
+        }
       }
-      return (Class<? extends Principal>) cl.loadClass(principalClass);
-    } catch (ClassNotFoundException e) {
-      LOG.error("Unable to find JAAS classes:" + e.getMessage());
+    } else {
+      principalClassName = WINDOWS ? "com.sun.security.auth.NTUserPrincipal"
+          : "com.sun.security.auth.UnixPrincipal";
     }
-    return null;
+    return principalClassName;
   }
 
   /**
