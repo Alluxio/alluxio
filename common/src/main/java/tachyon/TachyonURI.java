@@ -383,7 +383,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    */
   @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     if (mUri.getScheme() != null) {
       sb.append(mUri.getScheme());
       sb.append("://");
