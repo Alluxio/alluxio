@@ -34,6 +34,8 @@ import tachyon.util.CommonUtils;
 
 /**
  * This implementation of {@link BlockOutStream} writes a single block to the local file system.
+ * This should not be created directly, but should be instantiated through one of the
+ * BlockOutStream.get() methods.
  */
 public class LocalBlockOutStream extends BlockOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -47,6 +49,8 @@ public class LocalBlockOutStream extends BlockOutStream {
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
   private final ByteBuffer mBuffer;
+  // The size of the write buffer in bytes.
+  private final long mBufferBytes;
 
   private long mAvailableBytes = 0;
   private long mInFileBytes = 0;
@@ -88,10 +92,6 @@ public class LocalBlockOutStream extends BlockOutStream {
     mBlockCapacityByte = mFile.getBlockSizeByte();
     mBlockId = mFile.getBlockId(mBlockIndex);
     mBlockOffset = mBlockCapacityByte * blockIndex;
-
-    if (!mTachyonFS.hasLocalWorker()) {
-      throw new IOException("The machine does not have any local worker.");
-    }
     mCanWrite = true;
 
     // TODO: Use the new LocalFileBlockWriter api for writing local files.
@@ -102,11 +102,12 @@ public class LocalBlockOutStream extends BlockOutStream {
     CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
     // use the sticky bit, only the client and the worker can write to the block
     CommonUtils.setLocalFileStickyBit(mLocalFilePath);
-    LOG.info(mLocalFilePath + " was created!");
+    LOG.info(mLocalFilePath + " was created! tachyonFile: " + file + ", blockIndex: " + blockIndex
+        + ", blockId: " + mBlockId + ", blockCapacityByte: " + mBlockCapacityByte);
     mAvailableBytes += initialBytes;
 
-    long allocateBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB) + 4L;
-    mBuffer = ByteBuffer.allocate(Ints.checkedCast(allocateBytes));
+    mBufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB);
+    mBuffer = ByteBuffer.allocate(Ints.checkedCast(mBufferBytes));
   }
 
   private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
@@ -150,9 +151,7 @@ public class LocalBlockOutStream extends BlockOutStream {
   @Override
   public void close() throws IOException {
     if (!mClosed) {
-      if (mBuffer.position() > 0) {
-        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-      }
+      flush();
       mCloser.close();
       mTachyonFS.cacheBlock(mBlockId);
       mClosed = true;
@@ -161,7 +160,10 @@ public class LocalBlockOutStream extends BlockOutStream {
 
   @Override
   public void flush() throws IOException {
-    // Since this only writes to memory, this flush is not outside visible.
+    if (mBuffer.position() > 0) {
+      appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
+      mBuffer.clear();
+    }
   }
 
   /**
@@ -208,22 +210,18 @@ public class LocalBlockOutStream extends BlockOutStream {
       throw new IOException("Out of capacity.");
     }
 
-    long userFileBufferBytes =
-        mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB);
-    if (mBuffer.position() > 0 && mBuffer.position() + len > userFileBufferBytes) {
+    if (mBuffer.position() > 0 && mBuffer.position() + len > mBufferBytes) {
       // Write the non-empty buffer if the new write will overflow it.
       appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       mBuffer.clear();
     }
 
-    if (len > userFileBufferBytes / 2) {
+    if (len > mBufferBytes / 2) {
       // This write is "large", so do not write it to the buffer, but write it out directly to the
       // mapped file.
-      if (mBuffer.position() > 0) {
-        // Make sure all bytes in the buffer are written out first, to prevent out-of-order writes.
-        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-        mBuffer.clear();
-      }
+
+      // Make sure all bytes in the buffer are written out first, to prevent out-of-order writes.
+      flush();
       appendCurrentBuffer(b, off, len);
     } else if (len > 0) {
       // Write the data to the buffer, and not directly to the mapped file.
@@ -242,8 +240,7 @@ public class LocalBlockOutStream extends BlockOutStream {
       throw new IOException("Out of capacity.");
     }
 
-    if (mBuffer.position()
-        >= mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB)) {
+    if (mBuffer.position() >= mBufferBytes) {
       appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       mBuffer.clear();
     }
