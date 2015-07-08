@@ -111,7 +111,7 @@ public class BlockOutStream extends OutStream {
   }
 
   /**
-   * Write out the buffer to the mapped file, will automatically requtest more space
+   * Write out the buffer to the mapped file, will automatically request more space
    * if the block cannot hold the buffer anymore
    * @param buf the buffer to write out
    * @param offset the starting offset of the buffer
