@@ -265,11 +265,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void cleanupUser(long userId) throws IOException {
-    mEvictionLock.readLock().lock();
-    List<TempBlockMeta> tempBlocksToRemove = mMetaManager.cleanupUser(userId);
-    mLockManager.cleanupUser(userId);
-    mEvictionLock.readLock().unlock();
-
+    List<TempBlockMeta> tempBlocksToRemove = mMetaManager.getUserTempBlocks(userId);
     // TODO: fix the block removing below, there is possible risk condition when the client which
     // is considered "dead" may still be using or committing this block.
     // A user may have multiple temporary directories for temp blocks, in diffrent StorageTier
@@ -293,6 +289,11 @@ public class TieredBlockStore implements BlockStore {
         LOG.error("Error in cleanup userId {}: cannot delete directory ", userId, dirName);
       }
     }
+
+    mEvictionLock.readLock().lock();
+    mMetaManager.cleanupUser(userId);
+    mLockManager.cleanupUser(userId);
+    mEvictionLock.readLock().unlock();
   }
 
   @Override
