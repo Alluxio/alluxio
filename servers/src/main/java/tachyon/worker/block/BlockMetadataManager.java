@@ -345,6 +345,16 @@ public class BlockMetadataManager {
     return ret;
   }
 
+  public synchronized List<TempBlockMeta> getUserTempBlocks(long userId) {
+    List<TempBlockMeta> userTempBlocks = new ArrayList<TempBlockMeta>();
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        userTempBlocks.addAll(dir.getUserTempBlocks(userId));
+      }
+    }
+    return userTempBlocks;
+  }
+
   /**
    * Gets a summary of the meta data.
    *

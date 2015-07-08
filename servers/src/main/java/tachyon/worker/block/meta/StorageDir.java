@@ -415,4 +415,15 @@ public class StorageDir {
     }
     return blocksToRemove;
   }
+
+  public List<TempBlockMeta> getUserTempBlocks(long userId) {
+    Set<Long> userTempBlockIds = mUserIdToTempBlockIdsMap.get(userId);
+    List<TempBlockMeta> userTempBlocks = new ArrayList<TempBlockMeta>();
+    if (userTempBlockIds != null) {
+      for (long blockId : userTempBlockIds) {
+        userTempBlocks.add(mBlockIdToTempBlockMap.get(blockId));
+      }
+    }
+    return userTempBlocks;
+  }
 }
