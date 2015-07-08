@@ -449,7 +449,14 @@ public class BlockDataManager {
     return new InetSocketAddress(workerHostname, workerPort);
   }
 
+  /**
+   * Set the pinlist for the underlying blockstore.
+   * Typically called by PinListSyncer.
+   *
+   * @param list
+   */
   public void setPinList(Set<Integer> list) {
+    // Blockstore should implement setPinnedInodes in TACHYON-608
     mBlockStore.setPinnedInodes(list);
   }
 }
