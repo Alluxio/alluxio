@@ -42,14 +42,11 @@ public final class NettyDataServer implements DataServer {
   private final ServerBootstrap mBootstrap;
   private final ChannelFuture mChannelFuture;
   private final TachyonConf mTachyonConf;
-  // Use a shared handler for all pipelines.
-  private final DataServerHandler mDataServerHandler;
 
   public NettyDataServer(final InetSocketAddress address, final BlockDataManager dataManager,
       final TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mDataServerHandler = new DataServerHandler(dataManager, mTachyonConf);
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(mDataServerHandler));
+    mBootstrap = createBootstrap().childHandler(new PipelineHandler(dataManager, mTachyonConf));
 
     try {
       mChannelFuture = mBootstrap.bind(address).sync();
