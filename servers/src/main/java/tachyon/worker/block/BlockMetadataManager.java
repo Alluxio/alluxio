@@ -345,6 +345,13 @@ public class BlockMetadataManager {
     return ret;
   }
 
+  /**
+   * Gets all the temporary blocks associated with a user, empty list is returned if the user has
+   * no temporary blocks.
+   *
+   * @param userId the ID of the user
+   * @return A list of temp blocks associated with the user
+   */
   public synchronized List<TempBlockMeta> getUserTempBlocks(long userId) {
     List<TempBlockMeta> userTempBlocks = new ArrayList<TempBlockMeta>();
     for (StorageTier tier : mTiers) {

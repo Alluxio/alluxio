@@ -245,26 +245,38 @@ public class BlockMetadataManagerTest {
     dir.addTempBlockMeta(tempBlockMeta3);
     dir.addBlockMeta(blockMeta);
 
-    // Cleanup userId1, expect to remove tempBlock1 and tempBlock2
-    List<TempBlockMeta> toRemove = mMetaManager.cleanupUser(userId1);
+    // Get temp blocks for userId1, expect to get tempBlock1 and tempBlock2
+    List<TempBlockMeta> toRemove = mMetaManager.getUserTempBlocks(userId1);
     Assert.assertEquals(Sets.newHashSet(tempBlockMeta1, tempBlockMeta2),
         new HashSet<TempBlockMeta>(toRemove));
+    Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId1));
+    Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId2));
+
+    // Clean up userId1, expect tempBlock1 and tempBlock2 to be removed.
+    mMetaManager.cleanupUser(userId1);
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId1));
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId2));
     Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId3));
     Assert.assertTrue(dir.hasBlockMeta(TEST_BLOCK_ID));
 
-    // Cleanup userId1 again, expect to remove nothing
-    toRemove = mMetaManager.cleanupUser(userId1);
-    Assert.assertEquals(Sets.newHashSet(), new HashSet<TempBlockMeta>(toRemove));
+    // Get temp blocks for userId1 again, expect to get nothing
+    toRemove = mMetaManager.getUserTempBlocks(userId1);
+    Assert.assertEquals(Sets.<TempBlockMeta>newHashSet(), new HashSet<TempBlockMeta>(toRemove));
+
+    // Clean up userId1 again, expect nothing to happen
+    mMetaManager.cleanupUser(userId1);
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId1));
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId2));
     Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId3));
     Assert.assertTrue(dir.hasBlockMeta(TEST_BLOCK_ID));
 
-    // Cleanup userId2, expect to remove tempBlock3
-    toRemove = mMetaManager.cleanupUser(userId2);
+    // Get temp blocks for userId2, expect to get tempBlock3
+    toRemove = mMetaManager.getUserTempBlocks(userId2);
     Assert.assertEquals(Sets.newHashSet(tempBlockMeta3), new HashSet<TempBlockMeta>(toRemove));
+    Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId3));
+
+    // Clean up userId2, expect tempBlock3 to be removed
+    mMetaManager.cleanupUser(userId2);
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId1));
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId2));
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId3));
