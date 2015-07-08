@@ -436,7 +436,7 @@ public class TieredBlockStore implements BlockStore {
     return mMetadataView;
   }
 
-  // This method must be guarded by WRITE lock of mEvictionLock
+  /** This method must be guarded by WRITE lock of mEvictionLock */
   private void freeSpaceInternal(long userId, long availableBytes, BlockStoreLocation location)
       throws IOException {
     EvictionPlan plan = mEvictor.freeSpace(availableBytes, location);
