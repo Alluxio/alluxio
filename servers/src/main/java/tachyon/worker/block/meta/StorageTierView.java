@@ -21,20 +21,26 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.worker.block.BlockMetadataView;
+import tachyon.worker.block.BlockMetadataManagerView;
 
 /**
- * This class is a wrapper of {@link StorageTier} to provided more limited access
+ * This class is a wrapper of {@link StorageTier} to provide more limited access
  */
 public class StorageTierView {
 
+  /** the StorageTier this view is derived from */
   private final StorageTier mTier;
+  /** a list of StorageDirView under this StorageTierView */
   private List<StorageDirView> mDirViews = new ArrayList<StorageDirView>();
-  private final BlockMetadataView mView;
+  /** the BlockMetadataView this StorageTierView is under */
+  private final BlockMetadataManagerView mManagerView;
 
-  public StorageTierView(StorageTier tier, BlockMetadataView view) {
+  /**
+   * Create a StorageTierView using the actual StorageTier and the above BlockMetadataView
+   */
+  public StorageTierView(StorageTier tier, BlockMetadataManagerView view) {
     mTier = Preconditions.checkNotNull(tier);
-    mView = Preconditions.checkNotNull(view);
+    mManagerView = Preconditions.checkNotNull(view);
 
     for (StorageDir dir : mTier.getStorageDirs()) {
       StorageDirView dirView = new StorageDirView(dir, this, view);
@@ -42,18 +48,30 @@ public class StorageTierView {
     }
   }
 
+  /**
+   * Get the list of StorageDirView under this TierView
+   */
   public List<StorageDirView> getDirViews() {
     return mDirViews;
   }
 
+  /**
+   * Get a StorageDirView with a dirIndex
+   */
   public StorageDirView getDirView(int dirIndex) throws IOException {
     return mDirViews.get(dirIndex);
   }
 
+  /**
+   * Get the alias for this tier
+   */
   public int getTierViewAlias() {
     return mTier.getTierAlias();
   }
 
+  /**
+   * Get the level for this tier
+   */
   public int getTierViewLevel() {
     return mTier.getTierLevel();
   }

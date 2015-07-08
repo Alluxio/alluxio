@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.worker.block.BlockMetadataView;
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
@@ -29,15 +29,15 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * An allocator that allocates a block in the storage dir with most free space.
  */
 public class MaxFreeAllocator implements Allocator {
-  private BlockMetadataView mMetaView;
+  private BlockMetadataManagerView mMetaView;
 
-  public MaxFreeAllocator(BlockMetadataView metadata) {
+  public MaxFreeAllocator(BlockMetadataManagerView metadata) {
     mMetaView = Preconditions.checkNotNull(metadata);
   }
 
   @Override
   public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
-      BlockStoreLocation location, BlockMetadataView view) throws IOException {
+      BlockStoreLocation location, BlockMetadataManagerView view) throws IOException {
     mMetaView = view;
     return allocateBlock(userId, blockId, blockSize, location);
   }

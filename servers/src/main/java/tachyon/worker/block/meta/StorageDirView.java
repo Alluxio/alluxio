@@ -22,61 +22,81 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 
 import tachyon.master.BlockInfo;
-import tachyon.worker.block.BlockMetadataView;
+import tachyon.worker.block.BlockMetadataManagerView;
 
 /**
- * This class is a wrapper of {@link StorageDir} to provided more limited access
+ * This class is a wrapper of {@link StorageDir} to provide more limited access
  * and a filtered list of blocks.
  */
 public class StorageDirView {
 
+  /** the StorageDir this view is derived from */
   private final StorageDir mDir;
-  private final StorageTierView mTier;
-  private final BlockMetadataView mView;
+  /** the StorageTierView this view under */
+  private final StorageTierView mTierView;
+  /** the BlockMetadataView this view is associated with */
+  private final BlockMetadataManagerView mManagerView;
 
-  public StorageDirView(StorageDir dir, StorageTierView tier, BlockMetadataView view) {
+  /**
+   * Create a StorageDirView using the actual StorageDir and the associated BlockMetadataView
+   */
+  public StorageDirView(StorageDir dir, StorageTierView tier, BlockMetadataManagerView view) {
     mDir = Preconditions.checkNotNull(dir);
-    mTier = tier;
-    mView = Preconditions.checkNotNull(view);
+    mTierView = Preconditions.checkNotNull(tier);
+    mManagerView = Preconditions.checkNotNull(view);
   }
 
+  /**
+   * Get the index of this Dir
+   */
   public int getDirIndex() {
     return mDir.getDirIndex();
   }
 
   /**
-   * return a filtered list of block metadata,
-   * for blocks that are neither pinned or being read.
+   * Return a filtered list of block metadata,
+   * for blocks that are neither pinned or being blocked.
    */
-  public List<BlockMeta> getBlocks() {
-    Set<Integer> pinnedInodes = mView.getPinnedInodes();
-    List<Long> readingBlocks = mView.getReadingBlocks();
+  public List<BlockMeta> getEvictableBlocks() {
     List<BlockMeta> filteredList = new ArrayList<BlockMeta>();
 
     for (BlockMeta blockMeta : mDir.getBlocks()) {
       long blockId = blockMeta.getBlockId();
-      if (!pinnedInodes.contains(BlockInfo.computeInodeId(blockId)) &&
-          !readingBlocks.contains(blockId)) {
+      if (!mManagerView.isBlockPinned(blockId) && !mManagerView.isBlockLocked(blockId)) {
         filteredList.add(blockMeta);
       }
     }
     return filteredList;
   }
 
+  /**
+   * Get available bytes for this dir
+   */
   public long getAvailableBytes() {
     return mDir.getAvailableBytes();
   }
 
+  /**
+   * Get committed bytes for this dir
+   */
   public long getCommittedBytes() {
     // TODO: does pinedList, etc. change this value?
     return mDir.getCommittedBytes();
   }
 
+  /**
+   * Get the actual dir for this view.
+   * This API is here so that to be compatible with Allocator implementation.
+   * Ideally it should be removed.
+   */
   public StorageDir getDirForCreatingBlock() {
     return mDir;
   }
 
-  public StorageTierView getParentTier() {
-    return mTier;
+  /**
+   * Get the parent TierView for this view.
+   */
+  public StorageTierView getParentTierView() {
+    return mTierView;
   }
 }

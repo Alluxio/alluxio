@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.worker.block.BlockMetadataView;
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
@@ -41,15 +41,15 @@ import tachyon.worker.block.meta.StorageTierView;
  */
 public class GreedyEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private BlockMetadataView mMetaView;
+  private BlockMetadataManagerView mMetaView;
 
-  public GreedyEvictor(BlockMetadataView metadata) {
+  public GreedyEvictor(BlockMetadataManagerView metadata) {
     mMetaView = Preconditions.checkNotNull(metadata);
   }
 
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-      BlockMetadataView view) throws IOException {
+      BlockMetadataManagerView view) throws IOException {
     mMetaView = view;
     return freeSpace(availableBytes, location);
   }
@@ -93,7 +93,7 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
     // 3. Collect victim blocks from the selected StorageDir. They could either be evicted or
     // moved.
     List<BlockMeta> victimBlocks = new ArrayList<BlockMeta>();
-    for (BlockMeta block : selectedDir.getBlocks()) {
+    for (BlockMeta block : selectedDir.getEvictableBlocks()) {
       victimBlocks.add(block);
       bytesAvailableInDir += block.getBlockSize();
       if (bytesAvailableInDir >= availableBytes) {
@@ -107,13 +107,13 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
       // TODO: should not allow actual dir and tier to be retrieved
       StorageTierView fromTier =
           mMetaView.getTierView(block.getParentDir().getParentTier().getTierAlias());
-      List<StorageTierView> toTiers = mMetaView.getTiersBelow(fromTier.getTierViewAlias());
+      List<StorageTierView> toTiers = mMetaView.getTierViewsBelow(fromTier.getTierViewAlias());
       StorageDirView toDir = selectDirToTransferBlock(block, toTiers, pendingBytesInDir);
       if (toDir == null) {
         // Not possible to transfer
         toEvict.add(block.getBlockId());
       } else {
-        StorageTierView toTier = toDir.getParentTier();
+        StorageTierView toTier = toDir.getParentTierView();
         toTransfer.add(new Pair<Long, BlockStoreLocation>(block.getBlockId(),
             new BlockStoreLocation(toTier.getTierViewAlias(), toTier.getTierViewLevel(), toDir
                 .getDirIndex())));

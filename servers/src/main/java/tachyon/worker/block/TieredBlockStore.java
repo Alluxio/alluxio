@@ -76,10 +76,10 @@ public class TieredBlockStore implements BlockStore {
       new ArrayList<BlockStoreEventListener>();
   /** A list of pinned blocks fetched from the master */
   private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
-  /** A list of blocks that are currently being read */
-  private final List<Long> mReadingBlocks = new ArrayList<Long>();
+  /** A list of blocks that are currently being locked */
+  private final Set<Long> mLockedBlocks = new HashSet<Long>();
   /** A narrowed view provided to evictors and allocators */
-  private BlockMetadataView mMetadataView;
+  private BlockMetadataManagerView mMetadataView;
 
   /**
    * A read/write lock to ensure eviction is atomic w.r.t. other operations. An eviction may trigger
@@ -96,8 +96,8 @@ public class TieredBlockStore implements BlockStore {
     mLockManager = new BlockLockManager(mMetaManager);
 
     // initially use empty lists to provide full view
-    mMetadataView = new BlockMetadataView(mMetaManager,
-        new HashSet<Integer>(), new ArrayList<Long>());
+    mMetadataView = new BlockMetadataManagerView(mMetaManager,
+        new HashSet<Integer>(), new HashSet<Long>());
 
     AllocatorType allocatorType =
         mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
@@ -423,10 +423,16 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.removeBlockMeta(blockMeta);
   }
 
+  private void updateLockedBlocks() {
+    mLockedBlocks.clear();
+    mLockedBlocks.addAll(mLockManager.getLockedBlocks());
+  }
+
   // always update the metadata view before doing freeSpacewithNewView
-  private BlockMetadataView getUpdatedView() throws IOException{
+  private BlockMetadataManagerView getUpdatedView() throws IOException {
     // TODO: update the view object instead of creating new one every time
-    mMetadataView = new BlockMetadataView(mMetaManager, mPinnedInodes, mReadingBlocks);
+    updateLockedBlocks();
+    mMetadataView = new BlockMetadataManagerView(mMetaManager, mPinnedInodes, mLockedBlocks);
     return mMetadataView;
   }
 

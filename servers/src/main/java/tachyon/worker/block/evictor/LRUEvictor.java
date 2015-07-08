@@ -28,14 +28,14 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.worker.block.BlockMetadataView;
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
 
 public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private BlockMetadataView mMetaView;
+  private BlockMetadataManagerView mMetaView;
 
   /**
    * access-ordered {@link java.util.LinkedHashMap} from blockId to {@code true}, acts as a LRU
@@ -45,13 +45,13 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private Map<Long, Boolean> mLRUCache = Collections
       .synchronizedMap(new LinkedHashMap<Long, Boolean>(200, 0.75f, true));
 
-  public LRUEvictor(BlockMetadataView metadata) {
+  public LRUEvictor(BlockMetadataManagerView metadata) {
     mMetaView = metadata;
   }
 
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-      BlockMetadataView view) throws IOException {
+      BlockMetadataManagerView view) throws IOException {
     mMetaView = view;
     return freeSpace(availableBytes, location);
   }

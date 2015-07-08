@@ -31,48 +31,53 @@ import tachyon.worker.block.meta.StorageTierView;
 /**
  * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators.
  */
-public class BlockMetadataView {
+public class BlockMetadataManagerView {
 
+  /** The BlockMetadataManager this view is derived from */
   private final BlockMetadataManager mMetadataManager;
+  /** A list of StorageTierView, derived from StorageTiers from the BlockMetadataManager */
   private List<StorageTierView> mTierViews = new ArrayList<StorageTierView>();
+  /** A list of pinned inodes */
   private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
-  private final List<Long> mReadingBlocks = new ArrayList<Long>();
+  /** A list of blocks that are currently being read */
+  private final Set<Long> mLockedBlocks = new HashSet<Long>();
 
   /**
-   * Create a BlockMetadataView
+   * Create a BlockMetadataView.
+   * Now we always creating a new view before freespace.
+   * TODO: incrementally update the view
    *
    * @param manager
    * @param pinnedBlocks
-   * @param readingBlocks
+   * @param lockedBlocks
    * @throws IOException
    */
-  public BlockMetadataView(BlockMetadataManager manager, Set<Integer> pinnedInodes,
-      List<Long> readingBlocks) throws IOException {
+  public BlockMetadataManagerView(BlockMetadataManager manager, Set<Integer> pinnedInodes,
+      Set<Long> lockedBlocks) throws IOException {
     mMetadataManager = Preconditions.checkNotNull(manager);
     mPinnedInodes.addAll(Preconditions.checkNotNull(mPinnedInodes));
-    mReadingBlocks.addAll(Preconditions.checkNotNull(readingBlocks));
+    mLockedBlocks.addAll(Preconditions.checkNotNull(lockedBlocks));
 
     // iteratively create all StorageTierViews and StorageDirViews
     for (StorageTier tier : manager.getTiers()) {
-      StorageTierView tierView = new StorageTierView(tier, this);
-      mTierViews.add(tierView);
+      mTierViews.add(new StorageTierView(tier, this));
     }
   }
 
   /**
-   * get pinned list
+   * Test if the block is pinned.
    *
    */
-  public Set<Integer> getPinnedInodes() {
-    return mPinnedInodes;
+  public boolean isBlockPinned(long blockId) {
+    return mPinnedInodes.contains(BlockInfo.computeInodeId(blockId));
   }
 
   /**
-   * get list of blocks currently being read
+   * Test if the block is locked.
    *
    */
-  public List<Long> getReadingBlocks() {
-    return mReadingBlocks;
+  public boolean isBlockLocked(long blockId) {
+    return mLockedBlocks.contains(blockId);
   }
 
   /**
@@ -102,7 +107,7 @@ public class BlockMetadataView {
    * @return the list of StorageTierView
    * @throws IOException if tierAlias is not found
    */
-  public List<StorageTierView> getTiersBelow(int tierAlias) throws IOException {
+  public List<StorageTierView> getTierViewsBelow(int tierAlias) throws IOException {
     // TODO: similar concern as in getTierView
     int level = getTierView(tierAlias).getTierViewLevel();
     return mTierViews.subList(level + 1, mTierViews.size());
@@ -119,7 +124,7 @@ public class BlockMetadataView {
   }
 
   /**
-   * return null if block is pinned or currently being read,
+   * Return null if block is pinned or currently being locked,
    * otherwise return {@link BlockMetadataManager#getBlockMeta(long)}
    *
    * @param blockId the block ID
@@ -127,8 +132,8 @@ public class BlockMetadataView {
    * @throws IOException if no BlockMeta for this blockId is found
    */
   public BlockMeta getBlockMeta(long blockId) throws IOException {
-    if (mPinnedInodes.contains(BlockInfo.computeInodeId(blockId)) ||
-        mReadingBlocks.contains(blockId)) {
+    if (mPinnedInodes.contains(BlockInfo.computeInodeId(blockId))
+        || mLockedBlocks.contains(blockId)) {
       return null;
     } else {
       return mMetadataManager.getBlockMeta(blockId);

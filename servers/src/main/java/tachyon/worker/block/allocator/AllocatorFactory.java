@@ -16,7 +16,7 @@
 package tachyon.worker.block.allocator;
 
 
-import tachyon.worker.block.BlockMetadataView;
+import tachyon.worker.block.BlockMetadataManagerView;
 
 /**
  * Factory of {@link Allocator} based on {@link AllocatorType}
@@ -29,7 +29,7 @@ public class AllocatorFactory {
    * @param metaManager BlockMetadataManager to pass to Allocator
    * @return the generated Allocator
    */
-  public static Allocator create(AllocatorType allocatorType, BlockMetadataView metaView) {
+  public static Allocator create(AllocatorType allocatorType, BlockMetadataManagerView metaView) {
     switch (allocatorType) {
       case GREEDY:
         return new GreedyAllocator(metaView);

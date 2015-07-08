@@ -15,7 +15,7 @@
 
 package tachyon.worker.block.evictor;
 
-import tachyon.worker.block.BlockMetadataView;
+import tachyon.worker.block.BlockMetadataManagerView;
 
 /**
  * Factory of {@link Evictor} based on {@link EvictorType}
@@ -30,7 +30,7 @@ public class EvictorFactory {
    * @param metaManager BlockMetadataManager to pass to Evictor
    * @return the generated Evictor
    */
-  public static Evictor create(EvictorType evictorType, BlockMetadataView metaView) {
+  public static Evictor create(EvictorType evictorType, BlockMetadataManagerView metaView) {
     switch (evictorType) {
       case GREEDY:
         return new GreedyEvictor(metaView);

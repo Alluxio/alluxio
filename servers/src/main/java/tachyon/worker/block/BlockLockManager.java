@@ -17,6 +17,8 @@ package tachyon.worker.block;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -200,6 +202,17 @@ public class BlockLockManager {
   }
 
   /**
+   * Get a set of currently locked blocks.
+   */
+  public Set<Long> getLockedBlocks() {
+    Set<Long> set = new HashSet<Long>();
+    for (LockRecord lockRecord : mLockIdToRecordMap.values()) {
+      set.add(lockRecord.blockId());
+    }
+    return set;
+  }
+
+  /**
    * Inner class to keep record of a lock.
    */
   private class LockRecord {
@@ -225,5 +238,4 @@ public class BlockLockManager {
       return mLock;
     }
   }
-
 }
