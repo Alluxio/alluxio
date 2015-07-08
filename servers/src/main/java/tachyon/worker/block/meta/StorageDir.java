@@ -396,7 +396,6 @@ public class StorageDir {
    * Cleans up the temp block meta data of a specific user.
    *
    * @param userId the ID of the user to cleanup
-   * @return A list of temp blocks removed from this dir
    */
   public void cleanupUser(long userId) {
     Set<Long> userTempBlocks = mUserIdToTempBlockIdsMap.get(userId);
