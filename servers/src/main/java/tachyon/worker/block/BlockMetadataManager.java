@@ -332,7 +332,7 @@ public class BlockMetadataManager {
   public synchronized void cleanupUser(long userId) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        List<TempBlockMeta> blocksToRemove = dir.cleanupUser(userId);
+        dir.cleanupUser(userId);
       }
     }
   }
