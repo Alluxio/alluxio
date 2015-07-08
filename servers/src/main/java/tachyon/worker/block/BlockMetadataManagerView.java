@@ -55,7 +55,7 @@ public class BlockMetadataManagerView {
   public BlockMetadataManagerView(BlockMetadataManager manager, Set<Integer> pinnedInodes,
       Set<Long> lockedBlocks) throws IOException {
     mMetadataManager = Preconditions.checkNotNull(manager);
-    mPinnedInodes.addAll(Preconditions.checkNotNull(mPinnedInodes));
+    mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes));
     mLockedBlocks.addAll(Preconditions.checkNotNull(lockedBlocks));
 
     // iteratively create all StorageTierViews and StorageDirViews
