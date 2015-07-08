@@ -370,10 +370,15 @@ public class StorageDirTest {
     mDir.addTempBlockMeta(tempBlockMeta2);
     mDir.addTempBlockMeta(tempBlockMeta3);
 
-    List<TempBlockMeta> actual = mDir.cleanupUser(TEST_USER_ID);
+    // Check the temporary blocks belonging to TEST_USER_ID
+    List<TempBlockMeta> actual = mDir.getUserTempBlocks(TEST_USER_ID);
     Assert.assertEquals(Sets.newHashSet(tempBlockMeta1, tempBlockMeta2),
         new HashSet<TempBlockMeta>(actual));
+    Assert.assertTrue(mDir.hasTempBlockMeta(tempBlockId1));
+    Assert.assertTrue(mDir.hasTempBlockMeta(tempBlockId2));
+
     // Two temp blocks created by TEST_USER_ID are expected to be removed
+    mDir.cleanupUser(TEST_USER_ID);
     Assert.assertFalse(mDir.hasTempBlockMeta(tempBlockId1));
     Assert.assertFalse(mDir.hasTempBlockMeta(tempBlockId2));
     // Temp block created by otherUserId is expected to stay
