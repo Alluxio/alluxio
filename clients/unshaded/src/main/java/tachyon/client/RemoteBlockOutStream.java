@@ -158,7 +158,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
    * @return the remaining space of the block, in bytes
    */
   @Override
-  public long getRemainingSpaceByte() {
+  public long getRemainingSpaceBytes() {
     return mBlockCapacityBytes - mWrittenBytes;
   }
 

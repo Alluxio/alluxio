@@ -77,5 +77,5 @@ public abstract class BlockOutStream extends OutStream {
   /**
    * @return the remaining space of the block, in bytes.
    */
-  public abstract long getRemainingSpaceByte();
+  public abstract long getRemainingSpaceBytes();
 }
