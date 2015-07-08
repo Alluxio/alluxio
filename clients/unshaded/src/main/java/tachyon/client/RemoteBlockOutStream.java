@@ -42,14 +42,16 @@ public class RemoteBlockOutStream extends BlockOutStream {
   private final Closer mCloser;
   private final RemoteBlockWriter mRemoteWriter;
 
-  // The local write buffer to accumulate client writes.
+  /** The local write buffer to accumulate client writes. */
   private final ByteBuffer mBuffer;
-  // The size of the write buffer in bytes.
+  /** The size of the write buffer in bytes. */
   private final long mBufferBytes;
-  // Total number of bytes written to block, but not necessarily flushed to the remote server.
+  /** Total number of bytes written to block, but not necessarily flushed to the remote server. */
   private long mWrittenBytes = 0;
-  // True if stream is open.
-  private boolean mOpen = false;
+  /** Total number of bytes flushed to the remote server. */
+  private long mFlushedBytes = 0;
+  /** True if stream is closed. */
+  private boolean mClosed = true;
 
   /**
    * @param file the file the block belongs to
@@ -68,7 +70,9 @@ public class RemoteBlockOutStream extends BlockOutStream {
    * @param file the file the block belongs to
    * @param opType the OutStream's write type
    * @param blockIndex the index of the block in the file
-   * @param initialBytes the initial size bytes that will be allocated to the block
+   * @param initialBytes the initial size bytes that will be allocated to the block. This is unused
+   *                     for now, since the data server will allocate space matching the size of the
+   *                     first write.
    * @param tachyonConf the TachyonConf instance for this file output stream.
    * @throws IOException
    */
@@ -87,14 +91,13 @@ public class RemoteBlockOutStream extends BlockOutStream {
 
     // Create a local buffer.
     mBufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB);
-    long allocateBytes = mBufferBytes;
-    mBuffer = ByteBuffer.allocate(Ints.checkedCast(allocateBytes));
+    mBuffer = ByteBuffer.allocate(Ints.checkedCast(mBufferBytes));
 
     // Open the remote writer.
     mRemoteWriter =
         mCloser.register(RemoteBlockWriter.Factory.createRemoteBlockWriter(tachyonConf));
     mRemoteWriter.open(mTachyonFS.getWorkerDataServerAddress(), mBlockId, mTachyonFS.getUserId());
-    mOpen = true;
+    mClosed = false;
   }
 
   /**
@@ -108,6 +111,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
   private synchronized void writeToRemoteBlock(byte[] bytes, int offset, int length)
       throws IOException {
     mRemoteWriter.write(bytes, offset, length);
+    mFlushedBytes += length;
   }
 
   // Flush the local buffer to the remote block.
@@ -118,10 +122,10 @@ public class RemoteBlockOutStream extends BlockOutStream {
 
   @Override
   public void cancel() throws IOException {
-    if (mOpen) {
+    if (!mClosed) {
       mCloser.close();
-      mOpen = false;
-      if (mWrittenBytes > 0) {
+      mClosed = true;
+      if (mFlushedBytes > 0) {
         mTachyonFS.cancelBlock(mBlockId);
       }
       LOG.info(String.format("Canceled output of block. blockId(%d)", mBlockId));
@@ -130,7 +134,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
 
   @Override
   public void close() throws IOException {
-    if (mOpen) {
+    if (!mClosed) {
       if (mBuffer.position() > 0) {
         writeToRemoteBlock(mBuffer.array(), 0, mBuffer.position());
       }
@@ -138,7 +142,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
       if (mWrittenBytes > 0) {
         mTachyonFS.cacheBlock(mBlockId);
       }
-      mOpen = false;
+      mClosed = true;
     }
   }
 
@@ -178,8 +182,8 @@ public class RemoteBlockOutStream extends BlockOutStream {
       throw new IndexOutOfBoundsException(String.format("Buffer length (%d), offset(%d), len(%d)",
           b.length, off, len));
     }
-    if (!mOpen) {
-      throw new IOException("Can not write cache.");
+    if (mClosed) {
+      throw new IOException("Cannot write because block is already closed. blockId: " + mBlockId);
     }
     if (mWrittenBytes + len > mBlockCapacityBytes) {
       throw new IOException("Out of capacity.");
@@ -211,8 +215,8 @@ public class RemoteBlockOutStream extends BlockOutStream {
 
   @Override
   public void write(int b) throws IOException {
-    if (!mOpen) {
-      throw new IOException("Can not write cache.");
+    if (mClosed) {
+      throw new IOException("Cannot write because block is already closed. blockId: " + mBlockId);
     }
     if (mWrittenBytes + 1 > mBlockCapacityBytes) {
       throw new IOException("Out of capacity.");
