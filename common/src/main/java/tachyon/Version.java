@@ -15,9 +15,6 @@
 
 package tachyon;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
@@ -26,8 +23,6 @@ import tachyon.conf.TachyonConf;
  */
 public class Version {
   public static final String VERSION;
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   static {
     TachyonConf tachyonConf = new TachyonConf();
