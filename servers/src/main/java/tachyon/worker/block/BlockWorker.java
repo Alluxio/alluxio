@@ -142,7 +142,7 @@ public class BlockWorker {
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
     mBlockMasterSync.registerWithMaster();
 
-    // start pinlist syncer using the same executor
+    // Setup PinListSyncer
     mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf);
 
     // Setup user metadata mapping
@@ -203,6 +203,7 @@ public class BlockWorker {
 
     mSyncExecutorService.submit(mBlockMasterSync);
 
+    // Start the pinlist syncer to perform the periodical fetching
     mSyncExecutorService.submit(mPinListSync);
 
     mWebServer.startWebServer();
