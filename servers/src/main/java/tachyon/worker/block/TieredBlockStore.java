@@ -73,8 +73,8 @@ public class TieredBlockStore implements BlockStore {
   private final Evictor mEvictor;
   private List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
-  /** A list of pinned blocks fetched from the master */
-  private final List<Long> mPinnedBlocks = new ArrayList<Long>();
+  /** A set of pinned blocks fetched from the master */
+  private final Set<Long> mPinnedBlockIds = new HashSet<Long>();
 
   /**
    * A read/write lock to ensure eviction is atomic w.r.t. other operations. An eviction may trigger
@@ -480,8 +480,8 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void setPinnedBlocks(List<Long> blocks) {
-    mPinnedBlocks.clear();
-    mPinnedBlocks.addAll(Preconditions.checkNotNull(blocks));
+  public void setPinnedBlocks(Set<Long> blockIds) {
+    mPinnedBlockIds.clear();
+    mPinnedBlockIds.addAll(Preconditions.checkNotNull(blockIds));
   }
 }

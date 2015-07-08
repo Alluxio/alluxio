@@ -16,7 +16,10 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -52,6 +55,8 @@ public class BlockLockManager {
   private final Map<Long, Set<Long>> mUserIdToLockIdsMap = new HashMap<Long, Set<Long>>();
   /** A map from a lock ID to the lock record of it */
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
+  /** A list of locked blocks (e.g., currently being read) */
+  private final Set<Long> mLockedBlockIds = new HashSet<Long>();
   /** To guard access on mLockIdToRecordMap and mUserIdToLockIdsMap */
   private final Object mSharedMapsLock = new Object();
   /** A hashing function to map blockId to one of the locks */
@@ -97,6 +102,7 @@ public class BlockLockManager {
       } else {
         userLockIds.add(lockId);
       }
+      mLockedBlockIds.add(blockId);
     }
     return lockId;
   }
@@ -115,6 +121,7 @@ public class BlockLockManager {
         throw new IOException("Failed to unlockBlock: lockId " + lockId + " has no lock record");
       }
       long userId = record.userId();
+      long blockId = record.blockId();
       lock = record.lock();
       mLockIdToRecordMap.remove(lockId);
       Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
@@ -122,6 +129,7 @@ public class BlockLockManager {
       if (userLockIds.isEmpty()) {
         mUserIdToLockIdsMap.remove(userId);
       }
+      mLockedBlockIds.remove(blockId);
     }
     lock.unlock();
   }
@@ -141,6 +149,7 @@ public class BlockLockManager {
           if (userLockIds.isEmpty()) {
             mUserIdToLockIdsMap.remove(userId);
           }
+          mLockedBlockIds.remove(blockId);
           Lock lock = record.lock();
           lock.unlock();
           return;
@@ -159,6 +168,9 @@ public class BlockLockManager {
    */
   public void validateLockId(long userId, long blockId, long lockId) throws IOException {
     synchronized (mSharedMapsLock) {
+      if (!mLockedBlockIds.contains(blockId)) {
+        throw new IOException("Failed to validateLockId: blockId " + blockId + " is not locked");
+      }
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
         throw new IOException("Failed to validateLockId: lockId " + lockId + " has no lock record");
@@ -192,11 +204,22 @@ public class BlockLockManager {
           continue;
         }
         Lock lock = record.lock();
+        long blockId = record.blockId();
         lock.unlock();
         mLockIdToRecordMap.remove(lockId);
+        mLockedBlockIds.remove(blockId);
       }
       mUserIdToLockIdsMap.remove(userId);
     }
+  }
+
+  /**
+   * Returns a list of blocks currently being locked.
+   *
+   * @return a list of block IDs
+   */
+  public Set<Long> getLockedBlockIds() {
+    return mLockedBlockIds;
   }
 
   /**
