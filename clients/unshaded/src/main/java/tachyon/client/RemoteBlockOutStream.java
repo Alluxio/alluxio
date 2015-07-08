@@ -29,7 +29,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
- * <code>RemoteBlockOutStream</code> implementation of TachyonFile. This class is not client facing.
+ * This implementation of {@link BlockOutStream} writes a single block to a remote worker.
+ * This should not be created directly, but should be instantiated through one of the
+ * BlockOutStream.get() methods.
  */
 public class RemoteBlockOutStream extends BlockOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

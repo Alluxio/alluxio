@@ -84,7 +84,7 @@ public class RemoteBlockInStream extends BlockInStream {
   /**
    * If we are re-caching the file, we write it to a block out stream as we read it.
    */
-  private LocalBlockOutStream mLocalBlockOutStream = null;
+  private BlockOutStream mBlockOutStream = null;
 
   /**
    * The under filesystem configuration that we use to set up the checkpoint input stream
@@ -145,8 +145,8 @@ public class RemoteBlockInStream extends BlockInStream {
   private void cancelRecache() throws IOException {
     if (mRecache) {
       mRecache = false;
-      if (mLocalBlockOutStream != null) {
-        mLocalBlockOutStream.cancel();
+      if (mBlockOutStream != null) {
+        mBlockOutStream.cancel();
       }
     }
   }
@@ -156,12 +156,12 @@ public class RemoteBlockInStream extends BlockInStream {
     if (mClosed) {
       return;
     }
-    if (mRecache && mLocalBlockOutStream != null) {
+    if (mRecache && mBlockOutStream != null) {
       // We only finish re-caching if we've gotten to the end of the file
       if (mBlockPos == mBlockInfo.length) {
-        mLocalBlockOutStream.close();
+        mBlockOutStream.close();
       } else {
-        mLocalBlockOutStream.cancel();
+        mBlockOutStream.cancel();
       }
     }
     if (mCheckpointInputStream != null) {
@@ -205,10 +205,9 @@ public class RemoteBlockInStream extends BlockInStream {
     int bytesLeft = len;
     // Lazy initialization of the out stream for caching to avoid collisions with other caching
     // attempts that are invalidated later due to seek/skips
-    if (bytesLeft > 0 && mLocalBlockOutStream == null && mRecache) {
+    if (bytesLeft > 0 && mBlockOutStream == null && mRecache) {
       try {
-        mLocalBlockOutStream = new LocalBlockOutStream(mFile, WriteType.TRY_CACHE, mBlockIndex,
-            mTachyonConf);
+        mBlockOutStream = BlockOutStream.get(mFile, WriteType.TRY_CACHE, mBlockIndex, mTachyonConf);
       } catch (IOException ioe) {
         LOG.warn("Recache attempt failed.", ioe);
         cancelRecache();
@@ -221,7 +220,7 @@ public class RemoteBlockInStream extends BlockInStream {
       int bytesToRead = (int) Math.min(bytesLeft, mCurrentBuffer.remaining());
       mCurrentBuffer.get(b, off, bytesToRead);
       if (mRecache) {
-        mLocalBlockOutStream.write(b, off, bytesToRead);
+        mBlockOutStream.write(b, off, bytesToRead);
       }
       off += bytesToRead;
       bytesLeft -= bytesToRead;
@@ -248,7 +247,7 @@ public class RemoteBlockInStream extends BlockInStream {
           return len - bytesLeft;
         }
         if (mRecache) {
-          mLocalBlockOutStream.write(b, off, readBytes);
+          mBlockOutStream.write(b, off, readBytes);
         }
         off += readBytes;
         bytesLeft -= readBytes;
