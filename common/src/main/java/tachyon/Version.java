@@ -15,12 +15,11 @@
 
 package tachyon;
 
-import java.io.InputStream;
-import java.io.IOException;
-import java.util.Properties;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 
 /**
  * The version of the current build.
@@ -31,25 +30,8 @@ public class Version {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   static {
-    InputStream in = null;
-    Properties p = new Properties();
-
-    try {
-      in = Version.class.getClassLoader().getResourceAsStream("tachyon-default.properties");
-      p.load(in);
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-    } finally {
-      if (in != null) {
-        try {
-          in.close();
-        } catch (Exception e) {
-          LOG.error(e.getMessage(), e);
-        }
-      }
-    }
-
-    VERSION = p.getProperty("tachyon.version", "UNDEFINED");
+    TachyonConf tachyonConf = new TachyonConf();
+    VERSION = tachyonConf.get(Constants.TACHYON_VERSION, null);
   }
 
   public static void main(String[] args) {
