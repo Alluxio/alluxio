@@ -642,8 +642,23 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized String getLocalBlockTemporaryPath(long blockId, long initialBytes)
       throws IOException {
     String blockPath = mWorkerClient.requestBlockLocation(blockId, initialBytes);
-    // TODO: Handle this in the worker?
-    CommonUtils.createBlockPath(blockPath);
+
+    File localTempFolder;
+    try {
+      localTempFolder = new File(CommonUtils.getParent(blockPath));
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
+
+    if (!localTempFolder.exists()) {
+      if (localTempFolder.mkdirs()) {
+        CommonUtils.changeLocalFileToFullPermission(localTempFolder.getAbsolutePath());
+        LOG.info("Folder {} was created!", localTempFolder);
+      } else {
+        throw new IOException("Failed to create folder " + localTempFolder);
+      }
+    }
+
     return blockPath;
   }
 
@@ -713,13 +728,6 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized long getCapacityBytes() throws IOException {
     return mMasterClient.getCapacityBytes();
-  }
-
-  /**
-   * @return The address of the data server on the worker.
-   */
-  public synchronized InetSocketAddress getWorkerDataServerAddress() {
-    return mWorkerClient.getDataServerAddress();
   }
 
   /**
