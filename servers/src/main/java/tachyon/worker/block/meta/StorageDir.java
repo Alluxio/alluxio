@@ -416,6 +416,13 @@ public class StorageDir {
     return blocksToRemove;
   }
 
+  /**
+   * Gets the temporary blocks associated with a user in this StorageDir, an empty list is returned
+   * if the user has no temporary blocks in this StorageDir.
+   *
+   * @param userId the ID of the user
+   * @return A list of temporary blocks the user is associated with in this StorageDir
+   */
   public List<TempBlockMeta> getUserTempBlocks(long userId) {
     Set<Long> userTempBlockIds = mUserIdToTempBlockIdsMap.get(userId);
     List<TempBlockMeta> userTempBlocks = new ArrayList<TempBlockMeta>();

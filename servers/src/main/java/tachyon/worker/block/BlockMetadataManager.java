@@ -328,21 +328,13 @@ public class BlockMetadataManager {
    * Cleans up the meta data of temp blocks created by the given user.
    *
    * @param userId the ID of the user
-   * @return A list of temp blocks created by the user in this block store
    */
-  public synchronized List<TempBlockMeta> cleanupUser(long userId) {
-    List<TempBlockMeta> ret = new ArrayList<TempBlockMeta>();
+  public synchronized void cleanupUser(long userId) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         List<TempBlockMeta> blocksToRemove = dir.cleanupUser(userId);
-        if (blocksToRemove != null) {
-          for (TempBlockMeta block : blocksToRemove) {
-            ret.add(block);
-          }
-        }
       }
     }
-    return ret;
   }
 
   /**
