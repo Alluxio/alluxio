@@ -185,6 +185,7 @@ public class RPCMessageIntegrationTest {
     Assert.assertEquals(expected.getOffset(), actual.getOffset());
     Assert.assertEquals(expected.getLength(), actual.getLength());
     Assert.assertEquals(expected.getUserId(), actual.getUserId());
+    Assert.assertEquals(expected.getStatus(), actual.getStatus());
   }
 
   private void assertValid(RPCGenericResponse expected, RPCGenericResponse actual) {
@@ -270,11 +271,12 @@ public class RPCMessageIntegrationTest {
   @Test
   public void RPCBlockWriteResponseTest() {
     RPCBlockWriteResponse msg =
-        new RPCBlockWriteResponse(USER_ID, BLOCK_ID, OFFSET, LENGTH, true);
+        new RPCBlockWriteResponse(USER_ID, BLOCK_ID, OFFSET, LENGTH, RPCResponse.Status.SUCCESS);
     RPCBlockWriteResponse decoded = (RPCBlockWriteResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
 
+  @Test
   public void RPCGenericResponseTest() {
     for (RPCResponse.Status status : RPCResponse.Status.values()) {
       RPCGenericResponse msg = new RPCGenericResponse(status);

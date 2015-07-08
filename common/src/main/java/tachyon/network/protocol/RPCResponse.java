@@ -21,6 +21,7 @@ import java.util.Map;
 public abstract class RPCResponse extends RPCMessage {
 
   // The possible types of status for RPC responses.
+  // When modifying values, statusToMessage() must be updated for the appropriate status messages.
   public enum Status {
     // Success.
     SUCCESS(0),
@@ -30,7 +31,8 @@ public abstract class RPCResponse extends RPCMessage {
     UNKNOWN_MESSAGE_ERROR(3),
     // Specific errors.
     FILE_DNE(100),
-    BLOCK_LOCK_ERROR(101);
+    BLOCK_LOCK_ERROR(101),
+    WRITE_ERROR(102);
 
     private static final String DEFAULT_ERROR_STRING = "Unknown error.";
     /** Mapping from short id to {@link tachyon.network.protocol.RPCResponse.Status}. */
@@ -110,6 +112,8 @@ public abstract class RPCResponse extends RPCMessage {
           return "File does not exist.";
         case BLOCK_LOCK_ERROR:
           return "Failed to lock block.";
+        case WRITE_ERROR:
+          return "Failed to write block.";
         default:
           return DEFAULT_ERROR_STRING;
       }
