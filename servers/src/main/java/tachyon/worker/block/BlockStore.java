@@ -31,7 +31,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * TODO: define customized Exceptions to better indicate the failure reason, rather than always
  * throwing IOException
  */
-public interface BlockStore {
+interface BlockStore {
 
   /**
    * Locks an existing block and guards subsequent READs on this block. In case the block doesn't
@@ -150,7 +150,7 @@ public interface BlockStore {
   /**
    * Moves an existing block to a new location. If the block can not be found, throw IOException.
    *
-   * @param userId the ID of the user to remove a block
+   * @param userId the ID of the user to move a block
    * @param blockId the ID of an existing block
    * @param newLocation the location of the destination
    * @throws IOException if blockId or newLocation is invalid, or block cannot be moved

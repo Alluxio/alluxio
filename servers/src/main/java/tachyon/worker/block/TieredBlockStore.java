@@ -384,7 +384,7 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.abortTempBlockMeta(tempBlockMeta);
   }
 
-  // Move a block. This method requires block lock in WRITE mode and eviction lock in READ mode.
+  /** Move a block. This method requires block lock in WRITE mode and eviction lock in READ mode */
   private void moveBlockNoLock(long blockId, BlockStoreLocation newLocation) throws IOException {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
       throw new IOException("Failed to move block " + blockId + ": block is uncommited");
@@ -398,7 +398,9 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.moveBlockMeta(blockMeta, newLocation);
   }
 
-  // Remove a block. This method requires block lock in WRITE mode and eviction lock in READ mode.
+  /**
+   * Remove a block. This method requires block lock in WRITE mode and eviction lock in READ mode.
+   */
   private void removeBlockNoLock(long userId, long blockId) throws IOException {
     if (!mMetaManager.hasBlockMeta(blockId)) {
       throw new IOException("Failed to remove block " + blockId + ": block is not found");
@@ -412,12 +414,12 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.removeBlockMeta(blockMeta);
   }
 
-  // This method must be guarded by WRITE lock of mEvictionLock
+  /** This method must be guarded by WRITE lock of mEvictionLock */
   private void freeSpaceInternal(long userId, long availableBytes, BlockStoreLocation location)
       throws IOException {
     EvictionPlan plan = mEvictor.freeSpace(availableBytes, location);
     // Absent plan means failed to evict enough space.
-    if (plan == null) {
+    if (null == plan) {
       throw new IOException("Failed to free space: no eviction plan by evictor");
     }
 

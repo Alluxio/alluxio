@@ -79,7 +79,8 @@ public class BlockMasterSync implements Runnable {
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
     mMasterClient =
-        new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
+        new MasterClient(BlockWorkerUtils.getMasterAddress(mTachyonConf),
+            mMasterClientExecutorService, mTachyonConf);
     mHeartbeatIntervalMs =
         mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
     mHeartbeatTimeoutMs =
@@ -174,18 +175,6 @@ public class BlockMasterSync implements Runnable {
   }
 
   /**
-   * Gets the Tachyon master address from the configuration
-   *
-   * @return the InetSocketAddress of the master
-   */
-  private InetSocketAddress getMasterAddress() {
-    String masterHostname =
-        mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
-    int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    return new InetSocketAddress(masterHostname, masterPort);
-  }
-
-  /**
    * Handles a master command. The command is one of Unknown, Nothing, Register, Free, or Delete.
    * This call will block until the command is complete.
    *
@@ -230,6 +219,7 @@ public class BlockMasterSync implements Runnable {
   private void resetMasterClient() {
     mMasterClient.close();
     mMasterClient =
-        new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
+        new MasterClient(BlockWorkerUtils.getMasterAddress(mTachyonConf),
+            mMasterClientExecutorService, mTachyonConf);
   }
 }
