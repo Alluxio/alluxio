@@ -22,6 +22,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
+import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
 import com.google.common.io.Closer;
 
@@ -83,6 +84,10 @@ public class LocalBlockOutStream extends BlockOutStream {
   LocalBlockOutStream(TachyonFile file, WriteType opType, int blockIndex, long initialBytes,
                       TachyonConf tachyonConf) throws IOException {
     super(file, opType, tachyonConf);
+
+    // BlockOutStream.get() already checks for the local worker, but this verifies the local worker
+    // in case LocalBlockOutStream is constructed directly.
+    Preconditions.checkState(mTachyonFS.hasLocalWorker());
 
     if (!opType.isCache()) {
       throw new IOException("LocalBlockOutStream only supports WriteType.CACHE. opType: " + opType);
