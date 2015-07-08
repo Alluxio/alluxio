@@ -120,8 +120,8 @@ public class BlockWorker {
     int thriftServerPort = NetworkUtils.getPort(mThriftServerSocket);
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
-        new NetAddress(getWorkerAddress().getAddress().getCanonicalHostName(), thriftServerPort,
-            mDataServer.getPort());
+        new NetAddress(BlockWorkerUtils.getWorkerAddress(mTachyonConf).getAddress()
+            .getCanonicalHostName(), thriftServerPort, mDataServer.getPort());
 
     // Set up web server
     int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
@@ -248,22 +248,11 @@ public class BlockWorker {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(getWorkerAddress());
+      return new TServerSocket(BlockWorkerUtils.getWorkerAddress(mTachyonConf));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);
     }
-  }
-
-  /**
-   * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
-   *
-   * @return the worker's address
-   */
-  private InetSocketAddress getWorkerAddress() {
-    String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
-    int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
-    return new InetSocketAddress(workerHostname, workerPort);
   }
 
   // For unit test purposes only
