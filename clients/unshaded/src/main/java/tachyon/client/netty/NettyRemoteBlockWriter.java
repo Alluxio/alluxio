@@ -37,8 +37,10 @@ import tachyon.client.RemoteBlockWriter;
 import tachyon.conf.TachyonConf;
 import tachyon.network.ChannelType;
 import tachyon.network.NettyUtils;
+import tachyon.network.protocol.RPCBlockResponse;
 import tachyon.network.protocol.RPCBlockWriteRequest;
 import tachyon.network.protocol.RPCBlockWriteResponse;
+import tachyon.network.protocol.RPCGenericResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCMessageDecoder;
 import tachyon.network.protocol.RPCMessageEncoder;
@@ -104,21 +106,29 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
       RPCResponse response = listener.get(NettyClient.TIMEOUT_SECOND, TimeUnit.SECONDS);
       channel.close().sync();
 
-      if (response.getType() == RPCMessage.Type.RPC_BLOCK_WRITE_RESPONSE) {
-        RPCBlockWriteResponse resp = (RPCBlockWriteResponse) response;
-        LOG.info("status: {} from remote machine {} received", resp.getStatus(), mAddress);
+      switch (response.getType()) {
+        case RPC_BLOCK_WRITE_RESPONSE:
+          RPCBlockWriteResponse resp = (RPCBlockWriteResponse) response;
+          RPCResponse.Status status = resp.getStatus();
+          LOG.info("status: {} from remote machine {} received", status, mAddress);
 
-        if (!resp.getStatus()) {
-          throw new IOException("error writing blockId: " + mBlockId + ", userId: " + mUserId
-              + ", address: " + mAddress);
-        }
-        mWrittenBytes += length;
-      } else {
-        LOG.error("Unexpected response message type: " + response.getType() + " (expected: "
-            + RPCMessage.Type.RPC_BLOCK_WRITE_RESPONSE + ")");
+          if (status != RPCResponse.Status.SUCCESS) {
+            throw new IOException("error writing blockId: " + mBlockId + ", userId: " + mUserId
+                + ", address: " + mAddress + ", message: " + status.getMessage());
+          }
+          mWrittenBytes += length;
+          break;
+        case RPC_GENERIC_RESPONSE:
+          RPCGenericResponse error = (RPCGenericResponse) response;
+          throw new IOException(error.getStatus().getMessage());
+        default:
+          throw new IOException("Unexpected response message type: " + response.getType()
+              + " (expected: " + RPCMessage.Type.RPC_BLOCK_WRITE_RESPONSE + ")");
       }
+    } catch (IOException ioe) {
+      throw ioe;
     } catch (Exception e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e);
     } finally {
       mHandler.removeListener(listener);
     }
