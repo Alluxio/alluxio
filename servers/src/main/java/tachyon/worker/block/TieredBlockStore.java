@@ -74,6 +74,12 @@ public class TieredBlockStore implements BlockStore {
   private final Evictor mEvictor;
   private List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
+  /** A list of pinned blocks fetched from the master */
+  private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
+  /** A list of blocks that are currently being locked */
+  private final Set<Long> mLockedBlocks = new HashSet<Long>();
+  /** A narrowed view provided to evictors and allocators */
+  private BlockMetadataManagerView mMetadataView;
 
   /**
    * A read/write lock to ensure eviction is atomic w.r.t. other operations. An eviction may trigger
@@ -88,6 +94,10 @@ public class TieredBlockStore implements BlockStore {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
+
+    // initially use empty lists to provide full view
+    mMetadataView = new BlockMetadataManagerView(mMetaManager,
+        new HashSet<Integer>(), new HashSet<Long>());
 
     AllocatorType allocatorType =
         mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
@@ -411,6 +421,19 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.removeBlockMeta(blockMeta);
   }
 
+  private void updateLockedBlocks() {
+    mLockedBlocks.clear();
+    mLockedBlocks.addAll(mLockManager.getLockedBlocks());
+  }
+
+  // always update the metadata view before doing freeSpacewithNewView
+  private BlockMetadataManagerView getUpdatedView() throws IOException {
+    // TODO: update the view object instead of creating new one every time
+    updateLockedBlocks();
+    mMetadataView = new BlockMetadataManagerView(mMetaManager, mPinnedInodes, mLockedBlocks);
+    return mMetadataView;
+  }
+
   // This method must be guarded by WRITE lock of mEvictionLock
   private void freeSpaceInternal(long userId, long availableBytes, BlockStoreLocation location)
       throws IOException {
@@ -474,5 +497,16 @@ public class TieredBlockStore implements BlockStore {
         }
       }
     }
+  }
+
+  /**
+   * Sets the pinned blocks to the given list.
+   *
+   * @param blocks a list of IDs of block that have been pinned
+   */
+  @Override
+  public void setPinnedInodes(Set<Integer> inodes) {
+    mPinnedInodes.clear();
+    mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
   }
 }

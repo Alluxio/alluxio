@@ -18,6 +18,7 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -446,5 +447,16 @@ public class BlockDataManager {
     String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
     int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
     return new InetSocketAddress(workerHostname, workerPort);
+  }
+
+  /**
+   * Set the pinlist for the underlying blockstore.
+   * Typically called by PinListSyncer.
+   *
+   * @param list
+   */
+  public void setPinList(Set<Integer> list) {
+    // Blockstore should implement setPinnedInodes in TACHYON-608
+    mBlockStore.setPinnedInodes(list);
   }
 }
