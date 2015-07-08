@@ -62,11 +62,13 @@ public abstract class BlockOutStream extends OutStream {
     if (tachyonFile.mTachyonFS.hasLocalWorker()
         && tachyonConf.getBoolean(Constants.USER_ENABLE_LOCAL_WRITE,
             Constants.DEFAULT_USER_ENABLE_LOCAL_WRITE)) {
-      LOG.info("Writing with local stream.");
+      LOG.info("Writing with local stream. tachyonFile: " + tachyonFile + ", blockIndex: "
+          + blockIndex + ", opType: " + opType);
       return new LocalBlockOutStream(tachyonFile, opType, blockIndex, initialBytes, tachyonConf);
     }
 
-    LOG.info("Writing with remote stream.");
+    LOG.info("Writing with remote stream. tachyonFile: " + tachyonFile + ", blockIndex: "
+        + blockIndex + ", opType: " + opType);
     return new RemoteBlockOutStream(tachyonFile, opType, blockIndex, initialBytes, tachyonConf);
   }
 
