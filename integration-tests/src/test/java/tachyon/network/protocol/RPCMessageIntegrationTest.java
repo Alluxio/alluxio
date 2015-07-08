@@ -154,6 +154,7 @@ public class RPCMessageIntegrationTest {
     Assert.assertEquals(expected.getBlockId(), actual.getBlockId());
     Assert.assertEquals(expected.getOffset(), actual.getOffset());
     Assert.assertEquals(expected.getLength(), actual.getLength());
+    Assert.assertEquals(expected.getStatus(), actual.getStatus());
     if (expected.getLength() == 0) {
       // Length is 0, so payloads should be null.
       Assert.assertNull(expected.getPayloadDataBuffer());
@@ -184,6 +185,11 @@ public class RPCMessageIntegrationTest {
     Assert.assertEquals(expected.getOffset(), actual.getOffset());
     Assert.assertEquals(expected.getLength(), actual.getLength());
     Assert.assertEquals(expected.getUserId(), actual.getUserId());
+  }
+
+  private void assertValid(RPCGenericResponse expected, RPCGenericResponse actual) {
+    Assert.assertEquals(expected.getType(), actual.getType());
+    Assert.assertEquals(expected.getEncodedLength(), actual.getEncodedLength());
     Assert.assertEquals(expected.getStatus(), actual.getStatus());
   }
 
@@ -220,21 +226,24 @@ public class RPCMessageIntegrationTest {
   public void RPCBlockResponseTest() {
     ByteBuffer payload = TestUtils.getIncreasingByteBuffer((int) OFFSET, (int) LENGTH);
     RPCBlockResponse msg =
-        new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload, LENGTH));
+        new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload, LENGTH),
+            RPCResponse.Status.SUCCESS);
     RPCBlockResponse decoded = (RPCBlockResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
 
   @Test
   public void RPCBlockResponseEmptyPayloadTest() {
-    RPCBlockResponse msg = new RPCBlockResponse(BLOCK_ID, OFFSET, 0, null);
+    RPCBlockResponse msg = new RPCBlockResponse(BLOCK_ID, OFFSET, 0, null,
+        RPCResponse.Status.SUCCESS);
     RPCBlockResponse decoded = (RPCBlockResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
 
   @Test
   public void RPCBlockResponseErrorTest() {
-    RPCBlockResponse msg = new RPCBlockResponse(-BLOCK_ID, 0, 0, null);
+    RPCBlockResponse msg = RPCBlockResponse.createErrorResponse(new RPCBlockRequest(BLOCK_ID,
+        OFFSET, LENGTH), RPCResponse.Status.FILE_DNE);
     RPCBlockResponse decoded = (RPCBlockResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
@@ -244,7 +253,7 @@ public class RPCMessageIntegrationTest {
     FileChannel payload = getTempFileChannel();
     RPCBlockResponse msg =
         new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH,
-            new DataFileChannel(payload, OFFSET, LENGTH));
+            new DataFileChannel(payload, OFFSET, LENGTH), RPCResponse.Status.SUCCESS);
     RPCBlockResponse decoded = (RPCBlockResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
@@ -264,5 +273,13 @@ public class RPCMessageIntegrationTest {
         new RPCBlockWriteResponse(USER_ID, BLOCK_ID, OFFSET, LENGTH, true);
     RPCBlockWriteResponse decoded = (RPCBlockWriteResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
+  }
+
+  public void RPCGenericResponseTest() {
+    for (RPCResponse.Status status : RPCResponse.Status.values()) {
+      RPCGenericResponse msg = new RPCGenericResponse(status);
+      RPCGenericResponse decoded = (RPCGenericResponse) encodeThenDecode(msg);
+      assertValid(msg, decoded);
+    }
   }
 }
