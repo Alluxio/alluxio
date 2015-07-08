@@ -29,6 +29,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import sun.misc.Cleaner;
+import sun.nio.ch.DirectBuffer;
+
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.io.ByteStreams;
@@ -37,9 +40,6 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.thrift.InvalidPathException;
-
-import sun.misc.Cleaner;
-import sun.nio.ch.DirectBuffer;
 
 /**
  * Common utilities shared by all components in Tachyon.
@@ -147,8 +147,8 @@ public final class CommonUtils {
 
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
     List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
-    for (int k = 0; k < source.size(); k ++) {
-      ret.add(cloneByteBuffer(source.get(k)));
+    for (ByteBuffer b : source) {
+      ret.add(cloneByteBuffer(b));
     }
     return ret;
   }
@@ -178,11 +178,11 @@ public final class CommonUtils {
       trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
       trimmedPathList.add(trimmedPath);
     }
-    for (int k = 1; k < paths.length; k ++) {
-      if (null == paths[k]) {
+    for (Object p : paths) {
+      if (null == p) {
         continue;
       }
-      path = paths[k].toString().trim();
+      path = p.toString().trim();
       trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
       if (!trimmedPath.isEmpty()) {
         trimmedPathList.add(trimmedPath);
@@ -280,8 +280,8 @@ public final class CommonUtils {
 
   public static <T> String listToString(List<T> list) {
     StringBuilder sb = new StringBuilder();
-    for (int k = 0; k < list.size(); k ++) {
-      sb.append(list.get(k)).append(" ");
+    for (T s : list) {
+      sb.append(s).append(" ");
     }
     return sb.toString();
   }
