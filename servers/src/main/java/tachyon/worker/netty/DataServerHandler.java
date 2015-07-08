@@ -16,12 +16,9 @@
 package tachyon.worker.netty;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,17 +38,16 @@ import tachyon.network.protocol.RPCBlockRequest;
 import tachyon.network.protocol.RPCBlockResponse;
 import tachyon.network.protocol.RPCBlockWriteRequest;
 import tachyon.network.protocol.RPCBlockWriteResponse;
+import tachyon.network.protocol.RPCGenericResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCRequest;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.network.protocol.databuffer.DataBuffer;
 import tachyon.network.protocol.databuffer.DataByteBuffer;
 import tachyon.network.protocol.databuffer.DataFileChannel;
-import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
-import tachyon.worker.block.meta.BlockMetaBase;
 
 /**
  * This class has the main logic of the read path to process {@link RPCRequest} messages and return
@@ -83,6 +79,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
         break;
       default:
+        ctx.channel().writeAndFlush(
+            new RPCGenericResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR));
         throw new IllegalArgumentException("No handler implementation for rpc msg type: "
             + msg.getType());
     }
@@ -104,7 +102,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
     } catch (IOException ioe) {
       LOG.error("Failed to lock block: " + blockId, ioe);
-      RPCBlockResponse resp = RPCBlockResponse.createErrorResponse(blockId);
+      RPCBlockResponse resp =
+          RPCBlockResponse.createErrorResponse(req, RPCResponse.Status.BLOCK_LOCK_ERROR);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       return;
@@ -118,7 +117,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       final long readLength = returnLength(offset, len, fileLength);
       ChannelFuture future =
           ctx.writeAndFlush(new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req,
-              reader, readLength)));
+              reader, readLength), RPCResponse.Status.SUCCESS));
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(reader));
       mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
@@ -126,7 +125,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     } catch (Exception e) {
       // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);
-      RPCBlockResponse resp = RPCBlockResponse.createErrorResponse(blockId);
+      RPCBlockResponse resp =
+          RPCBlockResponse.createErrorResponse(req, RPCResponse.Status.FILE_DNE);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       if (reader != null) {
