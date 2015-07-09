@@ -39,7 +39,7 @@ public abstract class BlockInStream extends InStream {
    * @param tachyonFile the file the block belongs to
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the tachyonFile
-   * @param tachyonConf the TachyonConf instance for this file output stream.
+   * @param tachyonConf the TachyonConf instance for this file input stream.
    * @return A new LocalBlockInStream or RemoteBlockInStream
    * @throws IOException
    */
@@ -56,6 +56,7 @@ public abstract class BlockInStream extends InStream {
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the tachyonFile
    * @param ufsConf the under file system configuration
+   * @param tachyonConf the TachyonConf instance for this file input stream.
    * @return A new LocalBlockInStream or RemoteBlockInStream
    * @throws IOException
    */
@@ -86,7 +87,7 @@ public abstract class BlockInStream extends InStream {
    * @param file
    * @param readType
    * @param blockIndex
-   * @param tachyonConf the TachyonConf instance for this file output stream.
+   * @param tachyonConf the TachyonConf instance for this file input stream.
    * @throws IOException
    */
   BlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonConf tachyonConf)
