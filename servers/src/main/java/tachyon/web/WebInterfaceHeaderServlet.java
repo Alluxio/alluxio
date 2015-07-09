@@ -23,8 +23,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
-
 import tachyon.conf.TachyonConf;
+import tachyon.util.NetworkUtils;
 
 /**
  * Servlet that provides data for the header navigation bar.
@@ -50,7 +50,8 @@ public class WebInterfaceHeaderServlet extends HttpServlet {
       throws ServletException, IOException {
     int masterWebPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT, 
         Constants.DEFAULT_MASTER_WEB_PORT);
-    String masterHostName = mTachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
+    String masterHostName =
+        mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
     request.setAttribute("masterHost", masterHostName);
     request.setAttribute("masterPort", masterWebPort);
     getServletContext().getRequestDispatcher("/header.jsp").include(request, response);
