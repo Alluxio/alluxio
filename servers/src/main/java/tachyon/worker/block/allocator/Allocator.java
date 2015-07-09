@@ -29,6 +29,7 @@ public interface Allocator {
    * Allocates a block from the given block store location. The location can be a specific location,
    * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)} .
    *
+   * @deprecated
    * @param userId the ID of user to apply for the block allocation
    * @param blockId the ID of the block
    * @param blockSize the size of block in bytes
@@ -40,6 +41,18 @@ public interface Allocator {
   TempBlockMeta allocateBlock(
       long userId, long blockId, long blockSize, BlockStoreLocation location) throws IOException;
 
+  /**
+   * Allocates a block given a view and a block store location. The location can be a specific location,
+   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)} .
+   *
+   * @param userId the ID of user to apply for the block allocation
+   * @param blockId the ID of the block
+   * @param blockSize the size of block in bytes
+   * @param location the location in block store
+   * @param view of metadata
+   * @return a temp block meta if success, null otherwise
+   * @throws IOException if block location is invalid
+   */
   TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) throws IOException;
 }

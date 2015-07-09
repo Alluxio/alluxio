@@ -26,17 +26,17 @@ public class AllocatorFactory {
    * Create a new {@link Allocator}
    *
    * @param allocatorType AllocatorType which determines the class of allocator to create
-   * @param metaManager BlockMetadataManager to pass to Allocator
+   * @param metaView to pass to Allocator
    * @return the generated Allocator
    */
-  public static Allocator create(AllocatorType allocatorType, BlockMetadataManagerView metaView) {
+  public static Allocator create(AllocatorType allocatorType, BlockMetadataManagerView view) {
     switch (allocatorType) {
       case GREEDY:
-        return new GreedyAllocator(metaView);
+        return new GreedyAllocator(view);
       case MAX_FREE:
-        return new MaxFreeAllocator(metaView);
+        return new MaxFreeAllocator(view);
       default:
-        return new GreedyAllocator(metaView);
+        return new GreedyAllocator(view);
     }
   }
 

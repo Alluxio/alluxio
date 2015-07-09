@@ -30,16 +30,16 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * This class serves as an example how to implement an allocator.
  */
 public class GreedyAllocator implements Allocator {
-  private BlockMetadataManagerView mMetaView;
+  private BlockMetadataManagerView mManagerView;
 
   public GreedyAllocator(BlockMetadataManagerView metadata) {
-    mMetaView = Preconditions.checkNotNull(metadata);
+    mManagerView = Preconditions.checkNotNull(metadata);
   }
 
   @Override
   public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) throws IOException {
-    mMetaView = view;
+    mManagerView = view;
     return allocateBlock(userId, blockId, blockSize, location);
   }
 
@@ -47,13 +47,13 @@ public class GreedyAllocator implements Allocator {
   public TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location) throws IOException {
     if (location.equals(BlockStoreLocation.anyTier())) {
-      // When any tier is ok, loop over all storage tier and dir, and return the first dir that has
-      // sufficient available space.
-      for (StorageTierView tier : mMetaView.getTierViews()) {
-        for (StorageDirView dir : tier.getDirViews()) {
-          if (dir.getAvailableBytes() >= blockSize) {
+      // When any tierView is ok, loop over all storage tierViews and dirViews,
+      // and return the first dirView that has sufficient available space.
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        for (StorageDirView dirView : tierView.getDirViews()) {
+          if (dirView.getAvailableBytes() >= blockSize) {
             // TODO: have to get underlying dir here, break the design of dirView
-            return new TempBlockMeta(userId, blockId, blockSize, dir.getDirForCreatingBlock());
+            return new TempBlockMeta(userId, blockId, blockSize, dirView.getDirForCreatingBlock());
           }
         }
       }
@@ -61,22 +61,22 @@ public class GreedyAllocator implements Allocator {
     }
 
     int tierAlias = location.tierAlias();
-    StorageTierView tier = mMetaView.getTierView(tierAlias);
+    StorageTierView tierView = mManagerView.getTierView(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-      // Loop over all dirs in the given tier
-      for (StorageDirView dir : tier.getDirViews()) {
-        if (dir.getAvailableBytes() >= blockSize) {
+      // Loop over all dirViewss in the given tierView
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        if (dirView.getAvailableBytes() >= blockSize) {
           // TODO: have to get underlying dir here, break the design of dirView
-          return new TempBlockMeta(userId, blockId, blockSize, dir.getDirForCreatingBlock());
+          return new TempBlockMeta(userId, blockId, blockSize, dirView.getDirForCreatingBlock());
         }
       }
       return null;
     }
 
     int dirIndex = location.dir();
-    StorageDirView dir = tier.getDirView(dirIndex);
-    if (dir.getAvailableBytes() >= blockSize) {
-      return new TempBlockMeta(userId, blockId, blockSize, dir.getDirForCreatingBlock());
+    StorageDirView dirView = tierView.getDirView(dirIndex);
+    if (dirView.getAvailableBytes() >= blockSize) {
+      return new TempBlockMeta(userId, blockId, blockSize, dirView.getDirForCreatingBlock());
     }
     return null;
   }

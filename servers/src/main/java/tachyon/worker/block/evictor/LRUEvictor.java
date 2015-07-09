@@ -35,7 +35,7 @@ import tachyon.worker.block.meta.BlockMeta;
 
 public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private BlockMetadataManagerView mMetaView;
+  private BlockMetadataManagerView mManagerView;
 
   /**
    * access-ordered {@link java.util.LinkedHashMap} from blockId to {@code true}, acts as a LRU
@@ -46,13 +46,13 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       .synchronizedMap(new LinkedHashMap<Long, Boolean>(200, 0.75f, true));
 
   public LRUEvictor(BlockMetadataManagerView metadata) {
-    mMetaView = metadata;
+    mManagerView = metadata;
   }
 
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
       BlockMetadataManagerView view) throws IOException {
-    mMetaView = view;
+    mManagerView = view;
     return freeSpace(availableBytes, location);
   }
 
@@ -63,7 +63,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     List<Long> toEvict = new ArrayList<Long>();
     EvictionPlan plan = null;
 
-    long alreadyAvailableBytes = mMetaView.getAvailableBytes(location);
+    long alreadyAvailableBytes = mManagerView.getAvailableBytes(location);
     if (alreadyAvailableBytes >= availableBytes) {
       plan = new EvictionPlan(toMove, toEvict);
       return plan;
@@ -77,7 +77,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       long blockId = it.next().getKey();
 
       try {
-        BlockMeta meta = mMetaView.getBlockMeta(blockId);
+        BlockMeta meta = mManagerView.getBlockMeta(blockId);
         if (meta != null) {
           BlockStoreLocation dir = meta.getBlockLocation();
           if (dir.belongTo(location)) {

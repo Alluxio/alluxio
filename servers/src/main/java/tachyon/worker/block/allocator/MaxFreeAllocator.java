@@ -26,19 +26,19 @@ import tachyon.worker.block.meta.StorageTierView;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * An allocator that allocates a block in the storage dir with most free space.
+ * An allocator that allocates a block in the storage dir view with most free space.
  */
 public class MaxFreeAllocator implements Allocator {
-  private BlockMetadataManagerView mMetaView;
+  private BlockMetadataManagerView mManagerView;
 
-  public MaxFreeAllocator(BlockMetadataManagerView metadata) {
-    mMetaView = Preconditions.checkNotNull(metadata);
+  public MaxFreeAllocator(BlockMetadataManagerView view) {
+    mManagerView = Preconditions.checkNotNull(view);
   }
 
   @Override
   public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) throws IOException {
-    mMetaView = view;
+    mManagerView = view;
     return allocateBlock(userId, blockId, blockSize, location);
   }
 
@@ -46,37 +46,37 @@ public class MaxFreeAllocator implements Allocator {
   public TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location) throws IOException {
 
-    StorageDirView candidateDir = null;
+    StorageDirView candidateDirView = null;
     long maxFreeBytes = blockSize;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTierView tier : mMetaView.getTierViews()) {
-        for (StorageDirView dir : tier.getDirViews()) {
-          if (dir.getAvailableBytes() >= maxFreeBytes) {
-            maxFreeBytes = dir.getAvailableBytes();
-            candidateDir = dir;
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        for (StorageDirView dirView : tierView.getDirViews()) {
+          if (dirView.getAvailableBytes() >= maxFreeBytes) {
+            maxFreeBytes = dirView.getAvailableBytes();
+            candidateDirView = dirView;
           }
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTierView tier = mMetaView.getTierView(location.tierAlias());
-      for (StorageDirView dir : tier.getDirViews()) {
-        if (dir.getAvailableBytes() >= maxFreeBytes) {
-          maxFreeBytes = dir.getAvailableBytes();
-          candidateDir = dir;
+      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        if (dirView.getAvailableBytes() >= maxFreeBytes) {
+          maxFreeBytes = dirView.getAvailableBytes();
+          candidateDirView = dirView;
         }
       }
     } else {
-      StorageTierView tier = mMetaView.getTierView(location.tierAlias());
-      StorageDirView dir = tier.getDirView(location.dir());
-      if (dir.getAvailableBytes() >= blockSize) {
-        candidateDir = dir;
+      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
+      StorageDirView dirView = tierView.getDirView(location.dir());
+      if (dirView.getAvailableBytes() >= blockSize) {
+        candidateDirView = dirView;
       }
     }
 
     // TODO: avoid getDirForCreatingBlock()
-    return candidateDir != null
-        ? new TempBlockMeta(userId, blockId, blockSize, candidateDir.getDirForCreatingBlock())
+    return candidateDirView != null
+        ? new TempBlockMeta(userId, blockId, blockSize, candidateDirView.getDirForCreatingBlock())
         : null;
   }
 }
