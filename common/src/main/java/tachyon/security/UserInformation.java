@@ -25,9 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.util.PlatformUtils;
 
 /**
- * This class wraps a JAAS Subject and provides methods to determine the user's name. It supports
+ * This class wraps a JAAS Subject and provides methods to determine the user. It supports
  * Windows, Unix, and Kerberos login modules.
  */
 public class UserInformation {
@@ -35,11 +36,9 @@ public class UserInformation {
 
   private static final String OS_LOGIN_MODULE_NAME;
   private static final String OS_PRINCIPAL_CLASS_NAME;
-  private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
-  private static final boolean IS_64_BIT = System.getProperty("os.arch").contains("64");
-  private static final boolean AIX = System.getProperty("os.name").equals("AIX");
-  public static final String JAVA_VENDOR_NAME = System.getProperty("java.vendor");
-  public static final boolean IBM_JAVA = JAVA_VENDOR_NAME.contains("IBM");
+  private static final boolean WINDOWS = PlatformUtils.OS_NAME.startsWith("Windows");
+  private static final boolean IS_64_BIT = PlatformUtils.PROCESSOR_BIT.contains("64");
+  private static final boolean AIX = PlatformUtils.OS_NAME.equals("AIX");
 
   static {
     OS_LOGIN_MODULE_NAME = getOSLoginModuleName();
@@ -48,7 +47,7 @@ public class UserInformation {
 
   // Return the OS login module class name.
   private static String getOSLoginModuleName() {
-    if (IBM_JAVA) {
+    if (PlatformUtils.IBM_JAVA) {
       if (WINDOWS) {
         return IS_64_BIT ? "com.ibm.security.auth.module.Win64LoginModule"
             : "com.ibm.security.auth.module.NTLoginModule";
@@ -67,7 +66,7 @@ public class UserInformation {
   // Return the OS principal class name
   static String getOsPrincipalClassName() {
     String principalClassName = null;
-    if (IBM_JAVA) {
+    if (PlatformUtils.IBM_JAVA) {
       if (IS_64_BIT) {
         principalClassName = "com.ibm.security.auth.UsernamePrincipal";
       } else {
@@ -107,4 +106,8 @@ public class UserInformation {
       return SIMPLE;
     }
   }
+
+  // TODO: TACHYON-602 - add TACHYON_LOGIN_MODULE to convert an OS user to Tachyon user.
+
+  // TODO: TACHYON-613 - add methods to get login user
 }
