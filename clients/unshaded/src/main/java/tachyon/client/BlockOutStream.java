@@ -16,239 +16,68 @@
 package tachyon.client;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileChannel.MapMode;
-
-import com.google.common.primitives.Ints;
-import com.google.common.io.Closer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
 
 /**
- * <code>BlockOutStream</code> implementation of TachyonFile. This class is not client facing.
+ * <code>BlockOutStream</code> interface for writing data to a block. This class is not client
+ * facing.
  */
-public class BlockOutStream extends OutStream {
+public abstract class BlockOutStream extends OutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final int mBlockIndex;
-  private final long mBlockCapacityByte;
-  private final long mBlockId;
-  private final long mBlockOffset;
-  private final Closer mCloser = Closer.create();
-  private final String mLocalFilePath;
-  private final RandomAccessFile mLocalFile;
-  private final FileChannel mLocalFileChannel;
-  private final ByteBuffer mBuffer;
-
-  private long mAvailableBytes = 0;
-  private long mInFileBytes = 0;
-  private long mWrittenBytes = 0;
-
-  private boolean mCanWrite = false;
-  private boolean mClosed = false;
-
   /**
-   * @param file the file the block belongs to
-   * @param opType the OutStream's write type
-   * @param blockIndex the index of the block in the file
-   * @param tachyonConf the TachyonConf instance for this file output stream.
+   * Get a new BlockOutStream with a default initial size allocated to the block.
+   *
+   * @param tachyonFile The file this block belongs to.
+   * @param opType The type of write.
+   * @param blockIndex The index of the block in the tachyonFile.
+   * @param tachyonConf The TachyonConf instance.
+   * @return A new {@link LocalBlockOutStream} or {@link RemoteBlockOutStream}.
    * @throws IOException
    */
-  BlockOutStream(TachyonFile file, WriteType opType, int blockIndex, TachyonConf tachyonConf)
-      throws IOException {
-    this(file, opType, blockIndex, tachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES,
-        8 * Constants.MB), tachyonConf);
-  }
-
-  /**
-   * @param file the file the block belongs to
-   * @param opType the OutStream's write type
-   * @param blockIndex the index of the block in the file
-   * @param initialBytes the initial size bytes that will be allocated to the block
-   * @param tachyonConf the TachyonConf instance for this file output stream.
-   * @throws IOException
-   */
-  BlockOutStream(TachyonFile file, WriteType opType, int blockIndex, long initialBytes,
+  public static BlockOutStream get(TachyonFile tachyonFile, WriteType opType, int blockIndex,
       TachyonConf tachyonConf) throws IOException {
-    super(file, opType, tachyonConf);
-
-    if (!opType.isCache()) {
-      throw new IOException("BlockOutStream only support WriteType.CACHE");
-    }
-
-    mBlockIndex = blockIndex;
-    mBlockCapacityByte = mFile.getBlockSizeByte();
-    mBlockId = mFile.getBlockId(mBlockIndex);
-    mBlockOffset = mBlockCapacityByte * blockIndex;
-
-    mCanWrite = true;
-
-    if (!mTachyonFS.hasLocalWorker()) {
-      mCanWrite = false;
-      String msg = "The machine does not have any local worker.";
-      throw new IOException(msg);
-    }
-    mLocalFilePath = mTachyonFS.getLocalBlockTemporaryPath(mBlockId, initialBytes);
-    mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
-    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
-    // change the permission of the temporary file in order that the worker can move it.
-    CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
-    // use the sticky bit, only the client and the worker can write to the block
-    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
-    LOG.info(mLocalFilePath + " was created!");
-    mAvailableBytes += initialBytes;
-
-    long allocateBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB) + 4L;
-    mBuffer = ByteBuffer.allocate(Ints.checkedCast(allocateBytes));
-  }
-
-  private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
-      throws IOException {
-    if (mAvailableBytes < length) {
-      long bytesRequested = mTachyonFS.requestSpace(mBlockId, length - mAvailableBytes);
-      if (bytesRequested + mAvailableBytes >= length) {
-        mAvailableBytes += bytesRequested;
-      } else {
-        mCanWrite = false;
-        throw new IOException(String.format("No enough space on local worker: fileId(%d)"
-            + " blockId(%d) requestSize(%d)", mFile.mFileId, mBlockId, length - mAvailableBytes));
-      }
-    }
-
-    MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, mInFileBytes, length);
-    out.put(buf, offset, length);
-    CommonUtils.cleanDirectBuffer(out);
-    mInFileBytes += length;
-    mAvailableBytes -= length;
-  }
-
-  @Override
-  public void cancel() throws IOException {
-    if (!mClosed) {
-      mCloser.close();
-      mClosed = true;
-      mTachyonFS.cancelBlock(mBlockId);
-      LOG.info(String.format("Canceled output of block. blockId(%d) path(%s)", mBlockId,
-          mLocalFilePath));
-    }
+    return get(tachyonFile, opType, blockIndex,
+        tachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES, 8 * Constants.MB), tachyonConf);
   }
 
   /**
-   * @return true if the stream can write and is not closed, otherwise false
+   *
+   * @param tachyonFile The file this block belongs to.
+   * @param opType The type of write.
+   * @param blockIndex The index of the block in the tachyonFile.
+   * @param initialBytes The initial size (in bytes) that will be allocated to the block.
+   * @param tachyonConf The TachyonConf instance.
+   * @return A new {@link LocalBlockOutStream} or {@link RemoteBlockOutStream}.
+   * @throws IOException
    */
-  public boolean canWrite() {
-    return !mClosed && mCanWrite;
-  }
+  public static BlockOutStream get(TachyonFile tachyonFile, WriteType opType, int blockIndex,
+      long initialBytes, TachyonConf tachyonConf) throws IOException {
 
-  @Override
-  public void close() throws IOException {
-    if (!mClosed) {
-      if (mBuffer.position() > 0) {
-        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-      }
-      mCloser.close();
-      mTachyonFS.cacheBlock(mBlockId);
-      mClosed = true;
+    if (tachyonFile.mTachyonFS.hasLocalWorker()
+        && tachyonConf.getBoolean(Constants.USER_ENABLE_LOCAL_WRITE,
+            Constants.DEFAULT_USER_ENABLE_LOCAL_WRITE)) {
+      LOG.info("Writing with local stream. tachyonFile: " + tachyonFile + ", blockIndex: "
+          + blockIndex + ", opType: " + opType);
+      return new LocalBlockOutStream(tachyonFile, opType, blockIndex, initialBytes, tachyonConf);
     }
+
+    LOG.info("Writing with remote stream. tachyonFile: " + tachyonFile + ", blockIndex: "
+        + blockIndex + ", opType: " + opType);
+    return new RemoteBlockOutStream(tachyonFile, opType, blockIndex, initialBytes, tachyonConf);
   }
 
-  @Override
-  public void flush() throws IOException {
-    // Since this only writes to memory, this flush is not outside visible.
+  protected BlockOutStream(TachyonFile tachyonFile, WriteType opType, TachyonConf tachyonConf) {
+    super(tachyonFile, opType, tachyonConf);
   }
 
   /**
-   * @return the block id of the block
+   * @return the remaining space of the block, in bytes.
    */
-  public long getBlockId() {
-    return mBlockId;
-  }
-
-  /**
-   * @return the block offset in the file.
-   */
-  public long getBlockOffset() {
-    return mBlockOffset;
-  }
-
-  /**
-   * @return the remaining space of the block, in bytes
-   */
-  public long getRemainingSpaceByte() {
-    return mBlockCapacityByte - mWrittenBytes;
-  }
-
-  @Override
-  public void write(byte[] b) throws IOException {
-    write(b, 0, b.length);
-  }
-
-  @Override
-  public void write(byte[] b, int off, int len) throws IOException {
-    if (b == null) {
-      throw new NullPointerException();
-    } else if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length)
-        || ((off + len) < 0)) {
-      throw new IndexOutOfBoundsException(String.format("Buffer length (%d), offset(%d), len(%d)",
-          b.length, off, len));
-    }
-
-    if (!canWrite()) {
-      throw new IOException("Can not write cache.");
-    }
-    if (mWrittenBytes + len > mBlockCapacityByte) {
-      throw new IOException("Out of capacity.");
-    }
-
-    long userFileBufferBytes =
-        mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB);
-    if (mBuffer.position() > 0 && mBuffer.position() + len > userFileBufferBytes) {
-      // Write the non-empty buffer if the new write will overflow it.
-      appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-      mBuffer.clear();
-    }
-
-    if (len > userFileBufferBytes / 2) {
-      // This write is "large", so do not write it to the buffer, but write it out directly to the
-      // mapped file.
-      if (mBuffer.position() > 0) {
-        // Make sure all bytes in the buffer are written out first, to prevent out-of-order writes.
-        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-        mBuffer.clear();
-      }
-      appendCurrentBuffer(b, off, len);
-    } else if (len > 0) {
-      // Write the data to the buffer, and not directly to the mapped file.
-      mBuffer.put(b, off, len);
-    }
-
-    mWrittenBytes += len;
-  }
-
-  @Override
-  public void write(int b) throws IOException {
-    if (!canWrite()) {
-      throw new IOException("Can not write cache.");
-    }
-    if (mWrittenBytes + 1 > mBlockCapacityByte) {
-      throw new IOException("Out of capacity.");
-    }
-
-    if (mBuffer.position()
-        >= mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB)) {
-      appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-      mBuffer.clear();
-    }
-
-    CommonUtils.putIntByteBuffer(mBuffer, b);
-    mWrittenBytes ++;
-  }
+  public abstract long getRemainingSpaceBytes();
 }
