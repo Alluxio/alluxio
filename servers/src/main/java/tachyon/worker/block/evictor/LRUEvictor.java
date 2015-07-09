@@ -44,7 +44,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final boolean LINKED_HASH_MAP_ACCESS_ORDERED = true;
   private static final boolean UNUSED_MAP_VALUE = true;
 
-  private final BlockMetadataManager mMeta;
+  private final BlockMetadataManager mMetaManager;
 
   /**
    * access-ordered {@link java.util.LinkedHashMap} from blockId to {@link #UNUSED_MAP_VALUE}(just a
@@ -56,10 +56,10 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
   public LRUEvictor(BlockMetadataManager meta) {
-    mMeta = Preconditions.checkNotNull(meta);
+    mMetaManager = Preconditions.checkNotNull(meta);
 
     // preload existing blocks loaded by StorageDir to Evictor
-    for (StorageTier tier : mMeta.getTiers()) {
+    for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         for (long blockId : dir.getBlockIds()) {
           mLRUCache.put(blockId, UNUSED_MAP_VALUE);
@@ -71,7 +71,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private boolean alreadyAvailable(long bytesToBeAvailable, BlockStoreLocation location)
       throws IOException {
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTier tier : mMeta.getTiers()) {
+      for (StorageTier tier : mMetaManager.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
           if (dir.getAvailableBytes() >= bytesToBeAvailable) {
             return true;
@@ -82,7 +82,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     }
 
     int tierAlias = location.tierAlias();
-    StorageTier tier = mMeta.getTier(tierAlias);
+    StorageTier tier = mMetaManager.getTier(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.getAvailableBytes() >= bytesToBeAvailable) {
@@ -114,7 +114,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     while (it.hasNext() && dirCandidates.candidateSize() < bytesToBeAvailable) {
       long blockId = it.next().getKey();
       try {
-        BlockMeta meta = mMeta.getBlockMeta(blockId);
+        BlockMeta meta = mMetaManager.getBlockMeta(blockId);
 
         BlockStoreLocation dirLocation = meta.getBlockLocation();
         if (dirLocation.belongTo(location)) {
@@ -136,7 +136,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       // TODO: maybe we should abstract the strategy of moving blocks to lower tier
       // move as many blocks to next tier as possible
       List<StorageTier> tiersBelow =
-          mMeta.getTiersBelow(dirCandidates.candidateDir().getParentTier().getTierAlias());
+          mMetaManager.getTiersBelow(dirCandidates.candidateDir().getParentTier().getTierAlias());
       for (StorageTier tier : tiersBelow) {
         for (StorageDir dir : tier.getStorageDirs()) {
           BlockStoreLocation dest = dir.toBlockStoreLocation();
@@ -144,7 +144,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
           long remainBytes = dir.getAvailableBytes();
           while (blocks.hasNext() && remainBytes >= 0) {
             long blockId = blocks.next();
-            long blockSize = mMeta.getBlockMeta(blockId).getBlockSize();
+            long blockSize = mMetaManager.getBlockMeta(blockId).getBlockSize();
             if (blockSize <= remainBytes) {
               // the block can be moved to the dir
               toMove.add(new Pair<Long, BlockStoreLocation>(blockId, dest));
@@ -160,26 +160,26 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       Iterator<Pair<Long, BlockStoreLocation>> moveIt = toMove.iterator();
       while (moveIt.hasNext()) {
         long id = moveIt.next().getFirst();
-        if (!mMeta.hasBlockMeta(id)) {
+        if (!mMetaManager.hasBlockMeta(id)) {
           mLRUCache.remove(id);
           moveIt.remove();
         } else {
-          toFree += mMeta.getBlockMeta(id).getBlockSize();
+          toFree += mMetaManager.getBlockMeta(id).getBlockSize();
         }
       }
       Iterator<Long> evictIt = toEvict.iterator();
       while (evictIt.hasNext()) {
         long id = evictIt.next();
-        if (!mMeta.hasBlockMeta(id)) {
+        if (!mMetaManager.hasBlockMeta(id)) {
           mLRUCache.remove(id);
           evictIt.remove();
         } else {
-          toFree += mMeta.getBlockMeta(id).getBlockSize();
+          toFree += mMetaManager.getBlockMeta(id).getBlockSize();
         }
       }
 
       // reassure the plan is feasible
-      if (mMeta.getAvailableBytes(location) + toFree >= bytesToBeAvailable) {
+      if (mMetaManager.getAvailableBytes(location) + toFree >= bytesToBeAvailable) {
         plan = new EvictionPlan(toMove, toEvict);
       }
     }
