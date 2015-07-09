@@ -288,7 +288,7 @@ public class TieredBlockStore implements BlockStore {
     // TODO: Cleanup the user folder across tiered storage.
     for (String dirName : dirs) {
       if (!new File(dirName).delete()) {
-        LOG.error("Error in cleanup userId {}: cannot delete directory ", userId, dirName);
+        LOG.error("Error in cleanup userId {}: cannot delete directory {}", userId, dirName);
       }
     }
 
