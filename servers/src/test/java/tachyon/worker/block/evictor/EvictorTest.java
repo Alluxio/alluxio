@@ -21,15 +21,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import com.google.common.io.Files;
 
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreLocation;
@@ -57,7 +55,6 @@ public class EvictorTest {
   private BlockMetadataManager mMetaManager;
   private EvictorType mEvictorType;
   private Evictor mEvictor;
-  private File mTempFolder;
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
@@ -75,18 +72,16 @@ public class EvictorTest {
     mEvictorType = evictorType;
   }
 
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
+
   @Before
   public final void before() throws IOException {
-    mTempFolder = Files.createTempDir();
-    mMetaManager = EvictorTestUtils.defaultMetadataManager(mTempFolder.getAbsolutePath());
+    File tempFolder = mTestFolder.newFolder();
+    mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     List<StorageTier> tiers = mMetaManager.getTiers();
     mTestDir = tiers.get(TEST_TIER).getDir(TEST_DIR);
     mEvictor = EvictorFactory.create(mEvictorType, mMetaManager);
-  }
-
-  @After
-  public final void after() throws IOException {
-    FileUtils.forceDelete(mTempFolder);
   }
 
   @Test
