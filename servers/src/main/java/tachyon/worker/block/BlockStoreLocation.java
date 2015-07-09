@@ -65,7 +65,7 @@ public class BlockStoreLocation {
   /**
    * Returns whether this location belongs to the specific location.
    *
-   * location A belongs to B either when A.equals(B) or tier and dir of A are all in the range of B.
+   * Location A belongs to B either when A.equals(B) or tier and dir of A are all in the range of B.
    *
    * @param location the target BlockStoreLocation
    * @return true when this BlockStoreLocation belongs to the target, otherwise false
