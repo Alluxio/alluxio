@@ -1,3 +1,6 @@
+<%@ page import="java.util.*" %>
+<%@ page import="tachyon.web.*" %>
+
 <div class="navbar navbar-inverse">
   <div class="navbar-inner">
     <ul class="nav nav-pills" style="height:40px;font-size:14px;font-weight: bold;vertical-align: bottom;">
@@ -13,6 +16,9 @@
       <% } %>
       <li id="browseLogs-li"><a href="./browseLogs">Log Files</a></li>
       <li id="autorefresh-li"><a href="javascript:toggleAutoRefresh();" id="autorefresh-link">Enable Auto-Refresh</a></li>
+      <% if (request.getAttribute("useWorkerHeader") != null) { %>
+        <li id="returnmaster-li"><a href="http://<%=request.getAttribute("masterHost") %>:<%= request.getAttribute("masterPort") %>">Return to Master</a></li>
+      <% } %>
     </ul>
   </div>
 </div>
