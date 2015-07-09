@@ -149,7 +149,7 @@ public class FileOutStream extends OutStream {
 
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
-      if (mCurrentBlockOutStream.getRemainingSpaceByte() > 0) {
+      if (mCurrentBlockOutStream.getRemainingSpaceBytes() > 0) {
         throw new IOException("The current block still has space left, no need to get new block");
       }
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
@@ -158,7 +158,7 @@ public class FileOutStream extends OutStream {
 
     if (mWriteType.isCache()) {
       int offset = (int) (mCachedBytes / mBlockCapacityByte);
-      mCurrentBlockOutStream = new BlockOutStream(mFile, mWriteType, offset, mTachyonConf);
+      mCurrentBlockOutStream = BlockOutStream.get(mFile, mWriteType, offset, mTachyonConf);
     }
   }
 
@@ -182,10 +182,10 @@ public class FileOutStream extends OutStream {
         int tOff = off;
         while (tLen > 0) {
           if (mCurrentBlockOutStream == null
-              || mCurrentBlockOutStream.getRemainingSpaceByte() == 0) {
+              || mCurrentBlockOutStream.getRemainingSpaceBytes() == 0) {
             getNextBlock();
           }
-          long currentBlockLeftBytes = mCurrentBlockOutStream.getRemainingSpaceByte();
+          long currentBlockLeftBytes = mCurrentBlockOutStream.getRemainingSpaceBytes();
           if (currentBlockLeftBytes >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
             mCachedBytes += tLen;
@@ -219,7 +219,8 @@ public class FileOutStream extends OutStream {
   public void write(int b) throws IOException {
     if (mWriteType.isCache()) {
       try {
-        if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.getRemainingSpaceByte() == 0) {
+        if (mCurrentBlockOutStream == null
+            || mCurrentBlockOutStream.getRemainingSpaceBytes() == 0) {
           getNextBlock();
         }
         // TODO Cache the exception here.

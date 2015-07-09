@@ -41,12 +41,14 @@ public class TachyonWorker {
     checkArgs(args);
     TachyonConf tachyonConf = new TachyonConf();
     BlockWorker worker = null;
+
     try {
       worker = new BlockWorker(tachyonConf);
     } catch (IOException ioe) {
       LOG.error("Failed to initialize the block worker, exiting.", ioe);
       System.exit(-1);
     }
+
     try {
       worker.process();
     } catch (Exception e) {
@@ -58,6 +60,7 @@ public class TachyonWorker {
       }
       System.exit(-1);
     }
+
     System.exit(0);
   }
 
