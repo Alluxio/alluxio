@@ -44,6 +44,13 @@ public class EvictionPlan {
     return mToEvict;
   }
 
+  /**
+   * EvictionPlan is empty if and only if toEvict and toMove are all empty
+   */
+  public boolean isEmpty() {
+    return mToEvict.isEmpty() && mToMove.isEmpty();
+  }
+
   @Override
   public String toString() {
     return "toMove: " + mToMove.toString() + ", toEvict: " + mToEvict.toString();
