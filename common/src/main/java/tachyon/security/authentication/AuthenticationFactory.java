@@ -29,9 +29,25 @@ import tachyon.conf.TachyonConf;
 public class AuthenticationFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Different authentication types for Tachyon.
+   */
   public enum AuthTypes {
+    /**
+     * Authentication is disabled. No user info in Tachyon.
+     */
     NOSASL("NOSASL"),
+
+    /**
+     * User is aware in Tachyon.
+     * Login user is OS user. The verification of client user is disabled.
+     */
     SIMPLE("SIMPLE"),
+
+    /**
+     * User is aware in Tachyon.
+     * The user is verified by Kerberos authentication.
+     */
     KERBEROS("KERBEROS");
 
     private final String mAuthType;
@@ -52,6 +68,10 @@ public class AuthenticationFactory {
     mTachyonConf = tachyonConf;
     mAuthTypeStr = tachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
         AuthTypes.NOSASL.getAuthName());
+  }
+
+  String getAuthTypeStr() {
+    return mAuthTypeStr;
   }
 
   // TODO: add methods of getting different Thrift class in follow-up PR.
