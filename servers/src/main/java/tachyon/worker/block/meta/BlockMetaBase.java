@@ -34,8 +34,8 @@ public abstract class BlockMetaBase {
    *
    * @return committed file path
    */
-  protected String tempPath(long userId) {
-    return CommonUtils.concatPath(mDir.getDirPath(), userId, mBlockId);
+  public static String tempPath(StorageDir dir, long userId, long blockId) {
+    return CommonUtils.concatPath(dir.getDirPath(), userId, blockId);
   }
 
   /**
@@ -46,8 +46,8 @@ public abstract class BlockMetaBase {
    *
    * @return committed file path
    */
-  protected String commitPath() {
-    return CommonUtils.concatPath(mDir.getDirPath(), mBlockId);
+  public static String commitPath(StorageDir dir, long blockId) {
+    return CommonUtils.concatPath(dir.getDirPath(), blockId);
   }
 
   protected final long mBlockId;

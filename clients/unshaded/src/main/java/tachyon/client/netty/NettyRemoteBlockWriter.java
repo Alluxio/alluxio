@@ -17,7 +17,6 @@ package tachyon.client.netty;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -34,65 +33,94 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 
 import tachyon.Constants;
-import tachyon.client.RemoteBlockReader;
+import tachyon.client.RemoteBlockWriter;
 import tachyon.conf.TachyonConf;
 import tachyon.network.ChannelType;
 import tachyon.network.NettyUtils;
-import tachyon.network.protocol.RPCBlockRequest;
-import tachyon.network.protocol.RPCBlockResponse;
+import tachyon.network.protocol.RPCBlockWriteRequest;
+import tachyon.network.protocol.RPCBlockWriteResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCMessageDecoder;
 import tachyon.network.protocol.RPCMessageEncoder;
 import tachyon.network.protocol.RPCResponse;
+import tachyon.network.protocol.databuffer.DataByteArrayChannel;
 
 /**
- * Read data from remote data server using Netty.
+ * Write data to a remote data server using Netty.
  */
-public final class NettyRemoteBlockReader implements RemoteBlockReader {
+public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Bootstrap mClientBootstrap;
   private final ClientHandler mHandler;
 
-  // TODO: Creating a new remote block reader may be expensive, so consider a connection pool.
-  public NettyRemoteBlockReader() {
+  private boolean mOpen;
+  private InetSocketAddress mAddress;
+  private long mBlockId;
+  private long mUserId;
+
+  // Total number of bytes written to the remote block.
+  private long mWrittenBytes;
+
+  public NettyRemoteBlockWriter() {
     mHandler = new ClientHandler();
     mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
+    mOpen = false;
   }
 
   @Override
-  public ByteBuffer readRemoteBlock(String host, int port, long blockId, long offset, long length)
-      throws IOException {
-    InetSocketAddress address = new InetSocketAddress(host, port);
+  public void open(InetSocketAddress address, long blockId, long userId) throws IOException {
+    if (mOpen) {
+      throw new IOException("This writer is already open for address: " + mAddress + ", blockId: "
+          + mBlockId + ", userId: " + mUserId);
+    }
+    mAddress = address;
+    mBlockId = blockId;
+    mUserId = userId;
+    mWrittenBytes = 0;
+    mOpen = true;
+  }
 
+  @Override
+  public void close() {
+    if (mOpen) {
+      mOpen = false;
+    }
+  }
+
+  @Override
+  public void write(byte[] bytes, int offset, int length) throws IOException {
+    SingleResponseListener listener = new SingleResponseListener();
     try {
-      ChannelFuture f = mClientBootstrap.connect(address).sync();
+      // TODO: keep connection open across multiple write calls.
+      ChannelFuture f = mClientBootstrap.connect(mAddress).sync();
 
-      LOG.info("Connected to remote machine " + address);
+      LOG.info("Connected to remote machine " + mAddress);
       Channel channel = f.channel();
-      SingleResponseListener listener = new SingleResponseListener();
       mHandler.addListener(listener);
-      channel.writeAndFlush(new RPCBlockRequest(blockId, offset, length));
+      channel.writeAndFlush(new RPCBlockWriteRequest(mUserId, mBlockId, mWrittenBytes, length,
+          new DataByteArrayChannel(bytes, offset, length)));
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_SECOND, TimeUnit.SECONDS);
       channel.close().sync();
 
-      if (response.getType() == RPCMessage.Type.RPC_BLOCK_RESPONSE) {
-        RPCBlockResponse blockResponse = (RPCBlockResponse) response;
-        LOG.info("Data " + blockId + " from remote machine " + address + " received");
+      if (response.getType() == RPCMessage.Type.RPC_BLOCK_WRITE_RESPONSE) {
+        RPCBlockWriteResponse resp = (RPCBlockWriteResponse) response;
+        LOG.info("status: {} from remote machine {} received", resp.getStatus(), mAddress);
 
-        if (blockResponse.getBlockId() < 0) {
-          LOG.info("Data " + blockResponse.getBlockId() + " is not in remote machine.");
-          return null;
+        if (!resp.getStatus()) {
+          throw new IOException("error writing blockId: " + mBlockId + ", userId: " + mUserId
+              + ", address: " + mAddress);
         }
-        return blockResponse.getPayloadDataBuffer().getReadOnlyByteBuffer();
+        mWrittenBytes += length;
       } else {
         LOG.error("Unexpected response message type: " + response.getType() + " (expected: "
-            + RPCMessage.Type.RPC_BLOCK_RESPONSE + ")");
+            + RPCMessage.Type.RPC_BLOCK_WRITE_RESPONSE + ")");
       }
     } catch (Exception e) {
-      LOG.error("exception in netty client: " + e + " message: " + e.getMessage());
+      throw new IOException(e.getMessage());
+    } finally {
+      mHandler.removeListener(listener);
     }
-    return null;
   }
 }
