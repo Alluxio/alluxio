@@ -181,7 +181,8 @@ class EvictorTestUtils {
 
     // update evictor
     if (evictor instanceof BlockStoreEventListener) {
-      ((BlockStoreEventListener) evictor).onCommitBlock(userId, blockId, location(dir));
+      ((BlockStoreEventListener) evictor)
+          .onCommitBlock(userId, blockId, dir.toBlockStoreLocation());
     }
   }
 
@@ -237,8 +238,9 @@ class EvictorTestUtils {
       evictedOrMovedBytes += meta.getBlockMeta(blockId).getBlockSize();
     }
 
-    StorageDir dir = meta.getBlockMeta(blockIds.get(0)).getParentDir();
-    return (meta.getAvailableBytes(location(dir)) + evictedOrMovedBytes) >= bytesToBeAvailable;
+    BlockStoreLocation location =
+        meta.getBlockMeta(blockIds.get(0)).getParentDir().toBlockStoreLocation();
+    return (meta.getAvailableBytes(location) + evictedOrMovedBytes) >= bytesToBeAvailable;
   }
 
   /**
@@ -285,27 +287,6 @@ class EvictorTestUtils {
     Assert.assertNotNull(plan);
     Assert.assertTrue(blocksInTheSameDir(plan, meta));
     Assert.assertTrue(requestSpaceSatisfied(bytesToBeAvailable, plan, meta));
-  }
-
-  /**
-   * Create a {@link BlockStoreLocation} with tier and dir.
-   *
-   * @param tier the StorageTier this location is in
-   * @param dir the StorageDir this location is in
-   * @return the created location
-   */
-  public static BlockStoreLocation location(StorageTier tier, StorageDir dir) {
-    return new BlockStoreLocation(tier.getTierAlias(), tier.getTierLevel(), dir.getDirIndex());
-  }
-
-  /**
-   * Create a {@link BlockStoreLocation} with parent tier of the dir and the dir.
-   *
-   * @param dir the StorageDir this location is in
-   * @return the created location
-   */
-  public static BlockStoreLocation location(StorageDir dir) {
-    return location(dir.getParentTier(), dir);
   }
 
   /**
