@@ -50,7 +50,7 @@ import tachyon.worker.block.meta.StorageTier;
 public class EvictorTest {
   private static final int USER_ID = 2;
   private static final long BLOCK_ID = 10;
-  private BlockMetadataManager mMeta;
+  private BlockMetadataManager mMetaManager;
   private EvictorType mEvictorType;
   private Evictor mEvictor;
   private File mTempFolder;
@@ -74,8 +74,8 @@ public class EvictorTest {
   @Before
   public final void before() throws IOException {
     mTempFolder = Files.createTempDir();
-    mMeta = EvictorTestUtils.defaultMetadataManager(mTempFolder.getAbsolutePath());
-    mEvictor = EvictorFactory.create(mEvictorType, mMeta);
+    mMetaManager = EvictorTestUtils.defaultMetadataManager(mTempFolder.getAbsolutePath());
+    mEvictor = EvictorFactory.create(mEvictorType, mMetaManager);
   }
 
   @After
@@ -86,7 +86,7 @@ public class EvictorTest {
   @Test
   public void noNeedToEvictTest1() throws IOException {
     // metadata manager is just created, no cached block in Evictor
-    for (StorageTier tier : mMeta.getTiers()) {
+    for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         Assert.assertTrue(mEvictor.freeSpace(dir.getCapacityBytes(),
             EvictorTestUtils.location(tier, dir)).isEmpty());
@@ -97,10 +97,10 @@ public class EvictorTest {
   @Test
   public void noNeedToEvictTest2() throws IOException {
     // cache some data in a dir, then request the remaining space from the dir
-    StorageDir dir = EvictorTestUtils.randomDir(mMeta);
+    StorageDir dir = EvictorTestUtils.randomDir(mMetaManager);
     long capacity = dir.getCapacityBytes();
     long cachedBytes = capacity / 2 + 1;
-    EvictorTestUtils.cache(USER_ID, BLOCK_ID, cachedBytes, dir, mMeta, mEvictor);
+    EvictorTestUtils.cache(USER_ID, BLOCK_ID, cachedBytes, dir, mMetaManager, mEvictor);
     Assert.assertTrue(mEvictor.freeSpace(capacity - cachedBytes, EvictorTestUtils.location(dir))
         .isEmpty());
   }
@@ -109,12 +109,12 @@ public class EvictorTest {
   public void noNeedToEvictTest3() throws IOException {
     // fill in all dirs except for a random directory in a random tier, then request the capacity of
     // the directory with anyDirInTier
-    StorageDir dirLeft = EvictorTestUtils.randomDir(mMeta);
+    StorageDir dirLeft = EvictorTestUtils.randomDir(mMetaManager);
     long blockId = BLOCK_ID; // start from BLOCK_ID
-    for (StorageTier tier : mMeta.getTiers()) {
+    for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir != dirLeft) {
-          EvictorTestUtils.cache(USER_ID, blockId, dir.getCapacityBytes(), dir, mMeta, mEvictor);
+          EvictorTestUtils.cache(USER_ID, blockId, dir.getCapacityBytes(), dir, mMetaManager, mEvictor);
           blockId ++;
         }
       }
@@ -127,12 +127,12 @@ public class EvictorTest {
   public void needToEvictTest() throws IOException {
     // Requested space can only be satisfied after evicting some cached blocks
 
-    EvictorTestUtils.randomCache(USER_ID, BLOCK_ID, mMeta, mEvictor);
+    EvictorTestUtils.randomCache(USER_ID, BLOCK_ID, mMetaManager, mEvictor);
 
     // find a non-empty dir
     StorageDir nonEmptyDir = null;
     boolean found = false;
-    for (StorageTier tier : mMeta.getTiers()) {
+    for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.getAvailableBytes() != dir.getCapacityBytes()) {
           nonEmptyDir = dir;
@@ -147,32 +147,32 @@ public class EvictorTest {
 
     if (nonEmptyDir == null) {
       // seems like randomCache did not cache any data, so cache data in a random dir
-      nonEmptyDir = EvictorTestUtils.randomDir(mMeta);
+      nonEmptyDir = EvictorTestUtils.randomDir(mMetaManager);
       EvictorTestUtils.cache(USER_ID, BLOCK_ID, nonEmptyDir.getCapacityBytes() - 1, nonEmptyDir,
-          mMeta, mEvictor);
+          mMetaManager, mEvictor);
     }
 
     long requestBytes = nonEmptyDir.getCapacityBytes();
     EvictionPlan plan = mEvictor.freeSpace(requestBytes, EvictorTestUtils.location(nonEmptyDir));
-    EvictorTestUtils.assertLegalPlan(requestBytes, plan, mMeta);
+    EvictorTestUtils.assertLegalPlan(requestBytes, plan, mMetaManager);
   }
 
   @Test
   public void needToEvictAnyDirInTierTest() throws IOException {
     // cache data with size of "(capacity - 1)" in each dir in a tier, request size of "capacity" of
     // a dir in this tier from anyDirInTier(tier)
-    StorageTier tier = mMeta.getTiers().get(0);
+    StorageTier tier = mMetaManager.getTiers().get(0);
     long blockId = BLOCK_ID;
     List<StorageDir> dirs = tier.getStorageDirs();
     for (StorageDir dir : dirs) {
-      EvictorTestUtils.cache(USER_ID, blockId, dir.getCapacityBytes() - 1, dir, mMeta, mEvictor);
+      EvictorTestUtils.cache(USER_ID, blockId, dir.getCapacityBytes() - 1, dir, mMetaManager, mEvictor);
       blockId ++;
     }
 
     long requestBytes = dirs.get(0).getCapacityBytes();
     EvictionPlan plan =
         mEvictor.freeSpace(requestBytes, BlockStoreLocation.anyDirInTier(tier.getTierAlias()));
-    EvictorTestUtils.assertLegalPlan(requestBytes, plan, mMeta);
+    EvictorTestUtils.assertLegalPlan(requestBytes, plan, mMetaManager);
   }
 
   @Test
@@ -181,27 +181,27 @@ public class EvictorTest {
     // "capacity" of all dirs from anyTier
     long minCapacity = Long.MAX_VALUE;
     long blockId = BLOCK_ID;
-    for (StorageTier tier : mMeta.getTiers()) {
+    for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         long capacity = dir.getCapacityBytes();
         minCapacity = Math.min(minCapacity, capacity);
-        EvictorTestUtils.cache(USER_ID, blockId, capacity - 1, dir, mMeta, mEvictor);
+        EvictorTestUtils.cache(USER_ID, blockId, capacity - 1, dir, mMetaManager, mEvictor);
         blockId ++;
       }
     }
 
     EvictionPlan plan = mEvictor.freeSpace(minCapacity, BlockStoreLocation.anyTier());
-    EvictorTestUtils.assertLegalPlan(minCapacity, plan, mMeta);
+    EvictorTestUtils.assertLegalPlan(minCapacity, plan, mMetaManager);
   }
 
   @Test
   public void requestSpaceLargerThanCapacityTest() throws IOException {
-    long totalCapacity = mMeta.getAvailableBytes(BlockStoreLocation.anyTier());
-    StorageDir dir = EvictorTestUtils.randomDir(mMeta);
+    long totalCapacity = mMetaManager.getAvailableBytes(BlockStoreLocation.anyTier());
+    StorageDir dir = EvictorTestUtils.randomDir(mMetaManager);
     BlockStoreLocation dirLocation = EvictorTestUtils.location(dir);
-    long dirCapacity = mMeta.getAvailableBytes(dirLocation);
+    long dirCapacity = mMetaManager.getAvailableBytes(dirLocation);
 
-    EvictorTestUtils.randomCache(USER_ID, BLOCK_ID, mMeta, mEvictor);
+    EvictorTestUtils.randomCache(USER_ID, BLOCK_ID, mMetaManager, mEvictor);
 
     // request space larger than total capacity
     Assert.assertNull(mEvictor.freeSpace(totalCapacity + 1, BlockStoreLocation.anyTier()));
