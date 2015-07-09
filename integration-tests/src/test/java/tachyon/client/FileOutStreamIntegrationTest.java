@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -73,6 +74,10 @@ public class FileOutStreamIntegrationTest {
   @After
   public final void after() throws Exception {
     sLocalTachyonCluster.stop();
+  }
+
+  @AfterClass
+  public static final void afterClass() {
     System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
@@ -90,7 +95,6 @@ public class FileOutStreamIntegrationTest {
   public static final void beforeClass() throws IOException {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
-
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
   }
