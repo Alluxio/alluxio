@@ -15,9 +15,10 @@
 
 package tachyon.security;
 
+import java.security.Principal;
+
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginContext;
-import java.security.Principal;
 
 import org.junit.Assert;
 import org.junit.Test;
