@@ -197,7 +197,20 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
+  public void migrateBlock(long userId, long blockId, BlockStoreLocation newLocation)
+      throws IOException {
+    mEvictionLock.readLock().lock();
+    try {
+      BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
+      TempBlockMeta tempBlock =
+          getTempBlock(userId, blockId, newLocation, blockMeta.getBlockSize());
+      moveBlock(userId, blockId, tempBlock.getBlockLocation());
+    } finally {
+      mEvictionLock.readLock().unlock();
+    }
+  }
+
+  private void moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
       throws IOException {
     mEvictionLock.readLock().lock();
     try {
@@ -316,6 +329,15 @@ public class TieredBlockStore implements BlockStore {
     if (mMetaManager.hasBlockMeta(blockId)) {
       throw new IOException("Failed to create TempBlockMeta: blockId " + blockId + " committed");
     }
+    TempBlockMeta tempBlock = getTempBlock(userId, blockId, location, initialBlockSize);
+    // Add allocated temp block to metadata manager
+    mMetaManager.addTempBlockMeta(tempBlock);
+    return tempBlock;
+  }
+
+  // Create a temp block meta. This method requires eviction lock in READ mode.
+  private TempBlockMeta getTempBlock(long userId, long blockId, BlockStoreLocation location,
+      long initialBlockSize) throws IOException {
     TempBlockMeta tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
     if (tempBlock == null) {
       // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
@@ -334,8 +356,6 @@ public class TieredBlockStore implements BlockStore {
       tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
       Preconditions.checkNotNull(tempBlock, "Cannot allocate block %s:", blockId);
     }
-    // Add allocated temp block to metadata manager
-    mMetaManager.addTempBlockMeta(tempBlock);
     return tempBlock;
   }
 
