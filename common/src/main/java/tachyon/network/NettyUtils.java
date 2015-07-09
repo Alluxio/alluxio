@@ -36,7 +36,7 @@ public final class NettyUtils {
    * Creates a Netty EventLoopGroup based on the IOMode.
    *
    * @param type Selector for which form of low-level IO we should use
-   * @param numThreads
+   * @param numThreads the number of threads to create new instance
    * @param threadPrefix name pattern for each thread. should contain '%d' to distinguish between
    *        threads.
    * @param isDaemon if true, the {@link java.util.concurrent.ThreadFactory} will create
