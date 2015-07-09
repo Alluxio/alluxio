@@ -18,7 +18,6 @@ package tachyon.worker.block.evictor;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Random;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
@@ -40,7 +39,6 @@ import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockWriter;
 import tachyon.worker.block.meta.StorageDir;
-import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -187,34 +185,6 @@ class EvictorTestUtils {
   }
 
   /**
-   * Cache blocks with random size to random directories by random user id between [0, userIdEnd)
-   * and block id starting with blockIdStart in the storage managed by the
-   * {@link BlockMetadataManager}.
-   *
-   * @param userIdEnd the end of range for user id
-   * @param blockIdStart the start of blockId, increase sequentially by 1, should not collide with
-   *        possible userId, otherwise, when commit block, say with userId 2, blockId // 2, we need
-   *        to move file with path xxx/2/2 to xxx/2, seems inappropriate
-   * @param meta the meta data manager managing a tiered block store
-   * @param evictor the evictor to be updated about the new added blocks
-   * @throws IOException when a blocks fails to be cached
-   */
-  public static void randomCache(int userIdEnd, long blockIdStart, BlockMetadataManager meta,
-      Evictor evictor) throws IOException {
-    long blockId = blockIdStart;
-    Random rnd = new Random();
-    for (StorageTier tier : meta.getTiers()) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (rnd.nextBoolean()) {
-          EvictorTestUtils.cache(rnd.nextInt(userIdEnd), blockId,
-              (long) (dir.getCapacityBytes() * rnd.nextFloat()), dir, meta, evictor);
-          blockId ++;
-        }
-      }
-    }
-  }
-
-  /**
    * Whether the plan can satisfy the requested free bytes to be available, assume all blocks in the
    * plan are in the same dir.
    *
@@ -287,19 +257,5 @@ class EvictorTestUtils {
     Assert.assertNotNull(plan);
     Assert.assertTrue(blocksInTheSameDir(plan, meta));
     Assert.assertTrue(requestSpaceSatisfied(bytesToBeAvailable, plan, meta));
-  }
-
-  /**
-   * Get a random directory in a random tier in the storage managed by meta.
-   *
-   * @param meta the meta data manager managing a tiered block store
-   * @return a randomly chosen StorageDir in the tiered store
-   */
-  public static StorageDir randomDir(BlockMetadataManager meta) {
-    Random rnd = new Random();
-    List<StorageTier> tiers = meta.getTiers();
-    StorageTier tier = tiers.get(rnd.nextInt(tiers.size()));
-    List<StorageDir> dirs = tier.getStorageDirs();
-    return dirs.get(rnd.nextInt(dirs.size()));
   }
 }
