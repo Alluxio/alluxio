@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import tachyon.Constants;
+import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
@@ -86,6 +87,8 @@ public class FileOutStreamIntegrationTest {
     TachyonConf tachyonConf = new TachyonConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
     tachyonConf.set(Constants.USER_ENABLE_LOCAL_WRITE, Boolean.toString(mEnableLocalWrite));
+    // Only the Netty data server supports remote writes.
+    tachyonConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
     sLocalTachyonCluster.start(tachyonConf);
     mTfs = sLocalTachyonCluster.getClient();
     mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
