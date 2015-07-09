@@ -13,32 +13,28 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.client;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.ServerConstants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
-import tachyon.worker.block.BlockDataManager;
 
 /**
- * Defines how to interact with a server running the data protocol.
+ * The interface to write a remote block to the data server.
  */
-public interface DataServer extends Closeable {
+public interface RemoteBlockWriter extends Closeable {
 
   class Factory {
-    public static DataServer createDataServer(final InetSocketAddress dataAddress,
-        final BlockDataManager blockDataManager, TachyonConf conf) {
+    public static RemoteBlockWriter createRemoteBlockWriter(TachyonConf conf) {
       try {
-        return CommonUtils.createNewClassInstance(
-            conf.getClass(Constants.WORKER_DATA_SERVER, ServerConstants.WORKER_DATA_SERVER_CLASS),
-            new Class[] { InetSocketAddress.class, BlockDataManager.class, TachyonConf.class },
-            new Object[] { dataAddress, blockDataManager, conf });
+        return CommonUtils.createNewClassInstance(conf.getClass(Constants.USER_REMOTE_BLOCK_WRITER,
+                ClientConstants.USER_REMOTE_BLOCK_WRITER_CLASS), null, null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
@@ -46,16 +42,22 @@ public interface DataServer extends Closeable {
   }
 
   /**
-   * Gets the port the DataServer is listening on.
+   * Open a block writer to a data server.
    *
-   * @return the port number
+   * @param address The {@link InetSocketAddress} of the data server.
+   * @param blockId The id of the block to write.
+   * @param userId The id of the user writing the block.
+   * @throws IOException
    */
-  int getPort();
+  void open(InetSocketAddress address, long blockId, long userId) throws IOException;
 
   /**
-   * Check if the DataServer is closed.
+   * Write data to the remote block.
    *
-   * @return true if the DataServer is closed, false otherwise
+   * @param bytes An array of bytes representing the source data.
+   * @param offset The offset into the source array of bytes.
+   * @param length The length of the data to write (in bytes).
+   * @throws IOException
    */
-  boolean isClosed();
+  void write(byte[] bytes, int offset, int length) throws IOException;
 }

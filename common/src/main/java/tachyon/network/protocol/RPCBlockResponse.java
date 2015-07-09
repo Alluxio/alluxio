@@ -53,6 +53,7 @@ public class RPCBlockResponse extends RPCResponse {
    * @param blockId The Id of block requested
    * @return the new error RPCBlockResponse created.
    */
+  // TODO: rename this to RPCBlockReadResponse.
   public static RPCBlockResponse createErrorResponse(final long blockId) {
     return new RPCBlockResponse(-blockId, 0, 0, null);
   }
@@ -82,7 +83,7 @@ public class RPCBlockResponse extends RPCResponse {
   @Override
   public int getEncodedLength() {
     // TODO: adjust the length when client also uses netty.
-    // 3 longs (mBLockId, mOffset, mLength) + 1 short (DATA_SERVER_REQUEST_MESSAGE)
+    // 3 longs (mBlockId, mOffset, mLength) + 1 short (DATA_SERVER_REQUEST_MESSAGE)
     return Longs.BYTES * 3 + Shorts.BYTES;
   }
 
