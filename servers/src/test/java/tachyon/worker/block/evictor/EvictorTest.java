@@ -28,12 +28,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Files;
 
-import tachyon.Constants;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDir;
@@ -51,7 +48,6 @@ import tachyon.worker.block.meta.StorageTier;
  */
 @RunWith(Parameterized.class)
 public class EvictorTest {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int USER_ID = 2;
   private static final long BLOCK_ID = 10;
   private BlockMetadataManager mMeta;
