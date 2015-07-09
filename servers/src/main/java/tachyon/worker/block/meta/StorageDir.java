@@ -18,6 +18,7 @@ package tachyon.worker.block.meta;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -438,11 +439,13 @@ public class StorageDir {
    */
   public List<TempBlockMeta> getUserTempBlocks(long userId) {
     Set<Long> userTempBlockIds = mUserIdToTempBlockIdsMap.get(userId);
+
+    if (userTempBlockIds == null || userTempBlockIds.isEmpty()) {
+      return Collections.emptyList();
+    }
     List<TempBlockMeta> userTempBlocks = new ArrayList<TempBlockMeta>();
-    if (userTempBlockIds != null) {
-      for (long blockId : userTempBlockIds) {
-        userTempBlocks.add(mBlockIdToTempBlockMap.get(blockId));
-      }
+    for (long blockId : userTempBlockIds) {
+      userTempBlocks.add(mBlockIdToTempBlockMap.get(blockId));
     }
     return userTempBlocks;
   }
