@@ -17,11 +17,11 @@ package tachyon.worker.block.meta;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+
+import org.eclipse.jetty.server.UserIdentity;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.master.BlockInfo;
 import tachyon.worker.block.BlockMetadataManagerView;
 
 /**
@@ -48,14 +48,18 @@ public class StorageDirView {
 
   /**
    * Get the index of this Dir
+   *
+   * @return index of the dir
    */
-  public int getDirIndex() {
+  public int getDirViewIndex() {
     return mDir.getDirIndex();
   }
 
   /**
-   * Return a filtered list of block metadata,
+   * Get a filtered list of block metadata,
    * for blocks that are neither pinned or being blocked.
+   *
+   * @return a list of metadata for all evictable blocks
    */
   public List<BlockMeta> getEvictableBlocks() {
     List<BlockMeta> filteredList = new ArrayList<BlockMeta>();
@@ -71,6 +75,8 @@ public class StorageDirView {
 
   /**
    * Get available bytes for this dir
+   *
+   * @return available bytes for this dir
    */
   public long getAvailableBytes() {
     return mDir.getAvailableBytes();
@@ -78,6 +84,8 @@ public class StorageDirView {
 
   /**
    * Get committed bytes for this dir
+   *
+   * @return committed bytes for this dir
    */
   public long getCommittedBytes() {
     // TODO: does pinedList, etc. change this value?
@@ -88,13 +96,29 @@ public class StorageDirView {
    * Get the actual dir for this view.
    * This API is here so that to be compatible with Allocator implementation.
    * Ideally it should be removed.
+   *
+   * @return underlying directory
    */
   public StorageDir getDirForCreatingBlock() {
     return mDir;
   }
 
   /**
+   * Create a TempBlockMeta given userId, blockId, and initialBlockSize.
+   *
+   * @param userId
+   * @param blockId
+   * @param initialBlockSize
+   * @return a new TempBlockMeta under the underlying directory.
+   */
+  public TempBlockMeta CreateTempBlockMeta(long userId, long blockId, long initialBlockSize) {
+    return new TempBlockMeta(userId, blockId, initialBlockSize, mDir);
+  }
+
+  /**
    * Get the parent TierView for this view.
+   *
+   * @return parent tierview
    */
   public StorageTierView getParentTierView() {
     return mTierView;

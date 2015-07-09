@@ -43,7 +43,7 @@ public class BlockMetadataManagerView {
   private final Set<Long> mLockedBlocks = new HashSet<Long>();
 
   /**
-   * Create a BlockMetadataView.
+   * Create a BlockMatadataManagerView.
    * Now we always creating a new view before freespace.
    * TODO: incrementally update the view
    *

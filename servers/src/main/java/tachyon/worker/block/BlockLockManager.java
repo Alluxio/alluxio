@@ -202,6 +202,8 @@ public class BlockLockManager {
 
   /**
    * Get a set of currently locked blocks.
+   *
+   * @return a set of locked blocks
    */
   public Set<Long> getLockedBlocks() {
     Set<Long> set = new HashSet<Long>();

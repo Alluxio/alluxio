@@ -74,12 +74,8 @@ public class TieredBlockStore implements BlockStore {
   private final Evictor mEvictor;
   private List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
-  /** A list of pinned blocks fetched from the master */
+  /** A set of pinned blocks fetched from the master */
   private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
-  /** A list of blocks that are currently being locked */
-  private final Set<Long> mLockedBlocks = new HashSet<Long>();
-  /** A narrowed view provided to evictors and allocators */
-  private BlockMetadataManagerView mMetadataView;
 
   /**
    * A read/write lock to ensure eviction is atomic w.r.t. other operations. An eviction may trigger
@@ -96,7 +92,7 @@ public class TieredBlockStore implements BlockStore {
     mLockManager = new BlockLockManager(mMetaManager);
 
     // initially use empty lists to provide full view
-    mMetadataView = new BlockMetadataManagerView(mMetaManager,
+    BlockMetadataManagerView initView = new BlockMetadataManagerView(mMetaManager,
         new HashSet<Integer>(), new HashSet<Long>());
 
     AllocatorType allocatorType =
@@ -423,17 +419,11 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.removeBlockMeta(blockMeta);
   }
 
-  private void updateLockedBlocks() {
-    mLockedBlocks.clear();
-    mLockedBlocks.addAll(mLockManager.getLockedBlocks());
-  }
-
   // always update the metadata view before doing freeSpacewithNewView
   private BlockMetadataManagerView getUpdatedView() throws IOException {
     // TODO: update the view object instead of creating new one every time
-    updateLockedBlocks();
-    mMetadataView = new BlockMetadataManagerView(mMetaManager, mPinnedInodes, mLockedBlocks);
-    return mMetadataView;
+    return new BlockMetadataManagerView(mMetaManager, mPinnedInodes,
+        mLockManager.getLockedBlocks());
   }
 
   /** This method must be guarded by WRITE lock of mEvictionLock */
