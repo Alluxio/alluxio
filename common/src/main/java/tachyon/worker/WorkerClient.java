@@ -61,6 +61,12 @@ public class WorkerClient implements Closeable {
   private WorkerService.Client mClient;
   private TProtocol mProtocol;
   private InetSocketAddress mWorkerAddress;
+  // This is the address of the data server on the worker.
+  private InetSocketAddress mWorkerDataServerAddress;
+  // TODO: This boolean indicates whether or not the client is connected to the worker. However,
+  // since error exceptions are returned through thrift, all api errors look like fatal errors like
+  // network/thrift problems. Maybe error codes/status should be returned for api errors, to be
+  // independent from thrift exceptions.
   private boolean mConnected = false;
   private boolean mIsLocal = false;
   private final ExecutorService mExecutorService;
@@ -244,6 +250,7 @@ public class WorkerClient implements Closeable {
       String host = NetworkUtils.getFqdnHost(workerNetAddress);
       int port = workerNetAddress.mPort;
       mWorkerAddress = new InetSocketAddress(host, port);
+      mWorkerDataServerAddress = new InetSocketAddress(host, workerNetAddress.mSecondaryPort);
       LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
 
       mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(host, port)));
@@ -274,6 +281,13 @@ public class WorkerClient implements Closeable {
    */
   public synchronized InetSocketAddress getAddress() {
     return mWorkerAddress;
+  }
+
+  /**
+   * @return the address of the worker's data server.
+   */
+  public synchronized InetSocketAddress getDataServerAddress() {
+    return mWorkerDataServerAddress;
   }
 
   /**
