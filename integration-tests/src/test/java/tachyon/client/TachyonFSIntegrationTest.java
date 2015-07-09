@@ -48,7 +48,6 @@ public class TachyonFSIntegrationTest {
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
 
-
   @Before
   public final void before() throws IOException {
     mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
