@@ -72,54 +72,52 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Gets the StorageTier given its tierAlias.
+   * Aborts a temp block.
    *
-   * @param tierAlias the alias of this tier
-   * @return the StorageTier object associated with the alias
-   * @throws IOException if tierAlias is not found
+   * @param tempBlockMeta the meta data of the temp block to add
+   * @throws IOException
    */
-  public synchronized StorageTier getTier(int tierAlias) throws IOException {
-    StorageTier tier = mAliasToTiers.get(tierAlias);
-    if (tier == null) {
-      throw new IOException("Cannot find tier with alias " + tierAlias);
+  public synchronized void abortTempBlockMeta(TempBlockMeta tempBlockMeta) throws IOException {
+    StorageDir dir = tempBlockMeta.getParentDir();
+    dir.removeTempBlockMeta(tempBlockMeta);
+  }
+
+  /**
+   * Adds a temp block.
+   *
+   * @param tempBlockMeta the meta data of the temp block to add
+   */
+  public synchronized void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws IOException {
+    StorageDir dir = tempBlockMeta.getParentDir();
+    dir.addTempBlockMeta(tempBlockMeta);
+  }
+
+  /**
+   * Commits a temp block.
+   *
+   * @param tempBlockMeta the meta data of the temp block to commit
+   * @throws IOException
+   */
+  public synchronized void commitTempBlockMeta(TempBlockMeta tempBlockMeta) throws IOException {
+    BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
+    StorageDir dir = tempBlockMeta.getParentDir();
+    dir.removeTempBlockMeta(tempBlockMeta);
+    dir.addBlockMeta(block);
+  }
+
+  /**
+   * Cleans up the meta data of the given temp block ids
+   *
+   * @param userId the ID of the client associated with the temp blocks
+   * @param tempBlockIds the list of temporary block ids to be cleaned up, non temporary block
+   *                     ids will be ignored.
+   */
+  public synchronized void cleanupUserTempBlocks(long userId, List<Long> tempBlockIds) {
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        dir.cleanupUserTempBlocks(userId, tempBlockIds);
+      }
     }
-    return tier;
-  }
-
-  /**
-   * Gets the StorageDir given its location in the store.
-   *
-   * @param location Location of the dir
-   * @return the StorageDir object
-   * @throws IOException if location is not a specific dir or the location is invalid
-   */
-  public synchronized StorageDir getDir(BlockStoreLocation location) throws IOException {
-    if (location.equals(BlockStoreLocation.anyTier())
-        || location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      throw new IOException("Failed to get block path: " + location + " is not a specific dir.");
-    }
-    return getTier(location.tierAlias()).getDir(location.dir());
-  }
-
-  /**
-   * Gets the list of StorageTier managed.
-   *
-   * @return the list of StorageTiers
-   */
-  public synchronized List<StorageTier> getTiers() {
-    return mTiers;
-  }
-
-  /**
-   * Gets the list of StorageTier below the tier with the given tierAlias.
-   *
-   * @param tierAlias the alias of a tier
-   * @return the list of StorageTier
-   * @throws IOException if tierAlias is not found
-   */
-  public synchronized List<StorageTier> getTiersBelow(int tierAlias) throws IOException {
-    int level = getTier(tierAlias).getTierLevel();
-    return mTiers.subList(level + 1, mTiers.size());
   }
 
   /**
@@ -153,6 +151,134 @@ public class BlockMetadataManager {
   }
 
   /**
+   * Gets the metadata of a block given its blockId or throws IOException.
+   *
+   * @param blockId the block ID
+   * @return metadata of the block or null
+   * @throws IOException if no BlockMeta for this blockId is found
+   */
+  public synchronized BlockMeta getBlockMeta(long blockId) throws IOException {
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.hasBlockMeta(blockId)) {
+          return dir.getBlockMeta(blockId);
+        }
+      }
+    }
+    throw new IOException("Failed to get BlockMeta: blockId " + blockId + " not found");
+  }
+
+  /**
+   * Returns the path of a block given its location, or null if the location is not a specific
+   * StorageDir.
+   *
+   * @param blockId the ID of the block
+   * @param location location of a particular StorageDir to store this block
+   * @return the path of this block in this location
+   * @throws IOException if location is not a specific StorageDir
+   */
+  public synchronized String getBlockPath(long blockId, BlockStoreLocation location)
+      throws IOException {
+    return BlockMetaBase.commitPath(getDir(location), blockId);
+  }
+
+  /**
+   * Gets a summary of the meta data.
+   *
+   * @return the metadata of this block store
+   */
+  public synchronized BlockStoreMeta getBlockStoreMeta() {
+    return new BlockStoreMeta(this);
+  }
+
+
+  /**
+   * Gets the StorageDir given its location in the store.
+   *
+   * @param location Location of the dir
+   * @return the StorageDir object
+   * @throws IOException if location is not a specific dir or the location is invalid
+   */
+  public synchronized StorageDir getDir(BlockStoreLocation location) throws IOException {
+    if (location.equals(BlockStoreLocation.anyTier())
+        || location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
+      throw new IOException("Failed to get block path: " + location + " is not a specific dir.");
+    }
+    return getTier(location.tierAlias()).getDir(location.dir());
+  }
+
+  /**
+   * Gets the metadata of a temp block.
+   *
+   * @param blockId the ID of the temp block
+   * @return metadata of the block or null
+   * @throws IOException
+   */
+  public synchronized TempBlockMeta getTempBlockMeta(long blockId) throws IOException {
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.hasTempBlockMeta(blockId)) {
+          return dir.getTempBlockMeta(blockId);
+        }
+      }
+    }
+    throw new IOException("Failed to get TempBlockMeta: temp blockId " + blockId + " not found");
+  }
+
+  /**
+   * Gets the StorageTier given its tierAlias.
+   *
+   * @param tierAlias the alias of this tier
+   * @return the StorageTier object associated with the alias
+   * @throws IOException if tierAlias is not found
+   */
+  public synchronized StorageTier getTier(int tierAlias) throws IOException {
+    StorageTier tier = mAliasToTiers.get(tierAlias);
+    if (tier == null) {
+      throw new IOException("Cannot find tier with alias " + tierAlias);
+    }
+    return tier;
+  }
+
+  /**
+   * Gets the list of StorageTier managed.
+   *
+   * @return the list of StorageTiers
+   */
+  public synchronized List<StorageTier> getTiers() {
+    return mTiers;
+  }
+
+  /**
+   * Gets the list of StorageTier below the tier with the given tierAlias.
+   *
+   * @param tierAlias the alias of a tier
+   * @return the list of StorageTier
+   * @throws IOException if tierAlias is not found
+   */
+  public synchronized List<StorageTier> getTiersBelow(int tierAlias) throws IOException {
+    int level = getTier(tierAlias).getTierLevel();
+    return mTiers.subList(level + 1, mTiers.size());
+  }
+
+  /**
+   * Gets all the temporary blocks associated with a user, empty list is returned if the user has
+   * no temporary blocks.
+   *
+   * @param userId the ID of the user
+   * @return A list of temp blocks associated with the user
+   */
+  public synchronized List<TempBlockMeta> getUserTempBlocks(long userId) {
+    List<TempBlockMeta> userTempBlocks = new ArrayList<TempBlockMeta>();
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        userTempBlocks.addAll(dir.getUserTempBlocks(userId));
+      }
+    }
+    return userTempBlocks;
+  }
+
+  /**
    * Checks if the storage has a given block.
    *
    * @param blockId the block ID
@@ -170,21 +296,20 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Gets the metadata of a block given its blockId or throws IOException.
+   * Checks if the storage has a given temp block.
    *
-   * @param blockId the block ID
-   * @return metadata of the block or null
-   * @throws IOException if no BlockMeta for this blockId is found
+   * @param blockId the temp block ID
+   * @return true if the block is contained, false otherwise
    */
-  public synchronized BlockMeta getBlockMeta(long blockId) throws IOException {
+  public synchronized boolean hasTempBlockMeta(long blockId) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        if (dir.hasBlockMeta(blockId)) {
-          return dir.getBlockMeta(blockId);
+        if (dir.hasTempBlockMeta(blockId)) {
+          return true;
         }
       }
     }
-    throw new IOException("Failed to get BlockMeta: blockId " + blockId + " not found");
+    return false;
   }
 
   /**
@@ -244,75 +369,6 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Checks if the storage has a given temp block.
-   *
-   * @param blockId the temp block ID
-   * @return true if the block is contained, false otherwise
-   */
-  public synchronized boolean hasTempBlockMeta(long blockId) {
-    for (StorageTier tier : mTiers) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (dir.hasTempBlockMeta(blockId)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Gets the metadata of a temp block.
-   *
-   * @param blockId the ID of the temp block
-   * @return metadata of the block or null
-   * @throws IOException
-   */
-  public synchronized TempBlockMeta getTempBlockMeta(long blockId) throws IOException {
-    for (StorageTier tier : mTiers) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (dir.hasTempBlockMeta(blockId)) {
-          return dir.getTempBlockMeta(blockId);
-        }
-      }
-    }
-    throw new IOException("Failed to get TempBlockMeta: temp blockId " + blockId + " not found");
-  }
-
-  /**
-   * Adds a temp block.
-   *
-   * @param tempBlockMeta the meta data of the temp block to add
-   */
-  public synchronized void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws IOException {
-    StorageDir dir = tempBlockMeta.getParentDir();
-    dir.addTempBlockMeta(tempBlockMeta);
-  }
-
-  /**
-   * Commits a temp block.
-   *
-   * @param tempBlockMeta the meta data of the temp block to commit
-   * @throws IOException
-   */
-  public synchronized void commitTempBlockMeta(TempBlockMeta tempBlockMeta) throws IOException {
-    BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
-    StorageDir dir = tempBlockMeta.getParentDir();
-    dir.removeTempBlockMeta(tempBlockMeta);
-    dir.addBlockMeta(block);
-  }
-
-  /**
-   * Aborts a temp block.
-   *
-   * @param tempBlockMeta the meta data of the temp block to add
-   * @throws IOException
-   */
-  public synchronized void abortTempBlockMeta(TempBlockMeta tempBlockMeta) throws IOException {
-    StorageDir dir = tempBlockMeta.getParentDir();
-    dir.removeTempBlockMeta(tempBlockMeta);
-  }
-
-  /**
    * Modifies the size of a temp block
    *
    * @param tempBlockMeta the temp block to modify
@@ -322,62 +378,6 @@ public class BlockMetadataManager {
       throws IOException {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.resizeTempBlockMeta(tempBlockMeta, newSize);
-  }
-
-  /**
-   * Cleans up the meta data of the given temp block ids
-   *
-   * @param userId the ID of the client associated with the temp blocks
-   * @param tempBlockIds the list of temporary block ids to be cleaned up, non temporary block
-   *                     ids will be ignored.
-   */
-  public synchronized void cleanupUserTempBlocks(long userId, List<Long> tempBlockIds) {
-    for (StorageTier tier : mTiers) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        dir.cleanupUserTempBlocks(userId, tempBlockIds);
-      }
-    }
-  }
-
-  /**
-   * Gets all the temporary blocks associated with a user, empty list is returned if the user has
-   * no temporary blocks.
-   *
-   * @param userId the ID of the user
-   * @return A list of temp blocks associated with the user
-   */
-  public synchronized List<TempBlockMeta> getUserTempBlocks(long userId) {
-    List<TempBlockMeta> userTempBlocks = new ArrayList<TempBlockMeta>();
-    for (StorageTier tier : mTiers) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        userTempBlocks.addAll(dir.getUserTempBlocks(userId));
-      }
-    }
-    return userTempBlocks;
-  }
-
-  /**
-   * Gets a summary of the meta data.
-   *
-   * @return the metadata of this block store
-   */
-  public synchronized BlockStoreMeta getBlockStoreMeta() {
-    return new BlockStoreMeta(this);
-  }
-
-
-  /**
-   * Returns the path of a block given its location, or null if the location is not a specific
-   * StorageDir.
-   *
-   * @param blockId the ID of the block
-   * @param location location of a particular StorageDir to store this block
-   * @return the path of this block in this location
-   * @throws IOException if location is not a specific StorageDir
-   */
-  public synchronized String getBlockPath(long blockId, BlockStoreLocation location)
-      throws IOException {
-    return BlockMetaBase.commitPath(getDir(location), blockId);
   }
 
 }
