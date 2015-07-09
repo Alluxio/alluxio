@@ -22,4 +22,6 @@ public class ClientConstants {
 
   public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
       tachyon.client.tcp.TCPRemoteBlockReader.class;
+  public static final Class<? extends RemoteBlockWriter> USER_REMOTE_BLOCK_WRITER_CLASS =
+      tachyon.client.netty.NettyRemoteBlockWriter.class;
 }
