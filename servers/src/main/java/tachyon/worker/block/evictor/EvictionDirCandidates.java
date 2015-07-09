@@ -20,75 +20,81 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.meta.StorageDir;
 
 /**
- * A collection of candidate blocks for eviction organized by directory
+ * A collection of candidate blocks for eviction organized by directory.
+ *
+ * This class lets you add blocks with the StorageDirs they reside in, the blockIds and the sizes in
+ * bytes, then it tells you which StorageDir added so far has the maximum sum of available bytes and
+ * total bytes of added blocks. Assume meta data of StorageDir will not be changed during adding
+ * blocks.
+ *
+ * Example usage can be found in
+ * {@link LRUEvictor#freeSpace(long, tachyon.worker.block.BlockStoreLocation)}.
  */
 class EvictionDirCandidates {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** Map from StorageDirId to pair of list of candidate blockIds and their total size in bytes */
-  private Map<Long, Pair<List<Long>, Long>> mDirCandidates =
-      new HashMap<Long, Pair<List<Long>, Long>>();
-  private long mMaxAvailableBytes = 0;
-  private Long mKeyOfMaxAvailableBytes = null;
+  /** Map from StorageDir to pair of list of candidate blockIds and their total size in bytes */
+  private Map<StorageDir, Pair<List<Long>, Long>> mDirCandidates =
+      new HashMap<StorageDir, Pair<List<Long>, Long>>();
+  /** Maximum sum of available bytes in a StorageDir and all its added blocks */
+  private long mMaxBytes = 0;
+  private StorageDir mDirWithMaxBytes = null;
 
   /**
    * Add the block in the directory to this collection
    *
-   * @param dir the directory where the block resides
+   * @param dir the dir where the block resides
    * @param blockId blockId of the block
    * @param blockSizeBytes block size in bytes
    */
-  public void add(BlockStoreLocation dir, long blockId, long blockSizeBytes) {
-    LOG.debug("add block {} with bytes {} to dir {}", blockId, blockSizeBytes, dir);
+  public void add(StorageDir dir, long blockId, long blockSizeBytes) {
     Pair<List<Long>, Long> candidate;
-    long dirId = dir.getStorageDirId();
-    if (mDirCandidates.containsKey(dirId)) {
-      LOG.debug("dir already in mDirCandidates");
-      candidate = mDirCandidates.get(dirId);
+    if (mDirCandidates.containsKey(dir)) {
+      candidate = mDirCandidates.get(dir);
     } else {
-      LOG.debug("new dir, put to mDirCandidates");
       candidate = new Pair<List<Long>, Long>(new ArrayList<Long>(), 0L);
-      mDirCandidates.put(dirId, candidate);
+      mDirCandidates.put(dir, candidate);
     }
 
     candidate.getFirst().add(blockId);
-    long evictBytes = candidate.getSecond() + blockSizeBytes;
-    LOG.debug("maxAvailableBytes = {}, evictBytes = {}", mMaxAvailableBytes, evictBytes);
-    candidate.setSecond(evictBytes);
+    long blockBytes = candidate.getSecond() + blockSizeBytes;
+    candidate.setSecond(blockBytes);
 
-    if (mMaxAvailableBytes < evictBytes) {
-      mMaxAvailableBytes = evictBytes;
-      mKeyOfMaxAvailableBytes = dirId;
+    long sum = blockBytes + dir.getAvailableBytes();
+    if (mMaxBytes < sum) {
+      mMaxBytes = sum;
+      mDirWithMaxBytes = dir;
     }
-    LOG.debug("mDirCandidates.size() = {}", mDirCandidates.size());
   }
 
   /**
-   * The maximum available bytes in one directory of all candidate directories
+   * The maximum sum of available bytes and total bytes of added blocks in a directory
    *
-   * @return maximum available bytes
+   * @return maximum bytes, if no directory has been added, return 0.
    */
-  public long maxAvailableBytes() {
-    return mMaxAvailableBytes;
+  public long candidateSize() {
+    return mMaxBytes;
   }
 
   /**
-   * List of blockIds for eviction
-   *
-   * @return list of blockIds
+   * @return list of blockIds in the directory that has the maximum {@link #candidateSize},
+   *         otherwise an empty list if no directory has been added
    */
-  public List<Long> toEvict() {
-    Pair<List<Long>, Long> evict = mDirCandidates.get(mKeyOfMaxAvailableBytes);
+  public List<Long> candidateBlocks() {
+    Pair<List<Long>, Long> evict = mDirCandidates.get(mDirWithMaxBytes);
     if (evict == null) {
       return new ArrayList<Long>();
     }
     return evict.getFirst();
+  }
+
+  /**
+   * @return the StorageDir that has the maximum {@link #candidateSize}, otherwise null if no
+   *         directory has been added
+   */
+  public StorageDir candidateDir() {
+    return mDirWithMaxBytes;
   }
 }
