@@ -16,6 +16,7 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -245,26 +246,50 @@ public class BlockMetadataManagerTest {
     dir.addTempBlockMeta(tempBlockMeta3);
     dir.addBlockMeta(blockMeta);
 
-    // Cleanup userId1, expect to remove tempBlock1 and tempBlock2
-    List<TempBlockMeta> toRemove = mMetaManager.cleanupUser(userId1);
+    // Get temp blocks for userId1, expect to get tempBlock1 and tempBlock2
+    List<TempBlockMeta> toRemove = mMetaManager.getUserTempBlocks(userId1);
+    List<Long> toRemoveBlockIds = new ArrayList<Long>(toRemove.size());
+    for (TempBlockMeta tempBlockMeta : toRemove) {
+      toRemoveBlockIds.add(tempBlockMeta.getBlockId());
+    }
     Assert.assertEquals(Sets.newHashSet(tempBlockMeta1, tempBlockMeta2),
         new HashSet<TempBlockMeta>(toRemove));
+    Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId1));
+    Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId2));
+
+    // Clean up userId1, expect tempBlock1 and tempBlock2 to be removed.
+    mMetaManager.cleanupUserTempBlocks(userId1, toRemoveBlockIds);
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId1));
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId2));
     Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId3));
     Assert.assertTrue(dir.hasBlockMeta(TEST_BLOCK_ID));
 
-    // Cleanup userId1 again, expect to remove nothing
-    toRemove = mMetaManager.cleanupUser(userId1);
-    Assert.assertEquals(Sets.newHashSet(), new HashSet<TempBlockMeta>(toRemove));
+    // Get temp blocks for userId1 again, expect to get nothing
+    toRemove = mMetaManager.getUserTempBlocks(userId1);
+    toRemoveBlockIds = new ArrayList<Long>(toRemove.size());
+    for (TempBlockMeta tempBlockMeta : toRemove) {
+      toRemoveBlockIds.add(tempBlockMeta.getBlockId());
+    }
+    Assert.assertTrue(toRemove.isEmpty());
+
+    // Clean up userId1 again, expect nothing to happen
+    mMetaManager.cleanupUserTempBlocks(userId1, toRemoveBlockIds);
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId1));
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId2));
     Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId3));
     Assert.assertTrue(dir.hasBlockMeta(TEST_BLOCK_ID));
 
-    // Cleanup userId2, expect to remove tempBlock3
-    toRemove = mMetaManager.cleanupUser(userId2);
+    // Get temp blocks for userId2, expect to get tempBlock3
+    toRemove = mMetaManager.getUserTempBlocks(userId2);
+    toRemoveBlockIds = new ArrayList<Long>(toRemove.size());
+    for (TempBlockMeta tempBlockMeta : toRemove) {
+      toRemoveBlockIds.add(tempBlockMeta.getBlockId());
+    }
     Assert.assertEquals(Sets.newHashSet(tempBlockMeta3), new HashSet<TempBlockMeta>(toRemove));
+    Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId3));
+
+    // Clean up userId2, expect tempBlock3 to be removed
+    mMetaManager.cleanupUserTempBlocks(userId2, toRemoveBlockIds);
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId1));
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId2));
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId3));
