@@ -292,9 +292,12 @@ public class TieredBlockStore implements BlockStore {
       }
     }
 
+    // Release all locks the user is holding.
+    mLockManager.cleanupUser(userId);
+
+    // Delete the temporary metadata for the user.
     mEvictionLock.readLock().lock();
     mMetaManager.cleanupUserTempBlocks(userId, removedTempBlocks);
-    mLockManager.cleanupUser(userId);
     mEvictionLock.readLock().unlock();
   }
 
