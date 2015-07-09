@@ -110,6 +110,13 @@ public class BlockOutStream extends OutStream {
     mBuffer = ByteBuffer.allocate(Ints.checkedCast(allocateBytes));
   }
 
+  /**
+   * Write out the buffer to the mapped file, will automatically request more space
+   * if the block cannot hold the buffer anymore
+   * @param buf the buffer to write out
+   * @param offset the starting offset of the buffer
+   * @param length number of bytes to write
+   */
   private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
       throws IOException {
     if (mAvailableBytes < length) {
