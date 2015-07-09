@@ -214,6 +214,7 @@ public class BlockWorker {
     mBlockDataManager.stop();
     while (!mDataServer.isClosed() || mThriftServer.isServing()) {
       // TODO: The reason to stop and close again is due to some issues in Thrift.
+      mDataServer.close();
       mThriftServer.stop();
       mThriftServerSocket.close();
       CommonUtils.sleepMs(null, 100);
