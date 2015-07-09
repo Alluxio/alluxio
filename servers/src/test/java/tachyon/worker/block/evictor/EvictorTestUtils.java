@@ -243,19 +243,54 @@ class EvictorTestUtils {
   }
 
   /**
-   * Assert plan is not null and both {@link #blocksInTheSameDir} and {@link #requestSpaceSatisfied}
-   * to be true. This method is to be called in unit tests, if the return values of the two methods
-   * are not all true, the unit test will fail.
+   * Assume the plan is returned by a non-cascading evictor, check whether it is legal. a cascading
+   * evictor is an evictor that always tries to move from the target tier to the next tier and
+   * recursively move down 1 tier until finally blocks are evicted from the final tier.
    *
    * @param bytesToBeAvailable the requested bytes to be available
-   * @param plan the eviction plan
-   * @param meta the meta data manager
+   * @param plan the eviction plan, should not be null
+   * @param metaManager the meta data manager
+   * @return true if and only if the plan is not null and both {@link #blocksInTheSameDir} and
+   *         {@link #requestSpaceSatisfied} are true, otherwise false
+   * @throws IOException when fail to get meta data of a block
+   */
+  public static boolean legalNonCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
+      BlockMetadataManager metaManager) throws IOException {
+    Preconditions.checkNotNull(plan);
+    return blocksInTheSameDir(plan, metaManager)
+        && requestSpaceSatisfied(bytesToBeAvailable, plan, metaManager);
+  }
+
+  /**
+   * Assume the plan is returned by a cascading evictor, check whether it is legal. for explaination
+   * of cascading evictor, please refer to {@link #legalNonCascadingPlan}.
+   *
+   * @param bytesToBeAvailable the requested bytes to be available
+   * @param plan the eviction plan, should not be null
+   * @param metaManager the meta data manager
+   * @return true
+   * @throws IOException when fail to get meta data of a block
+   */
+  // TODO: implement this with shared method in LRUEvictor after the
+  // PR: https://github.com/amplab/tachyon/pull/1079 is merged
+  public static boolean legalCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
+      BlockMetadataManager metaManager) throws IOException {
+    return true;
+  }
+
+  /**
+   * only when plan is not null and at least one of {@link #legalCascadingPlan},
+   * {@link #legalNonCascadingPlan} is true, the assertion will be passed, used in unit test.
+   *
+   * @param bytesToBeAvailable the requested bytes to be available
+   * @param plan the eviction plan, should not be null
+   * @param metaManager the meta data manager
    * @throws IOException when fail to get meta data of a block
    */
   public static void assertLegalPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager meta) throws IOException {
+      BlockMetadataManager metaManager) throws IOException {
     Assert.assertNotNull(plan);
-    Assert.assertTrue(blocksInTheSameDir(plan, meta));
-    Assert.assertTrue(requestSpaceSatisfied(bytesToBeAvailable, plan, meta));
+    Assert.assertTrue(legalNonCascadingPlan(bytesToBeAvailable, plan, metaManager)
+        || legalCascadingPlan(bytesToBeAvailable, plan, metaManager));
   }
 }
