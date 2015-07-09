@@ -145,9 +145,7 @@ public class PartialLRUEvictor extends BlockStoreEventListenerBase implements Ev
 
         try {
           BlockMeta meta = mMeta.getBlockMeta(blockId);
-
-          BlockStoreLocation dir = meta.getBlockLocation();
-          if (dir.belongTo(location)) {
+          if (meta.getParentDir().getStorageDirId() == selectedDir.getStorageDirId()) {
             freedBytes += meta.getBlockSize();
             victimBlocks.add(blockId);
           }
