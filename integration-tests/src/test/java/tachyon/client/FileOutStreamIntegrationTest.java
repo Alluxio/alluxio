@@ -78,6 +78,9 @@ public class FileOutStreamIntegrationTest {
 
   @Before
   public final void before() throws IOException {
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     TachyonConf tachyonConf = new TachyonConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
     tachyonConf.set(Constants.USER_ENABLE_LOCAL_WRITE, Boolean.toString(mEnableLocalWrite));
@@ -88,9 +91,6 @@ public class FileOutStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
-    // Disable hdfs client caching to avoid file system close() affecting other clients
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
-
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
   }
