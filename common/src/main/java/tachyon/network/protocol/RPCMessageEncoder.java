@@ -37,7 +37,6 @@ import tachyon.network.protocol.databuffer.DataBuffer;
  */
 @ChannelHandler.Sharable
 public class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Override
   protected void encode(ChannelHandlerContext ctx, RPCMessage in, List<Object> out)
