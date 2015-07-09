@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.google.common.base.Throwables;
-
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +43,7 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * Class responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
+ * Class is responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
  * thread-safe.
  */
 public class BlockDataManager {
@@ -55,7 +53,7 @@ public class BlockDataManager {
   private final BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
   private final BlockStore mBlockStore;
-  /** Master client threadpool */
+  /** Master client thread pool */
   private final ExecutorService mMasterClientExecutorService;
   /** Configuration values */
   private final TachyonConf mTachyonConf;
@@ -72,7 +70,7 @@ public class BlockDataManager {
   /** User metadata, used to keep track of user heartbeats */
   private Users mUsers;
   /** Id of this worker */
-  long mWorkerId;
+  private long mWorkerId;
 
   /**
    * Creates a BlockDataManager based on the configuration values.
@@ -92,21 +90,18 @@ public class BlockDataManager {
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
     mMasterClient =
-        new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
+        new MasterClient(BlockWorkerUtils.getMasterAddress(mTachyonConf),
+            mMasterClientExecutorService, mTachyonConf);
 
     // Create Under FileSystem Client
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
+
     // Connect to UFS to handle UFS security
-    InetSocketAddress workerAddress = getWorkerAddress();
-    try {
-      mUfs.connectFromWorker(mTachyonConf, NetworkUtils.getFqdnHost(workerAddress));
-    } catch (IOException e) {
-      LOG.error("Worker @ " + workerAddress + " failed to connect to the under file system", e);
-      throw Throwables.propagate(e);
-    }
+    InetSocketAddress workerAddress = BlockWorkerUtils.getWorkerAddress(mTachyonConf);
+    mUfs.connectFromWorker(mTachyonConf, NetworkUtils.getFqdnHost(workerAddress));
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
@@ -129,6 +124,7 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to access
+   * @throws IOException this exception is not thrown in the tiered block store implementation
    */
   public void accessBlock(long userId, long blockId) throws IOException {
     mBlockStore.accessBlock(userId, blockId);
@@ -191,28 +187,26 @@ public class BlockDataManager {
    * @return true if successful, false otherwise
    * @throws IOException if the block to commit does not exist
    */
-  // TODO: This may be better as void
-  public boolean commitBlock(long userId, long blockId) throws IOException {
+  public void commitBlock(long userId, long blockId) throws IOException {
     mBlockStore.commitBlock(userId, blockId);
 
     // TODO: Reconsider how to do this without heavy locking
     // Block successfully committed, update master with new block metadata
     Long lockId = mBlockStore.lockBlock(userId, blockId);
-    BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
-    BlockStoreLocation loc = meta.getBlockLocation();
-    Long storageDirId = loc.getStorageDirId();
-    Long length = meta.getBlockSize();
-    BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
-    Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierLevel());
     try {
+      BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
+      BlockStoreLocation loc = meta.getBlockLocation();
+      Long storageDirId = loc.getStorageDirId();
+      Long length = meta.getBlockSize();
+      BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
+      Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierLevel());
       mMasterClient
           .worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);
     } catch (TException te) {
-      mBlockStore.unlockBlock(userId, blockId);
       throw new IOException("Failed to commit block to master.", te);
+    } finally {
+      mBlockStore.unlockBlock(userId, blockId);
     }
-    mBlockStore.unlockBlock(userId, blockId);
-    return true;
   }
 
   /**
@@ -220,16 +214,17 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to create
-   * @param location The tier to place the new block in, -1 for any tier
+   * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
    * @param initialBytes The initial amount of bytes to be allocated
    * @return A string representing the path to the local file
    * @throws IOException if the block already exists
    * @throws OutOfSpaceException if there is no more space to store the block
    */
   // TODO: We should avoid throwing IOException
-  public String createBlock(long userId, long blockId, int location, long initialBytes)
+  public String createBlock(long userId, long blockId, int tierAlias, long initialBytes)
       throws IOException, OutOfSpaceException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
+    BlockStoreLocation loc =
+        tierAlias == -1 ? BlockStoreLocation.anyTier() : BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     return createdBlock.getPath();
   }
@@ -237,19 +232,36 @@ public class BlockDataManager {
   /**
    * Creates a block. This method is only called from a data server.
    *
+   * Call {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the block.
+   *
    * @param userId The id of the client
    * @param blockId The id of the block to be created
-   * @param location The tier to create this block, -1 for any tier
+   * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
    * @param initialBytes The initial amount of bytes to be allocated
-   * @return the block writer for the local block file
    * @throws FileDoesNotExistException if the block is not on the worker
    * @throws IOException if the block writer cannot be obtained
    */
   // TODO: We should avoid throwing IOException
-  public BlockWriter createBlockRemote(long userId, long blockId, int location, long initialBytes)
+  public void createBlockRemote(long userId, long blockId, int tierAlias, long initialBytes)
       throws FileDoesNotExistException, IOException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(location);
-    mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
+    CommonUtils.createBlockPath(createdBlock.getPath());
+  }
+
+  /**
+   * Opens a {@link BlockWriter} for an existing temporary block. This method is only called from a
+   * data server.
+   *
+   * The temporary block must already exist with {@link #createBlockRemote(long, long, int, long)}.
+   *
+   * @param userId The id of the client
+   * @param blockId The id of the block to be opened for writing
+   * @return the block writer for the local block file
+   * @throws IOException if the block writer cannot be obtained
+   */
+  public BlockWriter getTempBlockWriterRemote(long userId, long blockId)
+      throws FileDoesNotExistException, IOException {
     return mBlockStore.getBlockWriter(userId, blockId);
   }
 
@@ -284,6 +296,28 @@ public class BlockDataManager {
   }
 
   /**
+   * Gets the metadata of a block given its blockId or throws IOException. This method does not
+   * require a lock ID so the block is possible to be moved or removed after it returns.
+   *
+   * @param blockId the block ID
+   * @return metadata of the block
+   * @throws IOException if no BlockMeta for this blockId is found
+   */
+  public BlockMeta getVolatileBlockMeta(long blockId) throws IOException {
+    return mBlockStore.getVolatileBlockMeta(blockId);
+  }
+
+  /**
+   * Checks if the storage has a given block.
+   *
+   * @param blockId the block ID
+   * @return true if the block is contained, false otherwise
+   */
+  public boolean hasBlockMeta(long blockId) {
+    return mBlockStore.hasBlockMeta(blockId);
+  }
+
+  /**
    * Obtains a read lock the block.
    *
    * @param userId The id of the client
@@ -303,12 +337,12 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to move
-   * @param tier The tier to move the block to
+   * @param tierAlias The tier to move the block to
    * @throws IOException if an error occurs during move
    */
   // TODO: We should avoid throwing IOException
-  public void moveBlock(long userId, long blockId, int tier) throws IOException {
-    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tier);
+  public void moveBlock(long userId, long blockId, int tierAlias) throws IOException {
+    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tierAlias);
     mBlockStore.moveBlock(userId, blockId, dst);
   }
 
@@ -320,6 +354,7 @@ public class BlockDataManager {
    * @param blockId The id of the block to read
    * @param lockId The id of the lock on this block
    * @return a string representing the path to this block in local storage
+   * @throws IOException if the block cannot be found
    */
   public String readBlock(long userId, long blockId, long lockId) throws IOException {
     BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
@@ -358,12 +393,12 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to allocate space to
-   * @param bytesRequested The amount of bytes to allocate
+   * @param additionalBytes The amount of bytes to allocate
    * @throws IOException if an error occurs when allocating space
    */
   // TODO: We should avoid throwing IOException
-  public void requestSpace(long userId, long blockId, long bytesRequested) throws IOException {
-    mBlockStore.requestSpace(userId, blockId, bytesRequested);
+  public void requestSpace(long userId, long blockId, long additionalBytes) throws IOException {
+    mBlockStore.requestSpace(userId, blockId, additionalBytes);
   }
 
   /**
@@ -427,51 +462,5 @@ public class BlockDataManager {
       mWorkerSource.incBytesWrittenLocal(metrics.get(Constants.BYTES_WRITTEN_LOCAL_INDEX));
       mWorkerSource.incBytesWrittenUfs(metrics.get(Constants.BYTES_WRITTEN_UFS_INDEX));
     }
-  }
-
-  /**
-   * Gets the metadata of a block given its blockId or throws IOException. This method does not
-   * require a lock ID so the block is possible to be moved or removed after it returns.
-   *
-   * @param blockId the block ID
-   * @return metadata of the block
-   * @throws IOException if no BlockMeta for this blockId is found
-   */
-  public BlockMeta getVolatileBlockMeta(long blockId) throws IOException {
-    return mBlockStore.getVolatileBlockMeta(blockId);
-  }
-
-  /**
-   * Checks if the storage has a given block.
-   *
-   * @param blockId the block ID
-   * @return true if the block is contained, false otherwise
-   */
-  public boolean hasBlockMeta(long blockId) {
-    return mBlockStore.hasBlockMeta(blockId);
-  }
-
-  /**
-   * Gets the Tachyon master address from the configuration
-   *
-   * @return the InetSocketAddress of the master
-   */
-  private InetSocketAddress getMasterAddress() {
-    String masterHostname =
-        mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
-    int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    return new InetSocketAddress(masterHostname, masterPort);
-  }
-
-  /**
-   * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
-   *
-   * @return the worker's address
-   */
-  // TODO: BlockWorker has the same function. Share these to a utility function.
-  private InetSocketAddress getWorkerAddress() {
-    String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
-    int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
-    return new InetSocketAddress(workerHostname, workerPort);
   }
 }

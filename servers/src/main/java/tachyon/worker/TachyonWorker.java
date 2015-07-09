@@ -15,6 +15,8 @@
 
 package tachyon.worker;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,20 +41,26 @@ public class TachyonWorker {
     checkArgs(args);
     TachyonConf tachyonConf = new TachyonConf();
     BlockWorker worker = null;
+
     try {
       worker = new BlockWorker(tachyonConf);
+    } catch (IOException ioe) {
+      LOG.error("Failed to initialize the block worker, exiting.", ioe);
+      System.exit(-1);
+    }
+
+    try {
       worker.process();
     } catch (Exception e) {
-      LOG.error("Uncaught exception, shutting down workers and then exiting.", e);
+      LOG.error("Uncaught exception while running worker, shutting down and exiting.", e);
       try {
-        if (worker != null) {
-          worker.stop();
-        }
+        worker.stop();
       } catch (Exception ex) {
         LOG.error("Failed to stop block worker. Exiting.", ex);
       }
       System.exit(-1);
     }
+
     System.exit(0);
   }
 

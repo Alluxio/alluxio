@@ -43,11 +43,11 @@ public class TempBlockMeta extends BlockMetaBase {
 
   @Override
   public String getPath() {
-    return tempPath(mUserId);
+    return tempPath(mDir, mUserId, mBlockId);
   }
 
   public String getCommitPath() {
-    return commitPath();
+    return commitPath(mDir, mBlockId);
   }
 
   public long getUserId() {
