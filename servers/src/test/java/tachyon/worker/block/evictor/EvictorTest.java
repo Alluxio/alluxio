@@ -40,7 +40,14 @@ import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
 /**
- * This class tests general behavior of all types of {@link Evictor} defined in {@link EvictorType}.
+ * This is a parameterized unit test for all types of {@link Evictor} defined in {@link EvictorType}
+ *
+ * It tests general evictor behavior like not evicting any space when space request is already
+ * available, evicting enough space when eviction is needed, having a null eviction plan when the
+ * requested space can not be satisfied anyway and so on.
+ *
+ * Behavior for a specific type of evictor will be tested in other classes, e.x. tests to ensure
+ * that blocks evicted by LRUEvictor are in the right order should be in LRUEvictorTest.
  */
 @RunWith(Parameterized.class)
 public class EvictorTest {
