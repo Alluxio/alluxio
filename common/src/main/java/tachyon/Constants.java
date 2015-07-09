@@ -230,4 +230,7 @@ public class Constants {
   public static final int BYTES_WRITTEN_LOCAL_INDEX = 7;
   public static final int BYTES_WRITTEN_UFS_INDEX = 8;
 
+  /** Security */
+  // Authentication
+  public static final String TACHYON_SECURITY_AUTHENTICATION = "tachyon.security.authentication";
 }
