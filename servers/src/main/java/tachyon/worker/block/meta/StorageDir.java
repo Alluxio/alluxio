@@ -412,7 +412,12 @@ public class StorageDir {
         continue;
       }
       userTempBlocks.remove(tempBlockId);
-      mBlockIdToTempBlockMap.remove(tempBlockId);
+      TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.remove(tempBlockId);
+      if (tempBlockMeta != null) {
+        reclaimSpace(tempBlockMeta.getBlockSize(), false);
+      } else {
+        LOG.error("Cannot find blockId {} when cleanup userId {}", tempBlockId, userId);
+      }
     }
     if (userTempBlocks.isEmpty()) {
       mUserIdToTempBlockIdsMap.remove(userId);
