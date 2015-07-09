@@ -270,7 +270,7 @@ public class BlockMetadataManagerTest {
     for (TempBlockMeta tempBlockMeta : toRemove) {
       toRemoveBlockIds.add(tempBlockMeta.getBlockId());
     }
-    Assert.assertEquals(Sets.<TempBlockMeta>newHashSet(), new HashSet<TempBlockMeta>(toRemove));
+    Assert.assertTrue(toRemove.isEmpty());
 
     // Clean up userId1 again, expect nothing to happen
     mMetaManager.cleanupUserTempBlocks(userId1, toRemoveBlockIds);
