@@ -26,7 +26,8 @@ import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * An allocator that allocates a block in the storage dir with most free space.
+ * An allocator that allocates a block in the storage dir with most free space. It always allocates
+ * to the highest tier if the requested block store location is any tier.
  */
 public class MaxFreeAllocator implements Allocator {
   private final BlockMetadataManager mMetaManager;
@@ -38,27 +39,18 @@ public class MaxFreeAllocator implements Allocator {
   @Override
   public TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location) throws IOException {
-
     StorageDir candidateDir = null;
-    long maxFreeBytes = blockSize;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTier tier : mMetaManager.getTiers()) {
-        for (StorageDir dir : tier.getStorageDirs()) {
-          if (dir.getAvailableBytes() >= maxFreeBytes) {
-            maxFreeBytes = dir.getAvailableBytes();
-            candidateDir = dir;
-          }
+        candidateDir = getCandidateDirInTier(tier, blockSize);
+        if (candidateDir != null) {
+          return new TempBlockMeta(userId, blockId, blockSize, candidateDir);
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
       StorageTier tier = mMetaManager.getTier(location.tierAlias());
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (dir.getAvailableBytes() >= maxFreeBytes) {
-          maxFreeBytes = dir.getAvailableBytes();
-          candidateDir = dir;
-        }
-      }
+      candidateDir = getCandidateDirInTier(tier, blockSize);
     } else {
       StorageTier tier = mMetaManager.getTier(location.tierAlias());
       StorageDir dir = tier.getDir(location.dir());
@@ -69,5 +61,24 @@ public class MaxFreeAllocator implements Allocator {
 
     return candidateDir != null ? new TempBlockMeta(userId, blockId, blockSize, candidateDir)
         : null;
+  }
+
+  /**
+   * Find a directory in a tier that has max free space and is able to store the block.
+   *
+   * @param tier the storage tier
+   * @param blockSize the size of block in bytes
+   * @return the storage directory if found, null otherwise
+   */
+  private StorageDir getCandidateDirInTier(StorageTier tier, long blockSize) {
+    StorageDir candidateDir = null;
+    long maxFreeBytes = blockSize - 1;
+    for (StorageDir dir : tier.getStorageDirs()) {
+      if (dir.getAvailableBytes() > maxFreeBytes) {
+        maxFreeBytes = dir.getAvailableBytes();
+        candidateDir = dir;
+      }
+    }
+    return candidateDir;
   }
 }

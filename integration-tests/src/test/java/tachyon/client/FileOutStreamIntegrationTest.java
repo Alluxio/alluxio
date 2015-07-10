@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -30,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import tachyon.Constants;
+import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
@@ -73,6 +75,10 @@ public class FileOutStreamIntegrationTest {
   @After
   public final void after() throws Exception {
     sLocalTachyonCluster.stop();
+  }
+
+  @AfterClass
+  public static final void afterClass() {
     System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
@@ -81,6 +87,8 @@ public class FileOutStreamIntegrationTest {
     TachyonConf tachyonConf = new TachyonConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
     tachyonConf.set(Constants.USER_ENABLE_LOCAL_WRITE, Boolean.toString(mEnableLocalWrite));
+    // Only the Netty data server supports remote writes.
+    tachyonConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
     sLocalTachyonCluster.start(tachyonConf);
     mTfs = sLocalTachyonCluster.getClient();
     mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
@@ -90,7 +98,6 @@ public class FileOutStreamIntegrationTest {
   public static final void beforeClass() throws IOException {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
-
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
   }

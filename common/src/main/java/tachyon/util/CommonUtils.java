@@ -172,8 +172,8 @@ public final class CommonUtils {
 
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
     List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
-    for (int k = 0; k < source.size(); k ++) {
-      ret.add(cloneByteBuffer(source.get(k)));
+    for (ByteBuffer b : source) {
+      ret.add(cloneByteBuffer(b));
     }
     return ret;
   }
@@ -305,8 +305,8 @@ public final class CommonUtils {
 
   public static <T> String listToString(List<T> list) {
     StringBuilder sb = new StringBuilder();
-    for (int k = 0; k < list.size(); k ++) {
-      sb.append(list.get(k)).append(" ");
+    for (T s : list) {
+      sb.append(s).append(" ");
     }
     return sb.toString();
   }
