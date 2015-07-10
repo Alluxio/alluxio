@@ -74,8 +74,8 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    * @return a StorageDir in the range of location that already has availableBytes larger than
    *         bytesToBeAvailable, otherwise null
    */
-  private StorageDir alreadyAvailable(long bytesToBeAvailable, BlockStoreLocation location)
-      throws IOException {
+  private StorageDir selectDirWithRequestedSpace(long bytesToBeAvailable,
+      BlockStoreLocation location) throws IOException {
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTier tier : mMetaManager.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
@@ -123,7 +123,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       EvictionPlan plan) throws IOException {
 
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
-    StorageDir candidateDir = alreadyAvailable(bytesToBeAvailable, location);
+    StorageDir candidateDir = selectDirWithRequestedSpace(bytesToBeAvailable, location);
     if (candidateDir != null) {
       return candidateDir;
     }
