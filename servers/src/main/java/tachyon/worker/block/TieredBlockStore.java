@@ -87,8 +87,7 @@ public class TieredBlockStore implements BlockStore {
 
   public TieredBlockStore(TachyonConf tachyonConf) throws IOException {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mMetaManager =
-        Preconditions.checkNotNull(BlockMetadataManager.newBlockMetadataManager(mTachyonConf));
+    mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
 
     AllocatorType allocatorType =

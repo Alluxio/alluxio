@@ -15,6 +15,7 @@
 
 package tachyon.worker.block.allocator;
 
+import com.google.common.base.Preconditions;
 
 import tachyon.worker.block.BlockMetadataManagerView;
 
@@ -30,13 +31,14 @@ public class AllocatorFactory {
    * @return the generated Allocator
    */
   public static Allocator create(AllocatorType allocatorType, BlockMetadataManagerView view) {
+    BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
     switch (allocatorType) {
       case GREEDY:
-        return new GreedyAllocator(view);
+        return new GreedyAllocator(managerView);
       case MAX_FREE:
-        return new MaxFreeAllocator(view);
+        return new MaxFreeAllocator(managerView);
       default:
-        return new MaxFreeAllocator(view);
+        return new MaxFreeAllocator(managerView);
     }
   }
 
