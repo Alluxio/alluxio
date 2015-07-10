@@ -113,22 +113,11 @@ public class StorageDirView {
   }
 
   /**
-   * Get the actual dir for this view.
-   * This API is here so that to be compatible with Allocator implementation.
-   * Ideally it should be removed.
-   *
-   * @return underlying directory
-   */
-  public StorageDir getDirForCreatingBlock() {
-    return mDir;
-  }
-
-  /**
    * Create a TempBlockMeta given userId, blockId, and initialBlockSize.
    *
-   * @param userId
-   * @param blockId
-   * @param initialBlockSize
+   * @param userId of the owning user
+   * @param blockId of the new block
+   * @param initialBlockSize of the new block
    * @return a new TempBlockMeta under the underlying directory.
    */
   public TempBlockMeta createTempBlockMeta(long userId, long blockId, long initialBlockSize) {

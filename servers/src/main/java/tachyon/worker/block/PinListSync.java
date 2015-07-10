@@ -52,17 +52,17 @@ public class PinListSync implements Runnable {
 
   /** Client for all master communication */
   private MasterClient mMasterClient;
-  /** Flag to indicate if the sync should continue */
+  /** Flag to indicate if the fetching should continue */
   private volatile boolean mRunning;
 
   /**
    * Constructor for PinListSync
    *
-   * @param blockDataManager
-   * @param tachyonConf
+   * @param blockDataManager the blockDataManager this syncer is updating to
+   * @param tachyonConf the configuration values to be used
    * @return PinListSync constructed
    */
-  PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
+  public PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
     mBlockDataManager = blockDataManager;
     mTachyonConf = tachyonConf;
     mMasterClientExecutorService =
@@ -114,7 +114,7 @@ public class PinListSync implements Runnable {
   }
 
   /**
-   * Stops the sync, once this method is called, the object should be discarded
+   * Stops the fetching, once this method is called, the object should be discarded
    */
   public void stop() {
     mRunning = false;
