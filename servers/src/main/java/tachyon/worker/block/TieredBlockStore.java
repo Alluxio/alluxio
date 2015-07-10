@@ -73,6 +73,8 @@ public class TieredBlockStore implements BlockStore {
   private final Evictor mEvictor;
   private List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
+  /** A set of pinned inodes fetched from the master */
+  private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
 
   /**
    * A read/write lock to ensure eviction is atomic w.r.t. other operations. An eviction may trigger
@@ -419,6 +421,18 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.removeBlockMeta(blockMeta);
   }
 
+  /**
+   * Get the most updated view with most recent information on pinned inodes,
+   * and currently locked blocks.
+   *
+   * @return BlockMetadataManagerView, a updated view with most recent infomation.
+   */
+  private BlockMetadataManagerView getUpdatedView() {
+    // TODO: update the view object instead of creating new one every time
+    return new BlockMetadataManagerView(mMetaManager, mPinnedInodes,
+        mLockManager.getLockedBlocks());
+  }
+
   /** This method must be guarded by WRITE lock of mEvictionLock */
   private void freeSpaceInternal(long userId, long availableBytes, BlockStoreLocation location)
       throws IOException {
@@ -481,6 +495,19 @@ public class TieredBlockStore implements BlockStore {
           mLockManager.unlockBlock(lockId);
         }
       }
+    }
+  }
+
+  /**
+   * updates the pinned blocks
+   *
+   * @param inodes, a set of IDs inodes that are pinned
+   */
+  @Override
+  public void updatePinnedInodes(Set<Integer> inodes) {
+    synchronized (mPinnedInodes) {
+      mPinnedInodes.clear();
+      mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
     }
   }
 }
