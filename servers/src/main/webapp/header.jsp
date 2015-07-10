@@ -1,6 +1,3 @@
-<%@ page import="java.util.*" %>
-<%@ page import="tachyon.web.*" %>
-
 <div class="navbar navbar-inverse">
   <div class="navbar-inner">
     <ul class="nav nav-pills" style="height:40px;font-size:14px;font-weight: bold;vertical-align: bottom;">
