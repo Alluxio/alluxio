@@ -271,11 +271,9 @@ class EvictorTestUtils {
    * @return true
    * @throws IOException when fail to get meta data of a block
    */
-  // TODO: implement this with shared method in LRUEvictor after the
-  // PR: https://github.com/amplab/tachyon/pull/1079 is merged
   public static boolean legalCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager metaManager) throws IOException {
-    return true;
+    return EvictorUtils.legalCascadingPlan(bytesToBeAvailable, plan, metaManager);
   }
 
   /**

@@ -18,7 +18,6 @@ package tachyon.worker.block.evictor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -211,50 +210,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       }
     }
 
-    // reassure the plan is feasible: enough free space to satisfy bytesToBeAvailable, and enough
-    // space in lower tier to move blocks in upper tier there
-    Map<Integer, Long> bytesToBeAvailableInTier =
-        new HashMap<Integer, Long>(mMetaManager.getTiers().size());
-    List<Integer> tierAliases = new ArrayList<Integer>();
-
-    List<Long> blockIds = new ArrayList<Long>(plan.toEvict().size() + plan.toMove().size());
-    blockIds.addAll(plan.toEvict());
-    for (Pair<Long, BlockStoreLocation> move : plan.toMove()) {
-      blockIds.add(move.getFirst());
-    }
-
-    for (long blockId : blockIds) {
-      BlockMeta block = mMetaManager.getBlockMeta(blockId);
-      BlockStoreLocation blockDir = block.getBlockLocation();
-      long blockSize = block.getBlockSize();
-      int tierAlias = blockDir.tierAlias();
-      if (bytesToBeAvailableInTier.containsKey(tierAlias)) {
-        bytesToBeAvailableInTier
-            .put(tierAlias, bytesToBeAvailableInTier.get(tierAlias) + blockSize);
-      } else {
-        tierAliases.add(tierAlias);
-        bytesToBeAvailableInTier.put(tierAlias, mMetaManager.getAvailableBytes(blockDir)
-            + blockSize);
-      }
-    }
-
-    // upper to lower tier
-    Collections.sort(tierAliases);
-    int currentTierAlias = tierAliases.get(0);
-    // first tier to free space from needs to have bytesToBeAvailable after eviction
-    boolean feasiblePlan = bytesToBeAvailableInTier.get(currentTierAlias) >= bytesToBeAvailable;
-    for (int nextTierAlias : tierAliases.subList(1, tierAliases.size())) {
-      if (!feasiblePlan) {
-        break;
-      }
-      // next tier should have enough space to hold blocks to be transferred from current tier
-      long nextTierFreeSpace = bytesToBeAvailableInTier.get(nextTierAlias);
-      long bytesToTransfer = bytesToBeAvailableInTier.get(currentTierAlias);
-      feasiblePlan = feasiblePlan && (nextTierFreeSpace >= bytesToTransfer);
-      currentTierAlias = nextTierAlias;
-    }
-
-    return feasiblePlan ? plan : null;
+    return EvictorUtils.legalCascadingPlan(bytesToBeAvailable, plan, mMetaManager) ? plan : null;
   }
 
   @Override
