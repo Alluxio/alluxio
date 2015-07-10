@@ -31,8 +31,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
 public class MaxFreeAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
-  public MaxFreeAllocator(BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view);
+  public MaxFreeAllocator() {
   }
 
   @Override

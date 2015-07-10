@@ -32,8 +32,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
 public class GreedyAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
-  public GreedyAllocator(BlockMetadataManagerView metadata) {
-    mManagerView = Preconditions.checkNotNull(metadata);
+  public GreedyAllocator() {
   }
 
   @Override
@@ -43,7 +42,6 @@ public class GreedyAllocator implements Allocator {
     return allocateBlock(userId, blockId, blockSize, location);
   }
 
-  @Override
   public TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location) throws IOException {
     if (location.equals(BlockStoreLocation.anyTier())) {
@@ -53,7 +51,7 @@ public class GreedyAllocator implements Allocator {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getAvailableBytes() >= blockSize) {
             // TODO: have to get underlying dir here, break the design of dirView
-            return new TempBlockMeta(userId, blockId, blockSize, dirView.getDirForCreatingBlock());
+            return new dirView.createTempBlockMeta(userId, blockId, blockSize, dirView.getDirForCreatingBlock());
           }
         }
       }

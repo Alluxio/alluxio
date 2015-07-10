@@ -49,7 +49,6 @@ import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockReader;
 import tachyon.worker.block.io.LocalFileBlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
-import tachyon.worker.block.meta.BlockMetaBase;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -74,12 +73,8 @@ public class TieredBlockStore implements BlockStore {
   private final Evictor mEvictor;
   private List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
-  /** A list of pinned blocks fetched from the master */
+  /** A set of pinned inodes fetched from the master */
   private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
-  /** A list of blocks that are currently being locked */
-  private final Set<Long> mLockedBlocks = new HashSet<Long>();
-  /** A narrowed view provided to evictors and allocators */
-  private BlockMetadataManagerView mMetadataView;
 
   /**
    * A read/write lock to ensure eviction is atomic w.r.t. other operations. An eviction may trigger
@@ -95,20 +90,16 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
 
-    // initially use empty lists to provide full view
-    mMetadataView = new BlockMetadataManagerView(mMetaManager,
-        new HashSet<Integer>(), new HashSet<Long>());
-
     AllocatorType allocatorType =
         mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
-    mAllocator = AllocatorFactory.create(allocatorType, mMetadataView);
+    mAllocator = AllocatorFactory.create(allocatorType, mMetaManager);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
     EvictorType evictorType =
         mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
-    mEvictor = EvictorFactory.create(evictorType, mMetadataView);
+    mEvictor = EvictorFactory.create(evictorType, mMetaManager);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
@@ -326,8 +317,7 @@ public class TieredBlockStore implements BlockStore {
     if (mMetaManager.hasBlockMeta(blockId)) {
       throw new IOException("Failed to create TempBlockMeta: blockId " + blockId + " committed");
     }
-    TempBlockMeta tempBlock = mAllocator.allocateBlockWithView(userId, blockId, initialBlockSize,
-        location, getUpdatedView());
+    TempBlockMeta tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
     if (tempBlock == null) {
       // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
 
@@ -342,8 +332,7 @@ public class TieredBlockStore implements BlockStore {
         mEvictionLock.readLock().lock();
         mEvictionLock.writeLock().unlock();
       }
-      tempBlock = mAllocator.allocateBlockWithView(userId, blockId, initialBlockSize,
-          location, getUpdatedView());
+      tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
       Preconditions.checkNotNull(tempBlock, "Cannot allocate block %s:", blockId);
     }
     // Add allocated temp block to metadata manager
@@ -395,7 +384,7 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.abortTempBlockMeta(tempBlockMeta);
   }
 
-  // Move a block. This method requires block lock in WRITE mode and eviction lock in READ mode.
+  /** Move a block. This method requires block lock in WRITE mode and eviction lock in READ mode */
   private void moveBlockNoLock(long blockId, BlockStoreLocation newLocation) throws IOException {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
       throw new IOException("Failed to move block " + blockId + ": block is uncommited");
@@ -409,7 +398,9 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.moveBlockMeta(blockMeta, newLocation);
   }
 
-  // Remove a block. This method requires block lock in WRITE mode and eviction lock in READ mode.
+  /**
+   * Remove a block. This method requires block lock in WRITE mode and eviction lock in READ mode.
+   */
   private void removeBlockNoLock(long userId, long blockId) throws IOException {
     if (!mMetaManager.hasBlockMeta(blockId)) {
       throw new IOException("Failed to remove block " + blockId + ": block is not found");
@@ -423,26 +414,24 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.removeBlockMeta(blockMeta);
   }
 
-  private void updateLockedBlocks() {
-    mLockedBlocks.clear();
-    mLockedBlocks.addAll(mLockManager.getLockedBlocks());
-  }
-
-  // always update the metadata view before doing freeSpacewithNewView
-  private BlockMetadataManagerView getUpdatedView() throws IOException {
+  /**
+   * Get the most updated view with most recent information on pinned inodes,
+   * and currently locked blocks.
+   *
+   * @return BlockMetadataManagerView, a updated view with most recent infomation.
+   */
+  private BlockMetadataManagerView getUpdatedView() {
     // TODO: update the view object instead of creating new one every time
-    updateLockedBlocks();
-    mMetadataView = new BlockMetadataManagerView(mMetaManager, mPinnedInodes, mLockedBlocks);
-    return mMetadataView;
+    return new BlockMetadataManagerView(mMetaManager, mPinnedInodes,
+        mLockManager.getLockedBlocks());
   }
 
-  // This method must be guarded by WRITE lock of mEvictionLock
+  /** This method must be guarded by WRITE lock of mEvictionLock */
   private void freeSpaceInternal(long userId, long availableBytes, BlockStoreLocation location)
       throws IOException {
-    // always evict using the most updated BlockMetadataView
-    EvictionPlan plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView());
+    EvictionPlan plan = mEvictor.freeSpace(availableBytes, location);
     // Absent plan means failed to evict enough space.
-    if (plan == null) {
+    if (null == plan) {
       throw new IOException("Failed to free space: no eviction plan by evictor");
     }
 
@@ -503,13 +492,15 @@ public class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Sets the pinned blocks to the given list.
+   * updates the pinned blocks
    *
-   * @param blocks a list of IDs of block that have been pinned
+   * @param inodes, a set of IDs inodes that are pinned
    */
   @Override
-  public void setPinnedInodes(Set<Integer> inodes) {
-    mPinnedInodes.clear();
-    mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
+  public void updatePinnedInodes(Set<Integer> inodes) {
+    synchronized (mPinnedInodes) {
+      mPinnedInodes.clear();
+      mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
+    }
   }
 }

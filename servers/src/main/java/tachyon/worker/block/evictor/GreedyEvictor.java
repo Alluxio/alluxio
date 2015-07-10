@@ -43,8 +43,7 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private BlockMetadataManagerView mManagerView;
 
-  public GreedyEvictor(BlockMetadataManagerView metadata) {
-    mManagerView = Preconditions.checkNotNull(metadata);
+  public GreedyEvictor() {
   }
 
   @Override

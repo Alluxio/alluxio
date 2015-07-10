@@ -45,8 +45,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private Map<Long, Boolean> mLRUCache = Collections
       .synchronizedMap(new LinkedHashMap<Long, Boolean>(200, 0.75f, true));
 
-  public LRUEvictor(BlockMetadataManagerView metadata) {
-    mManagerView = metadata;
+  public LRUEvictor() {
   }
 
   @Override

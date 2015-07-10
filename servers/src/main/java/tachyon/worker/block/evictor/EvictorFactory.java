@@ -27,17 +27,16 @@ public class EvictorFactory {
    * Creates an {@link Evictor} instance according to {@link EvictorType}
    *
    * @param evictorType EvictorType of the Evictor to create
-   * @param metaView BlockMetadataManagerView to pass to Evictor
    * @return the generated Evictor
    */
-  public static Evictor create(EvictorType evictorType, BlockMetadataManagerView view) {
+  public static Evictor create(EvictorType evictorType) {
     switch (evictorType) {
       case GREEDY:
-        return new GreedyEvictor(view);
+        return new GreedyEvictor();
       case LRU:
-        return new LRUEvictor(view);
+        return new LRUEvictor();
       default:
-        return new GreedyEvictor(view);
+        return new GreedyEvictor();
     }
   }
 }

@@ -16,7 +16,6 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,11 +27,13 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 
 /**
- * Task that fetches pinlist from master periodically
+ * PinListSync periodically syncs the set of pinned inodes from master,
+ * and save the new pinned inodes to the BlockDataManager.
+ * The syncing parameters (intervals, timeouts) adopt directly from worker-to-master heartbeat
+ * configurations.
  *
  */
 public class PinListSync implements Runnable {
@@ -44,28 +45,35 @@ public class PinListSync implements Runnable {
   private final ExecutorService mMasterClientExecutorService;
   /** The configuration values */
   private final TachyonConf mTachyonConf;
-  /** Milliseconds between each heartbeat */
-  private final int mHeartbeatIntervalMs;
-  /** Milliseconds between heartbeats before a timeout */
-  private final int mHeartbeatTimeoutMs;
+  /** Milliseconds between each sync */
+  private final int mSyncIntervalMs;
+  /** Milliseconds between syncs before a timeout */
+  private final int mSyncTimeoutMs;
 
   /** Client for all master communication */
   private MasterClient mMasterClient;
-  /** Flag to indicate if the sync should continue */
+  /** Flag to indicate if the syncing should continue */
   private volatile boolean mRunning;
 
-  // constructor for PinListSync, fall back to heartbeat paramters
-  PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
+  /**
+   * Constructor for PinListSync
+   *
+   * @param blockDataManager the blockDataManager this syncer is updating to
+   * @param tachyonConf the configuration values to be used
+   * @return PinListSync constructed
+   */
+  public PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
     mBlockDataManager = blockDataManager;
     mTachyonConf = tachyonConf;
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-pinlist-%d", true));
     mMasterClient =
-        new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
-    mHeartbeatIntervalMs =
+        new MasterClient(BlockWorkerUtils.getMasterAddress(mTachyonConf),
+            mMasterClientExecutorService, mTachyonConf);
+    mSyncIntervalMs =
         mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
-    mHeartbeatTimeoutMs =
+    mSyncTimeoutMs =
         mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS, 10 * Constants.SECOND_MS);
 
     mRunning = true;
@@ -73,40 +81,40 @@ public class PinListSync implements Runnable {
 
 
   /**
-   * Main loop for the sync, continuously fetch pinlist from master
+   * Main loop for the sync, continuously sync pinlist from master
    */
   @Override
   public void run() {
-    long lastHeartbeatMs = System.currentTimeMillis();
+    long lastSyncMs = System.currentTimeMillis();
     while (mRunning) {
-      // Check the time since last fetch, and wait until it is within fetch interval
-      long lastIntervalMs = System.currentTimeMillis() - lastHeartbeatMs;
-      long toSleepMs = mHeartbeatIntervalMs - lastIntervalMs;
+      // Check the time since last sync, and wait until it is within sync interval
+      long lastIntervalMs = System.currentTimeMillis() - lastSyncMs;
+      long toSleepMs = mSyncIntervalMs - lastIntervalMs;
       if (toSleepMs > 0) {
         CommonUtils.sleepMs(LOG, toSleepMs);
       } else {
-        LOG.warn("Fetch took: " + lastIntervalMs + ", expected: " + mHeartbeatIntervalMs);
+        LOG.warn("Sync took: " + lastIntervalMs + ", expected: " + mSyncIntervalMs);
       }
 
-      // Send the fetch
+      // Send the sync
       try {
         Set<Integer> pinList = mMasterClient.worker_getPinIdList();
-        mBlockDataManager.setPinList(pinList);
-        lastHeartbeatMs = System.currentTimeMillis();
+        mBlockDataManager.updatePinList(pinList);
+        lastSyncMs = System.currentTimeMillis();
       } catch (IOException ioe) {
-        // An error occurred, retry after 1 second or error if heartbeat timeout is reached
+        // An error occurred, retry after 1 second or error if sync timeout is reached
         LOG.error("Failed to receive pinlist.", ioe);
         resetMasterClient();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-        if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {
-          throw new RuntimeException("Master fetch timeout exceeded: " + mHeartbeatTimeoutMs);
+        if (System.currentTimeMillis() - lastSyncMs >= mSyncTimeoutMs) {
+          throw new RuntimeException("Master sync timeout exceeded: " + mSyncTimeoutMs);
         }
       }
     }
   }
 
   /**
-   * Stops the sync, once this method is called, the object should be discarded
+   * Stops the syncing, once this method is called, the object should be discarded
    */
   public void stop() {
     mRunning = false;
@@ -115,23 +123,12 @@ public class PinListSync implements Runnable {
   }
 
   /**
-   * Gets the Tachyon master address from the configuration
-   *
-   * @return the InetSocketAddress of the master
-   */
-  private InetSocketAddress getMasterAddress() {
-    String masterHostname =
-        mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
-    int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    return new InetSocketAddress(masterHostname, masterPort);
-  }
-
-  /**
    * Closes and creates a new master client, in case the master changes.
    */
   private void resetMasterClient() {
     mMasterClient.close();
     mMasterClient =
-        new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
+        new MasterClient(BlockWorkerUtils.getMasterAddress(mTachyonConf),
+            mMasterClientExecutorService, mTachyonConf);
   }
 }
