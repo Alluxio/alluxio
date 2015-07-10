@@ -37,9 +37,9 @@ import tachyon.worker.block.meta.StorageTier;
 /**
  * This is a parameterized unit test for all types of {@link Evictor} defined in {@link EvictorType}
  *
- * It tests general evictor behavior like not evicting any space when space request is already
- * available, evicting enough space when eviction is needed, having a null eviction plan when the
- * requested space can not be satisfied anyway and so on.
+ * It performs sanity check on Evictors regardless of their types, in cases like not evicting any
+ * blocks when the required space is already available, proposed eviction ensuring enough space, and
+ * returning null eviction plan when the requests can not be achieved.
  *
  * Behavior for a specific type of evictor will be tested in other classes, e.x. tests to ensure
  * that blocks evicted by LRUEvictor are in the right order should be in LRUEvictorTest.
@@ -48,13 +48,17 @@ import tachyon.worker.block.meta.StorageTier;
 public class EvictorTest {
   private static final int USER_ID = 2;
   private static final long BLOCK_ID = 10;
-  private static final int TEST_TIER = 0;
+  // TODO: fix the confusing tier alias and tier level concept
+  private static final int TEST_TIER_LEVEL = 0;
   private static final int TEST_DIR = 0;
 
   private StorageDir mTestDir;
   private BlockMetadataManager mMetaManager;
   private EvictorType mEvictorType;
   private Evictor mEvictor;
+
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
@@ -72,15 +76,12 @@ public class EvictorTest {
     mEvictorType = evictorType;
   }
 
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
-
   @Before
   public final void before() throws IOException {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     List<StorageTier> tiers = mMetaManager.getTiers();
-    mTestDir = tiers.get(TEST_TIER).getDir(TEST_DIR);
+    mTestDir = tiers.get(TEST_TIER_LEVEL).getDir(TEST_DIR);
     mEvictor = EvictorFactory.create(mEvictorType, mMetaManager);
   }
 
