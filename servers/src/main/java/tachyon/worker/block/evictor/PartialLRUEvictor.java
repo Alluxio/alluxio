@@ -48,12 +48,12 @@ import tachyon.worker.block.meta.StorageTier;
  */
 public class PartialLRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final BlockMetadataManager mMeta;
-
   private static final int LINKED_HASH_MAP_INIT_CAPACITY = 200;
   private static final float LINKED_HASH_MAP_INIT_LOAD_FACTOR = 0.75f;
   private static final boolean LINKED_HASH_MAP_ACCESS_ORDERED = true;
   private static final boolean UNUSED_MAP_VALUE = true;
+  
+  private final BlockMetadataManager mMeta;
 
   /**
    * access-ordered {@link java.util.LinkedHashMap} from blockId to {@link #UNUSED_MAP_VALUE}(just a
