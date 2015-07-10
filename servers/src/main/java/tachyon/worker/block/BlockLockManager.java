@@ -206,11 +206,13 @@ public class BlockLockManager {
    * @return a set of locked blocks
    */
   public Set<Long> getLockedBlocks() {
-    Set<Long> set = new HashSet<Long>();
-    for (LockRecord lockRecord : mLockIdToRecordMap.values()) {
-      set.add(lockRecord.blockId());
+    synchronized (mSharedMapsLock) {
+      Set<Long> set = new HashSet<Long>();
+      for (LockRecord lockRecord : mLockIdToRecordMap.values()) {
+        set.add(lockRecord.blockId());
+      }
+      return set;
     }
-    return set;
   }
 
   /**
