@@ -310,8 +310,8 @@ public class BlockDataManager {
   }
 
   /**
-   * Moves a block from its current location to a target location, currently only tier level moves
-   * are supported
+   * Migrates a block from its current location to a target location, currently only tier level
+   * moves are supported
    *
    * @param userId The id of the client
    * @param blockId The id of the block to move
@@ -319,9 +319,9 @@ public class BlockDataManager {
    * @throws IOException if an error occurs during move
    */
   // TODO: We should avoid throwing IOException
-  public void moveBlock(long userId, long blockId, int tierAlias) throws IOException {
+  public void migrateBlock(long userId, long blockId, int tierAlias) throws IOException {
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tierAlias);
-    mBlockStore.moveBlock(userId, blockId, dst);
+    mBlockStore.migrateBlock(userId, blockId, dst);
   }
 
   /**

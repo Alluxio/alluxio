@@ -148,14 +148,14 @@ interface BlockStore {
   BlockReader getBlockReader(long userId, long blockId, long lockId) throws IOException;
 
   /**
-   * Moves an existing block to a new location. If the block can not be found, throw IOException.
+   * Migrates an existing block to a new location. If the block can not be found, throw IOException.
    *
    * @param userId the ID of the user to move a block
    * @param blockId the ID of an existing block
    * @param newLocation the location of the destination
    * @throws IOException if blockId or newLocation is invalid, or block cannot be moved
    */
-  void moveBlock(long userId, long blockId, BlockStoreLocation newLocation) throws IOException;
+  void migrateBlock(long userId, long blockId, BlockStoreLocation newLocation) throws IOException;
 
   /**
    * Removes an existing block. If the block can not be found in this store, throw IOException.

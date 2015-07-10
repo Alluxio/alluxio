@@ -154,7 +154,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
   public boolean promoteBlock(long blockId) throws TException {
     try {
       // TODO: Make the top level configurable
-      mWorker.moveBlock(Users.MIGRATE_DATA_USER_ID, blockId, StorageLevelAlias.MEM.getValue());
+      mWorker.migrateBlock(Users.MIGRATE_DATA_USER_ID, blockId, StorageLevelAlias.MEM.getValue());
       return true;
     } catch (IOException ioe) {
       throw new TException(ioe);
