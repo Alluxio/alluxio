@@ -37,6 +37,10 @@ public class StorageTierView {
 
   /**
    * Create a StorageTierView using the actual StorageTier and the above BlockMetadataView
+   *
+   * @param tier which the tierView is constructed from
+   * @param view, the BlockMetadataManagerView this tierView is associated with
+   * @param StorageTierView constructed
    */
   public StorageTierView(StorageTier tier, BlockMetadataManagerView view) {
     mTier = Preconditions.checkNotNull(tier);
@@ -58,6 +62,7 @@ public class StorageTierView {
   /**
    * Get a StorageDirView with a dirIndex
    *
+   * @param direIndex of the dirView requested
    * @throws IOException if dirIndex is out of range
    */
   public StorageDirView getDirView(int dirIndex) throws IOException {

@@ -419,8 +419,13 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.removeBlockMeta(blockMeta);
   }
 
-  // always update the metadata view before doing freeSpacewithNewView
-  private BlockMetadataManagerView getUpdatedView() throws IOException {
+  /**
+   * Get the most updated view with most recent information on pinned inodes,
+   * and currently locked blocks.
+   *
+   * @return BlockMetadataManagerView, a updated view with most recent infomation.
+   */
+  private BlockMetadataManagerView getUpdatedView() {
     // TODO: update the view object instead of creating new one every time
     return new BlockMetadataManagerView(mMetaManager, mPinnedInodes,
         mLockManager.getLockedBlocks());
@@ -492,12 +497,12 @@ public class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Sets the pinned blocks to the given list.
+   * updates the pinned blocks
    *
-   * @param blocks a list of IDs of block that have been pinned
+   * @param inodes, a set of IDs inodes that are pinned
    */
   @Override
-  public void setPinnedInodes(Set<Integer> inodes) {
+  public void updatePinnedInodes(Set<Integer> inodes) {
     mPinnedInodes.clear();
     mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
   }

@@ -18,8 +18,6 @@ package tachyon.worker.block.meta;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jetty.server.UserIdentity;
-
 import com.google.common.base.Preconditions;
 
 import tachyon.worker.block.BlockMetadataManagerView;
@@ -39,11 +37,17 @@ public class StorageDirView {
 
   /**
    * Create a StorageDirView using the actual StorageDir and the associated BlockMetadataView
+   *
+   * @param dir which the dirView is constructed from
+   * @param tierView which the dirView is under
+   * @param managerView which the dirView is associated with
+   * @return StorageDirView constructed
    */
-  public StorageDirView(StorageDir dir, StorageTierView tier, BlockMetadataManagerView view) {
+  public StorageDirView(StorageDir dir, StorageTierView tierView,
+      BlockMetadataManagerView managerView) {
     mDir = Preconditions.checkNotNull(dir);
-    mTierView = Preconditions.checkNotNull(tier);
-    mManagerView = Preconditions.checkNotNull(view);
+    mTierView = Preconditions.checkNotNull(tierView);
+    mManagerView = Preconditions.checkNotNull(managerView);
   }
 
   /**
