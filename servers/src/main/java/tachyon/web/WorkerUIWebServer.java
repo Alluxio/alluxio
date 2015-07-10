@@ -34,6 +34,7 @@ public class WorkerUIWebServer extends UIWebServer {
     super(serverName, address, conf);
     Preconditions.checkNotNull(worker, "WorkerStorage cannot be null");
 
+
     mWebAppContext.addServlet(new ServletHolder(
         new WebInterfaceWorkerGeneralServlet(worker)), "/home");
     mWebAppContext.addServlet(new ServletHolder(
@@ -42,5 +43,7 @@ public class WorkerUIWebServer extends UIWebServer {
         new WebInterfaceDownloadLocalServlet()), "/downloadLocal");
     mWebAppContext.addServlet(new ServletHolder(
         new WebInterfaceBrowseLogsServlet(false)), "/browseLogs");
+    mWebAppContext.addServlet(new ServletHolder(
+        new WebInterfaceHeaderServlet(conf)), "/header");
   }
 }
