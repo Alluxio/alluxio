@@ -348,12 +348,15 @@ public class DataServerMessage {
         // frame length
         mHeader.getLong();
         int receivedMessageType = mHeader.getInt();
-        assert (mMessageType.getId() == receivedMessageType);
+        Preconditions.checkState(mMessageType.getId() == receivedMessageType,
+            "Unexpected message type (" + receivedMessageType + ") received. expected: "
+                + mMessageType.getId());
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();
         // TODO make this better to truncate the file.
-        assert mLength < Integer.MAX_VALUE;
+        Preconditions.checkState(mLength < Integer.MAX_VALUE,
+            "received length is too large: " + mLength);
         if (mMessageType == RPCMessage.Type.RPC_BLOCK_RESPONSE) {
           // The response message has a status.
           mStatus = RPCResponse.Status.fromShort(mHeader.getShort());
