@@ -70,7 +70,7 @@ public class StorageDirView {
 
     for (BlockMeta blockMeta : mDir.getBlocks()) {
       long blockId = blockMeta.getBlockId();
-      if (!mManagerView.isBlockPinned(blockId) && !mManagerView.isBlockLocked(blockId)) {
+      if (mManagerView.isBlockEvictable(blockId)) {
         filteredList.add(blockMeta);
       }
     }
@@ -87,13 +87,29 @@ public class StorageDirView {
   }
 
   /**
-   * Get committed bytes for this dir
+   * Get committed bytes for this dir.
+   * This includes all blocks, locked, pinned, committed etc.
    *
    * @return committed bytes for this dir
    */
   public long getCommittedBytes() {
-    // TODO: does pinedList, etc. change this value?
     return mDir.getCommittedBytes();
+  }
+
+  /**
+   * Get evictable bytes for this dir, i.e., the total bytes of total evictable blocks
+   *
+   * @return evictable bytes for this dir
+   */
+  public long getEvitableBytes() {
+    long bytes = 0;
+    for (BlockMeta blockMeta : mDir.getBlocks()) {
+      long blockId = blockMeta.getBlockId();
+      if (mManagerView.isBlockEvictable(blockId)) {
+        bytes += blockMeta.getBlockSize();
+      }
+    }
+    return bytes;
   }
 
   /**
@@ -115,7 +131,7 @@ public class StorageDirView {
    * @param initialBlockSize
    * @return a new TempBlockMeta under the underlying directory.
    */
-  public TempBlockMeta CreateTempBlockMeta(long userId, long blockId, long initialBlockSize) {
+  public TempBlockMeta createTempBlockMeta(long userId, long blockId, long initialBlockSize) {
     return new TempBlockMeta(userId, blockId, initialBlockSize, mDir);
   }
 

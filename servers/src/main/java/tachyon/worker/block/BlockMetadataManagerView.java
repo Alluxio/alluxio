@@ -88,6 +88,16 @@ public class BlockMetadataManagerView {
   }
 
   /**
+   * Test if the block is evictable
+   *
+   * @param blockId to be tested
+   * @return boolean, true if the block can be eveicted
+   */
+  public boolean isBlockEvictable(long blockId) {
+    return (!isBlockPinned(blockId) && !isBlockLocked(blockId));
+  }
+
+  /**
    * Provide StorageTierView given tierAlias
    *
    * @param tierAlias the alias of this tierView
@@ -142,11 +152,10 @@ public class BlockMetadataManagerView {
    * @throws IOException if no BlockMeta for this blockId is found
    */
   public BlockMeta getBlockMeta(long blockId) throws IOException {
-    if (mPinnedInodes.contains(BlockInfo.computeInodeId(blockId))
-        || mLockedBlocks.contains(blockId)) {
-      return null;
-    } else {
+    if (isBlockEvictable(blockId)) {
       return mMetadataManager.getBlockMeta(blockId);
+    } else {
+      return null;
     }
   }
 }

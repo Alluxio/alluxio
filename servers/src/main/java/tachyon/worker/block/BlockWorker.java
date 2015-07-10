@@ -132,8 +132,9 @@ public class BlockWorker {
             webPort), this, mTachyonConf);
 
     // Setup Worker to Master Syncer
+    // We create two threads for two syncers: mBlockMasterSync and mPinListSync
     mSyncExecutorService =
-        Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
     mBlockMasterSync.registerWithMaster();
 

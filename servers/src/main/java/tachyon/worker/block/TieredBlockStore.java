@@ -49,7 +49,6 @@ import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockReader;
 import tachyon.worker.block.io.LocalFileBlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
-import tachyon.worker.block.meta.BlockMetaBase;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -74,7 +73,7 @@ public class TieredBlockStore implements BlockStore {
   private final Evictor mEvictor;
   private List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
-  /** A set of pinned blocks fetched from the master */
+  /** A set of pinned inodes fetched from the master */
   private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
 
   /**
@@ -90,10 +89,6 @@ public class TieredBlockStore implements BlockStore {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
-
-    // initially use empty lists to provide full view
-    BlockMetadataManagerView initView = new BlockMetadataManagerView(mMetaManager,
-        new HashSet<Integer>(), new HashSet<Long>());
 
     AllocatorType allocatorType =
         mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
