@@ -37,7 +37,6 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
-// TODO(cc): add unit test
 public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int LINKED_HASH_MAP_INIT_CAPACITY = 200;
@@ -118,7 +117,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    * @return the first StorageDir in the range of location to evict/move bytes from, or null if
    *         there is no plan
    */
-  private StorageDir freeSpace(long bytesToBeAvailable, BlockStoreLocation location,
+  private StorageDir cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
       EvictionPlan plan) throws IOException {
 
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
@@ -159,7 +158,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     StorageDir candidateNextDir = null;
     for (StorageTier tier : tiersBelow) {
       candidateNextDir =
-          freeSpace(dirCandidates.candidateSize(),
+          cascadingEvict(dirCandidates.candidateSize(),
               BlockStoreLocation.anyDirInTier(tier.getTierAlias()), plan);
       if (candidateNextDir != null) {
         break;
@@ -183,7 +182,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
     EvictionPlan plan = new EvictionPlan(toMove, toEvict);
-    StorageDir candidateDir = freeSpace(bytesToBeAvailable, location, plan);
+    StorageDir candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
 
     if (candidateDir == null) {
       return null;
