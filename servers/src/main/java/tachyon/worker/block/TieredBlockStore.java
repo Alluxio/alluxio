@@ -49,7 +49,6 @@ import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockReader;
 import tachyon.worker.block.io.LocalFileBlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
-import tachyon.worker.block.meta.BlockMetaBase;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -265,11 +264,8 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void cleanupUser(long userId) throws IOException {
-    mEvictionLock.readLock().lock();
-    List<TempBlockMeta> tempBlocksToRemove = mMetaManager.cleanupUser(userId);
-    mLockManager.cleanupUser(userId);
-    mEvictionLock.readLock().unlock();
-
+    List<TempBlockMeta> tempBlocksToRemove = mMetaManager.getUserTempBlocks(userId);
+    List<Long> removedTempBlocks = new ArrayList<Long>(tempBlocksToRemove.size());
     // TODO: fix the block removing below, there is possible risk condition when the client which
     // is considered "dead" may still be using or committing this block.
     // A user may have multiple temporary directories for temp blocks, in diffrent StorageTier
@@ -285,14 +281,24 @@ public class TieredBlockStore implements BlockStore {
       }
       if (!new File(fileName).delete()) {
         LOG.error("Error in cleanup userId {}: cannot delete file {}", userId, fileName);
+      } else {
+        removedTempBlocks.add(tempBlockMeta.getBlockId());
       }
     }
     // TODO: Cleanup the user folder across tiered storage.
     for (String dirName : dirs) {
       if (!new File(dirName).delete()) {
-        LOG.error("Error in cleanup userId {}: cannot delete directory ", userId, dirName);
+        LOG.error("Error in cleanup userId {}: cannot delete directory {}", userId, dirName);
       }
     }
+
+    // Release all locks the user is holding.
+    mLockManager.cleanupUser(userId);
+
+    // Delete the temporary metadata for the user.
+    mEvictionLock.readLock().lock();
+    mMetaManager.cleanupUserTempBlocks(userId, removedTempBlocks);
+    mEvictionLock.readLock().unlock();
   }
 
   @Override

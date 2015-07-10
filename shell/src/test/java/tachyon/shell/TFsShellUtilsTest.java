@@ -29,7 +29,7 @@ import tachyon.conf.TachyonConf;
  * Note that the test case for validatePath() is already covered in getFilePath. Hence only
  * getFilePathTest is specified.
  */
-public class UtilsTest {
+public class TFsShellUtilsTest {
 
   @Test
   public void getFilePathTest() throws IOException {

@@ -45,7 +45,11 @@ public class EvictionPlan {
   }
 
   /**
-   * EvictionPlan is empty if and only if toEvict and toMove are all empty
+   * Whether the plan is empty, an empty plan means it is not null and both toMove and toEvict are
+   * empty, also, an empty plan indicates no action (move or evict) needs to be taken to meet the
+   * requirement.
+   *
+   * @return true if empty otherwise false
    */
   public boolean isEmpty() {
     return mToEvict.isEmpty() && mToMove.isEmpty();
