@@ -29,7 +29,10 @@ import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.StorageTierView;
 
 /**
- * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators.
+ * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators,
+ * filtering out un-evictable blocks and un-allocatable space (TODO) internally, so that
+ * evictors and allocators can be developed with much simpler logic, without worrying about
+ * various constraints, e.g. pinned files, locked blocks, etc.
  */
 public class BlockMetadataManagerView {
 
@@ -43,17 +46,17 @@ public class BlockMetadataManagerView {
   private final Set<Long> mLockedBlocks = new HashSet<Long>();
 
   /**
-   * Create a BlockMatadataManagerView.
+   * Constructor of BlockMatadataManagerView.
    * Now we always creating a new view before freespace.
    * TODO: incrementally update the view
    *
-   * @param manager
-   * @param pinnedBlocks
-   * @param lockedBlocks
-   * @throws IOException
+   * @param manager which the view should be constructed from
+   * @param pinnedInodes, a set of pinned nodes
+   * @param lockedBlocks, a set of locked blocks
+   * @return BlockMetadataManagerView constructed
    */
   public BlockMetadataManagerView(BlockMetadataManager manager, Set<Integer> pinnedInodes,
-      Set<Long> lockedBlocks) throws IOException {
+      Set<Long> lockedBlocks) {
     mMetadataManager = Preconditions.checkNotNull(manager);
     mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes));
     mLockedBlocks.addAll(Preconditions.checkNotNull(lockedBlocks));
@@ -67,6 +70,8 @@ public class BlockMetadataManagerView {
   /**
    * Test if the block is pinned.
    *
+   * @param blockId to be tested
+   * @return boolean, true if block is pinned
    */
   public boolean isBlockPinned(long blockId) {
     return mPinnedInodes.contains(BlockInfo.computeInodeId(blockId));
@@ -75,6 +80,8 @@ public class BlockMetadataManagerView {
   /**
    * Test if the block is locked.
    *
+   * @param blockId to be tested
+   * @return boolean, true if block is locked
    */
   public boolean isBlockLocked(long blockId) {
     return mLockedBlocks.contains(blockId);
@@ -94,6 +101,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
+   * Get all tierViews under this managerView
    *
    * @return the list of StorageTierViews
    */
@@ -102,8 +110,9 @@ public class BlockMetadataManagerView {
   }
 
   /**
+   * Get all tierViews before certain tierView
    *
-   * @param tierAlias the alias of a tier
+   * @param tierAlias the alias of a tierView
    * @return the list of StorageTierView
    * @throws IOException if tierAlias is not found
    */
@@ -114,6 +123,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
+   * Get available bytes given certain location
    * Redirecting to {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}
    *
    * @param location location the check available bytes

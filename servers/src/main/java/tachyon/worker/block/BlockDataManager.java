@@ -428,11 +428,11 @@ public class BlockDataManager {
 
   /**
    * Set the pinlist for the underlying blockstore.
-   * Typically called by PinListSyncer.
+   * Typically called by PinListSync.
    *
-   * @param set of pinned inodes
+   * @param pinnedInodes, a set of pinned inodes
    */
-  public void setPinList(Set<Integer> list) {
-    mBlockStore.setPinnedInodes(list);
+  public void updatePinList(Set<Integer> pinnedInodes) {
+    mBlockStore.updatePinnedInodes(pinnedInodes);
   }
 }

@@ -210,9 +210,9 @@ interface BlockStore {
   void registerBlockStoreEventListener(BlockStoreEventListener listener);
 
   /**
-   * Sets the pinned blocks to the given list.
+   * Update the pinned inodes.
    *
-   * @param blocks a list of IDs of block that have been pinned
+   * @param inodes, a set of inodes that are currently pinned.
    */
-  void setPinnedInodes(Set<Integer> inodes);
+  void updatePinnedInodes(Set<Integer> inodes);
 }

@@ -16,7 +16,6 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,11 +27,13 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 
 /**
- * Task that fetches pinlist from master periodically
+ * PinListSync periodically fetches the set of pinned inodes from master,
+ * and save the new pinned inodes to the BlockDataManager.
+ * The fetching parameters (intervals, timeouts) adopt directly from worker-to-master heartbeat
+ * configurations.
  *
  */
 public class PinListSync implements Runnable {
@@ -54,7 +55,13 @@ public class PinListSync implements Runnable {
   /** Flag to indicate if the sync should continue */
   private volatile boolean mRunning;
 
-  // constructor for PinListSync, fall back to fetch paramters
+  /**
+   * Constructor for PinListSync
+   *
+   * @param blockDataManager
+   * @param tachyonConf
+   * @return PinListSync constructed
+   */
   PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
     mBlockDataManager = blockDataManager;
     mTachyonConf = tachyonConf;
@@ -92,7 +99,7 @@ public class PinListSync implements Runnable {
       // Send the fetch
       try {
         Set<Integer> pinList = mMasterClient.worker_getPinIdList();
-        mBlockDataManager.setPinList(pinList);
+        mBlockDataManager.updatePinList(pinList);
         lastFetchMs = System.currentTimeMillis();
       } catch (IOException ioe) {
         // An error occurred, retry after 1 second or error if fetch timeout is reached
