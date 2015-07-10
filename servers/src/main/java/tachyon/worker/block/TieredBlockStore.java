@@ -498,7 +498,9 @@ public class TieredBlockStore implements BlockStore {
    */
   @Override
   public void updatePinnedInodes(Set<Integer> inodes) {
-    mPinnedInodes.clear();
-    mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
+    synchronized (mPinnedInodes) {
+      mPinnedInodes.clear();
+      mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
+    }
   }
 }
