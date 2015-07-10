@@ -46,7 +46,8 @@ public class EvictionPlan {
 
   /**
    * Whether the plan is empty, an empty plan means it is not null and both toMove and toEvict are
-   * empty.
+   * empty, also, an empty plan indicates no action (move or evict) needs to be taken to meet the
+   * requirement.
    *
    * @return true if empty otherwise false
    */

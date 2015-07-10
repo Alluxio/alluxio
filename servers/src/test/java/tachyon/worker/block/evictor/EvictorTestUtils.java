@@ -279,7 +279,7 @@ class EvictorTestUtils {
   }
 
   /**
-   * only when plan is not null and at least one of {@link #legalCascadingPlan},
+   * Only when plan is not null and at least one of {@link #legalCascadingPlan},
    * {@link #legalNonCascadingPlan} is true, the assertion will be passed, used in unit test.
    *
    * @param bytesToBeAvailable the requested bytes to be available
