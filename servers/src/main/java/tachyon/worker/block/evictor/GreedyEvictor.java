@@ -24,8 +24,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.worker.block.BlockMetadataManagerView;
@@ -44,7 +42,7 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
   private BlockMetadataManagerView mManagerView;
 
   public GreedyEvictor(BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view);
+    mManagerView = view;
   }
 
   @Override
