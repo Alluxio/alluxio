@@ -62,7 +62,7 @@ public class StorageTierView {
   /**
    * Get a StorageDirView with a dirIndex
    *
-   * @param direIndex of the dirView requested
+   * @param dirIndex of the dirView requested
    * @throws IOException if dirIndex is out of range
    */
   public StorageDirView getDirView(int dirIndex) throws IOException {
