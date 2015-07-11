@@ -51,7 +51,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    * placeholder to occupy the value), acts as a LRU double linked list where most recently accessed
    * element is put at the tail while least recently accessed element is put at the head.
    */
-  private Map<Long, Boolean> mLRUCache = Collections
+  protected Map<Long, Boolean> mLRUCache = Collections
       .synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
@@ -117,7 +117,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    * @return the first StorageDir in the range of location to evict/move bytes from, or null if
    *         there is no plan
    */
-  private StorageDir cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
+  protected StorageDir cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
       EvictionPlan plan) throws IOException {
 
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
