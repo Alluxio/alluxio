@@ -52,7 +52,7 @@ public class RPCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
         + cause.getMessage());
     // Return an error message to the client.
     ctx.channel()
-        .writeAndFlush(new RPCStatusResponse(RPCResponse.Status.DECODE_ERROR))
+        .writeAndFlush(new RPCErrorResponse(RPCResponse.Status.DECODE_ERROR))
         .addListener(ChannelFutureListener.CLOSE);
   }
 }

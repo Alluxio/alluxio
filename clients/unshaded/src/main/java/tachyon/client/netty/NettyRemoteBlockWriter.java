@@ -30,7 +30,7 @@ import tachyon.Constants;
 import tachyon.client.RemoteBlockWriter;
 import tachyon.network.protocol.RPCBlockWriteRequest;
 import tachyon.network.protocol.RPCBlockWriteResponse;
-import tachyon.network.protocol.RPCStatusResponse;
+import tachyon.network.protocol.RPCErrorResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.network.protocol.databuffer.DataByteArrayChannel;
@@ -106,8 +106,8 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
           }
           mWrittenBytes += length;
           break;
-        case RPC_STATUS_RESPONSE:
-          RPCStatusResponse error = (RPCStatusResponse) response;
+        case RPC_ERROR_RESPONSE:
+          RPCErrorResponse error = (RPCErrorResponse) response;
           throw new IOException(error.getStatus().getMessage());
         default:
           throw new IOException("Unexpected response message type: " + response.getType()

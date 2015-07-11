@@ -31,7 +31,7 @@ import tachyon.Constants;
 import tachyon.client.RemoteBlockReader;
 import tachyon.network.protocol.RPCBlockRequest;
 import tachyon.network.protocol.RPCBlockResponse;
-import tachyon.network.protocol.RPCStatusResponse;
+import tachyon.network.protocol.RPCErrorResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCResponse;
 
@@ -77,8 +77,8 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
             return blockResponse.getPayloadDataBuffer().getReadOnlyByteBuffer();
           }
           throw new IOException(status.getMessage() + " response: " + blockResponse);
-        case RPC_STATUS_RESPONSE:
-          RPCStatusResponse error = (RPCStatusResponse) response;
+        case RPC_ERROR_RESPONSE:
+          RPCErrorResponse error = (RPCErrorResponse) response;
           throw new IOException(error.getStatus().getMessage());
         default:
           throw new IOException("Unexpected response message type: " + response.getType()

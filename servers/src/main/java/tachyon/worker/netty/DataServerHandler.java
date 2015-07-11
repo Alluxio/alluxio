@@ -38,7 +38,7 @@ import tachyon.network.protocol.RPCBlockRequest;
 import tachyon.network.protocol.RPCBlockResponse;
 import tachyon.network.protocol.RPCBlockWriteRequest;
 import tachyon.network.protocol.RPCBlockWriteResponse;
-import tachyon.network.protocol.RPCStatusResponse;
+import tachyon.network.protocol.RPCErrorResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCRequest;
 import tachyon.network.protocol.RPCResponse;
@@ -79,7 +79,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
         break;
       default:
-        RPCStatusResponse resp = new RPCStatusResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
+        RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
         ctx.writeAndFlush(resp);
         throw new IllegalArgumentException("No handler implementation for rpc msg type: "
             + msg.getType());
