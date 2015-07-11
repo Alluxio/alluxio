@@ -187,6 +187,14 @@ interface BlockStore {
   void accessBlock(long userId, long blockId) throws IOException;
 
   /**
+   * Gets the meta data of the entire store in a snapshot. There is no guarantee the state will
+   * be consistent with the snapshot after this method is called.
+   *
+   * @return store meta data
+   */
+  BlockStoreMeta getBlockStoreMeta();
+
+  /**
    * Checks if the storage has a given block.
    *
    * @param blockId the block ID
@@ -195,15 +203,9 @@ interface BlockStore {
   boolean hasBlockMeta(long blockId);
 
   /**
-   * Gets the meta data of the entire store.
-   *
-   * @return store meta data
-   */
-  BlockStoreMeta getBlockStoreMeta();
-
-  /**
-   * Cleans up the data associated with a specific user (typically a dead user), e.g., unlock the
-   * unreleased locks by this user, reclaim space of temp blocks created by this user.
+   * Cleans up the data associated with a specific user (typically a dead user). Clean up entails
+   * unlocking the block locks of this user, reclaiming space of temp blocks created by this
+   * user, and deleting the user temporary folder.
    *
    * @param userId the user ID
    * @throws IOException if block can not be deleted or locks can not be released

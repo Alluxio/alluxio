@@ -37,7 +37,7 @@ public class EvictorFactory {
       case LRU:
         return new LRUEvictor(view);
       default:
-        return new GreedyEvictor(view);
+        return new LRUEvictor(view);
     }
   }
 }

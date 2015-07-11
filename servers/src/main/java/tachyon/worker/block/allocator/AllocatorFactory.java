@@ -36,7 +36,7 @@ public class AllocatorFactory {
       case MAX_FREE:
         return new MaxFreeAllocator(view);
       default:
-        return new GreedyAllocator(view);
+        return new MaxFreeAllocator(view);
     }
   }
 

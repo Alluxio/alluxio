@@ -57,37 +57,31 @@ public class BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Runnable responsible for heartbeating and registration with master. */
-  private BlockMasterSync mBlockMasterSync;
+  private final BlockMasterSync mBlockMasterSync;
   /** Runnable responsible for fetching pinlist from master. */
-  private PinListSync mPinListSync;
+  private final PinListSync mPinListSync;
   /** Logic for handling RPC requests. */
-  private BlockServiceHandler mServiceHandler;
+  private final BlockServiceHandler mServiceHandler;
   /** Logic for managing block store and under file system store. */
-  private BlockDataManager mBlockDataManager;
+  private final BlockDataManager mBlockDataManager;
   /** Server for data requests and responses. */
-  private DataServer mDataServer;
+  private final DataServer mDataServer;
   /** Threadpool for the master sync */
-  private ExecutorService mSyncExecutorService;
+  private final ExecutorService mSyncExecutorService;
   /** Net address of this worker */
-  private NetAddress mWorkerNetAddress;
+  private final NetAddress mWorkerNetAddress;
   /** Configuration object */
-  private TachyonConf mTachyonConf;
+  private final TachyonConf mTachyonConf;
   /** Server socket for thrift */
-  private TServerSocket mThriftServerSocket;
-  /** Thread pool for trift */
-  private TThreadPoolServer mThriftServer;
-  /** Users object for tracking metadata */
-  private Users mUsers;
-  /** Id of this worker */
-  private long mWorkerId;
+  private final TServerSocket mThriftServerSocket;
+  /** Thread pool for thrift */
+  private final TThreadPoolServer mThriftServer;
   /** Worker start time in milliseconds */
   private final long mStartTimeMs;
   /** Worker Web UI server */
   private final UIWebServer mWebServer;
   /** Worker metrics system */
   private MetricsSystem mWorkerMetricsSystem;
-  /** WorkerSource for collecting worker metrics */
-  private WorkerSource mWorkerSource;
 
   /**
    * Creates a Tachyon Block Worker.
@@ -100,13 +94,13 @@ public class BlockWorker {
     mStartTimeMs = System.currentTimeMillis();
 
     // Setup metrics collection
-    mWorkerSource = new WorkerSource();
+    WorkerSource workerSource = new WorkerSource();
     mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
-    mWorkerSource.registerGauges(this);
-    mWorkerMetricsSystem.registerSource(mWorkerSource);
+    workerSource.registerGauges(this);
+    mWorkerMetricsSystem.registerSource(workerSource);
 
     // Set up BlockDataManager
-    mBlockDataManager = new BlockDataManager(tachyonConf, mWorkerSource);
+    mBlockDataManager = new BlockDataManager(tachyonConf, workerSource);
 
     // Set up DataServer
     int dataServerPort =
@@ -144,18 +138,18 @@ public class BlockWorker {
 
     // Setup user metadata mapping
     // TODO: Have a top level register that gets the worker id.
-    mWorkerId = mBlockMasterSync.getWorkerId();
+    long workerId = mBlockMasterSync.getWorkerId();
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     String ufsWorkerFolder =
         mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, ufsAddress + "/tachyon/workers");
-    mUsers = new Users(CommonUtils.concatPath(ufsWorkerFolder, mWorkerId), mTachyonConf);
+    Users users = new Users(CommonUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
 
     // Give BlockDataManager a pointer to the user metadata mapping
     // TODO: Fix this hack when we have a top level register
-    mBlockDataManager.setUsers(mUsers);
-    mBlockDataManager.setWorkerId(mWorkerId);
+    mBlockDataManager.setUsers(users);
+    mBlockDataManager.setWorkerId(workerId);
   }
 
   /**

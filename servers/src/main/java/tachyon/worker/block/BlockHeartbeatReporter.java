@@ -32,9 +32,9 @@ public class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   private final Object mLock;
 
   /** List of blocks that were removed in the last heartbeat period */
-  private List<Long> mRemovedBlocks;
+  private final List<Long> mRemovedBlocks;
   /** Map of storage dirs to a list of blocks that were added in the last heartbeat period */
-  private Map<Long, List<Long>> mAddedBlocks;
+  private final Map<Long, List<Long>> mAddedBlocks;
 
   public BlockHeartbeatReporter() {
     mLock = new Object();
