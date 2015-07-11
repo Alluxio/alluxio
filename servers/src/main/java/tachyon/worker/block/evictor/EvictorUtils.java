@@ -27,15 +27,20 @@ import tachyon.worker.block.meta.StorageDir;
 
 public class EvictorUtils {
   /**
-   * Checks whether the plan is valid for an evictor with cascading eviction feature like
-   * {@link LRUEvictor}. The plan is legal when the requested space can be satisfied, and there is
-   * enough space in lower tier to move in blocks from upper tier.
+   * Checks whether the plan of a cascading evictor is valid.
+   *
+   * A cascading evictor will try to free space by recursively moving blocks to next 1 tier and
+   * evict blocks only in the bottom tier.
+   *
+   * The plan is invalid when the requested space can not be satisfied or lower level of tiers do
+   * not have enough space to hold blocks moved from higher level of tiers.
    *
    * @param bytesToBeAvailable requested bytes to be available after eviction
    * @param plan the eviction plan, should not be empty
    * @param metaManager the meta data manager
    * @return true if the above requirements are satisfied, otherwise false.
    */
+  // TODO: unit test this method
   public static boolean validCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager metaManager) throws IOException {
     // reassure the plan is feasible: enough free space to satisfy bytesToBeAvailable, and enough
@@ -80,24 +85,28 @@ public class EvictorUtils {
       }
     }
 
-    int firstTierAlias = Integer.MAX_VALUE;
+    // the top tier among all tiers where blocks in the plan reside in
+    int topTierAlias = Integer.MAX_VALUE;
     for (StorageDir dir : spaceInfoInDir.keySet()) {
-      firstTierAlias = Math.min(firstTierAlias, dir.getParentTier().getTierAlias());
+      topTierAlias = Math.min(topTierAlias, dir.getParentTier().getTierAlias());
     }
-    long maxSpace = Long.MIN_VALUE; // maximum bytes to be available in a dir in the first tier
+    long maxSpace = Long.MIN_VALUE; // maximum bytes to be available in a dir in the top tier
     for (StorageDir dir : spaceInfoInDir.keySet()) {
-      if (dir.getParentTier().getTierAlias() == firstTierAlias) {
+      if (dir.getParentTier().getTierAlias() == topTierAlias) {
         Pair<Long, Long> space = spaceInfoInDir.get(dir);
         maxSpace = Math.max(maxSpace, space.getFirst() - space.getSecond());
       }
     }
     if (maxSpace < bytesToBeAvailable) {
+      // plan is invalid because requested space can not be satisfied in the top tier
       return false;
     }
 
     for (StorageDir dir : spaceInfoInDir.keySet()) {
       Pair<Long, Long> spaceInfo = spaceInfoInDir.get(dir);
       if (spaceInfo.getFirst() < spaceInfo.getSecond()) {
+        // plan is invalid because there is not enough space in this dir to hold the blocks waiting
+        // to be moved into this dir
         return false;
       }
     }
