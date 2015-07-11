@@ -16,6 +16,7 @@
 package tachyon.web;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,8 +28,8 @@ import javax.servlet.http.HttpServletResponse;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.util.CommonUtils;
+import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
-import tachyon.worker.block.BlockWorker;
 
 /**
  * Servlets that shows a worker's general information, including tiered storage details.
@@ -66,10 +67,15 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   }
 
   private static final long serialVersionUID = 3735143768058466487L;
-  private final transient BlockWorker mWorker;
+  private final transient BlockDataManager mBlockDataManager;
+  private final transient InetSocketAddress mWorkerAddress;
+  private final transient long mStartTimeMs;
 
-  public WebInterfaceWorkerGeneralServlet(BlockWorker worker) {
-    mWorker = worker;
+  public WebInterfaceWorkerGeneralServlet(BlockDataManager blockDataManager,
+      InetSocketAddress workerAddress, long startTimeMs) {
+    mBlockDataManager = blockDataManager;
+    mWorkerAddress = workerAddress;
+    mStartTimeMs = startTimeMs;
   }
 
   @Override
@@ -88,17 +94,16 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);
 
-    request.setAttribute("workerAddress", mWorker.getWorkerNetAddress().getMHost() + ":"
-        + mWorker.getWorkerNetAddress().getMPort());
+    request.setAttribute("workerAddress", mWorkerAddress.toString());
 
     request.setAttribute("uptime",
-        Utils.convertMsToClockTime(System.currentTimeMillis() - mWorker.getStartTimeMs()));
+        Utils.convertMsToClockTime(System.currentTimeMillis() - mStartTimeMs));
 
-    request.setAttribute("startTime", Utils.convertMsToDate(mWorker.getStartTimeMs()));
+    request.setAttribute("startTime", Utils.convertMsToDate(mStartTimeMs));
 
     request.setAttribute("version", Version.VERSION);
 
-    BlockStoreMeta storeMeta = mWorker.getStoreMeta();
+    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     long capacityBytes = 0L;
     long usedBytes = 0L;
     List<Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();
