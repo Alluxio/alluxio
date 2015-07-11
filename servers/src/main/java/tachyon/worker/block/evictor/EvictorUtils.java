@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import tachyon.Pair;
-import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
 
@@ -35,15 +35,15 @@ public class EvictorUtils {
    *
    * @param bytesToBeAvailable requested bytes to be available after eviction
    * @param plan the eviction plan
-   * @param metaManager the meta data manager
+   * @param managerView  view of the meta data manager
    * @return true if the above requirements are satisfied, otherwise false.
    */
   public static boolean legalCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws IOException {
+      BlockMetadataManagerView managerView) throws IOException {
     // reassure the plan is feasible: enough free space to satisfy bytesToBeAvailable, and enough
     // space in lower tier to move blocks in upper tier there
     Map<Integer, Long> bytesToBeAvailableInTier =
-        new HashMap<Integer, Long>(metaManager.getTiers().size());
+        new HashMap<Integer, Long>(managerView.getTierViews().size());
     List<Integer> tierAliases = new ArrayList<Integer>();
 
     List<Long> blockIds = new ArrayList<Long>(plan.toEvict().size() + plan.toMove().size());
@@ -53,7 +53,7 @@ public class EvictorUtils {
     }
 
     for (long blockId : blockIds) {
-      BlockMeta block = metaManager.getBlockMeta(blockId);
+      BlockMeta block = managerView.getBlockMeta(blockId);
       BlockStoreLocation blockDir = block.getBlockLocation();
       long blockSize = block.getBlockSize();
       int tierAlias = blockDir.tierAlias();
@@ -63,7 +63,7 @@ public class EvictorUtils {
       } else {
         tierAliases.add(tierAlias);
         bytesToBeAvailableInTier
-            .put(tierAlias, metaManager.getAvailableBytes(blockDir) + blockSize);
+            .put(tierAlias, managerView.getAvailableBytes(blockDir) + blockSize);
       }
     }
 

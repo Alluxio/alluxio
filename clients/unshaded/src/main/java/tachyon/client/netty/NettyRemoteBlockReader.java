@@ -24,25 +24,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 
 import tachyon.Constants;
 import tachyon.client.RemoteBlockReader;
-import tachyon.conf.TachyonConf;
-import tachyon.network.ChannelType;
-import tachyon.network.NettyUtils;
 import tachyon.network.protocol.RPCBlockRequest;
 import tachyon.network.protocol.RPCBlockResponse;
+import tachyon.network.protocol.RPCErrorResponse;
 import tachyon.network.protocol.RPCMessage;
-import tachyon.network.protocol.RPCMessageDecoder;
-import tachyon.network.protocol.RPCMessageEncoder;
 import tachyon.network.protocol.RPCResponse;
 
 /**
@@ -77,22 +67,25 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
       channel.close().sync();
 
-      if (response.getType() == RPCMessage.Type.RPC_BLOCK_RESPONSE) {
-        RPCBlockResponse blockResponse = (RPCBlockResponse) response;
-        LOG.info("Data " + blockId + " from remote machine " + address + " received");
+      switch (response.getType()) {
+        case RPC_BLOCK_RESPONSE:
+          RPCBlockResponse blockResponse = (RPCBlockResponse) response;
+          LOG.info("Data " + blockId + " from remote machine " + address + " received");
 
-        if (blockResponse.getBlockId() < 0) {
-          LOG.info("Data " + blockResponse.getBlockId() + " is not in remote machine.");
-          return null;
-        }
-        return blockResponse.getPayloadDataBuffer().getReadOnlyByteBuffer();
-      } else {
-        LOG.error("Unexpected response message type: " + response.getType() + " (expected: "
-            + RPCMessage.Type.RPC_BLOCK_RESPONSE + ")");
+          RPCResponse.Status status = blockResponse.getStatus();
+          if (status == RPCResponse.Status.SUCCESS) {
+            return blockResponse.getPayloadDataBuffer().getReadOnlyByteBuffer();
+          }
+          throw new IOException(status.getMessage() + " response: " + blockResponse);
+        case RPC_ERROR_RESPONSE:
+          RPCErrorResponse error = (RPCErrorResponse) response;
+          throw new IOException(error.getStatus().getMessage());
+        default:
+          throw new IOException("Unexpected response message type: " + response.getType()
+              + " (expected: " + RPCMessage.Type.RPC_BLOCK_RESPONSE + ")");
       }
     } catch (Exception e) {
-      LOG.error("exception in netty client: " + e + " message: " + e.getMessage());
+      throw new IOException(e);
     }
-    return null;
   }
 }

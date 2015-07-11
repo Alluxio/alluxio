@@ -123,7 +123,8 @@ public class BlockWorker {
     int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
     mWebServer =
         new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(mWorkerNetAddress.getMHost(),
-            webPort), this, mTachyonConf);
+            webPort), mBlockDataManager, BlockWorkerUtils.getWorkerAddress(mTachyonConf),
+            mStartTimeMs, mTachyonConf);
 
     // Setup Worker to Master Syncer
     // We create two threads for two syncers: mBlockMasterSync and mPinListSync
@@ -149,15 +150,6 @@ public class BlockWorker {
     // TODO: Fix this hack when we have a top level register
     mBlockDataManager.setUsers(users);
     mBlockDataManager.setWorkerId(workerId);
-  }
-
-  /**
-   * Get the worker start time (in UTC) in milliseconds.
-   *
-   * @return the worker start time in milliseconds
-   */
-  public long getStartTimeMs() {
-    return mStartTimeMs;
   }
 
   /**
