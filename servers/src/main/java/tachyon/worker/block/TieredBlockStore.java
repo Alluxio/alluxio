@@ -132,7 +132,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockReader getBlockReader(long userId, long blockId, long lockId) throws IOException {
-    mLockManager.validateLockId(userId, blockId, lockId);
+    mLockManager.validateLock(userId, blockId, lockId);
     BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
     return new LocalFileBlockReader(blockMeta);
   }
@@ -155,7 +155,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockMeta getBlockMeta(long userId, long blockId, long lockId) throws IOException {
-    mLockManager.validateLockId(userId, blockId, lockId);
+    mLockManager.validateLock(userId, blockId, lockId);
     return mMetaManager.getBlockMeta(blockId);
   }
 
