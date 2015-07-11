@@ -204,12 +204,14 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
       throws IOException {
-    mEvictionLock.readLock().lock();
+    mEvictionLock.writeLock().lock();
     try {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
       try {
         BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
         BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
+        // freeSpaceInternal ensures newLocation has enough space
+        freeSpaceInternal(userId, blockMeta.getBlockSize(), newLocation);
         moveBlockNoLock(blockId, newLocation);
         blockMeta = mMetaManager.getBlockMeta(blockId);
         BlockStoreLocation actualNewLocation = blockMeta.getBlockLocation();
@@ -223,7 +225,7 @@ public class TieredBlockStore implements BlockStore {
       }
     } finally {
       // If we fail to lock, the block is no longer in tiered store
-      mEvictionLock.readLock().unlock();
+      mEvictionLock.writeLock().unlock();
     }
   }
 
@@ -403,12 +405,14 @@ public class TieredBlockStore implements BlockStore {
       throw new IOException("Failed to move block " + blockId + ": block is uncommited");
     }
     BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
+    // NOTE: since WRITE Eviction lock is acquired, we move metadata first before moving raw data.
+    mMetaManager.moveBlockMeta(blockMeta, newLocation);
+    BlockMeta newBlockMeta = mMetaManager.getBlockMeta(blockId);
     String srcFilePath = blockMeta.getPath();
-    String dstFilePath = mMetaManager.getBlockPath(blockId, newLocation);
+    String dstFilePath = newBlockMeta.getPath();
     // NOTE: Because this move can possibly across storage devices (e.g., from memory to SSD),
     // renameTo may not work, use guava's move instead.
     Files.move(new File(srcFilePath), new File(dstFilePath));
-    mMetaManager.moveBlockMeta(blockMeta, newLocation);
   }
 
   /**
