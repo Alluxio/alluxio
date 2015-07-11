@@ -51,7 +51,6 @@ public class EvictorUtils {
       if (spaceInfoInDir.containsKey(dir)) {
         Pair<Long, Long> spaceInfo = spaceInfoInDir.get(dir);
         spaceInfo.setFirst(spaceInfo.getFirst() + block.getBlockSize());
-        spaceInfoInDir.put(dir, spaceInfo);
       } else {
         spaceInfoInDir.put(dir, new Pair<Long, Long>(
             dir.getAvailableBytes() + block.getBlockSize(), 0L));
@@ -68,7 +67,6 @@ public class EvictorUtils {
       if (spaceInfoInDir.containsKey(srcDir)) {
         Pair<Long, Long> spaceInfo = spaceInfoInDir.get(srcDir);
         spaceInfo.setFirst(spaceInfo.getFirst() + blockSize);
-        spaceInfoInDir.put(srcDir, spaceInfo);
       } else {
         spaceInfoInDir
             .put(srcDir, new Pair<Long, Long>(srcDir.getAvailableBytes() + blockSize, 0L));
@@ -77,7 +75,6 @@ public class EvictorUtils {
       if (spaceInfoInDir.containsKey(destDir)) {
         Pair<Long, Long> spaceInfo = spaceInfoInDir.get(destDir);
         spaceInfo.setSecond(spaceInfo.getSecond() + blockSize);
-        spaceInfoInDir.put(destDir, spaceInfo);
       } else {
         spaceInfoInDir.put(destDir, new Pair<Long, Long>(destDir.getAvailableBytes(), blockSize));
       }
