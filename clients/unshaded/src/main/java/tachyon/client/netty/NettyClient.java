@@ -55,8 +55,9 @@ public final class NettyClient {
   private static final EventLoopGroup WORKER_GROUP = NettyUtils.createEventLoop(CHANNEL_TYPE,
       TACHYON_CONF.getInt(Constants.USER_NETTY_WORKER_THREADS, 0), "netty-client-worker-%d", true);
 
-  // The maximum number of seconds to wait for a response from the server.
-  public static final long TIMEOUT_SECOND = 1L;
+  // The maximum number of milliseconds to wait for a response from the server.
+  public static final long TIMEOUT_MS =
+      TACHYON_CONF.getInt(Constants.USER_NETTY_TIMEOUT_MS, 3000);
 
   /**
    * Creates and returns a new Netty client bootstrap for clients to connect to remote servers.

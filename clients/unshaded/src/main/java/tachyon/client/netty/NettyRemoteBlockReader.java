@@ -74,7 +74,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       mHandler.addListener(listener);
       channel.writeAndFlush(new RPCBlockRequest(blockId, offset, length));
 
-      RPCResponse response = listener.get(NettyClient.TIMEOUT_SECOND, TimeUnit.SECONDS);
+      RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
       channel.close().sync();
 
       if (response.getType() == RPCMessage.Type.RPC_BLOCK_RESPONSE) {

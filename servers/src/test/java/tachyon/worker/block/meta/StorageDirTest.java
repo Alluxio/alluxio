@@ -36,6 +36,7 @@ import com.google.common.primitives.Ints;
 import tachyon.Constants;
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
+import tachyon.worker.block.BlockStoreLocation;
 
 public class StorageDirTest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -390,5 +391,13 @@ public class StorageDirTest {
     Assert.assertTrue(mDir.hasTempBlockMeta(tempBlockId3));
     // Block created by TEST_USER_ID is expected to stay
     Assert.assertTrue(mDir.hasBlockMeta(TEST_BLOCK_ID));
+  }
+
+  @Test
+  public void toBlockStoreLocationTest() {
+    StorageTier tier = mDir.getParentTier();
+    Assert.assertEquals(
+        new BlockStoreLocation(tier.getTierAlias(), tier.getTierLevel(), mDir.getDirIndex()),
+        mDir.toBlockStoreLocation());
   }
 }

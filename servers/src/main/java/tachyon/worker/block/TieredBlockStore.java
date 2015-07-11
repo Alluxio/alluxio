@@ -73,6 +73,8 @@ public class TieredBlockStore implements BlockStore {
   private final Evictor mEvictor;
   private List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
+  /** A set of pinned inodes fetched from the master */
+  private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
 
   /**
    * A read/write lock to ensure eviction is atomic w.r.t. other operations. An eviction may trigger
@@ -198,12 +200,14 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
       throws IOException {
-    mEvictionLock.readLock().lock();
+    mEvictionLock.writeLock().lock();
     try {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
       try {
         BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
         BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
+        // freeSpaceInternal ensures newLocation has enough space
+        freeSpaceInternal(userId, blockMeta.getBlockSize(), newLocation);
         moveBlockNoLock(blockId, newLocation);
         blockMeta = mMetaManager.getBlockMeta(blockId);
         BlockStoreLocation actualNewLocation = blockMeta.getBlockLocation();
@@ -217,7 +221,7 @@ public class TieredBlockStore implements BlockStore {
       }
     } finally {
       // If we fail to lock, the block is no longer in tiered store
-      mEvictionLock.readLock().unlock();
+      mEvictionLock.writeLock().unlock();
     }
   }
 
@@ -395,12 +399,14 @@ public class TieredBlockStore implements BlockStore {
       throw new IOException("Failed to move block " + blockId + ": block is uncommited");
     }
     BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
+    // NOTE: since WRITE Eviction lock is acquired, we move metadata first before moving raw data.
+    mMetaManager.moveBlockMeta(blockMeta, newLocation);
+    BlockMeta newBlockMeta = mMetaManager.getBlockMeta(blockId);
     String srcFilePath = blockMeta.getPath();
-    String dstFilePath = mMetaManager.getBlockPath(blockId, newLocation);
+    String dstFilePath = newBlockMeta.getPath();
     // NOTE: Because this move can possibly across storage devices (e.g., from memory to SSD),
     // renameTo may not work, use guava's move instead.
     Files.move(new File(srcFilePath), new File(dstFilePath));
-    mMetaManager.moveBlockMeta(blockMeta, newLocation);
   }
 
   /**
@@ -417,6 +423,18 @@ public class TieredBlockStore implements BlockStore {
       throw new IOException("Failed to remove block " + blockId + ": cannot delete " + filePath);
     }
     mMetaManager.removeBlockMeta(blockMeta);
+  }
+
+  /**
+   * Get the most updated view with most recent information on pinned inodes,
+   * and currently locked blocks.
+   *
+   * @return BlockMetadataManagerView, a updated view with most recent infomation.
+   */
+  private BlockMetadataManagerView getUpdatedView() {
+    // TODO: update the view object instead of creating new one every time
+    return new BlockMetadataManagerView(mMetaManager, mPinnedInodes,
+        mLockManager.getLockedBlocks());
   }
 
   /** This method must be guarded by WRITE lock of mEvictionLock */
@@ -481,6 +499,19 @@ public class TieredBlockStore implements BlockStore {
           mLockManager.unlockBlock(lockId);
         }
       }
+    }
+  }
+
+  /**
+   * updates the pinned blocks
+   *
+   * @param inodes, a set of IDs inodes that are pinned
+   */
+  @Override
+  public void updatePinnedInodes(Set<Integer> inodes) {
+    synchronized (mPinnedInodes) {
+      mPinnedInodes.clear();
+      mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
     }
   }
 }
