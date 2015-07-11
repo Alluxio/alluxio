@@ -14,7 +14,7 @@
 <script src="js/bootstrap.min.js"></script>
 <% request.setAttribute("useWorkerHeader", "1"); %>
 <div class="container-fluid">
-  <jsp:include page="../header.jsp" />
+  <jsp:include page="/header" />
 
   <div class="container-fluid">
     <div class="row-fluid">

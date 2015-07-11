@@ -19,55 +19,84 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
-import tachyon.worker.block.BlockMetadataManager;
-import tachyon.worker.block.meta.StorageDir;
-import tachyon.worker.block.meta.StorageTier;
+import tachyon.worker.block.meta.StorageDirView;
+import tachyon.worker.block.meta.StorageTierView;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
  * An allocator that allocates a block in the storage dir with most free space.
+ * It always allocates to the highest tier if the requested block store location is any tier.
  */
 public class MaxFreeAllocator implements Allocator {
-  private final BlockMetadataManager mMetaManager;
+  private BlockMetadataManagerView mManagerView;
 
-  public MaxFreeAllocator(BlockMetadataManager metadata) {
-    mMetaManager = Preconditions.checkNotNull(metadata);
+  public MaxFreeAllocator(BlockMetadataManagerView view) {
+    mManagerView = Preconditions.checkNotNull(view);
   }
 
   @Override
-  public TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
-      BlockStoreLocation location) throws IOException {
+  public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
+      BlockStoreLocation location, BlockMetadataManagerView view) throws IOException {
+    mManagerView = view;
+    return allocateBlock(userId, blockId, blockSize, location);
+  }
 
-    StorageDir candidateDir = null;
-    long maxFreeBytes = blockSize;
+  /**
+   * Should only be accessed by {@link allocateBlockWithView} inside class.
+   * Allocates a block from the given block store location. The location can be a specific location,
+   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
+   *
+   * @param userId the ID of user to apply for the block allocation
+   * @param blockId the ID of the block
+   * @param blockSize the size of block in bytes
+   * @param location the location in block store
+   * @return a temp block meta if success, null otherwise
+   * @throws IOException if block location is invalid
+   */
+  private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
+      BlockStoreLocation location) throws IOException {
+    StorageDirView candidateDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTier tier : mMetaManager.getTiers()) {
-        for (StorageDir dir : tier.getStorageDirs()) {
-          if (dir.getAvailableBytes() >= maxFreeBytes) {
-            maxFreeBytes = dir.getAvailableBytes();
-            candidateDir = dir;
-          }
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        candidateDirView = getCandidateDirInTier(tierView, blockSize);
+        if (candidateDirView != null) {
+          return candidateDirView.createTempBlockMeta(userId, blockId, blockSize);
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTier tier = mMetaManager.getTier(location.tierAlias());
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (dir.getAvailableBytes() >= maxFreeBytes) {
-          maxFreeBytes = dir.getAvailableBytes();
-          candidateDir = dir;
-        }
-      }
+      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
+      candidateDirView = getCandidateDirInTier(tierView, blockSize);
     } else {
-      StorageTier tier = mMetaManager.getTier(location.tierAlias());
-      StorageDir dir = tier.getDir(location.dir());
-      if (dir.getAvailableBytes() >= blockSize) {
-        candidateDir = dir;
+      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
+      StorageDirView dirView = tierView.getDirView(location.dir());
+      if (dirView.getAvailableBytes() >= blockSize) {
+        candidateDirView = dirView;
       }
     }
 
-    return candidateDir != null ? new TempBlockMeta(userId, blockId, blockSize, candidateDir)
-        : null;
+    return candidateDirView != null
+        ? candidateDirView.createTempBlockMeta(userId, blockId, blockSize) : null;
+  }
+
+  /**
+   * Find a directory view in a tier view that has max free space and is able to store the block.
+   *
+   * @param tierView the storage tier view
+   * @param blockSize the size of block in bytes
+   * @return the storage directory view if found, null otherwise
+   */
+  private StorageDirView getCandidateDirInTier(StorageTierView tierView, long blockSize) {
+    StorageDirView candidateDirView = null;
+    long maxFreeBytes = blockSize - 1;
+    for (StorageDirView dirView : tierView.getDirViews()) {
+      if (dirView.getAvailableBytes() > maxFreeBytes) {
+        maxFreeBytes = dirView.getAvailableBytes();
+        candidateDirView = dirView;
+      }
+    }
+    return candidateDirView;
   }
 }

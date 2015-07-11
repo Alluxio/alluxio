@@ -28,12 +28,12 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
-import tachyon.worker.block.meta.StorageDir;
-import tachyon.worker.block.meta.StorageTier;
+import tachyon.worker.block.meta.StorageDirView;
+import tachyon.worker.block.meta.StorageTierView;
 
 /**
  * A simple evictor that evicts arbitrary blocks until the required size is met. This class serves
@@ -41,52 +41,78 @@ import tachyon.worker.block.meta.StorageTier;
  */
 public class GreedyEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final BlockMetadataManager mMetaManager;
+  private BlockMetadataManagerView mManagerView;
 
-  public GreedyEvictor(BlockMetadataManager metadata) {
-    mMetaManager = Preconditions.checkNotNull(metadata);
+  public GreedyEvictor(BlockMetadataManagerView view) {
+    mManagerView = Preconditions.checkNotNull(view);
   }
 
   @Override
-  public EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location)
+  public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
+      BlockMetadataManagerView view) throws IOException {
+    mManagerView = view;
+    return freeSpace(availableBytes, location);
+  }
+
+  /**
+   * This method should only be accessed by {@link freeSpaceWithView} in this class.
+   * Frees space in the given block store location.
+   * After eviction, at least one StorageDir in the location
+   * has the specific amount of free space after eviction. The location can be a specific
+   * StorageDir, or {@link BlockStoreLocation#anyTier} or {@link BlockStoreLocation#anyDirInTier}.
+   * The view is generated and passed by the calling {@link BlockStore}.
+   *
+   * <P>
+   * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,
+   * or an eviction plan with toMove and toEvict fields to indicate how to free space. If both
+   * toMove and toEvict of the plan are empty, it indicates that Evictor has no actions to take and
+   * the requirement is already met.
+   *
+   * @param availableBytes the amount of free space in bytes to be ensured after eviction
+   * @param location the location in block store
+   * @return an eviction plan (possibly with empty fields) to get the free space, or null if no plan
+   *         is feasible
+   * @throws IOException if given block location is invalid
+   */
+  private EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location)
       throws IOException {
-    // 1. Select a StorageDir that has enough capacity for required bytes.
-    StorageDir selectedDir = null;
+    // 1. Select a StorageDirView that has enough capacity for required bytes.
+    StorageDirView selectedDirView = null;
     if (location.equals(BlockStoreLocation.anyTier())) {
-      selectedDir = selectDirToEvictBlocksFromAnyTier(availableBytes);
+      selectedDirView = selectDirToEvictBlocksFromAnyTier(availableBytes);
     } else {
       int tierAlias = location.tierAlias();
-      StorageTier tier = mMetaManager.getTier(tierAlias);
+      StorageTierView tierView = mManagerView.getTierView(tierAlias);
       if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-        selectedDir = selectDirToEvictBlocksFromTier(tier, availableBytes);
+        selectedDirView = selectDirToEvictBlocksFromTier(tierView, availableBytes);
       } else {
         int dirIndex = location.dir();
-        StorageDir dir = tier.getDir(dirIndex);
+        StorageDirView dir = tierView.getDirView(dirIndex);
         if (canEvictBlocksFromDir(dir, availableBytes)) {
-          selectedDir = dir;
+          selectedDirView = dir;
         }
       }
     }
-    if (selectedDir == null) {
-      LOG.error("Failed to freeSpace: No StorageDir has enough capacity of {} bytes",
+    if (selectedDirView == null) {
+      LOG.error("Failed to freeSpace: No StorageDirView has enough capacity of {} bytes",
           availableBytes);
       return null;
     }
 
-    // 2. Check if the selected StorageDir already has enough space.
+    // 2. Check if the selected StorageDirView already has enough space.
     List<Pair<Long, BlockStoreLocation>> toTransfer =
         new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
-    long bytesAvailableInDir = selectedDir.getAvailableBytes();
+    long bytesAvailableInDir = selectedDirView.getAvailableBytes();
     if (bytesAvailableInDir >= availableBytes) {
       // No need to evict anything, return an eviction plan with empty instructions.
       return new EvictionPlan(toTransfer, toEvict);
     }
 
-    // 3. Collect victim blocks from the selected StorageDir. They could either be evicted or
+    // 3. Collect victim blocks from the selected StorageDirView. They could either be evicted or
     // moved.
     List<BlockMeta> victimBlocks = new ArrayList<BlockMeta>();
-    for (BlockMeta block : selectedDir.getBlocks()) {
+    for (BlockMeta block : selectedDirView.getEvictableBlocks()) {
       victimBlocks.add(block);
       bytesAvailableInDir += block.getBlockSize();
       if (bytesAvailableInDir >= availableBytes) {
@@ -95,19 +121,20 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
     }
 
     // 4. Make best effort to transfer victim blocks to lower tiers rather than evict them.
-    Map<StorageDir, Long> pendingBytesInDir = new HashMap<StorageDir, Long>();
+    Map<StorageDirView, Long> pendingBytesInDir = new HashMap<StorageDirView, Long>();
     for (BlockMeta block : victimBlocks) {
-      StorageTier fromTier = block.getParentDir().getParentTier();
-      List<StorageTier> toTiers = mMetaManager.getTiersBelow(fromTier.getTierAlias());
-      StorageDir toDir = selectDirToTransferBlock(block, toTiers, pendingBytesInDir);
+      // TODO: should avoid calling getParentDir
+      int fromTierAlias = block.getParentDir().getParentTier().getTierAlias();
+      List<StorageTierView> toTiers = mManagerView.getTierViewsBelow(fromTierAlias);
+      StorageDirView toDir = selectDirToTransferBlock(block, toTiers, pendingBytesInDir);
       if (toDir == null) {
         // Not possible to transfer
         toEvict.add(block.getBlockId());
       } else {
-        StorageTier toTier = toDir.getParentTier();
+        StorageTierView toTier = toDir.getParentTierView();
         toTransfer.add(new Pair<Long, BlockStoreLocation>(block.getBlockId(),
-            new BlockStoreLocation(toTier.getTierAlias(), toTier.getTierLevel(), toDir
-                .getDirIndex())));
+            new BlockStoreLocation(toTier.getTierViewAlias(), toTier.getTierViewLevel(), toDir
+                .getDirViewIndex())));
         if (pendingBytesInDir.containsKey(toDir)) {
           pendingBytesInDir.put(toDir, pendingBytesInDir.get(toDir) + block.getBlockSize());
         } else {
@@ -119,34 +146,35 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
   }
 
   // TODO: share this as a util function as it may be useful for other Evictors.
-  private boolean canEvictBlocksFromDir(StorageDir dir, long availableBytes) {
-    return dir.getAvailableBytes() + dir.getCommittedBytes() >= availableBytes;
+  private boolean canEvictBlocksFromDir(StorageDirView dirView, long availableBytes) {
+    return dirView.getAvailableBytes() + dirView.getEvitableBytes() >= availableBytes;
   }
 
-  private StorageDir selectDirToEvictBlocksFromAnyTier(long availableBytes) {
-    for (StorageTier tier : mMetaManager.getTiers()) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (canEvictBlocksFromDir(dir, availableBytes)) {
-          return dir;
+  private StorageDirView selectDirToEvictBlocksFromAnyTier(long availableBytes) {
+    for (StorageTierView tierView : mManagerView.getTierViews()) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        if (canEvictBlocksFromDir(dirView, availableBytes)) {
+          return dirView;
         }
       }
     }
     return null;
   }
 
-  private StorageDir selectDirToEvictBlocksFromTier(StorageTier tier, long availableBytes) {
-    for (StorageDir dir : tier.getStorageDirs()) {
-      if (canEvictBlocksFromDir(dir, availableBytes)) {
-        return dir;
+  private StorageDirView selectDirToEvictBlocksFromTier(StorageTierView tierView,
+      long availableBytes) {
+    for (StorageDirView dirView : tierView.getDirViews()) {
+      if (canEvictBlocksFromDir(dirView, availableBytes)) {
+        return dirView;
       }
     }
     return null;
   }
 
-  private StorageDir selectDirToTransferBlock(BlockMeta block, List<StorageTier> toTiers,
-      Map<StorageDir, Long> pendingBytesInDir) {
-    for (StorageTier toTier : toTiers) {
-      for (StorageDir toDir : toTier.getStorageDirs()) {
+  private StorageDirView selectDirToTransferBlock(BlockMeta block, List<StorageTierView> toTiers,
+      Map<StorageDirView, Long> pendingBytesInDir) {
+    for (StorageTierView toTier : toTiers) {
+      for (StorageDirView toDir : toTier.getDirViews()) {
         long pendingBytes = 0;
         if (pendingBytesInDir.containsKey(toDir)) {
           pendingBytes = pendingBytesInDir.get(toDir);

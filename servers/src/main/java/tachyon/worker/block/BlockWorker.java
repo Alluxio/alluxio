@@ -58,6 +58,8 @@ public class BlockWorker {
 
   /** Runnable responsible for heartbeating and registration with master. */
   private BlockMasterSync mBlockMasterSync;
+  /** Runnable responsible for fetching pinlist from master. */
+  private PinListSync mPinListSync;
   /** Logic for handling RPC requests. */
   private BlockServiceHandler mServiceHandler;
   /** Logic for managing block store and under file system store. */
@@ -126,15 +128,19 @@ public class BlockWorker {
     // Set up web server
     int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
     mWebServer =
-        new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(
-            mWorkerNetAddress.getMHost(), webPort), mBlockDataManager,
-            BlockWorkerUtils.getWorkerAddress(mTachyonConf), mStartTimeMs, mTachyonConf);
+        new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(mWorkerNetAddress.getMHost(),
+            webPort), mBlockDataManager, BlockWorkerUtils.getWorkerAddress(mTachyonConf),
+            mStartTimeMs, mTachyonConf);
 
     // Setup Worker to Master Syncer
+    // We create two threads for two syncers: mBlockMasterSync and mPinListSync
     mSyncExecutorService =
-        Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
     mBlockMasterSync.registerWithMaster();
+
+    // Setup PinListSyncer
+    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf);
 
     // Setup user metadata mapping
     // TODO: Have a top level register that gets the worker id.
@@ -183,6 +189,10 @@ public class BlockWorker {
     mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
 
     mSyncExecutorService.submit(mBlockMasterSync);
+
+    // Start the pinlist syncer to perform the periodical fetching
+    mSyncExecutorService.submit(mPinListSync);
+
     mWebServer.startWebServer();
     mThriftServer.serve();
   }
@@ -197,6 +207,7 @@ public class BlockWorker {
     mThriftServer.stop();
     mThriftServerSocket.close();
     mBlockMasterSync.stop();
+    mPinListSync.stop();
     mSyncExecutorService.shutdown();
     try {
       mWebServer.shutdownWebServer();
@@ -206,6 +217,7 @@ public class BlockWorker {
     mBlockDataManager.stop();
     while (!mDataServer.isClosed() || mThriftServer.isServing()) {
       // TODO: The reason to stop and close again is due to some issues in Thrift.
+      mDataServer.close();
       mThriftServer.stop();
       mThriftServerSocket.close();
       CommonUtils.sleepMs(null, 100);

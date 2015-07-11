@@ -15,7 +15,9 @@
 
 package tachyon.network.protocol;
 
+import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
+import com.google.common.primitives.Shorts;
 
 import io.netty.buffer.ByteBuf;
 
@@ -27,16 +29,30 @@ public class RPCBlockWriteResponse extends RPCResponse {
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
-  // true if write succeeded.
-  private final boolean mStatus;
+  private final Status mStatus;
 
-  public RPCBlockWriteResponse(long userId, long blockId, long offset, long length,
-      boolean status) {
+  public RPCBlockWriteResponse(long userId, long blockId, long offset, long length, Status status) {
     mUserId = userId;
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
     mStatus = status;
+  }
+
+  /**
+   * Creates a {@link RPCBlockWriteResponse} object that indicates an error for the given
+   * {@link RPCBlockWriteRequest}.
+   *
+   * @param request The {@link RPCBlockWriteRequest} to generated the {@link RPCBlockResponse} for.
+   * @param status The {@link tachyon.network.protocol.RPCResponse.Status} for the response.
+   * @return The generated {@link RPCBlockWriteResponse} object.
+   */
+  public static RPCBlockWriteResponse createErrorResponse(final RPCBlockWriteRequest request,
+      final Status status) {
+    Preconditions.checkArgument(status != Status.SUCCESS);
+    // The response has no payload, so length must be 0.
+    return new RPCBlockWriteResponse(request.getUserId(), request.getBlockId(), request.getOffset(),
+        request.getLength(), status);
   }
 
   public Type getType() {
@@ -54,14 +70,14 @@ public class RPCBlockWriteResponse extends RPCResponse {
     long blockId = in.readLong();
     long offset = in.readLong();
     long length = in.readLong();
-    boolean status = in.readBoolean();
-    return new RPCBlockWriteResponse(userId, blockId, offset, length, status);
+    short status = in.readShort();
+    return new RPCBlockWriteResponse(userId, blockId, offset, length, Status.fromShort(status));
   }
 
   @Override
   public int getEncodedLength() {
-    // 4 longs (mUserId, mBlockId, mOffset, mLength) + 1 boolean (mStatus)
-    return Longs.BYTES * 4 + 1;
+    // 4 longs (mUserId, mBlockId, mOffset, mLength) + 1 short (mStatus)
+    return Longs.BYTES * 4 + Shorts.BYTES;
   }
 
   @Override
@@ -70,7 +86,7 @@ public class RPCBlockWriteResponse extends RPCResponse {
     out.writeLong(mBlockId);
     out.writeLong(mOffset);
     out.writeLong(mLength);
-    out.writeBoolean(mStatus);
+    out.writeShort(mStatus.getId());
   }
 
   public long getUserId() {
@@ -89,7 +105,7 @@ public class RPCBlockWriteResponse extends RPCResponse {
     return mOffset;
   }
 
-  public boolean getStatus() {
+  public Status getStatus() {
     return mStatus;
   }
 }
