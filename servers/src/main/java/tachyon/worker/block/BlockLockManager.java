@@ -42,7 +42,7 @@ public class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The number of locks, larger value leads to finer locking granularity, but more space. */
   // TODO: Make this configurable
-  private static final int NUM_LOCKS = 100;
+  private static final int NUM_LOCKS = 1000;
   /** The unique id of each lock */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
 
