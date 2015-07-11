@@ -17,7 +17,9 @@ package tachyon.worker.block;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -44,6 +46,9 @@ public class BlockMetadataManagerView {
   private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
   /** A list of blocks that are currently being read */
   private final Set<Long> mLockedBlocks = new HashSet<Long>();
+  /** A map from tier alias to StorageTierView */
+  private Map<Integer, StorageTierView> mAliasToTierViews = new HashMap<Integer, StorageTierView>();
+
 
   /**
    * Constructor of BlockMatadataManagerView.
@@ -63,7 +68,9 @@ public class BlockMetadataManagerView {
 
     // iteratively create all StorageTierViews and StorageDirViews
     for (StorageTier tier : manager.getTiers()) {
-      mTierViews.add(new StorageTierView(tier, this));
+      StorageTierView tierView = new StorageTierView(tier, this);
+      mTierViews.add(tierView);
+      mAliasToTierViews.put(tier.getTierAlias(), tierView);
     }
   }
 
@@ -107,7 +114,12 @@ public class BlockMetadataManagerView {
   public StorageTierView getTierView(int tierAlias) throws IOException {
     // TODO: can we ensure the returning tierview is same as
     // new StorageTierView(mMetadataManager.getTier(tierAlias)) ?
-    return mTierViews.get(tierAlias);
+    StorageTierView tierView = mAliasToTierViews.get(tierAlias);
+    if (null == tierView) {
+      throw new IOException("Cannot find tier view with alias: " + tierAlias);
+    } else {
+      return tierView;
+    }
   }
 
   /**
