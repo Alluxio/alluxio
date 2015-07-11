@@ -22,9 +22,9 @@ import java.util.Map;
 import com.google.common.base.Preconditions;
 
 import tachyon.worker.block.BlockStoreLocation;
-import tachyon.worker.block.BlockMetadataManager;
-import tachyon.worker.block.meta.StorageDir;
-import tachyon.worker.block.meta.StorageTier;
+import tachyon.worker.block.BlockMetadataManagerView;
+import tachyon.worker.block.meta.StorageDirView;
+import tachyon.worker.block.meta.StorageTierView;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -36,47 +36,64 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * AnyTier or AnyDirInTier).
  */
 public class RoundRobinAllocator implements Allocator {
-  private final BlockMetadataManager mMetaManager;
+  private BlockMetadataManagerView mManagerView;
 
   // We need to remember the last dir index for every storage tier
-  private Map<StorageTier, Integer> mTierDirs = new HashMap<StorageTier, Integer>();
+  private Map<StorageTierView, Integer> mTierViewDirViews = new HashMap<StorageTierView, Integer>();
 
-  public RoundRobinAllocator(BlockMetadataManager metadata) {
-    mMetaManager = Preconditions.checkNotNull(metadata);
+  public RoundRobinAllocator(BlockMetadataManagerView view) {
+    mManagerView = Preconditions.checkNotNull(view);
     
-    for (StorageTier tier : mMetaManager.getTiers()) {
-      mTierDirs.put(tier, -1);
+    for (StorageTierView tierView : mManagerView.getTierViews()) {
+      mTierViewDirViews.put(tierView, -1);
     }
   }
 
   @Override
-  public TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
-      BlockStoreLocation location) throws IOException {
+  public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
+      BlockStoreLocation location, BlockMetadataManagerView view) throws IOException {
+    mManagerView = view;
+    return allocateBlock(userId, blockId, blockSize, location);
+  }
 
+  /**
+   * Should only be accessed by {@link allocateBlockWithView} inside class.
+   * Allocates a block from the given block store location. The location can be a specific location,
+   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
+   *
+   * @param userId the ID of user to apply for the block allocation
+   * @param blockId the ID of the block
+   * @param blockSize the size of block in bytes
+   * @param location the location in block store
+   * @return a temp block meta if success, null otherwise
+   * @throws IOException if block location is invalid
+   */
+  private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
+      BlockStoreLocation location) throws IOException {
     if (location.equals(BlockStoreLocation.anyTier())) {
       int tierAlias = 0; //always starting from the first tier
-      for (int i = 0; i < mMetaManager.getTiers().size(); i ++) {
-        StorageTier tier = mMetaManager.getTiers().get(tierAlias);
-        int dirIndex = getNextDirInTier(tier, blockSize);
-        if (dirIndex >= 0) {
-          mTierDirs.put(tier, dirIndex); // update
-          return new TempBlockMeta(userId, blockId, blockSize, tier.getDir(dirIndex));
+      for (int i = 0; i < mManagerView.getTierViews().size(); i ++) {
+        StorageTierView tierView = mManagerView.getTierViews().get(tierAlias);
+        int dirViewIndex = getNextDirViewInTierView(tierView, blockSize);
+        if (dirViewIndex >= 0) {
+          mTierViewDirViews.put(tierView, dirViewIndex); // update
+          return tierView.getDirView(dirViewIndex).createTempBlockMeta(userId, blockId, blockSize);
         } else { // we didn't find one in this tier, go to next tier
           tierAlias ++;
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTier tier = mMetaManager.getTier(location.tierAlias());
-      int dirIndex = getNextDirInTier(tier, blockSize);
-      if (dirIndex >= 0) {
-        mTierDirs.put(tier, dirIndex); // update
-        return new TempBlockMeta(userId, blockId, blockSize, tier.getDir(dirIndex));
+      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
+      int dirViewIndex = getNextDirViewInTierView(tierView, blockSize);
+      if (dirViewIndex >= 0) {
+        mTierViewDirViews.put(tierView, dirViewIndex); // update
+        return tierView.getDirView(dirViewIndex).createTempBlockMeta(userId, blockId, blockSize);
       }
     } else {
-      StorageTier tier = mMetaManager.getTier(location.tierAlias());
-      StorageDir dir = tier.getDir(location.dir());
-      if (dir.getAvailableBytes() >= blockSize) {
-        return new TempBlockMeta(userId, blockId, blockSize, dir);
+      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
+      StorageDirView dirView = tierView.getDirView(location.dir());
+      if (dirView.getAvailableBytes() >= blockSize) {
+        return dirView.createTempBlockMeta(userId, blockId, blockSize);
       }
     }
 
@@ -89,12 +106,13 @@ public class RoundRobinAllocator implements Allocator {
    * @param blockSize: the requested block size
    * @return: the index of the dir if nonnegative; -1 if fail to find a dir
    */
-  private int getNextDirInTier(StorageTier tier, long blockSize) {
-    int dirIndex = mTierDirs.get(tier);
-    for (int i = 0; i < tier.getStorageDirs().size(); i ++) { //try this many times
-      dirIndex = (dirIndex + 1) % tier.getStorageDirs().size();
-      if (tier.getDir(dirIndex).getAvailableBytes() >= blockSize) {
-        return dirIndex;
+  private int getNextDirViewInTierView(StorageTierView tierView, long blockSize) 
+      throws IOException {
+    int dirViewIndex = mTierViewDirViews.get(tierView);
+    for (int i = 0; i < tierView.getDirViews().size(); i ++) { //try this many times
+      dirViewIndex = (dirViewIndex + 1) % tierView.getDirViews().size();
+      if (tierView.getDirView(dirViewIndex).getAvailableBytes() >= blockSize) {
+        return dirViewIndex;
       }
     }
     return -1;
