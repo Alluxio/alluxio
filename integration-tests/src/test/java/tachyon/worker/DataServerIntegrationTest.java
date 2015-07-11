@@ -40,6 +40,7 @@ import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.network.protocol.RPCResponse;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
@@ -106,7 +107,9 @@ public class DataServerIntegrationTest {
    * Asserts that the message back matches the block response protocols for the error case.
    */
   private void assertError(final DataServerMessage msg, final long blockId) {
-    assertValid(msg, 0, -1 * blockId, 0, 0);
+    Assert.assertEquals(blockId, msg.getBlockId());
+    Assert.assertEquals(0, msg.getLength());
+    Assert.assertNotEquals(msg.getStatus().getId(), RPCResponse.Status.SUCCESS.getId());
   }
 
   /**
