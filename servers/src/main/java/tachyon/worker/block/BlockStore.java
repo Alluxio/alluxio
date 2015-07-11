@@ -79,6 +79,16 @@ interface BlockStore {
       long initialBlockSize) throws IOException;
 
   /**
+   * Gets the metadata of a block given its blockId or throws IOException. This method does not
+   * require a lock ID so the block is possible to be moved or removed after it returns.
+   *
+   * @param blockId the block ID
+   * @return metadata of the block
+   * @throws IOException if no BlockMeta for this blockId is found
+   */
+  BlockMeta getVolatileBlockMeta(long blockId) throws IOException;
+
+  /**
    * Gets the meta data of a specific block from local storage.
    * <p>
    * This method requires the lock ID returned by a previously acquired {@link #lockBlock}.
@@ -175,6 +185,14 @@ interface BlockStore {
    * @param blockId the ID of an accessed block
    */
   void accessBlock(long userId, long blockId) throws IOException;
+
+  /**
+   * Checks if the storage has a given block.
+   *
+   * @param blockId the block ID
+   * @return true if the block is contained, false otherwise
+   */
+  boolean hasBlockMeta(long blockId);
 
   /**
    * Gets the meta data of the entire store.
