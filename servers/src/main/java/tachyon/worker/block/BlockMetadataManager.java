@@ -93,27 +93,6 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Cleans up the meta data of temp blocks created by the given user.
-   *
-   * @param userId the ID of the user
-   * @return A list of temp blocks created by the user in this block store
-   */
-  public synchronized List<TempBlockMeta> cleanupUser(long userId) {
-    List<TempBlockMeta> ret = new ArrayList<TempBlockMeta>();
-    for (StorageTier tier : mTiers) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        List<TempBlockMeta> blocksToRemove = dir.cleanupUser(userId);
-        if (blocksToRemove != null) {
-          for (TempBlockMeta block : blocksToRemove) {
-            ret.add(block);
-          }
-        }
-      }
-    }
-    return ret;
-  }
-
-  /**
    * Commits a temp block.
    *
    * @param tempBlockMeta the meta data of the temp block to commit
@@ -124,6 +103,21 @@ public class BlockMetadataManager {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
     dir.addBlockMeta(block);
+  }
+
+  /**
+   * Cleans up the meta data of the given temp block ids
+   *
+   * @param userId the ID of the client associated with the temp blocks
+   * @param tempBlockIds the list of temporary block ids to be cleaned up, non temporary block
+   *                     ids will be ignored.
+   */
+  public synchronized void cleanupUserTempBlocks(long userId, List<Long> tempBlockIds) {
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        dir.cleanupUserTempBlocks(userId, tempBlockIds);
+      }
+    }
   }
 
   /**
@@ -265,6 +259,23 @@ public class BlockMetadataManager {
   public synchronized List<StorageTier> getTiersBelow(int tierAlias) throws IOException {
     int level = getTier(tierAlias).getTierLevel();
     return mTiers.subList(level + 1, mTiers.size());
+  }
+
+  /**
+   * Gets all the temporary blocks associated with a user, empty list is returned if the user has
+   * no temporary blocks.
+   *
+   * @param userId the ID of the user
+   * @return A list of temp blocks associated with the user
+   */
+  public synchronized List<TempBlockMeta> getUserTempBlocks(long userId) {
+    List<TempBlockMeta> userTempBlocks = new ArrayList<TempBlockMeta>();
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        userTempBlocks.addAll(dir.getUserTempBlocks(userId));
+      }
+    }
+    return userTempBlocks;
   }
 
   /**

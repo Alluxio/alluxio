@@ -28,7 +28,6 @@ import tachyon.worker.block.BlockDataManager;
  * A worker's UI web server
  */
 public class WorkerUIWebServer extends UIWebServer {
-
   public WorkerUIWebServer(String serverName, InetSocketAddress webAddress,
       BlockDataManager blockdataManager, InetSocketAddress workerAddress, long startTimeMs,
       TachyonConf conf) {
@@ -44,5 +43,6 @@ public class WorkerUIWebServer extends UIWebServer {
         "/downloadLocal");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(false)),
         "/browseLogs");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet(conf)), "/header");
   }
 }

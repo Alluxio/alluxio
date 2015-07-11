@@ -18,6 +18,7 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -462,5 +463,15 @@ public class BlockDataManager {
       mWorkerSource.incBytesWrittenLocal(metrics.get(Constants.BYTES_WRITTEN_LOCAL_INDEX));
       mWorkerSource.incBytesWrittenUfs(metrics.get(Constants.BYTES_WRITTEN_UFS_INDEX));
     }
+  }
+
+  /**
+   * Set the pinlist for the underlying blockstore.
+   * Typically called by PinListSync.
+   *
+   * @param pinnedInodes, a set of pinned inodes
+   */
+  public void updatePinList(Set<Integer> pinnedInodes) {
+    mBlockStore.updatePinnedInodes(pinnedInodes);
   }
 }

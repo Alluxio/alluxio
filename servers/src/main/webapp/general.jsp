@@ -11,7 +11,7 @@
 <body>
 <jsp:include page="header-scripts.jsp" />
 <div class="container-fluid">
-  <jsp:include page="header.jsp" />
+  <jsp:include page="/header" />
   <div class="row-fluid">
     <div class="accordion span6" id="accordion1">
       <div class="accordion-group">

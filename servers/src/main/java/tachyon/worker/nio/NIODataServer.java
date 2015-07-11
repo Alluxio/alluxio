@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -275,6 +274,14 @@ public class NIODataServer implements Runnable, DataServer {
         if (mShutdown) {
           break;
         }
+        // Close server before exiting loop.
+        try {
+          close();
+        } catch (Exception e2) {
+          LOG.error("Exception when closing data server. message: " + e2.getMessage());
+        }
+        // Mark the server as shut down.
+        mShutdownComplete = true;
         throw new RuntimeException(e);
       }
     }

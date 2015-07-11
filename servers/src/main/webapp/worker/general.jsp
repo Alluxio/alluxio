@@ -16,7 +16,7 @@
 <script src="../js/bootstrap.min.js"></script>
 <div class="container-fluid">
   <% request.setAttribute("useWorkerHeader", "1"); %>
-  <jsp:include page="../header.jsp" />
+  <jsp:include page="/header" />
   <div class="row-fluid">
     <div class="accordion span6" id="accordion1">
       <div class="accordion-group">

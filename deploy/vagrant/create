@@ -7,14 +7,14 @@ usage() {
  exit 1
 }
 
-if [[ "$#" != "2" ]]; then
+if [ "$#" -ne 2 ]; then
  usage
 fi
 
 TOTAL="$1"
 PROVIDER="$2"
 
-if [[ "$TOTAL" < "2" ]]; then
+if [ "$TOTAL" -lt 2 ]; then
  echo "number of machines should at least be 2"
  exit 1
 fi

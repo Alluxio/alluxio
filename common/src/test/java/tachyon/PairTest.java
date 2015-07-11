@@ -22,22 +22,22 @@ import org.junit.Test;
  * Unit tests for tachyon.Pair
  */
 public class PairTest {
-  private String mStrType = "test";
-  private Integer mIntegerType = 7883;
-  private Long mLongType = 9887L;
-  private Double mDoubleType = 3.14159;
-  private Boolean mBoolType = false;
-  private Character mCharType = 'a';
+  private static final String STR_TYPE = "test";
+  private static final Integer INTEGER_TYPE = 7883;
+  private static final Long LONG_TYPE = 9887L;
+  private static final Double DOUBLE_TYPE = 3.14159;
+  private static final Boolean BOOL_TYPE = false;
+  private static final Character CHAR_TYPE = 'a';
   private Object[] mObjs = new Object[6];
 
   @Test
   public void constructorTest() {
-    mObjs[0] = mStrType;
-    mObjs[1] = mIntegerType;
-    mObjs[2] = mLongType;
-    mObjs[3] = mDoubleType;
-    mObjs[4] = mBoolType;
-    mObjs[5] = mCharType;
+    mObjs[0] = STR_TYPE;
+    mObjs[1] = INTEGER_TYPE;
+    mObjs[2] = LONG_TYPE;
+    mObjs[3] = DOUBLE_TYPE;
+    mObjs[4] = BOOL_TYPE;
+    mObjs[5] = CHAR_TYPE;
 
     for (int j = 0; j < mObjs.length - 1; j ++) {
       for (int k = j + 1; k < mObjs.length; k ++) {

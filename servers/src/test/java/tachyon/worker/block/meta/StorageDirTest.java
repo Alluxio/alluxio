@@ -17,6 +17,7 @@ package tachyon.worker.block.meta;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -35,6 +36,7 @@ import com.google.common.primitives.Ints;
 import tachyon.Constants;
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
+import tachyon.worker.block.BlockStoreLocation;
 
 public class StorageDirTest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -370,15 +372,32 @@ public class StorageDirTest {
     mDir.addTempBlockMeta(tempBlockMeta2);
     mDir.addTempBlockMeta(tempBlockMeta3);
 
-    List<TempBlockMeta> actual = mDir.cleanupUser(TEST_USER_ID);
+    // Check the temporary blocks belonging to TEST_USER_ID
+    List<TempBlockMeta> actual = mDir.getUserTempBlocks(TEST_USER_ID);
+    List<Long> actualBlockIds = new ArrayList<Long>(actual.size());
+    for (TempBlockMeta tempBlockMeta : actual) {
+      actualBlockIds.add(tempBlockMeta.getBlockId());
+    }
     Assert.assertEquals(Sets.newHashSet(tempBlockMeta1, tempBlockMeta2),
         new HashSet<TempBlockMeta>(actual));
+    Assert.assertTrue(mDir.hasTempBlockMeta(tempBlockId1));
+    Assert.assertTrue(mDir.hasTempBlockMeta(tempBlockId2));
+
     // Two temp blocks created by TEST_USER_ID are expected to be removed
+    mDir.cleanupUserTempBlocks(TEST_USER_ID, actualBlockIds);
     Assert.assertFalse(mDir.hasTempBlockMeta(tempBlockId1));
     Assert.assertFalse(mDir.hasTempBlockMeta(tempBlockId2));
     // Temp block created by otherUserId is expected to stay
     Assert.assertTrue(mDir.hasTempBlockMeta(tempBlockId3));
     // Block created by TEST_USER_ID is expected to stay
     Assert.assertTrue(mDir.hasBlockMeta(TEST_BLOCK_ID));
+  }
+
+  @Test
+  public void toBlockStoreLocationTest() {
+    StorageTier tier = mDir.getParentTier();
+    Assert.assertEquals(
+        new BlockStoreLocation(tier.getTierAlias(), tier.getTierLevel(), mDir.getDirIndex()),
+        mDir.toBlockStoreLocation());
   }
 }

@@ -16,6 +16,7 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
+import java.util.Set;
 
 import com.google.common.base.Optional;
 
@@ -226,4 +227,10 @@ interface BlockStore {
    */
   void registerBlockStoreEventListener(BlockStoreEventListener listener);
 
+  /**
+   * Update the pinned inodes.
+   *
+   * @param inodes, a set of inodes that are currently pinned.
+   */
+  void updatePinnedInodes(Set<Integer> inodes);
 }

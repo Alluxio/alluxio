@@ -207,6 +207,7 @@ public class Constants {
   public static final String USER_NETTY_WORKER_THREADS =
       "tachyon.user.network.netty.worker.threads";
   public static final String USER_NETTY_CHANNEL = "tachyon.user.network.netty.channel";
+  public static final String USER_NETTY_TIMEOUT_MS = "tachyon.user.network.netty.timeout.ms";
   public static final String USER_REMOTE_READ_BUFFER_SIZE_BYTE =
       "tachyon.user.remote.read.buffer.size.byte";
   public static final String USER_DEFAULT_WRITE_TYPE = "tachyon.user.file.writetype.default";
