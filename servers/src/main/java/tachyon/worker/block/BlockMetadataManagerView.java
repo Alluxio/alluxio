@@ -47,8 +47,7 @@ public class BlockMetadataManagerView {
   /** A list of blocks that are currently being read */
   private final Set<Long> mLockedBlocks = new HashSet<Long>();
   /** A map from tier alias to StorageTierView */
-  private Map<Integer, StorageTierView> mAliasToTierViews
-      = new HashMap<Integer, StorageTierView>();
+  private Map<Integer, StorageTierView> mAliasToTierViews = new HashMap<Integer, StorageTierView>();
 
 
   /**
