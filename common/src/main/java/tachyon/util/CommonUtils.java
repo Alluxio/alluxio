@@ -81,6 +81,31 @@ public final class CommonUtils {
   }
 
   /**
+   * Creates the local block path and all the parent directories. Also, sets the appropriate
+   * permissions.
+   *
+   * @param path The path of the block.
+   * @throws IOException
+   */
+  public static void createBlockPath(String path) throws IOException {
+    File localFolder;
+    try {
+      localFolder = new File(CommonUtils.getParent(path));
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
+
+    if (!localFolder.exists()) {
+      if (localFolder.mkdirs()) {
+        CommonUtils.changeLocalFileToFullPermission(localFolder.getAbsolutePath());
+        LOG.info("Folder {} was created!", localFolder);
+      } else {
+        throw new IOException("Failed to create folder " + localFolder);
+      }
+    }
+  }
+
+  /**
    * Blocking operation that copies the processes stdout/stderr to this JVM's stdout/stderr.
    */
   private static void redirectIO(final Process process) throws IOException {
@@ -147,8 +172,8 @@ public final class CommonUtils {
 
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
     List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
-    for (int k = 0; k < source.size(); k ++) {
-      ret.add(cloneByteBuffer(source.get(k)));
+    for (ByteBuffer b : source) {
+      ret.add(cloneByteBuffer(b));
     }
     return ret;
   }
@@ -157,25 +182,40 @@ public final class CommonUtils {
    * Join each element in paths in order, separated by {@code TachyonURI.SEPARATOR}.
    * <p>
    * For example, {@code concatPath("/myroot/", "dir", 1L, "filename")} returns
-   * {@code "/myroot/dir/1/filename"}
+   * {@code "/myroot/dir/1/filename"}, or
+   * {@code concatPath("tachyon://myroot", "dir", "filename")} returns
+   * {@code "tachyon://myroot/dir/filename"}. Note that a null element in paths
+   * is treated as empty string, i.e., "".
    *
    * @param paths to concatenate
    * @return joined path
+   * @throws IllegalArgumentException
    */
-  public static String concatPath(Object... paths) {
+  public static String concatPath(Object... paths) throws IllegalArgumentException {
+    if (null == paths) {
+      throw new IllegalArgumentException("Can not concatenate a null set of paths.");
+    }
+    String path;
+    String trimmedPath;
     List<String> trimmedPathList = new ArrayList<String>();
-    for (int k = 0; k < paths.length; k ++) {
-      String path = paths[k].toString().trim();
-      String trimmedPath;
-      if (k == 0) {
-        trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
-      } else {
-        trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
-        if (trimmedPath == "") {
-          continue;
-        }
-      }
+    if (paths.length > 0 && paths[0] != null && !paths[0].toString().isEmpty()) {
+      path = paths[0].toString().trim();
+      trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
       trimmedPathList.add(trimmedPath);
+    }
+    for (int k = 1; k < paths.length; k ++) {
+      if (null == paths[k]) {
+        continue;
+      }
+      path = paths[k].toString().trim();
+      trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
+      if (!trimmedPath.isEmpty()) {
+        trimmedPathList.add(trimmedPath);
+      }
+    }
+    if (trimmedPathList.size() == 1 && trimmedPathList.get(0).isEmpty()) {
+      // paths[0] must be "[/]+"
+      return TachyonURI.SEPARATOR;
     }
     return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
   }
@@ -265,8 +305,8 @@ public final class CommonUtils {
 
   public static <T> String listToString(List<T> list) {
     StringBuilder sb = new StringBuilder();
-    for (int k = 0; k < list.size(); k ++) {
-      sb.append(list.get(k)).append(" ");
+    for (T s : list) {
+      sb.append(s).append(" ");
     }
     return sb.toString();
   }

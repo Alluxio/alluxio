@@ -18,6 +18,7 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -90,7 +91,8 @@ public class BlockDataManager {
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
     mMasterClient =
-        new MasterClient(getMasterAddress(), mMasterClientExecutorService, mTachyonConf);
+        new MasterClient(BlockWorkerUtils.getMasterAddress(mTachyonConf),
+            mMasterClientExecutorService, mTachyonConf);
 
     // Create Under FileSystem Client
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
@@ -99,7 +101,7 @@ public class BlockDataManager {
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
 
     // Connect to UFS to handle UFS security
-    InetSocketAddress workerAddress = getWorkerAddress();
+    InetSocketAddress workerAddress = BlockWorkerUtils.getWorkerAddress(mTachyonConf);
     mUfs.connectFromWorker(mTachyonConf, NetworkUtils.getFqdnHost(workerAddress));
 
     // Register the heartbeat reporter so it can record block store changes
@@ -231,19 +233,36 @@ public class BlockDataManager {
   /**
    * Creates a block. This method is only called from a data server.
    *
+   * Call {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the block.
+   *
    * @param userId The id of the client
    * @param blockId The id of the block to be created
    * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
    * @param initialBytes The initial amount of bytes to be allocated
-   * @return the block writer for the local block file
    * @throws FileDoesNotExistException if the block is not on the worker
    * @throws IOException if the block writer cannot be obtained
    */
   // TODO: We should avoid throwing IOException
-  public BlockWriter createBlockRemote(long userId, long blockId, int tierAlias, long initialBytes)
+  public void createBlockRemote(long userId, long blockId, int tierAlias, long initialBytes)
       throws FileDoesNotExistException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
-    mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
+    TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
+    CommonUtils.createBlockPath(createdBlock.getPath());
+  }
+
+  /**
+   * Opens a {@link BlockWriter} for an existing temporary block. This method is only called from a
+   * data server.
+   *
+   * The temporary block must already exist with {@link #createBlockRemote(long, long, int, long)}.
+   *
+   * @param userId The id of the client
+   * @param blockId The id of the block to be opened for writing
+   * @return the block writer for the local block file
+   * @throws IOException if the block writer cannot be obtained
+   */
+  public BlockWriter getTempBlockWriterRemote(long userId, long blockId)
+      throws FileDoesNotExistException, IOException {
     return mBlockStore.getBlockWriter(userId, blockId);
   }
 
@@ -425,26 +444,12 @@ public class BlockDataManager {
   }
 
   /**
-   * Gets the Tachyon master address from the configuration
+   * Set the pinlist for the underlying blockstore.
+   * Typically called by PinListSync.
    *
-   * @return the InetSocketAddress of the master
+   * @param pinnedInodes, a set of pinned inodes
    */
-  private InetSocketAddress getMasterAddress() {
-    String masterHostname =
-        mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
-    int masterPort = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    return new InetSocketAddress(masterHostname, masterPort);
-  }
-
-  /**
-   * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
-   *
-   * @return the worker's address
-   */
-  // TODO: BlockWorker has the same function. Share these to a utility function.
-  private InetSocketAddress getWorkerAddress() {
-    String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
-    int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
-    return new InetSocketAddress(workerHostname, workerPort);
+  public void updatePinList(Set<Integer> pinnedInodes) {
+    mBlockStore.updatePinnedInodes(pinnedInodes);
   }
 }

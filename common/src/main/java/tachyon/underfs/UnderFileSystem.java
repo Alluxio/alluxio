@@ -41,11 +41,25 @@ public abstract class UnderFileSystem {
   private boolean mProvidesStorage = true;
 
   public enum SpaceType {
-    SPACE_TOTAL(0), SPACE_FREE(1), SPACE_USED(2);
+
+    /**
+     * Indicates the storage capacity of the under file system.
+     */
+    SPACE_TOTAL(0),
+
+    /**
+     * Indicates the amount of free space available in the under file system.
+     */
+    SPACE_FREE(1),
+
+    /**
+     * Indicates the amount of space used in the under file system.
+     */
+    SPACE_USED(2);
 
     private final int mValue;
 
-    private SpaceType(int value) {
+    SpaceType(int value) {
       mValue = value;
     }
 
