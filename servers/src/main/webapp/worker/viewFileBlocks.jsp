@@ -86,7 +86,6 @@
               <th>ID</th>
               <th>Tier</th>
               <th>Size (Byte)</th>
-              <th>Last Access</th>
             </tr>
             <% for (int i = 0; i < StorageLevelAlias.SIZE; i ++) { %>
               <% List<UiBlockInfo> blocks = ((List<List<UiBlockInfo>>) request.getAttribute("fileBlocksOnTier")).get(i); %>
@@ -95,7 +94,6 @@
                   <td><%= blockInfo.getID() %></td>
                   <td><%= StorageLevelAlias.values()[i].name() %></td>
                   <td><%= blockInfo.getBlockLength() %></td>
-                  <td><abbr><%= blockInfo.getLastAccessTimeMs() %></abbr></td>
                 </tr>
               <% } %>
             <% } %>
