@@ -26,7 +26,7 @@ import tachyon.worker.block.meta.StorageTierView;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * A Round robin allocator that allocates a block in the storage dir.
+ * A round-robin allocator that allocates a block in the storage dir.
  * It will allocate the block in the highest tier possible:
  * It always starts from the highest tier in a RR manner and goes to the next tier when there
  * is no enough space. 
@@ -37,11 +37,12 @@ public class RoundRobinAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
   // We need to remember the last dir index for every storage tier
-  private Map<StorageTierView, Integer> mTierViewDirViews = new HashMap<StorageTierView, Integer>();
+  private Map<StorageTierView, Integer> mTierToLastDirMap = new HashMap<StorageTierView, Integer>();
 
-  public RoundRobinAllocator(BlockMetadataManagerView view) {    
+  public RoundRobinAllocator(BlockMetadataManagerView view) {
+    mManagerView = view;
     for (StorageTierView tierView : mManagerView.getTierViews()) {
-      mTierViewDirViews.put(tierView, -1);
+      mTierToLastDirMap.put(tierView, -1);
     }
   }
 
@@ -67,22 +68,22 @@ public class RoundRobinAllocator implements Allocator {
   private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location) throws IOException {
     if (location.equals(BlockStoreLocation.anyTier())) {
-      int tierAlias = 0; //always starting from the first tier
+      int tierIndex = 0; //always starting from the first tier
       for (int i = 0; i < mManagerView.getTierViews().size(); i ++) {
-        StorageTierView tierView = mManagerView.getTierViews().get(tierAlias);
-        int dirViewIndex = getNextDirViewInTierView(tierView, blockSize);
+        StorageTierView tierView = mManagerView.getTierViews().get(tierIndex);
+        int dirViewIndex = getNextAvailDirInTier(tierView, blockSize);
         if (dirViewIndex >= 0) {
-          mTierViewDirViews.put(tierView, dirViewIndex); // update
+          mTierToLastDirMap.put(tierView, dirViewIndex); // update
           return tierView.getDirView(dirViewIndex).createTempBlockMeta(userId, blockId, blockSize);
         } else { // we didn't find one in this tier, go to next tier
-          tierAlias ++;
+          tierIndex ++;
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
       StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
-      int dirViewIndex = getNextDirViewInTierView(tierView, blockSize);
+      int dirViewIndex = getNextAvailDirInTier(tierView, blockSize);
       if (dirViewIndex >= 0) {
-        mTierViewDirViews.put(tierView, dirViewIndex); // update
+        mTierToLastDirMap.put(tierView, dirViewIndex); // update
         return tierView.getDirView(dirViewIndex).createTempBlockMeta(userId, blockId, blockSize);
       }
     } else {
@@ -102,9 +103,9 @@ public class RoundRobinAllocator implements Allocator {
    * @param blockSize: the requested block size
    * @return: the index of the dir if nonnegative; -1 if fail to find a dir
    */
-  private int getNextDirViewInTierView(StorageTierView tierView, long blockSize) 
+  private int getNextAvailDirInTier(StorageTierView tierView, long blockSize) 
       throws IOException {
-    int dirViewIndex = mTierViewDirViews.get(tierView);
+    int dirViewIndex = mTierToLastDirMap.get(tierView);
     for (int i = 0; i < tierView.getDirViews().size(); i ++) { //try this many times
       dirViewIndex = (dirViewIndex + 1) % tierView.getDirViews().size();
       if (tierView.getDirView(dirViewIndex).getAvailableBytes() >= blockSize) {
