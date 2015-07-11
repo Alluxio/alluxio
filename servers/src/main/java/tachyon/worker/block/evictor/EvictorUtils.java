@@ -84,14 +84,14 @@ public class EvictorUtils {
     for (StorageDir dir : spaceInfoInDir.keySet()) {
       firstTierAlias = Math.min(firstTierAlias, dir.getParentTier().getTierAlias());
     }
-    long firstTierDirMaxSpace = Long.MIN_VALUE;
+    long maxSpace = Long.MIN_VALUE; // maximum bytes to be available in a dir in the first tier
     for (StorageDir dir : spaceInfoInDir.keySet()) {
       if (dir.getParentTier().getTierAlias() == firstTierAlias) {
         Pair<Long, Long> space = spaceInfoInDir.get(dir);
-        firstTierDirMaxSpace = Math.max(firstTierDirMaxSpace, space.getFirst() - space.getSecond());
+        maxSpace = Math.max(maxSpace, space.getFirst() - space.getSecond());
       }
     }
-    if (firstTierDirMaxSpace < bytesToBeAvailable) {
+    if (maxSpace < bytesToBeAvailable) {
       return false;
     }
 
