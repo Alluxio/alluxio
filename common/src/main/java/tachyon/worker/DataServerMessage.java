@@ -41,8 +41,8 @@ public class DataServerMessage {
   // The response header is: HEADER_PREFIX, blockId (long), offset (long), length (long),
   // status (short)
   private static final int RESPONSE_HEADER_LENGTH = HEADER_PREFIX_LENGTH + 26;
-  // The generic response header is: HEADER_PREFIX, status (short)
-  private static final int GENERIC_RESPONSE_HEADER_LENGTH = HEADER_PREFIX_LENGTH + 2;
+  // The error response header is: HEADER_PREFIX, status (short)
+  private static final int ERROR_RESPONSE_HEADER_LENGTH = HEADER_PREFIX_LENGTH + 2;
 
   /**
    * Create a default block request message, just allocate the message header, and no attribute is
@@ -326,15 +326,15 @@ public class DataServerMessage {
     int numRead = 0;
     if (mHeader.remaining() > 0) {
       numRead = socketChannel.read(mHeader);
-      if (numRead == -1 && mHeader.position() >= GENERIC_RESPONSE_HEADER_LENGTH) {
-        // Stream ended, but the full header is not received. This means a generic response was
+      if (numRead == -1 && mHeader.position() >= ERROR_RESPONSE_HEADER_LENGTH) {
+        // Stream ended, but the full header is not received. This means an error response was
         // returned.
         mHeader.flip();
         // frame length
         mHeader.getLong();
         int receivedMessageType = mHeader.getInt();
         if (receivedMessageType == RPCMessage.Type.RPC_STATUS_RESPONSE.getId()) {
-          // This message is expected to be a generic response with a status.
+          // This message is expected to be an error response with a status.
           mStatus = RPCResponse.Status.fromShort(mHeader.getShort());
           throw new IOException(mStatus.getMessage());
         } else {
