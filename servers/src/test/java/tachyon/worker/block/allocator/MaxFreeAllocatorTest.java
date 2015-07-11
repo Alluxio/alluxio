@@ -22,27 +22,58 @@ import org.junit.Test;
 import tachyon.worker.block.allocator.AllocatorFactory;
 import tachyon.worker.block.allocator.AllocatorType;
 
-public class MaxFreeAllocatorTest extends BaseAllocatorStrategyTest {
-
+public class MaxFreeAllocatorTest extends BaseAllocatorTest {
   @Test
   public void allocateBlockTest() throws IOException {
-    mAllocator = AllocatorFactory.create(AllocatorType.MAX_FREE, mMetaManager);
-
-    // tier 3, dir 2, remain 1000
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, 3, 2);
-    // tier 3, dir 1, remain 1000
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, 3, 1);
-    // tier 2, dir 1, remain 1000
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1000, true, 2, 1);
-    // tier 2, dir 0, remain 1000
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1000, true, 2, 0);
-    // tier 3, dir 0, remain 2000
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, 3, 0);
-    // tier 3, dir 0, remain 1000
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, 3, 0);
-    // tier 3, dir 2, remain 0
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, 3, 2);
-    // tier 3, dir 2, remain 0
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, 3, 1);
+    mAllocator = AllocatorFactory.create(AllocatorType.MAX_FREE, mManagerView);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0    1000
+    //  0      ├───── 2000
+    //  1      └───── 2000
+    //  0               ├─── 3000
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1500, true, 2, 0);
+    // 
+    // idx | tier1 | tier2 | tier3
+    //  0    1000
+    //  0      ├───── 500   <--- alloc
+    //  1      └───── 2000
+    //  0               ├─── 3000
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, 2, 1);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0    1000
+    //  0      ├───── 500
+    //  1      └───── 0   <--- alloc
+    //  0               ├─── 3000
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, true, 1, 0);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0     700   <--- alloc
+    //  0      ├───── 500
+    //  1      └───── 0
+    //  0               ├─── 3000
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 300, true, 2, 0);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0     700
+    //  0      ├───── 200   <--- alloc
+    //  1      └───── 0
+    //  0               ├─── 3000
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
   }
 }

@@ -19,9 +19,6 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-import tachyon.worker.block.BlockMetadataManager;
-
 /**
  * This is the class to test the "contact" of different kinds of allocators,
  * i.e., the general properties the allocators need to follow
@@ -31,9 +28,8 @@ public class AllocatorContractTest extends BaseAllocatorTest {
   @Test
   public void shouldNotAllocateTest() throws IOException {
     for (AllocatorType type : AllocatorType.values()) {
-      TachyonConf tachyonConf = createTestTachyonConf();
-      BlockMetadataManager metaManager = BlockMetadataManager.newBlockMetadataManager(tachyonConf);
-      Allocator allocator = AllocatorFactory.create(type, metaManager);
+      resetManagerView();
+      Allocator allocator = AllocatorFactory.create(type, mManagerView);
       assertTempBlockMeta(allocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE + 1, false);
       assertTempBlockMeta(allocator, mAnyDirInTierLoc2, DEFAULT_SSD_SIZE + 1, false);
       assertTempBlockMeta(allocator, mAnyDirInTierLoc3, DEFAULT_HDD_SIZE + 1, false);
@@ -45,8 +41,8 @@ public class AllocatorContractTest extends BaseAllocatorTest {
   @Test
   public void shouldAllocateTest() throws IOException {
     for (AllocatorType type : AllocatorType.values()) {
-      Allocator tierAllocator = AllocatorFactory.create(type, 
-          BlockMetadataManager.newBlockMetadataManager(createTestTachyonConf()));
+      resetManagerView();
+      Allocator tierAllocator = AllocatorFactory.create(type, mManagerView);
       for (int i = 0; i < DEFAULT_RAM_NUM; i ++) {
         assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE - 1, true);
       }
@@ -57,8 +53,8 @@ public class AllocatorContractTest extends BaseAllocatorTest {
         assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc3, DEFAULT_HDD_SIZE - 1, true);
       }
       
-      Allocator anyAllocator = AllocatorFactory.create(type, 
-          BlockMetadataManager.newBlockMetadataManager(createTestTachyonConf()));
+      resetManagerView();
+      Allocator anyAllocator = AllocatorFactory.create(type, mManagerView);
       for (int i = 0; i < DEFAULT_RAM_NUM; i ++) {
         assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_RAM_SIZE - 1, true);
       }

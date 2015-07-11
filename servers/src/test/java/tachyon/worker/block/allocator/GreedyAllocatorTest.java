@@ -22,31 +22,118 @@ import org.junit.Test;
 import tachyon.worker.block.allocator.AllocatorFactory;
 import tachyon.worker.block.allocator.AllocatorType;
 
-public class GreedyAllocatorTest extends BaseAllocatorStrategyTest {
-
+public class GreedyAllocatorTest extends BaseAllocatorTest {
   @Test
   public void allocateBlockTest() throws IOException {
-    mAllocator = AllocatorFactory.create(AllocatorType.GREEDY, mMetaManager);
-
-    // tier 1, dir 0, remain 500
+    mAllocator = AllocatorFactory.create(AllocatorType.GREEDY, mManagerView);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0    1000
+    //  0      ├───── 2000
+    //  1      └───── 2000
+    //  0               ├─── 3000
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
     assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, 1, 0);
-    // tier 2, dir 0, remain 1000
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0     500   <--- alloc
+    //  0      ├───── 2000
+    //  1      └───── 2000
+    //  0               ├─── 3000
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
     assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1000, true, 2, 0);
-    // tier 2, dir 1, remain 500
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0     500
+    //  0      ├───── 1000   <--- alloc
+    //  1      └───── 2000
+    //  0               ├─── 3000
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
     assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1500, true, 2, 1);
-    // tier 2, dir 1, remain 0
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0     500
+    //  0      ├───── 1000
+    //  1      └───── 500   <--- alloc
+    //  0               ├─── 3000
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
     assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, 2, 0);
-    // tier 3, dir 0, remain 2000
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0     500
+    //  0      ├───── 0   <--- alloc
+    //  1      └───── 500
+    //  0               ├─── 3000
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
     assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, 3, 0);
-    // tier 3, dir 0, remain 0
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0     500
+    //  0      ├───── 0
+    //  1      └───── 500
+    //  0               ├─── 2000   <--- alloc
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
     assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, 3, 0);
-    // tier 1, dir 0, remain 0
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0     500
+    //  0      ├───── 0
+    //  1      └───── 500
+    //  0               ├─── 0   <--- alloc
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
     assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, 1, 0);
-    // tier 1, dir 0, remain 0
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0      0   <--- alloc
+    //  0      ├───── 0
+    //  1      └───── 500
+    //  0               ├─── 0
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
     assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, 2, 1);
-    // tier 2, dir 1, remain 300
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0      0
+    //  0      ├───── 0
+    //  1      └───── 0   <--- alloc
+    //  0               ├─── 0
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
     assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 1000, true, 3, 1);
-    // tier 3, dir 0, remain 2300
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0      0
+    //  0      ├───── 0
+    //  1      └───── 500
+    //  0               ├─── 0
+    //  1               ├─── 2000   <--- alloc
+    //  2               └─── 3000
+    //
     assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, 3, 1);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0      0
+    //  0      ├───── 0
+    //  1      └───── 500
+    //  0               ├─── 0
+    //  1               ├─── 1300   <--- alloc
+    //  2               └─── 3000
+    //
   }
 }
