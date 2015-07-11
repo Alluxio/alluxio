@@ -137,18 +137,18 @@ public class BlockWorker {
 
     // Setup user metadata mapping
     // TODO: Have a top level register that gets the worker id.
-    mWorkerId = mBlockMasterSync.getWorkerId();
+    long workerId = mBlockMasterSync.getWorkerId();
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     String ufsWorkerFolder =
         mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, ufsAddress + "/tachyon/workers");
-    mUsers = new Users(CommonUtils.concatPath(ufsWorkerFolder, mWorkerId), mTachyonConf);
+    Users users = new Users(CommonUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
 
     // Give BlockDataManager a pointer to the user metadata mapping
     // TODO: Fix this hack when we have a top level register
-    mBlockDataManager.setUsers(mUsers);
-    mBlockDataManager.setWorkerId(mWorkerId);
+    mBlockDataManager.setUsers(users);
+    mBlockDataManager.setWorkerId(workerId);
   }
 
   /**
