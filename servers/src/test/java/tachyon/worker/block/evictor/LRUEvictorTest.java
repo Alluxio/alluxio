@@ -101,7 +101,7 @@ public class LRUEvictorTest {
     long smallestCapacity = firstTierDirCapacity[0];
     for (int i = 0; i < nDir; i ++) {
       EvictionPlan plan = mEvictor.freeSpace(smallestCapacity, anyDirInFirstTier);
-      Assert.assertTrue(EvictorTestUtils.legalCascadingPlan(smallestCapacity, plan, mMetaManager));
+      Assert.assertTrue(EvictorUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       Assert.assertEquals(0, plan.toEvict().size());
       Assert.assertEquals(1, plan.toMove().size());
       long blockId = plan.toMove().get(0).getFirst();
@@ -132,7 +132,7 @@ public class LRUEvictorTest {
     long smallestCapacity = EvictorTestUtils.TIER_CAPACITY[0][0];
     for (int i = 0; i < nDirInFirstTier; i ++) {
       EvictionPlan plan = mEvictor.freeSpace(smallestCapacity, anyDirInFirstTier);
-      Assert.assertTrue(EvictorTestUtils.legalCascadingPlan(smallestCapacity, plan, mMetaManager));
+      Assert.assertTrue(EvictorUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       // least recently used block in the first tier needs to be moved to the second tier
       Assert.assertEquals(1, plan.toMove().size());
       long blockIdMovedInFirstTier = plan.toMove().get(0).getFirst();
