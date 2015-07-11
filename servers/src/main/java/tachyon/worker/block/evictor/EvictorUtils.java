@@ -83,10 +83,21 @@ public class EvictorUtils {
       }
     }
 
+    StorageDir firstTierDir = null;
+    for (StorageDir dir : spaceInfoInDir.keySet()) {
+      if (firstTierDir == null
+          || dir.getParentTier().getTierAlias() < firstTierDir.getParentTier().getTierAlias()) {
+        firstTierDir = dir;
+      }
+    }
+    Pair<Long, Long> firstTierDirSpace = spaceInfoInDir.get(firstTierDir);
+    if (firstTierDirSpace.getFirst() - firstTierDirSpace.getSecond() < bytesToBeAvailable) {
+      return false;
+    }
+
     for (StorageDir dir : spaceInfoInDir.keySet()) {
       Pair<Long, Long> spaceInfo = spaceInfoInDir.get(dir);
-      if (spaceInfo.getFirst() < spaceInfo.getSecond()
-          || spaceInfo.getFirst() < bytesToBeAvailable) {
+      if (spaceInfo.getFirst() < spaceInfo.getSecond()) {
         return false;
       }
     }
