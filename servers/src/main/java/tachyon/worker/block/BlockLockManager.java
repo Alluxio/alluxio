@@ -46,6 +46,7 @@ public class BlockLockManager {
   /** The unique id of each lock */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
 
+  /** The object that serves all metadata requests for the block store */
   private final BlockMetadataManager mMetaManager;
   /** A map from a block ID to its lock */
   private final ClientRWLock[] mLockArray = new ClientRWLock[NUM_LOCKS];
@@ -158,18 +159,18 @@ public class BlockLockManager {
    * @param blockId The ID of the block
    * @param lockId The ID of the lock
    */
-  public void validateLockId(long userId, long blockId, long lockId) throws IOException {
+  public void validateLock(long userId, long blockId, long lockId) throws IOException {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
-        throw new IOException("Failed to validateLockId: lockId " + lockId + " has no lock record");
+        throw new IOException("Failed to validateLock: lockId " + lockId + " has no lock record");
       }
       if (userId != record.userId()) {
-        throw new IOException("Failed to validateLockId: lockId " + lockId + " is owned by userId "
+        throw new IOException("Failed to validateLock: lockId " + lockId + " is owned by userId "
             + record.userId() + ", not " + userId);
       }
       if (blockId != record.blockId()) {
-        throw new IOException("Failed to validateLockId: lockId " + lockId + " is for blockId "
+        throw new IOException("Failed to validateLock: lockId " + lockId + " is for blockId "
             + record.blockId() + ", not " + blockId);
       }
     }
