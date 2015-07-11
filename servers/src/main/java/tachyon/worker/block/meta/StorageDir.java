@@ -34,6 +34,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
+import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreLocation;
 
 /**

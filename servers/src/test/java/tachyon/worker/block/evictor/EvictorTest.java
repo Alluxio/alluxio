@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Assert;
@@ -30,9 +31,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
+import tachyon.worker.block.meta.StorageTierView;
 
 /**
  * This is a parameterized unit test for all types of {@link Evictor} defined in {@link EvictorType}
@@ -54,6 +58,7 @@ public class EvictorTest {
 
   private StorageDir mTestDir;
   private BlockMetadataManager mMetaManager;
+  private BlockMetadataManagerView mManagerView;
   private EvictorType mEvictorType;
   private Evictor mEvictor;
 
@@ -80,19 +85,22 @@ public class EvictorTest {
   public final void before() throws IOException {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+    mManagerView = new BlockMetadataManagerView(
+        mMetaManager, new HashSet<Integer>(), new HashSet<Long>());
     List<StorageTier> tiers = mMetaManager.getTiers();
     mTestDir = tiers.get(TEST_TIER_LEVEL).getDir(TEST_DIR);
-    mEvictor = EvictorFactory.create(mEvictorType, mMetaManager);
+    mEvictor = EvictorFactory.create(mEvictorType, mManagerView);
   }
 
   @Test
   public void noNeedToEvictTest1() throws IOException {
-    // metadata manager is just created, no cached block in Evictor, so when trying to make sure
-    // each dir has free space of its capacity, the eviction plan should be empty.
-    for (StorageTier tier : mMetaManager.getTiers()) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        Assert.assertTrue(mEvictor.freeSpace(dir.getCapacityBytes(), dir.toBlockStoreLocation())
-            .isEmpty());
+    // metadata manager view is just created, no cached block in Evictor,
+    // so when trying to make sure each dir has free space of its capacity,
+    // the eviction plan should be empty.
+    for (StorageTierView tierView : mManagerView.getTierViews()) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        Assert.assertTrue(mEvictor.freeSpaceWithView(
+            dirView.getCapacityBytes(), dirView.toBlockStoreLocation(), mManagerView).isEmpty());
       }
     }
   }

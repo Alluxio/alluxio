@@ -20,7 +20,9 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
+import tachyon.worker.block.BlockStoreLocation;
 
 /**
  * This class is a wrapper of {@link StorageDir} to provide more limited access
@@ -78,6 +80,15 @@ public class StorageDirView {
   }
 
   /**
+   * Get capacity bytes for this dir
+   *
+   * @return capacity bytes for this dir
+   */
+  public long getCapacityBytes() {
+    return mDir.getCapacityBytes();
+  }
+
+  /**
    * Get available bytes for this dir
    *
    * @return available bytes for this dir
@@ -131,5 +142,15 @@ public class StorageDirView {
    */
   public StorageTierView getParentTierView() {
     return mTierView;
+  }
+
+  /**
+   * Create a BlockStoraLocation for this directory view.
+   * Redirecting to {@link StorageDir#toBlockStoreLocation}
+   *
+   * @return BlockStoreLocation created
+   */
+  public BlockStoreLocation toBlockStoreLocation() {
+    return mDir.toBlockStoreLocation();
   }
 }
