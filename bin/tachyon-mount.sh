@@ -89,6 +89,10 @@ function mount_ramfs_linux() {
   echo "Formatting RamFS: $F ($MEM_SIZE)"
   if mount | grep $F > /dev/null; then
     umount -f $F
+    if [ $? -ne 0 ] ; then
+      echo "ERROR: umount RamFS $F failed"
+      exit 1
+    fi
   else
     mkdir -p $F
   fi

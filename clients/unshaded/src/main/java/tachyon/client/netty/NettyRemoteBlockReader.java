@@ -51,31 +51,13 @@ import tachyon.network.protocol.RPCResponse;
 public final class NettyRemoteBlockReader implements RemoteBlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  // The maximum number of seconds to wait for a response from the server.
-  private static final long TIMEOUT_SECOND = 1L;
-
-  // Share both the encoder and decoder with all the client pipelines.
-  private static final RPCMessageEncoder ENCODER = new RPCMessageEncoder();
-  private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
-
-  private static final TachyonConf TACHYON_CONF = new TachyonConf();
-  private static final ChannelType CHANNEL_TYPE = TACHYON_CONF.getEnum(
-      Constants.USER_NETTY_CHANNEL, ChannelType.defaultType());
-  private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS = NettyUtils
-      .getClientChannelClass(CHANNEL_TYPE);
-  // Reuse EventLoopGroup for all clients.
-  // Use daemon threads so the JVM is allowed to shutdown even when daemon threads are alive.
-  // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
-  private static final EventLoopGroup WORKER_GROUP = NettyUtils.createEventLoop(CHANNEL_TYPE,
-      TACHYON_CONF.getInt(Constants.USER_NETTY_WORKER_THREADS, 0), "netty-client-worker-%d", true);
-
   private final Bootstrap mClientBootstrap;
   private final ClientHandler mHandler;
 
   // TODO: Creating a new remote block reader may be expensive, so consider a connection pool.
   public NettyRemoteBlockReader() {
     mHandler = new ClientHandler();
-    mClientBootstrap = createClientBootstrap();
+    mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
   }
 
   @Override
@@ -92,7 +74,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       mHandler.addListener(listener);
       channel.writeAndFlush(new RPCBlockRequest(blockId, offset, length));
 
-      RPCResponse response = listener.get(TIMEOUT_SECOND, TimeUnit.SECONDS);
+      RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
       channel.close().sync();
 
       if (response.getType() == RPCMessage.Type.RPC_BLOCK_RESPONSE) {
@@ -112,28 +94,5 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       LOG.error("exception in netty client: " + e + " message: " + e.getMessage());
     }
     return null;
-  }
-
-  private Bootstrap createClientBootstrap() {
-    final Bootstrap boot = new Bootstrap();
-
-    boot.group(WORKER_GROUP).channel(CLIENT_CHANNEL_CLASS);
-    boot.option(ChannelOption.SO_KEEPALIVE, true);
-    boot.option(ChannelOption.TCP_NODELAY, true);
-    boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-
-    boot.handler(new ChannelInitializer<SocketChannel>() {
-      @Override
-      public void initChannel(SocketChannel ch) throws Exception {
-        ChannelPipeline pipeline = ch.pipeline();
-
-        pipeline.addLast(RPCMessage.createFrameDecoder());
-        pipeline.addLast(ENCODER);
-        pipeline.addLast(DECODER);
-        pipeline.addLast(mHandler);
-      }
-    });
-
-    return boot;
   }
 }

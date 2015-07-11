@@ -58,6 +58,8 @@ public class BlockWorker {
 
   /** Runnable responsible for heartbeating and registration with master. */
   private BlockMasterSync mBlockMasterSync;
+  /** Runnable responsible for fetching pinlist from master. */
+  private PinListSync mPinListSync;
   /** Logic for handling RPC requests. */
   private BlockServiceHandler mServiceHandler;
   /** Logic for managing block store and under file system store. */
@@ -120,8 +122,8 @@ public class BlockWorker {
     int thriftServerPort = NetworkUtils.getPort(mThriftServerSocket);
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
-        new NetAddress(getWorkerAddress().getAddress().getCanonicalHostName(), thriftServerPort,
-            mDataServer.getPort());
+        new NetAddress(BlockWorkerUtils.getWorkerAddress(mTachyonConf).getAddress()
+            .getCanonicalHostName(), thriftServerPort, mDataServer.getPort());
 
     // Set up web server
     int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
@@ -130,10 +132,14 @@ public class BlockWorker {
             webPort), this, mTachyonConf);
 
     // Setup Worker to Master Syncer
+    // We create two threads for two syncers: mBlockMasterSync and mPinListSync
     mSyncExecutorService =
-        Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
     mBlockMasterSync.registerWithMaster();
+
+    // Setup PinListSyncer
+    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf);
 
     // Setup user metadata mapping
     // TODO: Have a top level register that gets the worker id.
@@ -191,6 +197,10 @@ public class BlockWorker {
     mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
 
     mSyncExecutorService.submit(mBlockMasterSync);
+
+    // Start the pinlist syncer to perform the periodical fetching
+    mSyncExecutorService.submit(mPinListSync);
+
     mWebServer.startWebServer();
     mThriftServer.serve();
   }
@@ -205,6 +215,7 @@ public class BlockWorker {
     mThriftServer.stop();
     mThriftServerSocket.close();
     mBlockMasterSync.stop();
+    mPinListSync.stop();
     mSyncExecutorService.shutdown();
     try {
       mWebServer.shutdownWebServer();
@@ -214,6 +225,7 @@ public class BlockWorker {
     mBlockDataManager.stop();
     while (!mDataServer.isClosed() || mThriftServer.isServing()) {
       // TODO: The reason to stop and close again is due to some issues in Thrift.
+      mDataServer.close();
       mThriftServer.stop();
       mThriftServerSocket.close();
       CommonUtils.sleepMs(null, 100);
@@ -248,22 +260,11 @@ public class BlockWorker {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(getWorkerAddress());
+      return new TServerSocket(BlockWorkerUtils.getWorkerAddress(mTachyonConf));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);
     }
-  }
-
-  /**
-   * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
-   *
-   * @return the worker's address
-   */
-  private InetSocketAddress getWorkerAddress() {
-    String workerHostname = NetworkUtils.getLocalHostName(mTachyonConf);
-    int workerPort = mTachyonConf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
-    return new InetSocketAddress(workerHostname, workerPort);
   }
 
   // For unit test purposes only
