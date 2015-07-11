@@ -56,6 +56,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
   public LRUEvictor(BlockMetadataManager meta) {
+    // TODO: remove this check after https://tachyon.atlassian.net/browse/TACHYON-626 is resolved.
     mMetaManager = Preconditions.checkNotNull(meta);
 
     // preload existing blocks loaded by StorageDir to Evictor
@@ -191,6 +192,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       return plan;
     }
 
+    // TODO: remove this check after implementation of metadata view
     // assure all blocks are in the store, if not, remove from plan and lru cache
     Iterator<Pair<Long, BlockStoreLocation>> moveIt = plan.toMove().iterator();
     while (moveIt.hasNext()) {
