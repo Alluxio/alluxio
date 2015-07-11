@@ -54,22 +54,67 @@ public class PartialLRUEvictor extends LRUEvictor {
     super(meta);
     mMetaManager = Preconditions.checkNotNull(meta);
   }
-
+  
   @Override
-  public EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location)
-      throws IOException {
-    StorageDir selectedDir = getDirWithMaxFreeSpace(availableBytes, location);
-    if (selectedDir == null) {
-      LOG.error("Failed to freeSpace: No StorageDir has enough capacity of {} bytes",
-          availableBytes);
+  protected StorageDir cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
+      EvictionPlan plan) throws IOException {
+
+    StorageDir candidateDir = null;
+    // 1. Get StorageDir with max free space. If no such StorageDir, return null. If
+    // bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
+    candidateDir = getDirWithMaxFreeSpace(bytesToBeAvailable, location);
+    if (candidateDir == null || candidateDir.getAvailableBytes() >= bytesToBeAvailable) {
+      return candidateDir;
+    }
+
+    // 2. iterate over blocks in LRU order until the candidate StorageDir can satisfy
+    // bytesToBeAvailable after evicting its blocks iterated so far
+    List<Long> candidateBlocks = new ArrayList<Long>();
+    long freedBytes = 0;
+    Iterator<Map.Entry<Long, Boolean>> it = mLRUCache.entrySet().iterator();
+    while (it.hasNext() && candidateDir.getAvailableBytes() + freedBytes < bytesToBeAvailable) {
+      long blockId = it.next().getKey();
+      try {
+        BlockMeta block = mMetaManager.getBlockMeta(blockId);
+        if (block.getParentDir().getStorageDirId() == candidateDir.getStorageDirId()) {
+          candidateBlocks.add(block.getBlockId());
+          freedBytes += block.getBlockSize();
+        }
+      } catch (IOException ioe) {
+        LOG.warn("Remove block {} from LRU Cache because {}", blockId, ioe);
+        it.remove();
+      }
+    }
+
+    // 3. have no eviction plan
+    if (candidateDir.getAvailableBytes() + freedBytes < bytesToBeAvailable) {
       return null;
     }
-    StorageTier parentTier = selectedDir.getParentTier();
-    BlockStoreLocation destLocation = new BlockStoreLocation(parentTier.getTierAlias(),
-        parentTier.getTierLevel(), selectedDir.getDirIndex());
-    
-    // Call freeSpace(long, BlockStoreLocation) in LRUEvictor
-    return super.freeSpace(availableBytes, destLocation);
+
+    // 4. cascading eviction: try to free space in next tier to move candidate blocks there, evict
+    // blocks only when it can not be moved to next tiers
+    List<StorageTier> tiersBelow =
+        mMetaManager.getTiersBelow(candidateDir.getParentTier().getTierAlias());
+    // find a dir in below tiers to transfer blocks there, from top tier to bottom tier
+    StorageDir candidateNextDir = null;
+    for (StorageTier tier : tiersBelow) {
+      candidateNextDir =
+          cascadingEvict(freedBytes,
+              BlockStoreLocation.anyDirInTier(tier.getTierAlias()), plan);
+      if (candidateNextDir != null) {
+        break;
+      }
+    }
+    if (candidateNextDir == null) {
+      // nowhere to transfer blocks to, so evict them
+      plan.toEvict().addAll(candidateBlocks);
+    } else {
+      BlockStoreLocation dest = candidateNextDir.toBlockStoreLocation();
+      for (long block : candidateBlocks) {
+        plan.toMove().add(new Pair<Long, BlockStoreLocation>(block, dest));
+      }
+    }
+    return candidateDir;
   }
 
   /**
