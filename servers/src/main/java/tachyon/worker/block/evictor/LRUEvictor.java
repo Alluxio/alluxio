@@ -44,7 +44,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final boolean LINKED_HASH_MAP_ACCESS_ORDERED = true;
   private static final boolean UNUSED_MAP_VALUE = true;
 
-  private final BlockMetadataManager mMeta;
+  private final BlockMetadataManager mMetaManager;
 
   /**
    * access-ordered {@link java.util.LinkedHashMap} from blockId to {@link #UNUSED_MAP_VALUE}(just a
@@ -56,10 +56,10 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
   public LRUEvictor(BlockMetadataManager meta) {
-    mMeta = Preconditions.checkNotNull(meta);
+    mMetaManager = Preconditions.checkNotNull(meta);
 
     // preload existing blocks loaded by StorageDir to Evictor
-    for (StorageTier tier : mMeta.getTiers()) {
+    for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         for (long blockId : dir.getBlockIds()) {
           mLRUCache.put(blockId, UNUSED_MAP_VALUE);
@@ -68,32 +68,112 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     }
   }
 
-  private boolean alreadyAvailable(long bytesToBeAvailable, BlockStoreLocation location)
-      throws IOException {
+  /**
+   * @return a StorageDir in the range of location that already has availableBytes larger than
+   *         bytesToBeAvailable, otherwise null
+   */
+  private StorageDir selectDirWithRequestedSpace(long bytesToBeAvailable,
+      BlockStoreLocation location) throws IOException {
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTier tier : mMeta.getTiers()) {
+      for (StorageTier tier : mMetaManager.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
           if (dir.getAvailableBytes() >= bytesToBeAvailable) {
-            return true;
+            return dir;
           }
         }
       }
-      return false;
+      return null;
     }
 
     int tierAlias = location.tierAlias();
-    StorageTier tier = mMeta.getTier(tierAlias);
+    StorageTier tier = mMetaManager.getTier(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.getAvailableBytes() >= bytesToBeAvailable) {
-          return true;
+          return dir;
         }
       }
-      return false;
+      return null;
     }
 
     StorageDir dir = tier.getDir(location.dir());
-    return dir.getAvailableBytes() >= bytesToBeAvailable;
+    return (dir.getAvailableBytes() >= bytesToBeAvailable) ? dir : null;
+  }
+
+  /**
+   * A recursive implementation of cascading LRU eviction.
+   *
+   * It will try to free space in next tier to transfer blocks there, if the next tier does not have
+   * enough free space to hold the blocks, the next next tier will be tried and so on until the
+   * bottom tier is reached, if blocks can not even be transferred to the bottom tier, they will be
+   * evicted, otherwise, only blocks to be freed in the bottom tier will be evicted.
+   *
+   * this method is only used in {@link #freeSpace(long, tachyon.worker.block.BlockStoreLocation)}
+   *
+   * @param bytesToBeAvailable bytes to be available after eviction
+   * @param location target location to evict blocks from
+   * @param plan the plan to be recursively updated, is empty when first called in
+   *        {@link #freeSpace(long, tachyon.worker.block.BlockStoreLocation)}
+   * @return the first StorageDir in the range of location to evict/move bytes from, or null if
+   *         there is no plan
+   */
+  private StorageDir cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
+      EvictionPlan plan) throws IOException {
+
+    // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
+    StorageDir candidateDir = selectDirWithRequestedSpace(bytesToBeAvailable, location);
+    if (candidateDir != null) {
+      return candidateDir;
+    }
+
+    // 2. iterate over blocks in LRU order until we find a dir that is in the range of location and
+    // can satisfy bytesToBeAvailable after evicting its blocks iterated so far
+    EvictionDirCandidates dirCandidates = new EvictionDirCandidates();
+    Iterator<Map.Entry<Long, Boolean>> it = mLRUCache.entrySet().iterator();
+    while (it.hasNext() && dirCandidates.candidateSize() < bytesToBeAvailable) {
+      long blockId = it.next().getKey();
+      try {
+        BlockMeta block = mMetaManager.getBlockMeta(blockId);
+        if (block.getBlockLocation().belongTo(location)) {
+          dirCandidates.add(block.getParentDir(), blockId, block.getBlockSize());
+        }
+      } catch (IOException ioe) {
+        LOG.warn("Remove block {} from LRU Cache because {}", blockId, ioe);
+        it.remove();
+      }
+    }
+
+    // 3. have no eviction plan
+    if (dirCandidates.candidateSize() < bytesToBeAvailable) {
+      return null;
+    }
+
+    // 4. cascading eviction: try to free space in next tier to move candidate blocks there, evict
+    // blocks only when it can not be moved to next tiers
+    candidateDir = dirCandidates.candidateDir();
+    List<Long> candidateBlocks = dirCandidates.candidateBlocks();
+    List<StorageTier> tiersBelow =
+        mMetaManager.getTiersBelow(candidateDir.getParentTier().getTierAlias());
+    // find a dir in below tiers to transfer blocks there, from top tier to bottom tier
+    StorageDir candidateNextDir = null;
+    for (StorageTier tier : tiersBelow) {
+      candidateNextDir =
+          cascadingEvict(dirCandidates.candidateSize(),
+              BlockStoreLocation.anyDirInTier(tier.getTierAlias()), plan);
+      if (candidateNextDir != null) {
+        break;
+      }
+    }
+    if (candidateNextDir == null) {
+      // nowhere to transfer blocks to, so evict them
+      plan.toEvict().addAll(candidateBlocks);
+    } else {
+      BlockStoreLocation dest = candidateNextDir.toBlockStoreLocation();
+      for (long block : candidateBlocks) {
+        plan.toMove().add(new Pair<Long, BlockStoreLocation>(block, dest));
+      }
+    }
+    return candidateDir;
   }
 
   @Override
@@ -101,95 +181,37 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       throws IOException {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
-    EvictionPlan plan = null;
+    EvictionPlan plan = new EvictionPlan(toMove, toEvict);
+    StorageDir candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
 
-    if (alreadyAvailable(bytesToBeAvailable, location)) {
-      plan = new EvictionPlan(toMove, toEvict);
+    if (candidateDir == null) {
+      return null;
+    }
+    if (plan.isEmpty()) {
       return plan;
     }
 
-    EvictionDirCandidates dirCandidates = new EvictionDirCandidates();
-
-    Iterator<Map.Entry<Long, Boolean>> it = mLRUCache.entrySet().iterator();
-    while (it.hasNext() && dirCandidates.candidateSize() < bytesToBeAvailable) {
-      long blockId = it.next().getKey();
-      try {
-        BlockMeta meta = mMeta.getBlockMeta(blockId);
-
-        BlockStoreLocation dirLocation = meta.getBlockLocation();
-        if (dirLocation.belongTo(location)) {
-          dirCandidates.add(meta.getParentDir(), blockId, meta.getBlockSize());
-        }
-      } catch (IOException ioe) {
-        LOG.warn("Remove block %d from LRU Cache because %s", blockId, ioe);
-        it.remove();
+    // assure all blocks are in the store, if not, remove from plan and lru cache
+    Iterator<Pair<Long, BlockStoreLocation>> moveIt = plan.toMove().iterator();
+    while (moveIt.hasNext()) {
+      long id = moveIt.next().getFirst();
+      if (!mMetaManager.hasBlockMeta(id)) {
+        mLRUCache.remove(id);
+        moveIt.remove();
+      }
+    }
+    Iterator<Long> evictIt = plan.toEvict().iterator();
+    while (evictIt.hasNext()) {
+      long id = evictIt.next();
+      if (!mMetaManager.hasBlockMeta(id)) {
+        mLRUCache.remove(id);
+        evictIt.remove();
       }
     }
 
-    // enough free space
-    if (dirCandidates.candidateSize() >= bytesToBeAvailable) {
-      // candidate blockIds for eviction from current tier, sorted from less recently used to more
-      // recently used
-      toEvict = dirCandidates.candidateBlocks();
-      // reverse list so that the more recently used blocks are moved to next tier first
-      Collections.reverse(toEvict);
-      // TODO: maybe we should abstract the strategy of moving blocks to lower tier
-      // move as many blocks to next tier as possible
-      List<StorageTier> tiersBelow =
-          mMeta.getTiersBelow(dirCandidates.candidateDir().getParentTier().getTierAlias());
-      for (StorageTier tier : tiersBelow) {
-        for (StorageDir dir : tier.getStorageDirs()) {
-          BlockStoreLocation dest = dir.toBlockStoreLocation();
-          Iterator<Long> blocks = toEvict.iterator();
-          long remainBytes = dir.getAvailableBytes();
-          while (blocks.hasNext() && remainBytes >= 0) {
-            long blockId = blocks.next();
-            long blockSize = mMeta.getBlockMeta(blockId).getBlockSize();
-            if (blockSize <= remainBytes) {
-              // the block can be moved to the dir
-              toMove.add(new Pair<Long, BlockStoreLocation>(blockId, dest));
-              blocks.remove();
-              remainBytes -= blockSize;
-            }
-          }
-        }
-      }
-
-      // assure all blocks are in the store, if not, remove from plan and lru cache
-      long toFree = 0L;
-      Iterator<Pair<Long, BlockStoreLocation>> moveIt = toMove.iterator();
-      while (moveIt.hasNext()) {
-        long id = moveIt.next().getFirst();
-        if (!mMeta.hasBlockMeta(id)) {
-          mLRUCache.remove(id);
-          moveIt.remove();
-        } else {
-          toFree += mMeta.getBlockMeta(id).getBlockSize();
-        }
-      }
-      Iterator<Long> evictIt = toEvict.iterator();
-      while (evictIt.hasNext()) {
-        long id = evictIt.next();
-        if (!mMeta.hasBlockMeta(id)) {
-          mLRUCache.remove(id);
-          evictIt.remove();
-        } else {
-          toFree += mMeta.getBlockMeta(id).getBlockSize();
-        }
-      }
-
-      // reassure the plan is feasible
-      if (mMeta.getAvailableBytes(location) + toFree >= bytesToBeAvailable) {
-        plan = new EvictionPlan(toMove, toEvict);
-      }
-    }
-
-    return plan;
+    return EvictorUtils.legalCascadingPlan(bytesToBeAvailable, plan, mMetaManager) ? plan : null;
   }
 
-  /**
-   * Thread safe
-   */
   @Override
   public void onAccessBlock(long userId, long blockId) {
     mLRUCache.put(blockId, UNUSED_MAP_VALUE);
