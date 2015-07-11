@@ -17,6 +17,7 @@ package tachyon.worker.block.evictor;
 
 import java.io.IOException;
 
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 
 /**
@@ -24,9 +25,11 @@ import tachyon.worker.block.BlockStoreLocation;
  */
 public interface Evictor {
   /**
-   * Frees space in the given block store location, so that a least one StorageDir in the location
+   * Frees space in the given block store location and with the given view.
+   * After eviction, at least one StorageDir in the location
    * has the specific amount of free space after eviction. The location can be a specific
    * StorageDir, or {@link BlockStoreLocation#anyTier} or {@link BlockStoreLocation#anyDirInTier}.
+   * The view is generated and passed by the calling {@link BlockStore}.
    *
    * <P>
    * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,
@@ -36,9 +39,11 @@ public interface Evictor {
    *
    * @param availableBytes the amount of free space in bytes to be ensured after eviction
    * @param location the location in block store
+   * @param view generated and passed by block store
    * @return an eviction plan (possibly with empty fields) to get the free space, or null if no plan
    *         is feasible
    * @throws IOException if given block location is invalid
    */
-  EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location) throws IOException;
+  EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
+      BlockMetadataManagerView view) throws IOException;
 }

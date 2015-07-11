@@ -30,12 +30,12 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
-import tachyon.worker.block.meta.StorageDir;
-import tachyon.worker.block.meta.StorageTier;
+import tachyon.worker.block.meta.StorageDirView;
+import tachyon.worker.block.meta.StorageTierView;
 
 public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -44,7 +44,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final boolean LINKED_HASH_MAP_ACCESS_ORDERED = true;
   private static final boolean UNUSED_MAP_VALUE = true;
 
-  private final BlockMetadataManager mMeta;
+  private BlockMetadataManagerView mManagerView;
 
   /**
    * access-ordered {@link java.util.LinkedHashMap} from blockId to {@link #UNUSED_MAP_VALUE}(just a
@@ -55,13 +55,21 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       .synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
-  public LRUEvictor(BlockMetadataManager meta) {
-    mMeta = Preconditions.checkNotNull(meta);
+  /**
+   * Construct the LRUEvictor with full view
+   *
+   * @param fullview of BlockMetadataManager
+   * @return LRUEvictor constructed
+   */
+  public LRUEvictor(BlockMetadataManagerView fullview) {
+    mManagerView = Preconditions.checkNotNull(fullview);
 
-    // preload existing blocks loaded by StorageDir to Evictor
-    for (StorageTier tier : mMeta.getTiers()) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        for (long blockId : dir.getBlockIds()) {
+    // preload existing blocks loaded by StorageDirView to Evictor
+    for (StorageTierView tierView : mManagerView.getTierViews()) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        //evictable blocks are all blocks for full view
+        for (BlockMeta blockMeta : dirView.getEvictableBlocks()) {
+          long blockId = blockMeta.getBlockId();
           mLRUCache.put(blockId, UNUSED_MAP_VALUE);
         }
       }
@@ -71,9 +79,9 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private boolean alreadyAvailable(long bytesToBeAvailable, BlockStoreLocation location)
       throws IOException {
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTier tier : mMeta.getTiers()) {
-        for (StorageDir dir : tier.getStorageDirs()) {
-          if (dir.getAvailableBytes() >= bytesToBeAvailable) {
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        for (StorageDirView dirView : tierView.getDirViews()) {
+          if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
             return true;
           }
         }
@@ -82,22 +90,48 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     }
 
     int tierAlias = location.tierAlias();
-    StorageTier tier = mMeta.getTier(tierAlias);
+    StorageTierView tierView = mManagerView.getTierView(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (dir.getAvailableBytes() >= bytesToBeAvailable) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
           return true;
         }
       }
       return false;
     }
 
-    StorageDir dir = tier.getDir(location.dir());
-    return dir.getAvailableBytes() >= bytesToBeAvailable;
+    StorageDirView dirView = tierView.getDirView(location.dir());
+    return dirView.getAvailableBytes() >= bytesToBeAvailable;
   }
 
   @Override
-  public EvictionPlan freeSpace(long bytesToBeAvailable, BlockStoreLocation location)
+  public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
+      BlockMetadataManagerView view) throws IOException {
+    mManagerView = view;
+    return freeSpace(bytesToBeAvailable, location);
+  }
+
+  /**
+   * This method should only be accessed by {@link freeSpaceWithView} in this class.
+   * Frees space in the given block store location.
+   * After eviction, at least one StorageDir in the location
+   * has the specific amount of free space after eviction. The location can be a specific
+   * StorageDir, or {@link BlockStoreLocation#anyTier} or {@link BlockStoreLocation#anyDirInTier}.
+   * The view is generated and passed by the calling {@link BlockStore}.
+   *
+   * <P>
+   * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,
+   * or an eviction plan with toMove and toEvict fields to indicate how to free space. If both
+   * toMove and toEvict of the plan are empty, it indicates that Evictor has no actions to take and
+   * the requirement is already met.
+   *
+   * @param availableBytes the amount of free space in bytes to be ensured after eviction
+   * @param location the location in block store
+   * @return an eviction plan (possibly with empty fields) to get the free space, or null if no plan
+   *         is feasible
+   * @throws IOException if given block location is invalid
+   */
+  private EvictionPlan freeSpace(long bytesToBeAvailable, BlockStoreLocation location)
       throws IOException {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
@@ -114,11 +148,12 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     while (it.hasNext() && dirCandidates.candidateSize() < bytesToBeAvailable) {
       long blockId = it.next().getKey();
       try {
-        BlockMeta meta = mMeta.getBlockMeta(blockId);
-
-        BlockStoreLocation dirLocation = meta.getBlockLocation();
-        if (dirLocation.belongTo(location)) {
-          dirCandidates.add(meta.getParentDir(), blockId, meta.getBlockSize());
+        BlockMeta meta = mManagerView.getBlockMeta(blockId); // return null is not evictable
+        if (null != meta) {
+          BlockStoreLocation dirLocation = meta.getBlockLocation();
+          if (dirLocation.belongTo(location)) {
+            dirCandidates.add(meta.getParentDir(), blockId, meta.getBlockSize());
+          }
         }
       } catch (IOException ioe) {
         LOG.warn("Remove block %d from LRU Cache because %s", blockId, ioe);
@@ -135,16 +170,19 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       Collections.reverse(toEvict);
       // TODO: maybe we should abstract the strategy of moving blocks to lower tier
       // move as many blocks to next tier as possible
-      List<StorageTier> tiersBelow =
-          mMeta.getTiersBelow(dirCandidates.candidateDir().getParentTier().getTierAlias());
-      for (StorageTier tier : tiersBelow) {
-        for (StorageDir dir : tier.getStorageDirs()) {
-          BlockStoreLocation dest = dir.toBlockStoreLocation();
+      List<StorageTierView> tierViewsBelow =
+          mManagerView.getTierViewsBelow(
+              dirCandidates.candidateDir().getParentTier().getTierAlias());
+      for (StorageTierView tierView : tierViewsBelow) {
+        for (StorageDirView dirView : tierView.getDirViews()) {
+          BlockStoreLocation dest = dirView.toBlockStoreLocation();
           Iterator<Long> blocks = toEvict.iterator();
-          long remainBytes = dir.getAvailableBytes();
+          long remainBytes = dirView.getAvailableBytes();
           while (blocks.hasNext() && remainBytes >= 0) {
             long blockId = blocks.next();
-            long blockSize = mMeta.getBlockMeta(blockId).getBlockSize();
+            BlockMeta blockMeta = mManagerView.getBlockMeta(blockId);
+            assert (blockMeta != null); // sanity check;
+            long blockSize = blockMeta.getBlockSize();
             if (blockSize <= remainBytes) {
               // the block can be moved to the dir
               toMove.add(new Pair<Long, BlockStoreLocation>(blockId, dest));
@@ -160,26 +198,28 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       Iterator<Pair<Long, BlockStoreLocation>> moveIt = toMove.iterator();
       while (moveIt.hasNext()) {
         long id = moveIt.next().getFirst();
-        if (!mMeta.hasBlockMeta(id)) {
+        if (!mManagerView.isBlockEvictable(id)) {
           mLRUCache.remove(id);
           moveIt.remove();
         } else {
-          toFree += mMeta.getBlockMeta(id).getBlockSize();
+          toFree += mManagerView.getBlockMeta(id).getBlockSize();
         }
       }
       Iterator<Long> evictIt = toEvict.iterator();
       while (evictIt.hasNext()) {
         long id = evictIt.next();
-        if (!mMeta.hasBlockMeta(id)) {
+        if (!mManagerView.isBlockEvictable(id)) {
           mLRUCache.remove(id);
           evictIt.remove();
         } else {
-          toFree += mMeta.getBlockMeta(id).getBlockSize();
+          BlockMeta blockMeta = mManagerView.getBlockMeta(id);
+          assert (blockMeta != null); // sanity check;
+          toFree += blockMeta.getBlockSize();
         }
       }
 
       // reassure the plan is feasible
-      if (mMeta.getAvailableBytes(location) + toFree >= bytesToBeAvailable) {
+      if (mManagerView.getAvailableBytes(location) + toFree >= bytesToBeAvailable) {
         plan = new EvictionPlan(toMove, toEvict);
       }
     }

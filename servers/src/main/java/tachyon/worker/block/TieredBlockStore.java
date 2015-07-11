@@ -89,17 +89,19 @@ public class TieredBlockStore implements BlockStore {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
+    BlockMetadataManagerView initManagerView =
+        new BlockMetadataManagerView(mMetaManager, new HashSet<Integer>() , new HashSet<Long>());
 
     AllocatorType allocatorType =
         mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
-    mAllocator = AllocatorFactory.create(allocatorType, mMetaManager);
+    mAllocator = AllocatorFactory.create(allocatorType, initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
     EvictorType evictorType =
         mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
-    mEvictor = EvictorFactory.create(evictorType, mMetaManager);
+    mEvictor = EvictorFactory.create(evictorType, initManagerView);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
@@ -324,7 +326,8 @@ public class TieredBlockStore implements BlockStore {
     if (mMetaManager.hasBlockMeta(blockId)) {
       throw new IOException("Failed to create TempBlockMeta: blockId " + blockId + " committed");
     }
-    TempBlockMeta tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
+    TempBlockMeta tempBlock = mAllocator.allocateBlockWithView(
+        userId, blockId, initialBlockSize, location, getUpdatedView());
     if (tempBlock == null) {
       // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
 
@@ -339,7 +342,8 @@ public class TieredBlockStore implements BlockStore {
         mEvictionLock.readLock().lock();
         mEvictionLock.writeLock().unlock();
       }
-      tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
+      tempBlock = mAllocator.allocateBlockWithView(
+          userId, blockId, initialBlockSize, location, getUpdatedView());
       Preconditions.checkNotNull(tempBlock, "Cannot allocate block %s:", blockId);
     }
     // Add allocated temp block to metadata manager
@@ -436,7 +440,7 @@ public class TieredBlockStore implements BlockStore {
   /** This method must be guarded by WRITE lock of mEvictionLock */
   private void freeSpaceInternal(long userId, long availableBytes, BlockStoreLocation location)
       throws IOException {
-    EvictionPlan plan = mEvictor.freeSpace(availableBytes, location);
+    EvictionPlan plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView());
     // Absent plan means failed to evict enough space.
     if (null == plan) {
       throw new IOException("Failed to free space: no eviction plan by evictor");
