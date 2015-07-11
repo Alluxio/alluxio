@@ -20,7 +20,6 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 

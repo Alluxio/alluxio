@@ -19,7 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Assert;
@@ -84,7 +84,7 @@ public class EvictorTest {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mManagerView = new BlockMetadataManagerView(
-        mMetaManager, new HashSet<Integer>(), new HashSet<Long>());
+        mMetaManager, Collections.<Integer>emptySet(), Collections.<Long>emptySet());
     List<StorageTier> tiers = mMetaManager.getTiers();
     mTestDir = tiers.get(TEST_TIER_LEVEL).getDir(TEST_DIR);
     mEvictor = EvictorFactory.create(mEvictorType, mManagerView);
@@ -130,6 +130,7 @@ public class EvictorTest {
         }
       }
     }
+
     Assert.assertTrue(mEvictor.freeSpaceWithView(dirLeft.getCapacityBytes(),
         BlockStoreLocation.anyDirInTier(dirLeft.getParentTier().getTierAlias()), mManagerView)
         .isEmpty());

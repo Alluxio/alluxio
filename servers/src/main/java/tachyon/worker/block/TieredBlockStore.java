@@ -89,11 +89,11 @@ public class TieredBlockStore implements BlockStore {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
-    BlockMetadataManagerView initManagerView =
-        new BlockMetadataManagerView(mMetaManager, new HashSet<Integer>() , new HashSet<Long>());
 
     AllocatorType allocatorType =
         mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
+    BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
+        Collections.<Integer>emptySet(), Collections.<Long>emptySet());
     mAllocator = AllocatorFactory.create(allocatorType, initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
@@ -101,6 +101,8 @@ public class TieredBlockStore implements BlockStore {
 
     EvictorType evictorType =
         mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
+    initManagerView = new BlockMetadataManagerView(mMetaManager,
+        Collections.<Integer>emptySet(), Collections.<Long>emptySet());
     mEvictor = EvictorFactory.create(evictorType, initManagerView);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
@@ -433,8 +435,10 @@ public class TieredBlockStore implements BlockStore {
    */
   private BlockMetadataManagerView getUpdatedView() {
     // TODO: update the view object instead of creating new one every time
-    return new BlockMetadataManagerView(mMetaManager, mPinnedInodes,
-        mLockManager.getLockedBlocks());
+    synchronized (mPinnedInodes) {
+      return new BlockMetadataManagerView(mMetaManager, mPinnedInodes,
+          mLockManager.getLockedBlocks());
+    }
   }
 
   /** This method must be guarded by WRITE lock of mEvictionLock */
