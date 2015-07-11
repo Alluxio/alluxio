@@ -333,7 +333,7 @@ public class DataServerMessage {
         // frame length
         mHeader.getLong();
         int receivedMessageType = mHeader.getInt();
-        if (receivedMessageType == RPCMessage.Type.RPC_STATUS_RESPONSE.getId()) {
+        if (receivedMessageType == RPCMessage.Type.RPC_ERROR_RESPONSE.getId()) {
           // This message is expected to be an error response with a status.
           mStatus = RPCResponse.Status.fromShort(mHeader.getShort());
           throw new IOException(mStatus.getMessage());
