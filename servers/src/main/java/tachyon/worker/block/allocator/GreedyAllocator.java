@@ -58,8 +58,8 @@ public class GreedyAllocator implements Allocator {
   private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location) throws IOException {
     if (location.equals(BlockStoreLocation.anyTier())) {
-      // When any tier view is ok, loop over all tier views and dir views,
-      // and return the first dir view that has sufficient available space.
+      // When any tier is ok, loop over all tier views and dir views,
+      // and return a temp block meta from the first available dirview.
       for (StorageTierView tierView : mManagerView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getAvailableBytes() >= blockSize) {

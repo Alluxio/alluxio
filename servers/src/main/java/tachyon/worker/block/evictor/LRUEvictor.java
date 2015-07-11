@@ -148,7 +148,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     while (it.hasNext() && dirCandidates.candidateSize() < bytesToBeAvailable) {
       long blockId = it.next().getKey();
       try {
-        BlockMeta meta = mManagerView.getBlockMeta(blockId); // return null is not evictable
+        BlockMeta meta = mManagerView.getBlockMeta(blockId); // return null if not evictable
         if (null != meta) {
           BlockStoreLocation dirLocation = meta.getBlockLocation();
           if (dirLocation.belongTo(location)) {

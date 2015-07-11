@@ -26,7 +26,7 @@ import tachyon.worker.block.meta.StorageTierView;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * An allocator that allocates a block in the storage dir view with most free space.
+ * An allocator that allocates a block in the storage dir with most free space.
  * It always allocates to the highest tier if the requested block store location is any tier.
  */
 public class MaxFreeAllocator implements Allocator {
