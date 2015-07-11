@@ -211,7 +211,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       }
     }
 
-    return EvictorUtils.legalCascadingPlan(bytesToBeAvailable, plan, mMetaManager) ? plan : null;
+    return EvictorUtils.validCascadingPlan(bytesToBeAvailable, plan, mMetaManager) ? plan : null;
   }
 
   @Override

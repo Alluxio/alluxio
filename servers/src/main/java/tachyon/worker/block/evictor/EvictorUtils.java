@@ -27,7 +27,7 @@ import tachyon.worker.block.meta.StorageDir;
 
 public class EvictorUtils {
   /**
-   * Checks whether the plan is legal for an evictor with cascading eviction feature like
+   * Checks whether the plan is valid for an evictor with cascading eviction feature like
    * {@link LRUEvictor}. The plan is legal when the requested space can be satisfied, and there is
    * enough space in lower tier to move in blocks from upper tier.
    *
@@ -36,7 +36,7 @@ public class EvictorUtils {
    * @param metaManager the meta data manager
    * @return true if the above requirements are satisfied, otherwise false.
    */
-  public static boolean legalCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
+  public static boolean validCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager metaManager) throws IOException {
     // reassure the plan is feasible: enough free space to satisfy bytesToBeAvailable, and enough
     // space in lower tier to move blocks in upper tier there

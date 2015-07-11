@@ -137,7 +137,7 @@ public class EvictorTest {
     EvictorTestUtils.cache(USER_ID, BLOCK_ID, capacityBytes, dir, mMetaManager, mEvictor);
 
     EvictionPlan plan = mEvictor.freeSpace(capacityBytes, dir.toBlockStoreLocation());
-    EvictorTestUtils.assertLegalPlan(capacityBytes, plan, mMetaManager);
+    EvictorTestUtils.assertValidPlan(capacityBytes, plan, mMetaManager);
   }
 
   @Test
@@ -157,7 +157,7 @@ public class EvictorTest {
     long requestBytes = dirs.get(dirs.size() - 1).getCapacityBytes();
     EvictionPlan plan =
         mEvictor.freeSpace(requestBytes, BlockStoreLocation.anyDirInTier(tier.getTierAlias()));
-    EvictorTestUtils.assertLegalPlan(requestBytes, plan, mMetaManager);
+    EvictorTestUtils.assertValidPlan(requestBytes, plan, mMetaManager);
   }
 
   @Test
@@ -176,7 +176,7 @@ public class EvictorTest {
     }
 
     EvictionPlan plan = mEvictor.freeSpace(minCapacity, BlockStoreLocation.anyTier());
-    EvictorTestUtils.assertLegalPlan(minCapacity, plan, mMetaManager);
+    EvictorTestUtils.assertValidPlan(minCapacity, plan, mMetaManager);
   }
 
   @Test
