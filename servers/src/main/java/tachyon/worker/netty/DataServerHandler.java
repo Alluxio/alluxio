@@ -79,8 +79,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
         break;
       default:
-        ctx.channel().writeAndFlush(
-            new RPCStatusResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR));
+        RPCStatusResponse resp = new RPCStatusResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
+        ctx.writeAndFlush(resp);
         throw new IllegalArgumentException("No handler implementation for rpc msg type: "
             + msg.getType());
     }
@@ -115,9 +115,10 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       final long fileLength = reader.getLength();
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
-      ChannelFuture future =
-          ctx.writeAndFlush(new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req,
-              reader, readLength), RPCResponse.Status.SUCCESS));
+      RPCBlockResponse resp =
+          new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req, reader, readLength),
+              RPCResponse.Status.SUCCESS);
+      ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(reader));
       mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
@@ -167,9 +168,9 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       writer = mDataManager.getTempBlockWriterRemote(userId, blockId);
       writer.append(buffer);
 
-      ChannelFuture future =
-          ctx.writeAndFlush(new RPCBlockWriteResponse(userId, blockId, offset, length,
-              RPCResponse.Status.SUCCESS));
+      RPCBlockWriteResponse resp = new RPCBlockWriteResponse(userId, blockId, offset, length,
+          RPCResponse.Status.SUCCESS);
+      ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(writer));
     } catch (Exception e) {
