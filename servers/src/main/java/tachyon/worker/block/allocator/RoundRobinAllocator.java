@@ -19,8 +19,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.meta.StorageDirView;
@@ -41,9 +39,7 @@ public class RoundRobinAllocator implements Allocator {
   // We need to remember the last dir index for every storage tier
   private Map<StorageTierView, Integer> mTierViewDirViews = new HashMap<StorageTierView, Integer>();
 
-  public RoundRobinAllocator(BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view);
-    
+  public RoundRobinAllocator(BlockMetadataManagerView view) {    
     for (StorageTierView tierView : mManagerView.getTierViews()) {
       mTierViewDirViews.put(tierView, -1);
     }

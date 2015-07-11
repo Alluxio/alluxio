@@ -15,7 +15,6 @@
 
 package tachyon.worker.block.allocator;
 
-
 import tachyon.worker.block.BlockMetadataManagerView;
 
 /**

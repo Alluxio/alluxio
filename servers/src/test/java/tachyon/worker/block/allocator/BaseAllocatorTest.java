@@ -105,7 +105,6 @@ public class BaseAllocatorTest {
    * Use the default configuration
    * @throws IOException
    */
-  
   protected TachyonConf createTestTachyonConf() throws IOException {
     return createTestTachyonConf(
         DEFAULT_RAM_NUM, DEFAULT_RAM_SIZE, 
@@ -117,7 +116,6 @@ public class BaseAllocatorTest {
   /**
    * Generate a string consisting of multiple dirs used as the configuration value
    */
-  
   protected String generateDirsStr(int num, String dirBase) {
     String res = "";
     for (int i = 1; i < num + 1; i ++) {
@@ -138,7 +136,6 @@ public class BaseAllocatorTest {
    * Given an allocator with the location and blockSize, 
    * we assert whether the block can be allocated
    */
-  
   protected void assertTempBlockMeta(Allocator allocator,
       BlockStoreLocation location, int blockSize,
       boolean avail)
@@ -163,7 +160,6 @@ public class BaseAllocatorTest {
    * 2. @param tierAlias: the block should be allocated at this tier
    * 3. @param dirIndex : the block should be allocated at this dir
    */
-  
   protected void assertTempBlockMeta(Allocator allocator,
       BlockStoreLocation location, int blockSize,
       boolean avail, int tierAlias, int dirIndex) 
