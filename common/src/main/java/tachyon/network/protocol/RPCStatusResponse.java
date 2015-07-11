@@ -20,27 +20,27 @@ import com.google.common.primitives.Shorts;
 import io.netty.buffer.ByteBuf;
 
 /**
- * This represents a generic RPC response, containing a status.
+ * This represents a simple RPC response, containing a status.
  */
-public class RPCGenericResponse extends RPCResponse {
+public class RPCStatusResponse extends RPCResponse {
   private final Status mStatus;
 
-  public RPCGenericResponse(Status status) {
+  public RPCStatusResponse(Status status) {
     mStatus = status;
   }
 
   public Type getType() {
-    return Type.RPC_GENERIC_RESPONSE;
+    return Type.RPC_STATUS_RESPONSE;
   }
 
   /**
-   * Decode the input {@link ByteBuf} into a {@link RPCGenericResponse} object and return it.
+   * Decode the input {@link ByteBuf} into a {@link RPCStatusResponse} object and return it.
    *
    * @param in The input {@link ByteBuf}.
-   * @return The decoded RPCGenericResponse object.
+   * @return The decoded RPCStatusResponse object.
    */
-  public static RPCGenericResponse decode(ByteBuf in) {
-    return new RPCGenericResponse(Status.fromShort(in.readShort()));
+  public static RPCStatusResponse decode(ByteBuf in) {
+    return new RPCStatusResponse(Status.fromShort(in.readShort()));
   }
 
   @Override

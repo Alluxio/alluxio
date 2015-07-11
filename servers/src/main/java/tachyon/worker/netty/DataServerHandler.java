@@ -38,7 +38,7 @@ import tachyon.network.protocol.RPCBlockRequest;
 import tachyon.network.protocol.RPCBlockResponse;
 import tachyon.network.protocol.RPCBlockWriteRequest;
 import tachyon.network.protocol.RPCBlockWriteResponse;
-import tachyon.network.protocol.RPCGenericResponse;
+import tachyon.network.protocol.RPCStatusResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCRequest;
 import tachyon.network.protocol.RPCResponse;
@@ -80,7 +80,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         break;
       default:
         ctx.channel().writeAndFlush(
-            new RPCGenericResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR));
+            new RPCStatusResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR));
         throw new IllegalArgumentException("No handler implementation for rpc msg type: "
             + msg.getType());
     }
@@ -123,7 +123,6 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
       LOG.info("Preparation for responding to remote block request for: " + blockId + " done.");
     } catch (Exception e) {
-      // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);
       RPCBlockResponse resp =
           RPCBlockResponse.createErrorResponse(req, RPCResponse.Status.FILE_DNE);
