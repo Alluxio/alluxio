@@ -32,7 +32,7 @@ public class EvictorUtils {
    * enough space in lower tier to move in blocks from upper tier.
    *
    * @param bytesToBeAvailable requested bytes to be available after eviction
-   * @param plan the eviction plan
+   * @param plan the eviction plan, should not be empty
    * @param metaManager the meta data manager
    * @return true if the above requirements are satisfied, otherwise false.
    */
@@ -83,15 +83,18 @@ public class EvictorUtils {
       }
     }
 
-    StorageDir firstTierDir = null;
+    int firstTierAlias = Integer.MAX_VALUE;
     for (StorageDir dir : spaceInfoInDir.keySet()) {
-      if (firstTierDir == null
-          || dir.getParentTier().getTierAlias() < firstTierDir.getParentTier().getTierAlias()) {
-        firstTierDir = dir;
+      firstTierAlias = Math.min(firstTierAlias, dir.getParentTier().getTierAlias());
+    }
+    long firstTierDirMaxSpace = Long.MIN_VALUE;
+    for (StorageDir dir : spaceInfoInDir.keySet()) {
+      if (dir.getParentTier().getTierAlias() == firstTierAlias) {
+        Pair<Long, Long> space = spaceInfoInDir.get(dir);
+        firstTierDirMaxSpace = Math.max(firstTierDirMaxSpace, space.getFirst() - space.getSecond());
       }
     }
-    Pair<Long, Long> firstTierDirSpace = spaceInfoInDir.get(firstTierDir);
-    if (firstTierDirSpace.getFirst() - firstTierDirSpace.getSecond() < bytesToBeAvailable) {
+    if (firstTierDirMaxSpace < bytesToBeAvailable) {
       return false;
     }
 
