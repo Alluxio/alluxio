@@ -188,7 +188,7 @@ public class RPCMessageIntegrationTest {
     Assert.assertEquals(expected.getStatus(), actual.getStatus());
   }
 
-  private void assertValid(RPCGenericResponse expected, RPCGenericResponse actual) {
+  private void assertValid(RPCStatusResponse expected, RPCStatusResponse actual) {
     Assert.assertEquals(expected.getType(), actual.getType());
     Assert.assertEquals(expected.getEncodedLength(), actual.getEncodedLength());
     Assert.assertEquals(expected.getStatus(), actual.getStatus());
@@ -279,8 +279,8 @@ public class RPCMessageIntegrationTest {
   @Test
   public void RPCGenericResponseTest() {
     for (RPCResponse.Status status : RPCResponse.Status.values()) {
-      RPCGenericResponse msg = new RPCGenericResponse(status);
-      RPCGenericResponse decoded = (RPCGenericResponse) encodeThenDecode(msg);
+      RPCStatusResponse msg = new RPCStatusResponse(status);
+      RPCStatusResponse decoded = (RPCStatusResponse) encodeThenDecode(msg);
       assertValid(msg, decoded);
     }
   }

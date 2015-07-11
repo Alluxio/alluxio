@@ -31,7 +31,7 @@ public abstract class RPCMessage implements EncodedMessage {
 
   // The possible types of RPC messages.
   public enum Type implements EncodedMessage {
-    RPC_GENERIC_RESPONSE(0),
+    RPC_STATUS_RESPONSE(0),
     // TODO: rename these to RPC_BLOCK_READ_*
     RPC_BLOCK_REQUEST(1),
     RPC_BLOCK_RESPONSE(2),
@@ -80,7 +80,7 @@ public abstract class RPCMessage implements EncodedMessage {
       int id = in.readInt();
       switch (id) {
         case 0:
-          return RPC_GENERIC_RESPONSE;
+          return RPC_STATUS_RESPONSE;
         case 1:
           return RPC_BLOCK_REQUEST;
         case 2:
@@ -152,8 +152,8 @@ public abstract class RPCMessage implements EncodedMessage {
    */
   public static RPCMessage decodeMessage(RPCMessage.Type type, ByteBuf in) {
     switch (type) {
-      case RPC_GENERIC_RESPONSE:
-        return RPCGenericResponse.decode(in);
+      case RPC_STATUS_RESPONSE:
+        return RPCStatusResponse.decode(in);
       case RPC_BLOCK_REQUEST:
         return RPCBlockRequest.decode(in);
       case RPC_BLOCK_RESPONSE:
