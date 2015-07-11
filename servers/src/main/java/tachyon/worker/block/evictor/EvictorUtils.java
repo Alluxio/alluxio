@@ -16,16 +16,14 @@
 package tachyon.worker.block.evictor;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import tachyon.Pair;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.StorageDir;
 
 public class EvictorUtils {
   /**
@@ -42,46 +40,57 @@ public class EvictorUtils {
       BlockMetadataManager metaManager) throws IOException {
     // reassure the plan is feasible: enough free space to satisfy bytesToBeAvailable, and enough
     // space in lower tier to move blocks in upper tier there
-    Map<Integer, Long> bytesToBeAvailableInTier =
-        new HashMap<Integer, Long>(metaManager.getTiers().size());
-    List<Integer> tierAliases = new ArrayList<Integer>();
 
-    List<Long> blockIds = new ArrayList<Long>(plan.toEvict().size() + plan.toMove().size());
-    blockIds.addAll(plan.toEvict());
-    for (Pair<Long, BlockStoreLocation> move : plan.toMove()) {
-      blockIds.add(move.getFirst());
-    }
+    // Map from dir to a pair of bytes to be available in this dir and bytes to move into this dir
+    // after the plan taking action
+    Map<StorageDir, Pair<Long, Long>> spaceInfoInDir = new HashMap<StorageDir, Pair<Long, Long>>();
 
-    for (long blockId : blockIds) {
+    for (long blockId : plan.toEvict()) {
       BlockMeta block = metaManager.getBlockMeta(blockId);
-      BlockStoreLocation blockDir = block.getBlockLocation();
-      long blockSize = block.getBlockSize();
-      int tierAlias = blockDir.tierAlias();
-      if (bytesToBeAvailableInTier.containsKey(tierAlias)) {
-        bytesToBeAvailableInTier
-            .put(tierAlias, bytesToBeAvailableInTier.get(tierAlias) + blockSize);
+      StorageDir dir = block.getParentDir();
+      if (spaceInfoInDir.containsKey(dir)) {
+        Pair<Long, Long> spaceInfo = spaceInfoInDir.get(dir);
+        spaceInfo.setFirst(spaceInfo.getFirst() + block.getBlockSize());
+        spaceInfoInDir.put(dir, spaceInfo);
       } else {
-        tierAliases.add(tierAlias);
-        bytesToBeAvailableInTier
-            .put(tierAlias, metaManager.getAvailableBytes(blockDir) + blockSize);
+        spaceInfoInDir.put(dir, new Pair<Long, Long>(
+            dir.getAvailableBytes() + block.getBlockSize(), 0L));
       }
     }
 
-    // upper to lower tier
-    Collections.sort(tierAliases);
-    int currentTierAlias = tierAliases.get(0);
-    // first tier to free space from needs to have bytesToBeAvailable after eviction
-    boolean isLegal = bytesToBeAvailableInTier.get(currentTierAlias) >= bytesToBeAvailable;
-    for (int nextTierAlias : tierAliases.subList(1, tierAliases.size())) {
-      if (!isLegal) {
-        break;
+    for (Pair<Long, BlockStoreLocation> move : plan.toMove()) {
+      long blockId = move.getFirst();
+      BlockMeta block = metaManager.getBlockMeta(blockId);
+      long blockSize = block.getBlockSize();
+      StorageDir srcDir = block.getParentDir();
+      StorageDir destDir = metaManager.getDir(move.getSecond());
+
+      if (spaceInfoInDir.containsKey(srcDir)) {
+        Pair<Long, Long> spaceInfo = spaceInfoInDir.get(srcDir);
+        spaceInfo.setFirst(spaceInfo.getFirst() + blockSize);
+        spaceInfoInDir.put(srcDir, spaceInfo);
+      } else {
+        spaceInfoInDir
+            .put(srcDir, new Pair<Long, Long>(srcDir.getAvailableBytes() + blockSize, 0L));
       }
-      // next tier should have enough space to hold blocks to be transferred from current tier
-      long nextTierFreeSpace = bytesToBeAvailableInTier.get(nextTierAlias);
-      long bytesToTransfer = bytesToBeAvailableInTier.get(currentTierAlias);
-      isLegal = isLegal && (nextTierFreeSpace >= bytesToTransfer);
-      currentTierAlias = nextTierAlias;
+
+      if (spaceInfoInDir.containsKey(destDir)) {
+        Pair<Long, Long> spaceInfo = spaceInfoInDir.get(destDir);
+        spaceInfo.setSecond(spaceInfo.getSecond() + blockSize);
+        spaceInfoInDir.put(destDir, spaceInfo);
+      } else {
+        spaceInfoInDir.put(destDir, new Pair<Long, Long>(destDir.getAvailableBytes(), blockSize));
+      }
     }
-    return isLegal;
+
+    for (StorageDir dir : spaceInfoInDir.keySet()) {
+      Pair<Long, Long> spaceInfo = spaceInfoInDir.get(dir);
+      if (spaceInfo.getFirst() < spaceInfo.getSecond()
+          || spaceInfo.getFirst() < bytesToBeAvailable) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
