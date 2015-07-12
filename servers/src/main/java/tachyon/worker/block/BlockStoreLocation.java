@@ -20,19 +20,35 @@ package tachyon.worker.block;
  * representing the tier to put this block.
  */
 public class BlockStoreLocation {
+  /** Special value to indicate any tier */
   private static final int ANY_TIER = -1;
+  /** Special value to indicate any dir */
   private static final int ANY_DIR = -1;
   /** NOTE: only reason to have level here is to calculate StorageDirId */
   private static final int UNKNOWN_LEVEL = -1;
 
+  /** Tier alias of the location, see {@link tachyon.StorageLevelAlias} */
   private final int mTierAlias;
+  /** Tier level of the location, generally alias - 1, this is 0 indexed */
   private final int mTierLevel;
+  /** Index of the directory in its tier, 0 indexed */
   private final int mDirIndex;
 
+  /**
+   * Convenience method to return the block store location representing any dir in any tier.
+   *
+   * @return a BlockStoreLocation of any dir in any tier
+   */
   public static BlockStoreLocation anyTier() {
     return new BlockStoreLocation(ANY_TIER, UNKNOWN_LEVEL, ANY_DIR);
   }
 
+  /**
+   * Convenience method to return the block store location representing any dir in the tier.
+   *
+   * @param tierAlias The tier this returned block store alias will represent
+   * @return a BlockStoreLocation of any dir in the specified tier
+   */
   public static BlockStoreLocation anyDirInTier(int tierAlias) {
     return new BlockStoreLocation(tierAlias, UNKNOWN_LEVEL, ANY_DIR);
   }
@@ -43,21 +59,41 @@ public class BlockStoreLocation {
     mDirIndex = dirIndex;
   }
 
-  // A helper function to derive StorageDirId from a BlockLocation.
+  /**
+   * Gets the storage directory id of the location. The first 8 bits are tier level, next 8 are
+   * the tier alias and last 16 represent the directory index.
+   *
+   * @return the storage directory id of the location
+   */
   // TODO: remove this method when master also understands BlockLocation
   public long getStorageDirId() {
     // Calculation copied from {@link StorageDirId.getStorageDirId}
     return (mTierLevel << 24) + (mTierAlias << 16) + mDirIndex;
   }
 
+  /**
+   * Gets the tier alias of the location.
+   *
+   * @return the tier alias of the location, -1 for any tier
+   */
   public int tierAlias() {
     return mTierAlias;
   }
 
+  /**
+   * Gets the tier level of the location.
+   *
+   * @return the tier level of the location, -1 for unknown level
+   */
   public int tierLevel() {
     return mTierLevel;
   }
 
+  /**
+   * Gets the directory index of the location.
+   *
+   * @return the directory index of the location, -1 for any directory
+   */
   public int dir() {
     return mDirIndex;
   }
@@ -80,6 +116,11 @@ public class BlockStoreLocation {
     return tierInRange && dirInRange;
   }
 
+  /**
+   * Converts the location to a human readable form.
+   *
+   * @return a human readable string representing the information of this block store location
+   */
   @Override
   public String toString() {
     StringBuilder result = new StringBuilder();

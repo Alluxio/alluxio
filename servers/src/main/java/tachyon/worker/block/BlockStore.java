@@ -16,6 +16,7 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
+import java.util.Set;
 
 import com.google.common.base.Optional;
 
@@ -76,6 +77,16 @@ interface BlockStore {
    */
   TempBlockMeta createBlockMeta(long userId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws IOException;
+
+  /**
+   * Gets the metadata of a block given its blockId or throws IOException. This method does not
+   * require a lock ID so the block is possible to be moved or removed after it returns.
+   *
+   * @param blockId the block ID
+   * @return metadata of the block
+   * @throws IOException if no BlockMeta for this blockId is found
+   */
+  BlockMeta getVolatileBlockMeta(long blockId) throws IOException;
 
   /**
    * Gets the meta data of a specific block from local storage.
@@ -176,15 +187,25 @@ interface BlockStore {
   void accessBlock(long userId, long blockId) throws IOException;
 
   /**
-   * Gets the meta data of the entire store.
+   * Gets the meta data of the entire store in a snapshot. There is no guarantee the state will
+   * be consistent with the snapshot after this method is called.
    *
    * @return store meta data
    */
   BlockStoreMeta getBlockStoreMeta();
 
   /**
-   * Cleans up the data associated with a specific user (typically a dead user), e.g., unlock the
-   * unreleased locks by this user, reclaim space of temp blocks created by this user.
+   * Checks if the storage has a given block.
+   *
+   * @param blockId the block ID
+   * @return true if the block is contained, false otherwise
+   */
+  boolean hasBlockMeta(long blockId);
+
+  /**
+   * Cleans up the data associated with a specific user (typically a dead user). Clean up entails
+   * unlocking the block locks of this user, reclaiming space of temp blocks created by this
+   * user, and deleting the user temporary folder.
    *
    * @param userId the user ID
    * @throws IOException if block can not be deleted or locks can not be released
@@ -208,4 +229,10 @@ interface BlockStore {
    */
   void registerBlockStoreEventListener(BlockStoreEventListener listener);
 
+  /**
+   * Update the pinned inodes.
+   *
+   * @param inodes, a set of inodes that are currently pinned.
+   */
+  void updatePinnedInodes(Set<Integer> inodes);
 }

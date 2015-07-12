@@ -17,6 +17,8 @@ package tachyon.worker.block.evictor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -34,6 +36,7 @@ import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListener;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.io.BlockWriter;
@@ -198,7 +201,8 @@ class EvictorTestUtils {
       BlockMetadataManager meta) throws IOException {
     Preconditions.checkNotNull(plan);
 
-    List<Long> blockIds = plan.toEvict();
+    List<Long> blockIds = new ArrayList<Long>();
+    blockIds.addAll(plan.toEvict());
     for (Pair<Long, BlockStoreLocation> move : plan.toMove()) {
       blockIds.add(move.getFirst());
     }
@@ -226,7 +230,8 @@ class EvictorTestUtils {
     Preconditions.checkNotNull(plan);
 
     StorageDir dir = null;
-    List<Long> blockIds = plan.toEvict();
+    List<Long> blockIds = new ArrayList<Long>();
+    blockIds.addAll(plan.toEvict());
     for (Pair<Long, BlockStoreLocation> move : plan.toMove()) {
       blockIds.add(move.getFirst());
     }

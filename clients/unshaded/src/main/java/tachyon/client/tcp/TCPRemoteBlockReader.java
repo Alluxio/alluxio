@@ -57,6 +57,11 @@ public final class TCPRemoteBlockReader implements RemoteBlockReader {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {
           LOG.warn("Read nothing");
+          if (!recvMsg.isMessageReady()) {
+            // The stream has ended, but the message is not complete.
+            LOG.error("Response was not received completely.");
+            return null;
+          }
         }
       }
       LOG.info("Data " + blockId + " from remote machine " + address + " received");
