@@ -109,12 +109,12 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    * tier, they will be evicted, otherwise, only blocks to be freed in the bottom tier will be
    * evicted.
    *
-   * this method is only used in {@link #freeSpace(long, tachyon.worker.block.BlockStoreLocation)}
+   * this method is only used in {@link #freeSpaceWithView}
    *
    * @param bytesToBeAvailable bytes to be available after eviction
    * @param location target location to evict blocks from
    * @param plan the plan to be recursively updated, is empty when first called in
-   *        {@link #freeSpace(long, tachyon.worker.block.BlockStoreLocation)}
+   *        {@link #freeSpaceWithView}
    * @return the first StorageDirView in the range of location to evict/move bytes from, or null if
    *         there is no plan
    */
@@ -187,30 +187,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
       BlockMetadataManagerView view) throws IOException {
     mManagerView = view;
-    return freeSpace(bytesToBeAvailable, location);
-  }
 
-  /**
-   * This method should only be accessed by {@link freeSpaceWithView} in this class. Frees space in
-   * the given block store location. After eviction, at least one StorageDir in the location has the
-   * specific amount of free space after eviction. The location can be a specific StorageDir, or
-   * {@link BlockStoreLocation#anyTier} or {@link BlockStoreLocation#anyDirInTier}. The view is
-   * generated and passed by the calling {@link BlockStore}.
-   *
-   * <P>
-   * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,
-   * or an eviction plan with toMove and toEvict fields to indicate how to free space. If both
-   * toMove and toEvict of the plan are empty, it indicates that Evictor has no actions to take and
-   * the requirement is already met.
-   *
-   * @param availableBytes the amount of free space in bytes to be ensured after eviction
-   * @param location the location in block store
-   * @return an eviction plan (possibly with empty fields) to get the free space, or null if no plan
-   *         is feasible
-   * @throws IOException if given block location is invalid
-   */
-  private EvictionPlan freeSpace(long bytesToBeAvailable, BlockStoreLocation location)
-      throws IOException {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
     EvictionPlan plan = new EvictionPlan(toMove, toEvict);
