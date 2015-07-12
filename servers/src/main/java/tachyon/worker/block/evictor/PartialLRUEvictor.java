@@ -17,14 +17,9 @@ package tachyon.worker.block.evictor;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
@@ -33,12 +28,13 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.worker.block.BlockMetadataManager;
-import tachyon.worker.block.BlockStoreEventListenerBase;
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
+import tachyon.worker.block.meta.StorageTierView;
 
 /**
  * This class is used to evict old blocks in certain StorageDir by LRU. The main difference
@@ -48,23 +44,23 @@ import tachyon.worker.block.meta.StorageTier;
  */
 public class PartialLRUEvictor extends LRUEvictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE); 
-  private BlockMetadataManager mMetaManager;
+  private BlockMetadataManagerView mManagerView;
 
-  public PartialLRUEvictor(BlockMetadataManager meta) {
-    super(meta);
-    mMetaManager = Preconditions.checkNotNull(meta);
+  public PartialLRUEvictor(BlockMetadataManagerView view) {
+    super(view);
+    mManagerView = Preconditions.checkNotNull(view);
   }
-  
+
   @Override
-  protected StorageDir cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
+  protected StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
       EvictionPlan plan) throws IOException {
 
-    StorageDir candidateDir = null;
+    StorageDirView candidateDirView = null;
     // 1. Get StorageDir with max free space. If no such StorageDir, return null. If
     // bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
-    candidateDir = getDirWithMaxFreeSpace(bytesToBeAvailable, location);
-    if (candidateDir == null || candidateDir.getAvailableBytes() >= bytesToBeAvailable) {
-      return candidateDir;
+    candidateDirView = getDirWithMaxFreeSpace(bytesToBeAvailable, location);
+    if (candidateDirView == null || candidateDirView.getAvailableBytes() >= bytesToBeAvailable) {
+      return candidateDirView;
     }
 
     // 2. iterate over blocks in LRU order until the candidate StorageDir can satisfy
@@ -72,13 +68,15 @@ public class PartialLRUEvictor extends LRUEvictor {
     List<Long> candidateBlocks = new ArrayList<Long>();
     long freedBytes = 0;
     Iterator<Map.Entry<Long, Boolean>> it = mLRUCache.entrySet().iterator();
-    while (it.hasNext() && candidateDir.getAvailableBytes() + freedBytes < bytesToBeAvailable) {
+    while (it.hasNext() && candidateDirView.getAvailableBytes() + freedBytes < bytesToBeAvailable) {
       long blockId = it.next().getKey();
       try {
-        BlockMeta block = mMetaManager.getBlockMeta(blockId);
-        if (block.getParentDir().getStorageDirId() == candidateDir.getStorageDirId()) {
-          candidateBlocks.add(block.getBlockId());
-          freedBytes += block.getBlockSize();
+        BlockMeta block = mManagerView.getBlockMeta(blockId);
+        if (null != block) { // might not present in this view
+          if (block.getBlockLocation().belongTo(candidateDirView.toBlockStoreLocation())) {
+            freedBytes += block.getBlockSize();
+            candidateBlocks.add(block.getBlockId());
+          }
         }
       } catch (IOException ioe) {
         LOG.warn("Remove block {} from LRU Cache because {}", blockId, ioe);
@@ -87,20 +85,20 @@ public class PartialLRUEvictor extends LRUEvictor {
     }
 
     // 3. have no eviction plan
-    if (candidateDir.getAvailableBytes() + freedBytes < bytesToBeAvailable) {
+    if (candidateDirView.getAvailableBytes() + freedBytes < bytesToBeAvailable) {
       return null;
     }
 
     // 4. cascading eviction: try to free space in next tier to move candidate blocks there, evict
     // blocks only when it can not be moved to next tiers
-    List<StorageTier> tiersBelow =
-        mMetaManager.getTiersBelow(candidateDir.getParentTier().getTierAlias());
+    List<StorageTierView> tierViewsBelow =
+        mManagerView.getTierViewsBelow(candidateDirView.getParentTierView().getTierViewAlias());
     // find a dir in below tiers to transfer blocks there, from top tier to bottom tier
-    StorageDir candidateNextDir = null;
-    for (StorageTier tier : tiersBelow) {
+    StorageDirView candidateNextDir = null;
+    for (StorageTierView tierView : tierViewsBelow) {
       candidateNextDir =
           cascadingEvict(freedBytes,
-              BlockStoreLocation.anyDirInTier(tier.getTierAlias()), plan);
+              BlockStoreLocation.anyDirInTier(tierView.getTierViewAlias()), plan);
       if (candidateNextDir != null) {
         break;
       }
@@ -114,54 +112,53 @@ public class PartialLRUEvictor extends LRUEvictor {
         plan.toMove().add(new Pair<Long, BlockStoreLocation>(block, dest));
       }
     }
-    return candidateDir;
+    return candidateDirView;
   }
 
   /**
-   * Get StorageDir with max free space.
+   * Get StorageDirView with max free space.
    * 
    * @param availableBytes space size to be requested
    * @param location location that the space will be allocated in
-   * @return the StorageDir selected
+   * @return the StorageDirView selected
    * @throws IOException
    */
-  private StorageDir getDirWithMaxFreeSpace(long availableBytes, BlockStoreLocation location)
+  private StorageDirView getDirWithMaxFreeSpace(long availableBytes, BlockStoreLocation location)
       throws IOException {
     long maxFreeSize = -1;
-    StorageDir selectedDir = null;
+    StorageDirView selectedDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTier tier : mMetaManager.getTiers()) {
-        for (StorageDir dir : tier.getStorageDirs()) {
-          if (dir.getCommittedBytes() + dir.getAvailableBytes() >= availableBytes
-              && dir.getAvailableBytes() > maxFreeSize) {
-            selectedDir = dir;
-            maxFreeSize = dir.getAvailableBytes();
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        for (StorageDirView dirView : tierView.getDirViews()) {
+          if (dirView.getCommittedBytes() + dirView.getAvailableBytes() >= availableBytes
+              && dirView.getAvailableBytes() > maxFreeSize) {
+            selectedDirView = dirView;
+            maxFreeSize = dirView.getAvailableBytes();
           }
         }
       }
     } else {
       int tierAlias = location.tierAlias();
-      StorageTier tier = mMetaManager.getTier(tierAlias);
+      StorageTierView tierView = mManagerView.getTierView(tierAlias);
       if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-        // Loop over all dirs in the given tier
-        for (StorageDir dir : tier.getStorageDirs()) {
-          if (dir.getCommittedBytes() + dir.getAvailableBytes() >= availableBytes
-              && dir.getAvailableBytes() > maxFreeSize) {
-            selectedDir = dir;
-            maxFreeSize = dir.getAvailableBytes();
+        for (StorageDirView dirView : tierView.getDirViews()) {
+          if (dirView.getCommittedBytes() + dirView.getAvailableBytes() >= availableBytes
+              && dirView.getAvailableBytes() > maxFreeSize) {
+            selectedDirView = dirView;
+            maxFreeSize = dirView.getAvailableBytes();
           }
         }
       } else {
         int dirIndex = location.dir();
-        StorageDir dir = tier.getDir(dirIndex);
-        if (dir.getCommittedBytes() + dir.getAvailableBytes() >= availableBytes
-            && dir.getAvailableBytes() > maxFreeSize) {
-          selectedDir = dir;
-          maxFreeSize = dir.getAvailableBytes();
+        StorageDirView dirView = tierView.getDirView(dirIndex);
+        if (dirView.getCommittedBytes() + dirView.getAvailableBytes() >= availableBytes
+            && dirView.getAvailableBytes() > maxFreeSize) {
+          selectedDirView = dirView;
+          maxFreeSize = dirView.getAvailableBytes();
         }
       }
     }
-    return selectedDir;
+    return selectedDirView;
   }
 }

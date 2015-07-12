@@ -19,10 +19,10 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
-import tachyon.worker.block.BlockMetadataManager;
-import tachyon.worker.block.meta.StorageDir;
-import tachyon.worker.block.meta.StorageTier;
+import tachyon.worker.block.meta.StorageDirView;
+import tachyon.worker.block.meta.StorageTierView;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -30,22 +30,40 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * This class serves as an example how to implement an allocator.
  */
 public class GreedyAllocator implements Allocator {
-  private final BlockMetadataManager mMetaManager;
+  private BlockMetadataManagerView mManagerView;
 
-  public GreedyAllocator(BlockMetadataManager metadata) {
-    mMetaManager = Preconditions.checkNotNull(metadata);
+  public GreedyAllocator(BlockMetadataManagerView view) {
+    mManagerView = Preconditions.checkNotNull(view);
   }
 
   @Override
-  public TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
+  public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
+      BlockStoreLocation location, BlockMetadataManagerView view) throws IOException {
+    mManagerView = view;
+    return allocateBlock(userId, blockId, blockSize, location);
+  }
+
+  /**
+   * Should only be accessed by {@link allocateBlockWithView} inside class.
+   * Allocates a block from the given block store location. The location can be a specific location,
+   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
+   *
+   * @param userId the ID of user to apply for the block allocation
+   * @param blockId the ID of the block
+   * @param blockSize the size of block in bytes
+   * @param location the location in block store
+   * @return a temp block meta if success, null otherwise
+   * @throws IOException if block location is invalid
+   */
+  private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
       BlockStoreLocation location) throws IOException {
     if (location.equals(BlockStoreLocation.anyTier())) {
-      // When any tier is ok, loop over all storage tier and dir, and return the first dir that has
-      // sufficient available space.
-      for (StorageTier tier : mMetaManager.getTiers()) {
-        for (StorageDir dir : tier.getStorageDirs()) {
-          if (dir.getAvailableBytes() >= blockSize) {
-            return new TempBlockMeta(userId, blockId, blockSize, dir);
+      // When any tier is ok, loop over all tier views and dir views,
+      // and return a temp block meta from the first available dirview.
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        for (StorageDirView dirView : tierView.getDirViews()) {
+          if (dirView.getAvailableBytes() >= blockSize) {
+            return dirView.createTempBlockMeta(userId, blockId, blockSize);
           }
         }
       }
@@ -53,21 +71,21 @@ public class GreedyAllocator implements Allocator {
     }
 
     int tierAlias = location.tierAlias();
-    StorageTier tier = mMetaManager.getTier(tierAlias);
+    StorageTierView tierView = mManagerView.getTierView(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-      // Loop over all dirs in the given tier
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (dir.getAvailableBytes() >= blockSize) {
-          return new TempBlockMeta(userId, blockId, blockSize, dir);
+      // Loop over all dir views in the given tier
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        if (dirView.getAvailableBytes() >= blockSize) {
+          return dirView.createTempBlockMeta(userId, blockId, blockSize);
         }
       }
       return null;
     }
 
     int dirIndex = location.dir();
-    StorageDir dir = tier.getDir(dirIndex);
-    if (dir.getAvailableBytes() >= blockSize) {
-      return new TempBlockMeta(userId, blockId, blockSize, dir);
+    StorageDirView dirView = tierView.getDirView(dirIndex);
+    if (dirView.getAvailableBytes() >= blockSize) {
+      return dirView.createTempBlockMeta(userId, blockId, blockSize);
     }
     return null;
   }

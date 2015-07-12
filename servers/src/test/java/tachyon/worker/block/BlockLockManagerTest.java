@@ -73,9 +73,9 @@ public class BlockLockManagerTest {
   public void validateLockIdWithNoRecordTest() throws Exception {
     long badLockId = 1;
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Failed to validateLockId: lockId " + badLockId + " has no lock record");
+    mThrown.expectMessage("Failed to validateLock: lockId " + badLockId + " has no lock record");
     // Validate a non-existing lockId, expect to see IOException
-    mLockManager.validateLockId(TEST_USER_ID, TEST_BLOCK_ID, badLockId);
+    mLockManager.validateLock(TEST_USER_ID, TEST_BLOCK_ID, badLockId);
   }
 
   @Test
@@ -83,10 +83,10 @@ public class BlockLockManagerTest {
     long lockId = mLockManager.lockBlock(TEST_USER_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongUserId = TEST_USER_ID + 1;
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Failed to validateLockId: lockId " + lockId + " is owned by userId "
+    mThrown.expectMessage("Failed to validateLock: lockId " + lockId + " is owned by userId "
         + TEST_USER_ID + ", not " + wrongUserId);
     // Validate an existing lockId with wrong userId, expect to see IOException
-    mLockManager.validateLockId(wrongUserId, TEST_BLOCK_ID, lockId);
+    mLockManager.validateLock(wrongUserId, TEST_BLOCK_ID, lockId);
   }
 
   @Test
@@ -94,10 +94,10 @@ public class BlockLockManagerTest {
     long lockId = mLockManager.lockBlock(TEST_USER_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongBlockId = TEST_BLOCK_ID + 1;
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Failed to validateLockId: lockId " + lockId + " is for blockId "
+    mThrown.expectMessage("Failed to validateLock: lockId " + lockId + " is for blockId "
         + TEST_BLOCK_ID + ", not " + wrongBlockId);
     // Validate an existing lockId with wrong blockId, expect to see IOException
-    mLockManager.validateLockId(TEST_USER_ID, wrongBlockId, lockId);
+    mLockManager.validateLock(TEST_USER_ID, wrongBlockId, lockId);
   }
 
   @Test
@@ -107,11 +107,11 @@ public class BlockLockManagerTest {
     long lockId1 = mLockManager.lockBlock(userId1, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(userId2, TEST_BLOCK_ID, BlockLockType.READ);
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Failed to validateLockId: lockId " + lockId2 + " has no lock record");
+    mThrown.expectMessage("Failed to validateLock: lockId " + lockId2 + " has no lock record");
     mLockManager.cleanupUser(userId2);
     // Expect validating userId1 to get through
-    mLockManager.validateLockId(userId1, TEST_BLOCK_ID, lockId1);
+    mLockManager.validateLock(userId1, TEST_BLOCK_ID, lockId1);
     // Because userId2 has been cleaned up, expect validating userId2 to throw IOException
-    mLockManager.validateLockId(userId2, TEST_BLOCK_ID, lockId2);
+    mLockManager.validateLock(userId2, TEST_BLOCK_ID, lockId2);
   }
 }
