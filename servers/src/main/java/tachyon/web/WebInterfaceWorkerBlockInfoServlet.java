@@ -35,19 +35,20 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.BlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
-import tachyon.worker.block.BlockWorker;
-import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockStoreMeta;
+import tachyon.worker.block.meta.BlockMeta;
 
 /**
  * Servlet that provides data for displaying block info of a worker.
  */
 public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private static final long serialVersionUID = 4148506607369321012L;
-  private final transient BlockWorker mWorker;
+  private final transient BlockDataManager mBlockDataManager;
   private final transient TachyonConf mTachyonConf;
 
-  public WebInterfaceWorkerBlockInfoServlet(BlockWorker worker, TachyonConf conf) {
-    mWorker = worker;
+  public WebInterfaceWorkerBlockInfoServlet(BlockDataManager blockDataManager, TachyonConf conf) {
+    mBlockDataManager = blockDataManager;
     mTachyonConf = conf;
   }
 
@@ -138,15 +139,15 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    *
    * @return a sorted fileId list
    */
-  // TODO: Add this functionality back
   private List<Integer> getSortedFileIds() {
     Set<Integer> fileIds = new HashSet<Integer>();
-//    for (StorageDir storageDir : mWorkerStorage.getStorageDirs()) {
-//      for (long blockId : storageDir.getBlockIds()) {
-//        int fileId = BlockInfo.computeInodeId(blockId);
-//        fileIds.add(fileId);
-//      }
-//    }
+    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+    for (List<Long> blockIds : storeMeta.getBlockList().values()) {
+      for (long blockId : blockIds) {
+        int fileId = BlockInfo.computeInodeId(blockId);
+        fileIds.add(fileId);
+      }
+    }
     List<Integer> sortedFileIds = new ArrayList<Integer>(fileIds);
     Collections.sort(sortedFileIds);
     return sortedFileIds;
@@ -190,7 +191,6 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws IOException
    */
-  // TODO: Add this functionality back
   private UiFileInfo getUiFileInfo(TachyonFS tachyonClient, int fileId, TachyonURI filePath)
       throws FileDoesNotExistException, IOException {
     ClientFileInfo fileInfo = tachyonClient.getFileStatus(fileId, filePath, true);
@@ -201,19 +201,17 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
 
     UiFileInfo uiFileInfo = new UiFileInfo(fileInfo);
     boolean blockExistOnWorker = false;
-//    for (long blockId : fileInfo.getBlockIds()) {
-//      for (StorageDir storageDir : mWorkerStorage.getStorageDirs()) {
-//        if (storageDir.containsBlock(blockId)) {
-//          blockExistOnWorker = true;
-//          long blockSize = storageDir.getBlockSize(blockId);
-//          long blockLastAccessTime = storageDir.getLastBlockAccessTimeMs(blockId);
-//          StorageLevelAlias storageLevelAlias =
-//              StorageDirId.getStorageLevelAlias(storageDir.getStorageDirId());
-//          uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, blockLastAccessTime);
-//          break;
-//        }
-//      }
-//    }
+    for (long blockId : fileInfo.getBlockIds()) {
+      if (mBlockDataManager.hasBlockMeta(blockId)) {
+        blockExistOnWorker = true;
+        BlockMeta blockMeta = mBlockDataManager.getVolatileBlockMeta(blockId);
+        long blockSize = blockMeta.getBlockSize();
+        StorageLevelAlias storageLevelAlias =
+            StorageDirId.getStorageLevelAlias(blockMeta.getParentDir().getStorageDirId());
+        // The block last access time is not available. Use -1 for now.
+        uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, -1);
+      }
+    }
     if (!blockExistOnWorker) {
       throw new FileDoesNotExistException(fileId != -1 ? Integer.toString(fileId)
           : filePath.toString());

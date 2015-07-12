@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Assert;
@@ -30,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
@@ -54,6 +56,7 @@ public class EvictorTest {
 
   private StorageDir mTestDir;
   private BlockMetadataManager mMetaManager;
+  private BlockMetadataManagerView mManagerView;
   private EvictorType mEvictorType;
   private Evictor mEvictor;
 
@@ -80,19 +83,23 @@ public class EvictorTest {
   public final void before() throws IOException {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+    mManagerView =
+        new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
+            Collections.<Long>emptySet());
     List<StorageTier> tiers = mMetaManager.getTiers();
     mTestDir = tiers.get(TEST_TIER_LEVEL).getDir(TEST_DIR);
-    mEvictor = EvictorFactory.create(mEvictorType, mMetaManager);
+    mEvictor = EvictorFactory.create(mEvictorType, mManagerView);
   }
 
   @Test
   public void noNeedToEvictTest1() throws IOException {
-    // metadata manager is just created, no cached block in Evictor, so when trying to make sure
-    // each dir has free space of its capacity, the eviction plan should be empty.
+    // metadata manager is just created, no cached block in Evictor,
+    // so when trying to make sure each dir has free space of its capacity,
+    // the eviction plan should be empty.
     for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        Assert.assertTrue(mEvictor.freeSpace(dir.getCapacityBytes(), dir.toBlockStoreLocation())
-            .isEmpty());
+        Assert.assertTrue(mEvictor.freeSpaceWithView(dir.getCapacityBytes(),
+            dir.toBlockStoreLocation(), mManagerView).isEmpty());
       }
     }
   }
@@ -105,8 +112,8 @@ public class EvictorTest {
     long capacity = dir.getCapacityBytes();
     long cachedBytes = capacity / 2 + 1;
     EvictorTestUtils.cache(USER_ID, BLOCK_ID, cachedBytes, dir, mMetaManager, mEvictor);
-    Assert.assertTrue(mEvictor.freeSpace(capacity - cachedBytes, dir.toBlockStoreLocation())
-        .isEmpty());
+    Assert.assertTrue(mEvictor.freeSpaceWithView(capacity - cachedBytes,
+        dir.toBlockStoreLocation(), mManagerView).isEmpty());
   }
 
   @Test
@@ -124,8 +131,10 @@ public class EvictorTest {
         }
       }
     }
-    Assert.assertTrue(mEvictor.freeSpace(dirLeft.getCapacityBytes(),
-        BlockStoreLocation.anyDirInTier(dirLeft.getParentTier().getTierAlias())).isEmpty());
+
+    Assert.assertTrue(mEvictor.freeSpaceWithView(dirLeft.getCapacityBytes(),
+        BlockStoreLocation.anyDirInTier(dirLeft.getParentTier().getTierAlias()), mManagerView)
+        .isEmpty());
   }
 
   @Test
@@ -136,7 +145,8 @@ public class EvictorTest {
     long capacityBytes = dir.getCapacityBytes();
     EvictorTestUtils.cache(USER_ID, BLOCK_ID, capacityBytes, dir, mMetaManager, mEvictor);
 
-    EvictionPlan plan = mEvictor.freeSpace(capacityBytes, dir.toBlockStoreLocation());
+    EvictionPlan plan =
+        mEvictor.freeSpaceWithView(capacityBytes, dir.toBlockStoreLocation(), mManagerView);
     EvictorTestUtils.assertValidPlan(capacityBytes, plan, mMetaManager);
   }
 
@@ -156,7 +166,8 @@ public class EvictorTest {
 
     long requestBytes = dirs.get(dirs.size() - 1).getCapacityBytes();
     EvictionPlan plan =
-        mEvictor.freeSpace(requestBytes, BlockStoreLocation.anyDirInTier(tier.getTierAlias()));
+        mEvictor.freeSpaceWithView(requestBytes,
+            BlockStoreLocation.anyDirInTier(tier.getTierAlias()), mManagerView);
     EvictorTestUtils.assertValidPlan(requestBytes, plan, mMetaManager);
   }
 
@@ -175,7 +186,8 @@ public class EvictorTest {
       }
     }
 
-    EvictionPlan plan = mEvictor.freeSpace(minCapacity, BlockStoreLocation.anyTier());
+    EvictionPlan plan = mEvictor.freeSpaceWithView(
+        minCapacity, BlockStoreLocation.anyTier(), mManagerView);
     EvictorTestUtils.assertValidPlan(minCapacity, plan, mMetaManager);
   }
 
@@ -190,9 +202,10 @@ public class EvictorTest {
     EvictorTestUtils.cache(USER_ID, BLOCK_ID, dirCapacity, dir, mMetaManager, mEvictor);
 
     // request space larger than total capacity, no eviction plan should be available
-    Assert.assertNull(mEvictor.freeSpace(totalCapacity + 1, BlockStoreLocation.anyTier()));
+    Assert.assertNull(mEvictor.freeSpaceWithView(totalCapacity + 1, BlockStoreLocation.anyTier(),
+        mManagerView));
     // request space larger than capacity for the random directory, no eviction plan should be
     // available
-    Assert.assertNull(mEvictor.freeSpace(dirCapacity + 1, dirLocation));
+    Assert.assertNull(mEvictor.freeSpaceWithView(dirCapacity + 1, dirLocation, mManagerView));
   }
 }

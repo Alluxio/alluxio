@@ -18,6 +18,7 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -296,6 +297,28 @@ public class BlockDataManager {
   }
 
   /**
+   * Gets the metadata of a block given its blockId or throws IOException. This method does not
+   * require a lock ID so the block is possible to be moved or removed after it returns.
+   *
+   * @param blockId the block ID
+   * @return metadata of the block
+   * @throws IOException if no BlockMeta for this blockId is found
+   */
+  public BlockMeta getVolatileBlockMeta(long blockId) throws IOException {
+    return mBlockStore.getVolatileBlockMeta(blockId);
+  }
+
+  /**
+   * Checks if the storage has a given block.
+   *
+   * @param blockId the block ID
+   * @return true if the block is contained, false otherwise
+   */
+  public boolean hasBlockMeta(long blockId) {
+    return mBlockStore.hasBlockMeta(blockId);
+  }
+
+  /**
    * Obtains a read lock the block.
    *
    * @param userId The id of the client
@@ -440,5 +463,15 @@ public class BlockDataManager {
       mWorkerSource.incBytesWrittenLocal(metrics.get(Constants.BYTES_WRITTEN_LOCAL_INDEX));
       mWorkerSource.incBytesWrittenUfs(metrics.get(Constants.BYTES_WRITTEN_UFS_INDEX));
     }
+  }
+
+  /**
+   * Set the pinlist for the underlying blockstore.
+   * Typically called by PinListSync.
+   *
+   * @param pinnedInodes, a set of pinned inodes
+   */
+  public void updatePinList(Set<Integer> pinnedInodes) {
+    mBlockStore.updatePinnedInodes(pinnedInodes);
   }
 }
