@@ -147,7 +147,7 @@ public class GreedyEvictor implements Evictor {
   }
 
   private StorageDirView selectDestDir(BlockMeta block, List<StorageTierView> toTiers,
-                                       Map<StorageDirView, Long> pendingBytesInDir) {
+      Map<StorageDirView, Long> pendingBytesInDir) {
     for (StorageTierView toTier : toTiers) {
       for (StorageDirView toDir : toTier.getDirViews()) {
         long pendingBytes = 0;
