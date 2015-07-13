@@ -36,7 +36,6 @@ public class RPCBlockReadResponse extends RPCResponse {
   private final DataBuffer mData;
   private final Status mStatus;
 
-  // TODO: rename this to RPCBlockReadResponse.
   public RPCBlockReadResponse(long blockId, long offset, long length, DataBuffer data, Status status) {
     mBlockId = blockId;
     mOffset = offset;
