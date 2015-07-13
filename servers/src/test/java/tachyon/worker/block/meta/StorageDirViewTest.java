@@ -1,10 +1,9 @@
 package tachyon.worker.block.meta;
 
-import static org.hamcrest.CoreMatchers.is;
-
 import java.io.File;
 import java.util.List;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -90,7 +89,7 @@ public class StorageDirViewTest {
     mTestDir.addBlockMeta(blockMeta);
     Assert.assertEquals(TEST_BLOCK_SIZE, mTestDirView.getEvitableBytes());
     Assert.assertThat(mTestDirView.getEvictableBlocks(),
-        is((List<BlockMeta>) Lists.newArrayList(blockMeta)));
+        CoreMatchers.is((List<BlockMeta>) Lists.newArrayList(blockMeta)));
 
     // Lock this block, expect this block to be non-evictable
     Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
@@ -109,7 +108,7 @@ public class StorageDirViewTest {
     Mockito.when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
     Assert.assertEquals(TEST_BLOCK_SIZE, mTestDirView.getEvitableBytes());
     Assert.assertThat(mTestDirView.getEvictableBlocks(),
-        is((List<BlockMeta>) Lists.newArrayList(blockMeta)));
+        CoreMatchers.is((List<BlockMeta>) Lists.newArrayList(blockMeta)));
   }
 
   @Test
