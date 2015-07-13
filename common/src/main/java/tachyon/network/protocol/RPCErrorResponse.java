@@ -29,10 +29,6 @@ public class RPCErrorResponse extends RPCResponse {
     mStatus = status;
   }
 
-  public Type getType() {
-    return Type.RPC_ERROR_RESPONSE;
-  }
-
   /**
    * Decode the input {@link ByteBuf} into a {@link RPCErrorResponse} object and return it.
    *
@@ -44,17 +40,26 @@ public class RPCErrorResponse extends RPCResponse {
   }
 
   @Override
+  public void encode(ByteBuf out) {
+    out.writeShort(mStatus.getId());
+  }
+
+  @Override
   public int getEncodedLength() {
     // 1 short (mStatus)
     return Shorts.BYTES;
   }
 
-  @Override
-  public void encode(ByteBuf out) {
-    out.writeShort(mStatus.getId());
-  }
-
   public Status getStatus() {
     return mStatus;
+  }
+
+  public Type getType() {
+    return Type.RPC_ERROR_RESPONSE;
+  }
+
+  @Override
+  public String toString() {
+    return "RPCErrorResponse(" + mStatus + ")";
   }
 }
