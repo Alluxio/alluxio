@@ -32,7 +32,6 @@ public class RPCBlockReadRequest extends RPCRequest {
   private final long mOffset;
   private final long mLength;
 
-  // TODO: rename this to RPCBlockReadRequest.
   public RPCBlockReadRequest(long blockId, long offset, long length) {
     mBlockId = blockId;
     mOffset = offset;
