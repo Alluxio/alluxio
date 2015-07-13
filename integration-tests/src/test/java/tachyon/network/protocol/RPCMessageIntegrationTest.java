@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -217,14 +217,14 @@ public class RPCMessageIntegrationTest {
   }
 
   @Test
-  public void RPCBlockRequestTest() {
+  public void RPCBlockReadRequestTest() {
     RPCBlockReadRequest msg = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH);
     RPCBlockReadRequest decoded = (RPCBlockReadRequest) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
 
   @Test
-  public void RPCBlockResponseTest() {
+  public void RPCBlockReadResponseTest() {
     ByteBuffer payload = TestUtils.getIncreasingByteBuffer((int) OFFSET, (int) LENGTH);
     RPCBlockReadResponse msg =
         new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload, LENGTH),
@@ -234,7 +234,7 @@ public class RPCMessageIntegrationTest {
   }
 
   @Test
-  public void RPCBlockResponseEmptyPayloadTest() {
+  public void RPCBlockReadResponseEmptyPayloadTest() {
     RPCBlockReadResponse msg = new RPCBlockReadResponse(BLOCK_ID, OFFSET, 0, null,
         RPCResponse.Status.SUCCESS);
     RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
@@ -242,15 +242,15 @@ public class RPCMessageIntegrationTest {
   }
 
   @Test
-  public void RPCBlockResponseErrorTest() {
-    RPCBlockReadResponse msg = RPCBlockReadResponse.createErrorResponse(new RPCBlockReadRequest(BLOCK_ID,
-        OFFSET, LENGTH), RPCResponse.Status.FILE_DNE);
+  public void RPCBlockReadResponseErrorTest() {
+    RPCBlockReadResponse msg = RPCBlockReadResponse.createErrorResponse(
+        new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH), RPCResponse.Status.FILE_DNE);
     RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
 
   @Test
-  public void RPCBlockResponseFileChannelTest() throws IOException {
+  public void RPCBlockReadResponseFileChannelTest() throws IOException {
     FileChannel payload = getTempFileChannel();
     RPCBlockReadResponse msg =
         new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH,

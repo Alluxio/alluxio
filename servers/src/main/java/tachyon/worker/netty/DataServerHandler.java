@@ -115,9 +115,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       final long fileLength = reader.getLength();
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
-      RPCBlockReadResponse resp =
-          new RPCBlockReadResponse(blockId, offset, readLength, getDataBuffer(req, reader, readLength),
-              RPCResponse.Status.SUCCESS);
+      RPCBlockReadResponse resp = new RPCBlockReadResponse(blockId, offset, readLength,
+          getDataBuffer(req, reader, readLength), RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(reader));
@@ -206,7 +205,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
    * Returns the appropriate DataBuffer representing the data to send, depending on the configurable
    * transfer type.
    *
-   * @param req The initiating RPCBlockRequest
+   * @param req The initiating RPCBlockReadRequest
    * @param reader The BlockHandler for the block to read
    * @param readLength The length, in bytes, of the data to read from the block
    * @return a DataBuffer representing the data
