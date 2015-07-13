@@ -25,11 +25,12 @@ import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.AuthorizeCallback;
+import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 
 /**
- * Because the Java SunSASL provider doesn’t support the server-side PLAIN mechanism.
+ * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.
  * There is a new provider needed to register to support server-side PLAIN mechanism.
  * There are three basic steps in implementing a SASL security provider:
  * 1.Write a class that implements the SaslServer interface
@@ -37,11 +38,12 @@ import javax.security.sasl.SaslServer;
  * 3.Write a JCA provider that registers the factory
  */
 public class PlainSaslServer implements SaslServer {
-  private String mUser;
-  private final CallbackHandler mHandler;
+  private String authcid;
+  private boolean completed;
+  private CallbackHandler mHandler;
 
-  PlainSaslServer(CallbackHandler mHandler, String authMethodStr) throws SaslException {
-    this.mHandler = mHandler;
+  PlainSaslServer(CallbackHandler handler) throws SaslException {
+    mHandler = handler;
   }
 
   @Override
@@ -51,89 +53,98 @@ public class PlainSaslServer implements SaslServer {
 
   @Override
   public byte[] evaluateResponse(byte[] response) throws SaslException {
+    if (completed) {
+      throw new IllegalStateException("PLAIN authentication has completed");
+    }
+    if (response == null) {
+      throw new IllegalArgumentException("Received null response");
+    }
     try {
       // parse the response
       // message   = [authzid] UTF8NUL authcid UTF8NUL passwd'
-
-      Deque<String> tokenList = new ArrayDeque<String>();
-      StringBuilder messageToken = new StringBuilder();
-      for (byte b : response) {
-        if (b == 0) {
-          tokenList.addLast(messageToken.toString());
-          messageToken = new StringBuilder();
-        } else {
-          messageToken.append((char) b);
-        }
+      // authzid may be empty,then the authzid = authcid
+      String payload;
+      try {
+        payload = new String(response, "UTF-8");
+      } catch (Exception e) {
+        throw new IllegalArgumentException("Received corrupt response", e);
       }
-      tokenList.addLast(messageToken.toString());
-
+      String[] parts = payload.split("\u0000", 3);
       // validate response
-      if (tokenList.size() < 2 || tokenList.size() > 3) {
-        throw new SaslException("Invalid message format");
+      if (parts.length != 3) {
+        throw new IllegalArgumentException("Received corrupt response");
       }
-      String passwd = tokenList.removeLast();
-      mUser = tokenList.removeLast();
-      // optional authzid
-      String authzId;
-      if (tokenList.isEmpty()) {
-        authzId = mUser;
-      } else {
-        authzId = tokenList.removeLast();
+      if (parts[0].isEmpty()) { // authzid = authcid
+        parts[0] = parts[1];
       }
-      if (mUser == null || mUser.isEmpty()) {
-        throw new SaslException("No user name provided");
+      String passwd = parts[2];
+      authcid = parts[1];
+      if (authcid == null || authcid.isEmpty()) {
+        throw new IllegalStateException("No authentication identity provided");
       }
       if (passwd == null || passwd.isEmpty()) {
-        throw new SaslException("No password name provided");
+        throw new IllegalStateException("No password provided");
       }
 
       NameCallback nameCallback = new NameCallback("User");
-      nameCallback.setName(mUser);
-      PasswordCallback pcCallback = new PasswordCallback("Password", false);
-      pcCallback.setPassword(passwd.toCharArray());
-      AuthorizeCallback acCallback = new AuthorizeCallback(mUser, authzId);
+      nameCallback.setName(authcid);
+      PasswordCallback passwordCallback = new PasswordCallback("Password", false);
+      passwordCallback.setPassword(passwd.toCharArray());
+      AuthorizeCallback authCallback = new AuthorizeCallback(authcid, parts[0]);
 
-      Callback[] cbList = {nameCallback, pcCallback, acCallback};
+      Callback[] cbList = {nameCallback, passwordCallback, authCallback};
       mHandler.handle(cbList);
-      if (!acCallback.isAuthorized()) {
+      if (!authCallback.isAuthorized()) {
         throw new SaslException("Authentication failed");
       }
-    } catch (IllegalStateException eL) {
-      throw new SaslException("Invalid message format", eL);
-    } catch (IOException eI) {
-      throw new SaslException("Error validating the login", eI);
-    } catch (UnsupportedCallbackException eU) {
-      throw new SaslException("Error validating the login", eU);
+    } catch (IOException ioe) {
+      throw new SaslException("Error validating the login", ioe);
+    } catch (UnsupportedCallbackException uce) {
+      throw new SaslException("Error validating the login", uce);
     }
+    completed = true;
     return null;
   }
 
   @Override
   public boolean isComplete() {
-    return mUser != null;
+    return completed;
   }
 
   @Override
   public String getAuthorizationID() {
-    return mUser;
+    throwIfNotComplete();
+    return authcid;
   }
 
   @Override
   public byte[] unwrap(byte[] incoming, int offset, int len) {
-    throw new UnsupportedOperationException();
+    throwIfNotComplete();
+    throw new IllegalStateException("PLAIN supports neither integrity nor privacy");
   }
 
   @Override
   public byte[] wrap(byte[] outgoing, int offset, int len) {
-    throw new UnsupportedOperationException();
+    throwIfNotComplete();
+    throw new IllegalStateException("PLAIN supports neither integrity nor privacy");
   }
 
   @Override
   public Object getNegotiatedProperty(String propName) {
-    return null;
+    throwIfNotComplete();
+    return Sasl.QOP.equals(propName) ? "auth" : null;
   }
 
   @Override
   public void dispose() {
+    completed = false;
+    mHandler = null;
+    authcid = null;
+  }
+
+  private void throwIfNotComplete() {
+    if (!completed) {
+      throw new IllegalStateException("PLAIN authentication not completed");
+    }
   }
 }
