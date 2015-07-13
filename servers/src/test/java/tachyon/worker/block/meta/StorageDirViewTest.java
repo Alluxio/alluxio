@@ -83,7 +83,7 @@ public class StorageDirViewTest {
   public void getEvictableBlocksTest() throws IOException {
     // When test dir is empty, expect no block to be evictable
     Assert.assertEquals(0, mTestDirView.getEvitableBytes());
-    Assert.assertEquals(0, mTestDirView.getEvictableBlocks().size());
+    Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
 
     // Add one block to test dir, expect this block to be evictable
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mTestDir);
@@ -96,13 +96,13 @@ public class StorageDirViewTest {
     Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
     Mockito.when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(true);
     Assert.assertEquals(0, mTestDirView.getEvitableBytes());
-    Assert.assertEquals(0, mTestDirView.getEvictableBlocks().size());
+    Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
 
     // Pin this block, expect this block to be non-evictable
     Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(true);
     Mockito.when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
     Assert.assertEquals(0, mTestDirView.getEvitableBytes());
-    Assert.assertEquals(0, mTestDirView.getEvictableBlocks().size());
+    Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
 
     // Release pin/lock, expect this block to be evictable
     Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
