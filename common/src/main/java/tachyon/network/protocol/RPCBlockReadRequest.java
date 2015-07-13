@@ -46,7 +46,7 @@ public class RPCBlockReadRequest extends RPCRequest {
    * Decode the input {@link ByteBuf} into a {@link RPCBlockReadRequest} object and return it.
    *
    * @param in the input {@link ByteBuf}
-   * @return The decoded RPCBlockRequest object
+   * @return The decoded RPCBlockReadRequest object
    */
   public static RPCBlockReadRequest decode(ByteBuf in) {
     long blockId = in.readLong();
@@ -77,7 +77,7 @@ public class RPCBlockReadRequest extends RPCRequest {
 
   @Override
   public String toString() {
-    return "RPCBlockRequest(" + mBlockId + ", " + mOffset + ", " + mLength + ")";
+    return "RPCBlockReadRequest(" + mBlockId + ", " + mOffset + ", " + mLength + ")";
   }
 
   public long getBlockId() {
