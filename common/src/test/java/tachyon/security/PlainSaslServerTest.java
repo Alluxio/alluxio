@@ -21,42 +21,69 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.AuthorizeCallback;
+import javax.security.sasl.SaslException;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class PlainSaslServerTest {
-  private static byte sSEPARATOR = 0; // US-ASCII <NUL>
+  private static byte sSEPARATOR = 0x00; // US-ASCII <NUL>
   private static PlainSaslServer sPlainSaslServer = null;
 
   @BeforeClass
   public static void setup() throws Exception {
-    sPlainSaslServer = new PlainSaslServer(new MockCallbackHandler(), "PLAIN");
+    sPlainSaslServer = new PlainSaslServer(new MockCallbackHandler());
   }
 
   /**
-   * simulate the authentication data included user information from client side
-   * @param user
-   * @param password
+   * Simulate the authentication data included user information from client side
+   * @param user The name of the user will be transferred from client side
+   * @param password The password will be transferred from client side
+   * @return The response is simulated from the client side
    */
   private byte[] getUserInfo(String user, String password) throws Exception {
     byte[] auth = user.getBytes("UTF8");
     byte[] pw = password.getBytes("UTF8");
     byte[] result = new byte[pw.length + auth.length + 2];
     int pos = 0;
-    result[pos++] = sSEPARATOR;
+    result[pos ++] = sSEPARATOR;
     System.arraycopy(auth, 0, result, pos, auth.length);
 
     pos += auth.length;
-    result[pos++] = sSEPARATOR;
+    result[pos ++] = sSEPARATOR;
 
     System.arraycopy(pw, 0, result, pos, pw.length);
     return result;
   }
 
   @Test
-  public void userReceiveTest() throws Exception {
+  public void testUserIsNotSet() throws Exception {
+    try {
+      sPlainSaslServer.evaluateResponse(getUserInfo("", "anonymous"));
+      Assert.fail("expected exception has been happend");
+    } catch (Exception e) {
+      Assert.assertTrue(e.getMessage().contains("No authentication identity provided"));
+    }
+  }
+
+  @Test
+  public void testPasswordIsNotSet() throws Exception {
+    try {
+      sPlainSaslServer.evaluateResponse(getUserInfo("tachyon", ""));
+      Assert.fail("expected exception has been happend");
+    } catch (Exception e) {
+      Assert.assertTrue(e.getMessage().contains("No password provided"));
+    }
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testAuthenticationHasNotComplete() throws Exception {
+    sPlainSaslServer.getAuthorizationID();
+  }
+
+  @Test
+  public void testUserPasswordReceive() throws Exception {
     String testUser = "tachyon";
     String password = "anonymous";
     sPlainSaslServer.evaluateResponse(getUserInfo(testUser, password));
