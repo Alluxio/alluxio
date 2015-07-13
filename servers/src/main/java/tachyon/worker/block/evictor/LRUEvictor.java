@@ -180,7 +180,6 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     return candidateDirView;
   }
 
-
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
       BlockMetadataManagerView view) throws IOException {
@@ -194,31 +193,8 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     if (candidateDir == null) {
       return null;
     }
-    if (plan.isEmpty()) {
-      return plan;
-    }
 
-    // TODO: remove this check after implementation of metadata view
-    // assure all blocks are in the store, if not, remove from plan and lru cache
-    Iterator<Pair<Long, BlockStoreLocation>> moveIt = plan.toMove().iterator();
-    while (moveIt.hasNext()) {
-      long id = moveIt.next().getFirst();
-      if (null == mManagerView.getBlockMeta(id)) {
-        mLRUCache.remove(id);
-        moveIt.remove();
-      }
-    }
-    Iterator<Long> evictIt = plan.toEvict().iterator();
-    while (evictIt.hasNext()) {
-      long id = evictIt.next();
-      if (null == mManagerView.getBlockMeta(id)) {
-        mLRUCache.remove(id);
-        evictIt.remove();
-      }
-    }
-
-    return EvictorUtils.validCascadingPlan(bytesToBeAvailable, plan,
-        mManagerView.getMetadataManager()) ? plan : null;
+    return plan;
   }
 
   @Override
