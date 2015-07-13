@@ -48,7 +48,7 @@ public class PartialLRUEvictor extends LRUEvictor {
 
   public PartialLRUEvictor(BlockMetadataManagerView view) {
     super(view);
-    mManagerView = Preconditions.checkNotNull(view);
+    mManagerView = view;
   }
 
   @Override

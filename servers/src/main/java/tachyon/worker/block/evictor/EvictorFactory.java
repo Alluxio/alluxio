@@ -15,6 +15,8 @@
 
 package tachyon.worker.block.evictor;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.worker.block.BlockMetadataManagerView;
 
 /**
@@ -31,15 +33,16 @@ public class EvictorFactory {
    * @return the generated Evictor
    */
   public static Evictor create(EvictorType evictorType, BlockMetadataManagerView view) {
+    BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
     switch (evictorType) {
       case GREEDY:
-        return new GreedyEvictor(view);
+        return new GreedyEvictor(managerView);
       case LRU:
-        return new LRUEvictor(view);
+        return new LRUEvictor(managerView);
       case PARTIAL_LRU:
-        return new PartialLRUEvictor(view);
+        return new PartialLRUEvictor(managerView);
       default:
-        return new LRUEvictor(view);
+        return new LRUEvictor(managerView);
     }
   }
 }
