@@ -11,8 +11,8 @@ The master branch is in version 0.7.0-SNAPSHOT:
 - [Releases](https://github.com/amplab/tachyon/tags)
 - [Tachyon JIRA](https://tachyon.atlassian.net/browse/TACHYON)
 - [Master Branch Document](http://tachyon-project.org/master/)
-- [User Group](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
-- [Meetup Group](http://www.meetup.com/Tachyon)
+- [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
+- [Bay Area Meetup Group](http://www.meetup.com/Tachyon)
 
 ## Building applications with Tachyon
 
