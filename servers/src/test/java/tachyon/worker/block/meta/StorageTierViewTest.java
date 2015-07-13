@@ -32,10 +32,8 @@ import tachyon.worker.block.evictor.EvictorTestUtils;
 
 public class StorageTierViewTest {
   private static final int TEST_TIER_LEVEL = 0;
-
   private StorageTier mTestTier;
   private StorageTierView mTestTierView;
-  private BlockMetadataManagerView mMetaManagerView;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -46,25 +44,25 @@ public class StorageTierViewTest {
   @Before
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
-    BlockMetadataManager metaManager = EvictorTestUtils.defaultMetadataManager(tempFolder
-        .getAbsolutePath());
-    mMetaManagerView = new BlockMetadataManagerView(metaManager, Sets.<Integer>newHashSet(),
-        Sets.<Long>newHashSet());
+    BlockMetadataManager metaManager =
+        EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+    BlockMetadataManagerView metaManagerView =
+        new BlockMetadataManagerView(metaManager, Sets.<Integer>newHashSet(),
+            Sets.<Long>newHashSet());
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
-    mTestTierView = new StorageTierView(mTestTier, mMetaManagerView);
+    mTestTierView = new StorageTierView(mTestTier, metaManagerView);
   }
 
   @Test
-  public void getDirViewsTest() throws Exception {
-    Assert.assertEquals(EvictorTestUtils.TIER_PATH[TEST_TIER_LEVEL].length,
-        mTestTierView.getDirViews().size());
+  public void getDirViewsTest() {
+    Assert.assertEquals(EvictorTestUtils.TIER_PATH[TEST_TIER_LEVEL].length, mTestTierView
+        .getDirViews().size());
   }
 
   @Test
   public void getDirViewTest() throws Exception {
     // Default MEM tier has two dirs
-    for (int dirIndex = 0; dirIndex < EvictorTestUtils.TIER_PATH[TEST_TIER_LEVEL].length;
-         dirIndex ++) {
+    for (int dirIndex = 0; dirIndex < EvictorTestUtils.TIER_PATH[TEST_TIER_LEVEL].length; dirIndex ++) {
       Assert.assertEquals(dirIndex, mTestTierView.getDirView(dirIndex).getDirViewIndex());
     }
   }
@@ -77,12 +75,12 @@ public class StorageTierViewTest {
   }
 
   @Test
-  public void getTierViewAliasTest() throws Exception {
+  public void getTierViewAliasTest() {
     Assert.assertEquals(mTestTier.getTierAlias(), mTestTierView.getTierViewAlias());
   }
 
   @Test
-  public void getTierViewLevelTest() throws Exception {
+  public void getTierViewLevelTest() {
     Assert.assertEquals(mTestTier.getTierLevel(), mTestTierView.getTierViewLevel());
   }
 }
