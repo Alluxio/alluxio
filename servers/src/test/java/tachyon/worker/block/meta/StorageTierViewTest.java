@@ -62,7 +62,8 @@ public class StorageTierViewTest {
   @Test
   public void getDirViewTest() throws Exception {
     // Default MEM tier has two dirs
-    for (int dirIndex = 0; dirIndex < EvictorTestUtils.TIER_PATH[TEST_TIER_LEVEL].length; dirIndex ++) {
+    for (int dirIndex = 0; dirIndex < EvictorTestUtils.TIER_PATH[TEST_TIER_LEVEL].length;
+         dirIndex ++) {
       Assert.assertEquals(dirIndex, mTestTierView.getDirView(dirIndex).getDirViewIndex());
     }
   }
