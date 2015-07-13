@@ -28,7 +28,7 @@ import io.netty.buffer.Unpooled;
 
 import tachyon.network.protocol.databuffer.DataByteBuffer;
 
-public class RPCBlockResponseTest {
+public class RPCBlockReadResponseTest {
   private static final long BLOCK_ID = 1;
   private static final long OFFSET = 2;
   // The RPCMessageEncoder sends the payload separately from the message, so these unit tests only
