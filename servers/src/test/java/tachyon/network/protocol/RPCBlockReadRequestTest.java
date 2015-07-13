@@ -22,7 +22,7 @@ import org.junit.Test;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-public class RPCBlockRequestTest {
+public class RPCBlockReadRequestTest {
   private static final long BLOCK_ID = 11;
   private static final long OFFSET = 22;
   private static final long LENGTH = 33;
