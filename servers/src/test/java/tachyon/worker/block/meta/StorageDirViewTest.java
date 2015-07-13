@@ -1,6 +1,7 @@
 package tachyon.worker.block.meta;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.hamcrest.CoreMatchers;
@@ -49,12 +50,12 @@ public class StorageDirViewTest {
   }
 
   @Test
-  public void getDirViewIndexTest() throws Exception {
+  public void getDirViewIndexTest() {
     Assert.assertEquals(mTestDir.getDirIndex(), mTestDirView.getDirViewIndex());
   }
 
   @Test
-  public void getParentTierViewTest() throws Exception {
+  public void getParentTierViewTest() {
     Assert.assertEquals(mTestTierView, mTestDirView.getParentTierView());
   }
 
@@ -64,22 +65,22 @@ public class StorageDirViewTest {
   }
 
   @Test
-  public void getCapacityBytesTest() throws Exception {
+  public void getCapacityBytesTest() {
     Assert.assertEquals(mTestDir.getCapacityBytes(), mTestDirView.getCapacityBytes());
   }
 
   @Test
-  public void getAvailableBytesTest() throws Exception {
+  public void getAvailableBytesTest() {
     Assert.assertEquals(mTestDir.getAvailableBytes(), mTestDirView.getAvailableBytes());
   }
 
   @Test
-  public void getCommittedBytesTest() throws Exception {
+  public void getCommittedBytesTest() {
     Assert.assertEquals(mTestDir.getCommittedBytes(), mTestDirView.getCommittedBytes());
   }
 
   @Test
-  public void getEvictableBlocksTest() throws Exception {
+  public void getEvictableBlocksTest() throws IOException {
     // When test dir is empty, expect no block to be evictable
     Assert.assertEquals(0, mTestDirView.getEvitableBytes());
     Assert.assertEquals(0, mTestDirView.getEvictableBlocks().size());
@@ -112,7 +113,7 @@ public class StorageDirViewTest {
   }
 
   @Test
-  public void createTempBlockMetaTest() throws Exception {
+  public void createTempBlockMetaTest() {
     TempBlockMeta tempBlockMeta =
         mTestDirView.createTempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE);
     Assert.assertEquals(TEST_USER_ID, tempBlockMeta.getUserId());
