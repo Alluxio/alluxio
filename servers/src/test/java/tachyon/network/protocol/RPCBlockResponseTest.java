@@ -42,15 +42,15 @@ public class RPCBlockResponseTest {
   private ByteBuf mBuffer = null;
 
   private void assertValid(long blockId, long offset, long length, RPCResponse.Status status,
-      RPCBlockResponse resp) {
-    Assert.assertEquals(RPCMessage.Type.RPC_BLOCK_RESPONSE, resp.getType());
+      RPCBlockReadResponse resp) {
+    Assert.assertEquals(RPCMessage.Type.RPC_BLOCK_READ_RESPONSE, resp.getType());
     Assert.assertEquals(blockId, resp.getBlockId());
     Assert.assertEquals(offset, resp.getOffset());
     Assert.assertEquals(length, resp.getLength());
     Assert.assertEquals(status, resp.getStatus());
   }
 
-  private void assertValid(RPCBlockResponse resp) {
+  private void assertValid(RPCBlockReadResponse resp) {
     try {
       resp.validate();
     } catch (Exception e) {
@@ -65,7 +65,7 @@ public class RPCBlockResponseTest {
 
   @Test
   public void encodedLengthTest() {
-    RPCBlockResponse resp = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
+    RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
     int encodedLength = resp.getEncodedLength();
     resp.encode(mBuffer);
     Assert.assertEquals(encodedLength, mBuffer.readableBytes());
@@ -73,16 +73,16 @@ public class RPCBlockResponseTest {
 
   @Test
   public void encodeDecodeTest() {
-    RPCBlockResponse resp = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
+    RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
     resp.encode(mBuffer);
-    RPCBlockResponse resp2 = RPCBlockResponse.decode(mBuffer);
+    RPCBlockReadResponse resp2 = RPCBlockReadResponse.decode(mBuffer);
     assertValid(BLOCK_ID, OFFSET, LENGTH, STATUS, resp);
     assertValid(BLOCK_ID, OFFSET, LENGTH, STATUS, resp2);
   }
 
   @Test
   public void validateTest() {
-    RPCBlockResponse resp = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
+    RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
     assertValid(resp);
   }
 
@@ -90,22 +90,22 @@ public class RPCBlockResponseTest {
   public void getPayloadDataBufferTest() {
     int length = 10;
     DataByteBuffer payload = new DataByteBuffer(ByteBuffer.allocate(length), length);
-    RPCBlockResponse resp = new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, payload, STATUS);
+    RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, payload, STATUS);
     assertValid(resp);
     Assert.assertEquals(payload, resp.getPayloadDataBuffer());
   }
 
   @Test
   public void createErrorResponseTest() {
-    RPCBlockRequest req = new RPCBlockRequest(BLOCK_ID, OFFSET, LENGTH);
+    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH);
 
     for (RPCResponse.Status status : RPCResponse.Status.values()) {
       if (status == RPCResponse.Status.SUCCESS) {
         // cannot create an error response with a SUCCESS status.
         mThrown.expect(IllegalArgumentException.class);
-        RPCBlockResponse.createErrorResponse(req, status);
+        RPCBlockReadResponse.createErrorResponse(req, status);
       } else {
-        RPCBlockResponse resp = RPCBlockResponse.createErrorResponse(req, status);
+        RPCBlockReadResponse resp = RPCBlockReadResponse.createErrorResponse(req, status);
         assertValid(BLOCK_ID, OFFSET, 0, status, resp);
       }
     }

@@ -33,8 +33,8 @@ public abstract class RPCMessage implements EncodedMessage {
   public enum Type implements EncodedMessage {
     RPC_ERROR_RESPONSE(0),
     // TODO: rename these to RPC_BLOCK_READ_*
-    RPC_BLOCK_REQUEST(1),
-    RPC_BLOCK_RESPONSE(2),
+    RPC_BLOCK_READ_REQUEST(1),
+    RPC_BLOCK_READ_RESPONSE(2),
     RPC_BLOCK_WRITE_REQUEST(3),
     RPC_BLOCK_WRITE_RESPONSE(4);
 
@@ -82,9 +82,9 @@ public abstract class RPCMessage implements EncodedMessage {
         case 0:
           return RPC_ERROR_RESPONSE;
         case 1:
-          return RPC_BLOCK_REQUEST;
+          return RPC_BLOCK_READ_REQUEST;
         case 2:
-          return RPC_BLOCK_RESPONSE;
+          return RPC_BLOCK_READ_RESPONSE;
         case 3:
           return RPC_BLOCK_WRITE_REQUEST;
         case 4:
@@ -154,10 +154,10 @@ public abstract class RPCMessage implements EncodedMessage {
     switch (type) {
       case RPC_ERROR_RESPONSE:
         return RPCErrorResponse.decode(in);
-      case RPC_BLOCK_REQUEST:
-        return RPCBlockRequest.decode(in);
-      case RPC_BLOCK_RESPONSE:
-        return RPCBlockResponse.decode(in);
+      case RPC_BLOCK_READ_REQUEST:
+        return RPCBlockReadRequest.decode(in);
+      case RPC_BLOCK_READ_RESPONSE:
+        return RPCBlockReadResponse.decode(in);
       case RPC_BLOCK_WRITE_REQUEST:
         return RPCBlockWriteRequest.decode(in);
       case RPC_BLOCK_WRITE_RESPONSE:
