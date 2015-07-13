@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.RemoteBlockReader;
+import tachyon.network.protocol.RPCResponse;
 import tachyon.worker.DataServerMessage;
 
 /**
@@ -66,7 +67,7 @@ public final class TCPRemoteBlockReader implements RemoteBlockReader {
       }
       LOG.info("Data " + blockId + " from remote machine " + address + " received");
 
-      if (recvMsg.getBlockId() < 0) {
+      if (recvMsg.getStatus() != RPCResponse.Status.SUCCESS) {
         LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
         return null;
       }
