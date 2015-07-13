@@ -26,8 +26,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.worker.block.BlockMetadataManagerView;
@@ -56,7 +54,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
   public LRUEvictor(BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view);
+    mManagerView = view;
 
     // preload existing blocks loaded by StorageDir to Evictor
     for (StorageTierView tierView : mManagerView.getTierViews()) {
