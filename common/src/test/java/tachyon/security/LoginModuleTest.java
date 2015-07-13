@@ -47,4 +47,20 @@ public class LoginModuleTest {
     // verify whether OS user is fetched
     Assert.assertFalse(subject.getPrincipals(clazz).isEmpty());
   }
+
+  /**
+   * This test verify whether the Tachyon login module works in JAAS framework
+   * @throws Exception
+   */
+  @Test
+  public void tachyonLoginModuleTest() throws Exception {
+    // login, find a OS user, and add corresponding Tachyon user into subject
+    Subject subject = new Subject();
+    LoginContext loginContext = new LoginContext("simple", subject, null,
+        new UserInformation.TachyonJaasConfiguration());
+    loginContext.login();
+
+    // verify whether Tachyon user is added
+    Assert.assertFalse(subject.getPrincipals(User.class).isEmpty());
+  }
 }
