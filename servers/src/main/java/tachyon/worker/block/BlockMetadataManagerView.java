@@ -73,12 +73,6 @@ public class BlockMetadataManagerView {
     }
   }
 
-  // TODO: this is only used for {@link EvictorUtils#validCascadingPlan}, remove this when
-  // validCascadingPlan is removed from LRUEvictor
-  public BlockMetadataManager getMetadataManager() {
-    return mMetadataManager;
-  }
-
   /**
    * Test if the block is pinned.
    *
