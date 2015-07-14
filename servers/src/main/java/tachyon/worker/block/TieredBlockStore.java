@@ -140,11 +140,11 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public TempBlockMeta createBlockMeta(long userId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws IOException {
-    mEvictionLock.readLock().lock();
+    mEvictionLock.writeLock().lock();
     try {
       return createBlockMetaNoLock(userId, blockId, location, initialBlockSize);
     } finally {
-      mEvictionLock.readLock().unlock();
+      mEvictionLock.writeLock().unlock();
     }
   }
 
@@ -344,18 +344,7 @@ public class TieredBlockStore implements BlockStore {
         userId, blockId, initialBlockSize, location, getUpdatedView());
     if (tempBlock == null) {
       // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
-
-      // Upgrade to write lock to guard evictor. This is not a real "upgrade" and things can
-      // happen between unlock and lock.
-      mEvictionLock.readLock().unlock();
-      mEvictionLock.writeLock().lock();
-      try {
-        freeSpaceInternal(userId, initialBlockSize, location);
-      } finally {
-        // Downgrade to read lock again after eviction. Lock before unlock is intentional.
-        mEvictionLock.readLock().lock();
-        mEvictionLock.writeLock().unlock();
-      }
+      freeSpaceInternal(userId, initialBlockSize, location);
       tempBlock = mAllocator.allocateBlockWithView(
           userId, blockId, initialBlockSize, location, getUpdatedView());
       Preconditions.checkNotNull(tempBlock, "Cannot allocate block %s:", blockId);
