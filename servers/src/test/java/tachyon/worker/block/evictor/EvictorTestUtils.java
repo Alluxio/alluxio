@@ -48,7 +48,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
 /**
  * This class provides utility methods for testing Evictors.
  */
-class EvictorTestUtils {
+public class EvictorTestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
