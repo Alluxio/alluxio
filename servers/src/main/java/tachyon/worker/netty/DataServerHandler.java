@@ -92,8 +92,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     ctx.close();
   }
 
-  private void handleBlockReadRequest(final ChannelHandlerContext ctx, final RPCBlockReadRequest req)
-      throws IOException {
+  private void handleBlockReadRequest(final ChannelHandlerContext ctx,
+      final RPCBlockReadRequest req) throws IOException {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
