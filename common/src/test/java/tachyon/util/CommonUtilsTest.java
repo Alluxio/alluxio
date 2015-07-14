@@ -64,7 +64,6 @@ public class CommonUtilsTest {
 
   @Test
   public void concatPath() {
-    Assert.assertEquals("", CommonUtils.concatPath());
     Assert.assertEquals("/", CommonUtils.concatPath("/"));
     Assert.assertEquals("/", CommonUtils.concatPath("/", ""));
     Assert.assertEquals("/bar", CommonUtils.concatPath("/", "bar"));
@@ -72,10 +71,6 @@ public class CommonUtilsTest {
     Assert.assertEquals("foo", CommonUtils.concatPath("foo"));
     Assert.assertEquals("/foo", CommonUtils.concatPath("/foo"));
     Assert.assertEquals("/foo", CommonUtils.concatPath("/foo", ""));
-
-    // Null
-    Assert.assertEquals("/", CommonUtils.concatPath("/", null));
-    Assert.assertEquals("foo", CommonUtils.concatPath(null, "foo"));
 
     // Join base without trailing "/"
     Assert.assertEquals("/foo/bar", CommonUtils.concatPath("/foo", "bar"));
