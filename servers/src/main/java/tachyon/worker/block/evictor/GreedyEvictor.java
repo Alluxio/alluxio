@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Pair;
+import tachyon.exception.InvalidArgumentException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
@@ -47,7 +48,7 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
 
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-      BlockMetadataManagerView view) throws IOException {
+      BlockMetadataManagerView view) throws InvalidArgumentException {
     mManagerView = view;
     return freeSpace(availableBytes, location);
   }
@@ -73,7 +74,7 @@ public class GreedyEvictor extends BlockStoreEventListenerBase implements Evicto
    * @throws IOException if given block location is invalid
    */
   private EvictionPlan freeSpace(long availableBytes, BlockStoreLocation location)
-      throws IOException {
+      throws InvalidArgumentException {
     // 1. Select a StorageDirView that has enough capacity for required bytes.
     StorageDirView selectedDirView = null;
     if (location.equals(BlockStoreLocation.anyTier())) {

@@ -16,7 +16,6 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -26,12 +25,12 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.NotFoundException;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
 import tachyon.util.ThreadFactoryUtils;
 
 /**
@@ -157,11 +156,7 @@ public class BlockMasterSync implements Runnable {
 
       // Check if any users have become zombies, if so clean them up
       // TODO: Make this unrelated to master sync
-      try {
-        mBlockDataManager.cleanupUsers();
-      } catch (IOException ioe) {
-        LOG.error("Failed to clean up users", ioe);
-      }
+      mBlockDataManager.cleanupUsers();
     }
   }
 
@@ -194,7 +189,11 @@ public class BlockMasterSync implements Runnable {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
-          mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
+          try {
+            mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
+          } catch (NotFoundException nfe) {
+            throw new IOException(nfe);
+          }
         }
         break;
       // No action required

@@ -18,8 +18,11 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.Set;
 
-import com.google.common.base.Optional;
-
+import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.FailedPreconditionException;
+import tachyon.exception.InvalidArgumentException;
+import tachyon.exception.NotFoundException;
+import tachyon.exception.OutOfSpaceException;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
@@ -28,35 +31,31 @@ import tachyon.worker.block.meta.TempBlockMeta;
 /**
  * A blob store interface to represent the local storage managing and serving all the blocks in the
  * local storage.
- * <p>
- * TODO: define customized Exceptions to better indicate the failure reason, rather than always
- * throwing IOException
  */
 interface BlockStore {
 
   /**
-   * Locks an existing block and guards subsequent READs on this block. In case the block doesn't
-   * exist (e.g., evicted already), throw IOException.
+   * Locks an existing block and guards subsequent READs on this block.
    *
    * @param userId the ID of the user to lock this block
    * @param blockId the ID of the block to lock
    * @return the lock ID if the lock is acquired successfully
-   * @throws IOException if blockId is invalid
+   * @throws NotFoundException if blockId can not be found, for example, evicted already.
    */
-  long lockBlock(long userId, long blockId) throws IOException;
+  long lockBlock(long userId, long blockId) throws NotFoundException;
 
   /**
    * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock}).
    *
    * @param lockId the ID of the lock returned by {@link #lockBlock}
-   * @throws IOException if lockId is invalid
+   * @throws NotFoundException if lockId can not be found
    */
-  void unlockBlock(long lockId) throws IOException;
+  void unlockBlock(long lockId) throws NotFoundException;
 
   /**
    * NOTE: temporary, will be removed after changing client side code.
    */
-  void unlockBlock(long userId, long blockId) throws IOException;
+  void unlockBlock(long userId, long blockId) throws NotFoundException;
 
   /**
    * Creates the meta data of a new block and assigns a temporary path (e.g., a subdir of the final
@@ -73,20 +72,23 @@ interface BlockStore {
    * @param location location to create this block
    * @param initialBlockSize initial size of this block in bytes
    * @return metadata of the temp block created
-   * @throws IOException if blockId or location is invalid, or this Store has no space
+   * @throws AlreadyExistsException if blockId already exists, either is temporary or committed
+   * @throws InvalidArgumentException if location does not belong to tiered storage
+   * @throws OutOfSpaceException if this Store has no more space than the initialBlockSize
    */
   TempBlockMeta createBlockMeta(long userId, long blockId, BlockStoreLocation location,
-      long initialBlockSize) throws IOException;
+      long initialBlockSize) throws AlreadyExistsException, InvalidArgumentException,
+      OutOfSpaceException;
 
   /**
-   * Gets the metadata of a block given its blockId or throws IOException. This method does not
-   * require a lock ID so the block is possible to be moved or removed after it returns.
+   * Gets the metadata of a block given its blockId or throws NotFoundException. This method does
+   * not require a lock ID so the block is possible to be moved or removed after it returns.
    *
    * @param blockId the block ID
    * @return metadata of the block
-   * @throws IOException if no BlockMeta for this blockId is found
+   * @throws NotFoundException if no BlockMeta for this blockId is found
    */
-  BlockMeta getVolatileBlockMeta(long blockId) throws IOException;
+  BlockMeta getVolatileBlockMeta(long blockId) throws NotFoundException;
 
   /**
    * Gets the meta data of a specific block from local storage.
@@ -97,9 +99,13 @@ interface BlockStore {
    * @param blockId the ID of the block
    * @param lockId the ID of the lock
    * @return metadata of the block
-   * @throws IOException if the block can not be found
+   * @throws NotFoundException if the blockId can not be found in committed blocks or lockId can not
+   *         be found
+   * @throws FailedPreconditionException if userId or blockId is not the same as that in the
+   *         LockRecord of lockId
    */
-  BlockMeta getBlockMeta(long userId, long blockId, long lockId) throws IOException;
+  BlockMeta getBlockMeta(long userId, long blockId, long lockId) throws NotFoundException,
+      FailedPreconditionException;
 
   /**
    * Commits a temporary block to the local store. After commit, the block will be available in this
@@ -108,9 +114,14 @@ interface BlockStore {
    *
    * @param userId the ID of the user
    * @param blockId the ID of a temp block
-   * @throws IOException if the block can not be found or moved
+   * @throws AlreadyExistsException if blockId already exists in committed blocks
+   * @throws NotFoundException if the temporary block can not be found
+   * @throws FailedPreconditionException if blockId does not belong to userId
+   * @throws IOException if the block can not be moved from temporary path to committed path
+   * @throws OutOfSpaceException if there is no more space left to hold the block
    */
-  void commitBlock(long userId, long blockId) throws IOException;
+  void commitBlock(long userId, long blockId) throws AlreadyExistsException, NotFoundException,
+      FailedPreconditionException, IOException, OutOfSpaceException;
 
   /**
    * Aborts a temporary block. The meta data of this block will not be added, its data will be
@@ -119,9 +130,13 @@ interface BlockStore {
    *
    * @param userId the ID of the user
    * @param blockId the ID of a temp block
-   * @throws IOException if the block is invalid or committed or can not be removed
+   * @throws AlreadyExistsException if blockId already exists in committed blocks
+   * @throws NotFoundException if the temporary block can not be found
+   * @throws FailedPreconditionException if blockId does not belong to userId
+   * @throws IOException if temporary block can not be deleted
    */
-  void abortBlock(long userId, long blockId) throws IOException;
+  void abortBlock(long userId, long blockId) throws AlreadyExistsException, NotFoundException,
+      FailedPreconditionException, IOException;
 
   /**
    * Requests to increase the size of a temp block. Since a temp block is "private" to the writer
@@ -129,10 +144,13 @@ interface BlockStore {
    *
    * @param userId the ID of the user to request space
    * @param blockId the ID of the temp block
-   * @param additionalBytes the amount of more space to request in bytes
-   * @throws IOException if there is not enough space or other blocks fail to be moved/evicted
+   * @param additionalBytes the amount of more space to request in bytes, never be less than 0
+   * @throws NotFoundException if blockId can not be found
+   * @throws InvalidArgumentException if additionalBytes is less than zero
+   * @throws OutOfSpaceException if requested space can not be satisfied
    */
-  void requestSpace(long userId, long blockId, long additionalBytes) throws IOException;
+  void requestSpace(long userId, long blockId, long additionalBytes) throws NotFoundException,
+      InvalidArgumentException, OutOfSpaceException;
 
   /**
    * Creates a writer to write data to a temp block. Since the temp block is "private" to the
@@ -141,9 +159,10 @@ interface BlockStore {
    * @param userId the ID of the user to get the writer
    * @param blockId the ID of the temp block
    * @return a {@link BlockWriter} instance on this block
-   * @throws IOException if the blockId is invalid, or block can not be created
+   * @throws NotFoundException if the block can not be found
+   * @throws IOException if block can not be created
    */
-  BlockWriter getBlockWriter(long userId, long blockId) throws IOException;
+  BlockWriter getBlockWriter(long userId, long blockId) throws NotFoundException, IOException;
 
   /**
    * Creates a reader of an existing block to read data from this block.
@@ -154,28 +173,40 @@ interface BlockStore {
    * @param blockId the ID of an existing block
    * @param lockId the ID of the lock returned by {@link #lockBlock}
    * @return a {@link BlockReader} instance on this block
-   * @throws IOException if the blockId or lockId is invalid, or block can not be read
+   * @throws NotFoundException if lockId is not found
+   * @throws FailedPreconditionException if userId or blockId is not the same as that in the
+   *         LockRecord of lockId
+   * @throws IOException if block can not be read
    */
-  BlockReader getBlockReader(long userId, long blockId, long lockId) throws IOException;
+  BlockReader getBlockReader(long userId, long blockId, long lockId) throws NotFoundException,
+      FailedPreconditionException, IOException;
 
   /**
-   * Moves an existing block to a new location. If the block can not be found, throw IOException.
+   * Moves an existing block to a new location.
    *
    * @param userId the ID of the user to move a block
    * @param blockId the ID of an existing block
    * @param newLocation the location of the destination
-   * @throws IOException if blockId or newLocation is invalid, or block cannot be moved
+   * @throws NotFoundException if blockId can not be found
+   * @throws AlreadyExistsException if blockId already exists in committed blocks of the newLocation
+   * @throws FailedPreconditionException if blockId has not been committed
+   * @throws InvalidArgumentException if newLocation does not belong to the tiered storage
+   * @throws OutOfSpaceException if newLocation does not have enough extra space to hold the block
+   * @throws IOException if block cannot be moved from current location to newLocation
    */
-  void moveBlock(long userId, long blockId, BlockStoreLocation newLocation) throws IOException;
+  void moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
+      throws NotFoundException, AlreadyExistsException, FailedPreconditionException,
+      InvalidArgumentException, OutOfSpaceException, IOException;
 
   /**
-   * Removes an existing block. If the block can not be found in this store, throw IOException.
+   * Removes an existing block. If the block can not be found in this store.
    *
    * @param userId the ID of the user to remove a block
    * @param blockId the ID of an existing block
-   * @throws IOException if blockId is invalid, or block cannot be removed
+   * @throws NotFoundException if block can not be found
+   * @throws IOException if block cannot be removed from current path
    */
-  void removeBlock(long userId, long blockId) throws IOException;
+  void removeBlock(long userId, long blockId) throws NotFoundException, IOException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly
@@ -183,8 +214,9 @@ interface BlockStore {
    *
    * @param userId the ID of the user to access a block
    * @param blockId the ID of an accessed block
+   * @throws NotFoundException if the blockId is not found
    */
-  void accessBlock(long userId, long blockId) throws IOException;
+  void accessBlock(long userId, long blockId) throws NotFoundException;
 
   /**
    * Gets the meta data of the entire store in a snapshot. There is no guarantee the state will
@@ -208,9 +240,8 @@ interface BlockStore {
    * user, and deleting the user temporary folder.
    *
    * @param userId the user ID
-   * @throws IOException if block can not be deleted or locks can not be released
    */
-  void cleanupUser(long userId) throws IOException;
+  void cleanupUser(long userId);
 
   /**
    * Frees space to make a specific amount of bytes available in the location.
@@ -218,9 +249,11 @@ interface BlockStore {
    * @param userId the user ID
    * @param availableBytes the amount of free space in bytes
    * @param location the location to free space
-   * @throws IOException if location is invalid, or there is not enough space, or eviction failed
+   * @throws InvalidArgumentException if location does not belong to tiered storage
+   * @throws OutOfSpaceException if eviction fails or there is not enough space
    */
-  void freeSpace(long userId, long availableBytes, BlockStoreLocation location) throws IOException;
+  void freeSpace(long userId, long availableBytes, BlockStoreLocation location)
+      throws InvalidArgumentException, OutOfSpaceException;
 
   /**
    * Registers a {@link BlockStoreEventListener} to this block store.

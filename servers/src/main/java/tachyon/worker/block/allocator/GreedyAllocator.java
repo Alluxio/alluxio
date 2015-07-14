@@ -15,8 +15,7 @@
 
 package tachyon.worker.block.allocator;
 
-import java.io.IOException;
-
+import tachyon.exception.InvalidArgumentException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDirView;
@@ -36,7 +35,7 @@ public class GreedyAllocator implements Allocator {
 
   @Override
   public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
-      BlockStoreLocation location, BlockMetadataManagerView view) throws IOException {
+      BlockStoreLocation location, BlockMetadataManagerView view) throws InvalidArgumentException {
     mManagerView = view;
     return allocateBlock(userId, blockId, blockSize, location);
   }
@@ -51,10 +50,10 @@ public class GreedyAllocator implements Allocator {
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @return a temp block meta if success, null otherwise
-   * @throws IOException if block location is invalid
+   * @throws InvalidArgumentException if block location is invalid
    */
   private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
-      BlockStoreLocation location) throws IOException {
+      BlockStoreLocation location) throws InvalidArgumentException {
     if (location.equals(BlockStoreLocation.anyTier())) {
       // When any tier is ok, loop over all tier views and dir views,
       // and return a temp block meta from the first available dirview.
