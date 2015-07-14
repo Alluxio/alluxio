@@ -159,9 +159,11 @@ public class LocalBlockOutStream extends BlockOutStream {
     if (!mClosed) {
       flush();
       mCloser.close();
-      mTachyonFS.cacheBlock(mBlockId);
+      if (mWrittenBytes > 0) {
+        mTachyonFS.cacheBlock(mBlockId);
+        mTachyonFS.getClientMetrics().incBlocksWrittenLocal(1);
+      }
       mClosed = true;
-      mTachyonFS.getClientMetrics().incBlocksWrittenLocal(1);
     }
   }
 
