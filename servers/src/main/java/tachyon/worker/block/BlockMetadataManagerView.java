@@ -32,9 +32,9 @@ import tachyon.worker.block.meta.StorageTierView;
 
 /**
  * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators,
- * filtering out un-evictable blocks and un-allocatable space (TODO) internally, so that
- * evictors and allocators can be developed with much simpler logic, without worrying about
- * various constraints, e.g. pinned files, locked blocks, etc.
+ * filtering out un-evictable blocks and un-allocatable space (TODO) internally, so that evictors
+ * and allocators can be developed with much simpler logic, without worrying about various
+ * constraints, e.g. pinned files, locked blocks, etc.
  */
 public class BlockMetadataManagerView {
 
@@ -51,8 +51,7 @@ public class BlockMetadataManagerView {
 
 
   /**
-   * Constructor of BlockMatadataManagerView.
-   * Now we always creating a new view before freespace.
+   * Constructor of BlockMatadataManagerView. Now we always creating a new view before freespace.
    * TODO: incrementally update the view
    *
    * @param manager which the view should be constructed from
@@ -145,8 +144,8 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Get available bytes given certain location
-   * Redirecting to {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}
+   * Get available bytes given certain location Redirecting to
+   * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}
    *
    * @param location location the check available bytes
    * @return available bytes
@@ -156,8 +155,8 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Return null if block is pinned or currently being locked,
-   * otherwise return {@link BlockMetadataManager#getBlockMeta(long)}
+   * Return null if block is pinned or currently being locked, otherwise return
+   * {@link BlockMetadataManager#getBlockMeta(long)}
    *
    * @param blockId the block ID
    * @return metadata of the block or null

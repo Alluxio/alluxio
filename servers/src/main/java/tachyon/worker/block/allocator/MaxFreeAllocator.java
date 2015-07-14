@@ -17,8 +17,6 @@ package tachyon.worker.block.allocator;
 
 import java.io.IOException;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDirView;
@@ -33,7 +31,7 @@ public class MaxFreeAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
   public MaxFreeAllocator(BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view);
+    mManagerView = view;
   }
 
   @Override
