@@ -93,14 +93,14 @@ public class BlockWorker {
     mTachyonConf = tachyonConf;
     mStartTimeMs = System.currentTimeMillis();
 
-    // Setup metrics collection
-    WorkerSource workerSource = new WorkerSource();
-    mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
-    workerSource.registerGauges(this);
-    mWorkerMetricsSystem.registerSource(workerSource);
-
     // Set up BlockDataManager
+    WorkerSource workerSource = new WorkerSource();
     mBlockDataManager = new BlockDataManager(tachyonConf, workerSource);
+
+    // Setup metrics collection
+    mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
+    workerSource.registerGauges(mBlockDataManager);
+    mWorkerMetricsSystem.registerSource(workerSource);
 
     // Set up DataServer
     int dataServerPort =
@@ -150,16 +150,6 @@ public class BlockWorker {
     // TODO: Fix this hack when we have a top level register
     mBlockDataManager.setUsers(users);
     mBlockDataManager.setWorkerId(workerId);
-  }
-
-  /**
-   * Gets the meta data of the entire store in the form of a
-   * {@link tachyon.worker.block.BlockStoreMeta} object.
-   *
-   * @return the metadata of the worker's block store
-   */
-  public BlockStoreMeta getStoreMeta() {
-    return mBlockDataManager.getStoreMeta();
   }
 
   /**
