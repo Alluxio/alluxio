@@ -29,8 +29,8 @@ import io.netty.channel.ChannelFuture;
 
 import tachyon.Constants;
 import tachyon.client.RemoteBlockReader;
-import tachyon.network.protocol.RPCBlockRequest;
-import tachyon.network.protocol.RPCBlockResponse;
+import tachyon.network.protocol.RPCBlockReadRequest;
+import tachyon.network.protocol.RPCBlockReadResponse;
 import tachyon.network.protocol.RPCErrorResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCResponse;
@@ -62,14 +62,14 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       Channel channel = f.channel();
       SingleResponseListener listener = new SingleResponseListener();
       mHandler.addListener(listener);
-      channel.writeAndFlush(new RPCBlockRequest(blockId, offset, length));
+      channel.writeAndFlush(new RPCBlockReadRequest(blockId, offset, length));
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
       channel.close().sync();
 
       switch (response.getType()) {
-        case RPC_BLOCK_RESPONSE:
-          RPCBlockResponse blockResponse = (RPCBlockResponse) response;
+        case RPC_BLOCK_READ_RESPONSE:
+          RPCBlockReadResponse blockResponse = (RPCBlockReadResponse) response;
           LOG.info("Data " + blockId + " from remote machine " + address + " received");
 
           RPCResponse.Status status = blockResponse.getStatus();
@@ -82,7 +82,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
           throw new IOException(error.getStatus().getMessage());
         default:
           throw new IOException("Unexpected response message type: " + response.getType()
-              + " (expected: " + RPCMessage.Type.RPC_BLOCK_RESPONSE + ")");
+              + " (expected: " + RPCMessage.Type.RPC_BLOCK_READ_RESPONSE + ")");
       }
     } catch (Exception e) {
       throw new IOException(e);
