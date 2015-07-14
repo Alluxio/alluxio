@@ -68,7 +68,8 @@ public final class TCPRemoteBlockReader implements RemoteBlockReader {
       LOG.info("Data " + blockId + " from remote machine " + address + " received");
 
       if (recvMsg.getStatus() != RPCResponse.Status.SUCCESS) {
-        LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
+        LOG.error("Error in response for blockId: " + recvMsg.getBlockId() + " message: "
+            + recvMsg.getStatus().getMessage());
         return null;
       }
 
