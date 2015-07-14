@@ -36,6 +36,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.NotFoundException;
 import tachyon.worker.DataServer;
 import tachyon.worker.DataServerMessage;
 import tachyon.worker.block.BlockDataManager;
@@ -174,7 +175,7 @@ public class NIODataServer implements Runnable, DataServer {
     return mShutdownComplete;
   }
 
-  private void read(SelectionKey key) throws IOException {
+  private void read(SelectionKey key) throws Exception {
     SocketChannel socketChannel = (SocketChannel) key.channel();
 
     DataServerMessage tMessage;
@@ -314,7 +315,7 @@ public class NIODataServer implements Runnable, DataServer {
       // TODO: Reconsider how we handle this exception
       try {
         mDataManager.unlockBlock(sendMessage.getLockId());
-      } catch (IOException ioe) {
+      } catch (NotFoundException ioe) {
         LOG.error("Failed to unlock block: " + sendMessage.getBlockId(), ioe);
       }
     }

@@ -15,7 +15,6 @@
 
 package tachyon.worker.block;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +24,8 @@ import java.util.HashSet;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.exception.InvalidArgumentException;
+import tachyon.exception.NotFoundException;
 import tachyon.master.BlockInfo;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageTier;
@@ -108,14 +109,14 @@ public class BlockMetadataManagerView {
    *
    * @param tierAlias the alias of this tierView
    * @return the StorageTierView object associated with the alias
-   * @throws IOException if tierAlias is not found
+   * @throws InvalidArgumentException if tierAlias is not found
    */
-  public StorageTierView getTierView(int tierAlias) throws IOException {
+  public StorageTierView getTierView(int tierAlias) throws InvalidArgumentException {
     // TODO: can we ensure the returning tierview is same as
     // new StorageTierView(mMetadataManager.getTier(tierAlias)) ?
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
     if (null == tierView) {
-      throw new IOException("Cannot find tier view with alias: " + tierAlias);
+      throw new InvalidArgumentException("Cannot find tier view with alias: " + tierAlias);
     } else {
       return tierView;
     }
@@ -135,9 +136,9 @@ public class BlockMetadataManagerView {
    *
    * @param tierAlias the alias of a tierView
    * @return the list of StorageTierView
-   * @throws IOException if tierAlias is not found
+   * @throws InvalidArgumentException if tierAlias is not found
    */
-  public List<StorageTierView> getTierViewsBelow(int tierAlias) throws IOException {
+  public List<StorageTierView> getTierViewsBelow(int tierAlias) throws InvalidArgumentException {
     // TODO: similar concern as in getTierView
     int level = getTierView(tierAlias).getTierViewLevel();
     return mTierViews.subList(level + 1, mTierViews.size());
@@ -149,8 +150,9 @@ public class BlockMetadataManagerView {
    *
    * @param location location the check available bytes
    * @return available bytes
+   * @throws InvalidArgumentException if location does not belong to tiered storage
    */
-  public long getAvailableBytes(BlockStoreLocation location) throws IOException {
+  public long getAvailableBytes(BlockStoreLocation location) throws InvalidArgumentException {
     return mMetadataManager.getAvailableBytes(location);
   }
 
@@ -160,9 +162,9 @@ public class BlockMetadataManagerView {
    *
    * @param blockId the block ID
    * @return metadata of the block or null
-   * @throws IOException if no BlockMeta for this blockId is found
+   * @throws NotFoundException if no BlockMeta for this blockId is found
    */
-  public BlockMeta getBlockMeta(long blockId) throws IOException {
+  public BlockMeta getBlockMeta(long blockId) throws NotFoundException {
     if (isBlockEvictable(blockId)) {
       return mMetadataManager.getBlockMeta(blockId);
     } else {

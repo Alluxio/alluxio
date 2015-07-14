@@ -15,7 +15,6 @@
 
 package tachyon.worker.block;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -32,6 +31,8 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
 import tachyon.Constants;
+import tachyon.exception.FailedPreconditionException;
+import tachyon.exception.NotFoundException;
 
 /**
  * Handle all block locks.
@@ -67,15 +68,16 @@ public class BlockLockManager {
   }
 
   /**
-   * Locks a block if it exists, throws IOException otherwise.
+   * Locks a block if it exists, throws NotFoundException otherwise.
    *
    * @param userId the ID of user
    * @param blockId the ID of block
    * @param blockLockType READ or WRITE
    * @return lock id if the block exists
-   * @throws IOException
+   * @throws NotFoundException when blockId can not be found
    */
-  public long lockBlock(long userId, long blockId, BlockLockType blockLockType) throws IOException {
+  public long lockBlock(long userId, long blockId, BlockLockType blockLockType)
+      throws NotFoundException {
     // hashing blockId into the range of [0, NUM_LOCKS-1]
     int hashValue = Math.abs(mHashFunc.hashLong(blockId).asInt()) % NUM_LOCKS;
     ClientRWLock blockLock = mLockArray[hashValue];
@@ -88,7 +90,7 @@ public class BlockLockManager {
     lock.lock();
     if (!mMetaManager.hasBlockMeta(blockId)) {
       lock.unlock();
-      throw new IOException("Failed to lockBlock: no blockId " + blockId + " found");
+      throw new NotFoundException("Failed to lockBlock: no blockId " + blockId + " found");
     }
     long lockId = LOCK_ID_GEN.getAndIncrement();
     synchronized (mSharedMapsLock) {
@@ -104,17 +106,18 @@ public class BlockLockManager {
   }
 
   /**
-   * Releases a lock by its lockId or throw IOException.
+   * Releases a lock by its lockId or throws NotFoundException.
    *
    * @param lockId the ID of the lock
-   * @throws IOException if no lock is associated with this lock
+   * @throws NotFoundException if no lock is associated with this lock id
    */
-  public void unlockBlock(long lockId) throws IOException {
+  public void unlockBlock(long lockId) throws NotFoundException {
     Lock lock;
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
-        throw new IOException("Failed to unlockBlock: lockId " + lockId + " has no lock record");
+        throw new NotFoundException("Failed to unlockBlock: lockId " + lockId
+            + " has no lock record");
       }
       long userId = record.userId();
       lock = record.lock();
@@ -129,13 +132,14 @@ public class BlockLockManager {
   }
 
   // TODO: temporary, remove me later.
-  public void unlockBlock(long userId, long blockId) throws IOException {
+  public void unlockBlock(long userId, long blockId) throws NotFoundException {
     synchronized (mSharedMapsLock) {
       Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
       for (long lockId : userLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (null == record) {
-          throw new IOException("Failed to unlockBlock: lockId " + lockId + " has no lock record");
+          throw new NotFoundException("Failed to unlockBlock: lockId " + lockId
+              + " has no lock record");
         }
         if (blockId == record.blockId()) {
           mLockIdToRecordMap.remove(lockId);
@@ -148,7 +152,8 @@ public class BlockLockManager {
           return;
         }
       }
-      throw new IOException("Failed to unlock blockId " + blockId + " for userId " + userId);
+      throw new NotFoundException("Failed to unlock blockId " + blockId + " for userId " + userId
+          + ": no lock is found for userId " + userId);
     }
   }
 
@@ -158,20 +163,25 @@ public class BlockLockManager {
    * @param userId The ID of the user
    * @param blockId The ID of the block
    * @param lockId The ID of the lock
+   * @throws NotFoundException when no lock record can be found for lockId
+   * @throws FailedPreconditionException when userId or blockId is not consistent with that in the
+   *         lock record for lockId
    */
-  public void validateLock(long userId, long blockId, long lockId) throws IOException {
+  public void validateLock(long userId, long blockId, long lockId) throws NotFoundException,
+      FailedPreconditionException {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
-        throw new IOException("Failed to validateLock: lockId " + lockId + " has no lock record");
+        throw new NotFoundException("Failed to validateLock: lockId " + lockId
+            + " has no lock record");
       }
       if (userId != record.userId()) {
-        throw new IOException("Failed to validateLock: lockId " + lockId + " is owned by userId "
-            + record.userId() + ", not " + userId);
+        throw new FailedPreconditionException("Failed to validateLock: lockId " + lockId
+            + " is owned by userId " + record.userId() + ", not " + userId);
       }
       if (blockId != record.blockId()) {
-        throw new IOException("Failed to validateLock: lockId " + lockId + " is for blockId "
-            + record.blockId() + ", not " + blockId);
+        throw new FailedPreconditionException("Failed to validateLock: lockId " + lockId
+            + " is for blockId " + record.blockId() + ", not " + blockId);
       }
     }
   }
