@@ -36,6 +36,7 @@ public class EvictorFactory {
     BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
     switch (evictorType) {
       case GREEDY:
+        // NOTE: if reflection is used, we may need to change the constructor
         return new GreedyEvictor();
       case LRU:
         return new LRUEvictor(managerView);
