@@ -35,6 +35,8 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidArgumentException;
+import tachyon.exception.NotFoundException;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreEventListener;
@@ -159,10 +161,10 @@ public class EvictorTestUtils {
    * @param dir the StorageDir the block resides in
    * @param meta the metadata manager to update meta of the block
    * @param evictor the evictor to be informed of the new block
-   * @throws IOException when fail to cache
+   * @throws Exception when fail to cache
    */
   public static void cache(long userId, long blockId, long bytes, StorageDir dir,
-      BlockMetadataManager meta, Evictor evictor) throws IOException {
+      BlockMetadataManager meta, Evictor evictor) throws Exception {
     // prepare temp block
     TempBlockMeta block = new TempBlockMeta(userId, blockId, bytes, dir);
     meta.addTempBlockMeta(block);
@@ -196,10 +198,10 @@ public class EvictorTestUtils {
    * @param plan the eviction plan, should not be null
    * @param meta the metadata manager
    * @return true if the request can be satisfied otherwise false
-   * @throws IOException if can not get meta data of a block
+   * @throws NotFoundException if can not get meta data of a block
    */
   public static boolean requestSpaceSatisfied(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager meta) throws IOException {
+      BlockMetadataManager meta) throws NotFoundException {
     Preconditions.checkNotNull(plan);
 
     List<Long> blockIds = new ArrayList<Long>();
@@ -213,9 +215,13 @@ public class EvictorTestUtils {
       evictedOrMovedBytes += meta.getBlockMeta(blockId).getBlockSize();
     }
 
-    BlockStoreLocation location =
-        meta.getBlockMeta(blockIds.get(0)).getParentDir().toBlockStoreLocation();
-    return (meta.getAvailableBytes(location) + evictedOrMovedBytes) >= bytesToBeAvailable;
+    try {
+      BlockStoreLocation location =
+          meta.getBlockMeta(blockIds.get(0)).getParentDir().toBlockStoreLocation();
+      return (meta.getAvailableBytes(location) + evictedOrMovedBytes) >= bytesToBeAvailable;
+    } catch (InvalidArgumentException iae) {
+      throw new RuntimeException(iae);
+    }
   }
 
   /**
@@ -224,10 +230,10 @@ public class EvictorTestUtils {
    * @param plan the eviction plan
    * @param meta the meta data manager
    * @return true if blocks are in the same dir otherwise false
-   * @throws IOException if fail to get meta data of a block
+   * @throws NotFoundException if fail to get meta data of a block
    */
   public static boolean blocksInTheSameDir(EvictionPlan plan, BlockMetadataManager meta)
-      throws IOException {
+      throws NotFoundException {
     Preconditions.checkNotNull(plan);
 
     StorageDir dir = null;
@@ -258,10 +264,10 @@ public class EvictorTestUtils {
    * @param metaManager the meta data manager
    * @return true if and only if the plan is not null and both {@link #blocksInTheSameDir} and
    *         {@link #requestSpaceSatisfied} are true, otherwise false
-   * @throws IOException when fail to get meta data of a block
+   * @throws NotFoundException when fail to get meta data of a block
    */
   public static boolean validNonCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws IOException {
+      BlockMetadataManager metaManager) throws NotFoundException {
     Preconditions.checkNotNull(plan);
     return blocksInTheSameDir(plan, metaManager)
         && requestSpaceSatisfied(bytesToBeAvailable, plan, metaManager);
@@ -283,7 +289,7 @@ public class EvictorTestUtils {
    */
   // TODO: unit test this method
   public static boolean validCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws IOException {
+      BlockMetadataManager metaManager) throws Exception {
     // reassure the plan is feasible: enough free space to satisfy bytesToBeAvailable, and enough
     // space in lower tier to move blocks in upper tier there
 
@@ -362,10 +368,10 @@ public class EvictorTestUtils {
    * @param bytesToBeAvailable the requested bytes to be available
    * @param plan the eviction plan, should not be null
    * @param metaManager the meta data manager
-   * @throws IOException when fail to get meta data of a block
+   * @throws Exception when fail
    */
   public static void assertValidPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws IOException {
+      BlockMetadataManager metaManager) throws Exception {
     Assert.assertNotNull(plan);
     Assert.assertTrue(validNonCascadingPlan(bytesToBeAvailable, plan, metaManager)
         || EvictorTestUtils.validCascadingPlan(bytesToBeAvailable, plan, metaManager));

@@ -16,7 +16,6 @@
 package tachyon.worker.block.evictor;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -80,7 +79,7 @@ public class EvictorTest {
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mManagerView =
@@ -92,7 +91,7 @@ public class EvictorTest {
   }
 
   @Test
-  public void noNeedToEvictTest1() throws IOException {
+  public void noNeedToEvictTest1() throws Exception {
     // metadata manager is just created, no cached block in Evictor,
     // so when trying to make sure each dir has free space of its capacity,
     // the eviction plan should be empty.
@@ -105,7 +104,7 @@ public class EvictorTest {
   }
 
   @Test
-  public void noNeedToEvictTest2() throws IOException {
+  public void noNeedToEvictTest2() throws Exception {
     // cache some data in a dir, then request the remaining space from the dir, the eviction plan
     // should be empty.
     StorageDir dir = mTestDir;
@@ -117,7 +116,7 @@ public class EvictorTest {
   }
 
   @Test
-  public void noNeedToEvictTest3() throws IOException {
+  public void noNeedToEvictTest3() throws Exception {
     // fill in all dirs except for one directory, then request the capacity of
     // the directory with anyDirInTier
     StorageDir dirLeft = mTestDir;
@@ -138,7 +137,7 @@ public class EvictorTest {
   }
 
   @Test
-  public void needToEvictTest() throws IOException {
+  public void needToEvictTest() throws Exception {
     // fill in a dir and request the capacity of the dir, all cached data in the dir should be
     // evicted.
     StorageDir dir = mTestDir;
@@ -151,7 +150,7 @@ public class EvictorTest {
   }
 
   @Test
-  public void needToEvictAnyDirInTierTest() throws IOException {
+  public void needToEvictAnyDirInTierTest() throws Exception {
     // cache data with size of "(capacity - 1)" in each dir in a tier, request size of "capacity" of
     // the last dir(whose capacity is largest) in this tier from anyDirInTier(tier), all blocks
     // cached in the last dir should be in the eviction plan.
@@ -172,7 +171,7 @@ public class EvictorTest {
   }
 
   @Test
-  public void needToEvictAnyTierTest() throws IOException {
+  public void needToEvictAnyTierTest() throws Exception {
     // cache data with size of "(capacity - 1)" in each dir in all tiers, request size of minimum
     // "capacity" of all dirs from anyTier
     long minCapacity = Long.MAX_VALUE;
@@ -192,7 +191,7 @@ public class EvictorTest {
   }
 
   @Test
-  public void requestSpaceLargerThanCapacityTest() throws IOException {
+  public void requestSpaceLargerThanCapacityTest() throws Exception {
     // cache data in a dir
     long totalCapacity = mMetaManager.getAvailableBytes(BlockStoreLocation.anyTier());
     StorageDir dir = mTestDir;

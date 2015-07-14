@@ -28,6 +28,8 @@ import org.mockito.Mockito;
 
 import com.google.common.collect.Sets;
 
+import tachyon.exception.InvalidArgumentException;
+import tachyon.exception.NotFoundException;
 import tachyon.master.BlockInfo;
 import tachyon.worker.block.evictor.EvictorTestUtils;
 import tachyon.worker.block.meta.BlockMeta;
@@ -61,7 +63,7 @@ public class BlockMetadataManagerViewTest {
   }
 
   @Test
-  public void getTierViewTest() throws IOException {
+  public void getTierViewTest() throws InvalidArgumentException {
     for (StorageTier tier : mMetaManager.getTiers()) {
       int tierAlias = tier.getTierAlias();
       StorageTierView tierView = mMetaManagerView.getTierView(tierAlias);
@@ -76,7 +78,7 @@ public class BlockMetadataManagerViewTest {
   }
 
   @Test
-  public void getTierViewsBelowTest() throws IOException {
+  public void getTierViewsBelowTest() throws InvalidArgumentException {
     for (StorageTier tier : mMetaManager.getTiers()) {
       int tierAlias = tier.getTierAlias();
       Assert.assertEquals(mMetaManager.getTiersBelow(tierAlias).size(),
@@ -85,7 +87,7 @@ public class BlockMetadataManagerViewTest {
   }
 
   @Test
-  public void getAvailableBytesTest() throws IOException {
+  public void getAvailableBytesTest() throws InvalidArgumentException {
     BlockStoreLocation location;
     // When location represents anyTier
     location = BlockStoreLocation.anyTier();
@@ -107,14 +109,14 @@ public class BlockMetadataManagerViewTest {
   }
 
   @Test
-  public void getBlockMetaNotExistingTest() throws IOException {
-    mThrown.expect(IOException.class);
+  public void getBlockMetaNotExistingTest() throws NotFoundException {
+    mThrown.expect(NotFoundException.class);
     mThrown.expectMessage("Failed to get BlockMeta: blockId " + TEST_BLOCK_ID + " not found");
     mMetaManagerView.getBlockMeta(TEST_BLOCK_ID);
   }
 
   @Test
-  public void getBlockMetaTest() throws IOException {
+  public void getBlockMetaTest() throws Exception {
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_LEVEL).getDir(TEST_DIR);
 
     // Add one block to test dir, expect block meta found
