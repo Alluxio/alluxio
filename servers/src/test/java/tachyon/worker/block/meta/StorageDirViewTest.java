@@ -16,7 +16,6 @@
 package tachyon.worker.block.meta;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import org.hamcrest.CoreMatchers;
@@ -95,7 +94,7 @@ public class StorageDirViewTest {
   }
 
   @Test
-  public void getEvictableBlocksTest() throws IOException {
+  public void getEvictableBlocksTest() throws Exception {
     // When test dir is empty, expect no block to be evictable
     Assert.assertEquals(0, mTestDirView.getEvitableBytes());
     Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
