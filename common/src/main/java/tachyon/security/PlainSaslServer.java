@@ -38,8 +38,8 @@ import javax.security.sasl.SaslServer;
  * 3.Write a JCA provider that registers the factory
  */
 public class PlainSaslServer implements SaslServer {
-  private String authcid;
-  private boolean completed;
+  private String mAuthcid;
+  private boolean mCompleted;
   private CallbackHandler mHandler;
 
   PlainSaslServer(CallbackHandler handler) throws SaslException {
@@ -53,7 +53,7 @@ public class PlainSaslServer implements SaslServer {
 
   @Override
   public byte[] evaluateResponse(byte[] response) throws SaslException {
-    if (completed) {
+    if (mCompleted) {
       throw new IllegalStateException("PLAIN authentication has completed");
     }
     if (response == null) {
@@ -74,23 +74,24 @@ public class PlainSaslServer implements SaslServer {
       if (parts.length != 3) {
         throw new IllegalArgumentException("Received corrupt response");
       }
-      if (parts[0].isEmpty()) { // authzid = authcid
-        parts[0] = parts[1];
-      }
+      String authzid = parts[0];
+      mAuthcid = parts[1];
       String passwd = parts[2];
-      authcid = parts[1];
-      if (authcid == null || authcid.isEmpty()) {
+      if (mAuthcid == null || mAuthcid.isEmpty()) {
         throw new IllegalStateException("No authentication identity provided");
       }
       if (passwd == null || passwd.isEmpty()) {
         throw new IllegalStateException("No password provided");
       }
+      if (authzid == null || authzid.isEmpty()) { // authzid = authcid
+        authzid = mAuthcid;
+      }
 
       NameCallback nameCallback = new NameCallback("User");
-      nameCallback.setName(authcid);
+      nameCallback.setName(mAuthcid);
       PasswordCallback passwordCallback = new PasswordCallback("Password", false);
       passwordCallback.setPassword(passwd.toCharArray());
-      AuthorizeCallback authCallback = new AuthorizeCallback(authcid, parts[0]);
+      AuthorizeCallback authCallback = new AuthorizeCallback(mAuthcid, authzid);
 
       Callback[] cbList = {nameCallback, passwordCallback, authCallback};
       mHandler.handle(cbList);
@@ -102,19 +103,19 @@ public class PlainSaslServer implements SaslServer {
     } catch (UnsupportedCallbackException uce) {
       throw new SaslException("Error validating the login", uce);
     }
-    completed = true;
+    mCompleted = true;
     return null;
   }
 
   @Override
   public boolean isComplete() {
-    return completed;
+    return mCompleted;
   }
 
   @Override
   public String getAuthorizationID() {
     throwIfNotComplete();
-    return authcid;
+    return mAuthcid;
   }
 
   @Override
@@ -137,13 +138,13 @@ public class PlainSaslServer implements SaslServer {
 
   @Override
   public void dispose() {
-    completed = false;
+    mCompleted = false;
     mHandler = null;
-    authcid = null;
+    mAuthcid = null;
   }
 
   private void throwIfNotComplete() {
-    if (!completed) {
+    if (!mCompleted) {
       throw new IllegalStateException("PLAIN authentication not completed");
     }
   }
