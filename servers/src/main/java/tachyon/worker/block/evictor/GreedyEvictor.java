@@ -93,38 +93,33 @@ public class GreedyEvictor implements Evictor {
     for (BlockMeta block : victimBlocks) {
       // TODO: should avoid calling getParentDir
       int fromTierAlias = block.getParentDir().getParentTier().getTierAlias();
-      List<StorageTierView> toTiers = view.getTierViewsBelow(fromTierAlias);
-      StorageDirView destDir = selectDestDir(block, toTiers, pendingBytesInDir);
-      if (destDir == null) {
+      List<StorageTierView> candidateTiers = view.getTierViewsBelow(fromTierAlias);
+      StorageDirView dstDir = selectAvailableDir(block, candidateTiers, pendingBytesInDir);
+      if (dstDir == null) {
         // Not possible to transfer
         toEvict.add(block.getBlockId());
       } else {
-        StorageTierView toTier = destDir.getParentTierView();
+        StorageTierView dstTier = dstDir.getParentTierView();
         toTransfer.add(new Pair<Long, BlockStoreLocation>(block.getBlockId(),
-            new BlockStoreLocation(toTier.getTierViewAlias(), toTier.getTierViewLevel(), destDir
+            new BlockStoreLocation(dstTier.getTierViewAlias(), dstTier.getTierViewLevel(), dstDir
                 .getDirViewIndex())));
-        if (pendingBytesInDir.containsKey(destDir)) {
-          pendingBytesInDir.put(destDir, pendingBytesInDir.get(destDir) + block.getBlockSize());
+        if (pendingBytesInDir.containsKey(dstDir)) {
+          pendingBytesInDir.put(dstDir, pendingBytesInDir.get(dstDir) + block.getBlockSize());
         } else {
-          pendingBytesInDir.put(destDir, block.getBlockSize());
+          pendingBytesInDir.put(dstDir, block.getBlockSize());
         }
       }
     }
     return new EvictionPlan(toTransfer, toEvict);
   }
 
-  /**
-   * Checks if a dir has enough space---including space already available and space might be
-   * available after eviction.
-   *
-   * @param dirView dir to check
-   * @param bytesToBeAvailable requested bytes to be available after eviction
-   * @return true if dir has enough space, false otherwise
-   */
+  // Checks if a dir has enough space---including space already available and space might be
+  // available after eviction.
   private boolean canEvictBlocksFromDir(StorageDirView dirView, long bytesToBeAvailable) {
     return dirView.getAvailableBytes() + dirView.getEvitableBytes() >= bytesToBeAvailable;
   }
 
+  // Selects a dir with enough space (including space evictable) from all tiers
   private StorageDirView selectEvictableDirFromAnyTier(BlockMetadataManagerView view,
       long availableBytes) {
     for (StorageTierView tierView : view.getTierViews()) {
@@ -137,6 +132,7 @@ public class GreedyEvictor implements Evictor {
     return null;
   }
 
+  // Selects a dir with enough space (including space evictable) from a given tier
   private StorageDirView selectEvictableDirFromTier(StorageTierView tierView, long availableBytes) {
     for (StorageDirView dirView : tierView.getDirViews()) {
       if (canEvictBlocksFromDir(dirView, availableBytes)) {
@@ -146,16 +142,16 @@ public class GreedyEvictor implements Evictor {
     return null;
   }
 
-  private StorageDirView selectDestDir(BlockMeta block, List<StorageTierView> toTiers,
+  private StorageDirView selectAvailableDir(BlockMeta block, List<StorageTierView> candidateTiers,
       Map<StorageDirView, Long> pendingBytesInDir) {
-    for (StorageTierView toTier : toTiers) {
-      for (StorageDirView toDir : toTier.getDirViews()) {
+    for (StorageTierView candidateTier : candidateTiers) {
+      for (StorageDirView candidateDir : candidateTier.getDirViews()) {
         long pendingBytes = 0;
-        if (pendingBytesInDir.containsKey(toDir)) {
-          pendingBytes = pendingBytesInDir.get(toDir);
+        if (pendingBytesInDir.containsKey(candidateDir)) {
+          pendingBytes = pendingBytesInDir.get(candidateDir);
         }
-        if (toDir.getAvailableBytes() - pendingBytes >= block.getBlockSize()) {
-          return toDir;
+        if (candidateDir.getAvailableBytes() - pendingBytes >= block.getBlockSize()) {
+          return candidateDir;
         }
       }
     }
