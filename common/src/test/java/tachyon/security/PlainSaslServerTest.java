@@ -21,19 +21,18 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.AuthorizeCallback;
-import javax.security.sasl.SaslException;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
-public class PlainSaslServerTest {
+public class PlainSaslServerTest{
   private static byte sSEPARATOR = 0x00; // US-ASCII <NUL>
-  private static PlainSaslServer sPlainSaslServer = null;
+  private PlainSaslServer mPlainSaslServer = null;
 
-  @BeforeClass
-  public static void setup() throws Exception {
-    sPlainSaslServer = new PlainSaslServer(new MockCallbackHandler());
+  @Before
+  public void setup() throws Exception {
+    mPlainSaslServer = new PlainSaslServer(new MockCallbackHandler());
   }
 
   /**
@@ -60,7 +59,7 @@ public class PlainSaslServerTest {
   @Test
   public void testUserIsNotSet() throws Exception {
     try {
-      sPlainSaslServer.evaluateResponse(getUserInfo("", "anonymous"));
+      mPlainSaslServer.evaluateResponse(getUserInfo("", "anonymous"));
       Assert.fail("expected exception has been happend");
     } catch (Exception e) {
       Assert.assertTrue(e.getMessage().contains("No authentication identity provided"));
@@ -70,7 +69,7 @@ public class PlainSaslServerTest {
   @Test
   public void testPasswordIsNotSet() throws Exception {
     try {
-      sPlainSaslServer.evaluateResponse(getUserInfo("tachyon", ""));
+      mPlainSaslServer.evaluateResponse(getUserInfo("tachyon", ""));
       Assert.fail("expected exception has been happend");
     } catch (Exception e) {
       Assert.assertTrue(e.getMessage().contains("No password provided"));
@@ -79,15 +78,15 @@ public class PlainSaslServerTest {
 
   @Test(expected = IllegalStateException.class)
   public void testAuthenticationHasNotComplete() throws Exception {
-    sPlainSaslServer.getAuthorizationID();
+    mPlainSaslServer.getAuthorizationID();
   }
 
   @Test
   public void testUserPasswordReceive() throws Exception {
     String testUser = "tachyon";
     String password = "anonymous";
-    sPlainSaslServer.evaluateResponse(getUserInfo(testUser, password));
-    Assert.assertEquals(testUser, sPlainSaslServer.getAuthorizationID());
+    mPlainSaslServer.evaluateResponse(getUserInfo(testUser, password));
+    Assert.assertEquals(testUser, mPlainSaslServer.getAuthorizationID());
   }
 
   private static class MockCallbackHandler implements CallbackHandler {
