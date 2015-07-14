@@ -79,9 +79,12 @@ public class RPCBlockReadResponse extends RPCResponse {
     DataBuffer data = null;
     if (length > 0) {
       // TODO: look into accessing Netty ByteBuf directly, to avoid copying the data.
-      ByteBuffer buffer = ByteBuffer.allocate((int) length);
-      in.readBytes(buffer);
-      data = new DataByteBuffer(buffer, (int) length);
+      assert(in.nioBufferCount() == 1);
+      in.retain();
+      data = new DataByteBuffer(in.nioBuffer(), (int)length);
+      //ByteBuffer buffer = ByteBuffer.allocate((int) length);
+      //in.readBytes(buffer);
+      //data = new DataByteBuffer(buffer, (int) length);
     }
     return new RPCBlockReadResponse(blockId, offset, length, data, Status.fromShort(status));
   }

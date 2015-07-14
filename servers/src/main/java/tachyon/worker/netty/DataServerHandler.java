@@ -73,7 +73,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       throws IOException {
     switch (msg.getType()) {
       case RPC_BLOCK_READ_REQUEST:
-        handleBlockRequest(ctx, (RPCBlockReadRequest) msg);
+        handleBlockReadRequest(ctx, (RPCBlockReadRequest) msg);
         break;
       case RPC_BLOCK_WRITE_REQUEST:
         handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
@@ -92,7 +92,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     ctx.close();
   }
 
-  private void handleBlockRequest(final ChannelHandlerContext ctx, final RPCBlockReadRequest req)
+  private void handleBlockReadRequest(final ChannelHandlerContext ctx, final RPCBlockReadRequest req)
       throws IOException {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
