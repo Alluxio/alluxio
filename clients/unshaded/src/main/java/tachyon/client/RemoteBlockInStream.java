@@ -106,7 +106,7 @@ public class RemoteBlockInStream extends BlockInStream {
   private static final int MAX_REMOTE_READ_ATTEMPTS = 2;
 
   /** A reference to the current reader so we can clear it after reading is finished. */
-  private static RemoteBlockReader mUnclearedReader = null;
+  private static RemoteBlockReader sUnclearedReader = null;
 
   /**
    * @param file the file the block belongs to
@@ -317,7 +317,7 @@ public class RemoteBlockInStream extends BlockInStream {
     RemoteBlockReader reader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
     // always clear the previous reader before assigning it to a new one
     clearReader();
-    mUnclearedReader = reader;
+    sUnclearedReader = reader;
     return reader.readRemoteBlock(
         address.getHostName(), address.getPort(), blockId, offset, length);
   }
@@ -430,11 +430,11 @@ public class RemoteBlockInStream extends BlockInStream {
    */
   private static boolean clearReader() {
     boolean res = true;
-    if (mUnclearedReader != null) {
-      if (mUnclearedReader instanceof NettyRemoteBlockReader) {
-        return ((NettyRemoteBlockReader) mUnclearedReader).clearReadResponse();
+    if (sUnclearedReader != null) {
+      if (sUnclearedReader instanceof NettyRemoteBlockReader) {
+        return ((NettyRemoteBlockReader) sUnclearedReader).clearReadResponse();
       }
-      mUnclearedReader = null;
+      sUnclearedReader = null;
     }
     return res;
   }

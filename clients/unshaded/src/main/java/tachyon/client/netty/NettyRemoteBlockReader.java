@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+
 import tachyon.Constants;
 import tachyon.client.RemoteBlockReader;
 import tachyon.network.protocol.RPCBlockReadRequest;
@@ -33,7 +34,6 @@ import tachyon.network.protocol.RPCBlockReadResponse;
 import tachyon.network.protocol.RPCErrorResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCResponse;
-import tachyon.network.protocol.databuffer.DataByteBuffer;
 
 /**
  * Read data from remote data server using Netty.
