@@ -22,7 +22,6 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import org.apache.hadoop.hdfs.DFSClient.BlockReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
