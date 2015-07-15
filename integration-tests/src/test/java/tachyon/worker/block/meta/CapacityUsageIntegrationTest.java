@@ -89,7 +89,7 @@ public class CapacityUsageIntegrationTest {
     return fileId;
   }
 
-  private void DeleteDuringEviction() throws IOException {
+  private void deleteDuringEviction() throws IOException {
     int fileId =
         createAndWriteFile(new TachyonURI("/file1"), WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES);
     TachyonFile file = mTFS.getFile(fileId);
@@ -104,9 +104,9 @@ public class CapacityUsageIntegrationTest {
   }
 
   @Test
-  public void DeleteDuringEvictionTest() throws IOException {
+  public void deleteDuringEvictionTest() throws IOException {
     for (int i = 5; i > 0; i --) {
-      DeleteDuringEviction();
+      deleteDuringEviction();
       CommonUtils.sleepMs(null, HEARTBEAT_INTERVAL_MS + HEARTBEAT_INTERVAL_MS / i);
     }
   }
