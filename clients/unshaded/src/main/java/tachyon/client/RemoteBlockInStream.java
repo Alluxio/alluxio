@@ -22,10 +22,12 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import org.apache.hadoop.hdfs.DFSClient.BlockReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.client.netty.NettyRemoteBlockReader;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
@@ -103,6 +105,9 @@ public class RemoteBlockInStream extends BlockInStream {
    */
   private static final int MAX_REMOTE_READ_ATTEMPTS = 2;
 
+  /** A reference to the current reader so we can clear it after reading is finished. */
+  private static RemoteBlockReader mUnclearedReader = null;
+
   /**
    * @param file the file the block belongs to
    * @param readType the InStream's read type
@@ -170,6 +175,7 @@ public class RemoteBlockInStream extends BlockInStream {
     if (mBytesReadRemote > 0) {
       mTachyonFS.getClientMetrics().incBlocksReadRemote(1);
     }
+    clearReader();
     mClosed = true;
   }
 
@@ -308,7 +314,11 @@ public class RemoteBlockInStream extends BlockInStream {
 
   private static ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
       long blockId, long offset, long length, TachyonConf conf) throws IOException {
-    return RemoteBlockReader.Factory.createRemoteBlockReader(conf).readRemoteBlock(
+    RemoteBlockReader reader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
+    // always clear the previous reader before assigning it to a new one
+    clearReader();
+    mUnclearedReader = reader;
+    return reader.readRemoteBlock(
         address.getHostName(), address.getPort(), blockId, offset, length);
   }
 
@@ -411,5 +421,21 @@ public class RemoteBlockInStream extends BlockInStream {
       mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
     }
     return false;
+  }
+
+  /**
+   * Clear the previous reader, release the resource it references.
+   *
+   * @return true if reader is successfully cleared or no clearing is needed
+   */
+  private static boolean clearReader() {
+    boolean res = true;
+    if (mUnclearedReader != null) {
+      if (mUnclearedReader instanceof NettyRemoteBlockReader) {
+        return ((NettyRemoteBlockReader) mUnclearedReader).clearReadResponse();
+      }
+      mUnclearedReader = null;
+    }
+    return res;
   }
 }

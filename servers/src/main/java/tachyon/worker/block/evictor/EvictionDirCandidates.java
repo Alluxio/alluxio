@@ -31,8 +31,7 @@ import tachyon.worker.block.meta.StorageDirView;
  * total bytes of added blocks. Assume meta data of StorageDir will not be changed during adding
  * blocks.
  *
- * Example usage can be found in
- * {@link LRUEvictor#freeSpace(long, tachyon.worker.block.BlockStoreLocation)}.
+ * Example usage can be found in {@link LRUEvictor#freeSpaceWithView}.
  */
 class EvictionDirCandidates {
   /** Map from StorageDirView to pair of list of candidate blockIds and their total size in bytes */
