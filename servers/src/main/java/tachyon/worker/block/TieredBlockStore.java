@@ -95,18 +95,14 @@ public class TieredBlockStore implements BlockStore {
     BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
         Collections.<Integer>emptySet(), Collections.<Long>emptySet());
     mAllocator = AllocatorFactory.create(allocatorType, initManagerView);
-    if (mAllocator instanceof BlockStoreEventListener) {
-      registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
-    }
+    registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
 
     EvictorType evictorType =
         mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
     initManagerView = new BlockMetadataManagerView(mMetaManager,
         Collections.<Integer>emptySet(), Collections.<Long>emptySet());
     mEvictor = EvictorFactory.create(evictorType, initManagerView);
-    if (mEvictor instanceof BlockStoreEventListener) {
-      registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
-    }
+    registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
   }
 
   @Override

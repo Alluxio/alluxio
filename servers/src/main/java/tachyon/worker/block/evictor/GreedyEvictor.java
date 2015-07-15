@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.worker.block.BlockMetadataManagerView;
+import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
@@ -36,7 +37,7 @@ import tachyon.worker.block.meta.StorageTierView;
  * A simple evictor that evicts arbitrary blocks until the required size is met. This class serves
  * as an example to implement an Evictor.
  */
-public class GreedyEvictor implements Evictor {
+public class GreedyEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public GreedyEvictor() {}
