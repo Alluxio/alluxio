@@ -15,16 +15,13 @@
 
 package tachyon.network.protocol;
 
-import java.nio.ByteBuffer;
-
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 
 import io.netty.buffer.ByteBuf;
-
 import tachyon.network.protocol.databuffer.DataBuffer;
-import tachyon.network.protocol.databuffer.DataByteBuffer;
+import tachyon.network.protocol.databuffer.DataNettyBuffer;
 
 /**
  * This represents the response of a {@link RPCBlockReadRequest}.
@@ -78,7 +75,8 @@ public class RPCBlockReadResponse extends RPCResponse {
     short status = in.readShort();
     DataBuffer data = null;
     if (length > 0) {
-      data = new DataByteBuffer(in, (int) length);
+      // use DataNettyBuffer instead of DataByteBuffer to avoid copying
+      data = new DataNettyBuffer(in, (int) length);
     }
     return new RPCBlockReadResponse(blockId, offset, length, data, Status.fromShort(status));
   }
@@ -124,5 +122,12 @@ public class RPCBlockReadResponse extends RPCResponse {
 
   public Status getStatus() {
     return mStatus;
+  }
+
+  public boolean releaseBuffer() {
+    if (mData instanceof DataNettyBuffer) {
+      return ((DataNettyBuffer) mData).releaseNettyBuffer();
+    }
+    return true;
   }
 }
