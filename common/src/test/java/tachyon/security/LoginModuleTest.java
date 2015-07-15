@@ -62,5 +62,9 @@ public class LoginModuleTest {
 
     // verify whether Tachyon user is added
     Assert.assertFalse(subject.getPrincipals(User.class).isEmpty());
+
+    // logout and verify the user is removed
+    loginContext.logout();
+    Assert.assertTrue(subject.getPrincipals(User.class).isEmpty());
   }
 }
