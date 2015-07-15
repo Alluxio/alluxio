@@ -17,7 +17,6 @@ package tachyon.network.protocol.databuffer;
 
 import java.nio.ByteBuffer;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 /**
@@ -26,7 +25,6 @@ import io.netty.buffer.Unpooled;
 public class DataByteBuffer extends DataBuffer {
   private final ByteBuffer mBuffer;
   private final long mLength;
-  private ByteBuf mNettyBuf = null;
 
   /**
    *
@@ -35,29 +33,6 @@ public class DataByteBuffer extends DataBuffer {
    */
   public DataByteBuffer(ByteBuffer buffer, long length) {
     mBuffer = buffer;
-    mLength = length;
-  }
-
-  /**
-  * Another constructor for creating a DataByteBuffer, by passing a Netty ByteBuf.
-  * This way we avoid one copy from ByteBuf to another ByteBuffer,
-  * and making sure the buffer would not be recycled.
-  * IMPORTANT: With this constructor, {@link #releaseBuffer()} must be called after
-  * reading is finished. Otherwise the memory space for the ByteBuf might never be reclaimed.
-  *
-  * @param bytebuf The ByteBuf having the data
-  * @param length The length of the underlying ByteBuffer data
-  */
-  public DataByteBuffer(ByteBuf bytebuf, long length) {
-    // throws exception if there are multiple nioBuffers, or reference count is not 1
-    // we probably want to fail instead of catching these exceptions for now
-    assert (bytebuf.nioBufferCount() == 1);
-    assert (bytebuf.refCnt() == 1);
-
-    // increase the bytebuf reference count so it would not be recycled by Netty
-    bytebuf.retain();
-    mNettyBuf = bytebuf;
-    mBuffer = bytebuf.nioBuffer();
     mLength = length;
   }
 
@@ -76,19 +51,5 @@ public class DataByteBuffer extends DataBuffer {
     ByteBuffer buffer = mBuffer.asReadOnlyBuffer();
     buffer.position(0);
     return buffer;
-  }
-
-  /**
-  * Deallocate the Netty ByteBuf if we used ByteBuf to construct this DataByteBuffer.
-  *
-  * @return True if the netty ByteBuf is deallocated or not constructed using ByteBuf.
-  *         As the Netty channel is responsible for performing another {@link ByteBuf#release()},
-  *         this method can return false in unit tests.
-  */
-  public boolean releaseBuffer() {
-    if (mNettyBuf != null) {
-      return mNettyBuf.release();
-    }
-    return true;
   }
 }
