@@ -26,14 +26,14 @@ import org.slf4j.LoggerFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-
 import tachyon.Constants;
 import tachyon.client.RemoteBlockReader;
-import tachyon.network.protocol.RPCBlockRequest;
-import tachyon.network.protocol.RPCBlockResponse;
+import tachyon.network.protocol.RPCBlockReadRequest;
+import tachyon.network.protocol.RPCBlockReadResponse;
 import tachyon.network.protocol.RPCErrorResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCResponse;
+import tachyon.network.protocol.databuffer.DataByteBuffer;
 
 /**
  * Read data from remote data server using Netty.
@@ -43,6 +43,8 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
 
   private final Bootstrap mClientBootstrap;
   private final ClientHandler mHandler;
+  /** A reference to read response so we can explicitly release the resource after reading.*/
+  private RPCBlockReadResponse mReadResponse = null;
 
   // TODO: Creating a new remote block reader may be expensive, so consider a connection pool.
   public NettyRemoteBlockReader() {
@@ -62,18 +64,21 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       Channel channel = f.channel();
       SingleResponseListener listener = new SingleResponseListener();
       mHandler.addListener(listener);
-      channel.writeAndFlush(new RPCBlockRequest(blockId, offset, length));
+      channel.writeAndFlush(new RPCBlockReadRequest(blockId, offset, length));
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
       channel.close().sync();
 
       switch (response.getType()) {
-        case RPC_BLOCK_RESPONSE:
-          RPCBlockResponse blockResponse = (RPCBlockResponse) response;
+        case RPC_BLOCK_READ_RESPONSE:
+          RPCBlockReadResponse blockResponse = (RPCBlockReadResponse) response;
           LOG.info("Data " + blockId + " from remote machine " + address + " received");
 
           RPCResponse.Status status = blockResponse.getStatus();
           if (status == RPCResponse.Status.SUCCESS) {
+            // always clear the previous response before reading another one
+            clearReadResponse();
+            mReadResponse = blockResponse;
             return blockResponse.getPayloadDataBuffer().getReadOnlyByteBuffer();
           }
           throw new IOException(status.getMessage() + " response: " + blockResponse);
@@ -82,10 +87,24 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
           throw new IOException(error.getStatus().getMessage());
         default:
           throw new IOException("Unexpected response message type: " + response.getType()
-              + " (expected: " + RPCMessage.Type.RPC_BLOCK_RESPONSE + ")");
+              + " (expected: " + RPCMessage.Type.RPC_BLOCK_READ_RESPONSE + ")");
       }
     } catch (Exception e) {
       throw new IOException(e);
     }
+  }
+
+  /**
+   * Clear the previous read response, release the resource the response references.
+   *
+   * @return true if the response is cleared, or there is nothing needs to be cleared.
+   */
+  public boolean clearReadResponse() {
+    boolean res = true;
+    if (mReadResponse != null) {
+      res = mReadResponse.releaseBuffer();
+      mReadResponse = null;
+    }
+    return res;
   }
 }

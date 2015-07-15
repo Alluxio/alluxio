@@ -51,7 +51,7 @@ public class RPCBlockWriteRequest extends RPCRequest {
    * Decode the input {@link ByteBuf} into a {@link RPCBlockWriteRequest} object and return it.
    *
    * @param in the input {@link ByteBuf}
-   * @return The decoded RPCBlockResponse object
+   * @return The decoded RPCBlockWriteRequest object
    */
   public static RPCBlockWriteRequest decode(ByteBuf in) {
     long userId = in.readLong();

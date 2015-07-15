@@ -15,29 +15,26 @@
 
 package tachyon.network.protocol;
 
-import java.nio.ByteBuffer;
-
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 
 import io.netty.buffer.ByteBuf;
-
 import tachyon.network.protocol.databuffer.DataBuffer;
-import tachyon.network.protocol.databuffer.DataByteBuffer;
+import tachyon.network.protocol.databuffer.DataNettyBuffer;
 
 /**
- * This represents the response of a {@link RPCBlockRequest}.
+ * This represents the response of a {@link RPCBlockReadRequest}.
  */
-public class RPCBlockResponse extends RPCResponse {
+public class RPCBlockReadResponse extends RPCResponse {
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
   private final DataBuffer mData;
   private final Status mStatus;
 
-  // TODO: rename this to RPCBlockReadResponse.
-  public RPCBlockResponse(long blockId, long offset, long length, DataBuffer data, Status status) {
+  public RPCBlockReadResponse(long blockId, long offset, long length, DataBuffer data,
+      Status status) {
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
@@ -46,31 +43,32 @@ public class RPCBlockResponse extends RPCResponse {
   }
 
   public Type getType() {
-    return Type.RPC_BLOCK_RESPONSE;
+    return Type.RPC_BLOCK_READ_RESPONSE;
   }
 
   /**
-   * Creates a {@link RPCBlockResponse} object that indicates an error for the given
-   * {@link RPCBlockRequest}.
+   * Creates a {@link RPCBlockReadResponse} object that indicates an error for the given
+   * {@link RPCBlockReadRequest}.
    *
-   * @param request The {@link RPCBlockRequest} to generated the {@link RPCBlockResponse} for.
+   * @param request The {@link RPCBlockReadRequest} to generated
+   * the {@link RPCBlockReadResponse} for.
    * @param status The {@link tachyon.network.protocol.RPCResponse.Status} for the response.
-   * @return The generated {@link RPCBlockResponse} object.
+   * @return The generated {@link RPCBlockReadResponse} object.
    */
-  public static RPCBlockResponse createErrorResponse(final RPCBlockRequest request,
+  public static RPCBlockReadResponse createErrorResponse(final RPCBlockReadRequest request,
       final Status status) {
     Preconditions.checkArgument(status != Status.SUCCESS);
     // The response has no payload, so length must be 0.
-    return new RPCBlockResponse(request.getBlockId(), request.getOffset(), 0, null, status);
+    return new RPCBlockReadResponse(request.getBlockId(), request.getOffset(), 0, null, status);
   }
 
   /**
-   * Decode the input {@link ByteBuf} into a {@link RPCBlockResponse} object and return it.
+   * Decode the input {@link ByteBuf} into a {@link RPCBlockReadResponse} object and return it.
    *
    * @param in the input {@link ByteBuf}
-   * @return The decoded RPCBlockResponse object
+   * @return The decoded RPCBlockReadResponse object
    */
-  public static RPCBlockResponse decode(ByteBuf in) {
+  public static RPCBlockReadResponse decode(ByteBuf in) {
     long blockId = in.readLong();
     long offset = in.readLong();
     long length = in.readLong();
@@ -78,10 +76,10 @@ public class RPCBlockResponse extends RPCResponse {
 
     DataBuffer data = null;
     if (length > 0) {
-      assert (in.nioBufferCount() == 1);
-      data = new DataByteBuffer(in.nioBuffer(), (int) length);
+      // use DataNettyBuffer instead of DataByteBuffer to avoid copying
+      data = new DataNettyBuffer(in, (int) length);
     }
-    return new RPCBlockResponse(blockId, offset, length, data, Status.fromShort(status));
+    return new RPCBlockReadResponse(blockId, offset, length, data, Status.fromShort(status));
   }
 
   @Override
@@ -107,7 +105,8 @@ public class RPCBlockResponse extends RPCResponse {
 
   @Override
   public String toString() {
-    return "RPCBlockResponse(" + mBlockId + ", " + mOffset + ", " + mLength + ", " + mStatus + ")";
+    return "RPCBlockReadResponse(" + mBlockId + ", " + mOffset
+        + ", " + mLength + ", " + mStatus + ")";
   }
 
   public long getBlockId() {
@@ -124,5 +123,12 @@ public class RPCBlockResponse extends RPCResponse {
 
   public Status getStatus() {
     return mStatus;
+  }
+
+  public boolean releaseBuffer() {
+    if (mData instanceof DataNettyBuffer) {
+      return ((DataNettyBuffer) mData).releaseNettyBuffer();
+    }
+    return true;
   }
 }

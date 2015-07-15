@@ -43,7 +43,8 @@ public class RPCBlockWriteResponse extends RPCResponse {
    * Creates a {@link RPCBlockWriteResponse} object that indicates an error for the given
    * {@link RPCBlockWriteRequest}.
    *
-   * @param request The {@link RPCBlockWriteRequest} to generated the {@link RPCBlockResponse} for.
+   * @param request The {@link RPCBlockWriteRequest} to generated
+   *        the {@link RPCBlockReadResponse} for.
    * @param status The {@link tachyon.network.protocol.RPCResponse.Status} for the response.
    * @return The generated {@link RPCBlockWriteResponse} object.
    */
@@ -63,7 +64,7 @@ public class RPCBlockWriteResponse extends RPCResponse {
    * Decode the input {@link ByteBuf} into a {@link RPCBlockWriteResponse} object and return it.
    *
    * @param in the input {@link ByteBuf}
-   * @return The decoded RPCBlockResponse object
+   * @return The decoded RPCBlockWriteResponse object
    */
   public static RPCBlockWriteResponse decode(ByteBuf in) {
     long userId = in.readLong();
