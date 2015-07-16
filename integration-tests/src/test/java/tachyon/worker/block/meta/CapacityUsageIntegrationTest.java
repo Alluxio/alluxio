@@ -62,8 +62,7 @@ public class CapacityUsageIntegrationTest {
     System.setProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
     System.setProperty("tachyon.worker.tieredstore.level1.alias", "HDD");
     System.setProperty("tachyon.worker.tieredstore.level1.dirs.path", "/disk1");
-    System
-        .setProperty("tachyon.worker.tieredstore.level1.dirs.quota", DISK_CAPACITY_BYTES + "");
+    System.setProperty("tachyon.worker.tieredstore.level1.dirs.quota", DISK_CAPACITY_BYTES + "");
 
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, MEM_CAPACITY_BYTES / 2);
@@ -89,25 +88,30 @@ public class CapacityUsageIntegrationTest {
     return fileId;
   }
 
-  private void DeleteDuringEviction() throws IOException {
+  private void deleteDuringEviction(int i) throws IOException {
+    final String fileName1 = "/file" + i + "_1";
+    final String fileName2 = "/file" + i + "_2";
     int fileId =
-        createAndWriteFile(new TachyonURI("/file1"), WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES);
+        createAndWriteFile(new TachyonURI(fileName1), WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES);
     TachyonFile file = mTFS.getFile(fileId);
-    Assert.assertEquals(true, file.isInMemory());
-    mTFS.delete(new TachyonURI("/file1"), false);
+    Assert.assertTrue(file.isInMemory());
+    // Deleting file1, command will be sent by master to worker asynchronously
+    mTFS.delete(new TachyonURI(fileName1), false);
+    // Meanwhile creating file2. If creation arrives earlier than deletion, it will evict file1
     fileId =
-        createAndWriteFile(new TachyonURI("/file1"), WriteType.CACHE_THROUGH,
+        createAndWriteFile(new TachyonURI(fileName2), WriteType.CACHE_THROUGH,
             MEM_CAPACITY_BYTES / 4);
     file = mTFS.getFile(fileId);
-    Assert.assertEquals(true, file.isInMemory());
-    mTFS.delete(new TachyonURI("/file1"), false);
+    Assert.assertTrue(file.isInMemory());
+    mTFS.delete(new TachyonURI(fileName2), false);
   }
 
   @Test
-  public void DeleteDuringEvictionTest() throws IOException {
-    for (int i = 5; i > 0; i --) {
-      DeleteDuringEviction();
-      CommonUtils.sleepMs(null, HEARTBEAT_INTERVAL_MS + HEARTBEAT_INTERVAL_MS / i);
+  public void deleteDuringEvictionTest() throws IOException {
+    // This test may not trigger eviction each time, repeat it 20 times.
+    for (int i = 0; i < 20; i ++) {
+      deleteDuringEviction(i);
+      CommonUtils.sleepMs(null, 5 * HEARTBEAT_INTERVAL_MS); // ensure second delete completes
     }
   }
 }
