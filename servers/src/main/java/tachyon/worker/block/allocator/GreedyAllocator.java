@@ -18,6 +18,7 @@ package tachyon.worker.block.allocator;
 import java.io.IOException;
 
 import tachyon.worker.block.BlockMetadataManagerView;
+import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
@@ -27,7 +28,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * A greedy allocator that returns the first Storage dir fitting the size of block to allocate.
  * This class serves as an example how to implement an allocator.
  */
-public class GreedyAllocator implements Allocator {
+public class GreedyAllocator extends BlockStoreEventListenerBase implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
   public GreedyAllocator(BlockMetadataManagerView view) {
