@@ -119,7 +119,6 @@ public class TachyonFS extends AbstractTachyonFS {
     return get(tachyonConf);
   }
 
-
   /**
    * Create a TachyonFS handler.
    *
@@ -192,7 +191,7 @@ public class TachyonFS extends AbstractTachyonFS {
     mMasterAddress = new InetSocketAddress(masterHost, masterPort);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
     mExecutorService =
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.daemon("client-heartbeat-%d"));
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("client-heartbeat-%d", true));
     mMasterClient =
         mCloser.register(new MasterClient(mMasterAddress, mExecutorService, mTachyonConf));
     mWorkerClient =
@@ -643,23 +642,8 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized String getLocalBlockTemporaryPath(long blockId, long initialBytes)
       throws IOException {
     String blockPath = mWorkerClient.requestBlockLocation(blockId, initialBytes);
-
-    File localTempFolder;
-    try {
-      localTempFolder = new File(CommonUtils.getParent(blockPath));
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    }
-
-    if (!localTempFolder.exists()) {
-      if (localTempFolder.mkdirs()) {
-        CommonUtils.changeLocalFileToFullPermission(localTempFolder.getAbsolutePath());
-        LOG.info("Folder {} was created!", localTempFolder);
-      } else {
-        throw new IOException("Failed to create folder " + localTempFolder);
-      }
-    }
-
+    // TODO: Handle this in the worker?
+    CommonUtils.createBlockPath(blockPath);
     return blockPath;
   }
 
@@ -729,6 +713,13 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized long getCapacityBytes() throws IOException {
     return mMasterClient.getCapacityBytes();
+  }
+
+  /**
+   * @return The address of the data server on the worker.
+   */
+  public synchronized InetSocketAddress getWorkerDataServerAddress() {
+    return mWorkerClient.getDataServerAddress();
   }
 
   /**

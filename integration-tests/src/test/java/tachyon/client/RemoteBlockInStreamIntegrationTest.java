@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import tachyon.Constants;
+import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
@@ -54,10 +55,14 @@ public class RemoteBlockInStreamIntegrationTest {
   public static Collection<Object[]> data() {
     // creates a new instance of RemoteBlockInStreamTest for each network type
     List<Object[]> list = new ArrayList<Object[]>();
-    list.add(new Object[] { new String[] { "tachyon.worker.netty.NettyDataServer",
-        "tachyon.client.tcp.TCPRemoteBlockReader" } });
-    list.add(new Object[] { new String[] { "tachyon.worker.nio.NIODataServer",
-        "tachyon.client.tcp.TCPRemoteBlockReader" } });
+    list.add(new Object[] { new String[] { IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.TCP_BLOCK_READER } });
+    list.add(new Object[] { new String[] { IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.NETTY_BLOCK_READER } });
+    list.add(new Object[] { new String[] { IntegrationTestConstants.NIO_DATA_SERVER,
+        IntegrationTestConstants.TCP_BLOCK_READER } });
+    list.add(new Object[] { new String[] { IntegrationTestConstants.NIO_DATA_SERVER,
+        IntegrationTestConstants.NETTY_BLOCK_READER } });
     return list;
   }
 
@@ -72,10 +77,16 @@ public class RemoteBlockInStreamIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
+    System.clearProperty("fs.hdfs.impl.disable.cache");
+    System.clearProperty(Constants.WORKER_DATA_SERVER);
+    System.clearProperty(Constants.USER_REMOTE_BLOCK_READER);
   }
 
   @Before
   public final void before() throws IOException {
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
     System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);

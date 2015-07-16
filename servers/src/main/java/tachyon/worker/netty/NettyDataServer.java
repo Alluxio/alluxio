@@ -32,8 +32,8 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.network.ChannelType;
 import tachyon.network.NettyUtils;
-import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
+import tachyon.worker.block.BlockDataManager;
 
 /**
  * Runs a netty data server that responses to block requests.
@@ -42,11 +42,14 @@ public final class NettyDataServer implements DataServer {
   private final ServerBootstrap mBootstrap;
   private final ChannelFuture mChannelFuture;
   private final TachyonConf mTachyonConf;
+  // Use a shared handler for all pipelines.
+  private final DataServerHandler mDataServerHandler;
 
-  public NettyDataServer(final InetSocketAddress address, final BlocksLocker locker,
+  public NettyDataServer(final InetSocketAddress address, final BlockDataManager dataManager,
       final TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(locker, mTachyonConf));
+    mDataServerHandler = new DataServerHandler(dataManager, mTachyonConf);
+    mBootstrap = createBootstrap().childHandler(new PipelineHandler(mDataServerHandler));
 
     try {
       mChannelFuture = mBootstrap.bind(address).sync();
@@ -120,11 +123,12 @@ public final class NettyDataServer implements DataServer {
   private ServerBootstrap createBootstrapOfType(final ChannelType type) {
     final ServerBootstrap boot = new ServerBootstrap();
     final int bossThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS, 1);
+    // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
     final int workerThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 0);
     final EventLoopGroup bossGroup =
-        NettyUtils.createEventLoop(type, bossThreadCount, "data-server-boss-%d");
+        NettyUtils.createEventLoop(type, bossThreadCount, "data-server-boss-%d", false);
     final EventLoopGroup workerGroup =
-        NettyUtils.createEventLoop(type, workerThreadCount, "data-server-worker-%d");
+        NettyUtils.createEventLoop(type, workerThreadCount, "data-server-worker-%d", false);
 
     final Class<? extends ServerChannel> socketChannelClass =
         NettyUtils.getServerChannelClass(type);

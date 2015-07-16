@@ -36,6 +36,8 @@ public class Users {
   public static final int DATASERVER_USER_ID = -1;
   public static final int CHECKPOINT_USER_ID = -2;
   public static final int MIGRATE_DATA_USER_ID = -3;
+  public static final int MASTER_COMMAND_USER_ID = -4;
+  public static final int ACCESS_BLOCK_USER_ID = -5;
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -85,7 +87,7 @@ public class Users {
    * @param userId The user to be removed.
    */
   public synchronized void removeUser(long userId) {
-    StringBuilder sb = new StringBuilder("Trying to cleanup user " + userId + " : ");
+    LOG.info("Cleaning up user " + userId);
     UserInfo tUser = null;
     synchronized (mUsers) {
       tUser = mUsers.get(userId);
@@ -93,19 +95,19 @@ public class Users {
     }
 
     if (tUser == null) {
-      sb.append(" The user does not exist in the worker's current user pool.");
+      LOG.warn("User " + userId + " does not exist in the worker's current user pool.");
     } else {
       String folder = getUserUfsTempFolder(userId);
-      sb.append(" Remove users underfs folder ").append(folder);
       try {
         String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
-        UnderFileSystem.get(ufsAddress, mTachyonConf).delete(folder, true);
+        UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
+        if (ufs.exists(folder)) {
+          ufs.delete(folder, true);
+        }
       } catch (IOException e) {
-        LOG.warn(e.getMessage(), e);
+        LOG.warn("An error occurred removing the ufs folder of user " + userId, e);
       }
     }
-
-    LOG.info(sb.toString());
   }
 
   /**
@@ -118,8 +120,8 @@ public class Users {
       if (mUsers.containsKey(userId)) {
         mUsers.get(userId).heartbeat();
       } else {
-        int userTimeoutMs = mTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS,
-            10 * Constants.SECOND_MS);
+        int userTimeoutMs =
+            mTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS, 10 * Constants.SECOND_MS);
         mUsers.put(userId, new UserInfo(userId, userTimeoutMs));
       }
     }

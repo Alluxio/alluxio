@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -35,19 +35,20 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.BlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
-import tachyon.worker.WorkerStorage;
-import tachyon.worker.tiered.StorageDir;
+import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.BlockStoreMeta;
+import tachyon.worker.block.meta.BlockMeta;
 
 /**
  * Servlet that provides data for displaying block info of a worker.
  */
 public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private static final long serialVersionUID = 4148506607369321012L;
-  private final transient WorkerStorage mWorkerStorage;
+  private final transient BlockDataManager mBlockDataManager;
   private final transient TachyonConf mTachyonConf;
 
-  public WebInterfaceWorkerBlockInfoServlet(WorkerStorage workerStorage, TachyonConf conf) {
-    mWorkerStorage = workerStorage;
+  public WebInterfaceWorkerBlockInfoServlet(BlockDataManager blockDataManager, TachyonConf conf) {
+    mBlockDataManager = blockDataManager;
     mTachyonConf = conf;
   }
 
@@ -140,8 +141,9 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    */
   private List<Integer> getSortedFileIds() {
     Set<Integer> fileIds = new HashSet<Integer>();
-    for (StorageDir storageDir : mWorkerStorage.getStorageDirs()) {
-      for (long blockId : storageDir.getBlockIds()) {
+    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+    for (List<Long> blockIds : storeMeta.getBlockList().values()) {
+      for (long blockId : blockIds) {
         int fileId = BlockInfo.computeInodeId(blockId);
         fileIds.add(fileId);
       }
@@ -200,16 +202,14 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     UiFileInfo uiFileInfo = new UiFileInfo(fileInfo);
     boolean blockExistOnWorker = false;
     for (long blockId : fileInfo.getBlockIds()) {
-      for (StorageDir storageDir : mWorkerStorage.getStorageDirs()) {
-        if (storageDir.containsBlock(blockId)) {
-          blockExistOnWorker = true;
-          long blockSize = storageDir.getBlockSize(blockId);
-          long blockLastAccessTime = storageDir.getLastBlockAccessTimeMs(blockId);
-          StorageLevelAlias storageLevelAlias =
-              StorageDirId.getStorageLevelAlias(storageDir.getStorageDirId());
-          uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, blockLastAccessTime);
-          break;
-        }
+      if (mBlockDataManager.hasBlockMeta(blockId)) {
+        blockExistOnWorker = true;
+        BlockMeta blockMeta = mBlockDataManager.getVolatileBlockMeta(blockId);
+        long blockSize = blockMeta.getBlockSize();
+        StorageLevelAlias storageLevelAlias =
+            StorageDirId.getStorageLevelAlias(blockMeta.getParentDir().getStorageDirId());
+        // The block last access time is not available. Use -1 for now.
+        uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, -1);
       }
     }
     if (!blockExistOnWorker) {

@@ -93,6 +93,7 @@ public class Constants {
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String TACHYON_DEBUG = "tachyon.debug";
   public static final String TACHYON_LOGGER_TYPE = "tachyon.logger.type";
+  public static final String TACHYON_VERSION = "tachyon.version";
   public static final String WEB_RESOURCES = "tachyon.web.resources";
   public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
   public static final String LOGS_DIR = "tachyon.logs.dir";
@@ -203,10 +204,15 @@ public class Constants {
   public static final String USER_FILE_BUFFER_BYTES = "tachyon.user.file.buffer.bytes";
   public static final String USER_HEARTBEAT_INTERVAL_MS = "tachyon.user.heartbeat.interval.ms";
   public static final String USER_DEFAULT_BLOCK_SIZE_BYTE = "tachyon.user.default.block.size.byte";
+  public static final String USER_NETTY_WORKER_THREADS =
+      "tachyon.user.network.netty.worker.threads";
+  public static final String USER_NETTY_CHANNEL = "tachyon.user.network.netty.channel";
+  public static final String USER_NETTY_TIMEOUT_MS = "tachyon.user.network.netty.timeout.ms";
   public static final String USER_REMOTE_READ_BUFFER_SIZE_BYTE =
       "tachyon.user.remote.read.buffer.size.byte";
   public static final String USER_DEFAULT_WRITE_TYPE = "tachyon.user.file.writetype.default";
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
+  public static final String USER_REMOTE_BLOCK_WRITER = "tachyon.user.remote.block.writer.class";
   public static final String USER_ENABLE_LOCAL_READ = "tachyon.user.localread.enable";
   public static final String USER_ENABLE_LOCAL_WRITE = "tachyon.user.localwrite.enable";
 
@@ -219,16 +225,18 @@ public class Constants {
   public static final boolean DEBUG = Boolean.valueOf(System.getProperty(TACHYON_DEBUG, "false"));
 
   public static final long CLIENT_METRICS_VERSION = 1L;
-  public static final int CLIENT_METRICS_SIZE = 9;
+  public static final int CLIENT_METRICS_SIZE = 11;
   public static final int CLIENT_METRICS_VERSION_INDEX = 0;
   public static final int BLOCKS_READ_LOCAL_INDEX = 1;
   public static final int BLOCKS_READ_REMOTE_INDEX = 2;
   public static final int BLOCKS_WRITTEN_LOCAL_INDEX = 3;
-  public static final int BYTES_READ_LOCAL_INDEX = 4;
-  public static final int BYTES_READ_REMOTE_INDEX = 5;
-  public static final int BYTES_READ_UFS_INDEX = 6;
-  public static final int BYTES_WRITTEN_LOCAL_INDEX = 7;
-  public static final int BYTES_WRITTEN_UFS_INDEX = 8;
+  public static final int BLOCKS_WRITTEN_REMOTE_INDEX = 4;
+  public static final int BYTES_READ_LOCAL_INDEX = 5;
+  public static final int BYTES_READ_REMOTE_INDEX = 6;
+  public static final int BYTES_READ_UFS_INDEX = 7;
+  public static final int BYTES_WRITTEN_LOCAL_INDEX = 8;
+  public static final int BYTES_WRITTEN_REMOTE_INDEX = 9;
+  public static final int BYTES_WRITTEN_UFS_INDEX = 10;
 
   /** Security */
   // Authentication

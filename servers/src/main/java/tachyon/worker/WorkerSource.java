@@ -20,6 +20,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 
 import tachyon.metrics.source.Source;
+import tachyon.worker.block.BlockDataManager;
 
 /**
  * A WorkerSource collects a Worker's internal state.
@@ -45,6 +46,8 @@ public class WorkerSource implements Source {
       .name("BlocksReadRemote"));
   private final Counter mBlocksWrittenLocal = mMetricRegistry.counter(MetricRegistry
       .name("BlocksWrittenLocal"));
+  private final Counter mBlocksWrittenRemote = mMetricRegistry.counter(MetricRegistry
+      .name("BlocksWrittenRemote"));
   private final Counter mBytesReadLocal = mMetricRegistry.counter(MetricRegistry
       .name("BytesReadLocal"));
   private final Counter mBytesReadRemote = mMetricRegistry.counter(MetricRegistry
@@ -53,38 +56,10 @@ public class WorkerSource implements Source {
       .name("BytesReadUfs"));
   private final Counter mBytesWrittenLocal = mMetricRegistry.counter(MetricRegistry
       .name("BytesWrittenLocal"));
+  private final Counter mBytesWrittenRemote = mMetricRegistry.counter(MetricRegistry
+      .name("BytesWrittenRemote"));
   private final Counter mBytesWrittenUfs = mMetricRegistry.counter(MetricRegistry
       .name("BytesWrittenUfs"));
-
-  public WorkerSource(final WorkerStorage workerStorage) {
-    mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
-      @Override
-      public Long getValue() {
-        return workerStorage.getCapacityBytes();
-      }
-    });
-
-    mMetricRegistry.register(MetricRegistry.name("CapacityUsed"), new Gauge<Long>() {
-      @Override
-      public Long getValue() {
-        return workerStorage.getUsedBytes();
-      }
-    });
-
-    mMetricRegistry.register(MetricRegistry.name("CapacityFree"), new Gauge<Long>() {
-      @Override
-      public Long getValue() {
-        return workerStorage.getCapacityBytes() - workerStorage.getUsedBytes();
-      }
-    });
-
-    mMetricRegistry.register(MetricRegistry.name("BlocksCached"), new Gauge<Integer>() {
-      @Override
-      public Integer getValue() {
-        return workerStorage.getNumberOfBlocks();
-      }
-    });
-  }
 
   @Override
   public String getName() {
@@ -128,6 +103,10 @@ public class WorkerSource implements Source {
     mBlocksWrittenLocal.inc(n);
   }
 
+  public void incBlocksWrittenRemote(long n) {
+    mBlocksWrittenRemote.inc(n);
+  }
+
   public void incBytesReadLocal(long n) {
     mBytesReadLocal.inc(n);
   }
@@ -144,7 +123,42 @@ public class WorkerSource implements Source {
     mBytesWrittenLocal.inc(n);
   }
 
+  public void incBytesWrittenRemote(long n) {
+    mBytesWrittenRemote.inc(n);
+  }
+
   public void incBytesWrittenUfs(long n) {
     mBytesWrittenUfs.inc(n);
+  }
+
+  public void registerGauges(final BlockDataManager blockDataManager) {
+    mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
+      @Override
+      public Long getValue() {
+        return blockDataManager.getStoreMeta().getCapacityBytes();
+      }
+    });
+
+    mMetricRegistry.register(MetricRegistry.name("CapacityUsed"), new Gauge<Long>() {
+      @Override
+      public Long getValue() {
+        return blockDataManager.getStoreMeta().getUsedBytes();
+      }
+    });
+
+    mMetricRegistry.register(MetricRegistry.name("CapacityFree"), new Gauge<Long>() {
+      @Override
+      public Long getValue() {
+        return blockDataManager.getStoreMeta().getCapacityBytes()
+                - blockDataManager.getStoreMeta().getUsedBytes();
+      }
+    });
+
+    mMetricRegistry.register(MetricRegistry.name("BlocksCached"), new Gauge<Integer>() {
+      @Override
+      public Integer getValue() {
+        return blockDataManager.getStoreMeta().getNumberOfBlocks();
+      }
+    });
   }
 }

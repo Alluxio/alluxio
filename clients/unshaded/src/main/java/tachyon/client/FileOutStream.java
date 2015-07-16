@@ -91,7 +91,6 @@ public class FileOutStream extends OutStream {
     }
     if (mCurrentBlockOutStream != null) {
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
-      mTachyonFS.getClientMetrics().incBlocksWrittenLocal(1);
     }
 
     Boolean canComplete = false;
@@ -123,7 +122,8 @@ public class FileOutStream extends OutStream {
       } catch (IOException ioe) {
         if (mWriteType.isMustCache()) {
           LOG.error(ioe.getMessage(), ioe);
-          throw new IOException("Fail to cache: " + mWriteType, ioe);
+          throw new IOException("Fail to cache: " + mWriteType + ", message: " + ioe.getMessage(),
+              ioe);
         } else {
           LOG.warn("Fail to cache for: ", ioe);
         }
@@ -149,16 +149,15 @@ public class FileOutStream extends OutStream {
 
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
-      if (mCurrentBlockOutStream.getRemainingSpaceByte() > 0) {
+      if (mCurrentBlockOutStream.getRemainingSpaceBytes() > 0) {
         throw new IOException("The current block still has space left, no need to get new block");
       }
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
-      mTachyonFS.getClientMetrics().incBlocksWrittenLocal(1);
     }
 
     if (mWriteType.isCache()) {
       int offset = (int) (mCachedBytes / mBlockCapacityByte);
-      mCurrentBlockOutStream = new BlockOutStream(mFile, mWriteType, offset, mTachyonConf);
+      mCurrentBlockOutStream = BlockOutStream.get(mFile, mWriteType, offset, mTachyonConf);
     }
   }
 
@@ -182,27 +181,25 @@ public class FileOutStream extends OutStream {
         int tOff = off;
         while (tLen > 0) {
           if (mCurrentBlockOutStream == null
-              || mCurrentBlockOutStream.getRemainingSpaceByte() == 0) {
+              || mCurrentBlockOutStream.getRemainingSpaceBytes() == 0) {
             getNextBlock();
           }
-          long currentBlockLeftBytes = mCurrentBlockOutStream.getRemainingSpaceByte();
+          long currentBlockLeftBytes = mCurrentBlockOutStream.getRemainingSpaceBytes();
           if (currentBlockLeftBytes >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
             mCachedBytes += tLen;
-            mTachyonFS.getClientMetrics().incBytesWrittenLocal(tLen);
             tLen = 0;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) currentBlockLeftBytes);
             tOff += currentBlockLeftBytes;
             tLen -= currentBlockLeftBytes;
             mCachedBytes += currentBlockLeftBytes;
-            mTachyonFS.getClientMetrics().incBytesWrittenLocal(currentBlockLeftBytes);
           }
         }
       } catch (IOException e) {
         if (mWriteType.isMustCache()) {
           LOG.error(e.getMessage(), e);
-          throw new IOException("Fail to cache: " + mWriteType, e);
+          throw new IOException("Fail to cache: " + mWriteType + ", message: " + e.getMessage(), e);
         } else {
           LOG.warn("Fail to cache for: ", e);
         }
@@ -219,17 +216,17 @@ public class FileOutStream extends OutStream {
   public void write(int b) throws IOException {
     if (mWriteType.isCache()) {
       try {
-        if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.getRemainingSpaceByte() == 0) {
+        if (mCurrentBlockOutStream == null
+            || mCurrentBlockOutStream.getRemainingSpaceBytes() == 0) {
           getNextBlock();
         }
         // TODO Cache the exception here.
         mCurrentBlockOutStream.write(b);
         mCachedBytes ++;
-        mTachyonFS.getClientMetrics().incBytesWrittenLocal(1);
       } catch (IOException e) {
         if (mWriteType.isMustCache()) {
           LOG.error(e.getMessage(), e);
-          throw new IOException("Fail to cache: " + mWriteType, e);
+          throw new IOException("Fail to cache: " + mWriteType + ", message: " + e.getMessage(), e);
         } else {
           LOG.warn("Fail to cache for: ", e);
         }
