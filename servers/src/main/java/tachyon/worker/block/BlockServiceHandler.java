@@ -26,8 +26,7 @@ import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.Users;
 import tachyon.exception.AlreadyExistsException;
-import tachyon.exception.FailedPreconditionException;
-import tachyon.exception.InvalidArgumentException;
+import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -102,7 +101,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
       throw new TException(aee);
     } catch (NotFoundException nfe) {
       throw new TException(nfe);
-    } catch (FailedPreconditionException fpe) {
+    } catch (InvalidStateException fpe) {
       throw new TException(fpe);
     } catch (IOException ioe) {
       throw new TException(ioe);
@@ -126,7 +125,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
       throw new TException(aee);
     } catch (NotFoundException nfe) {
       throw new TException(nfe);
-    } catch (FailedPreconditionException fpe) {
+    } catch (InvalidStateException fpe) {
       throw new TException(fpe);
     } catch (IOException ioe) {
       throw new TException(ioe);
@@ -160,7 +159,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
     } catch (NotFoundException nfe) {
       // TODO: reconsider this, maybe it is because lockId can not be found
       throw new FileDoesNotExistException(nfe.getMessage());
-    } catch (FailedPreconditionException fpe) {
+    } catch (InvalidStateException fpe) {
       throw new TException(fpe);
     }
   }
@@ -183,9 +182,9 @@ public class BlockServiceHandler implements WorkerService.Iface {
       throw new TException(nfe);
     } catch (AlreadyExistsException aee) {
       throw new TException(aee);
-    } catch (FailedPreconditionException fpe) {
+    } catch (InvalidStateException fpe) {
       throw new TException(fpe);
-    } catch (InvalidArgumentException iae) {
+    } catch (IllegalArgumentException iae) {
       throw new TException(iae);
     } catch (tachyon.exception.OutOfSpaceException ooe) {
       throw new TException(ooe);
@@ -214,7 +213,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
       return mWorker.createBlock(userId, blockId, StorageLevelAlias.MEM.getValue(), initialBytes);
     } catch (AlreadyExistsException aee) {
       throw new TException(aee);
-    } catch (InvalidArgumentException iae) {
+    } catch (IllegalArgumentException iae) {
       throw new TException(iae);
     } catch (OutOfSpaceException ooe) {
       throw new tachyon.thrift.OutOfSpaceException(ooe.getMessage());
@@ -235,7 +234,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
       return true;
     } catch (NotFoundException nfe) {
       LOG.error("Failed to request " + requestBytes + " bytes for block: " + blockId, nfe);
-    } catch (InvalidArgumentException iae) {
+    } catch (IllegalArgumentException iae) {
       LOG.error("Failed to request " + requestBytes + " bytes for block: " + blockId, iae);
     } catch (OutOfSpaceException ooe) {
       LOG.error("Failed to request " + requestBytes + " bytes for block: " + blockId, ooe);

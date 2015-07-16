@@ -35,7 +35,6 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.InvalidArgumentException;
 import tachyon.exception.NotFoundException;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockMetadataManager;
@@ -215,13 +214,9 @@ public class EvictorTestUtils {
       evictedOrMovedBytes += meta.getBlockMeta(blockId).getBlockSize();
     }
 
-    try {
-      BlockStoreLocation location =
-          meta.getBlockMeta(blockIds.get(0)).getParentDir().toBlockStoreLocation();
-      return (meta.getAvailableBytes(location) + evictedOrMovedBytes) >= bytesToBeAvailable;
-    } catch (InvalidArgumentException iae) {
-      throw new RuntimeException(iae);
-    }
+    BlockStoreLocation location =
+        meta.getBlockMeta(blockIds.get(0)).getParentDir().toBlockStoreLocation();
+    return (meta.getAvailableBytes(location) + evictedOrMovedBytes) >= bytesToBeAvailable;
   }
 
   /**

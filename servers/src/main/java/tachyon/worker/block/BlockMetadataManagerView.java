@@ -17,14 +17,13 @@ package tachyon.worker.block;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.exception.InvalidArgumentException;
 import tachyon.exception.NotFoundException;
 import tachyon.master.BlockInfo;
 import tachyon.worker.block.meta.BlockMeta;
@@ -109,14 +108,14 @@ public class BlockMetadataManagerView {
    *
    * @param tierAlias the alias of this tierView
    * @return the StorageTierView object associated with the alias
-   * @throws InvalidArgumentException if tierAlias is not found
+   * @throws IllegalArgumentException if tierAlias is not found
    */
-  public StorageTierView getTierView(int tierAlias) throws InvalidArgumentException {
+  public StorageTierView getTierView(int tierAlias) {
     // TODO: can we ensure the returning tierview is same as
     // new StorageTierView(mMetadataManager.getTier(tierAlias)) ?
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
     if (null == tierView) {
-      throw new InvalidArgumentException("Cannot find tier view with alias: " + tierAlias);
+      throw new IllegalArgumentException("Cannot find tier view with alias: " + tierAlias);
     } else {
       return tierView;
     }
@@ -136,9 +135,9 @@ public class BlockMetadataManagerView {
    *
    * @param tierAlias the alias of a tierView
    * @return the list of StorageTierView
-   * @throws InvalidArgumentException if tierAlias is not found
+   * @throws IllegalArgumentException if tierAlias is not found
    */
-  public List<StorageTierView> getTierViewsBelow(int tierAlias) throws InvalidArgumentException {
+  public List<StorageTierView> getTierViewsBelow(int tierAlias) {
     // TODO: similar concern as in getTierView
     int level = getTierView(tierAlias).getTierViewLevel();
     return mTierViews.subList(level + 1, mTierViews.size());
@@ -150,9 +149,9 @@ public class BlockMetadataManagerView {
    *
    * @param location location the check available bytes
    * @return available bytes
-   * @throws InvalidArgumentException if location does not belong to tiered storage
+   * @throws IllegalArgumentException if location does not belong to tiered storage
    */
-  public long getAvailableBytes(BlockStoreLocation location) throws InvalidArgumentException {
+  public long getAvailableBytes(BlockStoreLocation location) {
     return mMetadataManager.getAvailableBytes(location);
   }
 

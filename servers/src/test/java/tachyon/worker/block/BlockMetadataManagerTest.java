@@ -30,7 +30,6 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.InvalidArgumentException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.worker.block.meta.BlockMeta;
@@ -102,7 +101,7 @@ public class BlockMetadataManagerTest {
   @Test
   public void getTierNotExistingTest() throws Exception {
     int badTierAlias = 2;
-    mThrown.expect(InvalidArgumentException.class);
+    mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Cannot find tier with alias " + badTierAlias);
     mMetaManager.getTier(badTierAlias);
   }
