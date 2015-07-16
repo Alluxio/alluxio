@@ -33,4 +33,9 @@ public enum AllocatorType {
    * Allocate to the first storage dir with space
    */
   GREEDY,
+  /**
+   * Round-robin allocation to the storage dir across tiers, but
+   * it will allocate the block in the highest tier possible.
+   */
+  ROUND_ROBIN,
 }

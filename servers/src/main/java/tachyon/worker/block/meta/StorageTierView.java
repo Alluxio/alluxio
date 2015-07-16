@@ -61,6 +61,7 @@ public class StorageTierView {
    * Get a StorageDirView with a dirIndex
    *
    * @param dirIndex of the dirView requested
+   * @throws IndexOutOfBoundsException if dirIndex is out of range
    */
   public StorageDirView getDirView(int dirIndex) {
     return mDirViews.get(dirIndex);
