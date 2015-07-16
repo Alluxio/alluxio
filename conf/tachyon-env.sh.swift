@@ -48,7 +48,7 @@ fi
 
 export JAVA="$JAVA_HOME/bin/java"
 export TACHYON_MASTER_ADDRESS=localhost
-export TACHYON_UNDERFS_ADDRESS=swift://testcont.tactest
+export TACHYON_UNDERFS_ADDRESS=swift://testcont.swift2
 export TACHYON_WORKER_MEMORY_SIZE=1GB
 export TACHYON_UNDERFS_HDFS_IMPL=org.apache.hadoop.hdfs.DistributedFileSystem
 export TACHYON_WORKER_MAX_WORKER_THREADS=2048
@@ -61,15 +61,18 @@ export TACHYON_WORKER_SLEEP="0.02"
 # in the Java classpath.  May be necessary if there are jar conflicts
 #export TACHYON_PREPEND_TACHYON_CLASSES="yes"
 
+# Where log files are stored. $TACHYON_HOME/logs by default.
+#export TACHYON_LOGS_DIR=$TACHYON_HOME/logs
+
 CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export TACHYON_JAVA_OPTS+="
   -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
   -Dtachyon.debug=false
-  -Dtachyon.worker.hierarchystore.level.max=1
-  -Dtachyon.worker.hierarchystore.level0.alias=MEM
-  -Dtachyon.worker.hierarchystore.level0.dirs.path=$TACHYON_RAM_FOLDER
-  -Dtachyon.worker.hierarchystore.level0.dirs.quota=$TACHYON_WORKER_MEMORY_SIZE
+  -Dtachyon.worker.tieredstore.level.max=1
+  -Dtachyon.worker.tieredstore.level0.alias=MEM
+  -Dtachyon.worker.tieredstore.level0.dirs.path=$TACHYON_RAM_FOLDER
+  -Dtachyon.worker.tieredstore.level0.dirs.quota=$TACHYON_WORKER_MEMORY_SIZE
   -Dtachyon.underfs.address=$TACHYON_UNDERFS_ADDRESS
   -Dtachyon.underfs.hdfs.impl=$TACHYON_UNDERFS_HDFS_IMPL
   -Dtachyon.data.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/data
@@ -80,7 +83,7 @@ export TACHYON_JAVA_OPTS+="
   -Dtachyon.master.max.worker.threads=$TACHYON_MASTER_MAX_WORKER_THREADS
   -Dtachyon.master.worker.timeout.ms=60000
   -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
-  -Dtachyon.master.journal.folder=$TACHYON_UNDERFS_ADDRESS/journal/
+  -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
   -Dorg.apache.jasper.compiler.disablejsr199=true
   -Djava.net.preferIPv4Stack=true
 "
