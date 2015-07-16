@@ -91,7 +91,7 @@ public class BlockDataManager {
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
     mMasterClient =
-        new MasterClient(BlockWorkerUtils.getMasterAddress(mTachyonConf),
+        new MasterClient(NetworkUtils.getMasterAddress(mTachyonConf),
             mMasterClientExecutorService, mTachyonConf);
 
     // Create Under FileSystem Client
@@ -101,7 +101,7 @@ public class BlockDataManager {
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
 
     // Connect to UFS to handle UFS security
-    InetSocketAddress workerAddress = BlockWorkerUtils.getWorkerAddress(mTachyonConf);
+    InetSocketAddress workerAddress = NetworkUtils.getWorkerAddress(mTachyonConf);
     mUfs.connectFromWorker(mTachyonConf, NetworkUtils.getFqdnHost(workerAddress));
 
     // Register the heartbeat reporter so it can record block store changes

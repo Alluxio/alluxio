@@ -13,13 +13,12 @@
  * the License.
  */
 
-package tachyon.worker.block;
+package tachyon.util;
 
 import java.net.InetSocketAddress;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -27,16 +26,14 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.NetworkUtils;
 
-public class BlockWorkerUtilsTest {
+public class GetMasterWorkerAddressTest {
   private static Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
   private static Map<String, String> sNullMasterHostNameTestProperties =
       new LinkedHashMap<String, String>();
   private static Map<String, String> sNullMasterPortTestProperties =
       new LinkedHashMap<String, String>();
-  private static Map<String, String> sNullTestProperties =
-      new LinkedHashMap<String, String>();
+  private static Map<String, String> sNullTestProperties = new LinkedHashMap<String, String>();
 
   private TachyonConf mCustomPropsTachyonConf;
   private TachyonConf mNullMasterHostNameTachyonConf;
@@ -71,19 +68,19 @@ public class BlockWorkerUtilsTest {
     String defaultHostname = NetworkUtils.getLocalHostName(mCustomPropsTachyonConf);
     int defaultPort = Constants.DEFAULT_MASTER_PORT;
 
-    InetSocketAddress masterAddress = BlockWorkerUtils.getMasterAddress(mCustomPropsTachyonConf);
+    InetSocketAddress masterAddress = NetworkUtils.getMasterAddress(mCustomPropsTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);
 
-    masterAddress = BlockWorkerUtils.getMasterAddress(mNullMasterHostNameTachyonConf);
+    masterAddress = NetworkUtils.getMasterAddress(mNullMasterHostNameTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
 
-    masterAddress = BlockWorkerUtils.getMasterAddress(mNullMasterPortTachyonConf);
+    masterAddress = NetworkUtils.getMasterAddress(mNullMasterPortTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster3", defaultPort), masterAddress);
 
-    masterAddress = BlockWorkerUtils.getMasterAddress(mNullTachyonConf);
+    masterAddress = NetworkUtils.getMasterAddress(mNullTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
   }
@@ -93,11 +90,11 @@ public class BlockWorkerUtilsTest {
     String defaultHostname = NetworkUtils.getLocalHostName(mCustomPropsTachyonConf);
     int defaultPort = Constants.DEFAULT_WORKER_PORT;
 
-    InetSocketAddress workerAddress = BlockWorkerUtils.getWorkerAddress(mCustomPropsTachyonConf);
+    InetSocketAddress workerAddress = NetworkUtils.getWorkerAddress(mCustomPropsTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
 
-    workerAddress = BlockWorkerUtils.getWorkerAddress(mNullTachyonConf);
+    workerAddress = NetworkUtils.getWorkerAddress(mNullTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), workerAddress);
   }

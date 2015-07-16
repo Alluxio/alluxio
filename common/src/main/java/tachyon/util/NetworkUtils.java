@@ -233,4 +233,29 @@ public final class NetworkUtils {
       throw Throwables.propagate(e);
     }
   }
+
+  /**
+   * Gets the Tachyon master address from the configuration
+   *
+   * @param conf the configuration of Tachyon
+   * @return the InetSocketAddress of the master
+   */
+  public static InetSocketAddress getMasterAddress(TachyonConf conf) {
+    String masterHostname =
+        conf.get(Constants.MASTER_HOSTNAME, getLocalHostName(conf));
+    int masterPort = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+    return new InetSocketAddress(masterHostname, masterPort);
+  }
+
+  /**
+   * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
+   *
+   * @param conf the configuration of Tachyon
+   * @return the worker's address
+   */
+  public static InetSocketAddress getWorkerAddress(TachyonConf conf) {
+    String workerHostname = getLocalHostName(conf);
+    int workerPort = conf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
+    return new InetSocketAddress(workerHostname, workerPort);
+  }
 }
