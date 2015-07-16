@@ -31,18 +31,23 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import tachyon.Constants;
+import tachyon.StorageLevelAlias;
+import tachyon.Users;
 import tachyon.conf.TachyonConf;
-import tachyon.network.protocol.RPCBlockRequest;
-import tachyon.network.protocol.RPCBlockResponse;
+import tachyon.network.protocol.RPCBlockReadRequest;
+import tachyon.network.protocol.RPCBlockReadResponse;
+import tachyon.network.protocol.RPCBlockWriteRequest;
+import tachyon.network.protocol.RPCBlockWriteResponse;
+import tachyon.network.protocol.RPCErrorResponse;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCRequest;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.network.protocol.databuffer.DataBuffer;
 import tachyon.network.protocol.databuffer.DataByteBuffer;
 import tachyon.network.protocol.databuffer.DataFileChannel;
-import tachyon.worker.BlockHandler;
-import tachyon.worker.BlocksLocker;
-import tachyon.worker.tiered.StorageDir;
+import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.io.BlockReader;
+import tachyon.worker.block.io.BlockWriter;
 
 /**
  * This class has the main logic of the read path to process {@link RPCRequest} messages and return
@@ -52,12 +57,12 @@ import tachyon.worker.tiered.StorageDir;
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final BlocksLocker mLocker;
+  private final BlockDataManager mDataManager;
   private final TachyonConf mTachyonConf;
   private final FileTransferType mTransferType;
 
-  public DataServerHandler(final BlocksLocker locker, TachyonConf tachyonConf) {
-    mLocker = locker;
+  public DataServerHandler(final BlockDataManager dataManager, TachyonConf tachyonConf) {
+    mDataManager = dataManager;
     mTachyonConf = tachyonConf;
     mTransferType =
         mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.TRANSFER);
@@ -67,10 +72,15 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   public void channelRead0(final ChannelHandlerContext ctx, final RPCMessage msg)
       throws IOException {
     switch (msg.getType()) {
-      case RPC_BLOCK_REQUEST:
-        handleBlockRequest(ctx, (RPCBlockRequest) msg);
+      case RPC_BLOCK_READ_REQUEST:
+        handleBlockReadRequest(ctx, (RPCBlockReadRequest) msg);
+        break;
+      case RPC_BLOCK_WRITE_REQUEST:
+        handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
         break;
       default:
+        RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
+        ctx.writeAndFlush(resp);
         throw new IllegalArgumentException("No handler implementation for rpc msg type: "
             + msg.getType());
     }
@@ -82,41 +92,95 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     ctx.close();
   }
 
-  private void handleBlockRequest(final ChannelHandlerContext ctx, final RPCBlockRequest req)
-      throws IOException {
+  private void handleBlockReadRequest(final ChannelHandlerContext ctx,
+      final RPCBlockReadRequest req) throws IOException {
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
-    final int lockId = mLocker.getLockId();
-    final StorageDir storageDir = mLocker.lock(blockId, lockId);
-
-    BlockHandler handler = null;
+    long lockId;
     try {
-      req.validate();
-      handler = storageDir.getBlockHandler(blockId);
-
-      final long fileLength = handler.getLength();
-      validateBounds(req, fileLength);
-      final long readLength = returnLength(offset, len, fileLength);
-      ChannelFuture future =
-          ctx.writeAndFlush(new RPCBlockResponse(blockId, offset, readLength, getDataBuffer(req,
-              handler, readLength)));
-      future.addListener(ChannelFutureListener.CLOSE);
-      future.addListener(new ClosableResourceChannelListener(handler));
-      storageDir.accessBlock(blockId);
-      LOG.info("Response remote request by reading from {}, preparation done.",
-          storageDir.getBlockFilePath(blockId));
-    } catch (Exception e) {
-      // TODO This is a trick for now. The data may have been removed before remote retrieving.
-      LOG.error("The file is not here : " + e.getMessage(), e);
-      RPCBlockResponse resp = RPCBlockResponse.createErrorResponse(blockId);
+      lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
+    } catch (IOException ioe) {
+      LOG.error("Failed to lock block: " + blockId, ioe);
+      RPCBlockReadResponse resp =
+          RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.BLOCK_LOCK_ERROR);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
-      if (handler != null) {
-        handler.close();
+      return;
+    }
+
+    BlockReader reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
+    try {
+      req.validate();
+      final long fileLength = reader.getLength();
+      validateBounds(req, fileLength);
+      final long readLength = returnLength(offset, len, fileLength);
+      RPCBlockReadResponse resp = new RPCBlockReadResponse(blockId, offset, readLength,
+          getDataBuffer(req, reader, readLength), RPCResponse.Status.SUCCESS);
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(ChannelFutureListener.CLOSE);
+      future.addListener(new ClosableResourceChannelListener(reader));
+      mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
+      LOG.info("Preparation for responding to remote block request for: " + blockId + " done.");
+    } catch (Exception e) {
+      LOG.error("The file is not here : " + e.getMessage(), e);
+      RPCBlockReadResponse resp =
+          RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.FILE_DNE);
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(ChannelFutureListener.CLOSE);
+      if (reader != null) {
+        reader.close();
       }
     } finally {
-      mLocker.unlock(blockId, lockId);
+      mDataManager.unlockBlock(lockId);
+    }
+  }
+
+  // TODO: This write request handler is very simple in order to be stateless. Therefore, the block
+  // file is opened and closed for every request. If this is too slow, then this handler should be
+  // optimized to keep state.
+  private void handleBlockWriteRequest(final ChannelHandlerContext ctx,
+      final RPCBlockWriteRequest req) throws IOException {
+    final long userId = req.getUserId();
+    final long blockId = req.getBlockId();
+    final long offset = req.getOffset();
+    final long length = req.getLength();
+    final DataBuffer data = req.getPayloadDataBuffer();
+
+    BlockWriter writer = null;
+    try {
+      req.validate();
+      ByteBuffer buffer = data.getReadOnlyByteBuffer();
+      if (buffer.remaining() <= 0) {
+        throw new IOException("Empty buffer to write.");
+      }
+
+      if (offset == 0) {
+        // This is the first write to the block, so create the temp block file. The file will only
+        // be created if the first write starts at offset 0. This allocates enough space for the
+        // write.
+        mDataManager.createBlockRemote(userId, blockId, StorageLevelAlias.MEM.getValue(), length);
+      } else {
+        // Allocate enough space in the existing temporary block for the write.
+        mDataManager.requestSpace(userId, blockId, length);
+      }
+      writer = mDataManager.getTempBlockWriterRemote(userId, blockId);
+      writer.append(buffer);
+
+      RPCBlockWriteResponse resp = new RPCBlockWriteResponse(userId, blockId, offset, length,
+          RPCResponse.Status.SUCCESS);
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(ChannelFutureListener.CLOSE);
+      future.addListener(new ClosableResourceChannelListener(writer));
+    } catch (Exception e) {
+      LOG.error("Error writing remote block : " + e.getMessage(), e);
+      RPCBlockWriteResponse resp =
+          RPCBlockWriteResponse.createErrorResponse(req, RPCResponse.Status.WRITE_ERROR);
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(ChannelFutureListener.CLOSE);
+      if (writer != null) {
+        writer.close();
+      }
     }
   }
 
@@ -128,7 +192,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     return (len == -1) ? fileLength - offset : len;
   }
 
-  private void validateBounds(final RPCBlockRequest req, final long fileLength) {
+  private void validateBounds(final RPCBlockReadRequest req, final long fileLength) {
     Preconditions.checkArgument(req.getOffset() <= fileLength,
         "Offset(%s) is larger than file length(%s)", req.getOffset(), fileLength);
     Preconditions.checkArgument(req.getLength() == -1
@@ -137,32 +201,30 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         req.getLength(), fileLength);
   }
 
-
-
   /**
-   * Returns the appropriate DataBuffer representing the data to send, depending on the
-   * configurable transfer type.
+   * Returns the appropriate DataBuffer representing the data to send, depending on the configurable
+   * transfer type.
    *
-   * @param req The initiating RPCBlockRequest
-   * @param handler The BlockHandler for the block to read
+   * @param req The initiating RPCBlockReadRequest
+   * @param reader The BlockHandler for the block to read
    * @param readLength The length, in bytes, of the data to read from the block
    * @return a DataBuffer representing the data
    * @throws IOException
    * @throws IllegalArgumentException
    */
-  private DataBuffer getDataBuffer(RPCBlockRequest req, BlockHandler handler, long readLength)
+  private DataBuffer getDataBuffer(RPCBlockReadRequest req, BlockReader reader, long readLength)
       throws IOException, IllegalArgumentException {
     switch (mTransferType) {
       case MAPPED:
-        ByteBuffer data = handler.read(req.getOffset(), (int) readLength);
+        ByteBuffer data = reader.read(req.getOffset(), (int) readLength);
         return new DataByteBuffer(data, readLength);
       case TRANSFER: // intend to fall through as TRANSFER is the default type.
       default:
-        if (handler.getChannel() instanceof FileChannel) {
-          return new DataFileChannel((FileChannel) handler.getChannel(), req.getOffset(),
+        if (reader.getChannel() instanceof FileChannel) {
+          return new DataFileChannel((FileChannel) reader.getChannel(), req.getOffset(),
               readLength);
         }
-        handler.close();
+        reader.close();
         throw new IllegalArgumentException("Only FileChannel is supported!");
     }
   }

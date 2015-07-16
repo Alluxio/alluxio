@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
@@ -43,5 +44,15 @@ public class RPCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
     RPCMessage.Type type = RPCMessage.Type.decode(in);
     RPCMessage message = RPCMessage.decodeMessage(type, in);
     out.add(message);
+  }
+
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    LOG.error("Error in decoding message. Possible Client/DataServer version incompatibility: "
+        + cause.getMessage());
+    // Return an error message to the client.
+    ctx.channel()
+        .writeAndFlush(new RPCErrorResponse(RPCResponse.Status.DECODE_ERROR))
+        .addListener(ChannelFutureListener.CLOSE);
   }
 }
