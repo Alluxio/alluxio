@@ -46,6 +46,8 @@ public class WorkerSource implements Source {
       .name("BlocksReadRemote"));
   private final Counter mBlocksWrittenLocal = mMetricRegistry.counter(MetricRegistry
       .name("BlocksWrittenLocal"));
+  private final Counter mBlocksWrittenRemote = mMetricRegistry.counter(MetricRegistry
+      .name("BlocksWrittenRemote"));
   private final Counter mBytesReadLocal = mMetricRegistry.counter(MetricRegistry
       .name("BytesReadLocal"));
   private final Counter mBytesReadRemote = mMetricRegistry.counter(MetricRegistry
@@ -54,6 +56,8 @@ public class WorkerSource implements Source {
       .name("BytesReadUfs"));
   private final Counter mBytesWrittenLocal = mMetricRegistry.counter(MetricRegistry
       .name("BytesWrittenLocal"));
+  private final Counter mBytesWrittenRemote = mMetricRegistry.counter(MetricRegistry
+      .name("BytesWrittenRemote"));
   private final Counter mBytesWrittenUfs = mMetricRegistry.counter(MetricRegistry
       .name("BytesWrittenUfs"));
 
@@ -99,6 +103,10 @@ public class WorkerSource implements Source {
     mBlocksWrittenLocal.inc(n);
   }
 
+  public void incBlocksWrittenRemote(long n) {
+    mBlocksWrittenRemote.inc(n);
+  }
+
   public void incBytesReadLocal(long n) {
     mBytesReadLocal.inc(n);
   }
@@ -113,6 +121,10 @@ public class WorkerSource implements Source {
 
   public void incBytesWrittenLocal(long n) {
     mBytesWrittenLocal.inc(n);
+  }
+
+  public void incBytesWrittenRemote(long n) {
+    mBytesWrittenRemote.inc(n);
   }
 
   public void incBytesWrittenUfs(long n) {
