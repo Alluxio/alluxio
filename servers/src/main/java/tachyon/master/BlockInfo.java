@@ -187,7 +187,8 @@ public class BlockInfo {
           } catch (NumberFormatException nfe) {
             continue;
           }
-          ret.add(new NetAddress(resolvedHost, resolvedPort, -1));
+          // The resolved port is the data transfer port not the rpc port
+          ret.add(new NetAddress(resolvedHost, -1, resolvedPort));
         }
       }
     }
