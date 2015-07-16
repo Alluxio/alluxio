@@ -18,6 +18,10 @@ package tachyon.master;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.base.Joiner;
 
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
@@ -215,17 +219,20 @@ public final class LocalTachyonCluster {
     mWorkerConf.set("tachyon.worker.tieredstore.level0.alias", "MEM");
     mWorkerConf.set("tachyon.worker.tieredstore.level0.dirs.path", mTachyonHome + "/ramdisk");
     mWorkerConf.set("tachyon.worker.tieredstore.level0.dirs.quota", mWorkerCapacityBytes + "");
+    mkdir(mTachyonHome + "/ramdisk");
 
     int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath = "tachyon.worker.tieredstore.level" + level + ".dirs.path";
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
-      String newPath = "";
+      List<String> newPaths = new ArrayList<String>();
       for (int i = 0; i < dirPaths.length; i ++) {
-        newPath += mTachyonHome + dirPaths[i] + ",";
+        String dirPath = mTachyonHome + dirPaths[i];
+        newPaths.add(dirPath);
+        mkdir(dirPath);
       }
-      mWorkerConf.set("tachyon.worker.tieredstore.level" + level + ".dirs.path",
-          newPath.substring(0, newPath.length() - 1));
+      mWorkerConf.set("tachyon.worker.tieredstore.level" + level + ".dirs.path", Joiner.on(',')
+          .join(newPaths));
     }
 
     mWorker = new BlockWorker(mWorkerConf);
