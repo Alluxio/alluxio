@@ -28,7 +28,6 @@ import org.mockito.Mockito;
 
 import com.google.common.collect.Sets;
 
-import tachyon.exception.InvalidArgumentException;
 import tachyon.exception.NotFoundException;
 import tachyon.master.BlockInfo;
 import tachyon.worker.block.evictor.EvictorTestUtils;
@@ -63,7 +62,7 @@ public class BlockMetadataManagerViewTest {
   }
 
   @Test
-  public void getTierViewTest() throws InvalidArgumentException {
+  public void getTierViewTest() {
     for (StorageTier tier : mMetaManager.getTiers()) {
       int tierAlias = tier.getTierAlias();
       StorageTierView tierView = mMetaManagerView.getTierView(tierAlias);
@@ -78,7 +77,7 @@ public class BlockMetadataManagerViewTest {
   }
 
   @Test
-  public void getTierViewsBelowTest() throws InvalidArgumentException {
+  public void getTierViewsBelowTest() {
     for (StorageTier tier : mMetaManager.getTiers()) {
       int tierAlias = tier.getTierAlias();
       Assert.assertEquals(mMetaManager.getTiersBelow(tierAlias).size(),
@@ -87,7 +86,7 @@ public class BlockMetadataManagerViewTest {
   }
 
   @Test
-  public void getAvailableBytesTest() throws InvalidArgumentException {
+  public void getAvailableBytesTest() {
     BlockStoreLocation location;
     // When location represents anyTier
     location = BlockStoreLocation.anyTier();

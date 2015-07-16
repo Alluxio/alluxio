@@ -31,7 +31,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
 import tachyon.Constants;
-import tachyon.exception.FailedPreconditionException;
+import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 
 /**
@@ -164,11 +164,11 @@ public class BlockLockManager {
    * @param blockId The ID of the block
    * @param lockId The ID of the lock
    * @throws NotFoundException when no lock record can be found for lockId
-   * @throws FailedPreconditionException when userId or blockId is not consistent with that in the
+   * @throws InvalidStateException when userId or blockId is not consistent with that in the
    *         lock record for lockId
    */
   public void validateLock(long userId, long blockId, long lockId) throws NotFoundException,
-      FailedPreconditionException {
+      InvalidStateException {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
@@ -176,11 +176,11 @@ public class BlockLockManager {
             + " has no lock record");
       }
       if (userId != record.userId()) {
-        throw new FailedPreconditionException("Failed to validateLock: lockId " + lockId
+        throw new InvalidStateException("Failed to validateLock: lockId " + lockId
             + " is owned by userId " + record.userId() + ", not " + userId);
       }
       if (blockId != record.blockId()) {
-        throw new FailedPreconditionException("Failed to validateLock: lockId " + lockId
+        throw new InvalidStateException("Failed to validateLock: lockId " + lockId
             + " is for blockId " + record.blockId() + ", not " + blockId);
       }
     }

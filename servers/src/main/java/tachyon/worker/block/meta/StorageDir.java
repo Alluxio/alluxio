@@ -35,7 +35,7 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.exception.AlreadyExistsException;
-import tachyon.exception.FailedPreconditionException;
+import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.worker.block.BlockStoreLocation;
@@ -376,16 +376,16 @@ public class StorageDir {
    *
    * @param tempBlockMeta the meta data of the temp block to resize
    * @param newSize the new size after change in bytes
-   * @throws FailedPreconditionException when newSize is smaller than oldSize
+   * @throws InvalidStateException when newSize is smaller than oldSize
    */
   public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
-      throws FailedPreconditionException {
+      throws InvalidStateException {
     long oldSize = tempBlockMeta.getBlockSize();
     tempBlockMeta.setBlockSize(newSize);
     if (newSize > oldSize) {
       reserveSpace(newSize - oldSize, false);
     } else if (newSize < oldSize) {
-      throw new FailedPreconditionException("Shrinking block, not supported!");
+      throw new InvalidStateException("Shrinking block, not supported!");
     }
   }
 

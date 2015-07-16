@@ -16,23 +16,20 @@
 package tachyon.exception;
 
 /**
- * Exception used when the client specified an invalid argument, indicating arguments that are
- * problematic regardless of the state of the system. This differs from FailedPreconditionException,
- * the latter is related to system state.
+ * Exception used when the system is not in a state required for the operation.
  *
  * For example:
  * <ul>
- * <li>malformed TachyonURL</li>
- * <li>invalid tier alias(like -2)</li>
- * <li>BlockStoreLocation does not belong to current tiered storage</li>
+ * <li>userId or blockId does not correspond to that in the record of lockId</li>
+ * <li>user A wants to commit a temp block owned by user B</li>
  * </ul>
  */
-public class InvalidArgumentException extends Exception {
-  public InvalidArgumentException(String message) {
+public class InvalidStateException extends Exception {
+  public InvalidStateException(String message) {
     super(message);
   }
 
-  public InvalidArgumentException(String message, Throwable cause) {
+  public InvalidStateException(String message, Throwable cause) {
     super(message, cause);
   }
 }

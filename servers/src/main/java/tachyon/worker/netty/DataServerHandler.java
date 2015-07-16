@@ -34,7 +34,7 @@ import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.FailedPreconditionException;
+import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.network.protocol.RPCBlockReadRequest;
 import tachyon.network.protocol.RPCBlockReadResponse;
@@ -116,7 +116,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
     } catch (NotFoundException nfe) {
       throw new IOException(nfe);
-    } catch (FailedPreconditionException fpe) {
+    } catch (InvalidStateException fpe) {
       throw new IOException(fpe);
     }
     try {

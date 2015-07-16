@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.exception.InvalidArgumentException;
 import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
@@ -72,7 +71,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    *         bytesToBeAvailable, otherwise null
    */
   private StorageDirView selectDirWithRequestedSpace(long bytesToBeAvailable,
-      BlockStoreLocation location) throws InvalidArgumentException {
+      BlockStoreLocation location) {
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTierView tierView : mManagerView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {
@@ -118,7 +117,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    *         there is no plan
    */
   private StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
-      EvictionPlan plan) throws InvalidArgumentException {
+      EvictionPlan plan) {
 
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
     StorageDirView candidateDirView = selectDirWithRequestedSpace(bytesToBeAvailable, location);
@@ -183,7 +182,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
 
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-      BlockMetadataManagerView view) throws InvalidArgumentException {
+      BlockMetadataManagerView view) {
     mManagerView = view;
 
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();

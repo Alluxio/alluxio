@@ -30,8 +30,7 @@ import tachyon.Constants;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
-import tachyon.exception.FailedPreconditionException;
-import tachyon.exception.InvalidArgumentException;
+import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.master.MasterClient;
@@ -118,12 +117,12 @@ public class BlockDataManager {
    * @param userId The id of the client
    * @param blockId The id of the block to be aborted
    * @throws AlreadyExistsException if blockId already exists in committed blocks
-   * @throws NotFoundException if the temporary block can not be found
-   * @throws FailedPreconditionException if blockId does not belong to userId
-   * @throws IOException if temporary block can not be deleted
+   * @throws NotFoundException if the temporary block cannot be found
+   * @throws InvalidStateException if blockId does not belong to userId
+   * @throws IOException if temporary block cannot be deleted
    */
   public void abortBlock(long userId, long blockId) throws AlreadyExistsException,
-      NotFoundException, FailedPreconditionException, IOException {
+      NotFoundException, InvalidStateException, IOException {
     mBlockStore.abortBlock(userId, blockId);
   }
 
@@ -194,13 +193,13 @@ public class BlockDataManager {
    * @param blockId The id of the block to commit
    * @return true if successful, false otherwise
    * @throws AlreadyExistsException if blockId already exists in committed blocks
-   * @throws NotFoundException if the temporary block can not be found
-   * @throws FailedPreconditionException if blockId does not belong to userId
-   * @throws IOException if the block can not be moved from temporary path to committed path
+   * @throws NotFoundException if the temporary block cannot be found
+   * @throws InvalidStateException if blockId does not belong to userId
+   * @throws IOException if the block cannot be moved from temporary path to committed path
    * @throws OutOfSpaceException if there is no more space left to hold the block
    */
   public void commitBlock(long userId, long blockId) throws AlreadyExistsException,
-      NotFoundException, FailedPreconditionException, IOException, OutOfSpaceException {
+      NotFoundException, InvalidStateException, IOException, OutOfSpaceException {
     mBlockStore.commitBlock(userId, blockId);
 
     // TODO: Reconsider how to do this without heavy locking
@@ -230,12 +229,12 @@ public class BlockDataManager {
    * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
    * @param initialBytes The initial amount of bytes to be allocated
    * @return A string representing the path to the local file
+   * @throws IllegalArgumentException if location does not belong to tiered storage
    * @throws AlreadyExistsException if blockId already exists, either is temporary or committed
-   * @throws InvalidArgumentException if location does not belong to tiered storage
    * @throws OutOfSpaceException if this Store has no more space than the initialBlockSize
    */
   public String createBlock(long userId, long blockId, int tierAlias, long initialBytes)
-      throws AlreadyExistsException, InvalidArgumentException, OutOfSpaceException {
+      throws AlreadyExistsException, OutOfSpaceException {
     BlockStoreLocation loc =
         tierAlias == -1 ? BlockStoreLocation.anyTier() : BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
@@ -251,13 +250,13 @@ public class BlockDataManager {
    * @param blockId The id of the block to be created
    * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
    * @param initialBytes The initial amount of bytes to be allocated
+   * @throws IllegalArgumentException if location does not belong to tiered storage
    * @throws AlreadyExistsException if blockId already exists, either is temporary or committed
-   * @throws InvalidArgumentException if location does not belong to tiered storage
    * @throws OutOfSpaceException if this Store has no more space than the initialBlockSize
-   * @throws IOException if file for the block can not be created
+   * @throws IOException if file for the block cannot be created
    */
   public void createBlockRemote(long userId, long blockId, int tierAlias, long initialBytes)
-      throws AlreadyExistsException, InvalidArgumentException, OutOfSpaceException, IOException {
+      throws AlreadyExistsException, OutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     CommonUtils.createBlockPath(createdBlock.getPath());
@@ -272,8 +271,8 @@ public class BlockDataManager {
    * @param userId The id of the client
    * @param blockId The id of the block to be opened for writing
    * @return the block writer for the local block file
-   * @throws NotFoundException if the block can not be found
-   * @throws IOException if block can not be created
+   * @throws NotFoundException if the block cannot be found
+   * @throws IOException if block cannot be created
    */
   public BlockWriter getTempBlockWriterRemote(long userId, long blockId) throws NotFoundException,
       IOException {
@@ -338,7 +337,7 @@ public class BlockDataManager {
    * @param userId The id of the client
    * @param blockId The id of the block to be locked
    * @return the lockId that uniquely identifies the lock obtained
-   * @throws NotFoundException if blockId can not be found, for example, evicted already.
+   * @throws NotFoundException if blockId cannot be found, for example, evicted already.
    */
   public long lockBlock(long userId, long blockId) throws NotFoundException {
     return mBlockStore.lockBlock(userId, blockId);
@@ -351,16 +350,15 @@ public class BlockDataManager {
    * @param userId The id of the client
    * @param blockId The id of the block to move
    * @param tierAlias The tier to move the block to
-   * @throws NotFoundException if blockId can not be found
+   * @throws IllegalArgumentException if tierAlias is out of range of tiered storage
+   * @throws NotFoundException if blockId cannot be found
    * @throws AlreadyExistsException if blockId already exists in committed blocks of the newLocation
-   * @throws FailedPreconditionException if blockId has not been committed
-   * @throws InvalidArgumentException if newLocation does not belong to the tiered storage
+   * @throws InvalidStateException if blockId has not been committed
    * @throws OutOfSpaceException if newLocation does not have enough extra space to hold the block
    * @throws IOException if block cannot be moved from current location to newLocation
    */
   public void moveBlock(long userId, long blockId, int tierAlias) throws NotFoundException,
-      AlreadyExistsException, FailedPreconditionException, InvalidArgumentException,
-      OutOfSpaceException, IOException {
+      AlreadyExistsException, InvalidStateException, OutOfSpaceException, IOException {
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tierAlias);
     mBlockStore.moveBlock(userId, blockId, dst);
   }
@@ -373,13 +371,13 @@ public class BlockDataManager {
    * @param blockId The id of the block to read
    * @param lockId The id of the lock on this block
    * @return a string representing the path to this block in local storage
-   * @throws NotFoundException if the blockId can not be found in committed blocks or lockId can not
+   * @throws NotFoundException if the blockId cannot be found in committed blocks or lockId cannot
    *         be found
-   * @throws FailedPreconditionException if userId or blockId is not the same as that in the
-   *         LockRecord of lockId
+   * @throws InvalidStateException if userId or blockId is not the same as that in the LockRecord of
+   *         lockId
    */
   public String readBlock(long userId, long blockId, long lockId) throws NotFoundException,
-      FailedPreconditionException {
+      InvalidStateException {
     BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
     return meta.getPath();
   }
@@ -392,12 +390,12 @@ public class BlockDataManager {
    * @param lockId The id of the lock on this block
    * @return the block reader for the block
    * @throws NotFoundException if lockId is not found
-   * @throws FailedPreconditionException if userId or blockId is not the same as that in the
-   *         LockRecord of lockId
-   * @throws IOException if block can not be read
+   * @throws InvalidStateException if userId or blockId is not the same as that in the LockRecord of
+   *         lockId
+   * @throws IOException if block cannot be read
    */
   public BlockReader readBlockRemote(long userId, long blockId, long lockId)
-      throws NotFoundException, FailedPreconditionException, IOException {
+      throws NotFoundException, InvalidStateException, IOException {
     return mBlockStore.getBlockReader(userId, blockId, lockId);
   }
 
@@ -406,7 +404,7 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to be freed
-   * @throws NotFoundException if block can not be found
+   * @throws NotFoundException if block cannot be found
    * @throws IOException if block cannot be removed from current path
    */
   public void removeBlock(long userId, long blockId) throws NotFoundException, IOException {
@@ -420,12 +418,12 @@ public class BlockDataManager {
    * @param userId The id of the client
    * @param blockId The id of the block to allocate space to
    * @param additionalBytes The amount of bytes to allocate
-   * @throws NotFoundException if blockId can not be found
-   * @throws InvalidArgumentException if additionalBytes is less than zero
-   * @throws OutOfSpaceException if requested space can not be satisfied
+   * @throws IllegalArgumentException if additionalBytes is less than zero
+   * @throws NotFoundException if blockId cannot be found
+   * @throws OutOfSpaceException if requested space cannot be satisfied
    */
   public void requestSpace(long userId, long blockId, long additionalBytes)
-      throws NotFoundException, InvalidArgumentException, OutOfSpaceException {
+      throws NotFoundException, OutOfSpaceException {
     mBlockStore.requestSpace(userId, blockId, additionalBytes);
   }
 
@@ -460,7 +458,7 @@ public class BlockDataManager {
    * Relinquishes the lock with the specified lock id.
    *
    * @param lockId The id of the lock to relinquish
-   * @throws NotFoundException if lockId can not be found
+   * @throws NotFoundException if lockId cannot be found
    */
   public void unlockBlock(long lockId) throws NotFoundException {
     mBlockStore.unlockBlock(lockId);

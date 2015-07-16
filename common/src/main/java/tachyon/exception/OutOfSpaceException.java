@@ -16,8 +16,13 @@
 package tachyon.exception;
 
 /**
- * Exception used when storage space is insufficient, for example, worker can not satisfy the
- * requested space, evictor can not satisfy the space to be available after eviction.
+ * Exception used when storage space is insufficient.
+ *
+ * For example:
+ * <ul>
+ * <li>worker cannot satisfy the requested space</li>
+ * <li>evictor cannot satisfy the space to be available after eviction</li>
+ * </ul>
  */
 public class OutOfSpaceException extends Exception {
   public OutOfSpaceException(String message) {

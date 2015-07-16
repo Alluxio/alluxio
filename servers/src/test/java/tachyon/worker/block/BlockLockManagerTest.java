@@ -23,7 +23,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
-import tachyon.exception.FailedPreconditionException;
+import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 
 public class BlockLockManagerTest {
@@ -83,7 +83,7 @@ public class BlockLockManagerTest {
   public void validateLockIdWithWrongUserIdTest() throws Exception {
     long lockId = mLockManager.lockBlock(TEST_USER_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongUserId = TEST_USER_ID + 1;
-    mThrown.expect(FailedPreconditionException.class);
+    mThrown.expect(InvalidStateException.class);
     mThrown.expectMessage("Failed to validateLock: lockId " + lockId + " is owned by userId "
         + TEST_USER_ID + ", not " + wrongUserId);
     // Validate an existing lockId with wrong userId, expect to see IOException
@@ -94,7 +94,7 @@ public class BlockLockManagerTest {
   public void validateLockIdWithWrongBlockIdTest() throws Exception {
     long lockId = mLockManager.lockBlock(TEST_USER_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongBlockId = TEST_BLOCK_ID + 1;
-    mThrown.expect(FailedPreconditionException.class);
+    mThrown.expect(InvalidStateException.class);
     mThrown.expectMessage("Failed to validateLock: lockId " + lockId + " is for blockId "
         + TEST_BLOCK_ID + ", not " + wrongBlockId);
     // Validate an existing lockId with wrong blockId, expect to see IOException
