@@ -111,7 +111,7 @@ public class CapacityUsageIntegrationTest {
     // This test may not trigger eviction each time, repeat it 20 times.
     for (int i = 0; i < 20; i ++) {
       deleteDuringEviction(i);
-      CommonUtils.sleepMs(null, 5 * HEARTBEAT_INTERVAL_MS); // ensure second delete completes
+      CommonUtils.sleepMs(null, 2 * HEARTBEAT_INTERVAL_MS); // ensure second delete completes
     }
   }
 }
