@@ -65,7 +65,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -586,7 +586,7 @@ public final class MasterClient implements Closeable {
 
       try {
         ClientRawTableInfo ret = mClient.user_getClientRawTableInfo(id, path);
-        ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
+        ret.setMetadata(BufferUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
         return ret;
       } catch (TableDoesNotExistException e) {
         throw new IOException(e);

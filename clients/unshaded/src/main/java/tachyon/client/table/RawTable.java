@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -22,7 +22,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.client.TachyonFS;
 import tachyon.thrift.ClientRawTableInfo;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
 
 /**
  * Tachyon provides native support for tables with multiple columns. Each table contains one or more
@@ -59,7 +59,7 @@ public class RawTable {
    * @return the meta data of the raw table
    */
   public ByteBuffer getMetadata() {
-    return CommonUtils.cloneByteBuffer(mClientRawTableInfo.metadata);
+    return BufferUtils.cloneByteBuffer(mClientRawTableInfo.metadata);
   }
 
   /**
@@ -78,7 +78,7 @@ public class RawTable {
 
   /**
    * Get one column of the raw table
-   * 
+   *
    * @param columnIndex the index of the column
    * @return the RawColumn
    */
@@ -92,12 +92,12 @@ public class RawTable {
 
   /**
    * Update the meta data of the raw table
-   * 
+   *
    * @param metadata the new meta data
    * @throws IOException
    */
   public void updateMetadata(ByteBuffer metadata) throws IOException {
     mTachyonFS.updateRawTableMetadata(mClientRawTableInfo.getId(), metadata);
-    mClientRawTableInfo.setMetadata(CommonUtils.cloneByteBuffer(metadata));
+    mClientRawTableInfo.setMetadata(BufferUtils.cloneByteBuffer(metadata));
   }
 }
