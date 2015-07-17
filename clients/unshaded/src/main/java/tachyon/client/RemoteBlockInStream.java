@@ -105,7 +105,7 @@ public class RemoteBlockInStream extends BlockInStream {
   private static final int MAX_REMOTE_READ_ATTEMPTS = 2;
 
   /** A reference to the current reader so we can clear it after reading is finished. */
-  private static RemoteBlockReader sUnclearedReader = null;
+  private RemoteBlockReader mStandingReader = null;
 
   /**
    * @param file the file the block belongs to
@@ -141,6 +141,11 @@ public class RemoteBlockInStream extends BlockInStream {
     mUFSConf = ufsConf;
   }
 
+  public RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf,
+      TachyonConf tachyonConf, boolean magicFlag) {
+    super(file, readType, blockIndex, tachyonConf);
+  }
+
   /**
    * Cancels the re-caching attempt
    *
@@ -174,7 +179,7 @@ public class RemoteBlockInStream extends BlockInStream {
     if (mBytesReadRemote > 0) {
       mTachyonFS.getClientMetrics().incBlocksReadRemote(1);
     }
-    clearReader();
+    closeReader();
     mClosed = true;
   }
 
@@ -264,7 +269,7 @@ public class RemoteBlockInStream extends BlockInStream {
     return len;
   }
 
-  public static ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, ClientBlockInfo blockInfo,
+  public ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, ClientBlockInfo blockInfo,
       long offset, long len, TachyonConf conf) {
     ByteBuffer buf = null;
 
@@ -311,12 +316,12 @@ public class RemoteBlockInStream extends BlockInStream {
     return buf;
   }
 
-  private static ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
+  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
       long blockId, long offset, long length, TachyonConf conf) throws IOException {
     RemoteBlockReader reader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
     // always clear the previous reader before assigning it to a new one
-    clearReader();
-    sUnclearedReader = reader;
+    closeReader();
+    mStandingReader = reader;
     return reader.readRemoteBlock(
         address.getHostName(), address.getPort(), blockId, offset, length);
   }
@@ -427,14 +432,15 @@ public class RemoteBlockInStream extends BlockInStream {
    *
    * @return true if reader is successfully cleared or no clearing is needed
    */
-  private static boolean clearReader() {
-    boolean res = true;
-    if (sUnclearedReader != null) {
-      if (sUnclearedReader instanceof NettyRemoteBlockReader) {
-        return ((NettyRemoteBlockReader) sUnclearedReader).clearReadResponse();
+  private void closeReader() throws IOException {
+    if (mStandingReader != null) {
+      try {
+        if (mStandingReader instanceof NettyRemoteBlockReader) {
+          ((NettyRemoteBlockReader) mStandingReader).close();
+        }
+      } finally {
+        mStandingReader = null;
       }
-      sUnclearedReader = null;
     }
-    return res;
   }
 }

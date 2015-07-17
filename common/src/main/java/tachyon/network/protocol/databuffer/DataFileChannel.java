@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.DefaultFileRegion;
 
 /**
@@ -67,5 +68,10 @@ public class DataFileChannel extends DataBuffer {
     ByteBuffer readOnly = buffer.asReadOnlyBuffer();
     readOnly.position(0);
     return readOnly;
+  }
+
+  @Override
+  public boolean release() {
+    return true;
   }
 }
