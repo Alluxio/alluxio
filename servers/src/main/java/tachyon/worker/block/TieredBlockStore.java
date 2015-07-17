@@ -89,8 +89,7 @@ public class TieredBlockStore implements BlockStore {
    */
   private final ReentrantReadWriteLock mEvictionLock = new ReentrantReadWriteLock();
 
-  public TieredBlockStore(TachyonConf tachyonConf) throws AlreadyExistsException,
-      OutOfSpaceException {
+  public TieredBlockStore(TachyonConf tachyonConf) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);

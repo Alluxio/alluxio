@@ -156,12 +156,11 @@ public final class LocalTachyonCluster {
     }
   }
 
-  public void start() throws AlreadyExistsException, OutOfSpaceException, IOException {
+  public void start() throws IOException {
     start(new TachyonConf());
   }
 
-  public void start(TachyonConf tachyonConf) throws AlreadyExistsException, OutOfSpaceException,
-      IOException {
+  public void start(TachyonConf tachyonConf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";

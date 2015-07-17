@@ -89,13 +89,9 @@ public class BlockWorker {
    * Creates a Tachyon Block Worker.
    *
    * @param tachyonConf the configuration values to be used
-   * @throws AlreadyExistsException if there are existing meta data in
-   *         {@link tachyon.worker.block.meta.StorageDir}
-   * @throws OutOfSpaceException if StorageDir has no more space to hold existing blocks
    * @throws IOException for other exceptions
    */
-  public BlockWorker(TachyonConf tachyonConf) throws AlreadyExistsException, OutOfSpaceException,
-      IOException {
+  public BlockWorker(TachyonConf tachyonConf) throws IOException {
     mTachyonConf = tachyonConf;
     mStartTimeMs = System.currentTimeMillis();
 
