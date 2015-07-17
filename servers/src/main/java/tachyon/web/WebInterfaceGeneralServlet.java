@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -30,7 +30,7 @@ import tachyon.StorageLevelAlias;
 import tachyon.Version;
 import tachyon.master.DependencyVariables;
 import tachyon.master.MasterInfo;
-import tachyon.util.CommonUtils;
+import tachyon.util.FormatUtils;
 
 /**
  * Servlet that provides data for viewing the general status of the filesystem.
@@ -61,11 +61,11 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     public String getCapacity() {
-      return CommonUtils.getSizeFromBytes(mCapacityBytes);
+      return FormatUtils.getSizeFromBytes(mCapacityBytes);
     }
 
     public String getFreeCapacity() {
-      return CommonUtils.getSizeFromBytes(mFreeBytes);
+      return FormatUtils.getSizeFromBytes(mFreeBytes);
     }
 
     public int getFreeSpacePercent() {
@@ -73,7 +73,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     public String getUsedCapacity() {
-      return CommonUtils.getSizeFromBytes(mUsedBytes);
+      return FormatUtils.getSizeFromBytes(mUsedBytes);
     }
 
     public int getUsedSpacePercent() {
@@ -91,7 +91,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
   /**
    * Redirects the request to a JSP after populating attributes via populateValues.
-   * 
+   *
    * @param request The HttpServletRequest object
    * @param response The HttpServletResponse object
    * @throws ServletException
@@ -123,7 +123,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
   /**
    * List the StorageTierInfo objects of each storage level(alias).
-   * 
+   *
    * @return the list of StorageTierInfo objects.
    */
   private StorageTierInfo[] generateOrderedStorageTierInfo() {
@@ -145,7 +145,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
   /**
    * Populates key, value pairs for UI display
-   * 
+   *
    * @param request The HttpServletRequest object
    * @throws IOException
    */
@@ -163,32 +163,32 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("liveWorkerNodes", Integer.toString(mMasterInfo.getWorkerCount()));
 
-    request.setAttribute("capacity", CommonUtils.getSizeFromBytes(mMasterInfo.getCapacityBytes()));
+    request.setAttribute("capacity", FormatUtils.getSizeFromBytes(mMasterInfo.getCapacityBytes()));
 
-    request.setAttribute("usedCapacity", CommonUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
+    request.setAttribute("usedCapacity", FormatUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
 
     request
         .setAttribute("freeCapacity",
-            CommonUtils.getSizeFromBytes((mMasterInfo.getCapacityBytes() - mMasterInfo
+            FormatUtils.getSizeFromBytes((mMasterInfo.getCapacityBytes() - mMasterInfo
                 .getUsedBytes())));
 
     long sizeBytes = mMasterInfo.getUnderFsCapacityBytes();
     if (sizeBytes >= 0) {
-      request.setAttribute("diskCapacity", CommonUtils.getSizeFromBytes(sizeBytes));
+      request.setAttribute("diskCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
     } else {
       request.setAttribute("diskCapacity", "UNKNOWN");
     }
 
     sizeBytes = mMasterInfo.getUnderFsUsedBytes();
     if (sizeBytes >= 0) {
-      request.setAttribute("diskUsedCapacity", CommonUtils.getSizeFromBytes(sizeBytes));
+      request.setAttribute("diskUsedCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
     } else {
       request.setAttribute("diskUsedCapacity", "UNKNOWN");
     }
 
     sizeBytes = mMasterInfo.getUnderFsFreeBytes();
     if (sizeBytes >= 0) {
-      request.setAttribute("diskFreeCapacity", CommonUtils.getSizeFromBytes(sizeBytes));
+      request.setAttribute("diskFreeCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
     } else {
       request.setAttribute("diskFreeCapacity", "UNKNOWN");
     }

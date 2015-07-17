@@ -15,12 +15,12 @@
 
 package tachyon.util.io;
 
-import sun.misc.Cleaner;
-import sun.nio.ch.DirectBuffer;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import sun.misc.Cleaner;
+import sun.nio.ch.DirectBuffer;
 
 public class BufferUtils {
   /**

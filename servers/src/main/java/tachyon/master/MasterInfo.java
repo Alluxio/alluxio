@@ -76,6 +76,7 @@ import tachyon.thrift.TachyonException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystem.SpaceType;
 import tachyon.util.CommonUtils;
+import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -339,7 +340,7 @@ public class MasterInfo extends ImageWriter {
   Pair<Boolean, Boolean> addCheckpointInternal(long workerId, int fileId, long length,
       TachyonURI checkpointPath, long opTimeMs) throws FileNotFoundException,
       SuspectedFileSizeException, BlockInfoException {
-    LOG.info(CommonUtils.parametersToString(workerId, fileId, length, checkpointPath));
+    LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
 
     if (workerId != -1) {
       MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
@@ -507,7 +508,7 @@ public class MasterInfo extends ImageWriter {
       throw new BlockInfoException("Invalid block size " + blockSizeByte);
     }
 
-    LOG.debug("createFile {}", CommonUtils.parametersToString(path));
+    LOG.debug("createFile {}", FormatUtils.parametersToString(path));
 
     String[] pathNames = PathUtils.getPathComponents(path.toString());
     String name = path.getName();
@@ -938,7 +939,7 @@ public class MasterInfo extends ImageWriter {
   public int cacheBlock(long workerId, long usedBytesOnTier, long storageDirId, long blockId,
       long length) throws FileDoesNotExistException, BlockInfoException {
     LOG.debug("Cache block: {}",
-        CommonUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
+        FormatUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
 
     MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
     int storageLevelAliasValue = StorageDirId.getStorageLevelAliasValue(storageDirId);
@@ -1073,7 +1074,7 @@ public class MasterInfo extends ImageWriter {
   public int createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException,
       TachyonException {
-    LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
+    LOG.info("createRawTable" + FormatUtils.parametersToString(path, columns));
 
     int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
     if (columns <= 0 || columns >= maxColumns) {
