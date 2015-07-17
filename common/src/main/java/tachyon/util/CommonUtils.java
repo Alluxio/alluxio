@@ -329,24 +329,6 @@ public final class CommonUtils {
   }
 
   /**
-   * Parse InetSocketAddress from a String
-   *
-   * @param address
-   * @return InetSocketAddress of the String
-   * @throws IOException
-   */
-  public static InetSocketAddress parseInetSocketAddress(String address) throws IOException {
-    if (address == null) {
-      return null;
-    }
-    String[] strArr = address.split(":");
-    if (strArr.length != 2) {
-      throw new IOException("Invalid InetSocketAddress " + address);
-    }
-    return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
-  }
-
-  /**
    * Parse a String size to Bytes.
    *
    * @param spaceSize the size of a space, e.g. 10GB, 5TB, 1024
