@@ -49,7 +49,7 @@ import tachyon.Constants;
 import tachyon.TestUtils;
 import tachyon.network.protocol.databuffer.DataByteBuffer;
 import tachyon.network.protocol.databuffer.DataFileChannel;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * This tests the encoding and decoding of RPCMessage's. This is done by setting up a simple
@@ -105,7 +105,7 @@ public class RPCMessageIntegrationTest {
     bootstrap.childHandler(new PipelineInitializer(sIncomingHandler));
 
     InetSocketAddress address =
-        new InetSocketAddress(NetworkUtils.getLocalHostName(100), Constants.DEFAULT_MASTER_PORT);
+        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(100), Constants.DEFAULT_MASTER_PORT);
     ChannelFuture cf = bootstrap.bind(address).syncUninterruptibly();
     sLocalAddress = cf.channel().localAddress();
 

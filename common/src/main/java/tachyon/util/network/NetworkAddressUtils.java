@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.util;
+package tachyon.util.network;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -39,13 +39,13 @@ import tachyon.thrift.NetAddress;
 /**
  * Common network utilities shared by all components in Tachyon.
  */
-public final class NetworkUtils {
+public final class NetworkAddressUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static String sLocalHost;
   private static String sLocalIP;
 
-  private NetworkUtils() {}
+  private NetworkAddressUtils() {}
 
   /**
    * Gets a local host name for the host this JVM is running on
@@ -59,7 +59,7 @@ public final class NetworkUtils {
     }
     int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
         Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
-    return NetworkUtils.getLocalHostName(hostResolutionTimeout);
+    return getLocalHostName(hostResolutionTimeout);
   }
 
   /**
@@ -96,7 +96,7 @@ public final class NetworkUtils {
     }
     int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
         Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
-    return NetworkUtils.getLocalIpAddress(hostResolutionTimeout);
+    return getLocalIpAddress(hostResolutionTimeout);
   }
 
   /**

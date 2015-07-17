@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.util.network.NetworkAddressUtils;
 
 public class GetMasterWorkerAddressTest {
   private static Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
@@ -65,36 +66,36 @@ public class GetMasterWorkerAddressTest {
 
   @Test
   public void getMasterAddressTest() {
-    String defaultHostname = NetworkUtils.getLocalHostName(mCustomPropsTachyonConf);
+    String defaultHostname = NetworkAddressUtils.getLocalHostName(mCustomPropsTachyonConf);
     int defaultPort = Constants.DEFAULT_MASTER_PORT;
 
-    InetSocketAddress masterAddress = NetworkUtils.getMasterAddress(mCustomPropsTachyonConf);
+    InetSocketAddress masterAddress = NetworkAddressUtils.getMasterAddress(mCustomPropsTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);
 
-    masterAddress = NetworkUtils.getMasterAddress(mNullMasterHostNameTachyonConf);
+    masterAddress = NetworkAddressUtils.getMasterAddress(mNullMasterHostNameTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
 
-    masterAddress = NetworkUtils.getMasterAddress(mNullMasterPortTachyonConf);
+    masterAddress = NetworkAddressUtils.getMasterAddress(mNullMasterPortTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster3", defaultPort), masterAddress);
 
-    masterAddress = NetworkUtils.getMasterAddress(mNullTachyonConf);
+    masterAddress = NetworkAddressUtils.getMasterAddress(mNullTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
   }
 
   @Test
   public void getWorkerAddressTest() {
-    String defaultHostname = NetworkUtils.getLocalHostName(mCustomPropsTachyonConf);
+    String defaultHostname = NetworkAddressUtils.getLocalHostName(mCustomPropsTachyonConf);
     int defaultPort = Constants.DEFAULT_WORKER_PORT;
 
-    InetSocketAddress workerAddress = NetworkUtils.getLocalWorkerAddress(mCustomPropsTachyonConf);
+    InetSocketAddress workerAddress = NetworkAddressUtils.getLocalWorkerAddress(mCustomPropsTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
 
-    workerAddress = NetworkUtils.getLocalWorkerAddress(mNullTachyonConf);
+    workerAddress = NetworkAddressUtils.getLocalWorkerAddress(mNullTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), workerAddress);
   }

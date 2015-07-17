@@ -41,7 +41,7 @@ import tachyon.metrics.MetricsSystem;
 import tachyon.thrift.MasterService;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.MasterUIWebServer;
 import tachyon.web.UIWebServer;
@@ -139,7 +139,7 @@ public class TachyonMaster {
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
       mServerTServerSocket = new TServerSocket(addressListening);
-      mPort = NetworkUtils.getPort(mServerTServerSocket);
+      mPort = NetworkAddressUtils.getPort(mServerTServerSocket);
 
       String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
       String journalFolder =
@@ -151,7 +151,7 @@ public class TachyonMaster {
         Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
             "Tachyon was not formatted! The journal folder is " + journalFolder);
       }
-      mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(address), mPort);
+      mMasterAddress = new InetSocketAddress(NetworkAddressUtils.getFqdnHost(address), mPort);
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService, mTachyonConf);
 
@@ -159,7 +159,7 @@ public class TachyonMaster {
 
       if (mZookeeperMode) {
         // InetSocketAddress.toString causes test issues, so build the string by hand
-        String zkName = NetworkUtils.getFqdnHost(mMasterAddress) + ":" + mMasterAddress.getPort();
+        String zkName = NetworkAddressUtils.getFqdnHost(mMasterAddress) + ":" + mMasterAddress.getPort();
         String zkAddress = mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS, null);
         String zkElectionPath = mTachyonConf.get(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
         String zkLeaderPath = mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
@@ -242,7 +242,7 @@ public class TachyonMaster {
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
-    ufs.connectFromMaster(mTachyonConf, NetworkUtils.getFqdnHost(mMasterAddress));
+    ufs.connectFromMaster(mTachyonConf, NetworkAddressUtils.getFqdnHost(mMasterAddress));
   }
 
   private void setup() throws IOException, TTransportException {
@@ -254,7 +254,7 @@ public class TachyonMaster {
 
     mWebServer =
         new MasterUIWebServer("Tachyon Master Server", new InetSocketAddress(
-            NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo, mTachyonConf);
+            NetworkAddressUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo, mTachyonConf);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =

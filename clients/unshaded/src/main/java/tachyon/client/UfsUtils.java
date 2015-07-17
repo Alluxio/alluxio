@@ -32,7 +32,7 @@ import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Utilities related to under filesystem
@@ -96,8 +96,8 @@ public class UfsUtils {
     LOG.info("Loading to " + tachyonPath + " " + ufsAddrRootPath + " " + excludePathPrefix);
     try {
       // resolve and replace hostname embedded in the given ufsAddress/tachyonAddress
-      ufsAddrRootPath = NetworkUtils.replaceHostName(ufsAddrRootPath);
-      tachyonPath = NetworkUtils.replaceHostName(tachyonPath);
+      ufsAddrRootPath = NetworkAddressUtils.replaceHostName(ufsAddrRootPath);
+      tachyonPath = NetworkAddressUtils.replaceHostName(tachyonPath);
     } catch (UnknownHostException e) {
       LOG.error("Failed to resolve hostname", e);
       throw new IOException(e);

@@ -29,7 +29,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.Constants;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Local node UnderFilesystem implementation.
@@ -113,7 +113,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
-    ret.add(NetworkUtils.getLocalHostName(mTachyonConf));
+    ret.add(NetworkAddressUtils.getLocalHostName(mTachyonConf));
     return ret;
   }
 
