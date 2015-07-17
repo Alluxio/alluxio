@@ -289,7 +289,7 @@ public final class MasterClient implements Closeable {
             mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, null));
     try {
       String temp = leaderInquireClient.getMasterAddress();
-      return CommonUtils.parseInetSocketAddress(temp);
+      return NetworkUtils.parseInetSocketAddress(temp);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
