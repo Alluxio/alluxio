@@ -31,7 +31,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Block info on the master side.
@@ -179,7 +179,7 @@ public class BlockInfo {
           try {
             String[] ipport = loc.split(":");
             if (ipport.length == 2) {
-              resolvedHost = NetworkUtils.resolveHostName(ipport[0]);
+              resolvedHost = NetworkAddressUtils.resolveHostName(ipport[0]);
               resolvedPort = Integer.parseInt(ipport[1]);
             }
           } catch (UnknownHostException uhe) {

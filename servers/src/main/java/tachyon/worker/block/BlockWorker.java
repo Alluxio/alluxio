@@ -37,7 +37,7 @@ import tachyon.metrics.MetricsSystem;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
@@ -106,24 +106,24 @@ public class BlockWorker {
     int dataServerPort =
         tachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
     InetSocketAddress dataServerAddress =
-        new InetSocketAddress(NetworkUtils.getLocalHostName(tachyonConf), dataServerPort);
+        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(tachyonConf), dataServerPort);
     mDataServer =
         DataServer.Factory.createDataServer(dataServerAddress, mBlockDataManager, mTachyonConf);
 
     // Setup RPC Server
     mServiceHandler = new BlockServiceHandler(mBlockDataManager);
     mThriftServerSocket = createThriftServerSocket();
-    int thriftServerPort = NetworkUtils.getPort(mThriftServerSocket);
+    int thriftServerPort = NetworkAddressUtils.getPort(mThriftServerSocket);
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
-        new NetAddress(NetworkUtils.getLocalWorkerAddress(mTachyonConf).getAddress()
+        new NetAddress(NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf).getAddress()
             .getCanonicalHostName(), thriftServerPort, mDataServer.getPort());
 
     // Set up web server
     int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
     mWebServer =
         new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(mWorkerNetAddress.getMHost(),
-            webPort), mBlockDataManager, NetworkUtils.getLocalWorkerAddress(mTachyonConf),
+            webPort), mBlockDataManager, NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf),
             mStartTimeMs, mTachyonConf);
 
     // Setup Worker to Master Syncer
@@ -236,7 +236,7 @@ public class BlockWorker {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(NetworkUtils.getLocalWorkerAddress(mTachyonConf));
+      return new TServerSocket(NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);

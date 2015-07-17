@@ -44,7 +44,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Unit tests on TFsShell.
@@ -428,7 +428,7 @@ public class TFsShellTest {
   @Test
   public void mkdirTest() throws IOException {
     String qualifiedPath =
-        "tachyon://" + NetworkUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS)
+        "tachyon://" + NetworkAddressUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS)
             + ":" + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
     mFsShell.mkdir(new String[] {"mkdir", qualifiedPath});
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/root/testFile1"));

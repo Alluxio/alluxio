@@ -16,7 +16,6 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,7 +30,7 @@ import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
 
 /**
@@ -79,7 +78,7 @@ public class BlockMasterSync implements Runnable {
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
     mMasterClient =
-        new MasterClient(NetworkUtils.getMasterAddress(mTachyonConf),
+        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
             mMasterClientExecutorService, mTachyonConf);
     mHeartbeatIntervalMs =
         mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
@@ -219,7 +218,7 @@ public class BlockMasterSync implements Runnable {
   private void resetMasterClient() {
     mMasterClient.close();
     mMasterClient =
-        new MasterClient(NetworkUtils.getMasterAddress(mTachyonConf),
+        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
             mMasterClientExecutorService, mTachyonConf);
   }
 }
