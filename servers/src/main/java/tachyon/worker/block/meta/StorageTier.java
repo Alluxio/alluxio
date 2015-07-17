@@ -22,7 +22,7 @@ import java.util.List;
 import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
+import tachyon.util.FormatUtils;
 
 /**
  * Represents a tier of storage, for example memory or SSD. It serves as a container of
@@ -63,7 +63,7 @@ public class StorageTier {
     long totalCapacity = 0;
     for (int i = 0; i < dirPaths.length; i ++) {
       int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
-      long capacity = CommonUtils.parseSpaceSize(dirQuotas[index]);
+      long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
       totalCapacity += capacity;
       mDirs.add(StorageDir.newStorageDir(this, i, capacity, dirPaths[i]));
     }

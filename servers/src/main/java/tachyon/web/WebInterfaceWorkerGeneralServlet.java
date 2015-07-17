@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
 import tachyon.Version;
-import tachyon.util.CommonUtils;
+import tachyon.util.FormatUtils;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
 
@@ -113,9 +113,9 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
       usedBytes += usedBytesOnTiers.get(i);
     }
 
-    request.setAttribute("capacityBytes", CommonUtils.getSizeFromBytes(capacityBytes));
+    request.setAttribute("capacityBytes", FormatUtils.getSizeFromBytes(capacityBytes));
 
-    request.setAttribute("usedBytes", CommonUtils.getSizeFromBytes(usedBytes));
+    request.setAttribute("usedBytes", FormatUtils.getSizeFromBytes(usedBytes));
 
     request.setAttribute("capacityBytesOnTiers", capacityBytesOnTiers);
 

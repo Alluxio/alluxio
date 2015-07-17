@@ -15,30 +15,13 @@
 
 package tachyon.util;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.math.BigDecimal;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-
-import tachyon.Constants;
-import tachyon.TachyonURI;
-import tachyon.thrift.InvalidPathException;
-import tachyon.util.io.FileUtils;
-
-import sun.misc.Cleaner;
-import sun.nio.ch.DirectBuffer;
 
 /**
  * Common utilities shared by all components in Tachyon.
@@ -50,30 +33,6 @@ public final class CommonUtils {
     return System.currentTimeMillis();
   }
 
-  public static String getSizeFromBytes(long bytes) {
-    double ret = bytes;
-    if (ret <= 1024 * 5) {
-      return String.format("%.2f B", ret);
-    }
-    ret /= 1024;
-    if (ret <= 1024 * 5) {
-      return String.format("%.2f KB", ret);
-    }
-    ret /= 1024;
-    if (ret <= 1024 * 5) {
-      return String.format("%.2f MB", ret);
-    }
-    ret /= 1024;
-    if (ret <= 1024 * 5) {
-      return String.format("%.2f GB", ret);
-    }
-    ret /= 1024;
-    if (ret <= 1024 * 5) {
-      return String.format("%.2f TB", ret);
-    }
-    return String.format("%.2f PB", ret);
-  }
-
   public static <T> String listToString(List<T> list) {
     StringBuilder sb = new StringBuilder();
     for (T s : list) {
@@ -82,75 +41,9 @@ public final class CommonUtils {
     return sb.toString();
   }
 
-  public static String parametersToString(Object... objs) {
-    StringBuilder sb = new StringBuilder("(");
-    for (int k = 0; k < objs.length; k ++) {
-      if (k != 0) {
-        sb.append(", ");
-      }
-      sb.append(objs[k].toString());
-    }
-    sb.append(")");
-    return sb.toString();
-  }
-
-  /**
-   * Parse a String size to Bytes.
-   *
-   * @param spaceSize the size of a space, e.g. 10GB, 5TB, 1024
-   * @return the space size in bytes
-   */
-  public static long parseSpaceSize(String spaceSize) {
-    double alpha = 0.0001;
-    String ori = spaceSize;
-    String end = "";
-    int tIndex = spaceSize.length() - 1;
-    while (tIndex >= 0) {
-      if (spaceSize.charAt(tIndex) > '9' || spaceSize.charAt(tIndex) < '0') {
-        end = spaceSize.charAt(tIndex) + end;
-      } else {
-        break;
-      }
-      tIndex --;
-    }
-    spaceSize = spaceSize.substring(0, tIndex + 1);
-    double ret = Double.parseDouble(spaceSize);
-    end = end.toLowerCase();
-    if (end.isEmpty() || end.equals("b")) {
-      return (long) (ret + alpha);
-    } else if (end.equals("kb")) {
-      return (long) (ret * Constants.KB + alpha);
-    } else if (end.equals("mb")) {
-      return (long) (ret * Constants.MB + alpha);
-    } else if (end.equals("gb")) {
-      return (long) (ret * Constants.GB + alpha);
-    } else if (end.equals("tb")) {
-      return (long) (ret * Constants.TB + alpha);
-    } else if (end.equals("pb")) {
-      // When parsing petabyte values, we can't multiply with doubles and longs, since that will
-      // lose presicion with such high numbers. Therefore we use a BigDecimal.
-      BigDecimal pBDecimal = new BigDecimal(Constants.PB);
-      return pBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
-    } else {
-      throw new IllegalArgumentException("Fail to parse " + ori + " to bytes");
-    }
-  }
-
-  public static void printByteBuffer(Logger LOG, ByteBuffer buf) {
-    StringBuilder sb = new StringBuilder();
-    for (int k = 0; k < buf.limit() / 4; k ++) {
-      sb.append(buf.getInt()).append(" ");
-    }
-
-    LOG.info(sb.toString());
-  }
-
-  public static void printTimeTakenMs(long startTimeMs, Logger logger, String message) {
-    logger.info(message + " took " + (getCurrentMs() - startTimeMs) + " ms.");
-  }
-
-  public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
-    logger.info(message + " took " + (System.nanoTime() - startTimeNs) + " ns.");
+  public static String[] toStringArray(ArrayList<String> src) {
+    String[] ret = new String[src.size()];
+    return src.toArray(ret);
   }
 
   public static void sleepMs(Logger logger, long timeMs) {
@@ -166,11 +59,6 @@ public final class CommonUtils {
         Thread.currentThread().interrupt();
       }
     }
-  }
-
-  public static String[] toStringArray(ArrayList<String> src) {
-    String[] ret = new String[src.size()];
-    return src.toArray(ret);
   }
 
   /**

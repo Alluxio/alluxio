@@ -21,7 +21,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.util.CommonUtils;
+import tachyon.util.FormatUtils;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -302,7 +302,7 @@ public class TachyonConf {
   public long getBytes(String key, long defaultValue) {
     String rawValue = get(key, "");
     try {
-      return CommonUtils.parseSpaceSize(rawValue);
+      return FormatUtils.parseSpaceSize(rawValue);
     } catch (Exception ex) {
       return defaultValue;
     }
