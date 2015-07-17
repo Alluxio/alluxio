@@ -45,6 +45,8 @@ the block from where it is already stored. If Tachyon is configured with multipl
 block will not be necessarily read from the MEM tier, since it could have been moved to a lower tier
 transparently.
 
+### Promoting Blocks
+
 Since the movement of blocks is transparent to the user (via allocators and evictors), Tachyon
 provides client APIs to *force* a block to be moved to the top tier. These APIs are:
 
@@ -54,6 +56,23 @@ provides client APIs to *force* a block to be moved to the top tier. These APIs 
 Using these methods, a user/client can force a block to be placed in the top layer of the Tachyon
 worker. Please note, promoting a block may trigger an eviction if there is insufficient space in the
 top tier.
+
+### Pinning Files
+
+Another way for a user to control the placement and movement of their files is to *pin* and *unpin*
+files. When a file is pinned, its blocks will not be evicted or moved by the evictor. However, users
+can still promote blocks of pinned files to move blocks to the top tier.
+
+The API to pin a file is:
+
+    TachyonFS.pinFile(int fid)
+
+and the API to unpin a file is:
+
+    TachyonFS.unpinFile(int fid)
+
+Since blocks of pinned files are no longer candidates for eviction, clients should make sure to
+unpin files when appropriate.
 
 ## Allocators
 
