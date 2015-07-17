@@ -87,10 +87,8 @@ public abstract class BlockInStream extends InStream {
    * @param readType
    * @param blockIndex
    * @param tachyonConf the TachyonConf instance for this file output stream.
-   * @throws IOException
    */
-  BlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonConf tachyonConf)
-      throws IOException {
+  BlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonConf tachyonConf) {
     super(file, readType, tachyonConf);
     mBlockIndex = blockIndex;
   }

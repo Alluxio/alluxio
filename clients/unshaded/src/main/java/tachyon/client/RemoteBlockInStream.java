@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.client.netty.NettyRemoteBlockReader;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
@@ -103,6 +104,9 @@ public class RemoteBlockInStream extends BlockInStream {
    */
   private static final int MAX_REMOTE_READ_ATTEMPTS = 2;
 
+  /** A reference to the current reader so we can clear it after reading is finished. */
+  private RemoteBlockReader mStandingReader = null;
+
   /**
    * @param file the file the block belongs to
    * @param readType the InStream's read type
@@ -138,6 +142,23 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   /**
+   * An alternative to construct a RemoteBlockInstream, bypassing all the checks.
+   * The returned RemoteBlockInStream can be used to call {#link #readRemoteByteBuffer}.
+   * TODO: remove this constructor, and modify all places using this constructor.
+   *
+   * @param file, any, could be null
+   * @param readType, any type
+   * @param blockIndex, any index
+   * @param ufsConf, any ufs configuration
+   * @param tachyonConf, any
+   * @param addFlag, add another field so that this constructor differentiates
+   */
+  public RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf,
+      TachyonConf tachyonConf, boolean addFlag) {
+    super(file, readType, blockIndex, tachyonConf);
+  }
+
+  /**
    * Cancels the re-caching attempt
    *
    * @throws IOException
@@ -170,6 +191,7 @@ public class RemoteBlockInStream extends BlockInStream {
     if (mBytesReadRemote > 0) {
       mTachyonFS.getClientMetrics().incBlocksReadRemote(1);
     }
+    closeReader();
     mClosed = true;
   }
 
@@ -259,7 +281,7 @@ public class RemoteBlockInStream extends BlockInStream {
     return len;
   }
 
-  public static ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, ClientBlockInfo blockInfo,
+  public ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, ClientBlockInfo blockInfo,
       long offset, long len, TachyonConf conf) {
     ByteBuffer buf = null;
 
@@ -306,9 +328,12 @@ public class RemoteBlockInStream extends BlockInStream {
     return buf;
   }
 
-  private static ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
+  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
       long blockId, long offset, long length, TachyonConf conf) throws IOException {
-    return RemoteBlockReader.Factory.createRemoteBlockReader(conf).readRemoteBlock(
+    // always clear the previous reader before assigning it to a new one
+    closeReader();
+    RemoteBlockReader mStandingReader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
+    return mStandingReader.readRemoteBlock(
         address.getHostName(), address.getPort(), blockId, offset, length);
   }
 
@@ -411,5 +436,24 @@ public class RemoteBlockInStream extends BlockInStream {
       mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
     }
     return false;
+  }
+
+  /**
+   * Clear the previous reader, release the resource it references.
+   *
+   * @return true if reader is successfully cleared or no clearing is needed
+   */
+  private void closeReader() throws IOException {
+    if (mStandingReader != null) {
+      try {
+        //TODO: we should implement close() in all readers.
+        if (mStandingReader instanceof NettyRemoteBlockReader) {
+          ((NettyRemoteBlockReader) mStandingReader).close();
+        }
+      } finally {
+        // which ever the type is, set to null.
+        mStandingReader = null;
+      }
+    }
   }
 }

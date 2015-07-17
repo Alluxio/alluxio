@@ -15,6 +15,7 @@
 
 package tachyon.client.netty;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -38,11 +39,13 @@ import tachyon.network.protocol.RPCResponse;
 /**
  * Read data from remote data server using Netty.
  */
-public final class NettyRemoteBlockReader implements RemoteBlockReader {
+public final class NettyRemoteBlockReader implements Closeable, RemoteBlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Bootstrap mClientBootstrap;
   private final ClientHandler mHandler;
+  /** A reference to read response so we can explicitly release the resource after reading.*/
+  private RPCBlockReadResponse mReadResponse = null;
 
   // TODO: Creating a new remote block reader may be expensive, so consider a connection pool.
   public NettyRemoteBlockReader() {
@@ -74,6 +77,9 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
 
           RPCResponse.Status status = blockResponse.getStatus();
           if (status == RPCResponse.Status.SUCCESS) {
+            // always clear the previous response before reading another one
+            close();
+            mReadResponse = blockResponse;
             return blockResponse.getPayloadDataBuffer().getReadOnlyByteBuffer();
           }
           throw new IOException(status.getMessage() + " response: " + blockResponse);
@@ -86,6 +92,22 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       }
     } catch (Exception e) {
       throw new IOException(e);
+    }
+  }
+
+  /**
+   * Clear the previous read response, release the resource the response references.
+   *
+   * @return true if the response is cleared, or there is nothing needs to be cleared.
+   */
+  @Override
+  public void close() throws IOException {
+    if (mReadResponse != null) {
+      boolean res = mReadResponse.getPayloadDataBuffer().release();
+      if (!res) {
+        mReadResponse = null;
+        throw new IOException("Unable to release underlying buffer when closing the reader.");
+      }
     }
   }
 }
