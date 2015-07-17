@@ -31,7 +31,7 @@ public class PlainSaslServerTest{
   private PlainSaslServer mPlainSaslServer = null;
 
   @Before
-  public void setup() throws Exception {
+  public void before() throws Exception {
     mPlainSaslServer = new PlainSaslServer(new MockCallbackHandler());
   }
 
