@@ -15,17 +15,17 @@
 
 package tachyon.worker.block.allocator;
 
-import java.io.IOException;
-
 import org.junit.Test;
 
-import tachyon.worker.block.allocator.AllocatorFactory;
-import tachyon.worker.block.allocator.AllocatorType;
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 
 public class RoundRobinAllocatorTest extends BaseAllocatorTest {
   @Test
   public void allocateBlockTest() throws Exception {
-    mAllocator = AllocatorFactory.create(AllocatorType.ROUND_ROBIN, mManagerView);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.WORKER_ALLOCATE_STRATEGY, RoundRobinAllocator.class.getName());
+    mAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000
