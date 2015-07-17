@@ -15,6 +15,7 @@
 
 package tachyon.client.netty;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -38,7 +39,7 @@ import tachyon.network.protocol.RPCResponse;
 /**
  * Read data from remote data server using Netty.
  */
-public final class NettyRemoteBlockReader implements RemoteBlockReader {
+public final class NettyRemoteBlockReader implements Closeable, RemoteBlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Bootstrap mClientBootstrap;
@@ -77,7 +78,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
           RPCResponse.Status status = blockResponse.getStatus();
           if (status == RPCResponse.Status.SUCCESS) {
             // always clear the previous response before reading another one
-            clearReadResponse();
+            close();
             mReadResponse = blockResponse;
             return blockResponse.getPayloadDataBuffer().getReadOnlyByteBuffer();
           }
@@ -99,12 +100,14 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
    *
    * @return true if the response is cleared, or there is nothing needs to be cleared.
    */
-  public boolean clearReadResponse() {
-    boolean res = true;
+  @Override
+  public void close() throws IOException {
     if (mReadResponse != null) {
-      res = mReadResponse.releaseBuffer();
-      mReadResponse = null;
+      boolean res = mReadResponse.getPayloadDataBuffer().release();
+      if (!res) {
+        mReadResponse = null;
+        throw new IOException("Unable to release underlying buffer when closing the reader.");
+      }
     }
-    return res;
   }
 }

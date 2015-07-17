@@ -52,4 +52,9 @@ public class DataByteBuffer extends DataBuffer {
     buffer.position(0);
     return buffer;
   }
+
+  @Override
+  public boolean release() {
+    return true;
+  }
 }

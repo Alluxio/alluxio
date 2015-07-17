@@ -26,7 +26,7 @@ import io.netty.buffer.Unpooled;
 public class DataNettyBuffer extends DataBuffer {
   private final ByteBuffer mBuffer;
   private final long mLength;
-  private ByteBuf mNettyBuf = null;
+  private final ByteBuf mNettyBuf;
 
   /**
   * Constructor for creating a DataNettyBuffer, by passing a Netty ByteBuf.
@@ -51,9 +51,16 @@ public class DataNettyBuffer extends DataBuffer {
     mLength = length;
   }
 
+  /**
+   * We would not support this method in DataNettyBuffer because this class is only for
+   * reading netty buffers.
+   * TODO: investigate if using NettyDataBuffer for outgoing message is fine
+   *
+   * @throws UnsupportedOperationException whenever called
+   */
   @Override
   public Object getNettyOutput() {
-    return Unpooled.wrappedBuffer(mBuffer);
+    throw new UnsupportedOperationException("DataNettyBuffer doesn't support getNettyOutput()");
   }
 
   @Override
@@ -69,13 +76,14 @@ public class DataNettyBuffer extends DataBuffer {
   }
 
   /**
-  * Deallocate the Netty ByteBuf if we used ByteBuf to construct this DataByteBuffer.
+  * Release the Netty ByteBuf if we used ByteBuf to construct this DataByteBuffer.
   *
-  * @return True if the netty ByteBuf is deallocated or not constructed using ByteBuf.
+  * @return True if the netty ByteBuf is released.
   *         As the Netty channel is responsible for performing another {@link ByteBuf#release()},
   *         this method can return false in unit tests.
   */
-  public boolean releaseNettyBuffer() {
+  @Override
+  public boolean release() {
     if (mNettyBuf != null) {
       return mNettyBuf.release();
     }

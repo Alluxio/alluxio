@@ -125,16 +125,4 @@ public class RPCBlockReadResponse extends RPCResponse {
   public Status getStatus() {
     return mStatus;
   }
-
-  /**
-   * Release the underlying DataBuffer in this read response.
-   *
-   * @return true if successfully released or no release is needed; otherwise false.
-   */
-  public boolean releaseBuffer() {
-    if (mData instanceof DataNettyBuffer) {
-      return ((DataNettyBuffer) mData).releaseNettyBuffer();
-    }
-    return true;
-  }
 }
