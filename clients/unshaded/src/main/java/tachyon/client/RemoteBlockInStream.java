@@ -141,8 +141,20 @@ public class RemoteBlockInStream extends BlockInStream {
     mUFSConf = ufsConf;
   }
 
+  /**
+   * An alternative to construct a RemoteBlockInstream, bypassing all the checks.
+   * The returned RemoteBlockInStream can be used to call {#link #readRemoteByteBuffer}.
+   * TODO: remove this constructor, and modify all places using this constructor.
+   *
+   * @param file, any, could be null
+   * @param readType, any type
+   * @param blockIndex, any index
+   * @param ufsConf, any ufs configuration
+   * @param tachyonConf, any
+   * @param addFlag, add another field so that this constructor differentiates
+   */
   public RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf,
-      TachyonConf tachyonConf, boolean magicFlag) {
+      TachyonConf tachyonConf, boolean addFlag) {
     super(file, readType, blockIndex, tachyonConf);
   }
 
@@ -318,11 +330,10 @@ public class RemoteBlockInStream extends BlockInStream {
 
   private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
       long blockId, long offset, long length, TachyonConf conf) throws IOException {
-    RemoteBlockReader reader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
     // always clear the previous reader before assigning it to a new one
     closeReader();
-    mStandingReader = reader;
-    return reader.readRemoteBlock(
+    RemoteBlockReader mStandingReader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
+    return mStandingReader.readRemoteBlock(
         address.getHostName(), address.getPort(), blockId, offset, length);
   }
 
@@ -435,10 +446,12 @@ public class RemoteBlockInStream extends BlockInStream {
   private void closeReader() throws IOException {
     if (mStandingReader != null) {
       try {
+        //TODO: we should implement close() in all readers.
         if (mStandingReader instanceof NettyRemoteBlockReader) {
           ((NettyRemoteBlockReader) mStandingReader).close();
         }
       } finally {
+        // which ever the type is, set to null.
         mStandingReader = null;
       }
     }
