@@ -133,6 +133,7 @@ public class LocalBlockOutStream extends BlockOutStream {
     CommonUtils.cleanDirectBuffer(out);
     mInFileBytes += length;
     mAvailableBytes -= length;
+    mTachyonFS.getClientMetrics().incBytesWrittenLocal(length);
   }
 
   @Override
@@ -158,7 +159,10 @@ public class LocalBlockOutStream extends BlockOutStream {
     if (!mClosed) {
       flush();
       mCloser.close();
-      mTachyonFS.cacheBlock(mBlockId);
+      if (mWrittenBytes > 0) {
+        mTachyonFS.cacheBlock(mBlockId);
+        mTachyonFS.getClientMetrics().incBlocksWrittenLocal(1);
+      }
       mClosed = true;
     }
   }
