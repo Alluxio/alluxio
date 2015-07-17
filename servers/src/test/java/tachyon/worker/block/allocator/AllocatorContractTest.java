@@ -15,21 +15,58 @@
 
 package tachyon.worker.block.allocator;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.Reflection;
+
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 
 /**
  * This is the class to test the "contact" of different kinds of allocators,
  * i.e., the general properties the allocators need to follow
  */
 public class AllocatorContractTest extends BaseAllocatorTest {
+  protected static List<String> sStrategies = new ArrayList<String>();
+
+  @BeforeClass
+  /**
+   *  Try to find all implementation classes of {@link Allocator} in the same package
+   */
+  public static void beforeClass() {
+    try {
+      String packageName = Reflection.getPackageName(Allocator.class);
+      ClassPath path = ClassPath.from(Thread.currentThread().getContextClassLoader());
+      List<ClassPath.ClassInfo> clazzInPackage =
+          new ArrayList<ClassPath.ClassInfo>(path.getTopLevelClassesRecursive(packageName));
+      for (ClassPath.ClassInfo clazz : clazzInPackage) {
+        Set<Class<?>> interfaces =
+            new HashSet<Class<?>>(Arrays.asList(clazz.load().getInterfaces()));
+        if (interfaces.size() > 0 && interfaces.contains(Allocator.class)) {
+          sStrategies.add(clazz.getName());
+        }
+      }
+    } catch (Exception e) {
+      Assert.fail("Failed to find implementation of allocate strategy");
+    }
+  }
 
   @Test
   public void shouldNotAllocateTest() throws Exception {
-    for (AllocatorType type : AllocatorType.values()) {
+    TachyonConf conf = createTestTachyonConf();
+    for (String strategyName : sStrategies) {
+      conf.set(Constants.WORKER_ALLOCATE_STRATEGY, strategyName);
       resetManagerView();
-      Allocator allocator = AllocatorFactory.create(type, mManagerView);
+      Allocator allocator = Allocator.Factory.createAllocator(conf, mManagerView);
       assertTempBlockMeta(allocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE + 1, false);
       assertTempBlockMeta(allocator, mAnyDirInTierLoc2, DEFAULT_SSD_SIZE + 1, false);
       assertTempBlockMeta(allocator, mAnyDirInTierLoc3, DEFAULT_HDD_SIZE + 1, false);
@@ -40,9 +77,11 @@ public class AllocatorContractTest extends BaseAllocatorTest {
 
   @Test
   public void shouldAllocateTest() throws Exception {
-    for (AllocatorType type : AllocatorType.values()) {
+    TachyonConf conf = createTestTachyonConf();
+    for (String strategyName : sStrategies) {
+      conf.set(Constants.WORKER_ALLOCATE_STRATEGY, strategyName);
       resetManagerView();
-      Allocator tierAllocator = AllocatorFactory.create(type, mManagerView);
+      Allocator tierAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
       for (int i = 0; i < DEFAULT_RAM_NUM; i ++) {
         assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE - 1, true);
       }
@@ -54,7 +93,7 @@ public class AllocatorContractTest extends BaseAllocatorTest {
       }
 
       resetManagerView();
-      Allocator anyAllocator = AllocatorFactory.create(type, mManagerView);
+      Allocator anyAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
       for (int i = 0; i < DEFAULT_RAM_NUM; i ++) {
         assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_RAM_SIZE - 1, true);
       }
