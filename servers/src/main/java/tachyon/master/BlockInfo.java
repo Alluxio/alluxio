@@ -179,15 +179,14 @@ public class BlockInfo {
           try {
             String[] ipport = loc.split(":");
             if (ipport.length == 2) {
-              resolvedHost = NetworkUtils.resolveHostName(ipport[0]);
+              resolvedHost = ipport[0];
               resolvedPort = Integer.parseInt(ipport[1]);
             }
-          } catch (UnknownHostException uhe) {
-            continue;
           } catch (NumberFormatException nfe) {
             continue;
           }
-          ret.add(new NetAddress(resolvedHost, resolvedPort, -1));
+          // The resolved port is the data transfer port not the rpc port
+          ret.add(new NetAddress(resolvedHost, -1, resolvedPort));
         }
       }
     }

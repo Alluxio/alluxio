@@ -97,7 +97,7 @@
    <value>false</value>
   </property>
   <property>
-    <name>fs.swift.service.ibm.swift2.endpoint.prefix</name>
+    <name>fs.swift.service.swift2.endpoint.prefix</name>
     <value>endpoints</value>
   </property>
   <property>
