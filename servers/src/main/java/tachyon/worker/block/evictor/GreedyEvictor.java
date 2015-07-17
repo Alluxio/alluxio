@@ -15,7 +15,6 @@
 
 package tachyon.worker.block.evictor;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +42,7 @@ public class GreedyEvictor implements Evictor {
 
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-      BlockMetadataManagerView view) throws IOException {
+      BlockMetadataManagerView view) {
     // 1. Select a StorageDirView that has enough capacity for required bytes.
     StorageDirView selectedDirView = null;
     if (location.equals(BlockStoreLocation.anyTier())) {

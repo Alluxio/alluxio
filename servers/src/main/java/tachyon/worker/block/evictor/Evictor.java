@@ -15,8 +15,6 @@
 
 package tachyon.worker.block.evictor;
 
-import java.io.IOException;
-
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 
@@ -42,8 +40,8 @@ public interface Evictor {
    * @param view generated and passed by block store
    * @return an eviction plan (possibly with empty fields) to get the free space, or null if no plan
    *         is feasible
-   * @throws IOException if given block location is invalid
+   * @throws IllegalArgumentException if given block location is invalid
    */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-      BlockMetadataManagerView view) throws IOException;
+      BlockMetadataManagerView view);
 }

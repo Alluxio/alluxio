@@ -44,8 +44,8 @@ public class TachyonWorker {
 
     try {
       worker = new BlockWorker(tachyonConf);
-    } catch (IOException ioe) {
-      LOG.error("Failed to initialize the block worker, exiting.", ioe);
+    } catch (Exception e) {
+      LOG.error("Failed to initialize the block worker, exiting.", e);
       System.exit(-1);
     }
 

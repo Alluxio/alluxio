@@ -15,7 +15,6 @@
 
 package tachyon.worker.block.meta;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.junit.Assert;
@@ -74,7 +73,7 @@ public class StorageTierTest {
   }
 
   @Test
-  public void getCapacityBytesTest() throws IOException {
+  public void getCapacityBytesTest() throws Exception {
     Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getCapacityBytes());
 
     // Capacity should not change after adding block to a dir.
@@ -83,7 +82,7 @@ public class StorageTierTest {
   }
 
   @Test
-  public void getAvailableBytesTest() throws IOException {
+  public void getAvailableBytesTest() throws Exception {
     Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getAvailableBytes());
 
     // Capacity should subtract block size after adding block to a dir.

@@ -30,36 +30,36 @@ import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.evictor.EvictorTestUtils;
 
 /*
- * Test AllocatorFactory by passing different AllocatorType 
+ * Test AllocatorFactory by passing different AllocatorType
  * and test if it generate the correct Allocator instance.
  */
 public class AllocatorFactoryTest {
   private BlockMetadataManager mMetaManager;
   private BlockMetadataManagerView mManagerView;
-  
+
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Before
-  public void before() throws IOException {
+  public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
         Collections.<Long>emptySet());
   }
-  
+
   @Test
   public void createGreedyAllocatorTest() {
     Allocator allocator = AllocatorFactory.create(AllocatorType.GREEDY, mManagerView);
     Assert.assertTrue(allocator instanceof GreedyAllocator);
   }
-  
+
   @Test
   public void createMaxFreeAllocatorTest() {
     Allocator allocator = AllocatorFactory.create(AllocatorType.MAX_FREE, mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }
-  
+
   @Test
   public void createDefaultAllocatorTypeTest() {
     Allocator allocator = AllocatorFactory.create(AllocatorType.DEFAULT, mManagerView);

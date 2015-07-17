@@ -28,6 +28,10 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.InvalidStateException;
+import tachyon.exception.NotFoundException;
+import tachyon.exception.OutOfSpaceException;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.BlockMetaBase;
 import tachyon.worker.block.meta.StorageDir;
@@ -52,7 +56,8 @@ public class BlockMetadataManager {
 
   private BlockMetadataManager() {}
 
-  private void initBlockMetadataManager(TachyonConf tachyonConf) throws IOException {
+  private void initBlockMetadataManager(TachyonConf tachyonConf) throws AlreadyExistsException,
+      OutOfSpaceException {
     // Initialize storage tiers
     int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
@@ -64,10 +69,17 @@ public class BlockMetadataManager {
     }
   }
 
-  public static BlockMetadataManager newBlockMetadataManager(TachyonConf tachyonConf)
-      throws IOException {
+  public static BlockMetadataManager newBlockMetadataManager(TachyonConf tachyonConf) {
     BlockMetadataManager ret = new BlockMetadataManager();
-    ret.initBlockMetadataManager(tachyonConf);
+    try {
+      ret.initBlockMetadataManager(tachyonConf);
+      // caller of newBlockMetadataManager should not be forced to catch and handle these exceptions
+      // since it is the responsibility of BlockMetadataManager.
+    } catch (AlreadyExistsException aee) {
+      throw new RuntimeException(aee);
+    } catch (OutOfSpaceException ooe) {
+      throw new RuntimeException(ooe);
+    }
     return ret;
   }
 
@@ -75,9 +87,10 @@ public class BlockMetadataManager {
    * Aborts a temp block.
    *
    * @param tempBlockMeta the meta data of the temp block to add
-   * @throws IOException
+   * @throws NotFoundException when block can not be found
    */
-  public synchronized void abortTempBlockMeta(TempBlockMeta tempBlockMeta) throws IOException {
+  public synchronized void abortTempBlockMeta(TempBlockMeta tempBlockMeta)
+      throws NotFoundException {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
   }
@@ -86,8 +99,11 @@ public class BlockMetadataManager {
    * Adds a temp block.
    *
    * @param tempBlockMeta the meta data of the temp block to add
+   * @throws OutOfSpaceException when no more space left to hold the block
+   * @throws AlreadyExistsException when the block already exists
    */
-  public synchronized void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws IOException {
+  public synchronized void addTempBlockMeta(TempBlockMeta tempBlockMeta)
+      throws OutOfSpaceException, AlreadyExistsException {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.addTempBlockMeta(tempBlockMeta);
   }
@@ -96,9 +112,12 @@ public class BlockMetadataManager {
    * Commits a temp block.
    *
    * @param tempBlockMeta the meta data of the temp block to commit
-   * @throws IOException
+   * @throws OutOfSpaceException when no more space left to hold the block
+   * @throws AlreadyExistsException when the block already exists in committed blocks
+   * @throws NotFoundException when temp block can not be found
    */
-  public synchronized void commitTempBlockMeta(TempBlockMeta tempBlockMeta) throws IOException {
+  public synchronized void commitTempBlockMeta(TempBlockMeta tempBlockMeta)
+      throws OutOfSpaceException, AlreadyExistsException, NotFoundException {
     BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
@@ -127,8 +146,9 @@ public class BlockMetadataManager {
    *
    * @param location location the check available bytes
    * @return available bytes
+   * @throws IllegalArgumentException when location does not belong to tiered storage
    */
-  public synchronized long getAvailableBytes(BlockStoreLocation location) throws IOException {
+  public synchronized long getAvailableBytes(BlockStoreLocation location) {
     long spaceAvailable = 0;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
@@ -151,13 +171,13 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Gets the metadata of a block given its blockId or throws IOException.
+   * Gets the metadata of a block given its blockId.
    *
    * @param blockId the block ID
    * @return metadata of the block
-   * @throws IOException if no BlockMeta for this blockId is found
+   * @throws NotFoundException if no BlockMeta for this blockId is found
    */
-  public synchronized BlockMeta getBlockMeta(long blockId) throws IOException {
+  public synchronized BlockMeta getBlockMeta(long blockId) throws NotFoundException {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasBlockMeta(blockId)) {
@@ -165,7 +185,7 @@ public class BlockMetadataManager {
         }
       }
     }
-    throw new IOException("Failed to get BlockMeta: blockId " + blockId + " not found");
+    throw new NotFoundException("Failed to get BlockMeta: blockId " + blockId + " not found");
   }
 
   /**
@@ -175,10 +195,9 @@ public class BlockMetadataManager {
    * @param blockId the ID of the block
    * @param location location of a particular StorageDir to store this block
    * @return the path of this block in this location
-   * @throws IOException if location is not a specific StorageDir
+   * @throws IllegalArgumentException if location is not a specific StorageDir
    */
-  public synchronized String getBlockPath(long blockId, BlockStoreLocation location)
-      throws IOException {
+  public synchronized String getBlockPath(long blockId, BlockStoreLocation location) {
     return BlockMetaBase.commitPath(getDir(location), blockId);
   }
 
@@ -197,12 +216,13 @@ public class BlockMetadataManager {
    *
    * @param location Location of the dir
    * @return the StorageDir object
-   * @throws IOException if location is not a specific dir or the location is invalid
+   * @throws IllegalArgumentException if location is not a specific dir or the location is invalid
    */
-  public synchronized StorageDir getDir(BlockStoreLocation location) throws IOException {
+  public synchronized StorageDir getDir(BlockStoreLocation location) {
     if (location.equals(BlockStoreLocation.anyTier())
         || location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      throw new IOException("Failed to get block path: " + location + " is not a specific dir.");
+      throw new IllegalArgumentException("Failed to get block path: " + location
+          + " is not a specific dir.");
     }
     return getTier(location.tierAlias()).getDir(location.dir());
   }
@@ -212,9 +232,9 @@ public class BlockMetadataManager {
    *
    * @param blockId the ID of the temp block
    * @return metadata of the block or null
-   * @throws IOException
+   * @throws NotFoundException when blockId can not be found
    */
-  public synchronized TempBlockMeta getTempBlockMeta(long blockId) throws IOException {
+  public synchronized TempBlockMeta getTempBlockMeta(long blockId) throws NotFoundException {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasTempBlockMeta(blockId)) {
@@ -222,7 +242,8 @@ public class BlockMetadataManager {
         }
       }
     }
-    throw new IOException("Failed to get TempBlockMeta: temp blockId " + blockId + " not found");
+    throw new NotFoundException("Failed to get TempBlockMeta: temp blockId " + blockId
+        + " not found");
   }
 
   /**
@@ -230,12 +251,12 @@ public class BlockMetadataManager {
    *
    * @param tierAlias the alias of this tier
    * @return the StorageTier object associated with the alias
-   * @throws IOException if tierAlias is not found
+   * @throws IllegalArgumentException if tierAlias is not found
    */
-  public synchronized StorageTier getTier(int tierAlias) throws IOException {
+  public synchronized StorageTier getTier(int tierAlias) {
     StorageTier tier = mAliasToTiers.get(tierAlias);
     if (tier == null) {
-      throw new IOException("Cannot find tier with alias " + tierAlias);
+      throw new IllegalArgumentException("Cannot find tier with alias " + tierAlias);
     }
     return tier;
   }
@@ -254,16 +275,16 @@ public class BlockMetadataManager {
    *
    * @param tierAlias the alias of a tier
    * @return the list of StorageTier
-   * @throws IOException if tierAlias is not found
+   * @throws IllegalArgumentException if tierAlias is not found
    */
-  public synchronized List<StorageTier> getTiersBelow(int tierAlias) throws IOException {
+  public synchronized List<StorageTier> getTiersBelow(int tierAlias) {
     int level = getTier(tierAlias).getTierLevel();
     return mTiers.subList(level + 1, mTiers.size());
   }
 
   /**
-   * Gets all the temporary blocks associated with a user, empty list is returned if the user has
-   * no temporary blocks.
+   * Gets all the temporary blocks associated with a user, empty list is returned if the user has no
+   * temporary blocks.
    *
    * @param userId the ID of the user
    * @return A list of temp blocks associated with the user
@@ -318,10 +339,13 @@ public class BlockMetadataManager {
    * @param blockMeta the meta data of the block to move
    * @param newLocation new location of the block
    * @return the new block metadata if success, absent otherwise
-   * @throws IOException if this block is not found
+   * @throws IllegalArgumentException when the newLocation is not in the tiered storage
+   * @throws NotFoundException when the block to move is not found
+   * @throws AlreadyExistsException when the block to move already exists in the destination
+   * @throws OutOfSpaceException when destination have no extra space to hold the block to move
    */
   public synchronized BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)
-      throws IOException {
+      throws NotFoundException, AlreadyExistsException, OutOfSpaceException {
     // If existing location belongs to the target location, simply return the current block meta.
     BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
     if (oldLocation.belongTo(newLocation)) {
@@ -346,7 +370,7 @@ public class BlockMetadataManager {
     }
 
     if (newDir == null) {
-      throw new IOException("Failed to move BlockMeta: newLocation " + newLocation
+      throw new OutOfSpaceException("Failed to move BlockMeta: newLocation " + newLocation
           + " does not have enough space for " + blockMeta.getBlockSize() + " bytes");
     }
     StorageDir oldDir = blockMeta.getParentDir();
@@ -361,9 +385,9 @@ public class BlockMetadataManager {
    * Remove the metadata of a specific block.
    *
    * @param block the meta data of the block to remove
-   * @throws IOException
+   * @throws NotFoundException when block is not found
    */
-  public synchronized void removeBlockMeta(BlockMeta block) throws IOException {
+  public synchronized void removeBlockMeta(BlockMeta block) throws NotFoundException {
     StorageDir dir = block.getParentDir();
     dir.removeBlockMeta(block);
   }
@@ -373,9 +397,10 @@ public class BlockMetadataManager {
    *
    * @param tempBlockMeta the temp block to modify
    * @param newSize new size in bytes
+   * @throws InvalidStateException when newSize is smaller than current size
    */
   public synchronized void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
-      throws IOException {
+      throws InvalidStateException {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.resizeTempBlockMeta(tempBlockMeta, newSize);
   }

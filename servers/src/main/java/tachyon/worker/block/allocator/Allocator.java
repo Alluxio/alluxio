@@ -15,8 +15,6 @@
 
 package tachyon.worker.block.allocator;
 
-import java.io.IOException;
-
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.TempBlockMeta;
@@ -37,8 +35,8 @@ public interface Allocator {
    * @param location the location in block store
    * @param view of the metadata manager
    * @return a temp block meta if success, null otherwise
-   * @throws IOException if block location is invalid
+   * @throws IllegalArgumentException if block location is invalid
    */
   TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
-      BlockStoreLocation location, BlockMetadataManagerView view) throws IOException;
+      BlockStoreLocation location, BlockMetadataManagerView view);
 }
