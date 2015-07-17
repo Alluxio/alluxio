@@ -248,12 +248,14 @@ public final class NetworkUtils {
   }
 
   /**
-   * Helper method to get the {@link java.net.InetSocketAddress} of the worker.
+   * Gets the {@link java.net.InetSocketAddress} of the local worker.
+   *
+   * Make sure there is a local worker before calling this method.
    *
    * @param conf the configuration of Tachyon
    * @return the worker's address
    */
-  public static InetSocketAddress getWorkerAddress(TachyonConf conf) {
+  public static InetSocketAddress getLocalWorkerAddress(TachyonConf conf) {
     String workerHostname = getLocalHostName(conf);
     int workerPort = conf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
     return new InetSocketAddress(workerHostname, workerPort);
