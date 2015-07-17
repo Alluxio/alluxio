@@ -44,7 +44,7 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.ClientMetrics;
@@ -642,7 +642,7 @@ public class TachyonFS extends AbstractTachyonFS {
       throws IOException {
     String blockPath = mWorkerClient.requestBlockLocation(blockId, initialBytes);
     // TODO: Handle this in the worker?
-    CommonUtils.createBlockPath(blockPath);
+    FileUtils.createBlockPath(blockPath);
     return blockPath;
   }
 

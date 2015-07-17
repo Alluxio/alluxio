@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,12 +31,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.thrift.InvalidPathException;
+import tachyon.util.io.FileUtils;
 
 import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;
@@ -49,92 +47,6 @@ public final class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger("");
 
   /**
-   * Change local file's permission.
-   *
-   * @param filePath that will change permission
-   * @param perms the permission, e.g. "775"
-   * @throws IOException
-   */
-  public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
-    // TODO switch to java's Files.setPosixFilePermissions() if java 6 support is dropped
-    List<String> commands = new ArrayList<String>();
-    commands.add("/bin/chmod");
-    commands.add(perms);
-    File file = new File(filePath);
-    commands.add(file.getAbsolutePath());
-
-    try {
-      ProcessBuilder builder = new ProcessBuilder(commands);
-      Process process = builder.start();
-
-      process.waitFor();
-
-      redirectIO(process);
-
-      if (process.exitValue() != 0) {
-        throw new IOException("Can not change the file " + file.getAbsolutePath()
-            + " 's permission to be " + perms);
-      }
-    } catch (InterruptedException e) {
-      LOG.error(e.getMessage());
-      throw new IOException(e);
-    }
-  }
-
-  /**
-   * Creates the local block path and all the parent directories. Also, sets the appropriate
-   * permissions.
-   *
-   * @param path The path of the block.
-   * @throws IOException
-   */
-  public static void createBlockPath(String path) throws IOException {
-    File localFolder;
-    try {
-      localFolder = new File(CommonUtils.getParent(path));
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    }
-
-    if (!localFolder.exists()) {
-      if (localFolder.mkdirs()) {
-        CommonUtils.changeLocalFileToFullPermission(localFolder.getAbsolutePath());
-        LOG.info("Folder {} was created!", localFolder);
-      } else {
-        throw new IOException("Failed to create folder " + localFolder);
-      }
-    }
-  }
-
-  /**
-   * Blocking operation that copies the processes stdout/stderr to this JVM's stdout/stderr.
-   */
-  private static void redirectIO(final Process process) throws IOException {
-    // Because chmod doesn't have a lot of error or output messages, its safe to process the output
-    // after the process is done. As of java 7, you can have the process redirect to System.out
-    // and System.err without forking a process.
-    // TODO when java 6 support is dropped, switch to
-    // http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html#inheritIO()
-    Closer closer = Closer.create();
-    try {
-      ByteStreams.copy(closer.register(process.getInputStream()), System.out);
-      ByteStreams.copy(closer.register(process.getErrorStream()), System.err);
-    } catch (Throwable e) {
-      throw closer.rethrow(e);
-    } finally {
-      closer.close();
-    }
-  }
-
-  /**
-   * Change local file's permission to be 777.
-   *
-   * @param filePath that will change permission
-   * @throws IOException
-   */
-  public static void changeLocalFileToFullPermission(String filePath) throws IOException {
-    changeLocalFilePermission(filePath, "777");
-  }
 
   /**
    * Force to unmap direct buffer if the buffer is no longer used. It is unsafe operation and
@@ -389,23 +301,6 @@ public final class CommonUtils {
 
   public static void putIntByteBuffer(ByteBuffer buf, int b) {
     buf.put((byte) (b & 0xFF));
-  }
-
-  /**
-   * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
-   * of the folder containing the 'file'.
-   *
-   * @param file absolute file path
-   */
-  public static void setLocalFileStickyBit(String file) {
-    try {
-      // sticky bit is not implemented in PosixFilePermission
-      if (file.startsWith(TachyonURI.SEPARATOR)) {
-        Runtime.getRuntime().exec("chmod o+t " + file);
-      }
-    } catch (IOException e) {
-      LOG.info("Can not set the sticky bit of the file : " + file);
-    }
   }
 
   public static void sleepMs(Logger logger, long timeMs) {
