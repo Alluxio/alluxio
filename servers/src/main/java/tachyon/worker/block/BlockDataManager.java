@@ -35,6 +35,7 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
+import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerSource;
@@ -247,7 +248,7 @@ public class BlockDataManager {
       throws FileDoesNotExistException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
-    CommonUtils.createBlockPath(createdBlock.getPath());
+    FileUtils.createBlockPath(createdBlock.getPath());
   }
 
   /**

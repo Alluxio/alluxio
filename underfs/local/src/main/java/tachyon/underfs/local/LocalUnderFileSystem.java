@@ -29,6 +29,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.Constants;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
+import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -58,7 +59,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
       stream.close();
       throw e;
     }
-    CommonUtils.setLocalFileStickyBit(path);
+    FileUtils.setLocalFileStickyBit(path);
     return stream;
   }
 
@@ -176,7 +177,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     File file = new File(path);
     boolean created = createParent ? file.mkdirs() : file.mkdir();
     setPermission(path, "777");
-    CommonUtils.setLocalFileStickyBit(path);
+    FileUtils.setLocalFileStickyBit(path);
     return created;
   }
 
@@ -196,7 +197,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {
-    CommonUtils.changeLocalFilePermission(path, posixPerm);
+    FileUtils.changeLocalFilePermission(path, posixPerm);
   }
 
   @Override
