@@ -80,9 +80,13 @@ public class BlockDataManager {
    *
    * @param tachyonConf the configuration values to use
    * @param workerSource object for collecting the worker metrics
-   * @throws IOException if the tiered store fails to initialize
+   * @throws AlreadyExistsException if there are existing meta data in
+   *         {@link tachyon.worker.block.meta.StorageDir}
+   * @throws OutOfSpaceException if StorageDir has no more space to hold existing blocks
+   * @throws IOException if fail to connect to under filesystem
    */
-  public BlockDataManager(TachyonConf tachyonConf, WorkerSource workerSource) throws IOException {
+  public BlockDataManager(TachyonConf tachyonConf, WorkerSource workerSource)
+      throws AlreadyExistsException, OutOfSpaceException, IOException {
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = new TieredBlockStore(tachyonConf);
     mTachyonConf = tachyonConf;
@@ -230,11 +234,20 @@ public class BlockDataManager {
    * @param initialBytes The initial amount of bytes to be allocated
    * @return A string representing the path to the local file
    * @throws IllegalArgumentException if location does not belong to tiered storage
-   * @throws AlreadyExistsException if blockId already exists, either is temporary or committed
+   * @throws AlreadyExistsException if blockId already exists, either temporary or committed, or
+   *         block in eviction plan already exists
    * @throws OutOfSpaceException if this Store has no more space than the initialBlockSize
+   * @throws NotFoundException if blocks in eviction plan can not be found
+   * @throws IOException if blocks in eviction plan fail to be moved or deleted
+   * @throws InvalidStateException if blocks to be moved/deleted in eviction plan is uncommitted
    */
+  // TODO: exceptions like NotFoundException, IOException and InvalidStateException here involves
+  // implementation details, also, AlreadyExistsException has two possible semantic now, these are
+  // because we propagate any exception in freeSpaceInternal, revisit this by throwing more general
+  // exception
   public String createBlock(long userId, long blockId, int tierAlias, long initialBytes)
-      throws AlreadyExistsException, OutOfSpaceException {
+      throws AlreadyExistsException, OutOfSpaceException, NotFoundException, IOException,
+      InvalidStateException {
     BlockStoreLocation loc =
         tierAlias == -1 ? BlockStoreLocation.anyTier() : BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
@@ -251,12 +264,20 @@ public class BlockDataManager {
    * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
    * @param initialBytes The initial amount of bytes to be allocated
    * @throws IllegalArgumentException if location does not belong to tiered storage
-   * @throws AlreadyExistsException if blockId already exists, either is temporary or committed
+   * @throws AlreadyExistsException if blockId already exists, either temporary or committed, or
+   *         block in eviction plan already exists
    * @throws OutOfSpaceException if this Store has no more space than the initialBlockSize
-   * @throws IOException if file for the block cannot be created
+   * @throws NotFoundException if blocks in eviction plan can not be found
+   * @throws IOException if blocks in eviction plan fail to be moved or deleted
+   * @throws InvalidStateException if blocks to be moved/deleted in eviction plan is uncommitted
    */
+  // TODO: exceptions like NotFoundException, IOException and InvalidStateException here involves
+  // implementation details, also, AlreadyExistsException has two possible semantic now, these are
+  // because we propagate any exception in freeSpaceInternal, revisit this by throwing more general
+  // exception
   public void createBlockRemote(long userId, long blockId, int tierAlias, long initialBytes)
-      throws AlreadyExistsException, OutOfSpaceException, IOException {
+      throws AlreadyExistsException, OutOfSpaceException, NotFoundException, IOException,
+      InvalidStateException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     CommonUtils.createBlockPath(createdBlock.getPath());
@@ -404,10 +425,12 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to be freed
+   * @throws InvalidStateException if blockId has not been committed
    * @throws NotFoundException if block cannot be found
    * @throws IOException if block cannot be removed from current path
    */
-  public void removeBlock(long userId, long blockId) throws NotFoundException, IOException {
+  public void removeBlock(long userId, long blockId) throws InvalidStateException,
+      NotFoundException, IOException {
     mBlockStore.removeBlock(userId, blockId);
   }
 
@@ -418,12 +441,23 @@ public class BlockDataManager {
    * @param userId The id of the client
    * @param blockId The id of the block to allocate space to
    * @param additionalBytes The amount of bytes to allocate
-   * @throws IllegalArgumentException if additionalBytes is less than zero
-   * @throws NotFoundException if blockId cannot be found
-   * @throws OutOfSpaceException if requested space cannot be satisfied
+   * @throws NotFoundException if blockId can not be found, or some block in eviction plan cannot be
+   *         found
+   * @throws OutOfSpaceException if requested space can not be satisfied
+   * @throws IOException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} fail to be
+   *         moved or deleted on file system
+   * @throws AlreadyExistsException if blocks to move in
+   *         {@link tachyon.worker.block.evictor.EvictionPlan} already exists in destination
+   *         location
+   * @throws InvalidStateException if the space requested is less than current space or blocks to
+   *         move/evict in {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
+  // TODO: exceptions like IOException AlreadyExistsException and InvalidStateException here
+  // involves implementation details, also, NotFoundException has two semantic now, revisit this
+  // with a more general exception
   public void requestSpace(long userId, long blockId, long additionalBytes)
-      throws NotFoundException, OutOfSpaceException {
+      throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException,
+      InvalidStateException {
     mBlockStore.requestSpace(userId, blockId, additionalBytes);
   }
 

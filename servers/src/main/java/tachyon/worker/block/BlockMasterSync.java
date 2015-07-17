@@ -144,7 +144,7 @@ public class BlockMasterSync implements Runnable {
                 blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();
         handleMasterCommand(cmdFromMaster);
-      } catch (IOException ioe) {
+      } catch (Exception ioe) {
         // An error occurred, retry after 1 second or error if heartbeat timeout is reached
         LOG.error("Failed to receive or execute master heartbeat command.", ioe);
         resetMasterClient();
@@ -174,26 +174,22 @@ public class BlockMasterSync implements Runnable {
    * This call will block until the command is complete.
    *
    * @param cmd the command to execute.
-   * @throws IOException if an error occurs when executing the command
+   * @throws Exception if an error occurs when executing the command
    */
   // TODO: Evaluate the necessity of each command
   // TODO: Do this in a non blocking way
-  private void handleMasterCommand(Command cmd) throws IOException {
+  private void handleMasterCommand(Command cmd) throws Exception {
     if (cmd == null) {
       return;
     }
     switch (cmd.mCommandType) {
-      // Currently unused
+    // Currently unused
       case Delete:
         break;
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
-          try {
-            mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
-          } catch (NotFoundException nfe) {
-            throw new IOException(nfe);
-          }
+          mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
         }
         break;
       // No action required

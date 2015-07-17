@@ -71,11 +71,21 @@ interface BlockStore {
    * @param location location to create this block
    * @param initialBlockSize initial size of this block in bytes
    * @return metadata of the temp block created
-   * @throws AlreadyExistsException if blockId already exists, either temporary or committed
+   * @throws IllegalArgumentException if location does not belong to tiered storage
+   * @throws AlreadyExistsException if blockId already exists, either temporary or committed, or
+   *         block in eviction plan already exists
    * @throws OutOfSpaceException if this Store has no more space than the initialBlockSize
+   * @throws NotFoundException if blocks in eviction plan can not be found
+   * @throws IOException if blocks in eviction plan fail to be moved or deleted
+   * @throws InvalidStateException if blocks to be moved/deleted in eviction plan is uncommitted
    */
+  // TODO: exceptions like NotFoundException, IOException and InvalidStateException here involves
+  // implementation details, also, AlreadyExistsException has two possible semantic now, these are
+  // because we propagate any exception in freeSpaceInternal, revisit this by throwing more general
+  // exception
   TempBlockMeta createBlockMeta(long userId, long blockId, BlockStoreLocation location,
-      long initialBlockSize) throws AlreadyExistsException, OutOfSpaceException;
+      long initialBlockSize) throws AlreadyExistsException, OutOfSpaceException, NotFoundException,
+      IOException, InvalidStateException;
 
   /**
    * Gets the metadata of a block given its blockId or throws NotFoundException. This method does
@@ -98,8 +108,8 @@ interface BlockStore {
    * @return metadata of the block
    * @throws NotFoundException if the blockId can not be found in committed blocks or lockId can not
    *         be found
-   * @throws InvalidStateException if userId or blockId is not the same as that in
-   *         the LockRecord of lockId
+   * @throws InvalidStateException if userId or blockId is not the same as that in the LockRecord of
+   *         lockId
    */
   BlockMeta getBlockMeta(long userId, long blockId, long lockId) throws NotFoundException,
       InvalidStateException;
@@ -142,11 +152,22 @@ interface BlockStore {
    * @param userId the ID of the user to request space
    * @param blockId the ID of the temp block
    * @param additionalBytes the amount of more space to request in bytes, never be less than 0
-   * @throws NotFoundException if blockId can not be found
+   * @throws NotFoundException if blockId can not be found, or some block in eviction plan cannot be
+   *         found
    * @throws OutOfSpaceException if requested space can not be satisfied
+   * @throws IOException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} fail to be
+   *         moved or deleted on file system
+   * @throws AlreadyExistsException if blocks to move in
+   *         {@link tachyon.worker.block.evictor.EvictionPlan} already exists in destination
+   *         location
+   * @throws InvalidStateException if the space requested is less than current space or blocks to
+   *         move/evict in {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
+  // TODO: exceptions like IOException AlreadyExistsException and InvalidStateException here
+  // involves implementation details, also, NotFoundException has two semantic now, revisit this
+  // with a more general exception
   void requestSpace(long userId, long blockId, long additionalBytes) throws NotFoundException,
-      OutOfSpaceException;
+      OutOfSpaceException, IOException, AlreadyExistsException, InvalidStateException;
 
   /**
    * Creates a writer to write data to a temp block. Since the temp block is "private" to the
@@ -199,10 +220,12 @@ interface BlockStore {
    *
    * @param userId the ID of the user to remove a block
    * @param blockId the ID of an existing block
+   * @throws InvalidStateException if blockId has not been committed
    * @throws NotFoundException if block can not be found
    * @throws IOException if block cannot be removed from current path
    */
-  void removeBlock(long userId, long blockId) throws NotFoundException, IOException;
+  void removeBlock(long userId, long blockId) throws InvalidStateException, NotFoundException,
+      IOException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly
@@ -215,8 +238,8 @@ interface BlockStore {
   void accessBlock(long userId, long blockId) throws NotFoundException;
 
   /**
-   * Gets the meta data of the entire store in a snapshot. There is no guarantee the state will
-   * be consistent with the snapshot after this method is called.
+   * Gets the meta data of the entire store in a snapshot. There is no guarantee the state will be
+   * consistent with the snapshot after this method is called.
    *
    * @return store meta data
    */
@@ -232,8 +255,8 @@ interface BlockStore {
 
   /**
    * Cleans up the data associated with a specific user (typically a dead user). Clean up entails
-   * unlocking the block locks of this user, reclaiming space of temp blocks created by this
-   * user, and deleting the user temporary folder.
+   * unlocking the block locks of this user, reclaiming space of temp blocks created by this user,
+   * and deleting the user temporary folder.
    *
    * @param userId the user ID
    */
@@ -245,10 +268,23 @@ interface BlockStore {
    * @param userId the user ID
    * @param availableBytes the amount of free space in bytes
    * @param location the location to free space
-   * @throws OutOfSpaceException if eviction fails or there is not enough space
+   * @throws OutOfSpaceException if there is not enough space
+   * @throws NotFoundException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} can
+   *         not be found
+   * @throws IOException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} fail to be
+   *         moved or deleted on file system
+   * @throws AlreadyExistsException if blocks to move in
+   *         {@link tachyon.worker.block.evictor.EvictionPlan} already exists in destination
+   *         location
+   * @throws InvalidStateException if blocks to move/evict in
+   *         {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
+  // TODO: exceptions like NotFoundException, IOException AlreadyExistsException and
+  // InvalidStateException here involves implementation details, may be removed to a more general
+  // exception
   void freeSpace(long userId, long availableBytes, BlockStoreLocation location)
-      throws OutOfSpaceException;
+      throws OutOfSpaceException, NotFoundException, IOException, AlreadyExistsException,
+      InvalidStateException;
 
   /**
    * Registers a {@link BlockStoreEventListener} to this block store.

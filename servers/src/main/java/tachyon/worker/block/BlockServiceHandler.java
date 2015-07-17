@@ -217,6 +217,12 @@ public class BlockServiceHandler implements WorkerService.Iface {
       throw new TException(iae);
     } catch (OutOfSpaceException ooe) {
       throw new tachyon.thrift.OutOfSpaceException(ooe.getMessage());
+    } catch (NotFoundException nfe) {
+      throw new TException(nfe);
+    } catch (IOException ioe) {
+      throw new TException(ioe);
+    } catch (InvalidStateException ise) {
+      throw new TException(ise);
     }
   }
 
@@ -232,12 +238,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
     try {
       mWorker.requestSpace(userId, blockId, requestBytes);
       return true;
-    } catch (NotFoundException nfe) {
-      LOG.error("Failed to request " + requestBytes + " bytes for block: " + blockId, nfe);
-    } catch (IllegalArgumentException iae) {
-      LOG.error("Failed to request " + requestBytes + " bytes for block: " + blockId, iae);
-    } catch (OutOfSpaceException ooe) {
-      LOG.error("Failed to request " + requestBytes + " bytes for block: " + blockId, ooe);
+    } catch (Exception e) {
+      LOG.error("Failed to request " + requestBytes + " bytes for block: " + blockId, e);
     }
     return false;
   }

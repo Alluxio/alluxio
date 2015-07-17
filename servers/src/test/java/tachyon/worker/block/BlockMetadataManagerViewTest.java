@@ -52,7 +52,7 @@ public class BlockMetadataManagerViewTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
-  public void before() throws IOException {
+  public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager =
         EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());

@@ -26,6 +26,8 @@ import com.google.common.base.Joiner;
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.OutOfSpaceException;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
@@ -154,11 +156,12 @@ public final class LocalTachyonCluster {
     }
   }
 
-  public void start() throws IOException {
+  public void start() throws AlreadyExistsException, OutOfSpaceException, IOException {
     start(new TachyonConf());
   }
 
-  public void start(TachyonConf tachyonConf) throws IOException {
+  public void start(TachyonConf tachyonConf) throws AlreadyExistsException, OutOfSpaceException,
+      IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";

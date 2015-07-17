@@ -86,10 +86,14 @@ public class StorageDir {
    * @param capacityBytes the initial capacity of this dir, can not be modified later
    * @param dirPath filesystem path of this dir for actual storage
    * @return the new created StorageDir
-   * @throws IOException when meta data of existing committed blocks can not be loaded
+   * @throws AlreadyExistsException when meta data of existing committed blocks already exists
+   * @throws OutOfSpaceException when meta data can not be added due to limited left space
    */
+  // TODO: throwing RuntimeException, who will handle these checked exceptions? Or throw
+  // RuntimeException in callers like StorageTier. Otherwise, try/catch these exceptions is very
+  // annoying.
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
-      String dirPath) throws IOException {
+      String dirPath) throws AlreadyExistsException, OutOfSpaceException {
     StorageDir dir = new StorageDir(tier, dirIndex, capacityBytes, dirPath);
     dir.initializeMeta();
     return dir;
@@ -101,9 +105,10 @@ public class StorageDir {
    * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath} are legal,
    * should be in format like {dir}/{blockId}. other paths will be deleted.
    *
-   * @throws IOException when meta data of existing committed blocks can not be loaded
+   * @throws AlreadyExistsException when meta data of existing committed blocks already exists
+   * @throws OutOfSpaceException when meta data can not be added due to limited left space
    */
-  private void initializeMeta() throws IOException {
+  private void initializeMeta() throws AlreadyExistsException, OutOfSpaceException {
     File dir = new File(mDirPath);
     File[] paths = dir.listFiles();
     if (paths == null) {
@@ -129,12 +134,6 @@ public class StorageDir {
           } else {
             LOG.error("can not delete file {}", path.getAbsolutePath());
           }
-        } catch (AlreadyExistsException aee) {
-          LOG.error("can not add block meta of file {}: {}", path.getAbsolutePath(), aee);
-          throw new IOException(aee);
-        } catch (OutOfSpaceException ooe) {
-          LOG.error("can not add block meta of file {}: {}", path.getAbsolutePath(), ooe);
-          throw new IOException(ooe);
         }
       }
     }
@@ -151,8 +150,8 @@ public class StorageDir {
   }
 
   /**
-   * Gets the total available capacity of this StorageDir in bytes. This value equals the
-   * total capacity of this StorageDir, minus the used bytes by committed blocks and temp blocks.
+   * Gets the total available capacity of this StorageDir in bytes. This value equals the total
+   * capacity of this StorageDir, minus the used bytes by committed blocks and temp blocks.
    *
    * @return available capacity in bytes
    */
@@ -412,7 +411,7 @@ public class StorageDir {
    *
    * @param userId the ID of the client associated with the temporary blocks
    * @param tempBlockIds the list of temporary blocks to clean up, non temporary blocks or
-   *                     nonexistent blocks will be ignored
+   *        nonexistent blocks will be ignored
    */
   public void cleanupUserTempBlocks(long userId, List<Long> tempBlockIds) {
     Set<Long> userTempBlocks = mUserIdToTempBlockIdsMap.get(userId);
