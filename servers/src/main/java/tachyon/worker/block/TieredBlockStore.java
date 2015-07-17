@@ -71,7 +71,7 @@ public class TieredBlockStore implements BlockStore {
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
   private final Evictor mEvictor;
-  private List<BlockStoreEventListener> mBlockStoreEventListeners =
+  private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
   /** A set of pinned inodes fetched from the master */
   private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
