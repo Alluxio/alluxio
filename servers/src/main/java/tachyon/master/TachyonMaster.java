@@ -159,7 +159,8 @@ public class TachyonMaster {
 
       if (mZookeeperMode) {
         // InetSocketAddress.toString causes test issues, so build the string by hand
-        String zkName = NetworkAddressUtils.getFqdnHost(mMasterAddress) + ":" + mMasterAddress.getPort();
+        String zkName =
+            NetworkAddressUtils.getFqdnHost(mMasterAddress) + ":" + mMasterAddress.getPort();
         String zkAddress = mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS, null);
         String zkElectionPath = mTachyonConf.get(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
         String zkLeaderPath = mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, "/leader");

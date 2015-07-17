@@ -29,7 +29,8 @@ public class NetworkAddressUtilsTest {
 
   @Test
   public void replaceHostNameTest() throws UnknownHostException {
-    Assert.assertEquals(NetworkAddressUtils.replaceHostName(TachyonURI.EMPTY_URI), TachyonURI.EMPTY_URI);
+    Assert.assertEquals(NetworkAddressUtils.replaceHostName(TachyonURI.EMPTY_URI),
+        TachyonURI.EMPTY_URI);
     Assert.assertEquals(NetworkAddressUtils.replaceHostName(null), null);
 
     TachyonURI[] paths =
@@ -54,6 +55,7 @@ public class NetworkAddressUtilsTest {
   public void getFqdnHostTest() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new InetSocketAddress("localhost", 0)),
         "localhost");
-    Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new NetAddress("localhost", 0, 0)), "localhost");
+    Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new NetAddress("localhost", 0, 0)),
+        "localhost");
   }
 }

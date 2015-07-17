@@ -37,7 +37,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 
 /**
- * Common network utilities shared by all components in Tachyon.
+ * Common network address related utilities shared by all components in Tachyon.
  */
 public final class NetworkAddressUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
