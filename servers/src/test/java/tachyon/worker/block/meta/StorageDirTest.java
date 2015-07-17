@@ -63,7 +63,7 @@ public class StorageDirTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Before
-  public void before() throws IOException {
+  public void before() throws Exception {
     TachyonConf tachyonConf = new TachyonConf();
     mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
     mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, TEST_DIR_PATH);
@@ -72,7 +72,7 @@ public class StorageDirTest {
         new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
   }
 
-  private StorageDir newStorageDir(File testDir) throws IOException {
+  private StorageDir newStorageDir(File testDir) throws Exception {
     return StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY,
         testDir.getAbsolutePath());
   }
@@ -85,7 +85,7 @@ public class StorageDirTest {
   }
 
   @Test
-  public void initializeMetaNoExceptionTest() throws IOException {
+  public void initializeMetaNoExceptionTest() throws Exception {
     File testDir = mFolder.newFolder();
 
     int nBlock = 10;
@@ -118,7 +118,7 @@ public class StorageDirTest {
   }
 
   @Test
-  public void initializeMetaDeleteInappropriateFileTest() throws IOException {
+  public void initializeMetaDeleteInappropriateFileTest() throws Exception {
     File testDir = mFolder.newFolder();
 
     newBlockFile(testDir, "block", 1);
@@ -128,7 +128,7 @@ public class StorageDirTest {
   }
 
   @Test
-  public void initializeMetaDeleteInappropriateDirTest() throws IOException {
+  public void initializeMetaDeleteInappropriateDirTest() throws Exception {
     File testDir = mFolder.newFolder();
 
     File newDir = new File(testDir, "dir");
@@ -140,12 +140,12 @@ public class StorageDirTest {
   }
 
   @Test
-  public void initializeMetaBlockLargerThanCapacityTest() throws IOException {
+  public void initializeMetaBlockLargerThanCapacityTest() throws Exception {
     File testDir = mFolder.newFolder();
 
     newBlockFile(testDir, String.valueOf(TEST_BLOCK_ID), Ints.checkedCast(TEST_DIR_CAPACITY + 1));
 
-    mThrown.expect(IOException.class);
+    mThrown.expect(OutOfSpaceException.class);
     mThrown.expectMessage("Failed to add BlockMeta");
     mDir = newStorageDir(testDir);
     assertMetadataEmpty(mDir, TEST_DIR_CAPACITY);

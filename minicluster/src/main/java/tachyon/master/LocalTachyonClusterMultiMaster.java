@@ -30,6 +30,8 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.OutOfSpaceException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockWorker;
@@ -133,7 +135,7 @@ public class LocalTachyonClusterMultiMaster {
     }
   }
 
-  public void start() throws IOException {
+  public void start() throws AlreadyExistsException, OutOfSpaceException, IOException {
     int maxLevel = 1;
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();

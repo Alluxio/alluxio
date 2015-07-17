@@ -76,10 +76,10 @@ public class EvictorTestUtils {
    * @param tierCapacity like {@link #TIER_CAPACITY}, should be in the same dimension with tierPath,
    *        each element is the capacity of the corresponding dir in tierPath
    * @return the created BlockMetadataManager
-   * @throws IOException when initialization of TieredBlockStore fails
+   * @throws Exception when initialization of TieredBlockStore fails
    */
   public static BlockMetadataManager newMetadataManager(int[] tierLevel, String[] tierAlias,
-      String[][] tierPath, long[][] tierCapacity) throws IOException {
+      String[][] tierPath, long[][] tierCapacity) throws Exception {
     // make sure dimensions are legal
     Preconditions.checkNotNull(tierLevel);
     Preconditions.checkNotNull(tierAlias);
@@ -136,9 +136,9 @@ public class EvictorTestUtils {
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
    * @return the created metadata manager
-   * @throws IOException when error happens during creating temporary folder
+   * @throws Exception when error happens during creating temporary folder
    */
-  public static BlockMetadataManager defaultMetadataManager(String baseDir) throws IOException {
+  public static BlockMetadataManager defaultMetadataManager(String baseDir) throws Exception {
     String[][] dirs = new String[TIER_PATH.length][];
     for (int i = 0; i < TIER_PATH.length; i ++) {
       int len = TIER_PATH[i].length;

@@ -47,7 +47,7 @@ public class BlockInStreamIntegrationTest {
   }
 
   @BeforeClass
-  public static final void beforeClass() throws IOException {
+  public static final void beforeClass() throws Exception {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 

@@ -58,11 +58,11 @@ public class BaseAllocatorTest {
   protected BlockStoreLocation mAnyDirInTierLoc3 = BlockStoreLocation.anyDirInTier(3);
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     resetManagerView();
   }
 
-  protected void resetManagerView() throws IOException {
+  protected void resetManagerView() throws Exception {
     mManagerView = new BlockMetadataManagerView(
         BlockMetadataManager.newBlockMetadataManager(createTestTachyonConf()),
         new HashSet<Integer>(), new HashSet<Long>());

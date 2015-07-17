@@ -47,7 +47,7 @@ public class LRUEvictorTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mManagerView =
