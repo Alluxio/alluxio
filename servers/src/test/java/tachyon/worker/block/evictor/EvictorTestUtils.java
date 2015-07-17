@@ -35,7 +35,7 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreEventListener;
 import tachyon.worker.block.BlockStoreLocation;
@@ -143,7 +143,7 @@ public class EvictorTestUtils {
       int len = TIER_PATH[i].length;
       dirs[i] = new String[len];
       for (int j = 0; j < len; j ++) {
-        dirs[i][j] = CommonUtils.concatPath(baseDir, TIER_PATH[i][j]);
+        dirs[i][j] = PathUtils.concatPath(baseDir, TIER_PATH[i][j]);
         FileUtils.forceMkdir(new File(dirs[i][j]));
       }
     }

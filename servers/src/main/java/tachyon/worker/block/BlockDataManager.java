@@ -34,8 +34,8 @@ import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
 import tachyon.util.io.FileUtils;
+import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerSource;
@@ -148,10 +148,10 @@ public class BlockDataManager {
    */
   public void addCheckpoint(long userId, int fileId) throws TException, IOException {
     // TODO This part needs to be changed.
-    String srcPath = CommonUtils.concatPath(getUserUfsTmpFolder(userId), fileId);
+    String srcPath = PathUtils.concatPath(getUserUfsTmpFolder(userId), fileId);
     String ufsDataFolder =
         mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
-    String dstPath = CommonUtils.concatPath(ufsDataFolder, fileId);
+    String dstPath = PathUtils.concatPath(ufsDataFolder, fileId);
     try {
       if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);

@@ -76,6 +76,7 @@ import tachyon.thrift.TachyonException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystem.SpaceType;
 import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * A global view of filesystem in master.
@@ -508,7 +509,7 @@ public class MasterInfo extends ImageWriter {
 
     LOG.debug("createFile {}", CommonUtils.parametersToString(path));
 
-    String[] pathNames = CommonUtils.getPathComponents(path.toString());
+    String[] pathNames = PathUtils.getPathComponents(path.toString());
     String name = path.getName();
 
     String[] parentPath = new String[pathNames.length - 1];
@@ -786,8 +787,8 @@ public class MasterInfo extends ImageWriter {
       if (srcPath.isRoot() || dstPath.isRoot()) {
         return false;
       }
-      String[] srcComponents = CommonUtils.getPathComponents(srcPath.toString());
-      String[] dstComponents = CommonUtils.getPathComponents(dstPath.toString());
+      String[] srcComponents = PathUtils.getPathComponents(srcPath.toString());
+      String[] dstComponents = PathUtils.getPathComponents(dstPath.toString());
       // We can't rename a path to one of its subpaths, so we check for that, by making sure
       // srcComponents isn't a prefix of dstComponents.
       if (srcComponents.length < dstComponents.length) {
@@ -1400,7 +1401,7 @@ public class MasterInfo extends ImageWriter {
 
     if (inode.isDirectory()) {
       for (Inode child : ((InodeFolder) inode).getChildren()) {
-        ret.add(child.generateClientFileInfo(CommonUtils.concatPath(path, child.getName())));
+        ret.add(child.generateClientFileInfo(PathUtils.concatPath(path, child.getName())));
       }
     } else {
       ret.add(inode.generateClientFileInfo(path.toString()));
@@ -1475,7 +1476,7 @@ public class MasterInfo extends ImageWriter {
    * Same as {@link #getInode(String[] pathNames)} except that it takes a path string.
    */
   private Inode getInode(TachyonURI path) throws InvalidPathException {
-    return getInode(CommonUtils.getPathComponents(path.toString()));
+    return getInode(PathUtils.getPathComponents(path.toString()));
   }
 
   /**
