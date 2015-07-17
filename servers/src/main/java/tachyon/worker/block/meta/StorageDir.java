@@ -89,9 +89,6 @@ public class StorageDir {
    * @throws AlreadyExistsException when meta data of existing committed blocks already exists
    * @throws OutOfSpaceException when meta data can not be added due to limited left space
    */
-  // TODO: throwing RuntimeException, who will handle these checked exceptions? Or throw
-  // RuntimeException in callers like StorageTier. Otherwise, try/catch these exceptions is very
-  // annoying.
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
       String dirPath) throws AlreadyExistsException, OutOfSpaceException {
     StorageDir dir = new StorageDir(tier, dirIndex, capacityBytes, dirPath);

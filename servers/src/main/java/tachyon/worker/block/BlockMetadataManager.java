@@ -69,10 +69,17 @@ public class BlockMetadataManager {
     }
   }
 
-  public static BlockMetadataManager newBlockMetadataManager(TachyonConf tachyonConf)
-      throws AlreadyExistsException, OutOfSpaceException {
+  public static BlockMetadataManager newBlockMetadataManager(TachyonConf tachyonConf) {
     BlockMetadataManager ret = new BlockMetadataManager();
-    ret.initBlockMetadataManager(tachyonConf);
+    try {
+      ret.initBlockMetadataManager(tachyonConf);
+      // caller of newBlockMetadataManager should not be forced to catch and handle these exceptions
+      // since it is the responsibility of BlockMetadataManager.
+    } catch (AlreadyExistsException aee) {
+      throw new RuntimeException(aee);
+    } catch (OutOfSpaceException ooe) {
+      throw new RuntimeException(ooe);
+    }
     return ret;
   }
 

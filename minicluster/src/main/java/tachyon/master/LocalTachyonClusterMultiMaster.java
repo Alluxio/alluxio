@@ -135,7 +135,7 @@ public class LocalTachyonClusterMultiMaster {
     }
   }
 
-  public void start() throws AlreadyExistsException, OutOfSpaceException, IOException {
+  public void start() throws IOException {
     int maxLevel = 1;
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();

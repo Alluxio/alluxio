@@ -80,13 +80,10 @@ public class BlockDataManager {
    *
    * @param tachyonConf the configuration values to use
    * @param workerSource object for collecting the worker metrics
-   * @throws AlreadyExistsException if there are existing meta data in
-   *         {@link tachyon.worker.block.meta.StorageDir}
-   * @throws OutOfSpaceException if StorageDir has no more space to hold existing blocks
    * @throws IOException if fail to connect to under filesystem
    */
   public BlockDataManager(TachyonConf tachyonConf, WorkerSource workerSource)
-      throws AlreadyExistsException, OutOfSpaceException, IOException {
+      throws IOException {
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = new TieredBlockStore(tachyonConf);
     mTachyonConf = tachyonConf;
