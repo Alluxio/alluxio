@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
 import tachyon.util.io.FileUtils;
 
 /**
@@ -131,7 +131,7 @@ public class LocalBlockOutStream extends BlockOutStream {
 
     MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, mInFileBytes, length);
     out.put(buf, offset, length);
-    CommonUtils.cleanDirectBuffer(out);
+    BufferUtils.cleanDirectBuffer(out);
     mInFileBytes += length;
     mAvailableBytes -= length;
     mTachyonFS.getClientMetrics().incBytesWrittenLocal(length);
@@ -255,7 +255,7 @@ public class LocalBlockOutStream extends BlockOutStream {
       mBuffer.clear();
     }
 
-    CommonUtils.putIntByteBuffer(mBuffer, b);
+    BufferUtils.putIntByteBuffer(mBuffer, b);
     mWrittenBytes ++;
   }
 }

@@ -47,24 +47,6 @@ public final class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger("");
 
   /**
-
-  /**
-   * Force to unmap direct buffer if the buffer is no longer used. It is unsafe operation and
-   * currently a walk-around to avoid huge memory occupation caused by memory map.
-   *
-   * @param buffer the byte buffer to be unmapped
-   */
-  public static void cleanDirectBuffer(ByteBuffer buffer) {
-    if (buffer == null) {
-      return;
-    }
-    if (buffer.isDirect()) {
-      Cleaner cleaner = ((DirectBuffer) buffer).cleaner();
-      cleaner.clean();
-    }
-  }
-
-  /**
    * Checks and normalizes the given path
    *
    * @param path The path to clean up
@@ -74,21 +56,6 @@ public final class CommonUtils {
   public static String cleanPath(String path) throws InvalidPathException {
     validatePath(path);
     return FilenameUtils.separatorsToUnix(FilenameUtils.normalizeNoEndSeparator(path));
-  }
-
-  public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
-    ByteBuffer ret = ByteBuffer.allocate(buf.limit() - buf.position());
-    ret.put(buf.array(), buf.position(), buf.limit() - buf.position());
-    ret.flip();
-    return ret;
-  }
-
-  public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
-    List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
-    for (ByteBuffer b : source) {
-      ret.add(cloneByteBuffer(b));
-    }
-    return ret;
   }
 
   /**
@@ -135,15 +102,6 @@ public final class CommonUtils {
     }
     return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
 
-  }
-
-  public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
-    // TODO this is a trick to fix the issue in thrift. Change the code to use
-    // metadata directly when thrift fixes the issue.
-    ByteBuffer correctData = ByteBuffer.allocate(data.limit() - data.position());
-    correctData.put(data);
-    correctData.flip();
-    return correctData;
   }
 
   public static long getCurrentMs() {
@@ -297,10 +255,6 @@ public final class CommonUtils {
 
   public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
     logger.info(message + " took " + (System.nanoTime() - startTimeNs) + " ns.");
-  }
-
-  public static void putIntByteBuffer(ByteBuffer buf, int b) {
-    buf.put((byte) (b & 0xFF));
   }
 
   public static void sleepMs(Logger logger, long timeMs) {

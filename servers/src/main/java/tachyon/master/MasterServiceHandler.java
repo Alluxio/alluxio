@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -48,11 +48,11 @@ import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
 
 /**
  * The Master server program.
- * 
+ *
  * It maintains the state of each worker. It never keeps the state of any user.
  */
 public class MasterServiceHandler implements MasterService.Iface {
@@ -155,7 +155,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       throws FileAlreadyExistException, InvalidPathException, TableColumnException,
       TachyonException, TException {
     return mMasterInfo.createRawTable(new TachyonURI(path), columns,
-        CommonUtils.generateNewByteBufferFromThriftRPCResults(metadata));
+        BufferUtils.generateNewByteBufferFromThriftRPCResults(metadata));
   }
 
   @Override
@@ -249,7 +249,7 @@ public class MasterServiceHandler implements MasterService.Iface {
     }
     return ret;
   }
-  
+
   @Override
   public void user_heartbeat() throws TException {
     return;
@@ -302,7 +302,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   public void user_updateRawTableMetadata(int tableId, ByteBuffer metadata)
       throws TableDoesNotExistException, TachyonException, TException {
     mMasterInfo.updateRawTableMetadata(tableId,
-        CommonUtils.generateNewByteBufferFromThriftRPCResults(metadata));
+        BufferUtils.generateNewByteBufferFromThriftRPCResults(metadata));
   }
 
   @Override
