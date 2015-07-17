@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.util;
+package tachyon.util.network;
 
 import java.net.InetSocketAddress;
 import java.util.LinkedHashMap;
