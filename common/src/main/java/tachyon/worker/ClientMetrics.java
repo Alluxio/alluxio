@@ -59,6 +59,11 @@ public class ClientMetrics {
         mMetrics.get(Constants.BLOCKS_WRITTEN_LOCAL_INDEX) + n);
   }
 
+  public synchronized void incBlocksWrittenRemote(long n) {
+    mMetrics.set(Constants.BLOCKS_WRITTEN_REMOTE_INDEX,
+        mMetrics.get(Constants.BLOCKS_WRITTEN_REMOTE_INDEX) + n);
+  }
+
   public synchronized void incBytesReadLocal(long n) {
     mMetrics.set(Constants.BYTES_READ_LOCAL_INDEX,
         mMetrics.get(Constants.BYTES_READ_LOCAL_INDEX) + n);
@@ -76,6 +81,11 @@ public class ClientMetrics {
   public synchronized void incBytesWrittenLocal(long n) {
     mMetrics.set(Constants.BYTES_WRITTEN_LOCAL_INDEX,
         mMetrics.get(Constants.BYTES_WRITTEN_LOCAL_INDEX) + n);
+  }
+
+  public synchronized void incBytesWrittenRemote(long n) {
+    mMetrics.set(Constants.BYTES_WRITTEN_REMOTE_INDEX,
+        mMetrics.get(Constants.BYTES_WRITTEN_REMOTE_INDEX) + n);
   }
 
   public synchronized void incBytesWrittenUfs(long n) {

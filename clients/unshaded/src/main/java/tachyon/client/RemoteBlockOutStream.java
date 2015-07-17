@@ -81,7 +81,8 @@ public class RemoteBlockOutStream extends BlockOutStream {
     super(file, opType, tachyonConf);
 
     if (!opType.isCache()) {
-      throw new IOException("RemoteBlockOutStream only support WriteType.CACHE");
+      throw new IOException("RemoteBlockOutStream only supports WriteType.CACHE. opType: "
+          + opType);
     }
 
     mBlockIndex = blockIndex;
@@ -112,6 +113,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
       throws IOException {
     mRemoteWriter.write(bytes, offset, length);
     mFlushedBytes += length;
+    mTachyonFS.getClientMetrics().incBytesWrittenRemote(length);
   }
 
   // Flush the local buffer to the remote block.
@@ -141,6 +143,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
       mCloser.close();
       if (mWrittenBytes > 0) {
         mTachyonFS.cacheBlock(mBlockId);
+        mTachyonFS.getClientMetrics().incBlocksWrittenRemote(1);
       }
       mClosed = true;
     }
