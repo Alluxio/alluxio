@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.network;
+package tachyon.util.network;
 
 import java.util.concurrent.ThreadFactory;
 
@@ -27,6 +27,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import tachyon.network.ChannelType;
 import tachyon.util.ThreadFactoryUtils;
 
 public final class NettyUtils {
