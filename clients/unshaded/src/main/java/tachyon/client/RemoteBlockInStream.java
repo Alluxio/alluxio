@@ -272,8 +272,10 @@ public class RemoteBlockInStream extends BlockInStream {
         String host = blockLocation.mHost;
         int port = blockLocation.mSecondaryPort;
 
-        // The data is not in remote machine's memory if port == -1.
-        if (port == -1) {
+        // The data is not in remote machine's memory if primary port == -1. We check primary port
+        // because if the data is in the under storage, the secondary port (data transfer port)
+        // will be set.
+        if (blockLocation.mPort == -1) {
           continue;
         }
 
