@@ -108,16 +108,10 @@ public class CapacityUsageIntegrationTest {
 
   @Test
   public void deleteDuringEvictionTest() throws IOException {
-<<<<<<< HEAD
-    for (int i = 5; i > 0; i --) {
-      deleteDuringEviction();
-      CommonUtils.sleepMs(null, HEARTBEAT_INTERVAL_MS + HEARTBEAT_INTERVAL_MS / i);
-=======
     // This test may not trigger eviction each time, repeat it 20 times.
     for (int i = 0; i < 20; i ++) {
       deleteDuringEviction(i);
       CommonUtils.sleepMs(null, 2 * HEARTBEAT_INTERVAL_MS); // ensure second delete completes
->>>>>>> branch-0.7
     }
   }
 }
