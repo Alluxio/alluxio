@@ -37,6 +37,7 @@ import tachyon.metrics.MetricsSystem;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
@@ -144,7 +145,7 @@ public class BlockWorker {
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     String ufsWorkerFolder =
         mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, ufsAddress + "/tachyon/workers");
-    Users users = new Users(CommonUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
+    Users users = new Users(PathUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
 
     // Give BlockDataManager a pointer to the user metadata mapping
     // TODO: Fix this hack when we have a top level register

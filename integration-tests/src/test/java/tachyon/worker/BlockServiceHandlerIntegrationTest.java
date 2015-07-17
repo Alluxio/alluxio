@@ -41,8 +41,8 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockServiceHandler;
-import tachyon.worker.block.io.BlockWriter;
 
 /**
  * Integration tests for tachyon.BlockServiceHandler
@@ -89,7 +89,7 @@ public class BlockServiceHandlerIntegrationTest {
     String tmpFolder = mWorkerServiceHandler.getUserUfsTempFolder(USER_ID);
     UnderFileSystem ufs = UnderFileSystem.get(tmpFolder, mMasterTachyonConf);
     ufs.mkdirs(tmpFolder, true);
-    String filename = CommonUtils.concatPath(tmpFolder, fileId);
+    String filename = PathUtils.concatPath(tmpFolder, fileId);
     OutputStream out = ufs.create(filename);
     out.write(TestUtils.getIncreasingByteArray(blockSize));
     out.close();
@@ -272,7 +272,7 @@ public class BlockServiceHandlerIntegrationTest {
   // Creates a block file and write an increasing byte array into it
   private void createBlockFile(String filename, int len) throws IOException, InvalidPathException {
     UnderFileSystem ufs = UnderFileSystem.get(filename, mMasterTachyonConf);
-    ufs.mkdirs(CommonUtils.getParent(filename), true);
+    ufs.mkdirs(PathUtils.getParent(filename), true);
     OutputStream out = ufs.create(filename);
     out.write(TestUtils.getIncreasingByteArray(len), 0, len);
     out.close();

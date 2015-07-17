@@ -46,101 +46,8 @@ import sun.nio.ch.DirectBuffer;
 public final class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger("");
 
-  /**
-   * Checks and normalizes the given path
-   *
-   * @param path The path to clean up
-   * @return a normalized version of the path, with single separators between path components and
-   *         dot components resolved
-   */
-  public static String cleanPath(String path) throws InvalidPathException {
-    validatePath(path);
-    return FilenameUtils.separatorsToUnix(FilenameUtils.normalizeNoEndSeparator(path));
-  }
-
-  /**
-   * Join each element in paths in order, separated by {@code TachyonURI.SEPARATOR}.
-   * <p>
-   * For example,
-   *
-   * <pre>
-   * {@code
-   * concatPath("/myroot/", "dir", 1L, "filename").equals("/myroot/dir/1/filename");
-   * concatPath("tachyon://myroot", "dir", "filename").equals("tachyon://myroot/dir/filename");
-   * concatPath("myroot/", "/dir/", "filename").equals("myroot/dir/filename");
-   * concatPath("/", "dir", "filename").equals("/dir/filename");
-   * }
-   * </pre>
-   *
-   * Note that empty element in base or paths is ignored.
-   *
-   * @param base base path
-   * @param paths paths to concatenate
-   * @return joined path
-   * @throws IllegalArgumentException if base or paths is null
-   */
-  public static String concatPath(Object base, Object... paths) throws IllegalArgumentException {
-    Preconditions.checkArgument(base != null, "Failed to concatPath: base is null");
-    Preconditions.checkArgument(paths != null, "Failed to concatPath: a null set of paths");
-    List<String> trimmedPathList = new ArrayList<String>();
-    String trimmedBase =
-        CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(base.toString().trim());
-    trimmedPathList.add(trimmedBase);
-    for (Object path : paths) {
-      if (null == path) {
-        continue;
-      }
-      String trimmedPath =
-          CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path.toString().trim());
-      if (!trimmedPath.isEmpty()) {
-        trimmedPathList.add(trimmedPath);
-      }
-    }
-    if (trimmedPathList.size() == 1 && trimmedBase.isEmpty()) {
-      // base must be "[/]+"
-      return TachyonURI.SEPARATOR;
-    }
-    return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
-
-  }
-
   public static long getCurrentMs() {
     return System.currentTimeMillis();
-  }
-
-  /**
-   * Get the parent of the file at a path.
-   *
-   * @param path The path
-   * @return the parent path of the file; this is "/" if the given path is the root.
-   * @throws InvalidPathException
-   */
-  public static String getParent(String path) throws InvalidPathException {
-    String cleanedPath = cleanPath(path);
-    String name = FilenameUtils.getName(cleanedPath);
-    String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
-    if (parent.isEmpty()) {
-      // The parent is the root path
-      return TachyonURI.SEPARATOR;
-    }
-    return parent;
-  }
-
-  /**
-   * Get the path components of the given path.
-   *
-   * @param path The path to split
-   * @return the path split into components
-   * @throws InvalidPathException
-   */
-  public static String[] getPathComponents(String path) throws InvalidPathException {
-    path = cleanPath(path);
-    if (isRoot(path)) {
-      String[] ret = new String[1];
-      ret[0] = "";
-      return ret;
-    }
-    return path.split(TachyonURI.SEPARATOR);
   }
 
   public static String getSizeFromBytes(long bytes) {
@@ -165,17 +72,6 @@ public final class CommonUtils {
       return String.format("%.2f TB", ret);
     }
     return String.format("%.2f PB", ret);
-  }
-
-  /**
-   * Check if the given path is the root.
-   *
-   * @param path The path to check
-   * @return true if the path is the root
-   * @throws InvalidPathException
-   */
-  public static boolean isRoot(String path) throws InvalidPathException {
-    return TachyonURI.SEPARATOR.equals(cleanPath(path));
   }
 
   public static <T> String listToString(List<T> list) {
@@ -275,19 +171,6 @@ public final class CommonUtils {
   public static String[] toStringArray(ArrayList<String> src) {
     String[] ret = new String[src.size()];
     return src.toArray(ret);
-  }
-
-  /**
-   * Check if the given path is properly formed
-   *
-   * @param path The path to check
-   * @throws InvalidPathException If the path is not properly formed
-   */
-  public static void validatePath(String path) throws InvalidPathException {
-    if (path == null || path.isEmpty() || !path.startsWith(TachyonURI.SEPARATOR)
-        || path.contains(" ")) {
-      throw new InvalidPathException("Path " + path + " is invalid.");
-    }
   }
 
   /**

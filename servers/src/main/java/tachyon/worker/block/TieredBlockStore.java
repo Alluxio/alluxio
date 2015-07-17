@@ -36,7 +36,7 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.InvalidPathException;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.allocator.AllocatorFactory;
 import tachyon.worker.block.allocator.AllocatorType;
@@ -287,7 +287,7 @@ public class TieredBlockStore implements BlockStore {
     for (TempBlockMeta tempBlockMeta : tempBlocksToRemove) {
       String fileName = tempBlockMeta.getPath();
       try {
-        String dirName = CommonUtils.getParent(fileName);
+        String dirName = PathUtils.getParent(fileName);
         dirs.add(dirName);
       } catch (InvalidPathException e) {
         LOG.error("Error in cleanup userId {}: cannot parse parent dir of {}", userId, fileName);

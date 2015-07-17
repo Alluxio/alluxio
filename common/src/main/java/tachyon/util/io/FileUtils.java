@@ -28,7 +28,6 @@ import com.google.common.io.Closer;
 
 import tachyon.TachyonURI;
 import tachyon.thrift.InvalidPathException;
-import tachyon.util.CommonUtils;
 
 public class FileUtils {
   private static final Logger LOG = LoggerFactory.getLogger("");
@@ -123,7 +122,7 @@ public class FileUtils {
   public static void createBlockPath(String path) throws IOException {
     File localFolder;
     try {
-      localFolder = new File(CommonUtils.getParent(path));
+      localFolder = new File(PathUtils.getParent(path));
     } catch (InvalidPathException e) {
       throw new IOException(e);
     }

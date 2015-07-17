@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 public class TempBlockMetaTest {
   private static final long TEST_USER_ID = 2;
@@ -48,13 +48,13 @@ public class TempBlockMetaTest {
 
   @Test
   public void getPathTest() {
-    Assert.assertEquals(CommonUtils.concatPath(mTestDirPath, TEST_USER_ID, TEST_BLOCK_ID),
+    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_USER_ID, TEST_BLOCK_ID),
         mTempBlockMeta.getPath());
   }
 
   @Test
   public void getCommitPathTest() {
-    Assert.assertEquals(CommonUtils.concatPath(mTestDirPath, TEST_BLOCK_ID),
+    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_BLOCK_ID),
         mTempBlockMeta.getCommitPath());
   }
 

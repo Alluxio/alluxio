@@ -28,7 +28,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 public class UnderStorageSystemInterfaceIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
@@ -54,7 +54,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests that an empty file can be created
   @Test
   public void createEmptyTest() throws IOException {
-    String testFile = CommonUtils.concatPath(mUnderfsAddress, "testFile");
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createEmptyFile(testFile);
     Assert.assertTrue(mUfs.exists(testFile));
   }
@@ -62,7 +62,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests that a file can be created and validates the data written to it
   @Test
   public void createOpenTest() throws IOException {
-    String testFile = CommonUtils.concatPath(mUnderfsAddress, "testFile");
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createTestBytesFile(testFile);
     byte[] buf = new byte[TEST_BYTES.length];
     int bytesRead = mUfs.open(testFile).read(buf);
@@ -73,7 +73,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests a file can be deleted
   @Test
   public void deleteFileTest() throws IOException {
-    String testFile = CommonUtils.concatPath(mUnderfsAddress, "testFile");
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createEmptyFile(testFile);
     mUfs.delete(testFile, false);
     Assert.assertFalse(mUfs.exists(testFile));
@@ -84,11 +84,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests a non empty directory will be deleted if recursive is specified
   @Test
   public void deleteDirTest() throws IOException {
-    String testDirEmpty = CommonUtils.concatPath(mUnderfsAddress, "testDirEmpty");
-    String testDirNonEmpty = CommonUtils.concatPath(mUnderfsAddress, "testDirNonEmpty1");
-    String testDirNonEmptyChildDir = CommonUtils.concatPath(testDirNonEmpty, "testDirNonEmpty2");
-    String testDirNonEmptyChildFile = CommonUtils.concatPath(testDirNonEmpty, "testDirNonEmptyF");
-    String testDirNonEmptyChildDirFile = CommonUtils.concatPath(testDirNonEmptyChildDir,
+    String testDirEmpty = PathUtils.concatPath(mUnderfsAddress, "testDirEmpty");
+    String testDirNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testDirNonEmpty1");
+    String testDirNonEmptyChildDir = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmpty2");
+    String testDirNonEmptyChildFile = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmptyF");
+    String testDirNonEmptyChildDirFile = PathUtils.concatPath(testDirNonEmptyChildDir,
         "testDirNonEmptyChildDirF");
     mUfs.mkdirs(testDirEmpty, false);
     mUfs.mkdirs(testDirNonEmpty, false);
@@ -114,11 +114,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests exists correctly returns true if the dir exists and false if it does not
   @Test
   public void testExists() throws IOException {
-    String testFile = CommonUtils.concatPath(mUnderfsAddress, "testFile");
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     Assert.assertFalse(mUfs.exists(testFile));
     createEmptyFile(testFile);
     Assert.assertTrue(mUfs.exists(testFile));
-    String testDir = CommonUtils.concatPath(mUnderfsAddress, "testDir");
+    String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
     Assert.assertFalse(mUfs.exists(testDir));
     mUfs.mkdirs(testDir, false);
     Assert.assertTrue(mUfs.exists(testDir));
@@ -127,8 +127,8 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests getFileSize correctly returns the file size
   @Test
   public void testGetFileSize() throws IOException {
-    String testFileEmpty = CommonUtils.concatPath(mUnderfsAddress, "testFileEmpty");
-    String testFileNonEmpty = CommonUtils.concatPath(mUnderfsAddress, "testFileNonEmpty");
+    String testFileEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileEmpty");
+    String testFileNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileNonEmpty");
     createEmptyFile(testFileEmpty);
     createTestBytesFile(testFileNonEmpty);
     Assert.assertEquals(mUfs.getFileSize(testFileEmpty), 0);
@@ -140,7 +140,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   public void testGetModTime() throws IOException {
     long slack = 1000; // Some file systems may report nearest second.
     long start = System.currentTimeMillis();
-    String testFile = CommonUtils.concatPath(mUnderfsAddress, "testFile");
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createTestBytesFile(testFile);
     long end = System.currentTimeMillis();
     long modTime = mUfs.getModificationTimeMs(testFile);
@@ -151,8 +151,8 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests if isFile correctly returns true for files and false otherwise
   @Test
   public void testIsFile() throws IOException {
-    String testFile = CommonUtils.concatPath(mUnderfsAddress, "testFile");
-    String testDir = CommonUtils.concatPath(mUnderfsAddress, "testDir");
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
     Assert.assertFalse(mUfs.isFile(testFile));
     createEmptyFile(testFile);
     mUfs.mkdirs(testDir, false);
@@ -163,11 +163,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests if list correctly returns file names
   @Test
   public void testList() throws IOException {
-    String testDirNonEmpty = CommonUtils.concatPath(mUnderfsAddress, "testDirNonEmpty1");
-    String testDirNonEmptyChildDir = CommonUtils.concatPath(testDirNonEmpty, "testDirNonEmpty2");
-    String testDirNonEmptyChildFile = CommonUtils.concatPath(testDirNonEmpty, "testDirNonEmptyF");
+    String testDirNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testDirNonEmpty1");
+    String testDirNonEmptyChildDir = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmpty2");
+    String testDirNonEmptyChildFile = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmptyF");
     String testDirNonEmptyChildDirFile =
-        CommonUtils.concatPath(testDirNonEmptyChildDir, "testDirNonEmptyChildDirF");
+        PathUtils.concatPath(testDirNonEmptyChildDir, "testDirNonEmptyChildDirF");
     mUfs.mkdirs(testDirNonEmpty, false);
     mUfs.mkdirs(testDirNonEmptyChildDir, false);
     createEmptyFile(testDirNonEmptyChildFile);
@@ -189,11 +189,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests mkdirs correctly makes parent directories if createParent is specified
   @Test
   public void testMkdirs() throws IOException {
-    String testDirTop = CommonUtils.concatPath(mUnderfsAddress, "testDirTop");
-    String testDir1 = CommonUtils.concatPath(mUnderfsAddress, "1");
-    String testDir2 = CommonUtils.concatPath(testDir1, "2");
-    String testDir3 = CommonUtils.concatPath(testDir2, "3");
-    String testDirDeep = CommonUtils.concatPath(testDir3, "testDirDeep");
+    String testDirTop = PathUtils.concatPath(mUnderfsAddress, "testDirTop");
+    String testDir1 = PathUtils.concatPath(mUnderfsAddress, "1");
+    String testDir2 = PathUtils.concatPath(testDir1, "2");
+    String testDir3 = PathUtils.concatPath(testDir2, "3");
+    String testDirDeep = PathUtils.concatPath(testDir3, "testDirDeep");
     mUfs.mkdirs(testDirTop, false);
     Assert.assertTrue(mUfs.exists(testDirTop));
     mUfs.mkdirs(testDirDeep, true);
@@ -206,8 +206,8 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests rename works file to new location
   @Test
   public void testRenameFile() throws IOException {
-    String testFileSrc = CommonUtils.concatPath(mUnderfsAddress, "testFileSrc");
-    String testFileDst = CommonUtils.concatPath(mUnderfsAddress, "testFileDst");
+    String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "testFileSrc");
+    String testFileDst = PathUtils.concatPath(mUnderfsAddress, "testFileDst");
     createEmptyFile(testFileSrc);
     mUfs.rename(testFileSrc, testFileDst);
     Assert.assertFalse(mUfs.exists(testFileSrc));
@@ -217,9 +217,9 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests rename works file to a folder if supported
   @Test
   public void testRenameFileToFolder() throws IOException {
-    String testFileSrc = CommonUtils.concatPath(mUnderfsAddress, "testFileSrc");
-    String testFileDst = CommonUtils.concatPath(mUnderfsAddress, "testDirDst");
-    String testFileFinalDst = CommonUtils.concatPath(testFileDst, "testFileSrc");
+    String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "testFileSrc");
+    String testFileDst = PathUtils.concatPath(mUnderfsAddress, "testDirDst");
+    String testFileFinalDst = PathUtils.concatPath(testFileDst, "testFileSrc");
     createEmptyFile(testFileSrc);
     mUfs.mkdirs(testFileDst, false);
     if (mUfs.rename(testFileSrc, testFileDst)) {
@@ -231,10 +231,10 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests rename works folder to new location
   @Test
   public void testRenameFolder() throws IOException {
-    String testDirSrc = CommonUtils.concatPath(mUnderfsAddress, "testDirSrc");
-    String testDirSrcChild = CommonUtils.concatPath(testDirSrc, "testFile");
-    String testDirDst = CommonUtils.concatPath(mUnderfsAddress, "testDirDst");
-    String testDirDstChild = CommonUtils.concatPath(testDirDst, "testFile");
+    String testDirSrc = PathUtils.concatPath(mUnderfsAddress, "testDirSrc");
+    String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
+    String testDirDst = PathUtils.concatPath(mUnderfsAddress, "testDirDst");
+    String testDirDstChild = PathUtils.concatPath(testDirDst, "testFile");
     mUfs.mkdirs(testDirSrc, false);
     createEmptyFile(testDirSrcChild);
     mUfs.rename(testDirSrc, testDirDst);
@@ -247,12 +247,12 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   // Tests rename works folder to another folder if supported
   @Test
   public void testRenameFolderToFolder() throws IOException {
-    String testDirSrc = CommonUtils.concatPath(mUnderfsAddress, "testDirSrc");
-    String testDirSrcChild = CommonUtils.concatPath(testDirSrc, "testFile");
-    String testDirDst = CommonUtils.concatPath(mUnderfsAddress, "testDirDst");
-    String testDirDstChild = CommonUtils.concatPath(testDirDst, "testFile");
-    String testDirFinalDst = CommonUtils.concatPath(testDirDst, "testDirSrc");
-    String testDirChildFinalDst = CommonUtils.concatPath(testDirFinalDst, "testFile");
+    String testDirSrc = PathUtils.concatPath(mUnderfsAddress, "testDirSrc");
+    String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
+    String testDirDst = PathUtils.concatPath(mUnderfsAddress, "testDirDst");
+    String testDirDstChild = PathUtils.concatPath(testDirDst, "testFile");
+    String testDirFinalDst = PathUtils.concatPath(testDirDst, "testDirSrc");
+    String testDirChildFinalDst = PathUtils.concatPath(testDirFinalDst, "testFile");
     mUfs.mkdirs(testDirSrc, false);
     mUfs.mkdirs(testDirDst, false);
     createEmptyFile(testDirDstChild);
