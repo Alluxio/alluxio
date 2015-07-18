@@ -18,7 +18,6 @@ package tachyon.network.protocol.databuffer;
 import java.nio.ByteBuffer;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 
 /**
  * A DataBuffer with the underlying data being a {@link ByteBuf}.
@@ -32,7 +31,7 @@ public class DataNettyBuffer extends DataBuffer {
   * Constructor for creating a DataNettyBuffer, by passing a Netty ByteBuf.
   * This way we avoid one copy from ByteBuf to another ByteBuffer,
   * and making sure the buffer would not be recycled.
-  * IMPORTANT: {@link #releaseBuffer()} must be called after
+  * IMPORTANT: {@link #release()} must be called after
   * reading is finished. Otherwise the memory space for the ByteBuf might never be reclaimed.
   *
   * @param bytebuf The ByteBuf having the data
