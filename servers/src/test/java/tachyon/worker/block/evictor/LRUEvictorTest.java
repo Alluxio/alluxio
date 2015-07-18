@@ -47,7 +47,7 @@ public class LRUEvictorTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mManagerView =
@@ -57,7 +57,7 @@ public class LRUEvictorTest {
   }
 
   private void cache(long userId, long blockId, long bytes, int tierLevel, int dirIdx)
-      throws IOException {
+      throws Exception {
     StorageDir dir = mMetaManager.getTiers().get(tierLevel).getDir(dirIdx);
     EvictorTestUtils.cache(userId, blockId, bytes, dir, mMetaManager, mEvictor);
   }
@@ -68,7 +68,7 @@ public class LRUEvictorTest {
   }
 
   @Test
-  public void evictInBottomTierTest() throws IOException {
+  public void evictInBottomTierTest() throws Exception {
     int bottomTierLevel = EvictorTestUtils.TIER_LEVEL[EvictorTestUtils.TIER_LEVEL.length - 1];
     // capacity increases with index
     long[] bottomTierDirCapacity = EvictorTestUtils.TIER_CAPACITY[bottomTierLevel];
@@ -94,7 +94,7 @@ public class LRUEvictorTest {
   }
 
   @Test
-  public void cascadingEvictionTest1() throws IOException {
+  public void cascadingEvictionTest1() throws Exception {
     // Two tiers, each dir in the second tier has more space than any dir in the first tier. Fill in
     // the first tier, leave the second tier empty. Request space from the first tier, blocks should
     // be moved from the first to the second tier without eviction.
@@ -120,7 +120,7 @@ public class LRUEvictorTest {
   }
 
   @Test
-  public void cascadingEvictionTest2() throws IOException {
+  public void cascadingEvictionTest2() throws Exception {
     // Two tiers, the second tier has more dirs than the first tier and each dir in the second tier
     // has more space than any dir in the first tier. Fill in all dirs and request space from the
     // first tier, blocks should be moved from the first to the second tier, and some blocks in the

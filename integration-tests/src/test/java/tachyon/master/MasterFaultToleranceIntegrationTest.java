@@ -49,7 +49,7 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
     mLocalTachyonClusterMultiMaster =
         new LocalTachyonClusterMultiMaster(10000, MASTERS, BLOCK_SIZE);
