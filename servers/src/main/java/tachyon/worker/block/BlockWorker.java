@@ -62,6 +62,8 @@ public class BlockWorker {
   private final BlockMasterSync mBlockMasterSync;
   /** Runnable responsible for fetching pinlist from master. */
   private final PinListSync mPinListSync;
+  /** Runnable responsible for clean up potential zombie users. */
+  private final UserCleanup mUserCleanup;
   /** Logic for handling RPC requests. */
   private final BlockServiceHandler mServiceHandler;
   /** Logic for managing block store and under file system store. */
@@ -129,14 +131,17 @@ public class BlockWorker {
             mStartTimeMs, mTachyonConf);
 
     // Setup Worker to Master Syncer
-    // We create two threads for two syncers: mBlockMasterSync and mPinListSync
+    // We create three threads for three syncers: mBlockMasterSync, mUserCleanup and mPinListSync
     mSyncExecutorService =
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
+        Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
     mBlockMasterSync.registerWithMaster();
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf);
+
+    // Setup UserCleanup
+    mUserCleanup = new UserCleanup(mBlockDataManager, mTachyonConf);
 
     // Setup user metadata mapping
     // TODO: Have a top level register that gets the worker id.
@@ -179,6 +184,9 @@ public class BlockWorker {
     // Start the pinlist syncer to perform the periodical fetching
     mSyncExecutorService.submit(mPinListSync);
 
+    // Start the user cleanup checker to perform the periodical checking
+    mSyncExecutorService.submit(mUserCleanup);
+
     mWebServer.startWebServer();
     mThriftServer.serve();
   }
@@ -194,6 +202,7 @@ public class BlockWorker {
     mThriftServerSocket.close();
     mBlockMasterSync.stop();
     mPinListSync.stop();
+    mUserCleanup.stop();
     mSyncExecutorService.shutdown();
     try {
       mWebServer.shutdownWebServer();
