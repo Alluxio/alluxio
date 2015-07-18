@@ -1,7 +1,7 @@
 Tachyon
 =======
 
-The master branch is in version 0.7.0-SNAPSHOT:
+The master branch is in version 0.8.0-SNAPSHOT:
 
 - [Tachyon Homepage](http://www.tachyonproject.org)
 - [Contribute to Tachyon](http://tachyon-project.org/master/Contributing-to-Tachyon.html) and
@@ -23,24 +23,24 @@ The master branch is in version 0.7.0-SNAPSHOT:
 <dependency>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-client</artifactId>
-  <version>0.6.4</version>
+  <version>0.7.0</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```groovy
-compile 'org.tachyonproject:tachyon-client:0.6.4'
+compile 'org.tachyonproject:tachyon-client:0.7.0'
 ```
 
 #### Apache Ant
 ```xml
-<dependency org="org.tachyonproject" name="tachyon" rev="0.6.4">
+<dependency org="org.tachyonproject" name="tachyon" rev="0.7.0">
   <artifact name="tachyon-client" type="jar" />
 </dependency>
 ```
 
 #### SBT
 ```
-libraryDependencies += "org.tachyonproject" % "tachyon-client" % "0.6.4"
+libraryDependencies += "org.tachyonproject" % "tachyon-client" % "0.7.0"
 ```
