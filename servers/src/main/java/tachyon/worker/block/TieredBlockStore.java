@@ -49,6 +49,8 @@ import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockReader;
 import tachyon.worker.block.io.LocalFileBlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -283,25 +285,22 @@ public class TieredBlockStore implements BlockStore {
     // is considered "dead" may still be using or committing this block.
     // A user may have multiple temporary directories for temp blocks, in diffrent StorageTier
     // and StorageDir.
-    Set<String> dirs = new HashSet<String>(tempBlocksToRemove.size());
     for (TempBlockMeta tempBlockMeta : tempBlocksToRemove) {
       String fileName = tempBlockMeta.getPath();
-      try {
-        String dirName = CommonUtils.getParent(fileName);
-        dirs.add(dirName);
-      } catch (InvalidPathException e) {
-        LOG.error("Error in cleanup userId {}: cannot parse parent dir of {}", userId, fileName);
-      }
       if (!new File(fileName).delete()) {
         LOG.error("Error in cleanup userId {}: cannot delete file {}", userId, fileName);
       } else {
         removedTempBlocks.add(tempBlockMeta.getBlockId());
       }
     }
-    // TODO: Cleanup the user folder across tiered storage.
-    for (String dirName : dirs) {
-      if (!new File(dirName).delete()) {
-        LOG.error("Error in cleanup userId {}: cannot delete directory {}", userId, dirName);
+
+    // Go through all the storage directories and delete the user folders which should be empty
+    for (StorageTier tier : mMetaManager.getTiers()) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        File userFolder = new File(CommonUtils.concatPath(dir.getDirPath(), userId));
+        if (userFolder.exists() && !userFolder.delete()) {
+          LOG.error("Failed to clean up user: {} with directory: {}", userId, userFolder.getPath());
+        }
       }
     }
 
