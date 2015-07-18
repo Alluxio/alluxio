@@ -56,6 +56,7 @@ public class DataByteArrayChannel extends DataBuffer {
 
   @Override
   public boolean release() {
+    // Nothing we need to release explicitly, let GC take care of all objects.
     return true;
   }
 }

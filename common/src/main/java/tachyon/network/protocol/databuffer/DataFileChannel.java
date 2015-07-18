@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.DefaultFileRegion;
 
 /**
@@ -72,6 +71,7 @@ public class DataFileChannel extends DataBuffer {
 
   @Override
   public boolean release() {
+    // Nothing we need to release explicitly, let GC take care of all objects.
     return true;
   }
 }
