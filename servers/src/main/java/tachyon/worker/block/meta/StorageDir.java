@@ -34,6 +34,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
+import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockStoreLocation;
 
 /**
@@ -101,6 +102,16 @@ public class StorageDir {
    */
   private void initializeMeta() throws IOException {
     File dir = new File(mDirPath);
+
+    // Create the storage directory path if it does not exist
+    if (!dir.exists()) {
+      if (dir.mkdirs()) {
+        CommonUtils.changeLocalFilePermission(mDirPath, "777");
+        CommonUtils.setLocalFileStickyBit(mDirPath);
+      } else {
+        throw new IOException("Failed to create storage dir " + mDirPath);
+      }
+    }
     File[] paths = dir.listFiles();
     if (paths == null) {
       return;
