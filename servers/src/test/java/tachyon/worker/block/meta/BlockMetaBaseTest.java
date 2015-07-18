@@ -19,8 +19,11 @@ import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockStoreLocation;
 
@@ -42,17 +45,26 @@ public class BlockMetaBaseTest {
     }
   }
 
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
+
   private static final long TEST_BLOCK_ID = 9;
-  private static final String TEST_DIR_PATH = "/mnt/ramdisk/0/";
+  private String mTestDirPath;
   private StorageTier mTier;
   private StorageDir mDir;
   private BlockMetaBaseForTest mBlockMeta;
 
   @Before
   public void before() throws IOException {
+    mTestDirPath = mFolder.newFolder().getAbsolutePath();
+    // Set up tier with one storage dir under mTestDirPath with 100 bytes capacity.
     TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", mTestDirPath);
+    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", "100b");
+    tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
+
     mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
-    mDir = StorageDir.newStorageDir(mTier, 0 /* index */, 100 /* capacity */, TEST_DIR_PATH);
+    mDir = mTier.getDir(0);
     mBlockMeta = new BlockMetaBaseForTest(TEST_BLOCK_ID, mDir);
   }
 

@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -23,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
@@ -38,11 +39,16 @@ public class TempBlockMetaTest {
 
   @Before
   public void before() throws IOException {
-    TachyonConf tachyonConf = new TachyonConf();
-    StorageTier tier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
-    StorageDir dir =
-        StorageDir.newStorageDir(tier, 0 /* index */, 100 /* capacity */, mTestDirPath);
+
+    // Set up tier with one storage dir under mTestDirPath with 100 bytes capacity.
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", mTestDirPath);
+    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", "100b");
+    tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
+    
+    StorageTier tier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
+    StorageDir dir = tier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
   }
 
