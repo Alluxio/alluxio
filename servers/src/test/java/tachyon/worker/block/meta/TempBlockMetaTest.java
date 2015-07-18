@@ -46,7 +46,7 @@ public class TempBlockMetaTest {
     tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", mTestDirPath);
     tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", "100b");
     tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
-    
+
     StorageTier tier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
     StorageDir dir = tier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
