@@ -15,7 +15,9 @@
 
 package tachyon.worker.block.evictor;
 
-import tachyon.worker.block.BlockMetadataManager;
+import com.google.common.base.Preconditions;
+
+import tachyon.worker.block.BlockMetadataManagerView;
 
 /**
  * Factory of {@link Evictor} based on {@link EvictorType}
@@ -27,17 +29,19 @@ public class EvictorFactory {
    * Creates an {@link Evictor} instance according to {@link EvictorType}
    *
    * @param evictorType EvictorType of the Evictor to create
-   * @param metaManager BlockMetadataManager to pass to Evictor
+   * @param view BlockMetadataManagerView to pass to Evictor
    * @return the generated Evictor
    */
-  public static Evictor create(EvictorType evictorType, BlockMetadataManager metaManager) {
+  public static Evictor create(EvictorType evictorType, BlockMetadataManagerView view) {
+    BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
     switch (evictorType) {
       case GREEDY:
-        return new GreedyEvictor(metaManager);
+        // NOTE: if reflection is used, we may need to change the constructor
+        return new GreedyEvictor();
       case LRU:
-        return new LRUEvictor(metaManager);
+        return new LRUEvictor(managerView);
       default:
-        return new GreedyEvictor(metaManager);
+        return new LRUEvictor(managerView);
     }
   }
 }

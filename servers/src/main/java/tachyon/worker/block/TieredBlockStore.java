@@ -35,6 +35,10 @@ import com.google.common.io.Files;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.InvalidStateException;
+import tachyon.exception.NotFoundException;
+import tachyon.exception.OutOfSpaceException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.allocator.Allocator;
@@ -71,7 +75,7 @@ public class TieredBlockStore implements BlockStore {
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
   private final Evictor mEvictor;
-  private List<BlockStoreEventListener> mBlockStoreEventListeners =
+  private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
   /** A set of pinned inodes fetched from the master */
   private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
@@ -85,73 +89,89 @@ public class TieredBlockStore implements BlockStore {
    */
   private final ReentrantReadWriteLock mEvictionLock = new ReentrantReadWriteLock();
 
-  public TieredBlockStore(TachyonConf tachyonConf) throws IOException {
+  public TieredBlockStore(TachyonConf tachyonConf) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
 
     AllocatorType allocatorType =
         mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
-    mAllocator = AllocatorFactory.create(allocatorType, mMetaManager);
+    BlockMetadataManagerView initManagerView =
+        new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
+            Collections.<Long>emptySet());
+    mAllocator = AllocatorFactory.create(allocatorType, initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
     EvictorType evictorType =
         mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
-    mEvictor = EvictorFactory.create(evictorType, mMetaManager);
+    initManagerView =
+        new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
+            Collections.<Long>emptySet());
+    mEvictor = EvictorFactory.create(evictorType, initManagerView);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
   }
 
   @Override
-  public long lockBlock(long userId, long blockId) throws IOException {
+  public long lockBlock(long userId, long blockId) throws NotFoundException {
     return mLockManager.lockBlock(userId, blockId, BlockLockType.READ);
   }
 
   @Override
-  public void unlockBlock(long lockId) throws IOException {
+  public void unlockBlock(long lockId) throws NotFoundException {
     mLockManager.unlockBlock(lockId);
   }
 
   @Override
-  public void unlockBlock(long userId, long blockId) throws IOException {
+  public void unlockBlock(long userId, long blockId) throws NotFoundException {
     mLockManager.unlockBlock(userId, blockId);
   }
 
   @Override
-  public BlockWriter getBlockWriter(long userId, long blockId) throws IOException {
+  public BlockWriter getBlockWriter(long userId, long blockId) throws NotFoundException,
+      IOException {
     TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
     return new LocalFileBlockWriter(tempBlockMeta);
   }
 
   @Override
-  public BlockReader getBlockReader(long userId, long blockId, long lockId) throws IOException {
-    mLockManager.validateLockId(userId, blockId, lockId);
+  public BlockReader getBlockReader(long userId, long blockId, long lockId)
+      throws NotFoundException, InvalidStateException, IOException {
+    mLockManager.validateLock(userId, blockId, lockId);
     BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
     return new LocalFileBlockReader(blockMeta);
   }
 
   @Override
   public TempBlockMeta createBlockMeta(long userId, long blockId, BlockStoreLocation location,
-      long initialBlockSize) throws IOException {
-    mEvictionLock.readLock().lock();
+      long initialBlockSize) throws AlreadyExistsException, OutOfSpaceException, NotFoundException,
+      IOException, InvalidStateException {
+    mEvictionLock.writeLock().lock();
     try {
       return createBlockMetaNoLock(userId, blockId, location, initialBlockSize);
     } finally {
-      mEvictionLock.readLock().unlock();
+      mEvictionLock.writeLock().unlock();
     }
   }
 
   @Override
-  public BlockMeta getBlockMeta(long userId, long blockId, long lockId) throws IOException {
-    mLockManager.validateLockId(userId, blockId, lockId);
+  public BlockMeta getVolatileBlockMeta(long blockId) throws NotFoundException {
     return mMetaManager.getBlockMeta(blockId);
   }
 
   @Override
-  public void commitBlock(long userId, long blockId) throws IOException {
+  public BlockMeta getBlockMeta(long userId, long blockId, long lockId) throws NotFoundException,
+      InvalidStateException {
+    mLockManager.validateLock(userId, blockId, lockId);
+    return mMetaManager.getBlockMeta(blockId);
+  }
+
+  @Override
+  public void commitBlock(long userId, long blockId) throws AlreadyExistsException,
+      InvalidStateException, NotFoundException, IOException, OutOfSpaceException {
     mEvictionLock.readLock().lock();
     try {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
@@ -168,7 +188,8 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void abortBlock(long userId, long blockId) throws IOException {
+  public void abortBlock(long userId, long blockId) throws AlreadyExistsException,
+      NotFoundException, InvalidStateException, IOException {
     mEvictionLock.readLock().lock();
     try {
       abortBlockNoLock(userId, blockId);
@@ -183,7 +204,9 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void requestSpace(long userId, long blockId, long additionalBytes) throws IOException {
+  public void requestSpace(long userId, long blockId, long additionalBytes)
+      throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException,
+      InvalidStateException {
     // TODO: Change the lock to read lock and only upgrade to write lock if necessary
     mEvictionLock.writeLock().lock();
     try {
@@ -199,7 +222,8 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
-      throws IOException {
+      throws NotFoundException, AlreadyExistsException, InvalidStateException, OutOfSpaceException,
+      IOException {
     mEvictionLock.writeLock().lock();
     try {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
@@ -226,7 +250,8 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void removeBlock(long userId, long blockId) throws IOException {
+  public void removeBlock(long userId, long blockId) throws InvalidStateException,
+      NotFoundException, IOException {
     mEvictionLock.readLock().lock();
     try {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
@@ -247,7 +272,7 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void accessBlock(long userId, long blockId) {
+  public void accessBlock(long userId, long blockId) throws NotFoundException {
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         listener.onAccessBlock(userId, blockId);
@@ -257,7 +282,8 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void freeSpace(long userId, long availableBytes, BlockStoreLocation location)
-      throws IOException {
+      throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException,
+      InvalidStateException {
     mEvictionLock.writeLock().lock();
     try {
       freeSpaceInternal(userId, availableBytes, location);
@@ -267,7 +293,7 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void cleanupUser(long userId) throws IOException {
+  public void cleanupUser(long userId) {
     List<TempBlockMeta> tempBlocksToRemove = mMetaManager.getUserTempBlocks(userId);
     List<Long> removedTempBlocks = new ArrayList<Long>(tempBlocksToRemove.size());
     // TODO: fix the block removing below, there is possible risk condition when the client which
@@ -306,6 +332,11 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
+  public boolean hasBlockMeta(long blockId) {
+    return mMetaManager.hasBlockMeta(blockId);
+  }
+
+  @Override
   public BlockStoreMeta getBlockStoreMeta() {
     return mMetaManager.getBlockStoreMeta();
   }
@@ -317,50 +348,41 @@ public class TieredBlockStore implements BlockStore {
     }
   }
 
-  // Create a temp block meta. This method requires eviction lock in READ mode.
-  private TempBlockMeta createBlockMetaNoLock(long userId, long blockId,
-      BlockStoreLocation location, long initialBlockSize) throws IOException {
-    if (mMetaManager.hasTempBlockMeta(blockId)) {
-      throw new IOException("Failed to create TempBlockMeta: blockId " + blockId + " exists");
-    }
+  // Abort a temp block. This method requires eviction lock in READ mode.
+  private void abortBlockNoLock(long userId, long blockId) throws NotFoundException,
+      InvalidStateException, IOException {
     if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new IOException("Failed to create TempBlockMeta: blockId " + blockId + " committed");
+      throw new InvalidStateException("Failed to abort block " + blockId + ": block is committed");
     }
-    TempBlockMeta tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
-    if (tempBlock == null) {
-      // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
 
-      // Upgrade to write lock to guard evictor. This is not a real "upgrade" and things can
-      // happen between unlock and lock.
-      mEvictionLock.readLock().unlock();
-      mEvictionLock.writeLock().lock();
-      try {
-        freeSpaceInternal(userId, initialBlockSize, location);
-      } finally {
-        // Downgrade to read lock again after eviction. Lock before unlock is intentional.
-        mEvictionLock.readLock().lock();
-        mEvictionLock.writeLock().unlock();
-      }
-      tempBlock = mAllocator.allocateBlock(userId, blockId, initialBlockSize, location);
-      Preconditions.checkNotNull(tempBlock, "Cannot allocate block %s:", blockId);
+    TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
+    // Check the userId is the owner of this temp block
+    long ownerUserId = tempBlockMeta.getUserId();
+    if (ownerUserId != userId) {
+      throw new InvalidStateException("Failed to abort temp block " + blockId + ": ownerUserId "
+          + ownerUserId + " but userId " + userId);
     }
-    // Add allocated temp block to metadata manager
-    mMetaManager.addTempBlockMeta(tempBlock);
-    return tempBlock;
+    String path = tempBlockMeta.getPath();
+    if (!new File(path).delete()) {
+      throw new IOException("Failed to abort temp block " + blockId + ": cannot delete " + path);
+    }
+    mMetaManager.abortTempBlockMeta(tempBlockMeta);
   }
 
   // Commit a temp block. This method requires eviction lock in READ mode.
   private void commitBlockNoLock(long userId, long blockId, TempBlockMeta tempBlockMeta)
-      throws IOException {
+      throws AlreadyExistsException, InvalidStateException, NotFoundException, IOException,
+      OutOfSpaceException {
     // TODO: share the condition checking among commitBlockNoLock and abortBlockNoLock in a helper
     // function.
     if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new IOException("Failed to commit block " + blockId + ": block is committed");
+      throw new AlreadyExistsException("Failed to commit block " + blockId
+          + ": block is committed");
     }
     // Check the userId is the owner of this temp block
     long ownerUserId = tempBlockMeta.getUserId();
     if (ownerUserId != userId) {
-      throw new IOException("Failed to commit temp block " + blockId + ": ownerUserId "
+      throw new InvalidStateException("Failed to commit temp block " + blockId + ": ownerUserId "
           + ownerUserId + " but userId " + userId);
     }
     String sourcePath = tempBlockMeta.getPath();
@@ -373,79 +395,43 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager.commitTempBlockMeta(tempBlockMeta);
   }
 
-  // Abort a temp block. This method requires eviction lock in READ mode.
-  private void abortBlockNoLock(long userId, long blockId) throws IOException {
-    if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new IOException("Failed to abort block " + blockId + ": block is committed");
-    }
-
-    TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-    // Check the userId is the owner of this temp block
-    long ownerUserId = tempBlockMeta.getUserId();
-    if (ownerUserId != userId) {
-      throw new IOException("Failed to abort temp block " + blockId + ": ownerUserId "
-          + ownerUserId + " but userId " + userId);
-    }
-    String path = tempBlockMeta.getPath();
-    if (!new File(path).delete()) {
-      throw new IOException("Failed to abort temp block " + blockId + ": cannot delete " + path);
-    }
-    mMetaManager.abortTempBlockMeta(tempBlockMeta);
-  }
-
-  /** Move a block. This method requires block lock in WRITE mode and eviction lock in READ mode */
-  private void moveBlockNoLock(long blockId, BlockStoreLocation newLocation) throws IOException {
+  // Create a temp block meta. This method requires eviction lock in READ mode.
+  private TempBlockMeta createBlockMetaNoLock(long userId, long blockId,
+      BlockStoreLocation location, long initialBlockSize) throws AlreadyExistsException,
+      OutOfSpaceException, NotFoundException, IOException, InvalidStateException {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
-      throw new IOException("Failed to move block " + blockId + ": block is uncommited");
+      throw new AlreadyExistsException("Failed to create TempBlockMeta: blockId " + blockId
+          + " exists");
     }
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-    // NOTE: since WRITE Eviction lock is acquired, we move metadata first before moving raw data.
-    mMetaManager.moveBlockMeta(blockMeta, newLocation);
-    BlockMeta newBlockMeta = mMetaManager.getBlockMeta(blockId);
-    String srcFilePath = blockMeta.getPath();
-    String dstFilePath = newBlockMeta.getPath();
-    // NOTE: Because this move can possibly across storage devices (e.g., from memory to SSD),
-    // renameTo may not work, use guava's move instead.
-    Files.move(new File(srcFilePath), new File(dstFilePath));
-  }
-
-  /**
-   * Remove a block. This method requires block lock in WRITE mode and eviction lock in READ mode.
-   */
-  private void removeBlockNoLock(long userId, long blockId) throws IOException {
-    if (!mMetaManager.hasBlockMeta(blockId)) {
-      throw new IOException("Failed to remove block " + blockId + ": block is not found");
+    if (mMetaManager.hasBlockMeta(blockId)) {
+      throw new AlreadyExistsException("Failed to create TempBlockMeta: blockId " + blockId
+          + " committed");
     }
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-    String filePath = blockMeta.getPath();
-    // Delete the data of the block on "disk"
-    if (!new File(filePath).delete()) {
-      throw new IOException("Failed to remove block " + blockId + ": cannot delete " + filePath);
+    TempBlockMeta tempBlock =
+        mAllocator.allocateBlockWithView(userId, blockId, initialBlockSize, location,
+            getUpdatedView());
+    if (tempBlock == null) {
+      // Failed to allocate a temp block, let Evictor kick in to ensure sufficient space available.
+      freeSpaceInternal(userId, initialBlockSize, location);
+      tempBlock =
+          mAllocator.allocateBlockWithView(userId, blockId, initialBlockSize, location,
+              getUpdatedView());
+      Preconditions.checkNotNull(tempBlock, "Cannot allocate block %s:", blockId);
     }
-    mMetaManager.removeBlockMeta(blockMeta);
-  }
-
-  /**
-   * Get the most updated view with most recent information on pinned inodes,
-   * and currently locked blocks.
-   *
-   * @return BlockMetadataManagerView, a updated view with most recent infomation.
-   */
-  private BlockMetadataManagerView getUpdatedView() {
-    // TODO: update the view object instead of creating new one every time
-    return new BlockMetadataManagerView(mMetaManager, mPinnedInodes,
-        mLockManager.getLockedBlocks());
+    // Add allocated temp block to metadata manager
+    mMetaManager.addTempBlockMeta(tempBlock);
+    return tempBlock;
   }
 
   /** This method must be guarded by WRITE lock of mEvictionLock */
   private void freeSpaceInternal(long userId, long availableBytes, BlockStoreLocation location)
-      throws IOException {
-    EvictionPlan plan = mEvictor.freeSpace(availableBytes, location);
+      throws OutOfSpaceException, IOException, NotFoundException, AlreadyExistsException,
+      InvalidStateException {
+    EvictionPlan plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView());
     // Absent plan means failed to evict enough space.
     if (null == plan) {
-      throw new IOException("Failed to free space: no eviction plan by evictor");
+      throw new OutOfSpaceException("Failed to free space: no eviction plan by evictor");
     }
-
     // 1. remove blocks to make room.
     for (long blockId : plan.toEvict()) {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
@@ -456,8 +442,6 @@ public class TieredBlockStore implements BlockStore {
             listener.onRemoveBlockByWorker(userId, blockId);
           }
         }
-      } catch (IOException e) {
-        throw new IOException("Failed to free space: cannot evict block " + blockId);
       } finally {
         mLockManager.unlockBlock(lockId);
       }
@@ -492,14 +476,61 @@ public class TieredBlockStore implements BlockStore {
               listener.onMoveBlockByWorker(userId, blockId, oldLocation, newLocation);
             }
           }
-        } catch (IOException e) {
-          throw new IOException("Failed to free space: cannot move block " + blockId + " to "
-              + newLocation);
         } finally {
           mLockManager.unlockBlock(lockId);
         }
       }
     }
+  }
+
+  /**
+   * Get the most updated view with most recent information on pinned inodes, and currently locked
+   * blocks.
+   *
+   * @return BlockMetadataManagerView, a updated view with most recent infomation.
+   */
+  private BlockMetadataManagerView getUpdatedView() {
+    // TODO: update the view object instead of creating new one every time
+    synchronized (mPinnedInodes) {
+      return new BlockMetadataManagerView(mMetaManager, mPinnedInodes,
+          mLockManager.getLockedBlocks());
+    }
+  }
+
+  /** Move a block. This method requires block lock in WRITE mode and eviction lock in READ mode */
+  private void moveBlockNoLock(long blockId, BlockStoreLocation newLocation)
+      throws NotFoundException, AlreadyExistsException, InvalidStateException, OutOfSpaceException,
+      IOException {
+    if (mMetaManager.hasTempBlockMeta(blockId)) {
+      throw new InvalidStateException("Failed to move block " + blockId + ": block is uncommited");
+    }
+    BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
+    // NOTE: since WRITE Eviction lock is acquired, we move metadata first before moving raw data.
+    mMetaManager.moveBlockMeta(blockMeta, newLocation);
+    BlockMeta newBlockMeta = mMetaManager.getBlockMeta(blockId);
+    String srcFilePath = blockMeta.getPath();
+    String dstFilePath = newBlockMeta.getPath();
+    // NOTE: Because this move can possibly across storage devices (e.g., from memory to SSD),
+    // renameTo may not work, use guava's move instead.
+    Files.move(new File(srcFilePath), new File(dstFilePath));
+  }
+
+  /**
+   * Remove a block. This method requires block lock in WRITE mode and eviction lock in READ mode.
+   */
+  private void removeBlockNoLock(long userId, long blockId) throws InvalidStateException,
+      NotFoundException, IOException {
+    if (mMetaManager.hasTempBlockMeta(blockId)) {
+      throw new InvalidStateException("Failed to remove block " + blockId
+          + ": block is uncommitted");
+    }
+    BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
+    String filePath = blockMeta.getPath();
+    // Delete the data of the block on "disk"
+    if (!new File(filePath).delete()) {
+      throw new IOException("Failed to remove block " + blockId + ": cannot delete " + filePath);
+    }
+    mMetaManager.removeBlockMeta(blockMeta);
   }
 
   /**

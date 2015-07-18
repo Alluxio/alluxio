@@ -15,8 +15,9 @@
 
 package tachyon.worker.block.allocator;
 
+import com.google.common.base.Preconditions;
 
-import tachyon.worker.block.BlockMetadataManager;
+import tachyon.worker.block.BlockMetadataManagerView;
 
 /**
  * Factory of {@link Allocator} based on {@link AllocatorType}
@@ -26,17 +27,20 @@ public class AllocatorFactory {
    * Create a new {@link Allocator}
    *
    * @param allocatorType AllocatorType which determines the class of allocator to create
-   * @param metaManager BlockMetadataManager to pass to Allocator
+   * @param view BlockMetadataManagerView to pass to Allocator
    * @return the generated Allocator
    */
-  public static Allocator create(AllocatorType allocatorType, BlockMetadataManager metaManager) {
+  public static Allocator create(AllocatorType allocatorType, BlockMetadataManagerView view) {
+    BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
     switch (allocatorType) {
       case GREEDY:
-        return new GreedyAllocator(metaManager);
+        return new GreedyAllocator(managerView);
       case MAX_FREE:
-        return new MaxFreeAllocator(metaManager);
+        return new MaxFreeAllocator(managerView);
+      case ROUND_ROBIN:
+        return new RoundRobinAllocator(managerView);
       default:
-        return new GreedyAllocator(metaManager);
+        return new MaxFreeAllocator(managerView);
     }
   }
 

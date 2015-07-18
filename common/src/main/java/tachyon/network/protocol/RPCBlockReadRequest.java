@@ -27,48 +27,42 @@ import tachyon.worker.DataServerMessage;
 /**
  * This represents an RPC request to read a block from a DataServer.
  */
-public class RPCBlockRequest extends RPCRequest {
+public class RPCBlockReadRequest extends RPCRequest {
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
 
-  // TODO: rename this to RPCBlockReadRequest.
-  public RPCBlockRequest(long blockId, long offset, long length) {
+  public RPCBlockReadRequest(long blockId, long offset, long length) {
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
   }
 
   public Type getType() {
-    return Type.RPC_BLOCK_REQUEST;
+    return Type.RPC_BLOCK_READ_REQUEST;
   }
 
   /**
-   * Decode the input {@link ByteBuf} into a {@link RPCBlockRequest} object and return it.
+   * Decode the input {@link ByteBuf} into a {@link RPCBlockReadRequest} object and return it.
    *
    * @param in the input {@link ByteBuf}
-   * @return The decoded RPCBlockRequest object
+   * @return The decoded RPCBlockReadRequest object
    */
-  public static RPCBlockRequest decode(ByteBuf in) {
-    // TODO: remove this short when client also uses netty.
-    in.readShort();
+  public static RPCBlockReadRequest decode(ByteBuf in) {
     long blockId = in.readLong();
     long offset = in.readLong();
     long length = in.readLong();
-    return new RPCBlockRequest(blockId, offset, length);
+    return new RPCBlockReadRequest(blockId, offset, length);
   }
 
   @Override
   public int getEncodedLength() {
-    // TODO: adjust the length when client also uses netty.
-    // 3 longs (mBlockId, mOffset, mLength) + 1 short (DATA_SERVER_REQUEST_MESSAGE)
-    return Longs.BYTES * 3 + Shorts.BYTES;
+    // 3 longs (mBLockId, mOffset, mLength)
+    return Longs.BYTES * 3;
   }
 
   @Override
   public void encode(ByteBuf out) {
-    // TODO: remove this short when client also uses netty.
-    out.writeShort(DataServerMessage.DATA_SERVER_REQUEST_MESSAGE);
     out.writeLong(mBlockId);
     out.writeLong(mOffset);
     out.writeLong(mLength);
@@ -83,7 +77,7 @@ public class RPCBlockRequest extends RPCRequest {
 
   @Override
   public String toString() {
-    return "RPCBlockRequest(" + mBlockId + ", " + mOffset + ", " + mLength + ")";
+    return "RPCBlockReadRequest(" + mBlockId + ", " + mOffset + ", " + mLength + ")";
   }
 
   public long getBlockId() {
