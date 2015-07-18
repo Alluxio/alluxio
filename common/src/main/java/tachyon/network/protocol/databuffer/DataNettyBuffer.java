@@ -75,7 +75,7 @@ public class DataNettyBuffer extends DataBuffer {
   }
 
   /**
-  * Release the Netty ByteBuf if we used ByteBuf to construct this DataByteBuffer.
+  * Release the Netty ByteBuf.
   *
   * @return True if the netty ByteBuf is released.
   *         As the Netty channel is responsible for performing another {@link ByteBuf#release()},

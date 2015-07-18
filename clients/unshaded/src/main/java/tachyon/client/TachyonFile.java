@@ -456,14 +456,17 @@ public class TachyonFile implements Comparable<TachyonFile> {
     // TODO: Avoid using this constructor, investigate the right way to read remote buffer here.
     RemoteBlockInStream inStream = new RemoteBlockInStream(new TachyonFile(null, -1, null),
         ReadType.NO_CACHE, -1, null, null, true);
-    ByteBuffer buf
+    ByteBuffer inBuf
         = inStream.readRemoteByteBuffer(mTachyonFS, blockInfo, 0, blockInfo.length, mTachyonConf);
+    ByteBuffer outBuf = ByteBuffer.allocate((int) inBuf.capacity());
+    outBuf.put(inBuf);
     try {
       inStream.close();
     } catch (IOException e) {
       LOG.warn(e.getMessage(), e);
     }
-    return (buf == null) ? null : new TachyonByteBuffer(mTachyonFS, buf, blockInfo.blockId, -1);
+    return (outBuf == null)
+        ? null : new TachyonByteBuffer(mTachyonFS, outBuf, blockInfo.blockId, -1);
   }
 
   // TODO remove this method. do streaming cache. This is not a right API.
