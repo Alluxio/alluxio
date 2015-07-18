@@ -299,6 +299,9 @@ public class TieredBlockStore implements BlockStore {
       for (StorageDir dir : tier.getStorageDirs()) {
         File userFolder = new File(CommonUtils.concatPath(dir.getDirPath(), userId));
         if (userFolder.exists() && !userFolder.delete()) {
+          // This error means we could not delete the directory but should not affect the
+          // correctness of the method since the data has already been deleted. It is not
+          // necessary to throw an exception here.
           LOG.error("Failed to clean up user: {} with directory: {}", userId, userFolder.getPath());
         }
       }
