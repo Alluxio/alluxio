@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 
@@ -181,43 +182,47 @@ public final class CommonUtils {
   /**
    * Join each element in paths in order, separated by {@code TachyonURI.SEPARATOR}.
    * <p>
-   * For example, {@code concatPath("/myroot/", "dir", 1L, "filename")} returns
-   * {@code "/myroot/dir/1/filename"}, or
-   * {@code concatPath("tachyon://myroot", "dir", "filename")} returns
-   * {@code "tachyon://myroot/dir/filename"}. Note that a null element in paths
-   * is treated as empty string, i.e., "".
+   * For example,
    *
-   * @param paths to concatenate
+   * <pre>
+   * {@code
+   * concatPath("/myroot/", "dir", 1L, "filename").equals("/myroot/dir/1/filename");
+   * concatPath("tachyon://myroot", "dir", "filename").equals("tachyon://myroot/dir/filename");
+   * concatPath("myroot/", "/dir/", "filename").equals("myroot/dir/filename");
+   * concatPath("/", "dir", "filename").equals("/dir/filename");
+   * }
+   * </pre>
+   *
+   * Note that empty element in base or paths is ignored.
+   *
+   * @param base base path
+   * @param paths paths to concatenate
    * @return joined path
-   * @throws IllegalArgumentException
+   * @throws IllegalArgumentException if base or paths is null
    */
-  public static String concatPath(Object... paths) throws IllegalArgumentException {
-    if (null == paths) {
-      throw new IllegalArgumentException("Can not concatenate a null set of paths.");
-    }
-    String path;
-    String trimmedPath;
+  public static String concatPath(Object base, Object... paths) throws IllegalArgumentException {
+    Preconditions.checkArgument(base != null, "Failed to concatPath: base is null");
+    Preconditions.checkArgument(paths != null, "Failed to concatPath: a null set of paths");
     List<String> trimmedPathList = new ArrayList<String>();
-    if (paths.length > 0 && paths[0] != null && !paths[0].toString().isEmpty()) {
-      path = paths[0].toString().trim();
-      trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
-      trimmedPathList.add(trimmedPath);
-    }
-    for (int k = 1; k < paths.length; k ++) {
-      if (null == paths[k]) {
+    String trimmedBase =
+        CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(base.toString().trim());
+    trimmedPathList.add(trimmedBase);
+    for (Object path : paths) {
+      if (null == path) {
         continue;
       }
-      path = paths[k].toString().trim();
-      trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
+      String trimmedPath =
+          CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path.toString().trim());
       if (!trimmedPath.isEmpty()) {
         trimmedPathList.add(trimmedPath);
       }
     }
-    if (trimmedPathList.size() == 1 && trimmedPathList.get(0).isEmpty()) {
-      // paths[0] must be "[/]+"
+    if (trimmedPathList.size() == 1 && trimmedBase.isEmpty()) {
+      // base must be "[/]+"
       return TachyonURI.SEPARATOR;
     }
     return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
+
   }
 
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {

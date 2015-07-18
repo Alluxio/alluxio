@@ -17,7 +17,10 @@ package tachyon.worker.block.evictor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
@@ -32,19 +35,21 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.NotFoundException;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreEventListener;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockWriter;
+import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
  * This class provides utility methods for testing Evictors.
  */
-class EvictorTestUtils {
+public class EvictorTestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -71,10 +76,10 @@ class EvictorTestUtils {
    * @param tierCapacity like {@link #TIER_CAPACITY}, should be in the same dimension with tierPath,
    *        each element is the capacity of the corresponding dir in tierPath
    * @return the created BlockMetadataManager
-   * @throws IOException when initialization of TieredBlockStore fails
+   * @throws Exception when initialization of TieredBlockStore fails
    */
   public static BlockMetadataManager newMetadataManager(int[] tierLevel, String[] tierAlias,
-      String[][] tierPath, long[][] tierCapacity) throws IOException {
+      String[][] tierPath, long[][] tierCapacity) throws Exception {
     // make sure dimensions are legal
     Preconditions.checkNotNull(tierLevel);
     Preconditions.checkNotNull(tierAlias);
@@ -131,9 +136,9 @@ class EvictorTestUtils {
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
    * @return the created metadata manager
-   * @throws IOException when error happens during creating temporary folder
+   * @throws Exception when error happens during creating temporary folder
    */
-  public static BlockMetadataManager defaultMetadataManager(String baseDir) throws IOException {
+  public static BlockMetadataManager defaultMetadataManager(String baseDir) throws Exception {
     String[][] dirs = new String[TIER_PATH.length][];
     for (int i = 0; i < TIER_PATH.length; i ++) {
       int len = TIER_PATH[i].length;
@@ -155,10 +160,10 @@ class EvictorTestUtils {
    * @param dir the StorageDir the block resides in
    * @param meta the metadata manager to update meta of the block
    * @param evictor the evictor to be informed of the new block
-   * @throws IOException when fail to cache
+   * @throws Exception when fail to cache
    */
   public static void cache(long userId, long blockId, long bytes, StorageDir dir,
-      BlockMetadataManager meta, Evictor evictor) throws IOException {
+      BlockMetadataManager meta, Evictor evictor) throws Exception {
     // prepare temp block
     TempBlockMeta block = new TempBlockMeta(userId, blockId, bytes, dir);
     meta.addTempBlockMeta(block);
@@ -192,13 +197,14 @@ class EvictorTestUtils {
    * @param plan the eviction plan, should not be null
    * @param meta the metadata manager
    * @return true if the request can be satisfied otherwise false
-   * @throws IOException if can not get meta data of a block
+   * @throws NotFoundException if can not get meta data of a block
    */
   public static boolean requestSpaceSatisfied(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager meta) throws IOException {
+      BlockMetadataManager meta) throws NotFoundException {
     Preconditions.checkNotNull(plan);
 
-    List<Long> blockIds = plan.toEvict();
+    List<Long> blockIds = new ArrayList<Long>();
+    blockIds.addAll(plan.toEvict());
     for (Pair<Long, BlockStoreLocation> move : plan.toMove()) {
       blockIds.add(move.getFirst());
     }
@@ -219,14 +225,15 @@ class EvictorTestUtils {
    * @param plan the eviction plan
    * @param meta the meta data manager
    * @return true if blocks are in the same dir otherwise false
-   * @throws IOException if fail to get meta data of a block
+   * @throws NotFoundException if fail to get meta data of a block
    */
   public static boolean blocksInTheSameDir(EvictionPlan plan, BlockMetadataManager meta)
-      throws IOException {
+      throws NotFoundException {
     Preconditions.checkNotNull(plan);
 
     StorageDir dir = null;
-    List<Long> blockIds = plan.toEvict();
+    List<Long> blockIds = new ArrayList<Long>();
+    blockIds.addAll(plan.toEvict());
     for (Pair<Long, BlockStoreLocation> move : plan.toMove()) {
       blockIds.add(move.getFirst());
     }
@@ -243,7 +250,7 @@ class EvictorTestUtils {
   }
 
   /**
-   * Assume the plan is returned by a non-cascading evictor, check whether it is legal. a cascading
+   * Assume the plan is returned by a non-cascading evictor, check whether it is valid. a cascading
    * evictor is an evictor that always tries to move from the target tier to the next tier and
    * recursively move down 1 tier until finally blocks are evicted from the final tier.
    *
@@ -252,43 +259,116 @@ class EvictorTestUtils {
    * @param metaManager the meta data manager
    * @return true if and only if the plan is not null and both {@link #blocksInTheSameDir} and
    *         {@link #requestSpaceSatisfied} are true, otherwise false
-   * @throws IOException when fail to get meta data of a block
+   * @throws NotFoundException when fail to get meta data of a block
    */
-  public static boolean legalNonCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws IOException {
+  public static boolean validNonCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
+      BlockMetadataManager metaManager) throws NotFoundException {
     Preconditions.checkNotNull(plan);
     return blocksInTheSameDir(plan, metaManager)
         && requestSpaceSatisfied(bytesToBeAvailable, plan, metaManager);
   }
 
   /**
-   * Assume the plan is returned by a cascading evictor, check whether it is legal. for explaination
-   * of cascading evictor, please refer to {@link #legalNonCascadingPlan}.
+   * Checks whether the plan of a cascading evictor is valid.
    *
-   * @param bytesToBeAvailable the requested bytes to be available
-   * @param plan the eviction plan, should not be null
+   * A cascading evictor will try to free space by recursively moving blocks to next 1 tier and
+   * evict blocks only in the bottom tier.
+   *
+   * The plan is invalid when the requested space can not be satisfied or lower level of tiers do
+   * not have enough space to hold blocks moved from higher level of tiers.
+   *
+   * @param bytesToBeAvailable requested bytes to be available after eviction
+   * @param plan the eviction plan, should not be empty
    * @param metaManager the meta data manager
-   * @return true
-   * @throws IOException when fail to get meta data of a block
+   * @return true if the above requirements are satisfied, otherwise false.
    */
-  public static boolean legalCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws IOException {
-    return EvictorUtils.legalCascadingPlan(bytesToBeAvailable, plan, metaManager);
+  // TODO: unit test this method
+  public static boolean validCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
+      BlockMetadataManager metaManager) throws Exception {
+    // reassure the plan is feasible: enough free space to satisfy bytesToBeAvailable, and enough
+    // space in lower tier to move blocks in upper tier there
+
+    // Map from dir to a pair of bytes to be available in this dir and bytes to move into this dir
+    // after the plan taking action
+    Map<StorageDir, Pair<Long, Long>> spaceInfoInDir = new HashMap<StorageDir, Pair<Long, Long>>();
+
+    for (long blockId : plan.toEvict()) {
+      BlockMeta block = metaManager.getBlockMeta(blockId);
+      StorageDir dir = block.getParentDir();
+      if (spaceInfoInDir.containsKey(dir)) {
+        Pair<Long, Long> spaceInfo = spaceInfoInDir.get(dir);
+        spaceInfo.setFirst(spaceInfo.getFirst() + block.getBlockSize());
+      } else {
+        spaceInfoInDir.put(dir, new Pair<Long, Long>(
+            dir.getAvailableBytes() + block.getBlockSize(), 0L));
+      }
+    }
+
+    for (Pair<Long, BlockStoreLocation> move : plan.toMove()) {
+      long blockId = move.getFirst();
+      BlockMeta block = metaManager.getBlockMeta(blockId);
+      long blockSize = block.getBlockSize();
+      StorageDir srcDir = block.getParentDir();
+      StorageDir destDir = metaManager.getDir(move.getSecond());
+
+      if (spaceInfoInDir.containsKey(srcDir)) {
+        Pair<Long, Long> spaceInfo = spaceInfoInDir.get(srcDir);
+        spaceInfo.setFirst(spaceInfo.getFirst() + blockSize);
+      } else {
+        spaceInfoInDir
+            .put(srcDir, new Pair<Long, Long>(srcDir.getAvailableBytes() + blockSize, 0L));
+      }
+
+      if (spaceInfoInDir.containsKey(destDir)) {
+        Pair<Long, Long> spaceInfo = spaceInfoInDir.get(destDir);
+        spaceInfo.setSecond(spaceInfo.getSecond() + blockSize);
+      } else {
+        spaceInfoInDir.put(destDir, new Pair<Long, Long>(destDir.getAvailableBytes(), blockSize));
+      }
+    }
+
+    // the top tier among all tiers where blocks in the plan reside in
+    int topTierAlias = Integer.MAX_VALUE;
+    for (StorageDir dir : spaceInfoInDir.keySet()) {
+      topTierAlias = Math.min(topTierAlias, dir.getParentTier().getTierAlias());
+    }
+    long maxSpace = Long.MIN_VALUE; // maximum bytes to be available in a dir in the top tier
+    for (StorageDir dir : spaceInfoInDir.keySet()) {
+      if (dir.getParentTier().getTierAlias() == topTierAlias) {
+        Pair<Long, Long> space = spaceInfoInDir.get(dir);
+        maxSpace = Math.max(maxSpace, space.getFirst() - space.getSecond());
+      }
+    }
+    if (maxSpace < bytesToBeAvailable) {
+      // plan is invalid because requested space can not be satisfied in the top tier
+      return false;
+    }
+
+    for (StorageDir dir : spaceInfoInDir.keySet()) {
+      Pair<Long, Long> spaceInfo = spaceInfoInDir.get(dir);
+      if (spaceInfo.getFirst() < spaceInfo.getSecond()) {
+        // plan is invalid because there is not enough space in this dir to hold the blocks waiting
+        // to be moved into this dir
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
-   * Only when plan is not null and at least one of {@link #legalCascadingPlan},
-   * {@link #legalNonCascadingPlan} is true, the assertion will be passed, used in unit test.
+   * Only when plan is not null and at least one of {@link EvictorTestUtils#validCascadingPlan},
+   * {@link #validNonCascadingPlan} is true, the assertion will be passed, used in unit test.
    *
    * @param bytesToBeAvailable the requested bytes to be available
    * @param plan the eviction plan, should not be null
    * @param metaManager the meta data manager
-   * @throws IOException when fail to get meta data of a block
+   * @throws Exception when fail
    */
-  public static void assertLegalPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws IOException {
+  public static void assertValidPlan(long bytesToBeAvailable, EvictionPlan plan,
+      BlockMetadataManager metaManager) throws Exception {
     Assert.assertNotNull(plan);
-    Assert.assertTrue(legalNonCascadingPlan(bytesToBeAvailable, plan, metaManager)
-        || legalCascadingPlan(bytesToBeAvailable, plan, metaManager));
+    Assert.assertTrue(validNonCascadingPlan(bytesToBeAvailable, plan, metaManager)
+        || EvictorTestUtils.validCascadingPlan(bytesToBeAvailable, plan, metaManager));
   }
 }

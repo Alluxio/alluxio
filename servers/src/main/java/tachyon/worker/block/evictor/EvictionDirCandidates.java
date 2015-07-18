@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import tachyon.Pair;
-import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.meta.StorageDirView;
 
 /**
  * A collection of candidate blocks for eviction organized by directory.
@@ -31,16 +31,15 @@ import tachyon.worker.block.meta.StorageDir;
  * total bytes of added blocks. Assume meta data of StorageDir will not be changed during adding
  * blocks.
  *
- * Example usage can be found in
- * {@link LRUEvictor#freeSpace(long, tachyon.worker.block.BlockStoreLocation)}.
+ * Example usage can be found in {@link LRUEvictor#freeSpaceWithView}.
  */
 class EvictionDirCandidates {
-  /** Map from StorageDir to pair of list of candidate blockIds and their total size in bytes */
-  private Map<StorageDir, Pair<List<Long>, Long>> mDirCandidates =
-      new HashMap<StorageDir, Pair<List<Long>, Long>>();
+  /** Map from StorageDirView to pair of list of candidate blockIds and their total size in bytes */
+  private Map<StorageDirView, Pair<List<Long>, Long>> mDirCandidates =
+      new HashMap<StorageDirView, Pair<List<Long>, Long>>();
   /** Maximum sum of available bytes in a StorageDir and all its added blocks */
   private long mMaxBytes = 0;
-  private StorageDir mDirWithMaxBytes = null;
+  private StorageDirView mDirWithMaxBytes = null;
 
   /**
    * Add the block in the directory to this collection
@@ -49,7 +48,7 @@ class EvictionDirCandidates {
    * @param blockId blockId of the block
    * @param blockSizeBytes block size in bytes
    */
-  public void add(StorageDir dir, long blockId, long blockSizeBytes) {
+  public void add(StorageDirView dir, long blockId, long blockSizeBytes) {
     Pair<List<Long>, Long> candidate;
     if (mDirCandidates.containsKey(dir)) {
       candidate = mDirCandidates.get(dir);
@@ -94,7 +93,7 @@ class EvictionDirCandidates {
    * @return the StorageDir that has the maximum {@link #candidateSize}, otherwise null if no
    *         directory has been added
    */
-  public StorageDir candidateDir() {
+  public StorageDirView candidateDir() {
     return mDirWithMaxBytes;
   }
 }

@@ -54,7 +54,7 @@ public class TachyonFileIntegrationTest {
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 

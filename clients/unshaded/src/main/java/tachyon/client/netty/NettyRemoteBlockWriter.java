@@ -23,25 +23,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 
 import tachyon.Constants;
 import tachyon.client.RemoteBlockWriter;
-import tachyon.conf.TachyonConf;
-import tachyon.network.ChannelType;
-import tachyon.network.NettyUtils;
 import tachyon.network.protocol.RPCBlockWriteRequest;
 import tachyon.network.protocol.RPCBlockWriteResponse;
+import tachyon.network.protocol.RPCErrorResponse;
 import tachyon.network.protocol.RPCMessage;
-import tachyon.network.protocol.RPCMessageDecoder;
-import tachyon.network.protocol.RPCMessageEncoder;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.network.protocol.databuffer.DataByteArrayChannel;
 
@@ -104,21 +94,27 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
       channel.close().sync();
 
-      if (response.getType() == RPCMessage.Type.RPC_BLOCK_WRITE_RESPONSE) {
-        RPCBlockWriteResponse resp = (RPCBlockWriteResponse) response;
-        LOG.info("status: {} from remote machine {} received", resp.getStatus(), mAddress);
+      switch (response.getType()) {
+        case RPC_BLOCK_WRITE_RESPONSE:
+          RPCBlockWriteResponse resp = (RPCBlockWriteResponse) response;
+          RPCResponse.Status status = resp.getStatus();
+          LOG.info("status: {} from remote machine {} received", status, mAddress);
 
-        if (!resp.getStatus()) {
-          throw new IOException("error writing blockId: " + mBlockId + ", userId: " + mUserId
-              + ", address: " + mAddress);
-        }
-        mWrittenBytes += length;
-      } else {
-        LOG.error("Unexpected response message type: " + response.getType() + " (expected: "
-            + RPCMessage.Type.RPC_BLOCK_WRITE_RESPONSE + ")");
+          if (status != RPCResponse.Status.SUCCESS) {
+            throw new IOException("error writing blockId: " + mBlockId + ", userId: " + mUserId
+                + ", address: " + mAddress + ", message: " + status.getMessage());
+          }
+          mWrittenBytes += length;
+          break;
+        case RPC_ERROR_RESPONSE:
+          RPCErrorResponse error = (RPCErrorResponse) response;
+          throw new IOException(error.getStatus().getMessage());
+        default:
+          throw new IOException("Unexpected response message type: " + response.getType()
+              + " (expected: " + RPCMessage.Type.RPC_BLOCK_WRITE_RESPONSE + ")");
       }
     } catch (Exception e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e);
     } finally {
       mHandler.removeListener(listener);
     }
