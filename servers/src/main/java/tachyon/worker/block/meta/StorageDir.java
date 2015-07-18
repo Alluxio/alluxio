@@ -105,6 +105,7 @@ public class StorageDir {
 
     // Create the storage directory path if it does not exist
     if (!dir.exists()) {
+      // TODO: Make this a utility method
       if (dir.mkdirs()) {
         CommonUtils.changeLocalFilePermission(mDirPath, "777");
         CommonUtils.setLocalFileStickyBit(mDirPath);
