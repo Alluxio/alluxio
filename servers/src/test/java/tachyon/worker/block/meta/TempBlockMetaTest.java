@@ -37,7 +37,7 @@ public class TempBlockMetaTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Before
-  public void before() throws IOException {
+  public void before() throws Exception {
     TachyonConf tachyonConf = new TachyonConf();
     StorageTier tier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
     mTestDirPath = mFolder.newFolder().getAbsolutePath();

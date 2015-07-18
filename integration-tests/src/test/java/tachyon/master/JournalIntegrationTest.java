@@ -142,7 +142,7 @@ public class JournalIntegrationTest {
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 100, Constants.GB);
     mLocalTachyonCluster.start();
