@@ -50,9 +50,17 @@ public class StorageTier {
   }
 
   private void initStorageTier(TachyonConf tachyonConf) throws IOException {
+    String workerDataFolder =
+        tachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
     String tierDirPathConf =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, mTierLevel);
     String[] dirPaths = tachyonConf.get(tierDirPathConf, "/mnt/ramdisk").split(",");
+
+    // Add the worker data folder path after each storage directory, the final path will be like
+    // /mnt/ramdisk/tachyonworker
+    for (int i = 0; i < dirPaths.length; i ++) {
+      dirPaths[i] = CommonUtils.concatPath(dirPaths[i].trim(), workerDataFolder);
+    }
 
     String tierDirCapacityConf =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, mTierLevel);
