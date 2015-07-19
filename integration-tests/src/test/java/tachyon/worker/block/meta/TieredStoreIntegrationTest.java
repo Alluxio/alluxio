@@ -52,10 +52,11 @@ public class TieredStoreIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.worker.tieredstore.level.max");
-    System.clearProperty("tachyon.worker.tieredstore.level1.alias");
-    System.clearProperty("tachyon.worker.tieredstore.level1.dirs.path");
-    System.clearProperty("tachyon.worker.tieredstore.level1.dirs.quota");
+    System.clearProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
+    System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1));
+    System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1));
+    System.clearProperty(
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1));
   }
 
   @Before
@@ -65,10 +66,13 @@ public class TieredStoreIntegrationTest {
 
     // Add system properties to pre-populate the storage tiers
     // TODO Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
-    System.setProperty("tachyon.worker.tieredstore.level.max", "2");
-    System.setProperty("tachyon.worker.tieredstore.level1.alias", "HDD");
-    System.setProperty("tachyon.worker.tieredstore.level1.dirs.path", "/disk1" + "," + "/disk2");
-    System.setProperty("tachyon.worker.tieredstore.level1.dirs.quota", DISK_CAPACITY_BYTES + "");
+    System.setProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
+    System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1),
+        "HDD");
+    System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
+        "/disk1" + "," + "/disk2");
+    System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
+        DISK_CAPACITY_BYTES + "");
 
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
