@@ -18,6 +18,8 @@ package tachyon;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * It uses a hierarchical URI internally. URI requires that String is escaped, TachyonURI does not.
  *
@@ -26,7 +28,8 @@ import java.net.URISyntaxException;
 public final class TachyonURI implements Comparable<TachyonURI> {
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";
-
+  public static final String WILDCARD = "*";
+  
   public static final TachyonURI EMPTY_URI = new TachyonURI("");
 
   private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
@@ -227,6 +230,50 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     return new TachyonURI(mUri.getScheme(), mUri.getAuthority(), parent);
   }
 
+  /**
+   * Get the first n component of the TachyonURI path.
+   * There is no trailing separator as the path will be normalized by normalizePath() 
+   * 
+   * <pre>
+   * /a/b/c, 1              -> /a
+   * /a/b/c, 2              -> /a/b
+   * /a/b/c, 3              -> /a/b/c
+   * </pre>
+   * 
+   * @return the first n path component, null if the path does not n components
+   */
+  public String getPathComponent(int n) {
+    int numComp = getNumPathComponents();
+    if (numComp < n) {
+      return null;
+    } else if (numComp == n) {
+      return mUri.getPath();
+    } else {
+      String path = mUri.getPath();
+      String[] comp = path.split(SEPARATOR);
+      String[] nComp = new String[n];
+      for (int i = 0; i < n; i++) {
+        nComp[i] = comp[i];
+      }
+      return StringUtils.join(nComp, SEPARATOR);
+    }
+  }
+  
+  /**
+   * Get the number of path components of the given string
+   * @return
+   */
+  public int getNumPathComponents() {
+    return mUri.getPath().split(SEPARATOR).length;
+  }
+  
+  /**
+   * Whether or not the URI contains wildcard(s)
+   */
+  public boolean containsWildcard() {
+    return mUri.getPath().contains(WILDCARD);
+  }
+  
   /**
    * Gets the part component of this TachyonURI.
    *
