@@ -15,7 +15,6 @@
 
 package tachyon.worker.block;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +30,8 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.NotFoundException;
+import tachyon.exception.OutOfSpaceException;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
@@ -100,7 +101,7 @@ public class BlockMetadataManagerTest {
   @Test
   public void getTierNotExistingTest() throws Exception {
     int badTierAlias = 2;
-    mThrown.expect(IOException.class);
+    mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Cannot find tier with alias " + badTierAlias);
     mMetaManager.getTier(badTierAlias);
   }
@@ -174,14 +175,14 @@ public class BlockMetadataManagerTest {
 
   @Test
   public void getBlockMetaNotExistingTest() throws Exception {
-    mThrown.expect(IOException.class);
+    mThrown.expect(NotFoundException.class);
     mThrown.expectMessage("Failed to get BlockMeta: blockId " + TEST_BLOCK_ID + " not found");
     mMetaManager.getBlockMeta(TEST_BLOCK_ID);
   }
 
   @Test
   public void getTempBlockMetaNotExistingTest() throws Exception {
-    mThrown.expect(IOException.class);
+    mThrown.expect(NotFoundException.class);
     mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + TEST_TEMP_BLOCK_ID
         + " not found");
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID);
@@ -215,7 +216,7 @@ public class BlockMetadataManagerTest {
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, 2000, dir);
     dir.addBlockMeta(blockMeta);
 
-    mThrown.expect(IOException.class);
+    mThrown.expect(OutOfSpaceException.class);
     mThrown.expectMessage("does not have enough space");
     mMetaManager.moveBlockMeta(blockMeta, new BlockStoreLocation(1, 0, 0));
   }

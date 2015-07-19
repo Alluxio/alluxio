@@ -16,7 +16,6 @@
 package tachyon.worker.block.evictor;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -80,43 +79,44 @@ public class EvictorTest {
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mManagerView = new BlockMetadataManagerView(
-        mMetaManager, Collections.<Integer>emptySet(), Collections.<Long>emptySet());
+    mManagerView =
+        new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
+            Collections.<Long>emptySet());
     List<StorageTier> tiers = mMetaManager.getTiers();
     mTestDir = tiers.get(TEST_TIER_LEVEL).getDir(TEST_DIR);
     mEvictor = EvictorFactory.create(mEvictorType, mManagerView);
   }
 
   @Test
-  public void noNeedToEvictTest1() throws IOException {
+  public void noNeedToEvictTest1() throws Exception {
     // metadata manager is just created, no cached block in Evictor,
     // so when trying to make sure each dir has free space of its capacity,
     // the eviction plan should be empty.
     for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        Assert.assertTrue(mEvictor.freeSpaceWithView(
-            dir.getCapacityBytes(), dir.toBlockStoreLocation(), mManagerView).isEmpty());
+        Assert.assertTrue(mEvictor.freeSpaceWithView(dir.getCapacityBytes(),
+            dir.toBlockStoreLocation(), mManagerView).isEmpty());
       }
     }
   }
 
   @Test
-  public void noNeedToEvictTest2() throws IOException {
+  public void noNeedToEvictTest2() throws Exception {
     // cache some data in a dir, then request the remaining space from the dir, the eviction plan
     // should be empty.
     StorageDir dir = mTestDir;
     long capacity = dir.getCapacityBytes();
     long cachedBytes = capacity / 2 + 1;
     EvictorTestUtils.cache(USER_ID, BLOCK_ID, cachedBytes, dir, mMetaManager, mEvictor);
-    Assert.assertTrue(mEvictor.freeSpaceWithView(
-        capacity - cachedBytes, dir.toBlockStoreLocation(), mManagerView).isEmpty());
+    Assert.assertTrue(mEvictor.freeSpaceWithView(capacity - cachedBytes,
+        dir.toBlockStoreLocation(), mManagerView).isEmpty());
   }
 
   @Test
-  public void noNeedToEvictTest3() throws IOException {
+  public void noNeedToEvictTest3() throws Exception {
     // fill in all dirs except for one directory, then request the capacity of
     // the directory with anyDirInTier
     StorageDir dirLeft = mTestDir;
@@ -137,20 +137,20 @@ public class EvictorTest {
   }
 
   @Test
-  public void needToEvictTest() throws IOException {
+  public void needToEvictTest() throws Exception {
     // fill in a dir and request the capacity of the dir, all cached data in the dir should be
     // evicted.
     StorageDir dir = mTestDir;
     long capacityBytes = dir.getCapacityBytes();
     EvictorTestUtils.cache(USER_ID, BLOCK_ID, capacityBytes, dir, mMetaManager, mEvictor);
 
-    EvictionPlan plan = mEvictor.freeSpaceWithView(
-        capacityBytes, dir.toBlockStoreLocation(), mManagerView);
-    EvictorTestUtils.assertLegalPlan(capacityBytes, plan, mMetaManager);
+    EvictionPlan plan =
+        mEvictor.freeSpaceWithView(capacityBytes, dir.toBlockStoreLocation(), mManagerView);
+    EvictorTestUtils.assertValidPlan(capacityBytes, plan, mMetaManager);
   }
 
   @Test
-  public void needToEvictAnyDirInTierTest() throws IOException {
+  public void needToEvictAnyDirInTierTest() throws Exception {
     // cache data with size of "(capacity - 1)" in each dir in a tier, request size of "capacity" of
     // the last dir(whose capacity is largest) in this tier from anyDirInTier(tier), all blocks
     // cached in the last dir should be in the eviction plan.
@@ -165,13 +165,13 @@ public class EvictorTest {
 
     long requestBytes = dirs.get(dirs.size() - 1).getCapacityBytes();
     EvictionPlan plan =
-        mEvictor.freeSpaceWithView(
-            requestBytes, BlockStoreLocation.anyDirInTier(tier.getTierAlias()), mManagerView);
-    EvictorTestUtils.assertLegalPlan(requestBytes, plan, mMetaManager);
+        mEvictor.freeSpaceWithView(requestBytes,
+            BlockStoreLocation.anyDirInTier(tier.getTierAlias()), mManagerView);
+    EvictorTestUtils.assertValidPlan(requestBytes, plan, mMetaManager);
   }
 
   @Test
-  public void needToEvictAnyTierTest() throws IOException {
+  public void needToEvictAnyTierTest() throws Exception {
     // cache data with size of "(capacity - 1)" in each dir in all tiers, request size of minimum
     // "capacity" of all dirs from anyTier
     long minCapacity = Long.MAX_VALUE;
@@ -187,11 +187,11 @@ public class EvictorTest {
 
     EvictionPlan plan = mEvictor.freeSpaceWithView(
         minCapacity, BlockStoreLocation.anyTier(), mManagerView);
-    EvictorTestUtils.assertLegalPlan(minCapacity, plan, mMetaManager);
+    EvictorTestUtils.assertValidPlan(minCapacity, plan, mMetaManager);
   }
 
   @Test
-  public void requestSpaceLargerThanCapacityTest() throws IOException {
+  public void requestSpaceLargerThanCapacityTest() throws Exception {
     // cache data in a dir
     long totalCapacity = mMetaManager.getAvailableBytes(BlockStoreLocation.anyTier());
     StorageDir dir = mTestDir;
@@ -201,8 +201,8 @@ public class EvictorTest {
     EvictorTestUtils.cache(USER_ID, BLOCK_ID, dirCapacity, dir, mMetaManager, mEvictor);
 
     // request space larger than total capacity, no eviction plan should be available
-    Assert.assertNull(mEvictor.freeSpaceWithView(
-        totalCapacity + 1, BlockStoreLocation.anyTier(), mManagerView));
+    Assert.assertNull(mEvictor.freeSpaceWithView(totalCapacity + 1, BlockStoreLocation.anyTier(),
+        mManagerView));
     // request space larger than capacity for the random directory, no eviction plan should be
     // available
     Assert.assertNull(mEvictor.freeSpaceWithView(dirCapacity + 1, dirLocation, mManagerView));

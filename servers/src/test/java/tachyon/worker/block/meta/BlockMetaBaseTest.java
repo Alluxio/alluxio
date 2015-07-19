@@ -49,7 +49,7 @@ public class BlockMetaBaseTest {
   private BlockMetaBaseForTest mBlockMeta;
 
   @Before
-  public void before() throws IOException {
+  public void before() throws Exception {
     TachyonConf tachyonConf = new TachyonConf();
     mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
     mDir = StorageDir.newStorageDir(mTier, 0 /* index */, 100 /* capacity */, TEST_DIR_PATH);

@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Pair;
+import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
@@ -53,7 +54,7 @@ public class PartialLRUEvictor extends LRUEvictor {
 
   @Override
   protected StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
-      EvictionPlan plan) throws IOException {
+      EvictionPlan plan) {
 
     StorageDirView candidateDirView = null;
     // 1. Get StorageDir with max free space. If no such StorageDir, return null. If
@@ -78,8 +79,8 @@ public class PartialLRUEvictor extends LRUEvictor {
             candidateBlocks.add(block.getBlockId());
           }
         }
-      } catch (IOException ioe) {
-        LOG.warn("Remove block {} from LRU Cache because {}", blockId, ioe);
+      } catch (NotFoundException nfe) {
+        LOG.warn("Remove block {} from LRU Cache because {}", blockId, nfe);
         it.remove();
       }
     }
@@ -123,8 +124,7 @@ public class PartialLRUEvictor extends LRUEvictor {
    * @return the StorageDirView selected
    * @throws IOException
    */
-  private StorageDirView getDirWithMaxFreeSpace(long availableBytes, BlockStoreLocation location)
-      throws IOException {
+  private StorageDirView getDirWithMaxFreeSpace(long availableBytes, BlockStoreLocation location) {
     long maxFreeSize = -1;
     StorageDirView selectedDirView = null;
 
