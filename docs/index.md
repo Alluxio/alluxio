@@ -62,12 +62,8 @@ to interact with Tachyon, e.g. copy data in and out of the file system.
 * [Single Node](Running-Tachyon-Locally.html)
 * [Cluster](Running-Tachyon-on-a-Cluster.html)
 * [Master Fault Tolerant Cluster](Fault-Tolerant-Tachyon-Cluster.html)
+* [Tachyon Deploy Module (Virtualbox and AWS EC2)](Deploy-Module.html)
 * [Amazon AWS Through mesos/spark-ec2](Running-Tachyon-on-EC2.html)
-* [Tachyon Deploy Module](Deploy-Module.html)
-* [Amazon AWS Through Vagrant](Running-Tachyon-on-AWS.html)
-* [OpenStack Compute](Running-Tachyon-on-OpenStack.html)
-* [Linux Container](Running-Tachyon-on-Container.html)
-* [VirtualBox](Running-Tachyon-on-VirtualBox.html)
 
 **Configuration:**
 

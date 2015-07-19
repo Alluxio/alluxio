@@ -59,7 +59,7 @@ public class TieredStoreIntegrationTest {
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
 

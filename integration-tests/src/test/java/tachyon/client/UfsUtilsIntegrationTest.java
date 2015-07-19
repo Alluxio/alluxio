@@ -46,7 +46,7 @@ public class UfsUtilsIntegrationTest {
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, 128);
     mLocalTachyonCluster.start();
 
