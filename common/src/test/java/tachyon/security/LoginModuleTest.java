@@ -29,22 +29,30 @@ import org.junit.Test;
 public class LoginModuleTest {
 
   /**
-   * This test verify whether the OS login module works in JAAS framework.
+   * This test verify whether the simple login works in JAAS framework.
+   * Simple mode login get the OS user and convert to Tachyon user.
    * @throws Exception
    */
   @Test
-  public void osLoginModuleTest() throws Exception {
+  public void simpleLoginTest() throws Exception {
     String clazzName = UserInformation.getOsPrincipalClassName();
     Class<? extends Principal> clazz = (Class<? extends Principal>) ClassLoader
         .getSystemClassLoader().loadClass(clazzName);
     Subject subject = new Subject();
 
-    // login and add OS user into subject
+    // login, add OS user into subject, and add corresponding Tachyon user into subject
     LoginContext loginContext = new LoginContext("simple", subject, null,
         new UserInformation.TachyonJaasConfiguration());
     loginContext.login();
 
-    // verify whether OS user is fetched
+    // verify whether OS user and Tachyon user is added.
     Assert.assertFalse(subject.getPrincipals(clazz).isEmpty());
+    Assert.assertFalse(subject.getPrincipals(User.class).isEmpty());
+
+    // logout and verify the user is removed
+    loginContext.logout();
+    Assert.assertTrue(subject.getPrincipals(User.class).isEmpty());
   }
+
+  // TODO: Kerberos login test
 }
