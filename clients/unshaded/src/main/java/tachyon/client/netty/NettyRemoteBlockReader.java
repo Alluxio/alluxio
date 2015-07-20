@@ -15,7 +15,6 @@
 
 package tachyon.client.netty;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -39,7 +38,7 @@ import tachyon.network.protocol.RPCResponse;
 /**
  * Read data from remote data server using Netty.
  */
-public final class NettyRemoteBlockReader implements Closeable, RemoteBlockReader {
+public final class NettyRemoteBlockReader implements RemoteBlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Bootstrap mClientBootstrap;
