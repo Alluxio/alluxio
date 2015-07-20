@@ -440,18 +440,12 @@ public class RemoteBlockInStream extends BlockInStream {
 
   /**
    * Clear the previous reader, release the resource it references.
-   *
-   * @return true if reader is successfully cleared or no clearing is needed
    */
   private void closeReader() throws IOException {
     if (mCurrentReader != null) {
       try {
-        //TODO: we should implement close() in all readers.
-        if (mCurrentReader instanceof NettyRemoteBlockReader) {
-          ((NettyRemoteBlockReader) mCurrentReader).close();
-        }
+        mCurrentReader.close();
       } finally {
-        // which ever the type is, set to null.
         mCurrentReader = null;
       }
     }
