@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
+import com.google.common.io.Files;
 
 import tachyon.TachyonURI;
 import tachyon.thrift.InvalidPathException;
@@ -135,5 +136,20 @@ public class FileUtils {
         throw new IOException("Failed to create folder " + localFolder);
       }
     }
+  }
+
+  /**
+   * Move file from one place to another, can across storage devices (e.g., from memory to SSD) when
+   * {@link File#renameTo} may not work.
+   *
+   * Current implementation uses {@link com.google.common.io.Files#move(File, File);}, may change if
+   * there is a better solution.
+   *
+   * @param from source file
+   * @param to destination file
+   * @throws IOException when fails to move
+   */
+  public static void move(File from, File to) throws IOException {
+    Files.move(from, to);
   }
 }

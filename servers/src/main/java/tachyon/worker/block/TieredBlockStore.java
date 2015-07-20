@@ -40,6 +40,7 @@ import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.thrift.InvalidPathException;
+import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.allocator.AllocatorFactory;
@@ -387,11 +388,7 @@ public class TieredBlockStore implements BlockStore {
     }
     String sourcePath = tempBlockMeta.getPath();
     String destPath = tempBlockMeta.getCommitPath();
-    boolean renamed = new File(sourcePath).renameTo(new File(destPath));
-    if (!renamed) {
-      throw new IOException("Failed to commit temp block " + blockId + ": cannot rename from "
-          + sourcePath + " to " + destPath);
-    }
+    FileUtils.move(new File(sourcePath), new File(destPath));
     mMetaManager.commitTempBlockMeta(tempBlockMeta);
   }
 
@@ -510,9 +507,7 @@ public class TieredBlockStore implements BlockStore {
     BlockMeta newBlockMeta = mMetaManager.getBlockMeta(blockId);
     String srcFilePath = blockMeta.getPath();
     String dstFilePath = newBlockMeta.getPath();
-    // NOTE: Because this move can possibly across storage devices (e.g., from memory to SSD),
-    // renameTo may not work, use guava's move instead.
-    Files.move(new File(srcFilePath), new File(dstFilePath));
+    FileUtils.move(new File(srcFilePath), new File(dstFilePath));
   }
 
   /**
