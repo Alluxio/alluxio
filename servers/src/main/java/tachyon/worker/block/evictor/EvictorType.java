@@ -32,8 +32,8 @@ public enum EvictorType {
   /**
    * Evict old blocks in certain StorageDir by LRU. The main difference between PartialLRU and
    * LRU is that LRU choose old blocks among several StorageDirs until one StorageDir
-   * satisfies the request space, but PartialLRU select one StorageDir first and evict old
-   * blocks in certain StorageDir by LRU
+   * satisfies the request space, but PartialLRU select one StorageDir with maximum free space
+   * first and evict old blocks in the selected StorageDir by LRU
    */
   PARTIAL_LRU,
   /**
