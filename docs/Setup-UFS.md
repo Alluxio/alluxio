@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Configure Underlayer Storage System
+group: More
 ---
 
 Tachyon can run with different underlayer storage systems. This guide describes how to accomplish

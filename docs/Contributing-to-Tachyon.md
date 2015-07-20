@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Contributing to Tachyon
+group: Development
 ---
 
 Thank you for your interest in Tachyon! We greatly appreciate any new features or fixes.

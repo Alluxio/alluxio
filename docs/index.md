@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Tachyon Overview
+group: Home
 ---
 
 Tachyon is a memory-centric distributed storage system enabling reliable data sharing at memory-speed

@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Fault Tolerant Tachyon Cluster
+group: Deployment
 ---
 
 # Fault Tolerance
