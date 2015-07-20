@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Tiered storage on Tachyon (Alpha)
+group: More
 ---
 
 Tiered storage introduces additional storage layers besides the existing memory layer. Each

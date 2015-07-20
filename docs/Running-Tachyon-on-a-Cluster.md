@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Running Tachyon on a Cluster
+group: Deployment
 ---
 
 ## Standalone cluster

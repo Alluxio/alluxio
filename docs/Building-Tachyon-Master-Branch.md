@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Building Tachyon Master Branch
+group: Development
 ---
 
 This guide describes how to compile Tachyon from the beginning.
@@ -14,7 +15,7 @@ Checkout the Tachyon master branch from Github and package:
     $ cd tachyon
     $ mvn install
 
-If you getting java.lang.OutOfMemoryError: Java heap space, please execute 
+If you getting java.lang.OutOfMemoryError: Java heap space, please execute
 
     $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 

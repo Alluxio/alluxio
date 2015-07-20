@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Command Line Interface
+group: Deployment
 ---
 
 Tachyon's command line interface provides users basic file system operations. Invoke the

@@ -16,8 +16,51 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <style>
         body {
-            padding-top: 60px;
+            padding-top: 70px;
             padding-bottom: 40px;
+        }
+        .navbar .nav {
+          float: right;
+        }
+        .navbar .nav>li>a{
+          text-shadow: none;
+          padding-bottom: 5px;
+          color: #D5D5D5;
+        }
+        .navbar .nav>li>a:hover, .navbar .nav>li>a:focus {
+          color: white;
+        }
+        .navbar .nav li.dropdown>.dropdown-toggle .caret {
+          border-top-color: #D5D5D5;
+          border-bottom-color: #D5D5D5;
+        }
+        .navbar-inner {
+          padding: 10px 0;
+          background: #2f2f2f;
+          transition: padding 0.2s, box-shadow 0.2s;
+          -webkit-transition: padding 0.2s, box-shadow 0.2s;
+          -moz-transition: padding 0.2s, box-shadow 0.2s;
+          -o-transition: padding 0.2s, box-shadow 0.2s;
+        }
+        .navbar-inner.shrunk {
+          padding: 0;
+          box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+        }
+        .navbar-inner .version {
+          font-weight: 400;
+          transition: opacity 0.2s;
+          -webkit-transition: opacity 0.2s;
+          -moz-transition: opacity 0.2s;
+          -o-transition: opacity 0.2s;
+        }
+        .navbar-inner.shrunk .version {
+          opacity: 0;
+        }
+        .navbar .nav>li.active a, .navbar .nav>li.dropdown>a.active {
+          background-color: transparent;
+          box-shadow: none;
+          color: #D5D5D5;
+          border-bottom: 2px solid #D5D5D5;
         }
     </style>
     <meta name="viewport" content="width=device-width">
@@ -37,6 +80,7 @@
         ga('send', 'pageview');
     </script>
 
+    <script src="//cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.5/ScrollMagic.min.js"></script>
 </head>
 <body>
 <!--[if lt IE 7]>
@@ -50,90 +94,129 @@
 <div class="navbar navbar-fixed-top" id="topbar">
     <div class="navbar-inner">
         <div class="container">
-            <div class="brand">
-                <div style="position:absolute;">
-                    <a href="index.html">
-                        <img src="img/logo.png" alt="Tachyon Logo" style="height:34px;"/>
-                    </a>
+            <a href="index.html">
+                <div class="brand" style="display:table;">
+                    <div style="position:relative;display:table-cell;vertical-align:middle;">
+                            <img src="img/logo-white.png" alt="Tachyon Logo" style="height:34px;"/>
+                            <div style="position:absolute;right:0;top:30px;text-shadow:none;">
+                                <span class="version">{{site.TACHYON_MASTER_VERSION_SHORT}}</span>
+                            </div>
+                    </div>
                 </div>
-                <div style="float:right;margin-top:30px;">
-                    <span class="version">{{site.TACHYON_MASTER_VERSION_SHORT}}</span>
-                </div>
-            </div>
+            </a>
             <ul class="nav">
+              {% if page.group == "Home" %}
+                <li class="active"><a>Overview</a></li>
+              {% else %}
                 <li><a href="index.html">Overview</a></li>
+              {% endif %}
 
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Basics<b
+              {% assign groupName = "Deployment" %}
+              <li class="dropdown">
+                  {% if page.group == groupName %}
+                  <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{groupName}}<b
+                          class="caret"></b></a>
+                  {% else %}
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{groupName}}<b
                             class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="Running-Tachyon-Locally.html">Local Mode</a></li>
-                        <li><a href="Running-Tachyon-on-a-Cluster.html">Cluster Mode</a></li>
-                        <li><a href="Command-Line-Interface.html">Command Line</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Frameworks on Tachyon<b
+                  {% endif %}
+
+                  <ul class="dropdown-menu">
+                      {% assign currentGroup = site.pages | where:'group',groupName %}
+                      {% for node in currentGroup %}
+                        {% if page.url == node.url %}
+                          <li class="active"><a>{{node.title}}</a></li>
+                        {% else %}
+                          <li><a href="{{node.url}}">{{node.title}}</a></li>
+                        {% endif %}
+                      {% endfor %}
+                  </ul>
+              </li>
+
+              {% assign groupName = "Development" %}
+              <li class="dropdown">
+                  {% if page.group == groupName %}
+                  <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{groupName}}<b
+                          class="caret"></b></a>
+                  {% else %}
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{groupName}}<b
                             class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="Running-Spark-on-Tachyon.html">Apache Spark</a></li>
-                        <li><a href="Running-Shark-on-Tachyon.html">Shark</a></li>
-                        <li><a href="Running-Hadoop-MapReduce-on-Tachyon.html">Apache Hadoop MapReduce</a></li>
-                        <li><a href="Running-Flink-on-Tachyon.html">Apache Flink</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Deployment<b
+                  {% endif %}
+
+                  <ul class="dropdown-menu">
+                      {% assign currentGroup = site.pages | where:'group',groupName %}
+                      {% for node in currentGroup %}
+                        {% if page.url == node.url %}
+                          <li class="active"><a>{{node.title}}</a></li>
+                        {% else %}
+                          <li><a href="{{node.url}}">{{node.title}}</a></li>
+                        {% endif %}
+                      {% endfor %}
+                  </ul>
+              </li>
+
+              {% assign groupName = "Frameworks" %}
+              <li class="dropdown">
+                  {% if page.group == groupName %}
+                  <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{groupName}}<b
+                          class="caret"></b></a>
+                  {% else %}
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{groupName}}<b
                             class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="Running-Tachyon-Locally.html">Single Node</a></li>
-                        <li><a href="Running-Tachyon-on-a-Cluster.html">Cluster</a></li>
-                        <li><a href="Fault-Tolerant-Tachyon-Cluster.html">Fault
-                        Tolerant Cluster</a></li>
-                        <li><a href="Deploy-Module.html">Tachyon Deploy Module (Virtualbox and AWS EC2)</a></li>
-                        <li><a href="Running-Tachyon-on-EC2.html">AWS EC2 through mesos/spark-ec2</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Development<b
+                  {% endif %}
+
+                  <ul class="dropdown-menu">
+                      {% assign currentGroup = site.pages | where:'group',groupName %}
+                      {% for node in currentGroup %}
+                        {% if page.url == node.url %}
+                          <li class="active"><a>{{node.title}}</a></li>
+                        {% else %}
+                          <li><a href="{{node.url}}">{{node.title}}</a></li>
+                        {% endif %}
+                      {% endfor %}
+
+                      <li><a href="https://tachyon.atlassian.net/browse/TACHYON">Reporting
+                          Issues</a></li>
+                  </ul>
+              </li>
+
+              {% assign groupName = "More" %}
+              <li class="dropdown">
+                  {% if page.group == groupName %}
+                  <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{groupName}}<b
+                          class="caret"></b></a>
+                  {% else %}
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{groupName}}<b
                             class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="Building-Tachyon-Master-Branch.html">Build Master Branch</a>
-                        </li>
-                        <li><a href="Contributing-to-Tachyon.html">Contributing to
-                            Tachyon</a></li>
-                        <li><a href="https://tachyon.atlassian.net/browse/TACHYON">Reporting
-                            Issues</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">More<b
-                            class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="Configuration-Settings.html">Configuration Settings</a></li>
-                        <li><a href="Fault-Tolerant-Tachyon-Cluster.html">Fault Tolerant Cluster</a>
-                        </li>
-                        <li><a href="Setup-UFS.html">Configure UnderFileSystem</a></li>
-                        <li><a href="Syncing-the-Underlying-Filesystem.html">Sync Underlayer FS</a></li>
-                        <li><a href="FAQ.html">FAQ</a></li>
-                        <li><a href="Tiered-Storage-on-Tachyon.html">Tiered Storage (Alpha)</a></li>
-                        <li class="divider"></li>
-                        <li>Presentations:</li>
-                        <li><a href="http://goo.gl/fP9qkF">Strata and Hadoop World 2014</a></li>
-                        <li><a href="http://goo.gl/DKrE4M">Spark Summit 2014</a></li>
-                        <li><a href="http://goo.gl/AHgz0E">Strata and Hadoop World 2013</a></li>
-                        <li class="divider"></li>
-                        <li><a href="http://tachyon-project.org/master">Master branch document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.6.3">V0.6.3 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.6.2">V0.6.2 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.6.1">V0.6.1 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.6.0">V0.6.0 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.5.0">V0.5.0 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.4.1">V0.4.1 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.4.0">V0.4.0 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.3.0">V0.3.0 Document</a></li>
-                    </ul>
-                </li>
+                  {% endif %}
+
+                  <ul class="dropdown-menu">
+                      {% assign currentGroup = site.pages | where:'group',groupName %}
+                      {% for node in currentGroup %}
+                        {% if page.url == node.url %}
+                          <li class="active"><a>{{node.title}}</a></li>
+                        {% else %}
+                          <li><a href="{{node.url}}">{{node.title}}</a></li>
+                        {% endif %}
+                      {% endfor %}
+
+                      <li class="divider"></li>
+                      <li>Presentations:</li>
+                      <li><a href="http://goo.gl/fP9qkF">Strata and Hadoop World 2014</a></li>
+                      <li><a href="http://goo.gl/DKrE4M">Spark Summit 2014</a></li>
+                      <li><a href="http://goo.gl/AHgz0E">Strata and Hadoop World 2013</a></li>
+                      <li class="divider"></li>
+                      <li><a href="http://tachyon-project.org/master">Master branch document</a></li>
+                      <li><a href="http://tachyon-project.org/v0.6.3">V0.6.3 Document</a></li>
+                      <li><a href="http://tachyon-project.org/v0.6.2">V0.6.2 Document</a></li>
+                      <li><a href="http://tachyon-project.org/v0.6.1">V0.6.1 Document</a></li>
+                      <li><a href="http://tachyon-project.org/v0.6.0">V0.6.0 Document</a></li>
+                      <li><a href="http://tachyon-project.org/v0.5.0">V0.5.0 Document</a></li>
+                      <li><a href="http://tachyon-project.org/v0.4.1">V0.4.1 Document</a></li>
+                      <li><a href="http://tachyon-project.org/v0.4.0">V0.4.0 Document</a></li>
+                      <li><a href="http://tachyon-project.org/v0.3.0">V0.3.0 Document</a></li>
+                  </ul>
+              </li>
             </ul>
         </div>
     </div>
@@ -208,6 +291,16 @@
             maybeScrollToHash();
         }, 1)
     })
+</script>
+
+<script>
+  var controller = new ScrollMagic.Controller();
+
+  new ScrollMagic.Scene({
+    offset: 20
+  })
+  .setClassToggle(".navbar-inner", "shrunk")
+  .addTo(controller);
 </script>
 
 </body>

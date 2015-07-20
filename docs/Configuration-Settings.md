@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Configuration Settings
+group: More
 ---
 
 There are two types of configuration parameters for Tachyon:
