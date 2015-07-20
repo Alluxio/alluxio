@@ -41,7 +41,7 @@ import tachyon.worker.block.meta.StorageTierView;
  * This class is used to evict old blocks in certain StorageDir by LRU. The main difference
  * between PartialLRU and LRU is that LRU choose old blocks among several StorageDirs
  * until one StorageDir satisfies the request space, but PartialLRU select one StorageDir
- * first and evict old blocks in certain StorageDir by LRU
+ * with maximum free space first and evict old blocks in the selected StorageDir by LRU
  */
 public class PartialLRUEvictor extends LRUEvictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE); 
@@ -56,10 +56,9 @@ public class PartialLRUEvictor extends LRUEvictor {
   protected StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
       EvictionPlan plan) {
 
-    StorageDirView candidateDirView = null;
     // 1. Get StorageDir with max free space. If no such StorageDir, return null. If
     // bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
-    candidateDirView = getDirWithMaxFreeSpace(bytesToBeAvailable, location);
+    StorageDirView candidateDirView = getDirWithMaxFreeSpace(bytesToBeAvailable, location);
     if (candidateDirView == null || candidateDirView.getAvailableBytes() >= bytesToBeAvailable) {
       return candidateDirView;
     }
