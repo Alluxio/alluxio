@@ -42,7 +42,7 @@ public class UserInformation {
 
   static {
     OS_LOGIN_MODULE_NAME = getOSLoginModuleName();
-    OS_PRINCIPAL_CLASS_NAME = getOsPrincipalClassName();
+    OS_PRINCIPAL_CLASS_NAME = findOsPrincipalClassName();
   }
 
   // Return the OS login module class name.
@@ -64,7 +64,7 @@ public class UserInformation {
   }
 
   // Return the OS principal class name
-  static String getOsPrincipalClassName() {
+  private static String findOsPrincipalClassName() {
     String principalClassName = null;
     if (PlatformUtils.IBM_JAVA) {
       if (IS_64_BIT) {
@@ -85,6 +85,10 @@ public class UserInformation {
     return principalClassName;
   }
 
+  static String getOsPrincipalClassName() {
+    return OS_PRINCIPAL_CLASS_NAME;
+  }
+
   /**
    * A JAAS configuration that defines the login modules, by which we use to login.
    */
@@ -95,10 +99,18 @@ public class UserInformation {
         new AppConfigurationEntry(OS_LOGIN_MODULE_NAME,
             AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, BASIC_JAAS_OPTIONS);
 
-    // TODO: define AppConfigurationEntry TACHYON_LOGIN
+    private static final AppConfigurationEntry TACHYON_LOGIN =
+        new AppConfigurationEntry(TachyonLoginModule.class.getName(),
+            AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, BASIC_JAAS_OPTIONS);
+
+    // TODO: add Kerberos_LOGIN module
+    // private static final AppConfigurationEntry KERBEROS_LOGIN = ...
 
     private static final AppConfigurationEntry[] SIMPLE = new
-        AppConfigurationEntry[]{OS_SPECIFIC_LOGIN};
+        AppConfigurationEntry[]{OS_SPECIFIC_LOGIN, TACHYON_LOGIN};
+
+    // TODO: add Kerberos mode
+    // private static final AppConfigurationEntry[] KERBEROS = ...
 
     @Override
     public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
@@ -106,8 +118,6 @@ public class UserInformation {
       return SIMPLE;
     }
   }
-
-  // TODO: TACHYON-602 - add TACHYON_LOGIN_MODULE to convert an OS user to Tachyon user.
 
   // TODO: TACHYON-613 - add methods to get login user
 }
