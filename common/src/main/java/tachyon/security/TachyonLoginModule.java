@@ -54,13 +54,14 @@ public class TachyonLoginModule implements LoginModule {
    * Abort the authentication (second phase).
    *
    * This method is called if the LoginContext's overall authentication failed. (login failed)
-   * Since we do nothing in login method and no internal states need to be cleaned,
-   * the implementation here is just returning true.
+   * It cleans up any state that was changed in the login and commit methods.
    * @return true in all cases
    * @throws LoginException
    */
   @Override
   public boolean abort() throws LoginException {
+    logout();
+    mUser = null;
     return true;
   }
 
@@ -88,7 +89,7 @@ public class TachyonLoginModule implements LoginModule {
 
     // get a OS user
     if (user == null) {
-      user = getPrincipalUser(UserInformation.getOsPrincipalStr());
+      user = getPrincipalUser(UserInformation.getOsPrincipalClassName());
     }
 
     // if a user is found, convert it to a Tachyon user and save it.

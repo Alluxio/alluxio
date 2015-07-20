@@ -42,7 +42,7 @@ public class UserInformation {
 
   static {
     OS_LOGIN_MODULE_NAME = getOSLoginModuleName();
-    OS_PRINCIPAL_CLASS_NAME = getOsPrincipalClassName();
+    OS_PRINCIPAL_CLASS_NAME = findOsPrincipalClassName();
   }
 
   // Return the OS login module class name.
@@ -64,7 +64,7 @@ public class UserInformation {
   }
 
   // Return the OS principal class name
-  static String getOsPrincipalClassName() {
+  private static String findOsPrincipalClassName() {
     String principalClassName = null;
     if (PlatformUtils.IBM_JAVA) {
       if (IS_64_BIT) {
@@ -85,7 +85,7 @@ public class UserInformation {
     return principalClassName;
   }
 
-  static String getOsPrincipalStr() {
+  static String getOsPrincipalClassName() {
     return OS_PRINCIPAL_CLASS_NAME;
   }
 
