@@ -40,6 +40,8 @@ public class EvictorFactory {
         return new GreedyEvictor();
       case LRU:
         return new LRUEvictor(managerView);
+      case PARTIAL_LRU:
+        return new PartialLRUEvictor(managerView);
       default:
         return new LRUEvictor(managerView);
     }
