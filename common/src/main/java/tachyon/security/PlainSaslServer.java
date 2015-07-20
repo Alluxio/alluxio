@@ -16,8 +16,6 @@
 package tachyon.security;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -120,13 +118,11 @@ public class PlainSaslServer implements SaslServer {
 
   @Override
   public byte[] unwrap(byte[] incoming, int offset, int len) {
-    throwIfNotComplete();
     throw new UnsupportedOperationException("PLAIN doesn't support wrap or unwrap operation");
   }
 
   @Override
   public byte[] wrap(byte[] outgoing, int offset, int len) {
-    throwIfNotComplete();
     throw new UnsupportedOperationException("PLAIN doesn't support wrap or unwrap operation");
   }
 

@@ -60,7 +60,7 @@ public class PlainSaslServerTest{
   public void testUserIsNotSet() throws Exception {
     try {
       mPlainSaslServer.evaluateResponse(getUserInfo("", "anonymous"));
-      Assert.fail("expected exception has been happend");
+      Assert.fail("Expected exception has not been thrown");
     } catch (Exception e) {
       Assert.assertTrue(e.getMessage().contains("No authentication identity provided"));
     }
@@ -70,15 +70,20 @@ public class PlainSaslServerTest{
   public void testPasswordIsNotSet() throws Exception {
     try {
       mPlainSaslServer.evaluateResponse(getUserInfo("tachyon", ""));
-      Assert.fail("expected exception has been happend");
+      Assert.fail("Expected exception has not been thrown");
     } catch (Exception e) {
       Assert.assertTrue(e.getMessage().contains("No password provided"));
     }
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testAuthenticationHasNotComplete() throws Exception {
-    mPlainSaslServer.getAuthorizationID();
+    try {
+      mPlainSaslServer.getAuthorizationID();
+      Assert.fail("Expected exception has not been thrown");
+    } catch (Exception e) {
+      Assert.assertTrue(e.getMessage().contains("PLAIN authentication not completed"));
+    }
   }
 
   @Test
