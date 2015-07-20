@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.tachyonproject</groupId>
@@ -46,19 +48,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <!-- TODO: remove this dependency for TestUtils -->
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-servers</artifactId>
+      <artifactId>tachyon-testutils</artifactId>
       <version>${project.version}</version>
-      <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <!-- TODO: remove this dependency for TachyonFSTestUtils -->
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-integration-tests</artifactId>
-      <version>${project.version}</version>
-      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
