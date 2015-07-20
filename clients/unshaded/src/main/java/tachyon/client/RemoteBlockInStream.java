@@ -105,7 +105,7 @@ public class RemoteBlockInStream extends BlockInStream {
   private static final int MAX_REMOTE_READ_ATTEMPTS = 2;
 
   /** A reference to the current reader so we can clear it after reading is finished. */
-  private RemoteBlockReader mStandingReader = null;
+  private RemoteBlockReader mCurrentReader = null;
 
   /**
    * @param file the file the block belongs to
@@ -332,8 +332,8 @@ public class RemoteBlockInStream extends BlockInStream {
       long blockId, long offset, long length, TachyonConf conf) throws IOException {
     // always clear the previous reader before assigning it to a new one
     closeReader();
-    RemoteBlockReader mStandingReader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
-    return mStandingReader.readRemoteBlock(
+    RemoteBlockReader mCurrentReader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
+    return mCurrentReader.readRemoteBlock(
         address.getHostName(), address.getPort(), blockId, offset, length);
   }
 
@@ -444,15 +444,15 @@ public class RemoteBlockInStream extends BlockInStream {
    * @return true if reader is successfully cleared or no clearing is needed
    */
   private void closeReader() throws IOException {
-    if (mStandingReader != null) {
+    if (mCurrentReader != null) {
       try {
         //TODO: we should implement close() in all readers.
-        if (mStandingReader instanceof NettyRemoteBlockReader) {
-          ((NettyRemoteBlockReader) mStandingReader).close();
+        if (mCurrentReader instanceof NettyRemoteBlockReader) {
+          ((NettyRemoteBlockReader) mCurrentReader).close();
         }
       } finally {
         // which ever the type is, set to null.
-        mStandingReader = null;
+        mCurrentReader = null;
       }
     }
   }
