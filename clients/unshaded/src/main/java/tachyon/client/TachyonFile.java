@@ -24,6 +24,8 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.management.RuntimeErrorException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -450,8 +452,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * @param blockInfo The blockInfo of the block to read.
    * @return TachyonByteBuffer containing the block.
+   * @throws IOException if the underlying
    */
-  TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) {
+  TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) throws IOException {
     // We call into the remote block in stream class to read a remote byte buffer
     // TODO: Avoid using this constructor, investigate the right way to read remote buffer here.
     RemoteBlockInStream inStream = new RemoteBlockInStream(new TachyonFile(null, -1, null),
@@ -460,11 +463,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
         = inStream.readRemoteByteBuffer(mTachyonFS, blockInfo, 0, blockInfo.length, mTachyonConf);
     ByteBuffer outBuf = ByteBuffer.allocate((int) inBuf.capacity());
     outBuf.put(inBuf);
-    try {
-      inStream.close();
-    } catch (IOException e) {
-      LOG.warn(e.getMessage(), e);
-    }
+    inStream.close();
     return (outBuf == null)
         ? null : new TachyonByteBuffer(mTachyonFS, outBuf, blockInfo.blockId, -1);
   }

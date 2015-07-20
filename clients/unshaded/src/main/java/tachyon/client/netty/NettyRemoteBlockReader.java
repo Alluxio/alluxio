@@ -96,9 +96,7 @@ public final class NettyRemoteBlockReader implements Closeable, RemoteBlockReade
   }
 
   /**
-   * Clear the previous read response, release the resource the response references.
-   *
-   * @return true if the response is cleared, or there is nothing needs to be cleared.
+   * Release the underlying buffer of previous/current read response.
    */
   @Override
   public void close() throws IOException {

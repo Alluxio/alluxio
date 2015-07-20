@@ -53,4 +53,9 @@ public interface RemoteBlockReader {
    */
   ByteBuffer readRemoteBlock(String host, int port, long blockId, long offset,
       long length) throws IOException;
+
+  /**
+   * Close the reader. Clear resources that need to be explicitly released.
+   */
+  public void close() throws IOException;
 }
