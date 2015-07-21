@@ -59,12 +59,20 @@ to interact with Tachyon, e.g. copy data in and out of the file system.
 # User Documentation
 
 **Deployment Guide:**
-
+<!---
 * [Single Node](Running-Tachyon-Locally.html)
 * [Cluster](Running-Tachyon-on-a-Cluster.html)
 * [Master Fault Tolerant Cluster](Fault-Tolerant-Tachyon-Cluster.html)
 * [Tachyon Deploy Module (Virtualbox and AWS EC2)](Deploy-Module.html)
 * [Amazon AWS Through mesos/spark-ec2](Running-Tachyon-on-EC2.html)
+-->
+<ul id="test">
+  <li><a href="Running-Tachyon-Locally.html">Single Node</a></li>
+  <li><a href="Running-Tachyon-on-a-Cluster.html">Cluster</a></li>
+  <li><a href="Fault-Tolerant-Tachyon-Cluster.html">Master Fault Tolerant Cluster</a></li>
+  <li><a href="Deploy-Module.html">Tachyon Deploy Module</a></li>
+  <li><a href="Running-Tachyon-on-EC2.html">Amazon AWS</a></li>
+</ul>
 
 **Configuration:**
 
@@ -73,11 +81,12 @@ system or to create a new one.
 * [Configuration Settings](Configuration-Settings.html): How to configure Tachyon.
 
 **Frameworks on Tachyon:**
-
+<p style="text-align:center">
 <a href="Running-Spark-on-Tachyon.html" class="framework spark">Running Apache Spark on Tachyon</a>
 <a href="Running-Shark-on-Tachyon.html" class="framework shark">Running Shark on Tachyon</a>
 <a href="Running-Hadoop-MapReduce-on-Tachyon.html" class="framework mapreduce">Running Apache Hadoop MapReduce on Tachyon</a>
 <a href="Running-Flink-on-Tachyon.html" class="framework flink">Running Apache Flink on Tachyon</a>
+</p>
 
 **Others:**
 

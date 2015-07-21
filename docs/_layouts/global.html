@@ -174,10 +174,20 @@
           padding: 0 2px;
         }
         .framework {
-          display: block;
+          display: inline-block;
+          border: 2px solid rgb(207,207,207);
+          height: 60px;
+          width: 20%;
+          background-position: center;
+          background-size: 80% auto;
+          background-repeat: no-repeat;
+          color: transparent;
+          border-radius: 4px;
+          vertical-align: top;
         }
         .spark {
           background-image: url("img/spark.png");
+          background-size: 50% auto;
         }
         .shark {
           background-image: url("img/shark.png");
@@ -187,6 +197,41 @@
         }
         .flink {
           background-image: url("img/flink.jpg");
+          background-size: 50% auto;
+        }
+        #test li a {
+          color: white;
+          display: table-cell;
+          vertical-align: middle;
+          text-align: center;
+          padding: 4px;
+          text-decoration: none;
+          font-size: 14px;
+          transition: font-size 0.1s;
+          -webkit-transition: font-size 0.1s;
+          -moz-transition: font-size 0.1s;
+          -o-transition: font-size 0.1s;
+        }
+        #test li a:hover {
+          font-size: 16px;
+        }
+        #test li:hover {
+          background-color: rgb(46, 61, 87);
+        }
+        #test li {
+          float: left;
+          width: 100px;
+          height: 120px;
+          display: table;
+          background-color: rgb(77, 96, 128);
+          margin: 0px 10px;
+          transition: background-color 0.1s;
+          -webkit-transition: background-color 0.1s;
+          -moz-transition: background-color 0.1s;
+          -o-transition: background-color 0.1s;
+        }
+        #test + p {
+          clear: both;
         }
     </style>
     <meta name="viewport" content="width=device-width">
