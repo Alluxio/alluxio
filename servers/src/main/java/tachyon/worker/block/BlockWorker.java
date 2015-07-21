@@ -33,6 +33,8 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.OutOfSpaceException;
 import tachyon.metrics.MetricsSystem;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
@@ -87,7 +89,7 @@ public class BlockWorker {
    * Creates a Tachyon Block Worker.
    *
    * @param tachyonConf the configuration values to be used
-   * @throws IOException if the block data manager cannot be initialized
+   * @throws IOException for other exceptions
    */
   public BlockWorker(TachyonConf tachyonConf) throws IOException {
     mTachyonConf = tachyonConf;

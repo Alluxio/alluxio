@@ -13,22 +13,17 @@
  * the License.
  */
 
-package tachyon;
-
-import tachyon.conf.TachyonConf;
+package tachyon.exception;
 
 /**
- * The version of the current build.
+ * Exception used when some requested entity (e.g., block, file, directory or lock) was not found.
  */
-public class Version {
-  public static final String VERSION;
-
-  static {
-    TachyonConf tachyonConf = new TachyonConf();
-    VERSION = tachyonConf.get(Constants.TACHYON_VERSION, "UNDEFINED");
+public class NotFoundException extends Exception {
+  public NotFoundException(String message) {
+    super(message);
   }
 
-  public static void main(String[] args) {
-    System.out.println("Tachyon version: " + VERSION);
+  public NotFoundException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

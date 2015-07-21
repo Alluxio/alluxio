@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -26,12 +26,10 @@ import tachyon.worker.block.meta.StorageTierView;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * A round-robin allocator that allocates a block in the storage dir.
- * It will allocate the block in the highest tier possible:
- * It always starts from the highest tier in a RR manner and goes to the next tier when there
- * is no enough space. 
- * The allocator only considers non-specific writes in its RR policy (the location is either 
- * AnyTier or AnyDirInTier).
+ * A round-robin allocator that allocates a block in the storage dir. It will allocate the block in
+ * the highest tier possible: It always starts from the highest tier in a RR manner and goes to the
+ * next tier when there is no enough space. The allocator only considers non-specific writes in its
+ * RR policy (the location is either AnyTier or AnyDirInTier).
  */
 public class RoundRobinAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
@@ -48,27 +46,27 @@ public class RoundRobinAllocator implements Allocator {
 
   @Override
   public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
-      BlockStoreLocation location, BlockMetadataManagerView view) throws IOException {
+      BlockStoreLocation location, BlockMetadataManagerView view) {
     mManagerView = view;
     return allocateBlock(userId, blockId, blockSize, location);
   }
 
   /**
-   * Should only be accessed by {@link allocateBlockWithView} inside class.
-   * Allocates a block from the given block store location. The location can be a specific location,
-   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
+   * Should only be accessed by {@link allocateBlockWithView} inside class. Allocates a block from
+   * the given block store location. The location can be a specific location, or
+   * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
    *
    * @param userId the ID of user to apply for the block allocation
    * @param blockId the ID of the block
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @return a temp block meta if success, null otherwise
-   * @throws IOException if block location is invalid
+   * @throws IllegalArgumentException if block location is invalid
    */
   private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
-      BlockStoreLocation location) throws IOException {
+      BlockStoreLocation location) {
     if (location.equals(BlockStoreLocation.anyTier())) {
-      int tierIndex = 0; //always starting from the first tier
+      int tierIndex = 0; // always starting from the first tier
       for (int i = 0; i < mManagerView.getTierViews().size(); i ++) {
         StorageTierView tierView = mManagerView.getTierViews().get(tierIndex);
         int dirViewIndex = getNextAvailDirInTier(tierView, blockSize);
@@ -99,14 +97,14 @@ public class RoundRobinAllocator implements Allocator {
 
   /**
    * Find an available dir in a given tier for a block with blockSize
+   *
    * @param tier: the tier to find a dir
    * @param blockSize: the requested block size
    * @return: the index of the dir if nonnegative; -1 if fail to find a dir
    */
-  private int getNextAvailDirInTier(StorageTierView tierView, long blockSize) 
-      throws IOException {
+  private int getNextAvailDirInTier(StorageTierView tierView, long blockSize) {
     int dirViewIndex = mTierToLastDirMap.get(tierView);
-    for (int i = 0; i < tierView.getDirViews().size(); i ++) { //try this many times
+    for (int i = 0; i < tierView.getDirViews().size(); i ++) { // try this many times
       dirViewIndex = (dirViewIndex + 1) % tierView.getDirViews().size();
       if (tierView.getDirView(dirViewIndex).getAvailableBytes() >= blockSize) {
         return dirViewIndex;

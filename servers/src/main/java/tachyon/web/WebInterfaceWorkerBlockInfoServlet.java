@@ -32,6 +32,7 @@ import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.NotFoundException;
 import tachyon.master.BlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -89,6 +90,11 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
             response);
         return;
+      } catch (NotFoundException nfe) {
+        request.setAttribute("fatalError", "Error: block not found. " + nfe.getMessage());
+        getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
+            response);
+        return;
       }
     }
 
@@ -129,6 +135,10 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       request.setAttribute("fatalError", iae.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
+    } catch (NotFoundException nfe) {
+      request.setAttribute("fatalError", nfe.getLocalizedMessage());
+      getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
+      return;
     }
 
     getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
@@ -163,7 +173,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws IOException
    */
   private UiFileInfo getUiFileInfo(TachyonFS tachyonClient, int fileId)
-      throws FileDoesNotExistException, IOException {
+      throws FileDoesNotExistException, NotFoundException, IOException {
     return getUiFileInfo(tachyonClient, fileId, TachyonURI.EMPTY_URI);
   }
 
@@ -177,7 +187,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws IOException
    */
   private UiFileInfo getUiFileInfo(TachyonFS tachyonClient, TachyonURI filePath)
-      throws FileDoesNotExistException, IOException {
+      throws FileDoesNotExistException, NotFoundException, IOException {
     return getUiFileInfo(tachyonClient, -1, filePath);
   }
 
@@ -192,7 +202,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws IOException
    */
   private UiFileInfo getUiFileInfo(TachyonFS tachyonClient, int fileId, TachyonURI filePath)
-      throws FileDoesNotExistException, IOException {
+      throws FileDoesNotExistException, NotFoundException, IOException {
     ClientFileInfo fileInfo = tachyonClient.getFileStatus(fileId, filePath, true);
     if (fileInfo == null) {
       throw new FileDoesNotExistException(fileId != -1 ? Integer.toString(fileId)

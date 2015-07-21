@@ -132,7 +132,7 @@ public class DataServerIntegrationTest {
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
     System.setProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
     System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mBlockReader);

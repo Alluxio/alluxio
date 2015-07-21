@@ -13,22 +13,23 @@
  * the License.
  */
 
-package tachyon;
-
-import tachyon.conf.TachyonConf;
+package tachyon.exception;
 
 /**
- * The version of the current build.
+ * Exception used when storage space is insufficient.
+ *
+ * For example:
+ * <ul>
+ * <li>worker cannot satisfy the requested space</li>
+ * <li>evictor cannot satisfy the space to be available after eviction</li>
+ * </ul>
  */
-public class Version {
-  public static final String VERSION;
-
-  static {
-    TachyonConf tachyonConf = new TachyonConf();
-    VERSION = tachyonConf.get(Constants.TACHYON_VERSION, "UNDEFINED");
+public class OutOfSpaceException extends Exception {
+  public OutOfSpaceException(String message) {
+    super(message);
   }
 
-  public static void main(String[] args) {
-    System.out.println("Tachyon version: " + VERSION);
+  public OutOfSpaceException(String message, Throwable cause) {
+    super(message, cause);
   }
 }
