@@ -450,17 +450,18 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * @param blockInfo The blockInfo of the block to read.
    * @return TachyonByteBuffer containing the block.
-   * @throws IOException if the underlying
+   * @throws IOException if the underlying stream throws IOException during close().
    */
   TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) throws IOException {
-    // We call into the remote block in stream class to read a remote byte buffer
-    // TODO: Avoid using this constructor, investigate the right way to read remote buffer here.
-    RemoteBlockInStream inStream = new RemoteBlockInStream(new TachyonFile(null, -1, null),
-        ReadType.NO_CACHE, -1, null, null, true);
+    // Create a dummy RemoteBlockInstream object.
+    RemoteBlockInStream inStream = RemoteBlockInStream.getDummyStream();
+    // Using the dummy stream to read remote buffer.
     ByteBuffer inBuf
         = inStream.readRemoteByteBuffer(mTachyonFS, blockInfo, 0, blockInfo.length, mTachyonConf);
+    // Copy data in network buffer into client buffer.
     ByteBuffer outBuf = ByteBuffer.allocate((int) inBuf.capacity());
     outBuf.put(inBuf);
+    // Close the stream object.
     inStream.close();
     return (outBuf == null)
         ? null : new TachyonByteBuffer(mTachyonFS, outBuf, blockInfo.blockId, -1);

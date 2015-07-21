@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.client.netty.NettyRemoteBlockReader;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
@@ -142,9 +141,9 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   /**
+   * Only called by {@link getDummyStream}.
    * An alternative to construct a RemoteBlockInstream, bypassing all the checks.
    * The returned RemoteBlockInStream can be used to call {#link #readRemoteByteBuffer}.
-   * TODO: remove this constructor, and modify all places using this constructor.
    *
    * @param file, any, could be null
    * @param readType, any type
@@ -153,9 +152,20 @@ public class RemoteBlockInStream extends BlockInStream {
    * @param tachyonConf, any
    * @param addFlag, add another field so that this constructor differentiates
    */
-  public RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf,
+  private RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf,
       TachyonConf tachyonConf, boolean addFlag) {
     super(file, readType, blockIndex, tachyonConf);
+  }
+
+  /**
+   * Return a dummy RemoteBlockInStream object by calling the private constructor.
+   * The object can be used to perform {@link #readRemoteByteBuffer}.
+   *
+   * @return a dummy RemoteBlockInStream object.
+   */
+  public static RemoteBlockInStream getDummyStream() {
+    return new RemoteBlockInStream(new TachyonFile(null, -1, null),
+        ReadType.NO_CACHE, -1, null, null, true);
   }
 
   /**
