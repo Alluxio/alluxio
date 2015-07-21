@@ -79,52 +79,6 @@ public class TieredStoreIntegrationTest {
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
   }
 
-  // TODO: this test is allocator and evictor specific and really testing LRU.
-  /*@Test
-  public void blockEvict() throws IOException, InterruptedException {
-    int fileId1 =
-        TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE,
-            MEM_CAPACITY_BYTES / 6);
-    int fileId2 =
-        TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE,
-            MEM_CAPACITY_BYTES / 6);
-    int fileId3 =
-        TachyonFSTestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE,
-            MEM_CAPACITY_BYTES / 6);
-
-    TachyonFile file1 = mTFS.getFile(fileId1);
-    TachyonFile file2 = mTFS.getFile(fileId2);
-    TachyonFile file3 = mTFS.getFile(fileId3);
-
-    Assert.assertEquals(file1.isInMemory(), true);
-    Assert.assertEquals(file2.isInMemory(), true);
-    Assert.assertEquals(file3.isInMemory(), true);
-
-    int fileId4 =
-        TachyonFSTestUtils.createByteFile(mTFS, "/root/test4", WriteType.TRY_CACHE,
-            MEM_CAPACITY_BYTES / 2);
-    int fileId5 =
-        TachyonFSTestUtils.createByteFile(mTFS, "/root/test5", WriteType.MUST_CACHE,
-            MEM_CAPACITY_BYTES / 2);
-
-    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
-
-    TachyonFile file4 = mTFS.getFile(fileId4);
-    TachyonFile file5 = mTFS.getFile(fileId5);
-    LOG.info("file1 {}", file1.isInMemory());
-    LOG.info("file2 {}", file2.isInMemory());
-    LOG.info("file3 {}", file3.isInMemory());
-    LOG.info("file4 {}", file4.isInMemory());
-    LOG.info("file5 {}", file5.isInMemory());
-
-    Assert.assertEquals(file1.isInMemory(), false);
-    Assert.assertEquals(file2.isInMemory(), false);
-    Assert.assertEquals(file3.isInMemory(), false);
-    Assert.assertEquals(file4.isInMemory(), true);
-    Assert.assertEquals(file5.isInMemory(), true);
-  }
-  */
-
   // TODO: Add this test back when CACHE_PROMOTE is enabled again
   /*
   @Test
