@@ -44,9 +44,9 @@ public abstract class DataBuffer {
   public abstract ByteBuffer getReadOnlyByteBuffer();
 
   /**
-  * Release the underlying buffer of this DataBuffer if no longer needed.
-  *
-  * @return True if the underlying buffer is released or no need to release
-  */
+   * Release the underlying buffer of this DataBuffer if no longer needed.
+   *
+   * @return True if the underlying buffer is released or no need to release
+   */
   public abstract boolean release();
 }

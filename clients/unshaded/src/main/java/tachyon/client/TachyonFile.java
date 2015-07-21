@@ -454,15 +454,15 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) throws IOException {
     // Create a dummy RemoteBlockInstream object.
-    RemoteBlockInStream inStream = RemoteBlockInStream.getDummyStream();
+    RemoteBlockInStream dummyStream = RemoteBlockInStream.getDummyStream();
     // Using the dummy stream to read remote buffer.
-    ByteBuffer inBuf
-        = inStream.readRemoteByteBuffer(mTachyonFS, blockInfo, 0, blockInfo.length, mTachyonConf);
+    ByteBuffer inBuf = dummyStream.readRemoteByteBuffer(mTachyonFS, blockInfo, 0,
+        blockInfo.length, mTachyonConf);
     // Copy data in network buffer into client buffer.
     ByteBuffer outBuf = ByteBuffer.allocate((int) inBuf.capacity());
     outBuf.put(inBuf);
     // Close the stream object.
-    inStream.close();
+    dummyStream.close();
     return (outBuf == null)
         ? null : new TachyonByteBuffer(mTachyonFS, outBuf, blockInfo.blockId, -1);
   }

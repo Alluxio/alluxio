@@ -17,6 +17,8 @@ package tachyon.network.protocol.databuffer;
 
 import java.nio.ByteBuffer;
 
+import com.google.common.base.Preconditions;
+
 import io.netty.buffer.ByteBuf;
 
 /**
@@ -39,9 +41,10 @@ public class DataNettyBuffer extends DataBuffer {
   */
   public DataNettyBuffer(ByteBuf bytebuf, long length) {
     // throws exception if there are multiple nioBuffers, or reference count is not 1
-    // we probably want to fail instead of catching these exceptions for now
-    assert (bytebuf.nioBufferCount() == 1);
-    assert (bytebuf.refCnt() == 1);
+    Preconditions.checkArgument(bytebuf.nioBufferCount() == 1,
+        "Number of nioBuffers for this ByteBuf not equals to 1.");
+    Preconditions.checkArgument(bytebuf.refCnt() == 1,
+        "Reference count for this ByteBuf not equals to 1.");
 
     // increase the bytebuf reference count so it would not be recycled by Netty
     bytebuf.retain();
@@ -75,17 +78,15 @@ public class DataNettyBuffer extends DataBuffer {
   }
 
   /**
-  * Release the Netty ByteBuf.
-  *
-  * @return True if the netty ByteBuf is released.
-  *         As the Netty channel is responsible for performing another {@link ByteBuf#release()},
-  *         this method can return false in unit tests.
-  */
+   * Release the Netty ByteBuf.
+   *
+   * @return True if the netty ByteBuf is released. As the Netty channel is responsible for
+   *         performing another {@link ByteBuf#release()}, this method can return false in unit
+   *         tests.
+   */
   @Override
   public boolean release() {
-    if (mNettyBuf != null) {
-      return mNettyBuf.release();
-    }
-    return true;
+    Preconditions.checkState(mNettyBuf != null);
+    return mNettyBuf.release();
   }
 }
