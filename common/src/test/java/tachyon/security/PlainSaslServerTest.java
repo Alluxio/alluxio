@@ -24,11 +24,16 @@ import javax.security.sasl.AuthorizeCallback;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class PlainSaslServerTest{
   private static byte sSEPARATOR = 0x00; // US-ASCII <NUL>
   private PlainSaslServer mPlainSaslServer = null;
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
@@ -57,37 +62,28 @@ public class PlainSaslServerTest{
   }
 
   @Test
-  public void testUserIsNotSet() throws Exception {
-    try {
-      mPlainSaslServer.evaluateResponse(getUserInfo("", "anonymous"));
-      Assert.fail("Expected exception has not been thrown");
-    } catch (Exception e) {
-      Assert.assertTrue(e.getMessage().contains("No authentication identity provided"));
-    }
+  public void userIsNotSetTest() throws Exception {
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage("No authentication identity provided");
+    mPlainSaslServer.evaluateResponse(getUserInfo("", "anonymous"));
   }
 
   @Test
-  public void testPasswordIsNotSet() throws Exception {
-    try {
-      mPlainSaslServer.evaluateResponse(getUserInfo("tachyon", ""));
-      Assert.fail("Expected exception has not been thrown");
-    } catch (Exception e) {
-      Assert.assertTrue(e.getMessage().contains("No password provided"));
-    }
+  public void passwordIsNotSetTest() throws Exception {
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage("No password provided");
+    mPlainSaslServer.evaluateResponse(getUserInfo("tachyon", ""));
   }
 
   @Test
-  public void testAuthenticationHasNotComplete() throws Exception {
-    try {
-      mPlainSaslServer.getAuthorizationID();
-      Assert.fail("Expected exception has not been thrown");
-    } catch (Exception e) {
-      Assert.assertTrue(e.getMessage().contains("PLAIN authentication not completed"));
-    }
+  public void authenticationNotCompleteTest() throws Exception {
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage("PLAIN authentication not completed");
+    mPlainSaslServer.getAuthorizationID();
   }
 
   @Test
-  public void testUserPasswordReceive() throws Exception {
+  public void userPasswordReceiveTest() throws Exception {
     String testUser = "tachyon";
     String password = "anonymous";
     mPlainSaslServer.evaluateResponse(getUserInfo(testUser, password));
