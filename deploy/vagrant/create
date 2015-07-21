@@ -56,7 +56,7 @@ for i in `seq 1 $((TOTAL-1))`; do
 done
 echo "TachyonMaster" >> files/workers
 
-python bin/init_aws.py $PROVIDER
+[[ "$PROVIDER" == "aws" ]] && python bin/init_aws.py
 
 # if "PROVIDER" is "aws" and "Spot_Price" is set in conf/ec2.yml, 
 # return true and generate variables in spot/vars, otherwise return false.

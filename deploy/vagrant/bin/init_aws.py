@@ -12,7 +12,6 @@ from __future__ import print_function, with_statement
 import os
 import sys
 from sys import stderr
-import argparse
 import json
 import tempfile
 import errno
@@ -20,14 +19,6 @@ import errno
 import boto
 from boto import ec2
 import yaml
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('provider')
-    parser.add_argument('--is-aws-spot', action='store_true')
-    parser.add_argument('--prepare-aws-spot', action='store_true')
-    args = parser.parse_args()
-    return args
 
 
 def get_or_make_group(conn, name):
@@ -78,7 +69,7 @@ def gen_boto_config(access_key, secret_key):
             'aws_secret_access_key = ' + secret_key]))
 
 
-def configure_aws(args):
+def configure_aws():
     access_key, secret_key = get_aws_secret()
 
     gen_boto_config(access_key, secret_key)
@@ -96,7 +87,5 @@ def configure_aws(args):
 
 
 if __name__ == '__main__':
-    args = parse_args()
-    if args.provider == 'aws':
-        configure_aws(args)
+    configure_aws()
 
