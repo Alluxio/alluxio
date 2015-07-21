@@ -1,7 +1,7 @@
 ---
 layout: global
 title: FAQ
-group: More
+group: FAQ
 ---
 
 
