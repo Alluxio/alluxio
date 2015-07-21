@@ -43,7 +43,10 @@ public final class TachyonFileUpdateIntegrationTest {
   private TachyonFS mTfs = null;
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     mLocalTachyonCluster.start();
@@ -53,6 +56,7 @@ public final class TachyonFileUpdateIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Test

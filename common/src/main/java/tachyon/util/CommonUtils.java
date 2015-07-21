@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 
@@ -77,6 +78,31 @@ public final class CommonUtils {
     } catch (InterruptedException e) {
       LOG.error(e.getMessage());
       throw new IOException(e);
+    }
+  }
+
+  /**
+   * Creates the local block path and all the parent directories. Also, sets the appropriate
+   * permissions.
+   *
+   * @param path The path of the block.
+   * @throws IOException
+   */
+  public static void createBlockPath(String path) throws IOException {
+    File localFolder;
+    try {
+      localFolder = new File(CommonUtils.getParent(path));
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
+
+    if (!localFolder.exists()) {
+      if (localFolder.mkdirs()) {
+        CommonUtils.changeLocalFileToFullPermission(localFolder.getAbsolutePath());
+        LOG.info("Folder {} was created!", localFolder);
+      } else {
+        throw new IOException("Failed to create folder " + localFolder);
+      }
     }
   }
 
@@ -147,8 +173,8 @@ public final class CommonUtils {
 
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
     List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
-    for (int k = 0; k < source.size(); k ++) {
-      ret.add(cloneByteBuffer(source.get(k)));
+    for (ByteBuffer b : source) {
+      ret.add(cloneByteBuffer(b));
     }
     return ret;
   }
@@ -156,28 +182,47 @@ public final class CommonUtils {
   /**
    * Join each element in paths in order, separated by {@code TachyonURI.SEPARATOR}.
    * <p>
-   * For example, {@code concatPath("/myroot/", "dir", 1L, "filename")} returns
-   * {@code "/myroot/dir/1/filename"}
+   * For example,
    *
-   * @param paths to concatenate
+   * <pre>
+   * {@code
+   * concatPath("/myroot/", "dir", 1L, "filename").equals("/myroot/dir/1/filename");
+   * concatPath("tachyon://myroot", "dir", "filename").equals("tachyon://myroot/dir/filename");
+   * concatPath("myroot/", "/dir/", "filename").equals("myroot/dir/filename");
+   * concatPath("/", "dir", "filename").equals("/dir/filename");
+   * }
+   * </pre>
+   *
+   * Note that empty element in base or paths is ignored.
+   *
+   * @param base base path
+   * @param paths paths to concatenate
    * @return joined path
+   * @throws IllegalArgumentException if base or paths is null
    */
-  public static String concatPath(Object... paths) {
+  public static String concatPath(Object base, Object... paths) throws IllegalArgumentException {
+    Preconditions.checkArgument(base != null, "Failed to concatPath: base is null");
+    Preconditions.checkArgument(paths != null, "Failed to concatPath: a null set of paths");
     List<String> trimmedPathList = new ArrayList<String>();
-    for (int k = 0; k < paths.length; k ++) {
-      String path = paths[k].toString().trim();
-      String trimmedPath;
-      if (k == 0) {
-        trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(path);
-      } else {
-        trimmedPath = CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path);
-        if (trimmedPath == "") {
-          continue;
-        }
+    String trimmedBase =
+        CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(base.toString().trim());
+    trimmedPathList.add(trimmedBase);
+    for (Object path : paths) {
+      if (null == path) {
+        continue;
       }
-      trimmedPathList.add(trimmedPath);
+      String trimmedPath =
+          CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimFrom(path.toString().trim());
+      if (!trimmedPath.isEmpty()) {
+        trimmedPathList.add(trimmedPath);
+      }
+    }
+    if (trimmedPathList.size() == 1 && trimmedBase.isEmpty()) {
+      // base must be "[/]+"
+      return TachyonURI.SEPARATOR;
     }
     return Joiner.on(TachyonURI.SEPARATOR).join(trimmedPathList);
+
   }
 
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
@@ -265,8 +310,8 @@ public final class CommonUtils {
 
   public static <T> String listToString(List<T> list) {
     StringBuilder sb = new StringBuilder();
-    for (int k = 0; k < list.size(); k ++) {
-      sb.append(list.get(k)).append(" ");
+    for (T s : list) {
+      sb.append(s).append(" ");
     }
     return sb.toString();
   }
@@ -339,7 +384,7 @@ public final class CommonUtils {
       BigDecimal pBDecimal = new BigDecimal(Constants.PB);
       return pBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
     } else {
-      throw new IllegalArgumentException("Fail to parse " + ori + " as memory size");
+      throw new IllegalArgumentException("Fail to parse " + ori + " to bytes");
     }
   }
 

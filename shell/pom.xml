@@ -54,11 +54,17 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <!-- TODO: consider better way to reference LocalTachyonCluster -->
+      <!-- TODO: remove this dependency for TachyonFSTestUtils -->
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-integration-tests</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-minicluster</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

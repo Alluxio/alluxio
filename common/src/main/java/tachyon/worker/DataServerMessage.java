@@ -26,18 +26,23 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.network.protocol.RPCMessage;
+import tachyon.network.protocol.RPCResponse;
 
 /**
  * The message type used to send data request and response for remote data.
  */
 public class DataServerMessage {
-  public static final short DATA_SERVER_REQUEST_MESSAGE = 1;
-  public static final short DATA_SERVER_RESPONSE_MESSAGE = 2;
-
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  // TODO: convert client to netty to better deal with headers.
-  private static final int HEADER_LENGTH = 38;
+  // The size of the prefix of the header: frame length (long), messageType (int)
+  private static final int HEADER_PREFIX_LENGTH = 12;
+  // The request header is: HEADER_PREFIX, blockId (long), offset (long), length (long)
+  private static final int REQUEST_HEADER_LENGTH = HEADER_PREFIX_LENGTH + 24;
+  // The response header is: HEADER_PREFIX, blockId (long), offset (long), length (long),
+  // status (short)
+  private static final int RESPONSE_HEADER_LENGTH = HEADER_PREFIX_LENGTH + 26;
+  // The error response header is: HEADER_PREFIX, status (short)
+  private static final int ERROR_RESPONSE_HEADER_LENGTH = HEADER_PREFIX_LENGTH + 2;
 
   /**
    * Create a default block request message, just allocate the message header, and no attribute is
@@ -46,8 +51,8 @@ public class DataServerMessage {
    * @return the created block request message
    */
   public static DataServerMessage createBlockRequestMessage() {
-    DataServerMessage ret = new DataServerMessage(false, DATA_SERVER_REQUEST_MESSAGE);
-    ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+    DataServerMessage ret = new DataServerMessage(false, RPCMessage.Type.RPC_BLOCK_READ_REQUEST);
+    ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
     return ret;
   }
 
@@ -74,10 +79,9 @@ public class DataServerMessage {
    * @return The created block request message
    */
   public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len) {
-    DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
-    ret.mRPCMessageType = RPCMessage.Type.RPC_BLOCK_REQUEST;
+    DataServerMessage ret = new DataServerMessage(true, RPCMessage.Type.RPC_BLOCK_READ_REQUEST);
 
-    ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+    ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
     ret.mBlockId = blockId;
     ret.mOffset = offset;
     ret.mLength = len;
@@ -118,30 +122,30 @@ public class DataServerMessage {
    */
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
       long offset, long len, ByteBuffer data) {
-    DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
-    ret.mRPCMessageType = RPCMessage.Type.RPC_BLOCK_RESPONSE;
+    DataServerMessage ret = new DataServerMessage(toSend, RPCMessage.Type.RPC_BLOCK_READ_RESPONSE);
 
     if (toSend) {
       if (data != null) {
-        ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+        ret.mHeader = ByteBuffer.allocate(RESPONSE_HEADER_LENGTH);
         ret.mBlockId = blockId;
         ret.mOffset = offset;
         ret.mLength = len;
+        ret.mStatus = RPCResponse.Status.SUCCESS;
         ret.mData = data;
         ret.mIsMessageReady = true;
         ret.generateHeader();
       } else {
-        // TODO This is a trick for now. The data may have been removed before remote retrieving.
-        ret.mBlockId = -blockId;
+        ret.mBlockId = blockId;
         ret.mLength = 0;
-        ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+        ret.mHeader = ByteBuffer.allocate(RESPONSE_HEADER_LENGTH);
         ret.mData = ByteBuffer.allocate(0);
         ret.mIsMessageReady = true;
-        ret.generateHeader();
+        ret.mStatus = RPCResponse.Status.FILE_DNE;
         LOG.error("The file is not here! blockId:{}", blockId);
+        ret.generateHeader();
       }
     } else {
-      ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+      ret.mHeader = ByteBuffer.allocate(RESPONSE_HEADER_LENGTH);
       ret.mData = null;
     }
 
@@ -149,7 +153,7 @@ public class DataServerMessage {
   }
 
   private final boolean mToSendData;
-  private final short mMessageType;
+  private final RPCMessage.Type mMessageType;
   private boolean mIsMessageReady;
 
   private ByteBuffer mHeader;
@@ -160,14 +164,12 @@ public class DataServerMessage {
 
   private long mLength;
 
-  private int mLockId = -1;
+  private RPCResponse.Status mStatus;
+
+  // TODO: Investigate how to remove this since it is not transferred over the wire.
+  private long mLockId = -1L;
 
   private ByteBuffer mData = null;
-
-  // This is the new message type. For now, DataServerMessage must manually send this type on the
-  // network. When the client is converted to to use Netty, this DataServerMessage class will be
-  // removed.
-  private RPCMessage.Type mRPCMessageType;
 
   /**
    * New a DataServerMessage. Notice that it's not ready.
@@ -175,7 +177,7 @@ public class DataServerMessage {
    * @param isToSendData true if this is a send message, otherwise this is a recv message
    * @param msgType The message type
    */
-  private DataServerMessage(boolean isToSendData, short msgType) {
+  private DataServerMessage(boolean isToSendData, RPCMessage.Type msgType) {
     mToSendData = isToSendData;
     mMessageType = msgType;
     mIsMessageReady = false;
@@ -208,19 +210,24 @@ public class DataServerMessage {
 
   private void generateHeader() {
     mHeader.clear();
+    // The header must match the Netty RPC messages.
 
-    // These two fields are hard coded for now, until the client is converted to use netty.
-    if (mMessageType == DATA_SERVER_REQUEST_MESSAGE) {
-      mHeader.putLong(HEADER_LENGTH); // frame length
+    if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_REQUEST) {
+      mHeader.putLong(REQUEST_HEADER_LENGTH); // frame length
     } else {
-      mHeader.putLong(HEADER_LENGTH + mLength); // frame length
+      // The response message has a payload.
+      mHeader.putLong(RESPONSE_HEADER_LENGTH + mLength); // frame length
     }
-    mHeader.putInt(mRPCMessageType.getId()); // RPC message type
+    mHeader.putInt(mMessageType.getId()); // RPC message type
 
-    mHeader.putShort(mMessageType);
     mHeader.putLong(mBlockId);
     mHeader.putLong(mOffset);
     mHeader.putLong(mLength);
+
+    if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE) {
+      // The response message has a status.
+      mHeader.putShort(mStatus.getId());
+    }
     mHeader.flip();
   }
 
@@ -250,7 +257,7 @@ public class DataServerMessage {
    *
    * @return The id of the block's locker
    */
-  public int getLockId() {
+  public long getLockId() {
     return mLockId;
   }
 
@@ -263,6 +270,16 @@ public class DataServerMessage {
   public long getOffset() {
     checkReady();
     return mOffset;
+  }
+
+  /**
+   * Get the status of the response. Make sure the message is ready before calling this method.
+   *
+   * @return The {@link tachyon.network.protocol.RPCResponse.Status} of the response
+   */
+  public RPCResponse.Status getStatus() {
+    checkReady();
+    return mStatus;
   }
 
   /**
@@ -309,31 +326,52 @@ public class DataServerMessage {
     int numRead = 0;
     if (mHeader.remaining() > 0) {
       numRead = socketChannel.read(mHeader);
-      if (mHeader.remaining() == 0) {
+      if (numRead == -1 && mHeader.position() >= ERROR_RESPONSE_HEADER_LENGTH) {
+        // Stream ended, but the full header is not received. This means an error response was
+        // returned.
+        mHeader.flip();
+        // frame length
+        mHeader.getLong();
+        int receivedMessageType = mHeader.getInt();
+        if (receivedMessageType == RPCMessage.Type.RPC_ERROR_RESPONSE.getId()) {
+          // This message is expected to be an error response with a status.
+          mStatus = RPCResponse.Status.fromShort(mHeader.getShort());
+          throw new IOException(mStatus.getMessage());
+        } else {
+          // Unexpected message type.
+          throw new IOException("Received an unexpected message type: " + receivedMessageType);
+        }
+      } else if (mHeader.remaining() == 0) {
+        // The full header for a request message or a response message is received.
         mHeader.flip();
 
-        // These two fields are hard coded for now, until the client is converted to use netty.
-        long frameLength = mHeader.getLong(); // frame length
-        int msgRPCType = mHeader.getInt(); // RPC message type
-
-        // TODO: this msgType will be replaced by the newer msgRPCType when the client is converted
-        // to netty.
-        short msgType = mHeader.getShort();
-        assert (mMessageType == msgType);
+        // frame length
+        mHeader.getLong();
+        int receivedMessageType = mHeader.getInt();
+        Preconditions.checkState(mMessageType.getId() == receivedMessageType,
+            "Unexpected message type (" + receivedMessageType + ") received. expected: "
+                + mMessageType.getId());
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();
         // TODO make this better to truncate the file.
-        assert mLength < Integer.MAX_VALUE;
-        if (mMessageType == DATA_SERVER_RESPONSE_MESSAGE) {
-          if (mLength == -1) {
-            mData = ByteBuffer.allocate(0);
-          } else {
+        Preconditions.checkState(mLength < Integer.MAX_VALUE,
+            "received length is too large: " + mLength);
+        if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE) {
+          // The response message has a status.
+          mStatus = RPCResponse.Status.fromShort(mHeader.getShort());
+          if (mStatus == RPCResponse.Status.SUCCESS) {
             mData = ByteBuffer.allocate((int) mLength);
+          } else {
+            mData = ByteBuffer.allocate(0);
           }
         }
         LOG.info("data {}, blockId:{} offset:{} dataLength:{}", mData, mBlockId, mOffset, mLength);
-        if (mMessageType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
+        if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_REQUEST) {
+          mIsMessageReady = true;
+        } else if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE
+            && (mLength <= 0 || mStatus != RPCResponse.Status.SUCCESS)) {
+          // There is no more to read from the socket.
           mIsMessageReady = true;
         }
       }
@@ -368,7 +406,7 @@ public class DataServerMessage {
    *
    * @param lockId The id of the block's locker
    */
-  public void setLockId(int lockId) {
+  public void setLockId(long lockId) {
     mLockId = lockId;
   }
 }
