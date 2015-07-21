@@ -360,6 +360,7 @@ public class BlockMetadataManager {
       for (StorageDir dir : newTier.getStorageDirs()) {
         if (dir.getAvailableBytes() >= blockMeta.getBlockSize()) {
           newDir = dir;
+		  break;
         }
       }
     } else {
