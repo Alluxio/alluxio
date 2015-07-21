@@ -23,12 +23,11 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
- * UserCleanup periodically checks if any user have become zombies,
- * removes the zombie user and associated data when necessary
- * The syncing parameters (intervals) adopt directly from worker-to-master heartbeat
- * configurations.
+ * UserCleaner periodically checks if any user have become zombies, removes the zombie user and
+ * associated data when necessary. The syncing parameters (intervals) adopt directly from
+ * worker-to-master heartbeat configurations.
  */
-public class UserCleanup implements Runnable {
+public class UserCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
@@ -41,12 +40,12 @@ public class UserCleanup implements Runnable {
   private volatile boolean mRunning;
 
   /**
-   * Constructor for UserCleanup
+   * Constructor for UserCleaner
    *
    * @param blockDataManager the blockDataManager this checker is updating to
    * @param tachyonConf the configuration values to be used
    */
-  public UserCleanup(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
+  public UserCleaner(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
     mBlockDataManager = blockDataManager;
     mTachyonConf = tachyonConf;
     mCheckIntervalMs =
