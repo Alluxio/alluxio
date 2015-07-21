@@ -1,7 +1,9 @@
 ---
 layout: global
 title: Fault Tolerant Tachyon Cluster
+nickname: Fault Tolerant Cluster
 group: Deployment
+priority: 2
 ---
 
 # Fault Tolerance

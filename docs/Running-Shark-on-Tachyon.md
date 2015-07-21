@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Running Shark on Tachyon
+nickname: Shark
 group: Frameworks
 ---
 

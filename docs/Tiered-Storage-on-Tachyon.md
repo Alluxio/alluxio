@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Tiered storage on Tachyon (Alpha)
+nickname: Tiered Storage
 group: More
 ---
 

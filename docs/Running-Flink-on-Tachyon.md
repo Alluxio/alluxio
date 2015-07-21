@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Running Apache Flink on Tachyon
+nickname: Apache Flink
 group: Frameworks
 ---
 

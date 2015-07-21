@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Running Hadoop MapReduce on Tachyon
+nickname: Hadoop MapReduce
 group: Frameworks
 ---
 
