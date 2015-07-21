@@ -15,6 +15,8 @@
 
 package tachyon.util.io;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,5 +67,79 @@ public class BufferUtils {
 
   public static void putIntByteBuffer(ByteBuffer buf, int b) {
     buf.put((byte) (b & 0xFF));
+  }
+
+  public static byte[] getIncreasingByteArray(int len) {
+    return getIncreasingByteArray(0, len);
+  }
+
+  public static byte[] getIncreasingByteArray(int start, int len) {
+    byte[] ret = new byte[len];
+    for (int k = 0; k < len; k ++) {
+      ret[k] = (byte) (k + start);
+    }
+    return ret;
+  }
+
+  public static boolean equalIncreasingByteArray(int len, byte[] arr) {
+    return equalIncreasingByteArray(0, len, arr);
+  }
+
+  public static boolean equalIncreasingByteArray(int start, int len, byte[] arr) {
+    if (arr == null || arr.length < len) {
+      return false;
+    }
+    for (int k = 0; k < len; k ++) {
+      if (arr[k] != (byte) (start + k)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public static ByteBuffer getIncreasingByteBuffer(int len) {
+    return getIncreasingByteBuffer(0, len);
+  }
+
+  public static ByteBuffer getIncreasingByteBuffer(int start, int len) {
+    return ByteBuffer.wrap(getIncreasingByteArray(start, len));
+  }
+
+  public static boolean equalIncreasingByteBuffer(int start, int len, ByteBuffer buf) {
+    if (buf == null) {
+      return false;
+    }
+    buf.rewind();
+    if (buf.remaining() != len) {
+      return false;
+    }
+    for (int k = 0; k < len; k ++) {
+      if (buf.get() != (byte) (start + k)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public static ByteBuffer getIncreasingIntBuffer(int len) {
+    ByteBuffer ret = ByteBuffer.allocate(len * 4);
+    for (int k = 0; k < len; k ++) {
+      ret.putInt(k);
+    }
+    ret.flip();
+    return ret;
+  }
+
+  /**
+   * * Writes buffer to the given file path
+   *
+   * @param path file path to write the data
+   * @param buffer raw data
+   * @throws java.io.IOException
+   */
+  public static void writeBufferToFile(String path, byte[] buffer) throws IOException {
+    FileOutputStream os = new FileOutputStream(path);
+    os.write(buffer);
+    os.close();
   }
 }

@@ -24,8 +24,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.util.io.BufferUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests for <code>tachyon.client.FileInStream</code>.
@@ -64,7 +65,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void readTest1() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId =
@@ -84,7 +85,7 @@ public class FileInStreamIntegrationTest {
           value = is.read();
         }
         Assert.assertEquals(cnt, k);
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
         is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
@@ -99,7 +100,7 @@ public class FileInStreamIntegrationTest {
           value = is.read();
         }
         Assert.assertEquals(cnt, k);
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
       }
     }
@@ -110,7 +111,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void readTest2() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId =
@@ -122,14 +123,14 @@ public class FileInStreamIntegrationTest {
         Assert.assertTrue(is instanceof FileInStream);
         byte[] ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
         is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof FileInStream);
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
       }
     }
@@ -140,7 +141,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void readTest3() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId =
@@ -152,14 +153,14 @@ public class FileInStreamIntegrationTest {
         Assert.assertTrue(is instanceof FileInStream);
         byte[] ret = new byte[k / 2];
         Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k / 2, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
         is.close();
 
         is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof FileInStream);
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
       }
     }
@@ -170,7 +171,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void readEndOfFileTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId =
@@ -203,7 +204,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest1() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId =
@@ -235,7 +236,7 @@ public class FileInStreamIntegrationTest {
   public void seekExceptionTest2() throws IOException {
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Seek position is past EOF");
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId =
@@ -258,7 +259,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void seekTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId =
@@ -285,7 +286,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void skipTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId =
