@@ -176,7 +176,7 @@ public class BlockDataManager {
 
   /**
    * Cleans up after users, to prevent zombie users. This method is called periodically
-   * by UserCleanup thread.
+   * by UserCleaner thread.
    */
   public void cleanupUsers() {
     for (long user : mUsers.getTimedOutUsers()) {
