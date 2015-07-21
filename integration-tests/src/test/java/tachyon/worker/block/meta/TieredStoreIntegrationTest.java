@@ -26,11 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TestUtils;
-import tachyon.client.InStream;
-import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
@@ -69,17 +66,28 @@ public class TieredStoreIntegrationTest {
         TachyonFSTestUtils.createByteFile(mTFS, "/test1", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
     mTFS.pinFile(fileId1);
     CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
-    // Try to create a file that cannot be stored unless the previous file is evicted
-    int fileId2 =
-        TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
-    CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+
+    // Try to create a file that cannot be stored unless the previous file is evicted, expect an
+    // exception since worker cannot serve the request
+    Exception caughtException = null;
+    try {
+      TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    } catch (IOException ioe) {
+      caughtException = ioe;
+    }
+    Assert.assertNotNull(caughtException);
+
     // Unpin the first file
     mTFS.unpinFile(fileId1);
+    CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+
     // The create should now succeed
     int fileId3 =
         TachyonFSTestUtils.createByteFile(mTFS, "/test3", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
-    Assert.assertTrue(fileId3 > 0);
+    CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+    Assert.assertFalse(mTFS.getFile(fileId1).isInMemory());
+    Assert.assertTrue(mTFS.getFile(fileId3).isInMemory());
   }
 
   // TODO: Add this test back when CACHE_PROMOTE is enabled again
