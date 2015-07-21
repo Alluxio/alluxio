@@ -74,13 +74,10 @@ system or to create a new one.
 
 **Frameworks on Tachyon:**
 
-* [Running Apache Spark on Tachyon](Running-Spark-on-Tachyon.html): Get Apache Spark running on
-Tachyon
-* [Running Shark on Tachyon](Running-Shark-on-Tachyon.html): Get Shark running on Tachyon
-* [Running Apache Hadoop MapReduce on Tachyon](Running-Hadoop-MapReduce-on-Tachyon.html): Get Apache
-Hadoop MapReduce running on Tachyon
-* [Running Apache Flink on Tachyon](Running-Flink-on-Tachyon.html): Get Apache Flink running on
-Tachyon
+<a href="Running-Spark-on-Tachyon.html" class="framework spark">Running Apache Spark on Tachyon</a>
+<a href="Running-Shark-on-Tachyon.html" class="framework shark">Running Shark on Tachyon</a>
+<a href="Running-Hadoop-MapReduce-on-Tachyon.html" class="framework mapreduce">Running Apache Hadoop MapReduce on Tachyon</a>
+<a href="Running-Flink-on-Tachyon.html" class="framework flink">Running Apache Flink on Tachyon</a>
 
 **Others:**
 
