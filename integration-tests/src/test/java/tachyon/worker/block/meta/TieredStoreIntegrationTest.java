@@ -41,42 +41,45 @@ import tachyon.util.CommonUtils;
  */
 public class TieredStoreIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
-  private static final int DISK_CAPACITY_BYTES = 10000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTFS = null;
+  private LocalTachyonCluster mLocalTachyonCluster;
   private TachyonConf mWorkerConf;
+  private TachyonFS mTFS;
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
-    System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1));
-    System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1));
-    System.clearProperty(
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1));
   }
 
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-
-    // Add system properties to pre-populate the storage tiers
-    // TODO Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
-    System.setProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
-    System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1),
-        "HDD");
-    System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
-        "/disk1" + "," + "/disk2");
-    System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
-        DISK_CAPACITY_BYTES + "");
-
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
+  }
+
+  @Test
+  public void pinFileTest() throws Exception {
+    // Create a file and then pin it
+    int fileId1 =
+        TachyonFSTestUtils.createByteFile(mTFS, "/test1", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    mTFS.pinFile(fileId1);
+    CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+    // Try to create a file that cannot be stored unless the previous file is evicted
+    int fileId2 =
+        TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+    // Unpin the first file
+    mTFS.unpinFile(fileId1);
+    // The create should now succeed
+    int fileId3 =
+        TachyonFSTestUtils.createByteFile(mTFS, "/test3", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+
+    Assert.assertTrue(fileId3 > 0);
   }
 
   // TODO: Add this test back when CACHE_PROMOTE is enabled again
