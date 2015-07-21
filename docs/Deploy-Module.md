@@ -1,13 +1,15 @@
 ---
 layout: global
 title: Deploy Module
+group: Deployment
+priority: 3
 ---
 
 ## Summary
 
 In Tachyon source tree, [`deploy/vagrant`](https://github.com/amplab/tachyon/blob/master/deploy/vagrant) directory contains utilities to help you set up a Tachyon cluster on AWS EC2 or virtualbox.
 
-Apart from Tachyon, you can choose different computation frameworks and under filesystems from the following list. 
+Apart from Tachyon, you can choose different computation frameworks and under filesystems from the following list.
 
 * Computation Framework
   * Spark
@@ -29,11 +31,11 @@ Install [python >= 2.7, not python3](http://python.org/).
 
 Under `deploy/vagrant` directory in your Tachyon repo, run the following to install dependent python libs:
 
-    sudo bash bin/install.sh. 
+    sudo bash bin/install.sh.
 
 If anything goes wrong, install [pip](https://pip.pypa.io/en/latest/installing.html) on your own, then in the same directory, run(may need sudo):
 
-    pip install -r pip-req.txt. 
+    pip install -r pip-req.txt.
 
 ## Quick Start With VirtualBox
 
@@ -41,9 +43,9 @@ Under directory `deploy/vagrant`, run
 
     ./create 2 vb
 
-A two node Tachyon cluster with Hadoop2.4.1 as under filesystem will be set up. 
+A two node Tachyon cluster with Hadoop2.4.1 as under filesystem will be set up.
 
-It will be slow when you run this for the first time because 
+It will be slow when you run this for the first time because
 a virtualbox image with necessary software installed will be created and saved for future use.
 
 ## Quick Start With AWS EC2
@@ -52,7 +54,7 @@ a virtualbox image with necessary software installed will be created and saved f
 
 [Sign up](https://aws.amazon.com/) AWS account with access to EC2.
 
-Set shell environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, 
+Set shell environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`,
 refer to [this doc](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html) for more detail.
 
 Download [key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Be sure to chmod private ssh key to **0600**.
@@ -63,15 +65,15 @@ Install aws vagrant plugin(To date, version 0.5.0 is tested):
 
     vagrant plugin install vagrant-aws
 
-By default, if you don't have a 
-[Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html) 
-named **tachyon-vagrant-test** in 
-[Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html), 
-the security group will be set up automatically in the region with all inbound/outbound network traffic opened. 
-If you know what you are doing, you can change security group, region and availability zone in configuration file `conf/ec2.yml`, 
+By default, if you don't have a
+[Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
+named **tachyon-vagrant-test** in
+[Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html),
+the security group will be set up automatically in the region with all inbound/outbound network traffic opened.
+If you know what you are doing, you can change security group, region and availability zone in configuration file `conf/ec2.yml`,
 otherwise, you do not need to configure these values, the default will be fine.
 
-A Tachyon cluster with Hadoop2.4.1 as under filesystem will be set up in us-east-1a by running 
+A Tachyon cluster with Hadoop2.4.1 as under filesystem will be set up in us-east-1a by running
 
     ./create <number of machines> aws
 
@@ -97,18 +99,18 @@ To ssh into a node, run
 
     vagrant ssh {NODE_NAME}
 
-Let's ssh into TachyonMaster: 
+Let's ssh into TachyonMaster:
 
-    vagrant ssh TachyonMaster 
-    
-You should have entered TachyonMaster node, all software is installed under root directory, 
+    vagrant ssh TachyonMaster
+
+You should have entered TachyonMaster node, all software is installed under root directory,
 e.x. Tachyon is installed in `/tachyon`, Hadoop is installed in `/hadoop`.
 
 Let's run some tests against Tachyon:
 
     /tachyon/bin/tachyon runTests
 
-After the tests all pass, visit Tachyon web UI: `http://{MASTER_IP}:19999` again, 
+After the tests all pass, visit Tachyon web UI: `http://{MASTER_IP}:19999` again,
 in navigation bar `Browse FileSystem`, you should see files written to Tachyon by the above tests.
 
 Util scripts are provided under directory `~/vagrant-utils` on TachyonMaster node.
@@ -117,7 +119,7 @@ Run
 
     ~/vagrant-utils/copy-dir <path>
 
-to distribute the file or directory represented by `path` on TachyonMaster node to all worker nodes. 
+to distribute the file or directory represented by `path` on TachyonMaster node to all worker nodes.
 For example, after changing some configurations on TachyonMaster node, you can use this script to update the configuration on all worker nodes.
 
 Run
@@ -131,7 +133,7 @@ Run
     ~/vagrant-utils/remount <source directory> <destination directory>
 
 to unmount a device from current mount point `<source directory>` and mount to another point `<destination directory>` in all nodes.
-  
+
 In TachyonMaster node, you can ssh to any node without password like
 
     ssh TachyonWorker1
@@ -140,7 +142,7 @@ Under `deploy/vagrant` directory on your local host, run
 
     ./destroy
 
-to destroy the cluster you just created, only one cluster can be created each time. 
+to destroy the cluster you just created, only one cluster can be created each time.
 After the command succeeds, for virtualbox, virtual machines will be deleted, for EC2, instances will be terminated.
 
 ## Configurations
@@ -148,7 +150,7 @@ After the command succeeds, for virtualbox, virtual machines will be deleted, fo
 There are two kinds of configuration files under `conf`:
 
 1. configuration for target deploy platform, like `vb.yml` for virtualbox, `ec2.yml` for AWS EC2.
-2. software configuration, like `tachyon.yml`, `spark.yml`, `ufs.yml`(ufs means under filesystem). 
+2. software configuration, like `tachyon.yml`, `spark.yml`, `ufs.yml`(ufs means under filesystem).
 
 All the configuration files use [yaml syntax](http://en.wikipedia.org/wiki/YAML).
 
@@ -190,10 +192,10 @@ Please refer to comments on **Block_Device_Mapping** in **conf/ec2.yml**.
 
 #### How to increase root device's space?
 
-First, migrate data in current root device to a larger EBS volume and attach the larger volume as root device, 
+First, migrate data in current root device to a larger EBS volume and attach the larger volume as root device,
 refer to [how to expand ebs volume](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-expand-volume.html).
 
-Second, repartition the new root device to use the whole disk, 
+Second, repartition the new root device to use the whole disk,
 refer to [how to expand partition](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/storage_expand_partition.html).
 
 #### What's PV/HVM?
