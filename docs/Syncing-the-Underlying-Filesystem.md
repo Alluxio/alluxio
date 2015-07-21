@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Syncing the Underlayer Filesystem
-nickname: Sync Underlayer FS
+title: Syncing the Under Storage System
+nickname: Sync Under Storage System
 group: More
 ---
 
