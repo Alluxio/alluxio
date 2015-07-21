@@ -67,13 +67,13 @@ to interact with Tachyon, e.g. copy data in and out of the file system.
 * [Amazon AWS Through mesos/spark-ec2](Running-Tachyon-on-EC2.html)
 -->
 <div class="floatCenter">
-  <ul id="deploy" class="floatCenterChild">
-    <li><a href="Running-Tachyon-Locally.html">Single Node</a></li>
-    <li><a href="Running-Tachyon-on-a-Cluster.html">Cluster</a></li>
-    <li><a href="Fault-Tolerant-Tachyon-Cluster.html">Master Fault Tolerant Cluster</a></li>
-    <li><a href="Deploy-Module.html">Tachyon Deploy Module</a></li>
-    <li><a href="Running-Tachyon-on-EC2.html">Amazon AWS</a></li>
-  </ul>
+    <ul id="deploy" class="floatCenterChild">
+        <li><a href="Running-Tachyon-Locally.html">Single Node</a></li>
+        <li><a href="Running-Tachyon-on-a-Cluster.html">Cluster</a></li>
+        <li><a href="Fault-Tolerant-Tachyon-Cluster.html">Master Fault Tolerant Cluster</a></li>
+        <li><a href="Deploy-Module.html">Tachyon Deploy Module</a></li>
+        <li><a href="Running-Tachyon-on-EC2.html">Amazon AWS</a></li>
+    </ul>
 </div>
 
 **Configuration:**
@@ -83,12 +83,12 @@ system or to create a new one.
 * [Configuration Settings](Configuration-Settings.html): How to configure Tachyon.
 
 **Frameworks on Tachyon:**
-<p style="text-align:center">
-<a href="Running-Spark-on-Tachyon.html" class="framework spark">Running Apache Spark on Tachyon</a>
-<a href="Running-Shark-on-Tachyon.html" class="framework shark">Running Shark on Tachyon</a>
-<a href="Running-Hadoop-MapReduce-on-Tachyon.html" class="framework mapreduce">Running Apache Hadoop MapReduce on Tachyon</a>
-<a href="Running-Flink-on-Tachyon.html" class="framework flink">Running Apache Flink on Tachyon</a>
-</p>
+<div id="frameworks">
+    <a href="Running-Spark-on-Tachyon.html"><div class="framework spark"><p>Apache Spark</p></div></a>
+    <a href="Running-Shark-on-Tachyon.html"><div class="framework shark"><p>Shark</p></div></a>
+    <a href="Running-Hadoop-MapReduce-on-Tachyon.html"><div class="framework mapreduce"><p>Apache Hadoop MapReduce</p></div></a>
+    <a href="Running-Flink-on-Tachyon.html"><div class="framework flink"><p>Apache Flink</p></div></a>
+</div>
 
 **Others:**
 

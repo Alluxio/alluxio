@@ -8,18 +8,19 @@ body {
 .navbar .nav > li > a {
   text-shadow: none;
   padding-bottom: 5px;
-  color: #F7F4F3; }
+  color: #f7f4f3; }
 
-.navbar .nav > li > a:hover, .navbar .nav > li > a:focus {
+.navbar .nav > li > a:hover,
+.navbar .nav > li > a:focus {
   color: #fff; }
 
 .navbar .nav li.dropdown > .dropdown-toggle .caret {
-  border-top-color: #F7F4F3;
-  border-bottom-color: #F7F4F3; }
+  border-top-color: #f7f4f3;
+  border-bottom-color: #f7f4f3; }
 
 .navbar-inner {
   padding: 10px 0;
-  background: #2D2D2D;
+  background: #2d2d2d;
   transition: padding 0.2s, box-shadow 0.2s;
   -webkit-transition: padding 0.2s, box-shadow 0.2s;
   -moz-transition: padding 0.2s, box-shadow 0.2s;
@@ -37,16 +38,19 @@ body {
   .navbar-inner.shrunk .version {
     opacity: 0; }
 
-.navbar .nav > li.active a, .navbar .nav > li.active a:hover, .navbar .nav > li.dropdown > a.active {
+.navbar .nav > li.active a,
+.navbar .nav > li.active a:hover,
+.navbar .nav > li.dropdown > a.active {
   background-color: transparent;
   box-shadow: none;
-  color: #F7F4F3;
-  border-bottom: 2px solid #F7F4F3; }
+  color: #f7f4f3;
+  border-bottom: 2px solid #f7f4f3; }
 
-.dropdown-menu .active > a, .dropdown-menu .active > a:hover {
-  background-color: #C4CBCA;
+.dropdown-menu .active > a,
+.dropdown-menu .active > a:hover {
+  background-color: #c4cbca;
   background-image: none;
-  color: #2D2D2D;
+  color: #2d2d2d;
   font-style: italic; }
 
 #current-features + ul {
@@ -82,8 +86,8 @@ body {
         color: #fff;
         padding: 5px 0; }
       #current-features + ul li p code {
-        background-color: #F7F4F3;
-        border: 1px solid #C4CBCA;
+        background-color: #f7f4f3;
+        border: 1px solid #c4cbca;
         font-size: 100%;
         padding: 0 2px; }
     #current-features + ul li:nth-child(1) {
@@ -126,6 +130,11 @@ body {
       #current-features + ul li:nth-child(6) p {
         font-size: 20px; }
 
+#frameworks {
+  text-align: center; }
+  #frameworks + p {
+    margin-top: 40px; }
+
 .framework {
   display: inline-block;
   border: 2px solid #cfcfcf;
@@ -137,19 +146,25 @@ body {
   color: transparent;
   border-radius: 4px;
   vertical-align: top; }
+  .framework p {
+    text-align: center;
+    display: block;
+    position: relative;
+    top: 100%;
+    color: #cfcfcf; }
 
 .spark {
-  background-image: url(../img/spark.png);
+  background-image: url("../img/spark.png");
   background-size: 50% auto; }
 
 .shark {
-  background-image: url(../img/shark.png); }
+  background-image: url("../img/shark.png"); }
 
 .mapreduce {
-  background-image: url(../img/hadoop.jpg); }
+  background-image: url("../img/hadoop.jpg"); }
 
 .flink {
-  background-image: url(../img/flink.jpg);
+  background-image: url("../img/flink.jpg");
   background-size: 50% auto; }
 
 #deploy li {
