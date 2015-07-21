@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Tachyon Overview
+title: Overview
 group: Home
 ---
 
@@ -31,29 +31,29 @@ Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 
 # Current Features
 
-* **Java-like File API**: Tachyon's native API is similar to that of the ``java.io.File`` class,
+* **Java-like File API** Tachyon's native API is similar to that of the ``java.io.File`` class,
 providing InputStream and OutputStream interfaces and efficient support for memory-mapped I/O. We
 recommend using this API to get the best performance from Tachyon.
 
-* **Compatibility**: Tachyon implements the Hadoop FileSystem interface. Therefore, Hadoop MapReduce
+* **Compatibility** Tachyon implements the Hadoop FileSystem interface. Therefore, Hadoop MapReduce
 and Spark can run with Tachyon without modification. However, close integration is required to fully
 take advantage of Tachyon, and we are working towards that. End-to-end latency speedup depends on
 the workload and the framework, since various frameworks have different execution overhead.
 
-* **Pluggable underlayer file system**: To provide fault-tolerance, Tachyon checkpoints in-memory
+* **Pluggable underlayer file system** To provide fault-tolerance, Tachyon checkpoints in-memory
 data to the underlayer file system. It has a generic interface to make plugging different underlayer
 file systems easy. We currently support HDFS, S3, GlusterFS, and single-node local file systems, and
 support for many other file systems is coming.
 
-* **Native support for raw tables**: Table data with over hundreds of columns is common in data
+* **Native support for raw tables** Table data with over hundreds of columns is common in data
 warehouses. Tachyon provides native support for multi-columned data, with the option to put only hot
 columns in memory to save space.
 
-* **[Web UI](Web-Interface.html)**: Users can browse the file system easily through the web UI.
+* **[Web UI](Web-Interface.html)** Users can browse the file system easily through the web UI.
 Under debug mode, administrators can view detailed information of each file, including locations,
 checkpoint path, etc.
 
-* **[Command line interaction](Command-Line-Interface.html)**: Users can use ``./bin/tachyon tfs``
+* **[Command line interaction](Command-Line-Interface.html)** Users can use ``./bin/tachyon tfs``
 to interact with Tachyon, e.g. copy data in and out of the file system.
 
 # User Documentation

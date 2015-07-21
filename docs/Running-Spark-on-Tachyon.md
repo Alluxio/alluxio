@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Running Spark on Tachyon
+nickname: Spark
 group: Frameworks
 ---
 

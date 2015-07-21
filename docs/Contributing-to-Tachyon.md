@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Contributing to Tachyon
+nickname: Contributing
 group: Development
 ---
 

@@ -2,6 +2,7 @@
 layout: global
 title: Deploy Module
 group: Deployment
+priority: 3
 ---
 
 ## Summary

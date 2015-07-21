@@ -1,7 +1,9 @@
 ---
 layout: global
 title: Running Tachyon on a Cluster
+nickname: Cluster
 group: Deployment
+priority: 1
 ---
 
 ## Standalone cluster
