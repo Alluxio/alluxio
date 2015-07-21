@@ -90,7 +90,7 @@ newly added nodes in order to balance disk space utilization between the nodes?
     Thank you for the interest to contribute. Please look into
     [Contributing-to-Tachyon](http://tachyon-project.org/master/Contributing-to-Tachyon.html).
     Also, please look into some of the JIRA issues (marked for Beginners)
-    [here](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner)
+    [here](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
 
 18. Where can I report issues or propose new features?
 

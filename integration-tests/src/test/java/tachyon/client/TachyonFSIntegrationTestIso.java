@@ -50,7 +50,7 @@ public class TachyonFSIntegrationTestIso {
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     mLocalTachyonCluster.start();
@@ -59,7 +59,6 @@ public class TachyonFSIntegrationTestIso {
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerTachyonConf.set(Constants.MAX_COLUMNS, "257");
   }
-
 
   @Test
   public void createFileWithUfsFileTest() throws IOException {
