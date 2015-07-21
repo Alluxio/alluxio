@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Configure Underlayer Storage System
-nickname: Configure UnderFileSystem
+title: Configure Under Storage System
+nickname: Configure Under Storage System
 group: More
 ---
 
