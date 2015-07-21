@@ -101,15 +101,12 @@ public class BlockStoreLocation {
   /**
    * Returns whether this location belongs to the specific location.
    *
-   * Location A belongs to B either when A.equals(B) or tier and dir of A are all in the range of B.
+   * Location A belongs to B when tier and dir of A are all in the range of B respectively.
    *
    * @param location the target BlockStoreLocation
    * @return true when this BlockStoreLocation belongs to the target, otherwise false
    */
   public boolean belongTo(BlockStoreLocation location) {
-    if (equals(location)) {
-      return true;
-    }
     boolean tierInRange =
         (tierAlias() == location.tierAlias()) || (location.tierAlias() == ANY_TIER);
     boolean dirInRange = (dir() == location.dir()) || (location.dir() == ANY_DIR);
