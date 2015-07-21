@@ -144,4 +144,13 @@ public class PathUtils {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
   }
+
+  /**
+   * Creates a unique path based off the caller.
+   */
+  public static final String uniqPath() {
+    StackTraceElement caller = new Throwable().getStackTrace()[1];
+    long time = System.nanoTime();
+    return "/" + caller.getClassName() + "/" + caller.getMethodName() + "/" + time;
+  }
 }

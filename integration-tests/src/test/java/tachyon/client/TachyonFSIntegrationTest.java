@@ -27,13 +27,14 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.TestUtils;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests on TachyonClient (Reuse the LocalTachyonCluster).
@@ -77,7 +78,7 @@ public class TachyonFSIntegrationTest {
 
   @Test
   public void createFileTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = 1; k < 5; k ++) {
       TachyonURI uri = new TachyonURI(uniqPath + k);
       int fileId = sTfs.createFile(uri);
@@ -88,7 +89,7 @@ public class TachyonFSIntegrationTest {
 
   @Test(expected = IOException.class)
   public void createFileWithFileAlreadyExistExceptionTest() throws IOException {
-    TachyonURI uri = new TachyonURI(TestUtils.uniqPath());
+    TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
     int fileId = sTfs.createFile(uri);
     Assert.assertEquals(fileId, sTfs.getFileId(uri));
     fileId = sTfs.createFile(uri);
@@ -101,7 +102,7 @@ public class TachyonFSIntegrationTest {
 
   @Test
   public void createRawTableTestEmptyMetadata() throws IOException {
-    String uniqPath = TestUtils.uniqPath() + "/table1";
+    String uniqPath = PathUtils.uniqPath() + "/table1";
     int fileId = sTfs.createRawTable(new TachyonURI(uniqPath), 20);
     RawTable table = sTfs.getRawTable(fileId);
     Assert.assertEquals(fileId, table.getId());
@@ -118,25 +119,25 @@ public class TachyonFSIntegrationTest {
 
   @Test
   public void createRawTableTestWithMetadata() throws IOException {
-    String uniqPath = TestUtils.uniqPath() + "/table1";
+    String uniqPath = PathUtils.uniqPath() + "/table1";
     TachyonURI uri = new TachyonURI(uniqPath);
-    int fileId = sTfs.createRawTable(uri, 20, TestUtils.getIncreasingByteBuffer(9));
+    int fileId = sTfs.createRawTable(uri, 20, BufferUtils.getIncreasingByteBuffer(9));
     RawTable table = sTfs.getRawTable(fileId);
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals(uniqPath, table.getPath());
     Assert.assertEquals(20, table.getColumns());
-    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(9), table.getMetadata());
+    Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(9), table.getMetadata());
 
     table = sTfs.getRawTable(uri);
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals(uniqPath, table.getPath());
     Assert.assertEquals(20, table.getColumns());
-    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(9), table.getMetadata());
+    Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(9), table.getMetadata());
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithFileAlreadyExistExceptionTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath() + "/table";
+    String uniqPath = PathUtils.uniqPath() + "/table";
     TachyonURI uri = new TachyonURI(uniqPath);
     sTfs.createRawTable(uri, 20);
     sTfs.createRawTable(uri, 20);
@@ -160,23 +161,23 @@ public class TachyonFSIntegrationTest {
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest2() throws IOException {
-    sTfs.createRawTable(new TachyonURI(TestUtils.uniqPath()), 0);
+    sTfs.createRawTable(new TachyonURI(PathUtils.uniqPath()), 0);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest3() throws IOException {
-    sTfs.createRawTable(new TachyonURI(TestUtils.uniqPath()), -1);
+    sTfs.createRawTable(new TachyonURI(PathUtils.uniqPath()), -1);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest4() throws IOException {
     int maxColumns = mMasterTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
-    sTfs.createRawTable(new TachyonURI(TestUtils.uniqPath()), maxColumns);
+    sTfs.createRawTable(new TachyonURI(PathUtils.uniqPath()), maxColumns);
   }
 
   @Test
   public void deleteFileTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     List<ClientWorkerInfo> workers = sTfs.getWorkersInfo();
     Assert.assertEquals(1, workers.size());
     Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
@@ -204,7 +205,7 @@ public class TachyonFSIntegrationTest {
       int fileId = sTfs.getFileId(fileURI);
       sTfs.delete(fileId, true);
       Assert.assertFalse(sTfs.exist(fileURI));
-      int timeOutMs = TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10;
+      int timeOutMs = CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10;
       CommonUtils.sleepMs(null, timeOutMs);
       workers = sTfs.getWorkersInfo();
       Assert.assertEquals(1, workers.size());
@@ -214,7 +215,7 @@ public class TachyonFSIntegrationTest {
 
   @Test
   public void getFileStatusTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     TachyonURI uri = new TachyonURI(uniqPath);
     int fileId = TachyonFSTestUtils.createByteFile(sTfs, uri, WriteType.MUST_CACHE, writeBytes);
@@ -227,7 +228,7 @@ public class TachyonFSIntegrationTest {
 
   @Test
   public void getFileStatusCacheTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     TachyonURI uri = new TachyonURI(uniqPath);
     int fileId = TachyonFSTestUtils.createByteFile(sTfs, uri, WriteType.MUST_CACHE, writeBytes);
@@ -269,7 +270,7 @@ public class TachyonFSIntegrationTest {
   }
 
   private void getTestHelper(TachyonFS tfs) throws IOException {
-    TachyonURI uri = new TachyonURI(TestUtils.uniqPath());
+    TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
     int fileId = tfs.createFile(uri);
     Assert.assertEquals(fileId, tfs.getFileId(uri));
     Assert.assertNotNull(tfs.getFile(fileId));
@@ -309,7 +310,7 @@ public class TachyonFSIntegrationTest {
 
   @Test
   public void mkdirTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = 0; k < 10; k ++) {
       Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k)));
       Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k)));
@@ -318,7 +319,7 @@ public class TachyonFSIntegrationTest {
 
   @Test
   public void renameFileTest1() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     int fileId = sTfs.createFile(new TachyonURI(uniqPath + 1));
     for (int k = 1; k < 10; k ++) {
       TachyonURI fileA = new TachyonURI(uniqPath + k);
@@ -332,7 +333,7 @@ public class TachyonFSIntegrationTest {
 
   @Test
   public void renameFileTest2() throws IOException {
-    TachyonURI uniqUri = new TachyonURI(TestUtils.uniqPath());
+    TachyonURI uniqUri = new TachyonURI(PathUtils.uniqPath());
     int fileId = sTfs.createFile(uniqUri);
     Assert.assertTrue(sTfs.rename(uniqUri, uniqUri));
     Assert.assertEquals(fileId, sTfs.getFileId(uniqUri));
@@ -340,7 +341,7 @@ public class TachyonFSIntegrationTest {
 
   @Test
   public void renameFileTest3() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     TachyonURI file0 = new TachyonURI(uniqPath + 0);
     int fileId = sTfs.createFile(file0);
     TachyonFile file = sTfs.getFile(file0);

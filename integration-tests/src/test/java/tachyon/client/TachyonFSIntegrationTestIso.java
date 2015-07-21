@@ -27,11 +27,11 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests on TachyonClient (Do not reuse the LocalTachyonCluster).
@@ -74,7 +74,7 @@ public class TachyonFSIntegrationTestIso {
 
   @Test
   public void lockBlockTest1() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -90,7 +90,7 @@ public class TachyonFSIntegrationTestIso {
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
         WriteType.CACHE_THROUGH, fileSize));
 
-    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf));
+    CommonUtils.sleepMs(null, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf));
     tFile = mTfs.getFile(fileIds.get(0));
     Assert.assertFalse(tFile.isInMemory());
     for (int k = 1; k <= numOfFiles; k ++) {
@@ -101,7 +101,7 @@ public class TachyonFSIntegrationTestIso {
 
   @Test
   public void lockBlockTest2() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -129,7 +129,7 @@ public class TachyonFSIntegrationTestIso {
 
   @Test
   public void lockBlockTest3() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -161,7 +161,7 @@ public class TachyonFSIntegrationTestIso {
 
   @Test
   public void lockBlockTest4() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -188,7 +188,7 @@ public class TachyonFSIntegrationTestIso {
 
   @Test
   public void unlockBlockTest1() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -218,7 +218,7 @@ public class TachyonFSIntegrationTestIso {
 
   @Test
   public void unlockBlockTest2() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -250,7 +250,7 @@ public class TachyonFSIntegrationTestIso {
 
   @Test
   public void unlockBlockTest3() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -282,6 +282,6 @@ public class TachyonFSIntegrationTestIso {
   }
 
   private long getSleepMs() {
-    return (TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+    return (CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
   }
 }
