@@ -111,8 +111,7 @@ public class TFsShellTest {
     byte[] toWrite = BufferUtils.getIncreasingByteArray(SIZE_BYTES);
     fos.write(toWrite);
     fos.close();
-    mFsShell
-        .copyFromLocal(new String[]{"copyFromLocal", testFile.getAbsolutePath(), "/testFile"});
+    mFsShell.copyFromLocal(new String[] {"copyFromLocal", testFile.getAbsolutePath(), "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyFromLocal", testFile.getAbsolutePath(),
         "/testFile"}), mOutput.toString());
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
@@ -130,9 +129,10 @@ public class TFsShellTest {
     testDir.mkdir();
     File testDirInner = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testDirInner");
     testDirInner.mkdir();
-    File testFile = generateFileContent("/testDir/testFile", BufferUtils.getIncreasingByteArray(10));
-    generateFileContent(
-        "/testDir/testDirInner/testFile2", BufferUtils.getIncreasingByteArray(10, 20));
+    File testFile =
+        generateFileContent("/testDir/testFile", BufferUtils.getIncreasingByteArray(10));
+    generateFileContent("/testDir/testDirInner/testFile2",
+        BufferUtils.getIncreasingByteArray(10, 20));
     mFsShell.copyFromLocal(new String[] {"copyFromLocal", testFile.getParent(), "/testDir"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyFromLocal", testFile.getParent(),
         "/testDir"}), mOutput.toString());
