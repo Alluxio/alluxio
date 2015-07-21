@@ -13,22 +13,18 @@
  * the License.
  */
 
-package tachyon;
-
-import tachyon.conf.TachyonConf;
+package tachyon.exception;
 
 /**
- * The version of the current build.
+ * Exception used when some entity that we attempted to create (e.g., block, file, directory or
+ * lock) already exists.
  */
-public class Version {
-  public static final String VERSION;
-
-  static {
-    TachyonConf tachyonConf = new TachyonConf();
-    VERSION = tachyonConf.get(Constants.TACHYON_VERSION, "UNDEFINED");
+public class AlreadyExistsException extends Exception {
+  public AlreadyExistsException(String message) {
+    super(message);
   }
 
-  public static void main(String[] args) {
-    System.out.println("Tachyon version: " + VERSION);
+  public AlreadyExistsException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

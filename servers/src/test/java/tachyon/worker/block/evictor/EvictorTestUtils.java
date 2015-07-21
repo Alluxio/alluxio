@@ -35,6 +35,7 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.NotFoundException;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreEventListener;
@@ -75,10 +76,10 @@ public class EvictorTestUtils {
    * @param tierCapacity like {@link #TIER_CAPACITY}, should be in the same dimension with tierPath,
    *        each element is the capacity of the corresponding dir in tierPath
    * @return the created BlockMetadataManager
-   * @throws IOException when initialization of TieredBlockStore fails
+   * @throws Exception when initialization of TieredBlockStore fails
    */
   public static BlockMetadataManager newMetadataManager(int[] tierLevel, String[] tierAlias,
-      String[][] tierPath, long[][] tierCapacity) throws IOException {
+      String[][] tierPath, long[][] tierCapacity) throws Exception {
     // make sure dimensions are legal
     Preconditions.checkNotNull(tierLevel);
     Preconditions.checkNotNull(tierAlias);
@@ -135,9 +136,9 @@ public class EvictorTestUtils {
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
    * @return the created metadata manager
-   * @throws IOException when error happens during creating temporary folder
+   * @throws Exception when error happens during creating temporary folder
    */
-  public static BlockMetadataManager defaultMetadataManager(String baseDir) throws IOException {
+  public static BlockMetadataManager defaultMetadataManager(String baseDir) throws Exception {
     String[][] dirs = new String[TIER_PATH.length][];
     for (int i = 0; i < TIER_PATH.length; i ++) {
       int len = TIER_PATH[i].length;
@@ -159,10 +160,10 @@ public class EvictorTestUtils {
    * @param dir the StorageDir the block resides in
    * @param meta the metadata manager to update meta of the block
    * @param evictor the evictor to be informed of the new block
-   * @throws IOException when fail to cache
+   * @throws Exception when fail to cache
    */
   public static void cache(long userId, long blockId, long bytes, StorageDir dir,
-      BlockMetadataManager meta, Evictor evictor) throws IOException {
+      BlockMetadataManager meta, Evictor evictor) throws Exception {
     // prepare temp block
     TempBlockMeta block = new TempBlockMeta(userId, blockId, bytes, dir);
     meta.addTempBlockMeta(block);
@@ -196,10 +197,10 @@ public class EvictorTestUtils {
    * @param plan the eviction plan, should not be null
    * @param meta the metadata manager
    * @return true if the request can be satisfied otherwise false
-   * @throws IOException if can not get meta data of a block
+   * @throws NotFoundException if can not get meta data of a block
    */
   public static boolean requestSpaceSatisfied(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager meta) throws IOException {
+      BlockMetadataManager meta) throws NotFoundException {
     Preconditions.checkNotNull(plan);
 
     List<Long> blockIds = new ArrayList<Long>();
@@ -224,10 +225,10 @@ public class EvictorTestUtils {
    * @param plan the eviction plan
    * @param meta the meta data manager
    * @return true if blocks are in the same dir otherwise false
-   * @throws IOException if fail to get meta data of a block
+   * @throws NotFoundException if fail to get meta data of a block
    */
   public static boolean blocksInTheSameDir(EvictionPlan plan, BlockMetadataManager meta)
-      throws IOException {
+      throws NotFoundException {
     Preconditions.checkNotNull(plan);
 
     StorageDir dir = null;
@@ -258,10 +259,10 @@ public class EvictorTestUtils {
    * @param metaManager the meta data manager
    * @return true if and only if the plan is not null and both {@link #blocksInTheSameDir} and
    *         {@link #requestSpaceSatisfied} are true, otherwise false
-   * @throws IOException when fail to get meta data of a block
+   * @throws NotFoundException when fail to get meta data of a block
    */
   public static boolean validNonCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws IOException {
+      BlockMetadataManager metaManager) throws NotFoundException {
     Preconditions.checkNotNull(plan);
     return blocksInTheSameDir(plan, metaManager)
         && requestSpaceSatisfied(bytesToBeAvailable, plan, metaManager);
@@ -283,7 +284,7 @@ public class EvictorTestUtils {
    */
   // TODO: unit test this method
   public static boolean validCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws IOException {
+      BlockMetadataManager metaManager) throws Exception {
     // reassure the plan is feasible: enough free space to satisfy bytesToBeAvailable, and enough
     // space in lower tier to move blocks in upper tier there
 
@@ -362,10 +363,10 @@ public class EvictorTestUtils {
    * @param bytesToBeAvailable the requested bytes to be available
    * @param plan the eviction plan, should not be null
    * @param metaManager the meta data manager
-   * @throws IOException when fail to get meta data of a block
+   * @throws Exception when fail
    */
   public static void assertValidPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws IOException {
+      BlockMetadataManager metaManager) throws Exception {
     Assert.assertNotNull(plan);
     Assert.assertTrue(validNonCascadingPlan(bytesToBeAvailable, plan, metaManager)
         || EvictorTestUtils.validCascadingPlan(bytesToBeAvailable, plan, metaManager));

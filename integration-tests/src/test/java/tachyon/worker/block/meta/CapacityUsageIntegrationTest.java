@@ -47,23 +47,26 @@ public class CapacityUsageIntegrationTest {
     mLocalTachyonCluster.stop();
     // TODO Remove this once we are able to push tiered storage info to LocalTachyonCluster
     System.clearProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
-    System.clearProperty("tachyon.worker.tieredstore.level1.alias");
-    System.clearProperty("tachyon.worker.tieredstore.level1.dirs.path");
-    System.clearProperty("tachyon.worker.tieredstore.level1.dirs.quota");
+    System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1));
+    System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1));
+    System.clearProperty(
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1));
     System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
     // TODO Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
     System.setProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
-    System.setProperty("tachyon.worker.tieredstore.level1.alias", "HDD");
-    System.setProperty("tachyon.worker.tieredstore.level1.dirs.path", "/disk1");
-    System
-        .setProperty("tachyon.worker.tieredstore.level1.dirs.quota", DISK_CAPACITY_BYTES + "");
+    System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1),
+        "HDD");
+    System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
+        "/disk1");
+    System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
+        DISK_CAPACITY_BYTES + "");
 
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, MEM_CAPACITY_BYTES / 2);
@@ -89,25 +92,30 @@ public class CapacityUsageIntegrationTest {
     return fileId;
   }
 
-  private void deleteDuringEviction() throws IOException {
+  private void deleteDuringEviction(int i) throws IOException {
+    final String fileName1 = "/file" + i + "_1";
+    final String fileName2 = "/file" + i + "_2";
     int fileId =
-        createAndWriteFile(new TachyonURI("/file1"), WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES);
+        createAndWriteFile(new TachyonURI(fileName1), WriteType.CACHE_THROUGH, MEM_CAPACITY_BYTES);
     TachyonFile file = mTFS.getFile(fileId);
-    Assert.assertEquals(true, file.isInMemory());
-    mTFS.delete(new TachyonURI("/file1"), false);
+    Assert.assertTrue(file.isInMemory());
+    // Deleting file1, command will be sent by master to worker asynchronously
+    mTFS.delete(new TachyonURI(fileName1), false);
+    // Meanwhile creating file2. If creation arrives earlier than deletion, it will evict file1
     fileId =
-        createAndWriteFile(new TachyonURI("/file1"), WriteType.CACHE_THROUGH,
+        createAndWriteFile(new TachyonURI(fileName2), WriteType.CACHE_THROUGH,
             MEM_CAPACITY_BYTES / 4);
     file = mTFS.getFile(fileId);
-    Assert.assertEquals(true, file.isInMemory());
-    mTFS.delete(new TachyonURI("/file1"), false);
+    Assert.assertTrue(file.isInMemory());
+    mTFS.delete(new TachyonURI(fileName2), false);
   }
 
   @Test
   public void deleteDuringEvictionTest() throws IOException {
-    for (int i = 5; i > 0; i --) {
-      deleteDuringEviction();
-      CommonUtils.sleepMs(null, HEARTBEAT_INTERVAL_MS + HEARTBEAT_INTERVAL_MS / i);
+    // This test may not trigger eviction each time, repeat it 20 times.
+    for (int i = 0; i < 20; i ++) {
+      deleteDuringEviction(i);
+      CommonUtils.sleepMs(null, 2 * HEARTBEAT_INTERVAL_MS); // ensure second delete completes
     }
   }
 }

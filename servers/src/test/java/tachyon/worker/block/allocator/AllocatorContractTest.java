@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -24,9 +24,9 @@ import org.junit.Test;
  * i.e., the general properties the allocators need to follow
  */
 public class AllocatorContractTest extends BaseAllocatorTest {
-  
+
   @Test
-  public void shouldNotAllocateTest() throws IOException {
+  public void shouldNotAllocateTest() throws Exception {
     for (AllocatorType type : AllocatorType.values()) {
       resetManagerView();
       Allocator allocator = AllocatorFactory.create(type, mManagerView);
@@ -37,9 +37,9 @@ public class AllocatorContractTest extends BaseAllocatorTest {
       assertTempBlockMeta(allocator, mAnyTierLoc, DEFAULT_SSD_SIZE + 1, true);
     }
   }
-  
+
   @Test
-  public void shouldAllocateTest() throws IOException {
+  public void shouldAllocateTest() throws Exception {
     for (AllocatorType type : AllocatorType.values()) {
       resetManagerView();
       Allocator tierAllocator = AllocatorFactory.create(type, mManagerView);
@@ -52,7 +52,7 @@ public class AllocatorContractTest extends BaseAllocatorTest {
       for (int i = 0; i < DEFAULT_HDD_NUM; i ++) {
         assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc3, DEFAULT_HDD_SIZE - 1, true);
       }
-      
+
       resetManagerView();
       Allocator anyAllocator = AllocatorFactory.create(type, mManagerView);
       for (int i = 0; i < DEFAULT_RAM_NUM; i ++) {

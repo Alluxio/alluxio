@@ -13,22 +13,23 @@
  * the License.
  */
 
-package tachyon;
-
-import tachyon.conf.TachyonConf;
+package tachyon.exception;
 
 /**
- * The version of the current build.
+ * Exception used when the system is not in a state required for the operation.
+ *
+ * For example:
+ * <ul>
+ * <li>userId or blockId does not correspond to that in the record of lockId</li>
+ * <li>user A wants to commit a temp block owned by user B</li>
+ * </ul>
  */
-public class Version {
-  public static final String VERSION;
-
-  static {
-    TachyonConf tachyonConf = new TachyonConf();
-    VERSION = tachyonConf.get(Constants.TACHYON_VERSION, "UNDEFINED");
+public class InvalidStateException extends Exception {
+  public InvalidStateException(String message) {
+    super(message);
   }
 
-  public static void main(String[] args) {
-    System.out.println("Tachyon version: " + VERSION);
+  public InvalidStateException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

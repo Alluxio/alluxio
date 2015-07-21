@@ -34,6 +34,8 @@ import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidStateException;
+import tachyon.exception.NotFoundException;
 import tachyon.network.protocol.RPCBlockReadRequest;
 import tachyon.network.protocol.RPCBlockReadResponse;
 import tachyon.network.protocol.RPCBlockWriteRequest;
@@ -100,7 +102,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     long lockId;
     try {
       lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
-    } catch (IOException ioe) {
+    } catch (NotFoundException ioe) {
       LOG.error("Failed to lock block: " + blockId, ioe);
       RPCBlockReadResponse resp =
           RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.BLOCK_LOCK_ERROR);
@@ -109,7 +111,14 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       return;
     }
 
-    BlockReader reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
+    BlockReader reader;
+    try {
+      reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
+    } catch (NotFoundException nfe) {
+      throw new IOException(nfe);
+    } catch (InvalidStateException fpe) {
+      throw new IOException(fpe);
+    }
     try {
       req.validate();
       final long fileLength = reader.getLength();
@@ -132,7 +141,11 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         reader.close();
       }
     } finally {
-      mDataManager.unlockBlock(lockId);
+      try {
+        mDataManager.unlockBlock(lockId);
+      } catch (NotFoundException nfe) {
+        throw new IOException(nfe);
+      }
     }
   }
 
