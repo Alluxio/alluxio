@@ -64,8 +64,6 @@ public class BlockDataManager {
   private final WorkerSource mWorkerSource;
   /** Metrics reporter that listens on block events and increases metrics counters*/
   private final BlockMetricsReporter mMetricsReporter;
-  /** UserMetrics parses user metrics and updates them in WorkerSource */
-  private final BlockUserMetrics mBlockUserMetrics;
 
   // TODO: See if this can be removed from the class
   /** MasterClient, only used to inform the master of a new block in commitBlock */
@@ -91,7 +89,6 @@ public class BlockDataManager {
     mTachyonConf = tachyonConf;
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
-    mBlockUserMetrics = new BlockUserMetrics();
 
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1,
@@ -511,11 +508,7 @@ public class BlockDataManager {
    */
   public void userHeartbeat(long userId, List<Long> metrics) {
     mUsers.userHeartbeat(userId);
-    // Disable metric collection by setting tachyon.worker.collect.metrics to false in TachyonConf
-    boolean mCollectMetrics = mTachyonConf.getBoolean(Constants.WORKER_COLLECT_METRICS, true);
-    if (mCollectMetrics) {
-      mBlockUserMetrics.updateMetrics(mWorkerSource, metrics);
-    }
+    mMetricsReporter.updateClientMetrics(metrics);
   }
 
   /**
