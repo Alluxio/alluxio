@@ -111,6 +111,7 @@ public class TieredStoreIntegrationTest {
         TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
     // File 2 should be in memory and File 1 should be evicted
+    CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
     Assert.assertFalse(mTFS.getFile(fileId1).isInMemory());
     Assert.assertTrue(mTFS.getFile(fileId2).isInMemory());
   }
