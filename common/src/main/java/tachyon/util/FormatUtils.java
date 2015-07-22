@@ -24,7 +24,9 @@ import tachyon.Constants;
 
 /**
  * Utility methods to parse specific formats, print according to specific formats or transform among
- * different formats.
+ * different formats. They are not only bound to string format but also include parsing objects to a
+ * specific string format, parsing a specific string format back to objects and printing or logging
+ * according to a specific format.
  */
 public class FormatUtils {
   public static String parametersToString(Object... objs) {
