@@ -217,7 +217,7 @@ public class RemoteBlockInStream extends BlockInStream {
     // While we still have bytes to read, make sure the buffer is set to read the byte at mBlockPos.
     // If we fail to set mCurrentBuffer, we stream the rest from the underfs
     while (bytesLeft > 0 && mAttemptReadFromWorkers && updateCurrentBuffer()) {
-      int bytesToRead = (int) Math.min(bytesLeft, mCurrentBuffer.remaining());
+      int bytesToRead = Math.min(bytesLeft, mCurrentBuffer.remaining());
       mCurrentBuffer.get(b, off, bytesToRead);
       if (mRecache) {
         mBlockOutStream.write(b, off, bytesToRead);
