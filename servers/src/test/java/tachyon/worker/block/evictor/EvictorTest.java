@@ -105,7 +105,7 @@ public class EvictorTest {
     List<StorageTier> tiers = mMetaManager.getTiers();
     mTestDir = tiers.get(TEST_TIER_LEVEL).getDir(TEST_DIR);
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_EVICT_STRATEGY, mEvictorClassName);
+    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, mEvictorClassName);
     mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
   }
 
