@@ -22,6 +22,9 @@ import java.util.List;
 import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;
 
+/**
+ * Utilities related to buffers, not only ByteBuffer.
+ */
 public class BufferUtils {
   /**
    * Force to unmap direct buffer if the buffer is no longer used. It is unsafe operation and
