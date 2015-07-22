@@ -50,12 +50,16 @@ last quota will be used. There is a default quota(128MB) for the storage tier wi
 quota for any other storage layer is not set, the system will report the error and exit the
 initialization.
 
-    $ tachyon.worker.allocate.strategy
-Space allocation strategy defines how workers allocate space in storage directories in certain
-storage layers. There are three pre-defined strategies: RANDOM, ROUND_ROBIN, and MAX_FREE. RANDOM
-means that workers allocate space randomly among storage directories; ROUND_ROBIN means workers
-allocate space by round robin among storage directories. MAX_FREE means workers allocate space
-in storage directory which has maximum free space, and it is the default strategy used.
+    $ tachyon.worker.allocate.strategy.class
+Space allocation strategy implementation class defines how workers allocate space in storage
+directories in certain storage layers. There are three pre-defined strategies:
+GREEDY (implemented by tachyon.worker.block.allocator.GreedyAllocator),
+ROUND_ROBIN (implemented by tachyon.worker.block.allocator.RoundRobinAllocator) and
+MAX_FREE (implemented by tachyon.worker.block.allocator.MaxFreeAllocator).
+GREEDY means workers allocate space in the first storage directory fitting the size of block.
+ROUND_ROBIN means workers allocate space by round robin among storage directories.
+MAX_FREE means workers allocate space in storage directory which has maximum free space, and it is
+the default strategy used.
 
     $ tachyon.worker.evict.strategy
 Block file eviction strategy defines how workers evict block files when a storage layer runs
@@ -73,7 +77,7 @@ For example:
     -Dtachyon.worker.tieredstore.level1.alias=SSD
     -Dtachyon.worker.tieredstore.level1.dirs.path=/mnt/ssd1,/mnt/ssd2
     -Dtachyon.worker.tieredstore.level1.dirs.quota=60GB,80GB
-    -Dtachyon.worker.allocate.strategy=MAX_FREE
+    -Dtachyon.worker.allocate.strategy.class=tachyon.worker.block.allocator.MaxFreeAllocator
     -Dtachyon.worker.evict.strategy=LRU
 
 In this example, there are two storage layers. The alias of the first layer is MEM with one
