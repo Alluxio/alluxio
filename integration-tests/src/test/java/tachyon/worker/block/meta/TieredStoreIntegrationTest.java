@@ -20,7 +20,9 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +47,9 @@ public class TieredStoreIntegrationTest {
   private TachyonConf mWorkerConf;
   private TachyonFS mTFS;
 
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
+
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
@@ -59,35 +64,54 @@ public class TieredStoreIntegrationTest {
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
   }
 
+  // Tests that pinning a file prevents it from being evicted.
   @Test
   public void pinFileTest() throws Exception {
-    // Create a file and then pin it
+    // Create a file that fills the entire Tachyon store
     int fileId1 =
         TachyonFSTestUtils.createByteFile(mTFS, "/test1", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+
+    // Pin the file
     mTFS.pinFile(fileId1);
     CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
 
+    // Confirm the pin with master
+    Assert.assertTrue(mTFS.getFileStatus(fileId1, false).isIsPinned());
+
     // Try to create a file that cannot be stored unless the previous file is evicted, expect an
     // exception since worker cannot serve the request
-    Exception caughtException = null;
-    try {
-      TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
-    } catch (IOException ioe) {
-      caughtException = ioe;
-    }
-    Assert.assertNotNull(caughtException);
+    mThrown.expect(IOException.class);
+    TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+  }
 
-    // Unpin the first file
+  // Tests that pinning a file and then unpinning
+  @Test
+  public void unpinFileTest() throws Exception {
+    // Create a file that fills the entire Tachyon store
+    int fileId1 =
+        TachyonFSTestUtils.createByteFile(mTFS, "/test1", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+
+    // Pin the file
+    mTFS.pinFile(fileId1);
+    CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+
+    // Confirm the pin with master
+    Assert.assertTrue(mTFS.getFileStatus(fileId1, false).isIsPinned());
+
+    // Unpin the file
     mTFS.unpinFile(fileId1);
     CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
 
-    // The create should now succeed
-    int fileId3 =
-        TachyonFSTestUtils.createByteFile(mTFS, "/test3", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    // Confirm the unpin
+    Assert.assertFalse(mTFS.getFileStatus(fileId1, false).isIsPinned());
 
-    CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+    // Try to create a file that cannot be stored unless the previous file is evicted, this
+    // should succeed
+    int fileId2 =
+        TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+
     Assert.assertFalse(mTFS.getFile(fileId1).isInMemory());
-    Assert.assertTrue(mTFS.getFile(fileId3).isInMemory());
+    Assert.assertTrue(mTFS.getFile(fileId2).isInMemory());
   }
 
   // TODO: Add this test back when CACHE_PROMOTE is enabled again
