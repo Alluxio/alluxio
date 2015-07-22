@@ -79,14 +79,11 @@ public class DataNettyBuffer extends DataBuffer {
 
   /**
    * Release the Netty ByteBuf.
-   *
-   * @return True if the netty ByteBuf is released. As the Netty channel is responsible for
-   *         performing another {@link ByteBuf#release()}, this method can return false in unit
-   *         tests.
    */
   @Override
-  public boolean release() {
+  public void release() {
     Preconditions.checkState(mNettyBuf != null);
-    return mNettyBuf.release();
+    Preconditions.checkArgument(mNettyBuf.refCnt() > 0, "Netty ByteBuf is already released.");
+    Preconditions.checkArgument(mNettyBuf.release() == true, "Release Netty ByteBuf failed.");
   }
 }

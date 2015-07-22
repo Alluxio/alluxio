@@ -100,11 +100,8 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
   @Override
   public void close() throws IOException {
     if (mReadResponse != null) {
-      boolean res = mReadResponse.getPayloadDataBuffer().release();
-      if (!res) {
-        mReadResponse = null;
-        throw new IOException("Unable to release underlying buffer when closing the reader.");
-      }
+      mReadResponse.getPayloadDataBuffer().release();
+      mReadResponse = null;
     }
   }
 }

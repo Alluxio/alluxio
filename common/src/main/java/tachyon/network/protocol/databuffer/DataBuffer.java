@@ -45,8 +45,6 @@ public abstract class DataBuffer {
 
   /**
    * Release the underlying buffer of this DataBuffer if no longer needed.
-   *
-   * @return True if the underlying buffer is released or no need to release
    */
-  public abstract boolean release();
+  public abstract void release();
 }

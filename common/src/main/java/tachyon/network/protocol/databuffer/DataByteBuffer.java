@@ -54,8 +54,7 @@ public class DataByteBuffer extends DataBuffer {
   }
 
   @Override
-  public boolean release() {
+  public void release() {
     // Nothing we need to release explicitly, let GC take care of all objects.
-    return true;
   }
 }
