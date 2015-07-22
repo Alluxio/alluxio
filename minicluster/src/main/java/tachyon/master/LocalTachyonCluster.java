@@ -31,7 +31,7 @@ import tachyon.exception.OutOfSpaceException;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.block.BlockWorker;
 
 /**
@@ -165,7 +165,7 @@ public final class LocalTachyonCluster {
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";
 
-    mLocalhostName = NetworkUtils.getLocalHostName(100);
+    mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
 
     mMasterConf = tachyonConf;
     mMasterConf.set(Constants.IN_TEST_MODE, "true");

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.util;
+package tachyon.util.network;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -37,15 +37,15 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 
 /**
- * Common network utilities shared by all components in Tachyon.
+ * Common network address related utilities shared by all components in Tachyon.
  */
-public final class NetworkUtils {
+public final class NetworkAddressUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static String sLocalHost;
   private static String sLocalIP;
 
-  private NetworkUtils() {}
+  private NetworkAddressUtils() {}
 
   /**
    * Gets a local host name for the host this JVM is running on
@@ -59,7 +59,7 @@ public final class NetworkUtils {
     }
     int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
         Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
-    return NetworkUtils.getLocalHostName(hostResolutionTimeout);
+    return getLocalHostName(hostResolutionTimeout);
   }
 
   /**
@@ -96,7 +96,7 @@ public final class NetworkUtils {
     }
     int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
         Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
-    return NetworkUtils.getLocalIpAddress(hostResolutionTimeout);
+    return getLocalIpAddress(hostResolutionTimeout);
   }
 
   /**
@@ -232,5 +232,50 @@ public final class NetworkUtils {
     } catch (IllegalAccessException e) {
       throw Throwables.propagate(e);
     }
+  }
+
+  /**
+   * Gets the Tachyon master address from the configuration
+   *
+   * @param conf the configuration of Tachyon
+   * @return the InetSocketAddress of the master
+   */
+  public static InetSocketAddress getMasterAddress(TachyonConf conf) {
+    String masterHostname =
+        conf.get(Constants.MASTER_HOSTNAME, getLocalHostName(conf));
+    int masterPort = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+    return new InetSocketAddress(masterHostname, masterPort);
+  }
+
+  /**
+   * Gets the {@link java.net.InetSocketAddress} of the local worker.
+   *
+   * Make sure there is a local worker before calling this method.
+   *
+   * @param conf the configuration of Tachyon
+   * @return the worker's address
+   */
+  public static InetSocketAddress getLocalWorkerAddress(TachyonConf conf) {
+    String workerHostname = getLocalHostName(conf);
+    int workerPort = conf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
+    return new InetSocketAddress(workerHostname, workerPort);
+  }
+
+  /**
+   * Parse InetSocketAddress from a String
+   *
+   * @param address
+   * @return InetSocketAddress of the String
+   * @throws IOException
+   */
+  public static InetSocketAddress parseInetSocketAddress(String address) throws IOException {
+    if (address == null) {
+      return null;
+    }
+    String[] strArr = address.split(":");
+    if (strArr.length != 2) {
+      throw new IOException("Invalid InetSocketAddress " + address);
+    }
+    return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
   }
 }
