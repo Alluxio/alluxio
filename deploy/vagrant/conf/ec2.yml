@@ -64,30 +64,28 @@ Block_Device_Mapping: []
 # spot instances will be used if and only if the 'Spot_Price' is not empty.
 Spot_Price: ""
 
-# RHEL 6.5 Amazon Machine Images
-# "PV" and "HVM" are different virtualization methods:
-#   http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/virtualization_types.html
+# AMI: 
+#   image of the virtual machine's operating system, it can be ubuntu, centos, Amazon Linux, etc. 
+#   Amazon Linux is a linux distribution by amazon.(http://aws.amazon.com/amazon-linux-ami/)
 #
-# The provided AMIs below are only available in east region, for other regions, 
+# PV/HVM: 
+#   different virtualization methods.(http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/virtualization_types.html)
+# Some Instance Type must need PV/HVM:
+#   http://aws.amazon.com/amazon-linux-ami/instance-type-matrix/
+#
+# Even for the same kind of operating system, an AMI is bound to a specific region.
+# For different regions or different kinds of operating systems, you need to find its ID:
+#
+# To find different AMIs that does not need to support Spot Instance, 
 # click on "Launch Instance" on your EC2 web console, then a list of available AMIs is shown,
 # and you can find the AMI you want.
 #
-# Some Instance Type must need PV/HVM:
-#   http://aws.amazon.com/amazon-linux-ami/instance-type-matrix/
-# PV, NOT support spot request
-# AMI: "ami-b06a98d8"
+# Not all AMIs support Spot Instance, to find different AMIs that supports Spot Request,
+# click "Spot Requests" on left panel in AWS EC2 console -> click "Request Spot Instances", 
+# then you can find the AMI you want.
 #
-# HVM, NOT support spot request
-AMI: "ami-5b697332"
-#
-# NOT ALL AMI supports Spot Request
-# This Amazon Linux AMI(http://aws.amazon.com/amazon-linux-ami/) in us-east-1 
-# is HVM and supports Spot Request.
-# (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html)
-# To find AMI that supports Spot Request in other region, 
-# click "Spot Requests" on left panel in AWS EC2 console 
-# -> click "Request Spot Instances", then you can find the AMI you want.
-# AMI: "ami-1ecae776"
+# This Amazon Linux AMI in region us-east-1 is HVM and supports Spot Instance.
+AMI: "ami-1ecae776"
 
 # EC2 network security groups and subnet id
 # Ensure ports used by Tachyon are on
