@@ -53,7 +53,6 @@ def create_aws_spot_vars(ec2_conf):
         'spot_price':     ec2_conf["Spot_Price"],
         'instance_type':  ec2_conf["Instance_Type"],
         'security_group': ec2_conf["Security_Group"],
-
         'ansible_info_dir': ansible_info_dir,
     }
 
