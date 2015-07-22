@@ -263,8 +263,8 @@ number.
   tachyon.worker.block.allocator.RoundRobinAllocator.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.evict.strategy</td>
-  <td>LRU</td>
+  <td>tachyon.worker.evict.strategy.class</td>
+  <td>tachyon.worker.block.evictor.LRUEvictor</td>
   <td>The strategy that worker evict block files when a storage layer runs out of space.</td>
 </tr>
 <tr> <td>tachyon.worker.data.server.class</td>
