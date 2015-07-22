@@ -197,8 +197,8 @@ public class LocalTachyonClusterMultiMaster {
           String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
       String newPath = "";
-      for (int i = 0; i < dirPaths.length; i ++) {
-        newPath += mTachyonHome + dirPaths[i] + ",";
+      for (String dirPath : dirPaths) {
+        newPath += mTachyonHome + dirPath + ",";
       }
       mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level),
           newPath.substring(0, newPath.length() - 1));
