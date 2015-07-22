@@ -59,6 +59,15 @@ public class AuthenticationFactory {
     public String getAuthName() {
       return mAuthType;
     }
+
+    public static AuthTypes getValidAuthType(String authTypeStr) {
+      for (AuthTypes authTypes : AuthTypes.values()) {
+        if (authTypeStr.equalsIgnoreCase(authTypes.getAuthName())) {
+          return authTypes;
+        }
+      }
+      throw new IllegalArgumentException("Not a valid authentication type: " + authTypeStr);
+    }
   }
 
   private final String mAuthTypeStr;
@@ -66,12 +75,19 @@ public class AuthenticationFactory {
 
   public AuthenticationFactory(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
+    // TODO: change the default value from NOSASL to SIMPLE, after feature is stable.
     mAuthTypeStr = tachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
         AuthTypes.NOSASL.getAuthName());
   }
 
   String getAuthTypeStr() {
     return mAuthTypeStr;
+  }
+
+  public static AuthTypes getAuthTypeFromConf(TachyonConf conf) {
+    // TODO: change the default value from NOSASL to SIMPLE, after feature is stable.
+    return AuthTypes.getValidAuthType(conf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
+        AuthTypes.NOSASL.getAuthName()));
   }
 
   // TODO: add methods of getting different Thrift class in follow-up PR.
