@@ -24,8 +24,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 
-import tachyon.conf.TachyonConf;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.UnderFileSystemUtils;
@@ -235,6 +235,8 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
         mNamenodePort = mDfsCluster.getNameNodePort();
       }
 
+      // For HDFS of eariler versions, getFileSystem() returns an instance of type
+      // {@link org.apache.hadoop.fs.FileSystem} rather than {@link DistributedFileSystem}
       mDfsClient = (DistributedFileSystem) mDfsCluster.getFileSystem();
       mIsStarted = true;
     }
