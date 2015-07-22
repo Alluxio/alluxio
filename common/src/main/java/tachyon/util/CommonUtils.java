@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -25,14 +25,14 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.FilenameUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
+
+import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -71,8 +71,8 @@ public final class CommonUtils {
       redirectIO(process);
 
       if (process.exitValue() != 0) {
-        throw new IOException("Can not change the file " + file.getAbsolutePath()
-            + " 's permission to be " + perms);
+        throw new IOException(
+            "Can not change the file " + file.getAbsolutePath() + " 's permission to be " + perms);
       }
     } catch (InterruptedException e) {
       LOG.error(e.getMessage());
@@ -138,9 +138,25 @@ public final class CommonUtils {
     return FilenameUtils.separatorsToUnix(FilenameUtils.normalizeNoEndSeparator(path));
   }
 
+  /**
+   * Clone a bytebuffer.
+   * <p>
+   * The new bytebuffer will have the same content, but may be a different type of bytebuffer
+   *
+   * @param buf The ByteBuffer to clone
+   * @return The new ByteBuffer
+   */
   public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
+    if (buf == null) {
+      return null;
+    }
     ByteBuffer ret = ByteBuffer.allocate(buf.limit() - buf.position());
-    ret.put(buf.array(), buf.position(), buf.limit() - buf.position());
+    if (buf.hasArray()) {
+      ret.put(buf.array(), buf.position(), buf.limit() - buf.position());
+    } else {
+      // direct buffer
+      ret.put(buf);
+    }
     ret.flip();
     return ret;
   }
@@ -183,9 +199,7 @@ public final class CommonUtils {
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
     // TODO this is a trick to fix the issue in thrift. Change the code to use
     // metadata directly when thrift fixes the issue.
-    ByteBuffer correctData = ByteBuffer.allocate(data.limit() - data.position());
-    correctData.put(data);
-    correctData.flip();
+    ByteBuffer correctData = cloneByteBuffer(data);
     return correctData;
   }
 
@@ -213,6 +227,8 @@ public final class CommonUtils {
 
   /**
    * Get the path components of the given path.
+   * 
+   * 
    *
    * @param path The path to split
    * @return the path split into components
@@ -228,6 +244,12 @@ public final class CommonUtils {
     return path.split(TachyonURI.SEPARATOR);
   }
 
+  /**
+   * Return a human-readable version of bytes 10GB 2048KB etc.
+   *
+   * @param bytes the number of bytes
+   * @return human readable version
+   */
   public static String getSizeFromBytes(long bytes) {
     double ret = bytes;
     if (ret <= 1024 * 5) {
@@ -425,7 +447,7 @@ public final class CommonUtils {
    */
   public static <T> T createNewClassInstance(Class<T> cls, Class<?>[] ctorClassArgs,
       Object[] ctorArgs) throws InstantiationException, IllegalAccessException,
-      NoSuchMethodException, SecurityException, InvocationTargetException {
+          NoSuchMethodException, SecurityException, InvocationTargetException {
     if (ctorClassArgs == null) {
       return cls.newInstance();
     }
