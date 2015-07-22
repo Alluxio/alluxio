@@ -16,11 +16,18 @@
 package tachyon.worker.block.evictor;
 
 import java.io.File;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.Reflection;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,6 +36,8 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
@@ -36,7 +45,7 @@ import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
 /**
- * This is a parameterized unit test for all types of {@link Evictor} defined in {@link EvictorType}
+ * This is a parameterized unit test for Evictor classes that implement {@link Evictor}
  *
  * It performs sanity check on Evictors regardless of their types, in cases like not evicting any
  * blocks when the required space is already available, proposed eviction ensuring enough space, and
@@ -56,8 +65,8 @@ public class EvictorTest {
   private StorageDir mTestDir;
   private BlockMetadataManager mMetaManager;
   private BlockMetadataManagerView mManagerView;
-  private EvictorType mEvictorType;
   private Evictor mEvictor;
+  private final String mEvictorClassName;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -66,16 +75,26 @@ public class EvictorTest {
   public static Collection<Object[]> data() {
     // Run this test against all types of Evictors
     List<Object[]> list = new ArrayList<Object[]>();
-    for (EvictorType type : EvictorType.values()) {
-      if (type != EvictorType.DEFAULT) {
-        list.add(new Object[] {type});
+    try {
+      String packageName = Reflection.getPackageName(Evictor.class);
+      ClassPath path = ClassPath.from(Thread.currentThread().getContextClassLoader());
+      List<ClassPath.ClassInfo> clazzInPackage =
+          new ArrayList<ClassPath.ClassInfo>(path.getTopLevelClassesRecursive(packageName));
+      for (ClassPath.ClassInfo clazz: clazzInPackage) {
+        Set<Class<?>> interfaces =
+            new HashSet<Class<?>>(Arrays.asList(clazz.load().getInterfaces()));
+        if (interfaces.size() > 0 && interfaces.contains(Evictor.class)) {
+          list.add(new Object[] {clazz.getName()});
+        }
       }
+    } catch (Exception e) {
+      Assert.fail("Failed to find implementation of allocate strategy");
     }
     return list;
   }
 
-  public EvictorTest(EvictorType evictorType) {
-    mEvictorType = evictorType;
+  public EvictorTest(String evictorClassName) {
+    mEvictorClassName = evictorClassName;
   }
 
   @Before
@@ -87,7 +106,9 @@ public class EvictorTest {
             Collections.<Long>emptySet());
     List<StorageTier> tiers = mMetaManager.getTiers();
     mTestDir = tiers.get(TEST_TIER_LEVEL).getDir(TEST_DIR);
-    mEvictor = EvictorFactory.create(mEvictorType, mManagerView);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.WORKER_EVICT_STRATEGY, mEvictorClassName);
+    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
   }
 
   @Test
