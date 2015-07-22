@@ -64,6 +64,8 @@ public class BlockDataManager {
   private final WorkerSource mWorkerSource;
   /** Metrics reporter that listens on block events and increases metrics counters*/
   private final BlockMetricsReporter mMetricsReporter;
+  /** UserMetrics parses user metrics and updates them in WorkerSource */
+  private final BlockUserMetrics mBlockUserMetrics;
 
   // TODO: See if this can be removed from the class
   /** MasterClient, only used to inform the master of a new block in commitBlock */
@@ -89,6 +91,7 @@ public class BlockDataManager {
     mTachyonConf = tachyonConf;
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
+    mBlockUserMetrics = new BlockUserMetrics();
 
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1,
@@ -508,19 +511,10 @@ public class BlockDataManager {
    */
   public void userHeartbeat(long userId, List<Long> metrics) {
     mUsers.userHeartbeat(userId);
-    // TODO: Provide a way to disable the metrics collection
-    if (null != metrics && !metrics.isEmpty() && metrics.get(Constants.CLIENT_METRICS_VERSION_INDEX)
-        == Constants.CLIENT_METRICS_VERSION) {
-      mWorkerSource.incBlocksReadLocal(metrics.get(Constants.BLOCKS_READ_LOCAL_INDEX));
-      mWorkerSource.incBlocksReadRemote(metrics.get(Constants.BLOCKS_READ_REMOTE_INDEX));
-      mWorkerSource.incBlocksWrittenLocal(metrics.get(Constants.BLOCKS_WRITTEN_LOCAL_INDEX));
-      mWorkerSource.incBlocksWrittenRemote(metrics.get(Constants.BLOCKS_WRITTEN_REMOTE_INDEX));
-      mWorkerSource.incBytesReadLocal(metrics.get(Constants.BYTES_READ_LOCAL_INDEX));
-      mWorkerSource.incBytesReadRemote(metrics.get(Constants.BYTES_READ_REMOTE_INDEX));
-      mWorkerSource.incBytesReadUfs(metrics.get(Constants.BYTES_READ_UFS_INDEX));
-      mWorkerSource.incBytesWrittenLocal(metrics.get(Constants.BYTES_WRITTEN_LOCAL_INDEX));
-      mWorkerSource.incBytesWrittenRemote(metrics.get(Constants.BYTES_WRITTEN_REMOTE_INDEX));
-      mWorkerSource.incBytesWrittenUfs(metrics.get(Constants.BYTES_WRITTEN_UFS_INDEX));
+    // Disable metric collection by setting tachyon.worker.collect.metrics to false in TachyonConf
+    boolean mCollectMetrics = mTachyonConf.getBoolean(Constants.WORKER_COLLECT_METRICS, true);
+    if (mCollectMetrics) {
+      mBlockUserMetrics.updateMetrics(mWorkerSource, metrics);
     }
   }
 

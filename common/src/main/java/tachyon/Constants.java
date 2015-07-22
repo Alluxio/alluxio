@@ -197,6 +197,7 @@ public class Constants {
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
   public static final String WORKER_DATA_SERVER = "tachyon.worker.data.server.class";
+  public static final String WORKER_COLLECT_METRICS = "tachyon.worker.collect.metrics";
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";
