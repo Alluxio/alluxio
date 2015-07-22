@@ -53,21 +53,21 @@ public class AllocatorFactoryTest {
 
   @Test
   public void createGreedyAllocatorTest() {
-    mTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY, GreedyAllocator.class.getName());
+    mTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, GreedyAllocator.class.getName());
     Allocator allocator = Allocator.Factory.createAllocator(mTachyonConf, mManagerView);
     Assert.assertTrue(allocator instanceof GreedyAllocator);
   }
 
   @Test
   public void createMaxFreeAllocatorTest() {
-    mTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY, MaxFreeAllocator.class.getName());
+    mTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.createAllocator(mTachyonConf, mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }
 
   @Test
   public void createRoundRobinAllocatorTest() {
-    mTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY, RoundRobinAllocator.class.getName());
+    mTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, RoundRobinAllocator.class.getName());
     Allocator allocator = Allocator.Factory.createAllocator(mTachyonConf, mManagerView);
     Assert.assertTrue(allocator instanceof RoundRobinAllocator);
   }
