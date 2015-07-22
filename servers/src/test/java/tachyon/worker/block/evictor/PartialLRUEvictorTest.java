@@ -54,7 +54,7 @@ public class PartialLRUEvictorTest {
         new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
             Collections.<Long>emptySet());
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_EVICT_STRATEGY, PartialLRUEvictor.class.getName());
+    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, PartialLRUEvictor.class.getName());
     mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
   }
 

@@ -17,8 +17,6 @@ package tachyon.worker.block.evictor;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -57,7 +55,7 @@ public class LRUEvictorTest {
         new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
             Collections.<Long>emptySet());
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_EVICT_STRATEGY, LRUEvictor.class.getName());
+    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, LRUEvictor.class.getName());
     mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
   }
 
