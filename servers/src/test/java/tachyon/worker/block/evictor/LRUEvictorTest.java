@@ -56,9 +56,9 @@ public class LRUEvictorTest {
     mManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
             Collections.<Long>emptySet());
-    Map<String, String> props = new LinkedHashMap<String, String>();
-    props.put(Constants.WORKER_EVICT_STRATEGY, LRUEvictor.class.getName());
-    mEvictor = Evictor.Factory.createEvictor(new TachyonConf(props), mManagerView);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.WORKER_EVICT_STRATEGY, LRUEvictor.class.getName());
+    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
   }
 
   private void cache(long userId, long blockId, long bytes, int tierLevel, int dirIdx)
