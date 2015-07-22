@@ -235,7 +235,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
         mNamenodePort = mDfsCluster.getNameNodePort();
       }
 
-      mDfsClient = (DistributedFileSystem) mDfsCluster.getFileSystem();
+      mDfsClient = mDfsCluster.getFileSystem();
       mIsStarted = true;
     }
   }
