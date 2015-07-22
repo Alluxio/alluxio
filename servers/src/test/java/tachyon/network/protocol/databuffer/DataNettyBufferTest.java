@@ -99,6 +99,24 @@ public class DataNettyBufferTest {
   public void releaseBufferTest() {
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
     mBuffer.release(); // this simulates a release performed by message channel
-    Assert.assertTrue(data.release());
+    data.release();
+  }
+
+  @Test
+  public void releaseBufferFailTest() {
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("Release Netty ByteBuf failed.");
+    DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
+    data.release();
+  }
+
+  @Test
+  public void bufferAlreadyReleasedTest() {
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("Netty ByteBuf is already released.");
+    DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
+    mBuffer.release(); // this simulates a release performed by message channel
+    mBuffer.release(); // this simulates an additional release
+    data.release();
   }
 }
