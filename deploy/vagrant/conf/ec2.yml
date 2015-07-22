@@ -17,8 +17,8 @@ Instance_Type: "t2.small"
 # specify this to illustrate the usage of your cluster, especially when you
 # share the EC2 with others, without tags, it's hard to tell which cluster is yours. 
 #
-# The machines will be named to {Tag}TachyonMaster, {Tag}TachyonWorker1...
-Tag: "my-"
+# The machines will be named to {Tag}-TachyonMaster, {Tag}-TachyonWorker1...
+Tag: "my"
 
 # By default, EC2 instance only mounts 10GB under root directory '/'.
 # Different instance types provide different amount of extra disk spaces,
@@ -58,20 +58,34 @@ Block_Device_Mapping: []
 # modify only when you know what you are doing
 #
 
-# RHEL 6.5 Amazon Machine Images
-# "PV" and "HVM" are different virtualization methods:
-#   http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/virtualization_types.html
+# If you want to use "Spot Instance"
+# (http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html), 
+# set this field like "0.2", unit is dollar
+# spot instances will be used if and only if the 'Spot_Price' is not empty.
+Spot_Price: ""
+
+# AMI: 
+#   image of the virtual machine's operating system, it can be ubuntu, centos, Amazon Linux, etc. 
+#   Amazon Linux is a linux distribution by amazon.(http://aws.amazon.com/amazon-linux-ami/)
 #
-# The provided AMIs below are only available in east region, for other regions, 
+# PV/HVM: 
+#   different virtualization methods.(http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/virtualization_types.html)
+# Some Instance Type must need PV/HVM:
+#   http://aws.amazon.com/amazon-linux-ami/instance-type-matrix/
+#
+# Even for the same kind of operating system, an AMI is bound to a specific region.
+# For different regions or different kinds of operating systems, you need to find its ID:
+#
+# To find different AMIs that does not need to support Spot Instance, 
 # click on "Launch Instance" on your EC2 web console, then a list of available AMIs is shown,
 # and you can find the AMI you want.
 #
-# Some Instance Type must need PV/HVM:
-#   http://aws.amazon.com/amazon-linux-ami/instance-type-matrix/
-# PV
-AMI: "ami-b06a98d8"
-# HVM
-# AMI: "ami-5b697332"
+# Not all AMIs support Spot Instance, to find different AMIs that supports Spot Request,
+# click "Spot Requests" on left panel in AWS EC2 console -> click "Request Spot Instances", 
+# then you can find the AMI you want.
+#
+# This Amazon Linux AMI in region us-east-1 is HVM and supports Spot Instance.
+AMI: "ami-1ecae776"
 
 # EC2 network security groups and subnet id
 # Ensure ports used by Tachyon are on

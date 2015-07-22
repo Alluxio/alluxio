@@ -201,3 +201,9 @@ refer to [how to expand partition](http://docs.aws.amazon.com/AWSEC2/latest/User
 #### What's PV/HVM?
 
 Please refer to [official AWS documentation](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/virtualization_types.html).
+
+#### How to use AWS Spot Instance?
+
+[Explanation for Spot Instance](http://aws.amazon.com/ec2/purchasing-options/spot-instances/).
+
+Set "Spot_Price" in conf/ec2.yml, that's all. We do not support persistent spot instances.
