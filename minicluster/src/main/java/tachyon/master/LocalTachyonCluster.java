@@ -231,10 +231,10 @@ public final class LocalTachyonCluster {
           Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
       List<String> newPaths = new ArrayList<String>();
-      for (int i = 0; i < dirPaths.length; i ++) {
-        String dirPath = mTachyonHome + dirPaths[i];
-        newPaths.add(dirPath);
-        mkdir(dirPath);
+      for (String dirPath : dirPaths) {
+        String newPath = mTachyonHome + dirPath;
+        newPaths.add(newPath);
+        mkdir(newPath);
       }
       mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level),
           Joiner.on(',').join(newPaths));
