@@ -68,15 +68,15 @@ public class TieredStoreIntegrationTest {
   @Test
   public void pinFileTest() throws Exception {
     // Create a file that fills the entire Tachyon store
-    int fileId1 =
+    int fileId =
         TachyonFSTestUtils.createByteFile(mTFS, "/test1", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
     // Pin the file
-    mTFS.pinFile(fileId1);
+    mTFS.pinFile(fileId);
     CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
 
     // Confirm the pin with master
-    Assert.assertTrue(mTFS.getFileStatus(fileId1, false).isIsPinned());
+    Assert.assertTrue(mTFS.getFileStatus(fileId, false).isIsPinned());
 
     // Try to create a file that cannot be stored unless the previous file is evicted, expect an
     // exception since worker cannot serve the request
@@ -110,6 +110,7 @@ public class TieredStoreIntegrationTest {
     int fileId2 =
         TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
+    // File 2 should be in memory and File 1 should be evicted
     Assert.assertFalse(mTFS.getFile(fileId1).isInMemory());
     Assert.assertTrue(mTFS.getFile(fileId2).isInMemory());
   }
