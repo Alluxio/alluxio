@@ -72,7 +72,7 @@ public class RPCBlockReadRequest extends RPCRequest {
   public void validate() {
     Preconditions.checkState(mOffset >= 0, "Offset can not be negative: %s", mOffset);
     Preconditions.checkState(mLength >= 0 || mLength == -1,
-        "Length can not be negative except -1: %s", mLength);
+        "Length cannot be negative (except for -1): %s", mLength);
   }
 
   @Override
