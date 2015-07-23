@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +37,6 @@ public class FileUtilsTest {
    * @param filePath that will change permission
    * @throws IOException
    */
-
   @Test
   public void changeLocalFilePermissionTest() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
