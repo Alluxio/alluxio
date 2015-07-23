@@ -68,9 +68,9 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
   public static class UiWorkerInfo {
     public static final boolean DEBUG = Constants.DEBUG;
+    public static final String VERSION = Version.VERSION;
     private final String mWorkerAddress;
     private final long mStartTimeMs;
-    public static final String VERSION = Version.VERSION;
 
     public UiWorkerInfo(String workerAddress, long startTimeMs) {
       mWorkerAddress = workerAddress;
@@ -98,7 +98,7 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   public WebInterfaceWorkerGeneralServlet(BlockDataManager blockDataManager,
       InetSocketAddress workerAddress, long startTimeMs) {
     mBlockDataManager = blockDataManager;
-    mUiWorkerInfo = new UiWorkerInfo(workerAddress.toString(),startTimeMs);
+    mUiWorkerInfo = new UiWorkerInfo(workerAddress.toString(), startTimeMs);
   }
 
   @Override
@@ -115,7 +115,7 @@ public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
    * @throws IOException
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    request.setAttribute("workerInfo",mUiWorkerInfo);
+    request.setAttribute("workerInfo", mUiWorkerInfo);
 
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     long capacityBytes = 0L;

@@ -17,7 +17,7 @@
 <script src="../js/bootstrap.min.js"></script>
 <div class="container-fluid">
   <% request.setAttribute("useWorkerHeader", "1"); %>
-  <% UiWorkerInfo workerInfo = (UiWorkerInfo)request.getAttribute("workerInfo"); %>
+  <% UiWorkerInfo workerInfo = (UiWorkerInfo) request.getAttribute("workerInfo"); %>
   <jsp:include page="/header" />
   <div class="row-fluid">
     <div class="accordion span6" id="accordion1">
