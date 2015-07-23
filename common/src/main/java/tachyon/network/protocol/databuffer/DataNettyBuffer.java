@@ -42,9 +42,9 @@ public class DataNettyBuffer extends DataBuffer {
   public DataNettyBuffer(ByteBuf bytebuf, long length) {
     // throws exception if there are multiple nioBuffers, or reference count is not 1
     Preconditions.checkArgument(bytebuf.nioBufferCount() == 1,
-        "Number of nioBuffers for this ByteBuf not equals to 1.");
+        "Number of nioBuffers of this bytebuf is %s (1 expected).", bytebuf.nioBufferCount());
     Preconditions.checkArgument(bytebuf.refCnt() == 1,
-        "Reference count for this ByteBuf not equals to 1.");
+        "Reference count of this bytebuf is %s (1 expected).", bytebuf.refCnt());
 
     // increase the bytebuf reference count so it would not be recycled by Netty
     bytebuf.retain();
@@ -83,7 +83,8 @@ public class DataNettyBuffer extends DataBuffer {
   @Override
   public void release() {
     Preconditions.checkState(mNettyBuf != null);
-    Preconditions.checkState(mNettyBuf.refCnt() > 0, "Netty ByteBuf is already released.");
+    Preconditions.checkState(mNettyBuf.refCnt() == 1,
+        "Reference count of the netty buffer is %s (1 expected).", mNettyBuf.refCnt());
     Preconditions.checkState(mNettyBuf.release() == true, "Release Netty ByteBuf failed.");
   }
 }

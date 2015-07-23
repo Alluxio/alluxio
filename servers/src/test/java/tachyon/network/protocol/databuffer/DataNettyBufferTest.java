@@ -39,7 +39,6 @@ public class DataNettyBufferTest {
   @Before
   public final void before() {
     mBuffer = Unpooled.buffer(LENGTH);
-    mBuffer.writeInt(1);
   }
 
   @After
@@ -56,7 +55,7 @@ public class DataNettyBufferTest {
   @Test
   public void singleNioBufferCheckFailedTest() {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("Number of nioBuffers for this ByteBuf not equals to 1.");
+    mThrown.expectMessage("Number of nioBuffers of this bytebuf is 2 (1 expected).");
     releaseBuffer(); // not using the default ByteBuf given in Before()
     // creating a CompositeByteBuf with 2 NIO buffers
     mBuffer = Unpooled.compositeBuffer();
@@ -68,7 +67,7 @@ public class DataNettyBufferTest {
   @Test
   public void refCountCheckFailedTest() {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("Reference count for this ByteBuf not equals to 1.");
+    mThrown.expectMessage("Reference count of this bytebuf is 2 (1 expected).");
     mBuffer.retain(); // increase reference count by 1
     new DataNettyBuffer(mBuffer, LENGTH);
   }
@@ -105,7 +104,7 @@ public class DataNettyBufferTest {
   @Test
   public void releaseBufferFailTest() {
     mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage("Release Netty ByteBuf failed.");
+    mThrown.expectMessage("Reference count of the netty buffer is 2 (1 expected).");
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
     data.release();
   }
@@ -113,7 +112,7 @@ public class DataNettyBufferTest {
   @Test
   public void bufferAlreadyReleasedTest() {
     mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage("Netty ByteBuf is already released.");
+    mThrown.expectMessage("Reference count of the netty buffer is 0 (1 expected).");
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
     mBuffer.release(); // this simulates a release performed by message channel
     mBuffer.release(); // this simulates an additional release
