@@ -29,7 +29,7 @@ import io.netty.channel.socket.SocketChannel;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.network.ChannelType;
-import tachyon.network.NettyUtils;
+import tachyon.util.network.NettyUtils;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCMessageDecoder;
 import tachyon.network.protocol.RPCMessageEncoder;

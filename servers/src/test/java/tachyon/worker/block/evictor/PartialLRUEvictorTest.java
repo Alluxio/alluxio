@@ -24,6 +24,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
@@ -51,7 +53,9 @@ public class PartialLRUEvictorTest {
     mManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
             Collections.<Long>emptySet());
-    mEvictor = EvictorFactory.create(EvictorType.PARTIAL_LRU, mManagerView);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, PartialLRUEvictor.class.getName());
+    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
   }
 
   private void cache(long userId, long blockId, long bytes, int tierLevel, int dirIdx)

@@ -36,6 +36,7 @@ import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.DependencyType;
 import tachyon.util.CommonUtils;
+import tachyon.util.FormatUtils;
 
 /**
  * An example to show to how use Tachyon's API
@@ -74,7 +75,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
             "BasicCheckpoint Dependency", "Tachyon Examples", "0.3",
             DependencyType.Narrow.getValue(), 512 * Constants.MB);
 
-    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createDependency with depId " + depId);
+    FormatUtils.printTimeTakenMs(startTimeMs, LOG, "createDependency with depId " + depId);
   }
 
   private boolean readFile(TachyonFS tachyonClient) throws IOException {

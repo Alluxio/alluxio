@@ -36,8 +36,9 @@ import tachyon.exception.OutOfSpaceException;
 import tachyon.master.MasterClient;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.io.FileUtils;
+import tachyon.util.io.PathUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
@@ -94,7 +95,7 @@ public class BlockDataManager {
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
     mMasterClient =
-        new MasterClient(BlockWorkerUtils.getMasterAddress(mTachyonConf),
+        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
             mMasterClientExecutorService, mTachyonConf);
 
     // Create Under FileSystem Client
@@ -104,8 +105,8 @@ public class BlockDataManager {
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
 
     // Connect to UFS to handle UFS security
-    InetSocketAddress workerAddress = BlockWorkerUtils.getWorkerAddress(mTachyonConf);
-    mUfs.connectFromWorker(mTachyonConf, NetworkUtils.getFqdnHost(workerAddress));
+    InetSocketAddress workerAddress = NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf);
+    mUfs.connectFromWorker(mTachyonConf, NetworkAddressUtils.getFqdnHost(workerAddress));
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
@@ -154,10 +155,10 @@ public class BlockDataManager {
    */
   public void addCheckpoint(long userId, int fileId) throws TException, IOException {
     // TODO This part needs to be changed.
-    String srcPath = CommonUtils.concatPath(getUserUfsTmpFolder(userId), fileId);
+    String srcPath = PathUtils.concatPath(getUserUfsTmpFolder(userId), fileId);
     String ufsDataFolder =
         mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
-    String dstPath = CommonUtils.concatPath(ufsDataFolder, fileId);
+    String dstPath = PathUtils.concatPath(ufsDataFolder, fileId);
     try {
       if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
@@ -175,7 +176,8 @@ public class BlockDataManager {
   }
 
   /**
-   * Cleans up after users, to prevent zombie users. This method is called periodically.
+   * Cleans up after users, to prevent zombie users. This method is called periodically
+   * by UserCleaner thread.
    */
   public void cleanupUsers() {
     for (long user : mUsers.getTimedOutUsers()) {
@@ -277,7 +279,7 @@ public class BlockDataManager {
       InvalidStateException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
-    CommonUtils.createBlockPath(createdBlock.getPath());
+    FileUtils.createBlockPath(createdBlock.getPath());
   }
 
   /**

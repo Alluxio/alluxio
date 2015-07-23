@@ -353,30 +353,32 @@ public class BlockMetadataManager {
       return blockMeta;
     }
 
+    long blockSize = blockMeta.getBlockSize();
     int newTierAlias = newLocation.tierAlias();
     StorageTier newTier = getTier(newTierAlias);
     StorageDir newDir = null;
     if (newLocation.equals(BlockStoreLocation.anyDirInTier(newTierAlias))) {
       for (StorageDir dir : newTier.getStorageDirs()) {
-        if (dir.getAvailableBytes() >= blockMeta.getBlockSize()) {
+        if (dir.getAvailableBytes() >= blockSize) {
           newDir = dir;
+          break;
         }
       }
     } else {
       StorageDir dir = newTier.getDir(newLocation.dir());
-      if (dir.getAvailableBytes() >= blockMeta.getBlockSize()) {
+      if (dir.getAvailableBytes() >= blockSize) {
         newDir = dir;
       }
     }
 
     if (newDir == null) {
       throw new OutOfSpaceException("Failed to move BlockMeta: newLocation " + newLocation
-          + " does not have enough space for " + blockMeta.getBlockSize() + " bytes");
+          + " does not have enough space for " + blockSize + " bytes");
     }
     StorageDir oldDir = blockMeta.getParentDir();
     oldDir.removeBlockMeta(blockMeta);
     BlockMeta newBlockMeta =
-        new BlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), newDir);
+        new BlockMeta(blockMeta.getBlockId(), blockSize, newDir);
     newDir.addBlockMeta(newBlockMeta);
     return newBlockMeta;
   }

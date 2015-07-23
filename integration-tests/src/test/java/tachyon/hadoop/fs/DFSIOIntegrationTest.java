@@ -905,12 +905,12 @@ public class DFSIOIntegrationTest implements Tool {
       if (sGenerateReportFile) {
         res = new PrintStream(new FileOutputStream(new File(resFileName), true));
       }
-      for (int i = 0; i < resultLines.length; i ++) {
-        LOG.info(resultLines[i]);
+      for (String resultLine : resultLines) {
+        LOG.info(resultLine);
         if (sGenerateReportFile) {
-          res.println(resultLines[i]);
+          res.println(resultLine);
         } else {
-          System.out.println(resultLines[i]);
+          System.out.println(resultLine);
         }
       }
     } finally {
