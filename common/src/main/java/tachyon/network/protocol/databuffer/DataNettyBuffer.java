@@ -83,7 +83,7 @@ public class DataNettyBuffer extends DataBuffer {
   @Override
   public void release() {
     Preconditions.checkState(mNettyBuf != null);
-    Preconditions.checkArgument(mNettyBuf.refCnt() > 0, "Netty ByteBuf is already released.");
-    Preconditions.checkArgument(mNettyBuf.release() == true, "Release Netty ByteBuf failed.");
+    Preconditions.checkState(mNettyBuf.refCnt() > 0, "Netty ByteBuf is already released.");
+    Preconditions.checkState(mNettyBuf.release() == true, "Release Netty ByteBuf failed.");
   }
 }
