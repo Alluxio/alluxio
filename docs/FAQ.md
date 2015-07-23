@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Tachyon FAQ
+group: More
 ---
 
 ## Tachyon Frequently Asked Questions.

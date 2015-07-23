@@ -16,7 +16,6 @@
 package tachyon.worker.block.allocator;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 
 import org.junit.Assert;
@@ -25,15 +24,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.evictor.EvictorTestUtils;
 
-/*
- * Test AllocatorFactory by passing different AllocatorType
- * and test if it generate the correct Allocator instance.
+/**
+ * Test {@link Allocator.Factory} by passing different allocate strategy class
+ * names with tachyon conf and test if it generates the correct Allocator instance.
  */
 public class AllocatorFactoryTest {
+  private TachyonConf mTachyonConf;
   private BlockMetadataManager mMetaManager;
   private BlockMetadataManagerView mManagerView;
 
@@ -43,6 +45,7 @@ public class AllocatorFactoryTest {
   @Before
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
+    mTachyonConf = new TachyonConf();
     mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
         Collections.<Long>emptySet());
@@ -50,19 +53,33 @@ public class AllocatorFactoryTest {
 
   @Test
   public void createGreedyAllocatorTest() {
-    Allocator allocator = AllocatorFactory.create(AllocatorType.GREEDY, mManagerView);
+    mTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, GreedyAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.createAllocator(mTachyonConf, mManagerView);
     Assert.assertTrue(allocator instanceof GreedyAllocator);
   }
 
   @Test
   public void createMaxFreeAllocatorTest() {
-    Allocator allocator = AllocatorFactory.create(AllocatorType.MAX_FREE, mManagerView);
+    mTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.createAllocator(mTachyonConf, mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }
 
   @Test
-  public void createDefaultAllocatorTypeTest() {
-    Allocator allocator = AllocatorFactory.create(AllocatorType.DEFAULT, mManagerView);
+  public void createRoundRobinAllocatorTest() {
+    mTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, RoundRobinAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.createAllocator(mTachyonConf, mManagerView);
+    Assert.assertTrue(allocator instanceof RoundRobinAllocator);
+  }
+
+  @Test
+  public void createDefaultAllocatorTest() {
+    /*
+     * create a new instance of TachyonConf with original
+     * properties to test the default behavior of createAllocator
+     */
+    TachyonConf conf = new TachyonConf();
+    Allocator allocator = Allocator.Factory.createAllocator(conf, mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }
 }

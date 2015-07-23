@@ -65,8 +65,8 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
-import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.io.BufferUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * The client side of master server.
@@ -184,7 +184,7 @@ public final class MasterClient implements Closeable {
 
       mProtocol =
           new TBinaryProtocol(new TFramedTransport(new TSocket(
-              NetworkUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
+              NetworkAddressUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
       mClient = new MasterService.Client(mProtocol);
       try {
         mProtocol.getTransport().open();
@@ -289,7 +289,7 @@ public final class MasterClient implements Closeable {
             mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, null));
     try {
       String temp = leaderInquireClient.getMasterAddress();
-      return CommonUtils.parseInetSocketAddress(temp);
+      return NetworkAddressUtils.parseInetSocketAddress(temp);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -586,7 +586,7 @@ public final class MasterClient implements Closeable {
 
       try {
         ClientRawTableInfo ret = mClient.user_getClientRawTableInfo(id, path);
-        ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
+        ret.setMetadata(BufferUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
         return ret;
       } catch (TableDoesNotExistException e) {
         throw new IOException(e);

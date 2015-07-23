@@ -43,7 +43,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
-import tachyon.util.CommonUtils;
+import tachyon.util.FormatUtils;
 
 /**
  * Class for handling command line inputs.
@@ -356,7 +356,7 @@ public class TFsShell implements Closeable {
           inMemory = "Not In Memory";
         }
       }
-      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
+      System.out.format(format, FormatUtils.getSizeFromBytes(file.getLength()),
           convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
     }
     return 0;
@@ -394,7 +394,7 @@ public class TFsShell implements Closeable {
           inMemory = "Not In Memory";
         }
       }
-      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
+      System.out.format(format, FormatUtils.getSizeFromBytes(file.getLength()),
           convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
       if (file.isFolder) {
         lsr(new String[] {"lsr", file.getPath()});

@@ -15,6 +15,11 @@
 
 package tachyon.worker.block.evictor;
 
+import com.google.common.base.Throwables;
+
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 
@@ -22,6 +27,26 @@ import tachyon.worker.block.BlockStoreLocation;
  * Interface for the eviction policy in Tachyon
  */
 public interface Evictor {
+
+  class Factory {
+    /**
+     *
+     * @param conf TachyonConf to determine the evictor type
+     * @param view BlockMetadataManagerView to pass to Evictor
+     * @return the generated Evictor
+     */
+    public static Evictor createEvictor(TachyonConf conf, BlockMetadataManagerView view) {
+      try {
+        return CommonUtils.createNewClassInstance(
+            conf.getClass(Constants.WORKER_EVICT_STRATEGY_CLASS, LRUEvictor.class),
+            new Class[]{BlockMetadataManagerView.class},
+            new Object[]{view});
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
+    }
+  }
+
   /**
    * Frees space in the given block store location and with the given view.
    * After eviction, at least one StorageDir in the location

@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -34,7 +34,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.io.Utils;
 import tachyon.thrift.ClientDependencyInfo;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
 
 /**
  * Describe the lineage between files. Used for recomputation.
@@ -44,7 +44,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Create a new dependency from a JSON Element.
-   * 
+   *
    * @param ele the JSON element
    * @return the loaded dependency
    * @throws IOException
@@ -88,7 +88,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Create a new dependency
-   * 
+   *
    * @param id The id of the dependency
    * @param parents The input files' id of the dependency
    * @param children The output files' id of the dependency
@@ -116,7 +116,7 @@ public class Dependency extends ImageWriter {
     mUncheckpointedChildrenFiles = new HashSet<Integer>();
     mUncheckpointedChildrenFiles.addAll(mChildrenFiles);
     mCommandPrefix = commandPrefix;
-    mData = CommonUtils.cloneByteBufferList(data);
+    mData = BufferUtils.cloneByteBufferList(data);
 
     mComment = comment;
     mFramework = framework;
@@ -134,7 +134,7 @@ public class Dependency extends ImageWriter {
   /**
    * Add a child dependency, which means one of the children of the current dependency is a parent
    * of the added dependency.
-   * 
+   *
    * @param childDependencyId The id of the child dependency to be added
    */
   public synchronized void addChildrenDependency(int childDependencyId) {
@@ -148,7 +148,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * A file lost. Add it to the dependency.
-   * 
+   *
    * @param fileId The id of the lost file
    */
   public synchronized void addLostFile(int fileId) {
@@ -157,7 +157,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * A child file has been checkpointed. Remove it from the uncheckpointed children list.
-   * 
+   *
    * @param childFileId The id of the checkpointed child file
    */
   public synchronized void childCheckpointed(int childFileId) {
@@ -167,7 +167,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Generate a ClientDependencyInfo, which is used for the thrift server.
-   * 
+   *
    * @return the generated ClientDependencyInfo
    */
   public ClientDependencyInfo generateClientDependencyInfo() {
@@ -177,13 +177,13 @@ public class Dependency extends ImageWriter {
     ret.parents.addAll(mParentFiles);
     ret.children = new ArrayList<Integer>(mChildrenFiles.size());
     ret.children.addAll(mChildrenFiles);
-    ret.data = CommonUtils.cloneByteBufferList(mData);
+    ret.data = BufferUtils.cloneByteBufferList(mData);
     return ret;
   }
 
   /**
    * Get the children dependencies of this dependency. It will return a duplication.
-   * 
+   *
    * @return the duplication of the children dependencies
    */
   public synchronized List<Integer> getChildrenDependency() {
@@ -194,7 +194,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Get the command used for the recomputation. Note that it will clear the set of lost files' id.
-   * 
+   *
    * @return the command used for the recomputation
    */
   public synchronized String getCommand() {
@@ -215,7 +215,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Get the lost files of the dependency. It will return a duplication.
-   * 
+   *
    * @return the duplication of the lost files' id
    */
   public synchronized List<Integer> getLostFiles() {
@@ -226,7 +226,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Get the uncheckpointed children files. It will return a duplication.
-   * 
+   *
    * @return the duplication of the uncheckpointed children files' id
    */
   synchronized List<Integer> getUncheckpointedChildrenFiles() {
@@ -238,7 +238,7 @@ public class Dependency extends ImageWriter {
   /**
    * Return true if the dependency has checkpointed, which means all the children files are
    * checkpointed.
-   * 
+   *
    * @return true if all the children files are checkpointed, false otherwise
    */
   public synchronized boolean hasCheckpointed() {
@@ -247,7 +247,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Return true if it has children dependency.
-   * 
+   *
    * @return true if it has children dependency, false otherwise
    */
   public synchronized boolean hasChildrenDependency() {
@@ -256,7 +256,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Return true if there exists lost file of the dependency.
-   * 
+   *
    * @return true if the dependency has lost file, false otherwise
    */
   public synchronized boolean hasLostFile() {
@@ -265,7 +265,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Replace the prefix with the specified variable in DependencyVariables.
-   * 
+   *
    * @return the replaced command
    */
   String parseCommandPrefix() {
@@ -278,7 +278,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Reset the uncheckpointed children files with the specified input
-   * 
+   *
    * @param uckdChildrenFiles The new uncheckpointed children files' id
    */
   synchronized void resetUncheckpointedChildrenFiles(Collection<Integer> uckdChildrenFiles) {

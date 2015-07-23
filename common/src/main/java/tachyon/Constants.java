@@ -171,8 +171,9 @@ public class Constants {
       "tachyon.worker.network.netty.shutdown.quiet.period";
   public static final String WORKER_NETTY_SHUTDOWN_TIMEOUT =
       "tachyon.worker.network.netty.shutdown.timeout";
-  public static final String WORKER_EVICT_STRATEGY_TYPE = "tachyon.worker.evict.strategy";
-  public static final String WORKER_ALLOCATE_STRATEGY_TYPE = "tachyon.worker.allocate.strategy";
+  public static final String WORKER_ALLOCATE_STRATEGY_CLASS =
+      "tachyon.worker.allocate.strategy.class";
+  public static final String WORKER_EVICT_STRATEGY_CLASS = "tachyon.worker.evict.strategy.class";
   public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =
       "tachyon.worker.tieredstore.level.max";
   /**

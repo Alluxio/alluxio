@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * <code>FileOutStream</code> implementation of TachyonFile. To get an instance of this class, one
@@ -67,7 +67,7 @@ public class FileOutStream extends OutStream {
     mCachedBytes = 0;
 
     if (mWriteType.isThrough()) {
-      mUnderFsFile = CommonUtils.concatPath(mTachyonFS.createAndGetUserUfsTempFolder(ufsConf),
+      mUnderFsFile = PathUtils.concatPath(mTachyonFS.createAndGetUserUfsTempFolder(ufsConf),
           mFile.mFileId);
       UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile, ufsConf, tachyonConf);
       if (mBlockCapacityByte > Integer.MAX_VALUE) {

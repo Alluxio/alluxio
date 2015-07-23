@@ -16,7 +16,6 @@
 package tachyon.worker.block.evictor;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 
 import org.junit.Assert;
@@ -25,6 +24,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListener;
@@ -53,7 +54,9 @@ public class LRUEvictorTest {
     mManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
             Collections.<Long>emptySet());
-    mEvictor = EvictorFactory.create(EvictorType.LRU, mManagerView);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, LRUEvictor.class.getName());
+    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
   }
 
   private void cache(long userId, long blockId, long bytes, int tierLevel, int dirIdx)
