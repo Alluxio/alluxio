@@ -94,7 +94,7 @@ understand an existing underlayer storage system.
 
 **Tachyon Presentations:**
 
-* Tachyon Workshop 2015 (July, 2015) [pptx](http://www.slideshare.net/TachyonNexus/tachyon-workshop-20150719)
+* Tachyon Workshop 2015 (July, 2015) [pptx](http://goo.gl/0HpqeS)
 * Strata and Hadoop World 2014 (October, 2014) [pdf](http://goo.gl/fP9qkF) [pptx](http://goo.gl/GOyUbI)
 * Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
 * Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
