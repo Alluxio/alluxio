@@ -26,6 +26,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -81,6 +82,16 @@ public class TFsShellUtilsTest {
 
   public String createRandomTempDir() {
     return FileUtils.getTempDirectoryPath() + new Double(Math.random()).hashCode();
+  }
+  
+  @Test
+  public void uriTest() {
+    TachyonURI turi = new TachyonURI("/a/b/c");
+    Assert.assertEquals(turi.getPathComponent(0), "/");
+    Assert.assertEquals(turi.getPathComponent(1), "/a");
+    Assert.assertEquals(turi.getPathComponent(2), "/a/b");
+    Assert.assertEquals(turi.getPathComponent(3), "/a/b/c");
+    Assert.assertEquals(turi.getPathComponent(4), null);
   }
  
   @Test

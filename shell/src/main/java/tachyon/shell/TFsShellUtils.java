@@ -124,7 +124,7 @@ public class TFsShellUtils {
           TachyonURI dirURI = new TachyonURI(inputURI.getScheme(), 
                                              inputURI.getAuthority(), 
                                              file.getPath());
-          String prefix = inputURI.getPathComponent(dirURI.getNumPathComponents());
+          String prefix = inputURI.getPathComponent(dirURI.getDepth());
           if (prefix != null && match(dirURI, new TachyonURI(prefix)) == true) {
             res.addAll(getTachyonURIs(tachyonClient, inputURI, dirURI));
           }
@@ -170,7 +170,7 @@ public class TFsShellUtils {
           if (file.isDirectory()) { //if it is a folder, we do it recursively
             TachyonURI dirURI = new TachyonURI(file.getPath());
             String prefix = 
-                new TachyonURI(inputPath).getPathComponent(dirURI.getNumPathComponents());     
+                new TachyonURI(inputPath).getPathComponent(dirURI.getDepth());     
             if (prefix != null && match(dirURI, new TachyonURI(prefix)) == true) {
               res.addAll(getFiles(inputPath, dirURI.getPath()));
             }

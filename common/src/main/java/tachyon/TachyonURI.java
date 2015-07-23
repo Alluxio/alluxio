@@ -17,6 +17,7 @@ package tachyon;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -235,36 +236,29 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * There is no trailing separator as the path will be normalized by normalizePath() 
    * 
    * <pre>
+   * /a/b/c, 0              -> /
    * /a/b/c, 1              -> /a
    * /a/b/c, 2              -> /a/b
    * /a/b/c, 3              -> /a/b/c
+   * /a/b/c, 4              -> null
    * </pre>
    * 
-   * @return the first n path component, null if the path does not n components
+   * @return the first n path component, null if the path has less than n components
    */
   public String getPathComponent(int n) {
-    int numComp = getNumPathComponents();
-    if (numComp < n) {
-      return null;
-    } else if (numComp == n) {
-      return mUri.getPath();
-    } else {
-      String path = mUri.getPath();
-      String[] comp = path.split(SEPARATOR);
-      String[] nComp = new String[n];
-      for (int i = 0; i < n; i++) {
-        nComp[i] = comp[i];
-      }
-      return StringUtils.join(nComp, SEPARATOR);
+    String path = mUri.getPath();
+    if (n == 0 && path.charAt(0) == '/') { //special case
+      return "/";
     }
-  }
-  
-  /**
-   * Get the number of path components of the given string
-   * @return
-   */
-  public int getNumPathComponents() {
-    return mUri.getPath().split(SEPARATOR).length;
+    int depth = getDepth();
+    if (depth < n) {
+      return null;
+    } else if (depth == n) {
+      return path;
+    } else {
+      String[] comp = path.split(SEPARATOR);
+      return StringUtils.join(Arrays.asList(comp).subList(0, n + 1), SEPARATOR);
+    }
   }
   
   /**
