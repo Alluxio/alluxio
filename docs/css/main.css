@@ -20,7 +20,7 @@
 }
 
 .navbar-inner {
-  padding-top: 2px;
+  /*padding-top: 2px;*/
   height: 50px;
 }
 
@@ -103,4 +103,3 @@ ul.nav li.dropdown:hover ul.dropdown-menu{
 a.menu:after, .dropdown-toggle:after {
   content: none;
 }
-

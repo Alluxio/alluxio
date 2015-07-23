@@ -38,7 +38,10 @@ import tachyon.worker.block.meta.StorageTierView;
 public class GreedyEvictor implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public GreedyEvictor() {}
+  /**
+   * GreedyEvictor does not need BlockMetadataManagerView
+   */
+  public GreedyEvictor(BlockMetadataManagerView view) {}
 
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,

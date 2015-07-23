@@ -21,8 +21,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.FormatUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * <p>
@@ -106,7 +106,7 @@ public class TachyonConf {
 
   /**
    * Test constructor for TachyonConfTest class.
-   * 
+   *
    * Here is the order of the sources to load the properties:
    *   -) System properties if desired
    *   -) Site specific properties via tachyon-site.properties file
@@ -117,7 +117,7 @@ public class TachyonConf {
     Properties defaultProps = new Properties();
 
     // Override runtime default
-    defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(250));
+    defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkAddressUtils.getLocalHostName(250));
     defaultProps.setProperty(Constants.WORKER_MIN_WORKER_THREADS,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
     defaultProps.setProperty(Constants.MASTER_MIN_WORKER_THREADS,
@@ -156,7 +156,7 @@ public class TachyonConf {
     mProperties.putAll(defaultProps);
     mProperties.putAll(siteProps);
     mProperties.putAll(systemProps);
-    
+
     // Update tachyon.master_address
     String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
     String masterPort = mProperties.getProperty(Constants.MASTER_PORT);
@@ -302,7 +302,7 @@ public class TachyonConf {
   public long getBytes(String key, long defaultValue) {
     String rawValue = get(key, "");
     try {
-      return CommonUtils.parseSpaceSize(rawValue);
+      return FormatUtils.parseSpaceSize(rawValue);
     } catch (Exception ex) {
       return defaultValue;
     }

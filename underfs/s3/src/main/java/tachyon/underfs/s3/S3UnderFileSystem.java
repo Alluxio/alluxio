@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Under file system implementation for S3 using the Jets3t library.
@@ -120,7 +120,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
     String[] pathsToDelete = listInternal(path, true);
     for (String pathToDelete : pathsToDelete) {
       // If we fail to deleteInternal one file, stop
-      if (!deleteInternal(CommonUtils.concatPath(path, pathToDelete))) {
+      if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
         LOG.error("Failed to delete path " + pathToDelete + ", aborting delete.");
         return false;
       }
@@ -267,7 +267,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       // Rename each child in the src folder to destination/child
       String [] children = list(src);
       for (String child: children) {
-        if (!rename(CommonUtils.concatPath(src, child), CommonUtils.concatPath(dst, child))) {
+        if (!rename(PathUtils.concatPath(src, child), PathUtils.concatPath(dst, child))) {
           return false;
         }
       }

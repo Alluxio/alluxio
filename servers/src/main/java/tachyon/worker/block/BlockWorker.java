@@ -39,7 +39,8 @@ import tachyon.metrics.MetricsSystem;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.io.PathUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
@@ -62,6 +63,8 @@ public class BlockWorker {
   private final BlockMasterSync mBlockMasterSync;
   /** Runnable responsible for fetching pinlist from master. */
   private final PinListSync mPinListSync;
+  /** Runnable responsible for clean up potential zombie users. */
+  private final UserCleaner mUserCleanerThread;
   /** Logic for handling RPC requests. */
   private final BlockServiceHandler mServiceHandler;
   /** Logic for managing block store and under file system store. */
@@ -108,35 +111,39 @@ public class BlockWorker {
     int dataServerPort =
         tachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
     InetSocketAddress dataServerAddress =
-        new InetSocketAddress(NetworkUtils.getLocalHostName(tachyonConf), dataServerPort);
+        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(tachyonConf), dataServerPort);
     mDataServer =
         DataServer.Factory.createDataServer(dataServerAddress, mBlockDataManager, mTachyonConf);
 
     // Setup RPC Server
     mServiceHandler = new BlockServiceHandler(mBlockDataManager);
     mThriftServerSocket = createThriftServerSocket();
-    int thriftServerPort = NetworkUtils.getPort(mThriftServerSocket);
+    int thriftServerPort = NetworkAddressUtils.getPort(mThriftServerSocket);
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
-        new NetAddress(BlockWorkerUtils.getWorkerAddress(mTachyonConf).getAddress()
+        new NetAddress(NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf).getAddress()
             .getCanonicalHostName(), thriftServerPort, mDataServer.getPort());
 
     // Set up web server
     int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
     mWebServer =
         new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(mWorkerNetAddress.getMHost(),
-            webPort), mBlockDataManager, BlockWorkerUtils.getWorkerAddress(mTachyonConf),
+            webPort), mBlockDataManager, NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf),
             mStartTimeMs, mTachyonConf);
 
     // Setup Worker to Master Syncer
-    // We create two threads for two syncers: mBlockMasterSync and mPinListSync
+    // We create three threads for two syncers and one cleaner: mBlockMasterSync,
+    // mPinListSync and mUserCleanerThread
     mSyncExecutorService =
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
+        Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
     mBlockMasterSync.registerWithMaster();
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf);
+
+    // Setup UserCleaner
+    mUserCleanerThread = new UserCleaner(mBlockDataManager, mTachyonConf);
 
     // Setup user metadata mapping
     // TODO: Have a top level register that gets the worker id.
@@ -146,7 +153,7 @@ public class BlockWorker {
         mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
     String ufsWorkerFolder =
         mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, ufsAddress + "/tachyon/workers");
-    Users users = new Users(CommonUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
+    Users users = new Users(PathUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
 
     // Give BlockDataManager a pointer to the user metadata mapping
     // TODO: Fix this hack when we have a top level register
@@ -179,6 +186,9 @@ public class BlockWorker {
     // Start the pinlist syncer to perform the periodical fetching
     mSyncExecutorService.submit(mPinListSync);
 
+    // Start the user cleanup checker to perform the periodical checking
+    mSyncExecutorService.submit(mUserCleanerThread);
+
     mWebServer.startWebServer();
     mThriftServer.serve();
   }
@@ -194,6 +204,7 @@ public class BlockWorker {
     mThriftServerSocket.close();
     mBlockMasterSync.stop();
     mPinListSync.stop();
+    mUserCleanerThread.stop();
     mSyncExecutorService.shutdown();
     try {
       mWebServer.shutdownWebServer();
@@ -238,7 +249,7 @@ public class BlockWorker {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(BlockWorkerUtils.getWorkerAddress(mTachyonConf));
+      return new TServerSocket(NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);

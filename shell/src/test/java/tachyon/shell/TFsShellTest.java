@@ -45,7 +45,8 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.FormatUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Unit tests on TFsShell.
@@ -112,7 +113,7 @@ public class TFsShellTest {
     fos.write(toWrite);
     fos.close();
     mFsShell
-        .copyFromLocal(new String[] {"copyFromLocal", testFile.getAbsolutePath(), "/testFile"});
+        .copyFromLocal(new String[]{"copyFromLocal", testFile.getAbsolutePath(), "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyFromLocal", testFile.getAbsolutePath(),
         "/testFile"}), mOutput.toString());
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
@@ -357,14 +358,14 @@ public class TFsShellTest {
     String expected = "";
     String format = "%-10s%-25s%-15s%-5s\n";
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(10),
+        String.format(format, FormatUtils.getSizeFromBytes(10),
             TFsShell.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
             "/testRoot/testFileA");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(0),
+        String.format(format, FormatUtils.getSizeFromBytes(0),
             TFsShell.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(30),
+        String.format(format, FormatUtils.getSizeFromBytes(30),
             TFsShell.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory",
             "/testRoot/testFileC");
     Assert.assertEquals(expected, mOutput.toString());
@@ -386,14 +387,14 @@ public class TFsShellTest {
     String expected = "";
     String format = "%-10s%-25s%-15s%-5s\n";
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(10),
+        String.format(format, FormatUtils.getSizeFromBytes(10),
             TFsShell.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
             "/testRoot/testFileA");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(0),
+        String.format(format, FormatUtils.getSizeFromBytes(0),
             TFsShell.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(30),
+        String.format(format, FormatUtils.getSizeFromBytes(30),
             TFsShell.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory",
             "/testRoot/testFileC");
     Assert.assertEquals(expected, mOutput.toString());
@@ -433,7 +434,8 @@ public class TFsShellTest {
   @Test
   public void mkdirTest() throws IOException {
     String qualifiedPath =
-        "tachyon://" + NetworkUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS)
+        "tachyon://"
+            + NetworkAddressUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS)
             + ":" + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
     mFsShell.mkdir(new String[] {"mkdir", qualifiedPath});
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/root/testFile1"));
@@ -807,34 +809,34 @@ public class TFsShellTest {
     String expected = "";
     String format = "%-10s%-25s%-15s%-5s\n";
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(10),
+        String.format(format, FormatUtils.getSizeFromBytes(10),
             TFsShell.convertMsToDate(mTfs.getFile(fids[0]).getCreationTimeMs()), "In Memory",
             "/testWildCards/foo/foobar1");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(20),
+        String.format(format, FormatUtils.getSizeFromBytes(20),
             TFsShell.convertMsToDate(mTfs.getFile(fids[1]).getCreationTimeMs()), "In Memory",
             "/testWildCards/foo/foobar2");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(30),
+        String.format(format, FormatUtils.getSizeFromBytes(30),
             TFsShell.convertMsToDate(mTfs.getFile(fids[2]).getCreationTimeMs()), "In Memory",
             "/testWildCards/bar/foobar3");
     Assert.assertEquals(expected, mOutput.toString());
     
     mFsShell.ls(new String[] {"ls", "/testWildCards/*"});
     expected += 
-        String.format(format, CommonUtils.getSizeFromBytes(10),
+        String.format(format, FormatUtils.getSizeFromBytes(10),
             TFsShell.convertMsToDate(mTfs.getFile(fids[0]).getCreationTimeMs()), "In Memory",
             "/testWildCards/foo/foobar1");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(20),
+        String.format(format, FormatUtils.getSizeFromBytes(20),
             TFsShell.convertMsToDate(mTfs.getFile(fids[1]).getCreationTimeMs()), "In Memory",
             "/testWildCards/foo/foobar2");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(30),
+        String.format(format, FormatUtils.getSizeFromBytes(30),
             TFsShell.convertMsToDate(mTfs.getFile(fids[2]).getCreationTimeMs()), "In Memory",
             "/testWildCards/bar/foobar3");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(40),
+        String.format(format, FormatUtils.getSizeFromBytes(40),
             TFsShell.convertMsToDate(mTfs.getFile(fids[3]).getCreationTimeMs()), "In Memory",
             "/testWildCards/foobar4");
     Assert.assertEquals(expected, mOutput.toString());

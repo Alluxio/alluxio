@@ -80,22 +80,22 @@ public class BaseAllocatorTest {
     tachyonConf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL,
         DEFAULT_WORKER_MAX_TIERED_STORAGE_LEVEL + "");
 
-    tachyonConf.set("tachyon.worker.tieredstore.level0.alias", "MEM");
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path",
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 0), "MEM");
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
         generateDirsStr(nram, tachyonHome + "/ramdisk"));
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota",
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
         generateSizeStr(nram, ramsize));
 
-    tachyonConf.set("tachyon.worker.tieredstore.level1.alias", "SSD");
-    tachyonConf.set("tachyon.worker.tieredstore.level1.dirs.path",
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1), "SSD");
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
         generateDirsStr(nssd, tachyonHome + "/ssd"));
-    tachyonConf.set("tachyon.worker.tieredstore.level1.dirs.quota",
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
         generateSizeStr(nssd, ssdsize));
 
-    tachyonConf.set("tachyon.worker.tieredstore.level2.alias", "HDD");
-    tachyonConf.set("tachyon.worker.tieredstore.level2.dirs.path",
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 2), "HDD");
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 2),
         generateDirsStr(nhdd, tachyonHome + "/hdd"));
-    tachyonConf.set("tachyon.worker.tieredstore.level2.dirs.quota",
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 2),
         generateSizeStr(nhdd, hddsize));
     return tachyonConf;
   }

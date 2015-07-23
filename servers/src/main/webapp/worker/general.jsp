@@ -73,8 +73,8 @@
                 <tr>
                   <th><%= StorageLevelAlias.values()[i].name() %> Capacity / Used</th>
                   <th>
-                    <%= CommonUtils.getSizeFromBytes(capacityBytesOnTiers.get(i)) %> /
-                    <%= CommonUtils.getSizeFromBytes(usedBytesOnTiers.get(i)) %>
+                    <%= FormatUtils.getSizeFromBytes(capacityBytesOnTiers.get(i)) %> /
+                    <%= FormatUtils.getSizeFromBytes(usedBytesOnTiers.get(i)) %>
                   </th>
                 </tr>
                 <% } %>
@@ -108,8 +108,8 @@
                   <tr>
                     <th><%= StorageDirId.getStorageLevelAlias(dir.getStorageDirId()) %></th>
                     <th><%= dir.getDirPath() %></th>
-                    <th><%= CommonUtils.getSizeFromBytes(dir.getCapacityBytes()) %></th>
-                    <th><%= CommonUtils.getSizeFromBytes(dir.getUsedBytes()) %></th>
+                    <th><%= FormatUtils.getSizeFromBytes(dir.getCapacityBytes()) %></th>
+                    <th><%= FormatUtils.getSizeFromBytes(dir.getUsedBytes()) %></th>
                     <th>
                       <div class="progress custom-progress">
                         <% int usedSpacePercent = (int) (100.0 * dir.getUsedBytes() / dir.getCapacityBytes()); %>
