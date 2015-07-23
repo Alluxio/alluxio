@@ -22,7 +22,7 @@ def config_aws(config, i, total, name)
     aws.instance_type = INSTANCE_TYPE
     aws.block_device_mapping = BLOCK_DEVICE_MAPPING
     aws.tags = {
-      'Name' => TAG + name,
+      'Name' => TAG + "-" + name,
     }
 	  aws.availability_zone = AVAILABILITY_ZONE
     aws.user_data = "#!/bin/bash\necho 'Defaults:root !requiretty' > /etc/sudoers.d/998-vagrant-cloud-init-requiretty && echo 'Defaults:ec2-user !requiretty' > /etc/sudoers.d/999-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/998-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/999-vagrant-cloud-init-requiretty"
