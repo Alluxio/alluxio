@@ -18,19 +18,23 @@ package tachyon.security;
 import java.security.Security;
 
 import com.google.common.annotations.VisibleForTesting;
-
+/**
+ * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.
+ * There is a new provider {@link PlainSaslServerProvider} needed to support
+ * server-side PLAIN mechanism.
+ * PlainSaslHelper is used to register this provider
+ */
 public class PlainSaslHelper {
-  // Register Plain SASL server provider
   static {
     Security.addProvider(new PlainSaslServerProvider());
   }
 
   /**
    * @param name the name of the provider
-   * @return
+   * @return true if the provider was registered
    */
   @VisibleForTesting
-  public static boolean isPlainSaslProviderAdd() {
-    return Security.getProvider(PlainSaslServerProvider.TACHYON_PLAIN_NAME) != null;
+  public static boolean isPlainSaslProviderAdded() {
+    return Security.getProvider(PlainSaslServerProvider.TACHYON_PROVIDER_NAME) != null;
   }
 }
