@@ -12,13 +12,13 @@ from __future__ import print_function, with_statement
 import os
 import sys
 from sys import stderr
-import argparse
+import json
+import tempfile
+import errno
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('provider')
-    args = parser.parse_args()
-    return args
+import boto
+from boto import ec2
+import yaml
 
 
 def get_or_make_group(conn, name):
@@ -41,10 +41,9 @@ def set_security_group(conn, name):
     authorized_ip = '0.0.0.0/0' # all IP
     for p in proto:
         sg.authorize(p, 0, 65535, authorized_ip)
- 
 
-args = parse_args()
-if args.provider == 'aws':
+
+def get_aws_secret():
     access_key = os.getenv('AWS_ACCESS_KEY_ID') 
     if access_key is None:
         print("ERROR: The environment variable AWS_ACCESS_KEY_ID must be set", 
@@ -57,6 +56,10 @@ if args.provider == 'aws':
                 file=stderr)
         sys.exit(1)
 
+    return access_key, secret_key
+
+
+def gen_boto_config(access_key, secret_key):
     home=os.path.expanduser('~')
     boto_config_path = os.path.join(home, '.boto')
     with open(boto_config_path, 'w') as boto_config:
@@ -65,9 +68,11 @@ if args.provider == 'aws':
             'aws_access_key_id = ' + access_key, 
             'aws_secret_access_key = ' + secret_key]))
 
-    import boto
-    from boto import ec2
-    import yaml
+
+def configure_aws():
+    access_key, secret_key = get_aws_secret()
+
+    gen_boto_config(access_key, secret_key)
 
     ec2_conf = yaml.load(open('conf/ec2.yml'))
     region = ec2_conf['Region']
@@ -75,9 +80,12 @@ if args.provider == 'aws':
 
     try:
         conn = ec2.connect_to_region(region)
-        print(conn.region)
     except Exception as e:
-        print((e), file=stderr)
+        print(e, file=stderr)
         sys.exit(1)
     set_security_group(conn, sg)
+
+
+if __name__ == '__main__':
+    configure_aws()
 

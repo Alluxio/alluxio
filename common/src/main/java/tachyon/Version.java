@@ -15,7 +15,6 @@
 
 package tachyon;
 
-import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 /**

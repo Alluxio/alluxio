@@ -90,8 +90,7 @@ public class Users {
     LOG.info("Cleaning up user " + userId);
     UserInfo tUser = null;
     synchronized (mUsers) {
-      tUser = mUsers.get(userId);
-      mUsers.remove(userId);
+      tUser = mUsers.remove(userId);
     }
 
     if (tUser == null) {

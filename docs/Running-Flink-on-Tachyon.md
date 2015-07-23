@@ -1,6 +1,8 @@
 ---
 layout: global
 title: Running Apache Flink on Tachyon
+nickname: Apache Flink
+group: Frameworks
 ---
 
 This guide describes how to get Tachyon running with [Apache Flink](http://flink.apache.org/), so
@@ -70,5 +72,3 @@ To use Tachyon with Flink, just specify paths with the `tachyon://` scheme.
 
 If Tachyon is installed locally, a valid path would look like this
 `tachyon://localhost:19998/user/hduser/gutenberg`.
-
-

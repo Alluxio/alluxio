@@ -153,10 +153,6 @@ public class BlockMasterSync implements Runnable {
           throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
         }
       }
-
-      // Check if any users have become zombies, if so clean them up
-      // TODO: Make this unrelated to master sync
-      mBlockDataManager.cleanupUsers();
     }
   }
 

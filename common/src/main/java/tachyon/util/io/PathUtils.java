@@ -27,6 +27,9 @@ import com.google.common.base.Preconditions;
 import tachyon.TachyonURI;
 import tachyon.thrift.InvalidPathException;
 
+/**
+ * Utilities related to both Tachyon paths like {@link tachyon.TachyonURI} and local file paths.
+ */
 public class PathUtils {
   /**
    * Checks and normalizes the given path
