@@ -52,4 +52,9 @@ public class DataByteBuffer extends DataBuffer {
     buffer.position(0);
     return buffer;
   }
+
+  @Override
+  public void release() {
+    // Nothing we need to release explicitly, let GC take care of all objects.
+  }
 }
