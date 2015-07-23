@@ -103,3 +103,161 @@ ul.nav li.dropdown:hover ul.dropdown-menu{
 a.menu:after, .dropdown-toggle:after {
   content: none;
 }
+
+body {
+    padding-top: 70px;
+    padding-bottom: 40px;
+}
+.navbar .nav {
+  float: right;
+}
+.navbar .nav>li>a{
+  text-shadow: none;
+  padding-bottom: 5px;
+  color: #F7F4F3;
+}
+.navbar .nav>li>a:hover, .navbar .nav>li>a:focus {
+  color: white;
+}
+.navbar .nav li.dropdown>.dropdown-toggle .caret {
+  border-top-color: #F7F4F3;
+  border-bottom-color: #F7F4F3;
+}
+.navbar-inner {
+  padding: 10px 0;
+  background: #2D2D2D;
+  transition: padding 0.2s, box-shadow 0.2s;
+  -webkit-transition: padding 0.2s, box-shadow 0.2s;
+  -moz-transition: padding 0.2s, box-shadow 0.2s;
+  -o-transition: padding 0.2s, box-shadow 0.2s;
+}
+.navbar-inner.shrunk {
+  padding: 0;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+}
+.navbar-inner .version {
+  font-weight: 400;
+  transition: opacity 0.2s;
+  -webkit-transition: opacity 0.2s;
+  -moz-transition: opacity 0.2s;
+  -o-transition: opacity 0.2s;
+}
+.navbar-inner.shrunk .version {
+  opacity: 0;
+}
+.navbar .nav>li.active a, .navbar .nav>li.active a:hover, .navbar .nav>li.dropdown>a.active {
+  background-color: transparent;
+  box-shadow: none;
+  color: #F7F4F3;
+  border-bottom: 2px solid #F7F4F3;
+}
+.dropdown-menu .active>a, .dropdown-menu .active>a:hover {
+  background-color: #C4CBCA;
+  background-image: none;
+  color: #2D2D2D;
+  font-style: italic;
+}
+
+#current-features + ul {
+  text-align: center;
+  margin: 0;
+}
+#current-features + ul li {
+  display: inline-block;
+  width: 220px;
+  height: 260px;
+  vertical-align: top;
+  border: 2px solid black;
+  padding: 10px;
+  border-radius: 10px;
+  margin: 10px;
+  position: relative;
+  overflow: hidden;
+}
+/*card borders*/
+#current-features + ul li:nth-child(1) {
+  border-color: rgb(46, 180, 77);
+  background-color: rgba(46, 180, 77, 0.1);
+}
+#current-features + ul li:nth-child(2) {
+  border-color: rgb(242, 144, 58);
+  background-color: rgba(242, 144, 58, 0.1);
+}
+#current-features + ul li:nth-child(3) {
+  border-color: rgb(36, 140, 203);
+  background-color: rgba(36, 140, 203, 0.1);
+}
+#current-features + ul li:nth-child(4) {
+  border-color: rgb(233, 106, 121);
+  background-color: rgba(233, 106, 121, 0.1);
+}
+#current-features + ul li:nth-child(5) {
+  border-color: rgb(20, 103, 103);
+  background-color: rgba(20, 103, 103, 0.1);
+}
+#current-features + ul li:nth-child(6) {
+  border-color: rgb(250, 188, 66);
+  background-color: rgba(250, 188, 66, 0.1);
+}
+/*card titles*/
+#current-features + ul li:nth-child(1) strong {
+  background-color: rgb(46, 180, 77);
+}
+#current-features + ul li:nth-child(2) strong {
+  background-color: rgb(242, 144, 58);
+}
+#current-features + ul li:nth-child(3) strong {
+  background-color: rgb(36, 140, 203);
+}
+#current-features + ul li:nth-child(4) strong {
+  background-color: rgb(233, 106, 121);
+}
+#current-features + ul li:nth-child(5) strong {
+  background-color: rgb(20, 103, 103);
+}
+#current-features + ul li:nth-child(6) strong {
+  background-color: rgb(250, 188, 66);
+}
+/*custom font sizes to make content fit nicely*/
+#current-features + ul li:nth-child(1) p {
+  font-size: 16px;
+}
+#current-features + ul li:nth-child(3) strong {
+  font-size: 14px;
+}
+#current-features + ul li:nth-child(4) p {
+  font-size: 16px;
+}
+#current-features + ul li:nth-child(5) p {
+  font-size: 18px;
+}
+#current-features + ul li:nth-child(6) p {
+  font-size: 20px;
+}
+#current-features + ul li p a {
+  text-decoration: underline;
+  color: inherit;
+}
+#current-features + ul li p {
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.6;
+  padding-top: 30px;
+}
+#current-features + ul li p strong {
+  display: block;
+  font-size: 16px;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  text-align: center;
+  color: white;
+  padding: 5px 0;
+}
+#current-features + ul li p code {
+  background-color: #F7F4F3;
+  border: 1px solid #C4CBCA;
+  font-size: 100%;
+  padding: 0 2px;
+}
