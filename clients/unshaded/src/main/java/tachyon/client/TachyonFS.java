@@ -752,7 +752,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param fid the file id
    * @return true if the file is a directory, false otherwise
    */
-  synchronized boolean isDirectory(int fid) {
+  public synchronized boolean isDirectory(int fid) {
     return mIdToClientFileInfo.get(fid).isFolder;
   }
 

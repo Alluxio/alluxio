@@ -25,6 +25,7 @@ import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
@@ -182,6 +183,15 @@ public class TFsShellTest {
     Assert.assertEquals(new String(read), dataString);
   }
 
+  private void fileReadTest(String fileName, int size) throws IOException {
+    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/" + fileName);
+    FileInputStream fis = new FileInputStream(testFile);
+    byte[] read = new byte[size];
+    fis.read(read);
+    fis.close();
+    Assert.assertTrue(TestUtils.equalIncreasingByteArray(size, read));
+  }
+  
   @Test
   public void copyToLocalLargeTest() throws IOException {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, SIZE_BYTES);
@@ -189,12 +199,7 @@ public class TFsShellTest {
         mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"}), mOutput.toString());
-    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
-    FileInputStream fis = new FileInputStream(testFile);
-    byte[] read = new byte[SIZE_BYTES];
-    fis.read(read);
-    fis.close();
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(SIZE_BYTES, read));
+    fileReadTest("/testFile", SIZE_BYTES);
   }
 
   @Test
@@ -204,12 +209,7 @@ public class TFsShellTest {
         mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"}), mOutput.toString());
-    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
-    FileInputStream fis = new FileInputStream(testFile);
-    byte[] read = new byte[10];
-    fis.read(read);
-    fis.close();
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, read));
+    fileReadTest("/testFile", 10);
   }
 
   @Test
@@ -317,23 +317,28 @@ public class TFsShellTest {
     Assert.assertEquals(-1, ret);
   }
 
-  @Test
-  public void locationTest() throws IOException {
-    int fileId = TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
-    mFsShell.location(new String[] {"location", "/testFile"});
-    TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
+  private String getLocationResultStr(String path, int fid, TachyonFS tfs) throws IOException {
+    TachyonFile tFile = tfs.getFile(new TachyonURI(path));
     Assert.assertNotNull(tFile);
     List<String> locationsList = tFile.getLocationHosts();
     String[] commandParameters = new String[3 + locationsList.size()];
     commandParameters[0] = "location";
-    commandParameters[1] = "/testFile";
-    commandParameters[2] = String.valueOf(fileId);
+    commandParameters[1] = path;
+    commandParameters[2] = String.valueOf(fid);
     Iterator<String> iter = locationsList.iterator();
     int i = 3;
     while (iter.hasNext()) {
       commandParameters[i ++] = iter.next();
     }
-    Assert.assertEquals(getCommandOutput(commandParameters), mOutput.toString());
+    return getCommandOutput(commandParameters);
+  }
+  
+  @Test
+  public void locationTest() throws IOException {
+    int fileId = TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    mFsShell.location(new String[] {"location", "/testFile"});
+    String locationResult = getLocationResultStr("/testFile", fileId, mTfs);
+    Assert.assertEquals(locationResult, mOutput.toString());
   }
 
   @Test
@@ -497,7 +502,7 @@ public class TFsShellTest {
     mFsShell.mkdir(new String[] {"mkdir", "/testFolder"});
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
     mFsShell.rm(new String[] {"rm", "/testFolder"});
-    toCompare.append("rm: cannot remove a directory, please try rmr <path>\n");
+    toCompare.append("rm: cannot remove directory: /testFolder, please try rmr <path>\n");
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
   }
 
@@ -634,5 +639,362 @@ public class TFsShellTest {
     expected += "/testRoot/testDir is 50 bytes\n";
 
     Assert.assertEquals(expected, mOutput.toString());
+  }
+  
+  //////////////////////////////////////////////////////////////////////////////
+  // Test the wildcard support for the Shell
+  //////////////////////////////////////////////////////////////////////////////
+  
+  public int[] resetTachyonFileHierarchy() throws IOException {
+    /**
+     * Generate such local structure
+     *  /testWildCards
+     *  ├── foo
+     *  |    ├── foobar1
+     *  |    └── foobar2
+     *  ├── bar
+     *  |    └── foobar3
+     *  └── foobar4
+     */
+    int[] fileIds = new int[4];
+    mTfs.delete(new TachyonURI("/testWildCards"), true);
+    mTfs.mkdir(new TachyonURI("/testWildCards"));
+    mTfs.mkdir(new TachyonURI("/testWildCards/foo"));
+    mTfs.mkdir(new TachyonURI("/testWildCards/bar"));
+    fileIds[0] = 
+        TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foo/foobar1", 
+            WriteType.MUST_CACHE, 10);
+    fileIds[1] =
+        TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foo/foobar2", 
+            WriteType.MUST_CACHE, 20);
+    fileIds[2] =
+        TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/bar/foobar3", 
+            WriteType.MUST_CACHE, 30);
+    fileIds[3] =
+        TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foobar4", 
+            WriteType.MUST_CACHE, 40);
+    return fileIds;
+  }
+  
+  @Test
+  public void freeWildCardTest() throws IOException {
+    resetTachyonFileHierarchy();
+    
+    TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    
+    int ret = mFsShell.free(new String[] {"free", "/testWild*/foo/*"});
+    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(tachyonConf) * 2 + 10);
+    Assert.assertEquals(0, ret);
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar1")).isInMemory());
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar2")).isInMemory());
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testWildCards/bar/foobar3")).isInMemory());
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testWildCards/foobar4")).isInMemory());
+    
+    ret = mFsShell.free(new String[] {"free", "/testWild*/*/"});
+    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(tachyonConf) * 2 + 10);
+    Assert.assertEquals(0, ret);
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testWildCards/bar/foobar3")).isInMemory());
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testWildCards/foobar4")).isInMemory());
+  }
+  
+  @Test
+  public void rmWildCardTest() throws IOException {
+    resetTachyonFileHierarchy();
+    
+    mFsShell.rm(new String[] {"rm", "/testWildCards/foo/foo*"});
+    Assert.assertNull(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar1")));
+    Assert.assertNull(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar2")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testWildCards/bar/foobar3")));
+    
+    mFsShell.rm(new String[] {"rm", "/testWildCards/*"});
+    Assert.assertNull(mTfs.getFile(new TachyonURI("/testWildCards/foobar4")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testWildCards/foo")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testWildCards/bar")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testWildCards/bar/foobar3")));
+  }
+  
+  @Test
+  public void rmrWildCardTest() throws IOException {
+    resetTachyonFileHierarchy();
+    
+    mFsShell.rmr(new String[] {"rmr", "/testWildCards/foo/foo*"});
+    Assert.assertNull(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar1")));
+    Assert.assertNull(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar2")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testWildCards/foo")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testWildCards/bar/foobar3")));
+    
+    mFsShell.rmr(new String[] {"rmr", "/testWildCards/ba*"});
+    Assert.assertNull(mTfs.getFile(new TachyonURI("/testWildCards/bar")));
+    Assert.assertNull(mTfs.getFile(new TachyonURI("/testWildCards/bar/foobar3")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testWildCards/foobar4")));
+    
+    mFsShell.rmr(new String[] {"rmr", "/testWildCards/*"});
+    Assert.assertNull(mTfs.getFile(new TachyonURI("/testWildCards/bar")));
+    Assert.assertNull(mTfs.getFile(new TachyonURI("/testWildCards/foo")));
+    Assert.assertNull(mTfs.getFile(new TachyonURI("/testWildCards/foobar4")));    
+  }
+  
+  @Test
+  public void fileinfoWildCardTest() throws IOException {
+    resetTachyonFileHierarchy();
+    
+    mFsShell.fileinfo(new String[] {"fileinfo", "/testWildCards/*"});
+    String res1 = mOutput.toString();
+    Assert.assertEquals(res1.contains("/testWildCards/foo"), true);
+    Assert.assertEquals(res1.contains("/testWildCards/bar"), true);
+    Assert.assertEquals(res1.contains("/testWildCards/foobar4"), true);
+    Assert.assertEquals(res1.contains("/testWildCards/foo/foobar1"), false);
+    Assert.assertEquals(res1.contains("/testWildCards/bar/foobar3"), false);
+
+    mFsShell.fileinfo(new String[] {"fileinfo", "/testWildCards/*/foo*"});
+    String res2 = mOutput.toString();
+    res2 = res2.replace(res1, "");
+    Assert.assertEquals(res2.contains("/testWildCards/foo/foobar1"), true);
+    Assert.assertEquals(res2.contains("/testWildCards/foo/foobar2"), true);
+    Assert.assertEquals(res2.contains("/testWildCards/bar/foobar3"), true);
+    Assert.assertEquals(res2.contains("/testWildCards/foobar4"), false);
+  }
+  
+  @Test
+  public void touchWildCardTest() throws IOException {
+    int ret = mFsShell.touch(new String[] {"touch", "/testWild*/foo"});
+    Assert.assertEquals(-1, ret);
+  }
+  
+  @Test
+  public void countWildCardTest() throws IOException {
+    int ret = mFsShell.count(new String[] {"count", "/testWild*/foo"});
+    Assert.assertEquals(-1, ret);
+  }
+  
+  @Test
+  public void renameWildcardTest() throws IOException {
+    int ret = mFsShell.count(new String[] {"count", "/testWild*/foo"});
+    Assert.assertEquals(-1, ret);
+  }
+  
+  @Test
+  public void reportWildcardTest() throws IOException {
+    int[] fids = resetTachyonFileHierarchy();
+    
+    mFsShell.report(new String[] {"report", "/testWildCards/*/foo*"});
+    String expectedOutput = "";
+    expectedOutput += "/testWildCards/foo/foobar1 with file id " 
+        + fids[0] + " has reported been report lost.\n";
+    expectedOutput += "/testWildCards/foo/foobar2 with file id " 
+        + fids[1] + " has reported been report lost.\n";
+    expectedOutput += "/testWildCards/bar/foobar3 with file id " 
+        + fids[2] + " has reported been report lost.\n";
+    Assert.assertEquals(expectedOutput, mOutput.toString());
+  }
+  
+  @Test
+  public void locationWildcardTest() throws IOException {
+    int[] fids = resetTachyonFileHierarchy();
+    
+    mFsShell.location(new String[] {"location", "/testWildCards/*/foo*"});
+    
+    String locationResults = "";
+    locationResults += getLocationResultStr("/testWildCards/foo/foobar1", fids[0], mTfs);
+    locationResults += getLocationResultStr("/testWildCards/foo/foobar2", fids[1], mTfs);
+    locationResults += getLocationResultStr("/testWildCards/bar/foobar3", fids[2], mTfs);
+    Assert.assertEquals(locationResults, mOutput.toString());
+  }
+  
+  @Test
+  public void lsWildcardTest() throws IOException {
+    int[] fids = resetTachyonFileHierarchy();
+    
+    mFsShell.ls(new String[] {"ls", "/testWildCards/*/foo*"});
+    String expected = "";
+    String format = "%-10s%-25s%-15s%-5s\n";
+    expected +=
+        String.format(format, FormatUtils.getSizeFromBytes(10),
+            TFsShell.convertMsToDate(mTfs.getFile(fids[0]).getCreationTimeMs()), "In Memory",
+            "/testWildCards/foo/foobar1");
+    expected +=
+        String.format(format, FormatUtils.getSizeFromBytes(20),
+            TFsShell.convertMsToDate(mTfs.getFile(fids[1]).getCreationTimeMs()), "In Memory",
+            "/testWildCards/foo/foobar2");
+    expected +=
+        String.format(format, FormatUtils.getSizeFromBytes(30),
+            TFsShell.convertMsToDate(mTfs.getFile(fids[2]).getCreationTimeMs()), "In Memory",
+            "/testWildCards/bar/foobar3");
+    Assert.assertEquals(expected, mOutput.toString());
+    
+    mFsShell.ls(new String[] {"ls", "/testWildCards/*"});
+    expected += 
+        String.format(format, FormatUtils.getSizeFromBytes(10),
+            TFsShell.convertMsToDate(mTfs.getFile(fids[0]).getCreationTimeMs()), "In Memory",
+            "/testWildCards/foo/foobar1");
+    expected +=
+        String.format(format, FormatUtils.getSizeFromBytes(20),
+            TFsShell.convertMsToDate(mTfs.getFile(fids[1]).getCreationTimeMs()), "In Memory",
+            "/testWildCards/foo/foobar2");
+    expected +=
+        String.format(format, FormatUtils.getSizeFromBytes(30),
+            TFsShell.convertMsToDate(mTfs.getFile(fids[2]).getCreationTimeMs()), "In Memory",
+            "/testWildCards/bar/foobar3");
+    expected +=
+        String.format(format, FormatUtils.getSizeFromBytes(40),
+            TFsShell.convertMsToDate(mTfs.getFile(fids[3]).getCreationTimeMs()), "In Memory",
+            "/testWildCards/foobar4");
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+  
+  @Test
+  public void tailWildcardTest() throws IOException {
+    resetTachyonFileHierarchy();
+    
+    // the expect contents
+    byte[] exp1 = TestUtils.getIncreasingByteArray(10);
+    byte[] exp2 = TestUtils.getIncreasingByteArray(20);
+    byte[] exp3 = TestUtils.getIncreasingByteArray(30);
+    byte[] expect = new byte[exp1.length + exp2.length + exp3.length];
+    System.arraycopy(exp1, 0, expect, 0,                         exp1.length);
+    System.arraycopy(exp2, 0, expect, exp1.length,               exp2.length);
+    System.arraycopy(exp3, 0, expect, exp1.length + exp2.length, exp3.length);
+    
+    int ret = mFsShell.tail(new String[] {"tail", "/testWildCards/*/foo*"});
+    Assert.assertEquals(ret, 0);
+    Assert.assertArrayEquals(mOutput.toByteArray(), expect);
+  }
+  
+  @Test
+  public void catWildcardTest() throws IOException {
+    resetTachyonFileHierarchy();
+    
+    // the expect contents
+    byte[] exp1 = TestUtils.getIncreasingByteArray(10);
+    byte[] exp2 = TestUtils.getIncreasingByteArray(20);
+    byte[] exp3 = TestUtils.getIncreasingByteArray(30);
+    byte[] expect = new byte[exp1.length + exp2.length + exp3.length];
+    System.arraycopy(exp1, 0, expect, 0,                         exp1.length);
+    System.arraycopy(exp2, 0, expect, exp1.length,               exp2.length);
+    System.arraycopy(exp3, 0, expect, exp1.length + exp2.length, exp3.length);
+    
+    int ret = mFsShell.cat(new String[] {"cat", "/testWildCards/*/foo*"});
+    Assert.assertEquals(ret, 0);
+    Assert.assertArrayEquals(mOutput.toByteArray(), expect);
+  }
+  
+  @Test
+  public void copyToLocalWildcardTest() throws IOException {
+    resetTachyonFileHierarchy();
+    int ret = mFsShell.copyToLocal(new String[] {"copyToLocal", "/testWildCards/*/foo*",
+        mLocalTachyonCluster.getTachyonHome() + "/testDir"});
+    Assert.assertEquals(ret, 0);
+    fileReadTest("/testDir/foobar1", 10);
+    fileReadTest("/testDir/foobar2", 20);
+    fileReadTest("/testDir/foobar3", 30);
+  }
+  
+  @Test
+  public void copyToLocalWildcardExistingDirTest() throws IOException {
+    resetTachyonFileHierarchy();
+    
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testDir").mkdir();
+    
+    int ret = mFsShell.copyToLocal(new String[] {"copyToLocal", "/testWildCards/*/foo*",
+        mLocalTachyonCluster.getTachyonHome() + "/testDir"});
+    Assert.assertEquals(ret, 0);
+    fileReadTest("/testDir/foobar1", 10);
+    fileReadTest("/testDir/foobar2", 20);
+    fileReadTest("/testDir/foobar3", 30);
+  }
+  
+  @Test
+  public void copyToLocalWildcardNotDirTest() throws IOException {
+    resetTachyonFileHierarchy();
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testDir").mkdir();
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testFile").createNewFile();
+    
+    int ret = mFsShell.copyToLocal(new String[] {"copyToLocal", "/testWildCards/*/foo*",
+        mLocalTachyonCluster.getTachyonHome() + "/testDir/testFile"});
+    Assert.assertEquals(ret, -1);
+  }
+  
+  @Test
+  public void copyToLocalWildcardHierTest() throws IOException {
+    resetTachyonFileHierarchy();
+    int ret = mFsShell.copyToLocal(new String[] {"copyToLocal", "/testWildCards/*",
+        mLocalTachyonCluster.getTachyonHome() + "/testDir"});
+    Assert.assertEquals(ret, 0);
+    fileReadTest("/testDir/foo/foobar1", 10);
+    fileReadTest("/testDir/foo/foobar2", 20);
+    fileReadTest("/testDir/bar/foobar3", 30);
+    fileReadTest("/testDir/foobar4", 40);
+  }
+  
+  public void resetLocalFileHierarchy() throws IOException {
+    /**
+     * Generate such local structure
+     *  /testWildCards
+     *  ├── foo
+     *  |    ├── foobar1
+     *  |    └── foobar2
+     *  ├── bar
+     *  |    └── foobar3
+     *  └── foobar4
+     */
+    FileUtils.deleteDirectory(new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards"));
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards").mkdir();
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foo").mkdir();
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/bar").mkdir();
+    
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar1").createNewFile();
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar2").createNewFile();
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/bar/foobar3").createNewFile();
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foobar4").createNewFile();
+  }
+  
+  public void removeLocalFileHierarchy() throws IOException {
+    FileUtils.deleteDirectory(new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards"));
+  }
+  
+  @Test
+  public void copyFromLocalWildcardTest() throws IOException {
+    resetLocalFileHierarchy();
+    int ret = mFsShell.copyFromLocal(new String[] {"copyFromLocal", 
+        mLocalTachyonCluster.getTachyonHome() + "/testWildCards/*/foo*", "/testDir"});
+    Assert.assertEquals(ret, 0);
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar1")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar2")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar3")));
+    removeLocalFileHierarchy();
+  }
+
+  @Test
+  public void copyFromLocalWildcardExistingDirTest() throws IOException {
+    resetLocalFileHierarchy();
+    mTfs.mkdir(new TachyonURI("/testDir"));
+    int ret = mFsShell.copyFromLocal(new String[] {"copyFromLocal", 
+        mLocalTachyonCluster.getTachyonHome() + "/testWildCards/*/foo*", "/testDir"});
+    Assert.assertEquals(ret, 0);
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar1")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar2")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar3")));
+    removeLocalFileHierarchy();
+  }
+  
+  @Test
+  public void copyFromLocalWildcardNotDirTest() throws IOException {
+    resetTachyonFileHierarchy();
+    int ret = mFsShell.copyFromLocal(new String[] {"copyFromLocal", 
+        mLocalTachyonCluster.getTachyonHome() + "/testWildCards/*/foo*", "/testWildCards/foobar4"});
+    Assert.assertEquals(ret, -1);
+  }
+  
+  @Test
+  public void copyFromLocalWildcardHierTest() throws IOException {
+    resetLocalFileHierarchy();
+    int ret = mFsShell.copyFromLocal(new String[] {"copyFromLocal", 
+        mLocalTachyonCluster.getTachyonHome() + "/testWildCards/*", "/testDir"});
+    Assert.assertEquals(ret, 0);
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foo/foobar1")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foo/foobar2")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/bar/foobar3")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar4")));
+    removeLocalFileHierarchy();
   }
 }
