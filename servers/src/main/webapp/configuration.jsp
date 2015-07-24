@@ -1,4 +1,5 @@
 <%@ page import="java.util.*" %>
+<%@ page import="org.apache.commons.lang3.tuple.*" %>
 
 <html>
 <head>
@@ -26,10 +27,10 @@
           <div class="accordion-inner">
             <table class = "table">
               <tbody>
-                <% for (Map.Entry<String, String> entry : (SortedSet<Map.Entry<String, String>>) request.getAttribute("configuration")) { %>
+                <% for (ImmutablePair<String, String> entry : (SortedSet<ImmutablePair<String, String>>) request.getAttribute("configuration")) { %>
                   <tr>
-                    <th><%= entry.getKey() %></th>
-                    <th><%= entry.getValue() %></th>
+                    <th><%= entry.getLeft() %></th>
+                    <th><%= entry.getRight() %></th>
                   </tr>
                 <% } %>
               </tbody>

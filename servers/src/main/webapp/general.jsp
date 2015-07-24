@@ -152,21 +152,21 @@
           <div class="accordion-inner">
             <form class="form" method="post" action="/home">
               <div id="recomputationVars">
-              <% int i = 0; %>
-              <% for (String key : ((Hashtable<String, String>) request.getAttribute("recomputeVariables")).keySet()) { %>
-                <div id="varDiv<%= i %>">
+              < % int i = 0; %>
+              < % for (String key : ((Hashtable<String, String>) request.getAttribute("recomputeVariables")).keySet()) { %>
+                <div id="varDiv< %= i %>">
                   <div class="input-prepend">
                     <span class="add-on">Name</span>
-                    <input class="span8" name="varName<%= i %>" type="text" value="<%= key %>">
+                    <input class="span8" name="varName< %= i %>" type="text" value="< %= key %>">
                   </div>
                   <div class="input-prepend">
                     <span class="add-on">Value</span>
-                    <input class="span8" type="text" name="varVal<%= i %>" value="<%= ((Hashtable<String, String>) request.getAttribute("recomputeVariables")).get(key) %>">
-                    <input style="margin-left:10px" class="btn btn-danger" type="button" value="Delete" onclick="deleteVar(varDiv<%= i++ %>)"/>
+                    <input class="span8" type="text" name="varVal< %= i %>" value="< %= ((Hashtable<String, String>) request.getAttribute("recomputeVariables")).get(key) %>">
+                    <input style="margin-left:10px" class="btn btn-danger" type="button" value="Delete" onclick="deleteVar(varDiv< %= i++ %>)"/>
                   </div>
                 </br>
                 </div>
-              <% } %>
+              < % } %>
               </div>
               <div class="form-actions">
                 <input class="btn btn-primary" type="submit" value="Submit" id="submit"/>
