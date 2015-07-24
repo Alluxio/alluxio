@@ -59,11 +59,11 @@ public class FormatUtils {
   }
 
   /**
-    * Return a human-readable version of bytes 10GB 2048KB etc.
-    *
-    * @param bytes the number of bytes
-    * @return human readable version
-    */
+   * Return a human-readable version of bytes 10GB 2048KB etc.
+   *
+   * @param bytes the number of bytes
+   * @return human readable version
+   */
   public static String getSizeFromBytes(long bytes) {
     double ret = bytes;
     if (ret <= 1024 * 5) {
