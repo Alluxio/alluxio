@@ -94,6 +94,7 @@
                                         </a>
                                     </li>
                                 {% else %}
+                                    <!-- trim the leading slash to make the path relative to preserve version links -->
                                     <li><a href="{{ node.url | remove-first: '/' }}">
                                         {% if node.nickname == null %}
                                             {{node.title}}
