@@ -34,11 +34,11 @@ import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
 import tachyon.Constants;
-import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.util.io.BufferUtils;
 import tachyon.worker.block.BlockStoreLocation;
 
 public class StorageDirTest {
@@ -80,8 +80,8 @@ public class StorageDirTest {
   private void newBlockFile(File dir, String name, int lenBytes) throws IOException {
     File block = new File(dir, name);
     block.createNewFile();
-    byte[] data = TestUtils.getIncreasingByteArray(lenBytes);
-    TestUtils.writeBufferToFile(block.getAbsolutePath(), data);
+    byte[] data = BufferUtils.getIncreasingByteArray(lenBytes);
+    BufferUtils.writeBufferToFile(block.getAbsolutePath(), data);
   }
 
   @Test

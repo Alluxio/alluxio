@@ -24,7 +24,7 @@ import org.junit.Test;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.FileRegion;
 
-import tachyon.TestUtils;
+import tachyon.util.io.BufferUtils;
 
 public class DataByteBufferTest {
   private static final int LENGTH = 5;
@@ -33,7 +33,7 @@ public class DataByteBufferTest {
 
   @Before
   public final void before() {
-    mBuffer = TestUtils.getIncreasingByteBuffer(LENGTH);
+    mBuffer = BufferUtils.getIncreasingByteBuffer(LENGTH);
   }
 
   @Test
