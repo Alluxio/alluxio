@@ -15,165 +15,6 @@
 
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
-    <style>
-        body {
-            padding-top: 70px;
-            padding-bottom: 40px;
-        }
-        .navbar .nav {
-          float: right;
-        }
-        .navbar .nav>li>a{
-          text-shadow: none;
-          padding-bottom: 5px;
-          color: #F7F4F3;
-        }
-        .navbar .nav>li>a:hover, .navbar .nav>li>a:focus {
-          color: white;
-        }
-        .navbar .nav li.dropdown>.dropdown-toggle .caret {
-          border-top-color: #F7F4F3;
-          border-bottom-color: #F7F4F3;
-        }
-        .navbar-inner {
-          padding: 10px 0;
-          background: #2D2D2D;
-          transition: padding 0.2s, box-shadow 0.2s;
-          -webkit-transition: padding 0.2s, box-shadow 0.2s;
-          -moz-transition: padding 0.2s, box-shadow 0.2s;
-          -o-transition: padding 0.2s, box-shadow 0.2s;
-        }
-        .navbar-inner.shrunk {
-          padding: 0;
-          box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
-        }
-        .navbar-inner .version {
-          font-weight: 400;
-          transition: opacity 0.2s;
-          -webkit-transition: opacity 0.2s;
-          -moz-transition: opacity 0.2s;
-          -o-transition: opacity 0.2s;
-        }
-        .navbar-inner.shrunk .version {
-          opacity: 0;
-        }
-        .navbar .nav>li.active a, .navbar .nav>li.active a:hover, .navbar .nav>li.dropdown>a.active {
-          background-color: transparent;
-          box-shadow: none;
-          color: #F7F4F3;
-          border-bottom: 2px solid #F7F4F3;
-        }
-        .dropdown-menu .active>a, .dropdown-menu .active>a:hover {
-          background-color: #C4CBCA;
-          background-image: none;
-          color: #2D2D2D;
-          font-style: italic;
-        }
-
-        #current-features + ul {
-          text-align: center;
-          margin: 0;
-        }
-        #current-features + ul li {
-          display: inline-block;
-          width: 220px;
-          height: 260px;
-          vertical-align: top;
-          border: 2px solid black;
-          padding: 10px;
-          border-radius: 10px;
-          margin: 10px;
-          position: relative;
-          overflow: hidden;
-        }
-        /*card borders*/
-        #current-features + ul li:nth-child(1) {
-          border-color: rgb(46, 180, 77);
-          background-color: rgba(46, 180, 77, 0.1);
-        }
-        #current-features + ul li:nth-child(2) {
-          border-color: rgb(242, 144, 58);
-          background-color: rgba(242, 144, 58, 0.1);
-        }
-        #current-features + ul li:nth-child(3) {
-          border-color: rgb(36, 140, 203);
-          background-color: rgba(36, 140, 203, 0.1);
-        }
-        #current-features + ul li:nth-child(4) {
-          border-color: rgb(233, 106, 121);
-          background-color: rgba(233, 106, 121, 0.1);
-        }
-        #current-features + ul li:nth-child(5) {
-          border-color: rgb(20, 103, 103);
-          background-color: rgba(20, 103, 103, 0.1);
-        }
-        #current-features + ul li:nth-child(6) {
-          border-color: rgb(250, 188, 66);
-          background-color: rgba(250, 188, 66, 0.1);
-        }
-        /*card titles*/
-        #current-features + ul li:nth-child(1) strong {
-          background-color: rgb(46, 180, 77);
-        }
-        #current-features + ul li:nth-child(2) strong {
-          background-color: rgb(242, 144, 58);
-        }
-        #current-features + ul li:nth-child(3) strong {
-          background-color: rgb(36, 140, 203);
-        }
-        #current-features + ul li:nth-child(4) strong {
-          background-color: rgb(233, 106, 121);
-        }
-        #current-features + ul li:nth-child(5) strong {
-          background-color: rgb(20, 103, 103);
-        }
-        #current-features + ul li:nth-child(6) strong {
-          background-color: rgb(250, 188, 66);
-        }
-        /*custom font sizes to make content fit nicely*/
-        #current-features + ul li:nth-child(1) p {
-          font-size: 16px;
-        }
-        #current-features + ul li:nth-child(3) strong {
-          font-size: 14px;
-        }
-        #current-features + ul li:nth-child(4) p {
-          font-size: 16px;
-        }
-        #current-features + ul li:nth-child(5) p {
-          font-size: 18px;
-        }
-        #current-features + ul li:nth-child(6) p {
-          font-size: 20px;
-        }
-        #current-features + ul li p a {
-          text-decoration: underline;
-          color: inherit;
-        }
-        #current-features + ul li p {
-          text-align: left;
-          font-size: 12px;
-          line-height: 1.6;
-          padding-top: 30px;
-        }
-        #current-features + ul li p strong {
-          display: block;
-          font-size: 16px;
-          width: 100%;
-          position: absolute;
-          left: 0;
-          top: 0;
-          text-align: center;
-          color: white;
-          padding: 5px 0;
-        }
-        #current-features + ul li p code {
-          background-color: #F7F4F3;
-          border: 1px solid #C4CBCA;
-          font-size: 100%;
-          padding: 0 2px;
-        }
-    </style>
     <meta name="viewport" content="width=device-width">
     <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
     <link rel="stylesheet" href="css/main.css">
@@ -208,178 +49,85 @@
             <a href="index.html">
                 <div class="brand" style="display:table;">
                     <div style="position:relative;display:table-cell;vertical-align:middle;">
-                            <img src="img/logo-white.png" alt="Tachyon Logo" style="height:34px;"/>
-                            <div style="position:absolute;right:0;top:30px;text-shadow:none;">
-                                <span class="version">{{site.TACHYON_MASTER_VERSION_SHORT}}</span>
-                            </div>
+                        <img src="img/logo-white.png" alt="Tachyon Logo" style="height:34px;"/>
+                        <div style="position:absolute;right:0;top:30px;text-shadow:none;">
+                            <span class="version">{{site.TACHYON_MASTER_VERSION_SHORT}}</span>
+                        </div>
                     </div>
                 </div>
             </a>
             <ul class="nav">
-              {% if page.group == "Home" %}
-                <li class="active"><a>Overview</a></li>
-              {% else %}
-                <li><a href="index.html">Overview</a></li>
-              {% endif %}
+                {% if page.group == "Home" %}
+                    <li class="active"><a>Overview</a></li>
+                {% else %}
+                    <li><a href="index.html">Overview</a></li>
+                {% endif %}
+                {% if page.group == "FAQ" %}
+                    <li class="active"><a>FAQ</a></li>
+                {% else %}
+                    <li><a href="FAQ.html">FAQ</a></li>
+                {% endif %}
 
-              {% assign groupName = "Deployment" %}
-              <li class="dropdown">
-                  {% if page.group == groupName %}
-                  <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{groupName}}<b
-                          class="caret"></b></a>
-                  {% else %}
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{groupName}}<b
-                            class="caret"></b></a>
-                  {% endif %}
-
-                  <ul class="dropdown-menu">
-                      {% assign currentGroup = site.pages | where:'group',groupName %}
-                      {% assign currentGroup = currentGroup | sort:'priority' %}
-                      {% for node in currentGroup %}
-                        {% if page.url == node.url %}
-                          <li class="active">
-                            <a>
-                              {% if node.nickname == null %}
-                                {{node.title}}
-                              {% else %}
-                                {{node.nickname}}
-                              {% endif %}
-                            </a>
-                          </li>
+                {% assign categories = "Deployment|Development|Frameworks|More" | split: "|" %}
+                {% for groupName in categories %}
+                    <li class="dropdown">
+                        {% if page.group == groupName %}
+                            <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{groupName}}<b
+                                class="caret"></b></a>
                         {% else %}
-                          <li><a href="{{node.url}}">
-                            {% if node.nickname == null %}
-                              {{node.title}}
-                            {% else %}
-                              {{node.nickname}}
-                            {% endif %}
-                          </a></li>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{groupName}}<b
+                                class="caret"></b></a>
                         {% endif %}
-                      {% endfor %}
-                  </ul>
-              </li>
 
-              {% assign groupName = "Development" %}
-              <li class="dropdown">
-                  {% if page.group == groupName %}
-                  <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{groupName}}<b
-                          class="caret"></b></a>
-                  {% else %}
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{groupName}}<b
-                            class="caret"></b></a>
-                  {% endif %}
+                        <ul class="dropdown-menu">
+                            {% assign currentGroup = site.pages | where:'group',groupName %}
+                            {% assign currentGroup = currentGroup | sort:'priority' %}
+                            {% for node in currentGroup %}
+                                {% if page.url == node.url %}
+                                    <li class="active">
+                                        <a>
+                                            {% if node.nickname == null %}
+                                                {{node.title}}
+                                            {% else %}
+                                                {{node.nickname}}
+                                            {% endif %}
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li><a href="{{node.url}}">
+                                        {% if node.nickname == null %}
+                                            {{node.title}}
+                                        {% else %}
+                                            {{node.nickname}}
+                                        {% endif %}
+                                    </a></li>
+                                {% endif %}
+                            {% endfor %}
 
-                  <ul class="dropdown-menu">
-                      {% assign currentGroup = site.pages | where:'group',groupName %}
-                      {% for node in currentGroup %}
-                        {% if page.url == node.url %}
-                          <li class="active"><a>
-                            {% if node.nickname == null %}
-                              {{node.title}}
-                            {% else %}
-                              {{node.nickname}}
+                            {% if groupName == "Development" %}
+                                <li><a href="https://tachyon.atlassian.net/browse/TACHYON">Reporting
+                                    Issues</a></li>
+                            {% elsif groupName == "More" %}
+                                <li class="divider"></li>
+                                <li>Presentations:</li>
+                                <li><a href="http://goo.gl/0HpqeS">Tachyon Workshop 2015</a></li>
+                                <li><a href="http://goo.gl/fP9qkF">Strata and Hadoop World 2014</a></li>
+                                <li><a href="http://goo.gl/DKrE4M">Spark Summit 2014</a></li>
+                                <li><a href="http://goo.gl/AHgz0E">Strata and Hadoop World 2013</a></li>
+                                <li class="divider"></li>
+                                <li><a href="http://tachyon-project.org/master">Master branch document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.6.3">V0.6.3 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.6.2">V0.6.2 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.6.1">V0.6.1 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.6.0">V0.6.0 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.5.0">V0.5.0 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.4.1">V0.4.1 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.4.0">V0.4.0 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.3.0">V0.3.0 Document</a></li>
                             {% endif %}
-                          </a></li>
-                        {% else %}
-                          <li><a href="{{node.url}}">
-                            {% if node.nickname == null %}
-                              {{node.title}}
-                            {% else %}
-                              {{node.nickname}}
-                            {% endif %}
-                          </a></li>
-                        {% endif %}
-                      {% endfor %}
-
-                      <li><a href="https://tachyon.atlassian.net/browse/TACHYON">Reporting
-                          Issues</a></li>
-                  </ul>
-              </li>
-
-              {% assign groupName = "Frameworks" %}
-              <li class="dropdown">
-                  {% if page.group == groupName %}
-                  <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{groupName}}<b
-                          class="caret"></b></a>
-                  {% else %}
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{groupName}}<b
-                            class="caret"></b></a>
-                  {% endif %}
-
-                  <ul class="dropdown-menu">
-                      {% assign currentGroup = site.pages | where:'group',groupName %}
-                      {% for node in currentGroup %}
-                        {% if page.url == node.url %}
-                          <li class="active"><a>
-                            {% if node.nickname == null %}
-                              {{node.title}}
-                            {% else %}
-                              {{node.nickname}}
-                            {% endif %}
-                          </a></li>
-                        {% else %}
-                          <li><a href="{{node.url}}">
-                            {% if node.nickname == null %}
-                              {{node.title}}
-                            {% else %}
-                              {{node.nickname}}
-                            {% endif %}
-                          </a></li>
-                        {% endif %}
-                      {% endfor %}
-                  </ul>
-              </li>
-
-              {% assign groupName = "More" %}
-              <li class="dropdown">
-                  {% if page.group == groupName %}
-                  <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{groupName}}<b
-                          class="caret"></b></a>
-                  {% else %}
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{groupName}}<b
-                            class="caret"></b></a>
-                  {% endif %}
-
-                  <ul class="dropdown-menu">
-                      {% assign currentGroup = site.pages | where:'group',groupName %}
-                      {% for node in currentGroup %}
-                        {% if page.url == node.url %}
-                          <li class="active"><a>
-                            {% if node.nickname == null %}
-                              {{node.title}}
-                            {% else %}
-                              {{node.nickname}}
-                            {% endif %}
-                          </a></li>
-                        {% else %}
-                          <li><a href="{{node.url}}">
-                            {% if node.nickname == null %}
-                              {{node.title}}
-                            {% else %}
-                              {{node.nickname}}
-                            {% endif %}
-                          </a></li>
-                        {% endif %}
-                      {% endfor %}
-
-                      <li class="divider"></li>
-                      <li>Presentations:</li>
-                      <li><a href="http://goo.gl/0HpqeS">Tachyon Workshop 2015</a></li>
-                      <li><a href="http://goo.gl/fP9qkF">Strata and Hadoop World 2014</a></li>
-                      <li><a href="http://goo.gl/DKrE4M">Spark Summit 2014</a></li>
-                      <li><a href="http://goo.gl/AHgz0E">Strata and Hadoop World 2013</a></li>
-                      <li class="divider"></li>
-                      <li><a href="http://tachyon-project.org/master">Master branch document</a></li>
-                      <li><a href="http://tachyon-project.org/v0.6.3">V0.6.3 Document</a></li>
-                      <li><a href="http://tachyon-project.org/v0.6.2">V0.6.2 Document</a></li>
-                      <li><a href="http://tachyon-project.org/v0.6.1">V0.6.1 Document</a></li>
-                      <li><a href="http://tachyon-project.org/v0.6.0">V0.6.0 Document</a></li>
-                      <li><a href="http://tachyon-project.org/v0.5.0">V0.5.0 Document</a></li>
-                      <li><a href="http://tachyon-project.org/v0.4.1">V0.4.1 Document</a></li>
-                      <li><a href="http://tachyon-project.org/v0.4.0">V0.4.0 Document</a></li>
-                      <li><a href="http://tachyon-project.org/v0.3.0">V0.3.0 Document</a></li>
-                  </ul>
-              </li>
+                        </ul>
+                    </li>
+                {% endfor %}
             </ul>
         </div>
     </div>
@@ -457,13 +205,13 @@
 </script>
 
 <script>
-  var controller = new ScrollMagic.Controller();
+    var controller = new ScrollMagic.Controller();
 
-  new ScrollMagic.Scene({
-    offset: 20
-  })
-  .setClassToggle(".navbar-inner", "shrunk")
-  .addTo(controller);
+    new ScrollMagic.Scene({
+        offset: 20
+    })
+    .setClassToggle(".navbar-inner", "shrunk")
+    .addTo(controller);
 </script>
 
 </body>
