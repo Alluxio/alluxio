@@ -49,15 +49,20 @@ public class FileUtilsTest {
     if (fw != null) {
       fw.close();
     }
+    // tempFile no longer exist, so changing permission on it should return exception
+    mException.expect(IOException.class);
+    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "777");
+    Assert.assertTrue(tempFile.delete());
+  }
 
+  @Test
+  public void changeLocalDirPermissionTests() throws IOException {
+    File tempFile = mTestFolder.newFile("perm.txt");
     // Change permission on directories
     FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "444");
     Assert.assertFalse(tempFile.delete());
     FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "744");
     Assert.assertTrue(tempFile.delete());
 
-    // tempFile no longer exist, so changing permission on it should return exception
-    mException.expect(IOException.class);
-    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "777");
   }
 }
