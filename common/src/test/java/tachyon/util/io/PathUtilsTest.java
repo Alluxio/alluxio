@@ -28,25 +28,21 @@ public class PathUtilsTest {
   public final ExpectedException mException = ExpectedException.none();
 
   @Test
-  public void getPathComponentsTestSuccess() {
-    try {
-      Assert.assertArrayEquals(new String[] {""}, PathUtils.getPathComponents("/"));
-      Assert.assertArrayEquals(new String[] {"", "bar"}, PathUtils.getPathComponents("/bar"));
-      Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
-          PathUtils.getPathComponents("/foo/bar"));
-      Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
-          PathUtils.getPathComponents("/foo/bar/"));
-      Assert.assertArrayEquals(new String[] {"", "bar"},
-          PathUtils.getPathComponents("/foo/../bar"));
-      Assert.assertArrayEquals(new String[] {"", "foo", "bar", "a", "b", "c"},
-          PathUtils.getPathComponents("/foo//bar/a/b/c"));
-    } catch (InvalidPathException e) {
-      Assert.fail();
-    }
+  public void getPathComponentsNoExceptionTest() throws InvalidPathException {
+    Assert.assertArrayEquals(new String[] {""}, PathUtils.getPathComponents("/"));
+    Assert.assertArrayEquals(new String[] {"", "bar"}, PathUtils.getPathComponents("/bar"));
+    Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
+        PathUtils.getPathComponents("/foo/bar"));
+    Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
+        PathUtils.getPathComponents("/foo/bar/"));
+    Assert.assertArrayEquals(new String[] {"", "bar"},
+        PathUtils.getPathComponents("/foo/../bar"));
+    Assert.assertArrayEquals(new String[] {"", "foo", "bar", "a", "b", "c"},
+        PathUtils.getPathComponents("/foo//bar/a/b/c"));
   }
 
   @Test
-  public void getPathComponentsTestException() throws InvalidPathException {
+  public void getPathComponentsExceptionTest() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
     PathUtils.getPathComponents("/\\   foo / bar");
   }

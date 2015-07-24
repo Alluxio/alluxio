@@ -25,16 +25,23 @@ public class ByteUtilsTest {
   public void cloneByteBufferTest() {
     final int bufferSize = 10;
     ByteBuffer buf = ByteBuffer.allocate(bufferSize);
-    ByteBuffer bufDirect = ByteBuffer.allocateDirect(bufferSize);
     ByteBuffer bufClone = null;
     for (byte i = 0; i < bufferSize; i ++) {
       buf.put(i);
-      bufDirect.put((byte) (i + 1));
     }
     bufClone = BufferUtils.cloneByteBuffer(buf);
     Assert.assertTrue(bufClone.equals(buf));
+  }
+
+  @Test
+  public void cloneDirectByteBufferTest() {
+    final int bufferSize = 10;
+    ByteBuffer bufDirect = ByteBuffer.allocateDirect(bufferSize);
+    ByteBuffer bufClone = null;
+    for (byte i = 0; i < bufferSize; i ++) {
+      bufDirect.put(i);
+    }
     bufClone = BufferUtils.cloneByteBuffer(bufDirect);
     Assert.assertTrue(bufClone.equals(bufDirect));
   }
-
 }
