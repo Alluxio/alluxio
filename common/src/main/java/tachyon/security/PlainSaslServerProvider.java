@@ -32,14 +32,19 @@ import javax.security.sasl.SaslServerFactory;
  * 3.Write a JCA provider that registers the factory
  */
 public class PlainSaslServerProvider extends Provider {
-  public static final String TACHYON_PROVIDER_NAME = "TachyonSaslPlain";
-  public static final String TACHYON_MECHANSIM_NAME = "PLAIN";
+  public static final String PROVIDER = "TachyonSaslPlain";
+  public static final String MECHANSIM = "PLAIN";
 
   public PlainSaslServerProvider() {
-    super(TACHYON_PROVIDER_NAME, 1.0, "Tachyon Plain SASL provider");
-    put("SaslServerFactory." + TACHYON_MECHANSIM_NAME, PlainSaslServerFactory.class.getName());
+    super(PROVIDER, 1.0, "Plain SASL provider");
+    put("SaslServerFactory." + MECHANSIM, PlainSaslServerFactory.class.getName());
   }
 
+  /**
+   * PlainSaslServerFactory was used to create instances of {@link PlainSaslServer}.
+   * The parameter mechanism must be "PLAIN" when this PlainSaslServerFactory was called, or
+   * the null will be return.
+   */
   public static class PlainSaslServerFactory implements SaslServerFactory {
     /**
      * Creates a <tt>SaslServer</tt> using the parameters supplied.
@@ -67,7 +72,7 @@ public class PlainSaslServerProvider extends Provider {
     public SaslServer createSaslServer(String mechanism, String protocol, String serverName,
                                        Map<String, ?> props, CallbackHandler cbh)
                                            throws SaslException {
-      if (TACHYON_MECHANSIM_NAME.equals(mechanism)) {
+      if (MECHANSIM.equals(mechanism)) {
         return new PlainSaslServer(cbh);
       }
       return null;
@@ -75,7 +80,7 @@ public class PlainSaslServerProvider extends Provider {
 
     @Override
     public String[] getMechanismNames(Map<String, ?> props) {
-      return new String[] {TACHYON_MECHANSIM_NAME};
+      return new String[] {MECHANSIM};
     }
   }
 }
