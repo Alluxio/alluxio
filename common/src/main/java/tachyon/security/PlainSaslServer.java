@@ -27,6 +27,10 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 
+import tachyon.security.authentication.AuthenticationProvider;
+import tachyon.security.authentication.AuthenticationProviderFactory;
+import tachyon.security.authentication.AuthenticationProviderFactory.AuthenticationMethod;
+
 /**
  * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.
  * There is a new provider needed to register to support server-side PLAIN mechanism.
@@ -142,6 +146,42 @@ public class PlainSaslServer implements SaslServer {
   private void throwIfNotComplete() {
     if (!mCompleted) {
       throw new IllegalStateException("PLAIN authentication not completed");
+    }
+  }
+
+  public static final class PlainServerCallbackHandler implements CallbackHandler {
+    private final AuthenticationMethod mAuthMethod;
+
+    public PlainServerCallbackHandler(String authMethodStr) {
+      mAuthMethod = AuthenticationMethod.getValidAuthenticationMethod(authMethodStr);
+    }
+
+    @Override
+    public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+      String username = null;
+      String password = null;
+      AuthorizeCallback ac = null;
+
+      for (Callback callback : callbacks) {
+        if (callback instanceof NameCallback) {
+          NameCallback nc = (NameCallback) callback;
+          username = nc.getName();
+        } else if (callback instanceof PasswordCallback) {
+          PasswordCallback pc = (PasswordCallback) callback;
+          password = new String(pc.getPassword());
+        } else if (callback instanceof AuthorizeCallback) {
+          ac = (AuthorizeCallback) callback;
+        } else {
+          throw new UnsupportedCallbackException(callback);
+        }
+      }
+
+      AuthenticationProvider provider =
+          AuthenticationProviderFactory.getAuthenticationProvider(mAuthMethod);
+      provider.authenticate(username, password);
+      if (ac != null) {
+        ac.setAuthorized(true);
+      }
     }
   }
 }
