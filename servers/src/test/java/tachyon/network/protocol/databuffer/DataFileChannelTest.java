@@ -31,7 +31,7 @@ import org.junit.rules.TemporaryFolder;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.FileRegion;
 
-import tachyon.TestUtils;
+import tachyon.util.io.BufferUtils;
 
 public class DataFileChannelTest {
   private static final int OFFSET = 1;
@@ -49,7 +49,7 @@ public class DataFileChannelTest {
     String path = f.getAbsolutePath();
 
     FileOutputStream os = new FileOutputStream(path);
-    os.write(TestUtils.getIncreasingByteArray(OFFSET + LENGTH));
+    os.write(BufferUtils.getIncreasingByteArray(OFFSET + LENGTH));
     os.close();
 
     FileInputStream is = new FileInputStream(f);
@@ -74,6 +74,6 @@ public class DataFileChannelTest {
     DataFileChannel data = new DataFileChannel(mChannel, OFFSET, LENGTH);
     ByteBuffer readOnlyBuffer = data.getReadOnlyByteBuffer();
     Assert.assertTrue(readOnlyBuffer.isReadOnly());
-    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(OFFSET, LENGTH), readOnlyBuffer);
+    Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(OFFSET, LENGTH), readOnlyBuffer);
   }
 }

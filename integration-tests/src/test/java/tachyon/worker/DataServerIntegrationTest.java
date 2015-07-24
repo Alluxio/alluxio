@@ -33,7 +33,6 @@ import org.junit.runners.Parameterized;
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
-import tachyon.TestUtils;
 import tachyon.client.RemoteBlockReader;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
@@ -46,6 +45,7 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
 
 /**
  * Integration tests for tachyon.worker.DataServer.
@@ -128,7 +128,7 @@ public class DataServerIntegrationTest {
    */
   private void assertValid(final DataServerMessage msg, final int expectedSize,
       final long blockId, final long offset, final long length) {
-    assertValid(msg, TestUtils.getIncreasingByteBuffer(expectedSize), blockId, offset, length);
+    assertValid(msg, BufferUtils.getIncreasingByteBuffer(expectedSize), blockId, offset, length);
   }
 
   @Before
@@ -191,7 +191,7 @@ public class DataServerIntegrationTest {
     assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
 
     CommonUtils.sleepMs(null,
-        TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+        CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
     ClientFileInfo fileInfo = mTFS.getFileStatus(-1, new TachyonURI("/readFile1"));
     Assert.assertEquals(0, fileInfo.inMemoryPercentage);
   }
@@ -215,7 +215,7 @@ public class DataServerIntegrationTest {
     final int offset = 2;
     final int length = 6;
     DataServerMessage recvMsg = request(block, offset, length);
-    assertValid(recvMsg, TestUtils.getIncreasingByteBuffer(offset, length), block.getBlockId(),
+    assertValid(recvMsg, BufferUtils.getIncreasingByteBuffer(offset, length), block.getBlockId(),
         offset, length);
   }
 
@@ -240,7 +240,7 @@ public class DataServerIntegrationTest {
     ByteBuffer result = client.readRemoteBlock(block.getLocations().get(0).mHost,
         block.getLocations().get(0).mSecondaryPort, block.getBlockId(), 0, length);
 
-    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(length), result);
+    Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(length), result);
   }
 
   // TODO: Make this work with the new BlockReader
