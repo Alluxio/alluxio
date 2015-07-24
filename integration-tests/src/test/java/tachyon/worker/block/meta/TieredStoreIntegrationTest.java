@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.WriteType;
@@ -73,7 +72,7 @@ public class TieredStoreIntegrationTest {
 
     // Pin the file
     mTFS.pinFile(fileId);
-    CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+    CommonUtils.sleepMs(LOG, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
 
     // Confirm the pin with master
     Assert.assertTrue(mTFS.getFileStatus(fileId, false).isIsPinned());
@@ -93,14 +92,14 @@ public class TieredStoreIntegrationTest {
 
     // Pin the file
     mTFS.pinFile(fileId1);
-    CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+    CommonUtils.sleepMs(LOG, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
 
     // Confirm the pin with master
     Assert.assertTrue(mTFS.getFileStatus(fileId1, false).isIsPinned());
 
     // Unpin the file
     mTFS.unpinFile(fileId1);
-    CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+    CommonUtils.sleepMs(LOG, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
 
     // Confirm the unpin
     Assert.assertFalse(mTFS.getFileStatus(fileId1, false).isIsPinned());
@@ -111,7 +110,7 @@ public class TieredStoreIntegrationTest {
         TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
     // File 2 should be in memory and File 1 should be evicted
-    CommonUtils.sleepMs(LOG, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+    CommonUtils.sleepMs(LOG, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
     Assert.assertFalse(mTFS.getFile(fileId1).isInMemory());
     Assert.assertTrue(mTFS.getFile(fileId2).isInMemory());
   }
@@ -130,7 +129,7 @@ public class TieredStoreIntegrationTest {
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE,
             MEM_CAPACITY_BYTES / 2);
 
-    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
+    CommonUtils.sleepMs(null, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
 
     TachyonFile file1 = mTFS.getFile(fileId1);
     TachyonFile file2 = mTFS.getFile(fileId2);
@@ -147,7 +146,7 @@ public class TieredStoreIntegrationTest {
     int len = is.read(buf);
     is.close();
 
-    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
+    CommonUtils.sleepMs(null, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
 
     Assert.assertEquals(MEM_CAPACITY_BYTES / 6, len);
     Assert.assertEquals(true, file1.isInMemory());
