@@ -28,6 +28,7 @@ import org.junit.rules.TemporaryFolder;
 public class FileUtilsTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
+
   @Rule
   public final ExpectedException mException = ExpectedException.none();
 
@@ -49,10 +50,15 @@ public class FileUtilsTest {
     if (fw != null) {
       fw.close();
     }
-    // tempFile no longer exist, so changing permission on it should return exception
+  }
+
+  @Test
+  public void changeNoExistentFileTest() throws IOException {
+    // ghostFile is never created, so changing permission should fail
+    File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     mException.expect(IOException.class);
-    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "777");
-    Assert.assertTrue(tempFile.delete());
+    FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "777");
+    Assert.assertTrue(ghostFile.delete());
   }
 
   @Test
@@ -63,6 +69,5 @@ public class FileUtilsTest {
     Assert.assertFalse(tempFile.delete());
     FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "744");
     Assert.assertTrue(tempFile.delete());
-
   }
 }
