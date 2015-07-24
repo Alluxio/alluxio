@@ -45,8 +45,8 @@ public class BufferUtils {
   /**
    * Clone a bytebuffer.
    * <p>
-   * The new bytebuffer will have the same content, but the cloning only applies to array-based
-   * bytebuffers
+   * The new bytebuffer will have the same content, but the type of the bytebuffer may not be
+   * the same.
    *
    * @param buf The ByteBuffer to clone
    * @return The new ByteBuffer

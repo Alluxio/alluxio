@@ -31,12 +31,6 @@ public class FileUtilsTest {
   @Rule
   public final ExpectedException mException = ExpectedException.none();
 
-  /**
-   * Test for both changeLocalFilePermission and changeLocalFileToFullPermission
-   *
-   * @param filePath that will change permission
-   * @throws IOException
-   */
   @Test
   public void changeLocalFilePermissionTest() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
