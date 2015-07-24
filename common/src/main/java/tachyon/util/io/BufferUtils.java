@@ -44,9 +44,23 @@ public class BufferUtils {
     }
   }
 
+  /**
+   * Clone a bytebuffer.
+   * <p>
+   * The new bytebuffer will have the same content, but the type of the bytebuffer may not be
+   * the same.
+   *
+   * @param buf The ByteBuffer to clone
+   * @return The new ByteBuffer
+   */
   public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
     ByteBuffer ret = ByteBuffer.allocate(buf.limit() - buf.position());
-    ret.put(buf.array(), buf.position(), buf.limit() - buf.position());
+    if (buf.hasArray()) {
+      ret.put(buf.array(), buf.position(), buf.limit() - buf.position());
+    } else {
+      // direct buffer
+      ret.put(buf);
+    }
     ret.flip();
     return ret;
   }
