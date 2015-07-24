@@ -297,8 +297,8 @@ abstract class AbstractTFS extends FileSystem {
       ClientBlockInfo info = blocks.get(k);
       long offset = info.getOffset();
       long end = offset + info.getLength();
-      if ((offset >= start && offset <= start + len) || (end >= start && end <= start + len)
-          || (offset <= start && end >= start + len)) {
+      // Check if there is any overlapping between [start, start+len] and [offset, end]
+      if (end >= start && offset <= start + len) {
         ArrayList<String> names = new ArrayList<String>();
         ArrayList<String> hosts = new ArrayList<String>();
         for (NetAddress addr : info.getLocations()) {
