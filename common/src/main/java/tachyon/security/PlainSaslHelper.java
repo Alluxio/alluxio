@@ -17,7 +17,6 @@ package tachyon.security;
 
 import java.security.Security;
 
-import com.google.common.annotations.VisibleForTesting;
 /**
  * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.
  * There is a new provider {@link PlainSaslServerProvider} needed to support
@@ -33,8 +32,7 @@ public class PlainSaslHelper {
    * @param name the name of the provider
    * @return true if the provider was registered
    */
-  @VisibleForTesting
   public static boolean isPlainSaslProviderAdded() {
-    return Security.getProvider(PlainSaslServerProvider.TACHYON_PROVIDER_NAME) != null;
+    return Security.getProvider(PlainSaslServerProvider.PROVIDER) != null;
   }
 }
