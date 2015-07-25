@@ -1,6 +1,8 @@
 ---
 layout: global
 title: Running Shark on Tachyon
+nickname: Shark
+group: Frameworks
 ---
 
 The additional prerequisite for this part is [Shark](https://github.com/amplab/shark/wiki).

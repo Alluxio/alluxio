@@ -1,6 +1,7 @@
 ---
 layout: global
 title: Configuration Settings
+group: More
 ---
 
 There are two types of configuration parameters for Tachyon:
@@ -255,13 +256,15 @@ number.
   <td>The capacity of top storage layer.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.allocate.strategy</td>
-  <td>MAX_FREE</td>
-  <td>The strategy that worker allocate space among storage directories in certain storage layer.</td>
+  <td>tachyon.worker.allocate.strategy.class</td>
+  <td>tachyon.worker.block.allocator.MaxFreeAllocator</td>
+  <td>The strategy that worker allocate space among storage directories in certain storage layer. Valid options
+  are: tachyon.worker.block.allocator.MaxFreeAllocator, tachyon.worker.block.allocator.GreedyAllocator,
+  tachyon.worker.block.allocator.RoundRobinAllocator.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.evict.strategy</td>
-  <td>LRU</td>
+  <td>tachyon.worker.evict.strategy.class</td>
+  <td>tachyon.worker.block.evictor.LRUEvictor</td>
   <td>The strategy that worker evict block files when a storage layer runs out of space.</td>
 </tr>
 <tr> <td>tachyon.worker.data.server.class</td>

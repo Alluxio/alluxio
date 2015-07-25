@@ -15,7 +15,6 @@
 
 package tachyon.worker.block.meta;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +39,7 @@ public class StorageTierView {
    *
    * @param tier which the tierView is constructed from
    * @param view, the BlockMetadataManagerView this tierView is associated with
-   * @param StorageTierView constructed
+   * @return BlockMetadataManagerView constructed
    */
   public StorageTierView(StorageTier tier, BlockMetadataManagerView view) {
     mTier = Preconditions.checkNotNull(tier);
@@ -63,9 +62,9 @@ public class StorageTierView {
    * Get a StorageDirView with a dirIndex
    *
    * @param dirIndex of the dirView requested
-   * @throws IOException if dirIndex is out of range
+   * @throws IndexOutOfBoundsException if dirIndex is out of range
    */
-  public StorageDirView getDirView(int dirIndex) throws IOException {
+  public StorageDirView getDirView(int dirIndex) {
     return mDirViews.get(dirIndex);
   }
 
