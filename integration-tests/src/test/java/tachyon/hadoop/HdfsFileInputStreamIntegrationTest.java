@@ -29,12 +29,12 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientFileInfo;
+import tachyon.util.io.BufferUtils;
 
 /**
  * Integration tests for HdfsFileInputStream.
@@ -57,7 +57,7 @@ public class HdfsFileInputStreamIntegrationTest {
   }
 
   @BeforeClass
-  public static final void beforeClass() throws IOException {
+  public static final void beforeClass() throws Exception {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
@@ -116,12 +116,12 @@ public class HdfsFileInputStreamIntegrationTest {
     byte[] buf = new byte[FILE_LEN];
     int length = mInMemInputStream.read(buf, 0, FILE_LEN);
     Assert.assertEquals(FILE_LEN, length);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(FILE_LEN, buf));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buf));
 
     Arrays.fill(buf, (byte) 0);
     length = mUfsInputStream.read(buf, 0, FILE_LEN);
     Assert.assertEquals(FILE_LEN, length);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(FILE_LEN, buf));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buf));
 
     Arrays.fill(buf, (byte) 0);
     length = mInMemInputStream.read(buf, 0, 1);
@@ -138,25 +138,25 @@ public class HdfsFileInputStreamIntegrationTest {
     byte[] buf = new byte[FILE_LEN];
     int length = mInMemInputStream.read(0, buf, 0, FILE_LEN);
     Assert.assertEquals(FILE_LEN, length);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(FILE_LEN, buf));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buf));
     Assert.assertEquals(0, mInMemInputStream.getPos());
 
     Arrays.fill(buf, (byte) 0);
     length = mUfsInputStream.read(0, buf, 0, FILE_LEN);
     Assert.assertEquals(FILE_LEN, length);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(FILE_LEN, buf));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buf));
     Assert.assertEquals(0, mUfsInputStream.getPos());
 
     Arrays.fill(buf, (byte) 0);
     length = mInMemInputStream.read(10, buf, 0, FILE_LEN - 10);
     Assert.assertEquals(FILE_LEN - 10, length);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, FILE_LEN - 10, buf));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, FILE_LEN - 10, buf));
     Assert.assertEquals(0, mInMemInputStream.getPos());
 
     Arrays.fill(buf, (byte) 0);
     length = mUfsInputStream.read(10, buf, 0, FILE_LEN - 10);
     Assert.assertEquals(FILE_LEN - 10, length);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, FILE_LEN - 10, buf));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, FILE_LEN - 10, buf));
     Assert.assertEquals(0, mUfsInputStream.getPos());
 
     Arrays.fill(buf, (byte) 0);

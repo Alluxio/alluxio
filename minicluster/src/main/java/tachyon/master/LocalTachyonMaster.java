@@ -25,7 +25,7 @@ import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.UnderFileSystemUtils;
 
 /**
@@ -68,7 +68,7 @@ public final class LocalTachyonMaster {
     UnderFileSystemUtils.mkdirIfNotExists(mDataDir, tachyonConf);
     UnderFileSystemUtils.mkdirIfNotExists(mLogDir, tachyonConf);
 
-    mHostname = NetworkUtils.getLocalHostName(250);
+    mHostname = NetworkAddressUtils.getLocalHostName(250);
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
     // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of

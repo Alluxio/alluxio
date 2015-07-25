@@ -15,7 +15,6 @@
 
 package tachyon.worker.block.evictor;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -26,10 +25,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.Constants;
 import tachyon.Pair;
+import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
@@ -51,12 +49,12 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    * placeholder to occupy the value), acts as a LRU double linked list where most recently accessed
    * element is put at the tail while least recently accessed element is put at the head.
    */
-  private Map<Long, Boolean> mLRUCache = Collections
+  protected Map<Long, Boolean> mLRUCache = Collections
       .synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
   public LRUEvictor(BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view);
+    mManagerView = view;
 
     // preload existing blocks loaded by StorageDir to Evictor
     for (StorageTierView tierView : mManagerView.getTierViews()) {
@@ -73,7 +71,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    *         bytesToBeAvailable, otherwise null
    */
   private StorageDirView selectDirWithRequestedSpace(long bytesToBeAvailable,
-      BlockStoreLocation location) throws IOException {
+      BlockStoreLocation location) {
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTierView tierView : mManagerView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {
@@ -109,17 +107,17 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    * tier, they will be evicted, otherwise, only blocks to be freed in the bottom tier will be
    * evicted.
    *
-   * this method is only used in {@link #freeSpace(long, tachyon.worker.block.BlockStoreLocation)}
+   * this method is only used in {@link #freeSpaceWithView}
    *
    * @param bytesToBeAvailable bytes to be available after eviction
    * @param location target location to evict blocks from
    * @param plan the plan to be recursively updated, is empty when first called in
-   *        {@link #freeSpace(long, tachyon.worker.block.BlockStoreLocation)}
+   *        {@link #freeSpaceWithView}
    * @return the first StorageDirView in the range of location to evict/move bytes from, or null if
    *         there is no plan
    */
-  private StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
-      EvictionPlan plan) throws IOException {
+  protected StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
+      EvictionPlan plan) {
 
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
     StorageDirView candidateDirView = selectDirWithRequestedSpace(bytesToBeAvailable, location);
@@ -139,12 +137,12 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
           if (block.getBlockLocation().belongTo(location)) {
             int tierAlias = block.getParentDir().getParentTier().getTierAlias();
             int dirIndex = block.getParentDir().getDirIndex();
-            dirCandidates.add(mManagerView.getTierView(tierAlias).getDirView(dirIndex),
-                blockId, block.getBlockSize());
+            dirCandidates.add(mManagerView.getTierView(tierAlias).getDirView(dirIndex), blockId,
+                block.getBlockSize());
           }
         }
-      } catch (IOException ioe) {
-        LOG.warn("Remove block {} from LRU Cache because {}", blockId, ioe);
+      } catch (NotFoundException nfe) {
+        LOG.warn("Remove block {} from LRU Cache because {}", blockId, nfe);
         it.remove();
       }
     }
@@ -182,36 +180,11 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     return candidateDirView;
   }
 
-
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-      BlockMetadataManagerView view) throws IOException {
+      BlockMetadataManagerView view) {
     mManagerView = view;
-    return freeSpace(bytesToBeAvailable, location);
-  }
 
-  /**
-   * This method should only be accessed by {@link freeSpaceWithView} in this class.
-   * Frees space in the given block store location.
-   * After eviction, at least one StorageDir in the location
-   * has the specific amount of free space after eviction. The location can be a specific
-   * StorageDir, or {@link BlockStoreLocation#anyTier} or {@link BlockStoreLocation#anyDirInTier}.
-   * The view is generated and passed by the calling {@link BlockStore}.
-   *
-   * <P>
-   * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,
-   * or an eviction plan with toMove and toEvict fields to indicate how to free space. If both
-   * toMove and toEvict of the plan are empty, it indicates that Evictor has no actions to take and
-   * the requirement is already met.
-   *
-   * @param availableBytes the amount of free space in bytes to be ensured after eviction
-   * @param location the location in block store
-   * @return an eviction plan (possibly with empty fields) to get the free space, or null if no plan
-   *         is feasible
-   * @throws IOException if given block location is invalid
-   */
-  private EvictionPlan freeSpace(long bytesToBeAvailable, BlockStoreLocation location)
-      throws IOException {
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
     List<Long> toEvict = new ArrayList<Long>();
     EvictionPlan plan = new EvictionPlan(toMove, toEvict);
@@ -220,29 +193,8 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     if (candidateDir == null) {
       return null;
     }
-    if (plan.isEmpty()) {
-      return plan;
-    }
 
-    // assure all blocks are in the store, if not, remove from plan and lru cache
-    Iterator<Pair<Long, BlockStoreLocation>> moveIt = plan.toMove().iterator();
-    while (moveIt.hasNext()) {
-      long id = moveIt.next().getFirst();
-      if (null == mManagerView.getBlockMeta(id)) {
-        mLRUCache.remove(id);
-        moveIt.remove();
-      }
-    }
-    Iterator<Long> evictIt = plan.toEvict().iterator();
-    while (evictIt.hasNext()) {
-      long id = evictIt.next();
-      if (null == mManagerView.getBlockMeta(id)) {
-        mLRUCache.remove(id);
-        evictIt.remove();
-      }
-    }
-
-    return EvictorUtils.legalCascadingPlan(bytesToBeAvailable, plan, mManagerView) ? plan : null;
+    return plan;
   }
 
   @Override

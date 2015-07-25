@@ -53,4 +53,9 @@ public class DataByteArrayChannel extends DataBuffer {
   public ByteBuffer getReadOnlyByteBuffer() {
     return ByteBuffer.wrap(mByteArray, (int) mOffset, (int) mLength).asReadOnlyBuffer();
   }
+
+  @Override
+  public void release() {
+    // Nothing we need to release explicitly, let GC take care of all objects.
+  }
 }

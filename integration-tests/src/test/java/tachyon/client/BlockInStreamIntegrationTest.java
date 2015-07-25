@@ -23,9 +23,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.util.io.BufferUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests for <code>tachyon.client.BlockInStream</code>.
@@ -47,7 +48,7 @@ public class BlockInStreamIntegrationTest {
   }
 
   @BeforeClass
-  public static final void beforeClass() throws IOException {
+  public static final void beforeClass() throws Exception {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
@@ -87,7 +88,7 @@ public class BlockInStreamIntegrationTest {
    */
   @Test
   public void readTest1() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId =
@@ -111,7 +112,7 @@ public class BlockInStreamIntegrationTest {
           value = is.read();
         }
         Assert.assertEquals(cnt, k);
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
         is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
@@ -130,7 +131,7 @@ public class BlockInStreamIntegrationTest {
           value = is.read();
         }
         Assert.assertEquals(cnt, k);
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
       }
     }
@@ -141,7 +142,7 @@ public class BlockInStreamIntegrationTest {
    */
   @Test
   public void readTest2() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId =
@@ -157,7 +158,7 @@ public class BlockInStreamIntegrationTest {
         }
         byte[] ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
         is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
@@ -168,7 +169,7 @@ public class BlockInStreamIntegrationTest {
         }
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
       }
     }
@@ -179,7 +180,7 @@ public class BlockInStreamIntegrationTest {
    */
   @Test
   public void readTest3() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId =
@@ -195,7 +196,7 @@ public class BlockInStreamIntegrationTest {
         }
         byte[] ret = new byte[k / 2];
         Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k / 2, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
         is.close();
 
         is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
@@ -206,7 +207,7 @@ public class BlockInStreamIntegrationTest {
         }
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
       }
     }
@@ -217,7 +218,7 @@ public class BlockInStreamIntegrationTest {
    */
   @Test
   public void skipTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId =

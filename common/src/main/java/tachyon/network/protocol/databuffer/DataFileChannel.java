@@ -68,4 +68,9 @@ public class DataFileChannel extends DataBuffer {
     readOnly.position(0);
     return readOnly;
   }
+
+  @Override
+  public void release() {
+    // Nothing we need to release explicitly, let GC take care of all objects.
+  }
 }
