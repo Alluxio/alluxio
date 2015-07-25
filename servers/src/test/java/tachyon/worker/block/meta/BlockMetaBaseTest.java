@@ -15,8 +15,6 @@
 
 package tachyon.worker.block.meta;
 
-import java.io.IOException;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,7 +53,7 @@ public class BlockMetaBaseTest {
   private BlockMetaBaseForTest mBlockMeta;
 
   @Before
-  public void before() throws IOException {
+  public void before() throws Exception {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
     // Set up tier with one storage dir under mTestDirPath with 100 bytes capacity.
     TachyonConf tachyonConf = new TachyonConf();

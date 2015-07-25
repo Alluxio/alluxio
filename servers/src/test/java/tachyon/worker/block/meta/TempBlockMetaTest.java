@@ -15,8 +15,6 @@
 
 package tachyon.worker.block.meta;
 
-import java.io.IOException;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,7 +23,7 @@ import org.junit.rules.TemporaryFolder;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 public class TempBlockMetaTest {
   private static final long TEST_USER_ID = 2;
@@ -38,9 +36,8 @@ public class TempBlockMetaTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Before
-  public void before() throws IOException {
+  public void before() throws Exception {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
-
     // Set up tier with one storage dir under mTestDirPath with 100 bytes capacity.
     TachyonConf tachyonConf = new TachyonConf();
     tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", mTestDirPath);
@@ -54,13 +51,13 @@ public class TempBlockMetaTest {
 
   @Test
   public void getPathTest() {
-    Assert.assertEquals(CommonUtils.concatPath(mTestDirPath, TEST_USER_ID, TEST_BLOCK_ID),
+    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_USER_ID, TEST_BLOCK_ID),
         mTempBlockMeta.getPath());
   }
 
   @Test
   public void getCommitPathTest() {
-    Assert.assertEquals(CommonUtils.concatPath(mTestDirPath, TEST_BLOCK_ID),
+    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_BLOCK_ID),
         mTempBlockMeta.getCommitPath());
   }
 
