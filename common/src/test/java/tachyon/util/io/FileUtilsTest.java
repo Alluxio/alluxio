@@ -70,4 +70,22 @@ public class FileUtilsTest {
     FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "744");
     Assert.assertTrue(tempFile.delete());
   }
+
+  @Test
+  public void moveFileTest() throws IOException {
+    File fromFile = mTestFolder.newFile("from.txt");
+    File toFile = mTestFolder.newFile("to.txt");
+    // Move a file and verify
+    FileUtils.move(fromFile, toFile);
+    Assert.assertFalse(fromFile.exists());
+    Assert.assertTrue(toFile.exists());
+  }
+
+  @Test
+  public void deleteFileTest() throws IOException {
+    File toDelete = mTestFolder.newFile("toDelete.txt");
+    // Delete a file and verify
+    FileUtils.delete(toDelete);
+    Assert.assertFalse(toDelete.exists());
+  }
 }
