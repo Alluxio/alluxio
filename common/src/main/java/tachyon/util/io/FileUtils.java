@@ -163,6 +163,9 @@ public class FileUtils {
    * @throws IOException when fails to delete
    */
   public static void delete(File file) throws IOException {
-    file.delete();
+    boolean deletionSucceeded = file.delete();
+    if (deletionSucceeded == false) {
+      throw new IOException("Failed to delete " + file);
+    }
   }
 }
