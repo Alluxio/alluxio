@@ -146,8 +146,8 @@ multiple storage directories in the HDD tier.
 Additionally, the specific evictor and allocator strategies can be configured. Those configuration
 parameters are:
 
-    tachyon.worker.allocate.strategy=MAX_FREE
-    tachyon.worker.evict.strategy=LRU
+    tachyon.worker.allocate.strategy.class=tachyon.worker.block.allocator.MaxFreeAllocator
+    tachyon.worker.evict.strategy.class=tachyon.worker.block.evictor.LRUEvictor
 
 # Configuration Parameters For Tiered Storage
 
@@ -190,19 +190,19 @@ These are the configuration parameters for tiered storage.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.allocate.strategy</td>
-  <td>MAX_FREE</td>
+  <td>tachyon.worker.allocate.strategy.class</td>
+  <td>tachyon.worker.block.allocator.MaxFreeAllocator</td>
   <td>
-  The allocation strategy to use for new blocks in Tachyon. Currently, the possible strategies are
-  GREEDY and MAX_FREE.
+  The class name of the allocation strategy to use for new blocks in Tachyon. Currently, the
+  possible strategies are GREEDY and MAX_FREE.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.evict.strategy</td>
-  <td>LRU</td>
+  <td>tachyon.worker.evict.strategy.class</td>
+  <td>tachyon.worker.block.evictor.LRUEvictor</td>
   <td>
-  The block eviction strategy to use when a storage layer runs out of space. Currently, the
-  supported strategies are GREEDY and LRU.
+  The class name of the block eviction strategy to use when a storage layer runs out of space.
+  Currently, the supported strategies are GREEDY and LRU.
   </td>
 </tr>
 </table>
