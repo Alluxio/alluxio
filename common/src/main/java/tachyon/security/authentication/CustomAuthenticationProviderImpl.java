@@ -33,7 +33,7 @@ public class CustomAuthenticationProviderImpl implements AuthenticationProvider 
         conf.get(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS, "");
     if (Strings.isNullOrEmpty(customProviderName)) {
       throw new RuntimeException(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS
-          + " isn't set");
+          + " didn't set");
     }
 
     Class<?> customProviderClass;

@@ -16,16 +16,24 @@
 package tachyon.security.authentication;
 
 import javax.security.sasl.AuthenticationException;
+import javax.security.sasl.SaslClient;
+import javax.security.sasl.SaslServer;
 
 public class AuthenticationProviderFactory {
   public enum AuthenticationMethod {
+    /**
+     * SIMPLE AuthenticationMethod stands for PLAIN mechanism SASL negotiation
+     * CUSTOM AuthenticationMethod stands for delegating the implementation of
+     * {@link SaslServer} and {@link SaslClient} to user to customize the SASL
+     * negotiation
+     */
     SIMPLE("SIMPLE"),
     CUSTOM("CUSTOM");
 
     private final String mAuthMethod;
 
-    AuthenticationMethod(String mAuthMethod) {
-      this.mAuthMethod = mAuthMethod;
+    AuthenticationMethod(String authMethod) {
+      mAuthMethod = authMethod;
     }
 
     public String getmAuthMethod() {
