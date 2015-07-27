@@ -258,3 +258,38 @@ body {
     font-size: 100%;
     padding: 0 2px;
 }
+
+#toc {
+    display: none;
+}
+#toc + ul {
+    display: none;
+}
+@media (min-width: 1350px) {
+    #toc + ul {
+        position: fixed;
+        margin-left: -200px;
+        max-width: 200px;
+        list-style: none;
+        display: block;
+    }
+    #toc + ul a {
+        text-decoration: none;
+        color: #2f2f2f;
+    }
+    #toc + ul li a {
+        padding: 0 5px;
+    }
+    #toc + ul li.active>a {
+        background-color: #DCDCDC;
+        display: block;
+        border-left: 2px solid #2f2f2f;
+    }
+    #toc + ul>li>ul {
+        list-style: none;
+        display: none;
+    }
+    #toc + ul>li.list>ul {
+        display: block;
+    }
+}

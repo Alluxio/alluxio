@@ -5,6 +5,15 @@ group: Deployment
 priority: 3
 ---
 
+### toc
+* [Summary](#summary)
+* [Prerequisites](#prerequisites)
+* [VirtualBox](#quick-start-with-virtualbox)
+* [AWS EC2](#quick-start-with-aws-ec2)
+* [After Cluster Set Up](#after-cluster-set-up)
+* [Configurations](#configurations)
+* [FAQ](#faq)
+
 ## Summary
 
 In Tachyon source tree, [`deploy/vagrant`](https://github.com/amplab/tachyon/blob/master/deploy/vagrant) directory contains utilities to help you set up a Tachyon cluster on AWS EC2 or virtualbox.

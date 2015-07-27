@@ -31,8 +31,6 @@
         ga('create', 'UA-47563775-2', 'tachyon-project.org');
         ga('send', 'pageview');
     </script>
-
-    <script src="//cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.5/ScrollMagic.min.js"></script>
 </head>
 <body>
 <!--[if lt IE 7]>
@@ -207,14 +205,79 @@
     })
 </script>
 
+<!-- Pure JavaScript implementation of ScrollSpy -->
 <script>
-    var controller = new ScrollMagic.Controller();
+    //finds toc and automatically sorts by main list items as parents and nested list items as children
 
-    new ScrollMagic.Scene({
-        offset: 20
-    })
-    .setClassToggle(".navbar-inner", "shrunk")
-    .addTo(controller);
+    var toc = document.getElementById("toc");
+    if(toc != null) {
+        var topPadding = 12; // amount of space above header to start noticing a section
+        var navBar = document.getElementById("topbar").offsetHeight;
+        var tocEl = toc.nextElementSibling.getElementsByTagName("li");
+        var sections = toc.nextElementSibling.getElementsByTagName("a");
+        sections = Array.prototype.slice.call(sections);
+        var sectionsLen = sections.length;
+        var parentIndex;
+        var parentTag = sections[0].getAttribute("href") == "#" ? "H1" : document.getElementById(sections[0].getAttribute("href").substring(1)).nodeName;
+        for(var i = 0; i < sectionsLen; i++) {
+            //[element, offset from top, group]
+            var element = sections[i].getAttribute("href") == "#" ? document.getElementById("content").firstElementChild : document.getElementById(sections[i].getAttribute("href").substring(1));
+            if(element.nodeName == parentTag) {
+                parentIndex = i;
+            }
+            sections[i] = [element, element.offsetTop - navBar - topPadding, parentIndex];
+        }
+        var active = 0;
+        tocEl[0].classList.toggle("active");
+        var sublist;
+        var sublistPos = 0;
+        var sublistChildren = 0;
+        var locked = false;
+        var runOnScroll =  function(e) {
+            if(locked) return;
+            locked = true;
+            var pos = 0;
+            //get current active element
+            for(var i = 0; i < sectionsLen; i++) {
+                if(window.scrollY > sections[i][1]) {
+                    pos = i;
+                }
+                else {
+                    break;
+                }
+            }
+
+            if(active != pos) { // change in active element
+                tocEl[active].classList.remove('active');
+                active = pos;
+                tocEl[active].classList.add('active');
+                if(sublist != null) {
+                    sublistPos = active - sublist;
+                    if(sublistPos > sublistChildren || sublistPos < 1) { //exiting sublist
+                        tocEl[sublist].classList.toggle('list');
+                        sublist = null;
+                        sublistPos = sublistChildren = 0;
+                    }
+                }
+
+                if(tocEl[active].children[1] != null && tocEl[active].children[1].nodeName == "UL") { //entering sublist
+                    sublist = active;
+                    sublistChildren = tocEl[active].children[1].childElementCount;
+                    tocEl[sublist].classList.toggle('list');
+                }
+                else if(sections[active][0].nodeName != parentTag) { //entering sublist from bottom
+                    //sublist item
+                    sublist = sections[active][2];
+                    tocEl[sublist].classList.add('list');
+                    sublistChildren = tocEl[sublist].children[1].childElementCount;
+                }
+            }
+            locked = false;
+
+        };
+
+        window.addEventListener("scroll", runOnScroll);
+    }
 </script>
 
 </body>
