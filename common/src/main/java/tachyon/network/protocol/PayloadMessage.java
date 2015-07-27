@@ -22,9 +22,9 @@ public interface PayloadMessage {
 
   /**
    * getPayloadDataBuffer
-   * 
+   *
    * @param get the Payload from the message body.
    */
   DataBuffer getPayloadDataBuffer();
-  
+
 }
