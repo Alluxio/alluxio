@@ -48,9 +48,9 @@ public class StorageDirTest {
   private static final long TEST_BLOCK_SIZE = 20;
   private static final long TEST_TEMP_BLOCK_ID = 10;
   private static final long TEST_TEMP_BLOCK_SIZE = 30;
-  private static final String TEST_DIR_PATH = "/mnt/ramdisk/0/";
   private static final int TEST_DIR_INDEX = 1;
   private static final long TEST_DIR_CAPACITY = 1000;
+  private String mTestDirPath;
   private StorageTier mTier;
   private StorageDir mDir;
   private BlockMeta mBlockMeta;
@@ -64,9 +64,16 @@ public class StorageDirTest {
 
   @Before
   public void before() throws Exception {
+    // Creates a dummy test dir under mTestDirPath with 1 byte space so initialization can occur
+    mTestDirPath = mFolder.newFolder().getAbsolutePath();
     TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", mFolder.newFolder()
+        .getAbsolutePath());
+    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", "1b");
+    tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
+
     mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
-    mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, TEST_DIR_PATH);
+    mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, mTestDirPath);
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta =
         new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
@@ -190,7 +197,7 @@ public class StorageDirTest {
 
   @Test
   public void getDirPathTest() {
-    Assert.assertEquals(TEST_DIR_PATH, mDir.getDirPath());
+    Assert.assertEquals(mTestDirPath, mDir.getDirPath());
   }
 
   @Test

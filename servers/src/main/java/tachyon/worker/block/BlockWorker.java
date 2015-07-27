@@ -122,7 +122,7 @@ public class BlockWorker {
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
         new NetAddress(NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf).getAddress()
-            .getCanonicalHostName(), thriftServerPort, mDataServer.getPort());
+            .getHostAddress(), thriftServerPort, mDataServer.getPort());
 
     // Set up web server
     int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
