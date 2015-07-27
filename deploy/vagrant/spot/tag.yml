@@ -1,6 +1,0 @@
-- hosts: localhost
-  connection: local
-  gather_facts: False
-  roles:
-    - tag_ec2
-
