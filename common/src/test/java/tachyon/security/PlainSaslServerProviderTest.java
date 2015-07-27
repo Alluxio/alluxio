@@ -29,12 +29,10 @@ public class PlainSaslServerProviderTest {
 
   @Test
   public void createPlainSaslServerTest() throws Exception {
-    if (PlainSaslHelper.isPlainSaslProviderAdded()) {
-      // create plainSaslServer
-      SaslServer server = Sasl.createSaslServer("PLAIN", "", "",
-          new HashMap<String, String>(), null);
-      Assert.assertEquals("PLAIN", server.getMechanismName());
-    }
+    // create plainSaslServer
+    SaslServer server = Sasl.createSaslServer("PLAIN", "", "",
+        new HashMap<String, String>(), null);
+    Assert.assertEquals("PLAIN", server.getMechanismName());
   }
 
   @Test
