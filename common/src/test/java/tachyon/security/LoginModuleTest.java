@@ -22,15 +22,20 @@ import javax.security.auth.login.LoginContext;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
-import tachyon.Constants;
-import tachyon.conf.TachyonConf;
+import org.junit.rules.ExpectedException;
+
+import tachyon.security.authentication.AuthenticationFactory;
 
 /**
  * Unit test for the login module defined in {@link tachyon.security.UserInformation}
  */
 public class LoginModuleTest {
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
@@ -71,40 +76,25 @@ public class LoginModuleTest {
    */
   @Test
   public void getSimpleLoginUserTest() throws Exception {
-    TachyonConf conf = new TachyonConf();
+    UserInformation.setsAuthType(AuthenticationFactory.AuthType.SIMPLE);
 
-    // set conf to "SIMPLE" and get login user
-    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
-    UserInformation.setTachyonConf(conf);
+    User loginUser = UserInformation.getTachyonLoginUser();
 
-    UserInformation loginUser = UserInformation.getTachyonLoginUser();
-
-    Assert.assertFalse(loginUser.getUserName().isEmpty());
+    Assert.assertNotNull(loginUser);
+    Assert.assertFalse(loginUser.getName().isEmpty());
   }
 
   /**
-   * Test initializing with conf in NOSASL mode.
+   * Test whether we can get exception when getting a login user in non-security mode
    * @throws Exception
    */
   @Test
-  public void initConfTest() throws Exception {
-    // throw exception when initializing conf with "NOSASL"
-    TachyonConf conf = new TachyonConf();
-    if (conf.get(Constants.TACHYON_SECURITY_AUTHENTICATION, "").equalsIgnoreCase("NOSASL")) {
-      try {
-        UserInformation.getTachyonLoginUser();
-        Assert.fail();
-      } catch (UnsupportedOperationException e) {
-        Assert.assertTrue(e.getMessage().contains("not supported in NOSASL mode"));
-      }
-    } else {
-      conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "NOSASL");
-      try {
-        UserInformation.setTachyonConf(conf);
-        Assert.fail();
-      } catch (UnsupportedOperationException e) {
-        Assert.assertTrue(e.getMessage().contains("not supported in NOSASL mode"));
-      }
-    }
+  public void securityEnabledTest() throws Exception {
+    // TODO: add Kerberos in the white list when it is supported.
+    // throw exception when AuthType is not "SIMPLE"
+    UserInformation.setsAuthType(AuthenticationFactory.AuthType.NOSASL);
+    mThrown.expect(UnsupportedOperationException.class);
+    mThrown.expectMessage("UserInformation is only supported in SIMPLE mode");
+    UserInformation.getTachyonLoginUser();
   }
 }

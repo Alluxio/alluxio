@@ -32,7 +32,7 @@ public class AuthenticationFactory {
   /**
    * Different authentication types for Tachyon.
    */
-  public enum AuthTypes {
+  public enum AuthType {
     /**
      * Authentication is disabled. No user info in Tachyon.
      */
@@ -52,7 +52,7 @@ public class AuthenticationFactory {
 
     private final String mAuthType;
 
-    AuthTypes(String authType) {
+    AuthType(String authType) {
       mAuthType = authType;
     }
 
@@ -60,10 +60,10 @@ public class AuthenticationFactory {
       return mAuthType;
     }
 
-    public static AuthTypes getValidAuthType(String authTypeStr) {
-      for (AuthTypes authTypes : AuthTypes.values()) {
-        if (authTypeStr.equalsIgnoreCase(authTypes.getAuthName())) {
-          return authTypes;
+    public static AuthType getValidAuthType(String authTypeStr) {
+      for (AuthType authType : AuthType.values()) {
+        if (authTypeStr.equalsIgnoreCase(authType.getAuthName())) {
+          return authType;
         }
       }
       throw new IllegalArgumentException("Not a valid authentication type: " + authTypeStr);
@@ -77,17 +77,17 @@ public class AuthenticationFactory {
     mTachyonConf = tachyonConf;
     // TODO: change the default value from NOSASL to SIMPLE, after feature is stable.
     mAuthTypeStr = tachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
-        AuthTypes.NOSASL.getAuthName());
+        AuthType.NOSASL.getAuthName());
   }
 
   String getAuthTypeStr() {
     return mAuthTypeStr;
   }
 
-  public static AuthTypes getAuthTypeFromConf(TachyonConf conf) {
+  public static AuthType getAuthTypeFromConf(TachyonConf conf) {
     // TODO: change the default value from NOSASL to SIMPLE, after feature is stable.
-    return AuthTypes.getValidAuthType(conf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
-        AuthTypes.NOSASL.getAuthName()));
+    return AuthType.getValidAuthType(conf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
+        AuthType.NOSASL.getAuthName()));
   }
 
   // TODO: add methods of getting different Thrift class in follow-up PR.
