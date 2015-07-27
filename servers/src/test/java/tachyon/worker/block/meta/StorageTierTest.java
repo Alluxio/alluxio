@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 import tachyon.Constants;
 import tachyon.StorageLevelAlias;
@@ -31,27 +32,34 @@ public class StorageTierTest {
   private static final long TEST_USER_ID = 2;
   private static final long TEST_TEMP_BLOCK_ID = 10;
   private static final long TEST_BLOCK_SIZE = 20;
-  private static final String TEST_DIR1_PATH = "/mnt/ramdisk/0/";
-  private static final String TEST_DIR2_PATH = "/mnt/ramdisk/1/";
   private static final long TEST_DIR1_CAPACITY = 2000;
   private static final long TEST_DIR2_CAPACITY = 3000;
   private static final int TEST_TIER_LEVEL = 0;
   private static final int TEST_TIER_ALIAS = StorageLevelAlias.MEM.getValue();
+  private String mTestDirPath1;
+  private String mTestDirPath2;
   private StorageTier mTier;
   private StorageDir mDir1;
   private TempBlockMeta mTempBlockMeta;
+
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public final void before() throws Exception {
+    mTestDirPath1 = mFolder.newFolder().getAbsolutePath();
+    mTestDirPath2 = mFolder.newFolder().getAbsolutePath();
+
     TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
     tachyonConf.set(
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, TEST_TIER_LEVEL), "MEM");
     tachyonConf.set(
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, TEST_TIER_LEVEL),
-        TEST_DIR1_PATH + "," + TEST_DIR2_PATH);
+        mTestDirPath1 + "," + mTestDirPath2);
     tachyonConf.set(
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, TEST_TIER_LEVEL),
         TEST_DIR1_CAPACITY + "," + TEST_DIR2_CAPACITY);
@@ -95,9 +103,9 @@ public class StorageTierTest {
   public void getDirTest() {
     mThrown.expect(IndexOutOfBoundsException.class);
     StorageDir dir1 = mTier.getDir(0);
-    Assert.assertEquals(TEST_DIR1_PATH, dir1.getDirPath());
+    Assert.assertEquals(mTestDirPath1, dir1.getDirPath());
     StorageDir dir2 = mTier.getDir(1);
-    Assert.assertEquals(TEST_DIR2_PATH, dir2.getDirPath());
+    Assert.assertEquals(mTestDirPath2, dir2.getDirPath());
     // Get dir by a non-existing index, expect getDir to fail and throw IndexOutOfBoundsException
     mTier.getDir(2);
   }
@@ -106,7 +114,7 @@ public class StorageTierTest {
   public void getStorageDirsTest() {
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());
-    Assert.assertEquals(TEST_DIR1_PATH, dirs.get(0).getDirPath());
-    Assert.assertEquals(TEST_DIR2_PATH, dirs.get(1).getDirPath());
+    Assert.assertEquals(mTestDirPath1, dirs.get(0).getDirPath());
+    Assert.assertEquals(mTestDirPath2, dirs.get(1).getDirPath());
   }
 }

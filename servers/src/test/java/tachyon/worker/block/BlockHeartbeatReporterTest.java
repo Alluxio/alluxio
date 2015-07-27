@@ -77,13 +77,6 @@ public class BlockHeartbeatReporterTest {
     List<Long> addedBlocksHdd = addedBlocks.get(HDD_LOC.getStorageDirId());
     Assert.assertEquals(1, addedBlocksHdd.size());
     Assert.assertEquals(block3, addedBlocksHdd.get(0));
-
-    // All blocks should be "removed" to force an update of their location in master
-    List<Long> removedBlocks = report.getRemovedBlocks();
-    Assert.assertEquals(3, removedBlocks.size());
-    Assert.assertTrue(removedBlocks.contains(block1));
-    Assert.assertTrue(removedBlocks.contains(block2));
-    Assert.assertTrue(removedBlocks.contains(block3));
   }
 
   // Tests generating a report clears the state of the reporter
@@ -95,7 +88,6 @@ public class BlockHeartbeatReporterTest {
     // First report should have updates
     BlockHeartbeatReport report = mReporter.generateReport();
     Assert.assertFalse(report.getAddedBlocks().isEmpty());
-    Assert.assertFalse(report.getRemovedBlocks().isEmpty());
 
     // Second report should not have updates
     BlockHeartbeatReport nextReport = mReporter.generateReport();
