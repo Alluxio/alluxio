@@ -4,6 +4,15 @@ title: Configuration Settings
 group: More
 ---
 
+### toc
+* [Config Properties](#configuration-properties)
+    * [Common Config](#common-configuration)
+    * [Master Config](#master-configuration)
+    * [Worker Config](#worker-configuration)
+    * [User Config](#user-configuration)
+    * [MapReduce Config](#working-with-apache-hadoop-mapreduce-configuration)
+* [System Environment](#system-environment-properties)
+
 There are two types of configuration parameters for Tachyon:
 
 1. Configuration properties, which are used to configure the runtime settings of Tachyon
