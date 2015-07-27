@@ -1,6 +1,9 @@
 #!/bin/bash
 
-HERE=`dirname $0`
-pushd $HERE >/dev/null
-vagrant destroy -f
-popd >/dev/null
+cd `dirname $0`
+IS_SPOT=`python bin/is_aws_spot.py`
+if [[ "$IS_SPOT" == 0 ]]; then
+ python bin/spot_request.py --cancel
+else
+ vagrant destroy -f
+fi
