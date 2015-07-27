@@ -82,9 +82,4 @@ public final class CommonUtils {
     Constructor<T> ctor = cls.getConstructor(ctorClassArgs);
     return ctor.newInstance(ctorArgs);
   }
-
-  public static int getToMasterHeartBeatIntervalMs(TachyonConf tachyonConf) {
-    return tachyonConf
-        .getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
-  }
 }
