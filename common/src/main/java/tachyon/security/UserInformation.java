@@ -18,6 +18,7 @@ package tachyon.security;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.security.auth.Subject;
 import javax.security.auth.login.AppConfigurationEntry;
@@ -36,8 +37,10 @@ import tachyon.security.authentication.AuthenticationFactory;
 import tachyon.util.PlatformUtils;
 
 /**
- * This class wraps a JAAS Subject and provides methods to determine the user. It supports
- * Windows, Unix, and Kerberos login modules.
+ * This class provides methods to determine the login user and connected remote client users.
+ * When fetching a login user, it supports Windows, Unix, and Kerberos login modules.
+ * When creating a client user, it instantiates a {@link tachyon.security.User} by the user name
+ * transmitted by SASL transport from client side.
  */
 public class UserInformation {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -49,32 +52,17 @@ public class UserInformation {
   private static final boolean AIX = PlatformUtils.OS_NAME.equals("AIX");
 
   /** The configuration to use */
-  private static TachyonConf sConf;
+  private static final TachyonConf TACHYON_CONF;
   /** The authentication method to use */
-  private static AuthenticationFactory.AuthTypes sAuthType;
-  /** UserInformation about the login user */
-  private static UserInformation sLoginUser;
-
-  /**
-   * The subject of this UserInformation instance. A subject contains several perspective of a
-   * user.
-   */
-  private final Subject mSubject;
-  /** The Tachyon user represented by this UserInformation instance. */
-  private final User mUser;
+  private static AuthenticationFactory.AuthType sAuthType;
+  /** User instance of the login user */
+  private static User sLoginUser;
 
   static {
     OS_LOGIN_MODULE_NAME = getOSLoginModuleName();
     OS_PRINCIPAL_CLASS_NAME = findOsPrincipalClassName();
-  }
-
-  /**
-   * Create a UserInformation for the given subject.
-   * @param subject the user's subject
-   */
-  UserInformation(Subject subject) {
-    mSubject = subject;
-    mUser = subject.getPrincipals(User.class).iterator().next();
+    TACHYON_CONF = new TachyonConf();
+    sAuthType = AuthenticationFactory.getAuthTypeFromConf(TACHYON_CONF);
   }
 
   // Return the OS login module class name.
@@ -146,9 +134,9 @@ public class UserInformation {
 
     @Override
     public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
-      if (appName.equalsIgnoreCase(AuthenticationFactory.AuthTypes.SIMPLE.getAuthName())) {
+      if (appName.equalsIgnoreCase(AuthenticationFactory.AuthType.SIMPLE.getAuthName())) {
         return SIMPLE;
-      } else if (appName.equalsIgnoreCase(AuthenticationFactory.AuthTypes.KERBEROS.getAuthName())) {
+      } else if (appName.equalsIgnoreCase(AuthenticationFactory.AuthType.KERBEROS.getAuthName())) {
         // TODO: return KERBEROS;
         throw new UnsupportedOperationException("Kerberos is not supported currently.");
       }
@@ -157,35 +145,13 @@ public class UserInformation {
   }
 
   /**
-   * Set the static configuration and initialize based on it
-   * @param conf the configuration
+   * Check whether Tachyon is running in secure mode, such as SIMPLE, KERBEROS.
    */
-  public static void setTachyonConf(TachyonConf conf) {
-    initialize(conf);
-  }
-
-  /**
-   * Check whether fields are initialized based on the configuration.
-   */
-  private static void ensureInitialized() {
-    if (sConf == null) {
-      initialize(new TachyonConf());
+  private static void isSecurityEnabled() {
+    //TODO: add Kerberos condition check.
+    if (sAuthType != AuthenticationFactory.AuthType.SIMPLE) {
+      throw new UnsupportedOperationException("UserInformation is only supported in SIMPLE mode");
     }
-  }
-
-  /**
-   * Initialize with conf
-   * @param conf the configuration
-   */
-  private static void initialize(TachyonConf conf) {
-    sAuthType = AuthenticationFactory.getAuthTypeFromConf(conf);
-    if (sAuthType == AuthenticationFactory.AuthTypes.NOSASL) {
-      throw new UnsupportedOperationException("UserInformation is not supported in NOSASL mode");
-    }
-
-    sConf = conf;
-
-    // TODO: other init work.
   }
 
   /**
@@ -193,7 +159,7 @@ public class UserInformation {
    * @return the login user
    * @throws IOException if login fails
    */
-  public static UserInformation getTachyonLoginUser() throws IOException {
+  public static User getTachyonLoginUser() throws IOException {
     if (sLoginUser == null) {
       login();
     }
@@ -205,7 +171,7 @@ public class UserInformation {
    * @throws IOException if login fails
    */
   public static void login() throws IOException {
-    ensureInitialized();
+    isSecurityEnabled();
     try {
       Subject subject = new Subject();
 
@@ -213,22 +179,31 @@ public class UserInformation {
           new TachyonJaasConfiguration());
       loginContext.login();
 
-      sLoginUser = new UserInformation(subject);
+      Set<User> userSet = subject.getPrincipals(User.class);
+      if (!userSet.isEmpty()) {
+        if (userSet.size() == 1) {
+          sLoginUser = userSet.iterator().next();
+        } else {
+          throw new LoginException("More than one Tachyon User is found");
+        }
+      } else {
+        throw new LoginException("No Tachyon User is found.");
+      }
     } catch (LoginException e) {
-      throw new IOException("fail to login", e);
+      throw new IOException("Fail to login", e);
     }
-  }
-
-  public String getUserName() {
-    return mUser.getName();
   }
 
   @VisibleForTesting
   static void reset() {
-    sConf = null;
     sLoginUser = null;
-    sAuthType = null;
   }
 
-  // TODO: createRemoteUser(), used for remote user in RPC
+  @VisibleForTesting
+  static void setsAuthType(AuthenticationFactory.AuthType authType) {
+    sAuthType = authType;
+  }
+
+  // TODO: Create a remote client user in RPC, whose name is transmitted by SASL transport.
+  // public static User createRemoteUser(String userName);
 }

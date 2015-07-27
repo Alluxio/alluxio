@@ -23,7 +23,7 @@ import tachyon.conf.TachyonConf;
 
 /**
  * Unit test for inner class {@link tachyon.security.authentication.AuthenticationFactory
- * .AuthTypes} and methods of {@link tachyon.security.authentication.AuthenticationFactory}
+ * .AuthType} and methods of {@link tachyon.security.authentication.AuthenticationFactory}
  */
 public class AuthenticationFactoryTest {
 
@@ -34,7 +34,7 @@ public class AuthenticationFactoryTest {
 
     AuthenticationFactory authenticationFactory = new AuthenticationFactory(tachyonConf);
 
-    Assert.assertEquals(AuthenticationFactory.AuthTypes.SIMPLE.getAuthName(),
+    Assert.assertEquals(AuthenticationFactory.AuthType.SIMPLE.getAuthName(),
         authenticationFactory.getAuthTypeStr());
   }
 
