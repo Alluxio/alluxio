@@ -149,6 +149,11 @@ public class PlainSaslServer implements SaslServer {
     }
   }
 
+  /**
+   * PlainServerCallbackHandler is used to used by the SASL mechanisms to get further information
+   * to complete the authentication. For example, a SASL mechanism might uses this callback handler
+   * to do verify operation.
+   */
   public static final class PlainServerCallbackHandler implements CallbackHandler {
     private final AuthenticationMethod mAuthMethod;
 
@@ -172,7 +177,7 @@ public class PlainSaslServer implements SaslServer {
         } else if (callback instanceof AuthorizeCallback) {
           ac = (AuthorizeCallback) callback;
         } else {
-          throw new UnsupportedCallbackException(callback);
+          throw new UnsupportedCallbackException(callback, "Unsupport callback");
         }
       }
 

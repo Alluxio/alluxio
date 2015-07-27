@@ -15,19 +15,15 @@
 
 package tachyon.security.authentication;
 
-import javax.security.sasl.AuthenticationException;
+import org.junit.Test;
 
-public interface AuthenticationProvider {
-  /**
-   * The authenticate method is called by the PlainServerCallbackHandler in the
-   * PlainSaslServer layer to authenticate users for their requests.
-   * If a user is to be granted, return nothing/throw nothing.
-   * When a user is to be disallowed, throw an appropriate {@link AuthenticationException}.
-   *
-   * @param user     The username received over the connection request
-   * @param password The password received over the connection request
-   *
-   * @throws AuthenticationException When a user is found to be invalid by the implementation
-   */
-  void authenticate(String user, String password) throws AuthenticationException;
+import tachyon.Constants;
+
+public class AnonymousAuthenticationProviderImplTest {
+  @Test
+  public void createAnonymousAuthenticationProviderTest() throws Exception {
+    System.setProperty(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+        AnonymousAuthenticationProviderImpl.class.getName());
+    new AnonymousAuthenticationProviderImpl();
+  }
 }
