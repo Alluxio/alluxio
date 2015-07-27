@@ -24,34 +24,31 @@ import javax.security.sasl.SaslServer;
 import javax.security.sasl.SaslServerFactory;
 
 /**
- * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.
- * There is a new provider needed to register to support server-side PLAIN mechanism.
- * There are three basic steps in implementing a SASL security provider:
- * 1.Write a class that implements the SaslServer interface {@link PlainSaslServer}
- * 2.Write a factory class implements the SaslServerFactory
- * 3.Write a JCA provider that registers the factory
+ * The Java SunSASL provider supports CRAM-MD5, DIGEST-MD5 and GSSAPI mechanism for server side.
+ * When the SASL using PLAIN mechanism, there is no support the SASL server.
+ * So there is a new provider needed to register to support server-side PLAIN mechanism.
  */
 public class PlainSaslServerProvider extends Provider {
-  public static final String PROVIDER = "TachyonSaslPlain";
-  public static final String MECHANSIM = "PLAIN";
+  public static final String PROVIDER = "SaslPlain";
+  public static final String MECHANISM = "PLAIN";
 
   public PlainSaslServerProvider() {
     super(PROVIDER, 1.0, "Plain SASL provider");
-    put("SaslServerFactory." + MECHANSIM, PlainSaslServerFactory.class.getName());
+    put("SaslServerFactory." + MECHANISM, PlainSaslServerFactory.class.getName());
   }
 
   /**
-   * PlainSaslServerFactory was used to create instances of {@link PlainSaslServer}.
-   * The parameter mechanism must be "PLAIN" when this PlainSaslServerFactory was called, or
+   * PlainSaslServerFactory is used to create instances of {@link PlainSaslServer}.
+   * The parameter mechanism must be "PLAIN" when this PlainSaslServerFactory is called, or
    * the null will be return.
    */
   public static class PlainSaslServerFactory implements SaslServerFactory {
     /**
-     * Creates a <tt>SaslServer</tt> using the parameters supplied.
-     * It returns null if no <tt>SaslServer</tt> can be created using the parameters supplied.
-     * Throws <tt>SaslException</tt> if it cannot create a <tt>SaslServer</tt>
+     * Creates a SaslServer using the parameters supplied.
+     * It returns null if no SaslServer can be created using the parameters supplied.
+     * Throws SaslException if it cannot create a SaslServer
      * because of an error.
-     * @param mechanism The name of a SASL mechanism. (e.g. "PALIN").
+     * @param mechanism The name of a SASL mechanism. (e.g. "PLAIN").
      * @param protocol The non-null string name of the protocol for which
      * the authentication is being performed.
      * @param serverName The non-null fully qualified host name of the server
@@ -59,20 +56,17 @@ public class PlainSaslServerProvider extends Provider {
      * @param props The possibly null set of properties used to select the SASL
      * mechanism and to configure the authentication exchange of the selected
      * mechanism.
-     *
      * @param cbh The possibly null callback handler to used by the SASL
      * mechanisms to do further operation.
-     *
-     *@return A possibly null <tt>SaslServer</tt> created using the parameters
-     * supplied. If null, this factory cannot produce a <tt>SaslServer</tt>
+     *@return A possibly null SaslServer created using the parameters
+     * supplied. If null, this factory cannot produce a SaslServer
      * using the parameters supplied.
-     *@exception SaslException If cannot create a <tt>SaslServer</tt> because of an error.
+     *@exception SaslException If cannot create a SaslServer because of an error.
      */
     @Override
     public SaslServer createSaslServer(String mechanism, String protocol, String serverName,
-                                       Map<String, ?> props, CallbackHandler cbh)
-                                           throws SaslException {
-      if (MECHANSIM.equals(mechanism)) {
+        Map<String, ?> props, CallbackHandler cbh) throws SaslException {
+      if (MECHANISM.equals(mechanism)) {
         return new PlainSaslServer(cbh);
       }
       return null;
@@ -80,7 +74,7 @@ public class PlainSaslServerProvider extends Provider {
 
     @Override
     public String[] getMechanismNames(Map<String, ?> props) {
-      return new String[] {MECHANSIM};
+      return new String[] {MECHANISM};
     }
   }
 }
