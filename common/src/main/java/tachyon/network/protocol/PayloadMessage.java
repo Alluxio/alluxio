@@ -17,14 +17,16 @@ package tachyon.network.protocol;
 
 import tachyon.network.protocol.databuffer.DataBuffer;
 
+/**
+ * Interface for All Messages which contains a payload
+ */
+
 public interface PayloadMessage {
 
-
   /**
-   * getPayloadDataBuffer
+   * Returns the payload of the message.
    *
-   * @param get the Payload from the message body.
+   * @return the payload of the message, in a DataBuffer.
    */
   DataBuffer getPayloadDataBuffer();
-
 }
