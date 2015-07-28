@@ -40,34 +40,30 @@ public class PlainSaslServerProvider extends Provider {
   /**
    * PlainSaslServerFactory is used to create instances of
    * {@link PlainSaslServer}. The parameter mechanism must be "PLAIN" when this
-   * PlainSaslServerFactory is called, or the null will be return.
+   * PlainSaslServerFactory is called, or null will be returned.
    */
   public static class PlainSaslServerFactory implements SaslServerFactory {
     /**
      * Creates a SaslServer using the parameters supplied.
      * It returns null if no SaslServer can be created using the parameters supplied.
-     * Throws SaslException if it cannot create a SaslServer
-     * because of an error.
+     * Throws SaslException if it cannot create a SaslServer because of an error.
      * @param mechanism The name of a SASL mechanism. (e.g. "PLAIN").
      * @param protocol The non-null string name of the protocol for which
      * the authentication is being performed.
-     * @param serverName The non-null fully qualified host name of the server
-     * to authenticate to.
+     * @param serverName The non-null fully qualified host name of the server to authenticate to.
      * @param props The possibly null set of properties used to select the SASL
-     * mechanism and to configure the authentication exchange of the selected
-     * mechanism.
-     * @param cbh The possibly null callback handler to used by the SASL
+     * mechanism and to configure the authentication exchange of the selected mechanism.
+     * @param callbackHandler. The possibly null callback handler to used by the SASL
      * mechanisms to do further operation.
-     *@return A possibly null SaslServer created using the parameters
-     * supplied. If null, this factory cannot produce a SaslServer
-     * using the parameters supplied.
+     *@return A possibly null SaslServer created using the parameters supplied.
+     *If null, this factory cannot produce a SaslServer using the parameters supplied.
      *@exception SaslException If cannot create a SaslServer because of an error.
      */
     @Override
     public SaslServer createSaslServer(String mechanism, String protocol, String serverName,
-        Map<String, ?> props, CallbackHandler cbh) throws SaslException {
+        Map<String, ?> props, CallbackHandler callbackHandler) throws SaslException {
       if (MECHANISM.equals(mechanism)) {
-        return new PlainSaslServer(cbh);
+        return new PlainSaslServer(callbackHandler);
       }
       return null;
     }

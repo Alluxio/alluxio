@@ -19,8 +19,8 @@ import java.security.Security;
 
 /**
  * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.
- * There is a new provider {@link PlainSaslServerProvider} needed to support
- * server-side PLAIN mechanism.
+ * There is a new provider {@link PlainSaslServerProvider} needed to support server-side
+ * PLAIN mechanism.
  * PlainSaslHelper is used to register this provider
  */
 public class PlainSaslHelper {
