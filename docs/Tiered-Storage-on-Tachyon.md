@@ -106,7 +106,7 @@ not exist when asynchronous eviction is introduced.
 # Enabling and Configuring Tiered Storage
 
 Tiered storage can be enabled in Tachyon with some
-[configuration parameters](Configuration-Settings.html). By default, Tachyon only enables a single,
+[configuration parameters](Configuration-Settings.md). By default, Tachyon only enables a single,
 MEM tier. To specify additional tiers for Tachyon, use the following configuration parameters:
 
     tachyon.worker.tieredstore.level.max
