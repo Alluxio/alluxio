@@ -21,26 +21,13 @@ import javax.security.auth.Subject;
 import javax.security.auth.login.LoginContext;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
-import org.junit.rules.ExpectedException;
-
-import tachyon.security.authentication.AuthenticationFactory;
-
 /**
- * Unit test for the login module defined in {@link tachyon.security.UserInformation}
+ * Unit test for the login modules defined in {@link tachyon.security.TachyonLoginModule} and
+ * used in {@link tachyon.security.TachyonJaasConfiguration}
  */
 public class LoginModuleTest {
-
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
-
-  @Before
-  public void before() throws Exception {
-    UserInformation.reset();
-  }
 
   /**
    * This test verify whether the simple login works in JAAS framework.
@@ -49,14 +36,14 @@ public class LoginModuleTest {
    */
   @Test
   public void simpleLoginTest() throws Exception {
-    String clazzName = UserInformation.getOsPrincipalClassName();
+    String clazzName = TachyonJaasProperties.getOsPrincipalClassName();
     Class<? extends Principal> clazz = (Class<? extends Principal>) ClassLoader
         .getSystemClassLoader().loadClass(clazzName);
     Subject subject = new Subject();
 
     // login, add OS user into subject, and add corresponding Tachyon user into subject
     LoginContext loginContext = new LoginContext("simple", subject, null,
-        new UserInformation.TachyonJaasConfiguration());
+        new TachyonJaasConfiguration());
     loginContext.login();
 
     // verify whether OS user and Tachyon user is added.
@@ -69,32 +56,4 @@ public class LoginModuleTest {
   }
 
   // TODO: Kerberos login test
-
-  /**
-   * Test whether we can get login user with conf in SIMPLE mode.
-   * @throws Exception
-   */
-  @Test
-  public void getSimpleLoginUserTest() throws Exception {
-    UserInformation.setsAuthType(AuthenticationFactory.AuthType.SIMPLE);
-
-    User loginUser = UserInformation.getTachyonLoginUser();
-
-    Assert.assertNotNull(loginUser);
-    Assert.assertFalse(loginUser.getName().isEmpty());
-  }
-
-  /**
-   * Test whether we can get exception when getting a login user in non-security mode
-   * @throws Exception
-   */
-  @Test
-  public void securityEnabledTest() throws Exception {
-    // TODO: add Kerberos in the white list when it is supported.
-    // throw exception when AuthType is not "SIMPLE"
-    UserInformation.setsAuthType(AuthenticationFactory.AuthType.NOSASL);
-    mThrown.expect(UnsupportedOperationException.class);
-    mThrown.expectMessage("UserInformation is only supported in SIMPLE mode");
-    UserInformation.getTachyonLoginUser();
-  }
 }
