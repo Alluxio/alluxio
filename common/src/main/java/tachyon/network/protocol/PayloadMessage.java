@@ -20,7 +20,6 @@ import tachyon.network.protocol.databuffer.DataBuffer;
 /**
  * Interface for All Messages which contains a payload
  */
-
 public interface PayloadMessage {
 
   /**
