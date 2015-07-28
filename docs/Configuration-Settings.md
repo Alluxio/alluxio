@@ -5,7 +5,7 @@ group: More
 ---
 
 ### toc
-* [Config Properties](#configuration-properties)
+* [Configuration Properties](#configuration-properties)
     * [Common Config](#common-configuration)
     * [Master Config](#master-configuration)
     * [Worker Config](#worker-configuration)

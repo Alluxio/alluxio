@@ -9,9 +9,9 @@ Thank you for your interest in Tachyon! We greatly appreciate any new features o
 
 ### toc
 * [Submitting Code](#submitting-code)
-  * [Testing](#testing)
-  * [Coding Style](#coding-style)
-  * [FindBugs](#findbugs)
+    * [Testing](#testing)
+    * [Coding Style](#coding-style)
+    * [FindBugs](#findbugs)
 * [New Contributor Tasks](#startup-tasks-for-new-contributors)
 * [IDE](#ide)
 * [Presentations](#presentations)

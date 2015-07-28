@@ -7,7 +7,7 @@ group: Development
 
 ### toc
 * [Building Master](#)
-* [Unit tests](#unit-tests)
+* [Unit Tests](#unit-tests)
 * [Distro Support](#distro-support)
     * [Apache](#apache)
     * [Cloudera](#cloudera)
@@ -66,7 +66,7 @@ You can also stop the system by using:
 
     $ ./bin/tachyon-stop.sh
 
-# Unit tests
+# Unit Tests
 
 To run all unit tests:
 
