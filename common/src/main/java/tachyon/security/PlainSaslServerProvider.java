@@ -38,9 +38,9 @@ public class PlainSaslServerProvider extends Provider {
   }
 
   /**
-   * PlainSaslServerFactory is used to create instances of {@link PlainSaslServer}.
-   * The parameter mechanism must be "PLAIN" when this PlainSaslServerFactory is called, or
-   * the null will be return.
+   * PlainSaslServerFactory is used to create instances of
+   * {@link PlainSaslServer}. The parameter mechanism must be "PLAIN" when this
+   * PlainSaslServerFactory is called, or the null will be return.
    */
   public static class PlainSaslServerFactory implements SaslServerFactory {
     /**
