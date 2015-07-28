@@ -176,11 +176,7 @@ def is_ssh_ready(host):
 
 def wait_for_ssh(hosts):
     while len(hosts):
-        remove = set()
-        for host in hosts:
-            if is_ssh_ready(host):
-                remove.add(host)
-        hosts -= remove
+        hosts = [h for h in hosts if not is_ssh_ready(h)]
             
 
 def parse():
@@ -212,7 +208,7 @@ def main(args):
         mock_vagrant_info(instance_id_to_tag_ip)
         info('creation of spot instances done')
         info('wating for ssh to be available...')
-        wait_for_ssh(set([ip for tag, ip in instance_id_to_tag_ip.values()]))
+        wait_for_ssh([ip for tag, ip in instance_id_to_tag_ip.values()])
         info('ssh for all instances are ready')
     elif args.cancel:
         cancel_request(conn)
