@@ -53,7 +53,7 @@ public class FileUtilsTest {
   }
 
   @Test
-  public void changeNoExistentFileTest() throws IOException {
+  public void changeNonExistentFileTest() throws IOException {
     // ghostFile is never created, so changing permission should fail
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     mException.expect(IOException.class);
@@ -69,5 +69,34 @@ public class FileUtilsTest {
     Assert.assertFalse(tempFile.delete());
     FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "744");
     Assert.assertTrue(tempFile.delete());
+  }
+
+  @Test
+  public void moveFileTest() throws IOException {
+    File fromFile = mTestFolder.newFile("from.txt");
+    File toFile = mTestFolder.newFile("to.txt");
+    // Move a file and verify
+    FileUtils.move(fromFile, toFile);
+    Assert.assertFalse(fromFile.exists());
+    Assert.assertTrue(toFile.exists());
+  }
+
+  @Test
+  public void deleteFileTest() throws IOException {
+    File tempFile = mTestFolder.newFile("fileToDelete");
+    File tempFolder = mTestFolder.newFolder("dirToDelete");
+    // Delete a file and a directory
+    FileUtils.delete(tempFile);
+    FileUtils.delete(tempFolder);
+    Assert.assertFalse(tempFile.exists());
+    Assert.assertFalse(tempFolder.exists());
+  }
+
+  @Test
+  public void deleteNonExistentFileTest() throws IOException {
+    // ghostFile is never created, so deleting should fail
+    File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
+    mException.expect(IOException.class);
+    FileUtils.delete(ghostFile);
   }
 }
