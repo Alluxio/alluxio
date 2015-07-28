@@ -15,6 +15,8 @@
 
 package tachyon.worker.block;
 
+import java.util.Arrays;
+
 /**
  * Where to store a block within a block store. Currently, this is a wrapper on an integer
  * representing the tier to put this block.
@@ -144,10 +146,20 @@ public class BlockStoreLocation {
   @Override
   public boolean equals(Object object) {
     if (object instanceof BlockStoreLocation
+        && ((BlockStoreLocation) object).tierLevel() == tierLevel()
         && ((BlockStoreLocation) object).tierAlias() == tierAlias()
         && ((BlockStoreLocation) object).dir() == dir()) {
       return true;
     }
     return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(new Object[] {
+        mTierLevel,
+        mTierAlias,
+        mDirIndex,
+    });
   }
 }
