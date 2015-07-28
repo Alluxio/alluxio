@@ -205,7 +205,9 @@ public class TachyonFSIntegrationTest {
       int fileId = sTfs.getFileId(fileURI);
       sTfs.delete(fileId, true);
       Assert.assertFalse(sTfs.exist(fileURI));
-      int timeOutMs = CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10;
+      int timeOutMs =
+          mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
+              Constants.SECOND_MS) * 2 + 10;
       CommonUtils.sleepMs(null, timeOutMs);
       workers = sTfs.getWorkersInfo();
       Assert.assertEquals(1, workers.size());

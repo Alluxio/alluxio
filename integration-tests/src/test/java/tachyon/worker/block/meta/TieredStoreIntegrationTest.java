@@ -45,6 +45,7 @@ public class TieredStoreIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster;
   private TachyonConf mWorkerConf;
   private TachyonFS mTFS;
+  private int mWorkerToMasterHeartbeatIntervalMs;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -61,6 +62,8 @@ public class TieredStoreIntegrationTest {
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
+    mWorkerToMasterHeartbeatIntervalMs =
+        mWorkerConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
   }
 
   // Tests that pinning a file prevents it from being evicted.
@@ -72,7 +75,7 @@ public class TieredStoreIntegrationTest {
 
     // Pin the file
     mTFS.pinFile(fileId);
-    CommonUtils.sleepMs(LOG, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // Confirm the pin with master
     Assert.assertTrue(mTFS.getFileStatus(fileId, false).isIsPinned());
@@ -92,14 +95,14 @@ public class TieredStoreIntegrationTest {
 
     // Pin the file
     mTFS.pinFile(fileId1);
-    CommonUtils.sleepMs(LOG, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // Confirm the pin with master
     Assert.assertTrue(mTFS.getFileStatus(fileId1, false).isIsPinned());
 
     // Unpin the file
     mTFS.unpinFile(fileId1);
-    CommonUtils.sleepMs(LOG, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // Confirm the unpin
     Assert.assertFalse(mTFS.getFileStatus(fileId1, false).isIsPinned());
@@ -110,7 +113,7 @@ public class TieredStoreIntegrationTest {
         TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
     // File 2 should be in memory and File 1 should be evicted
-    CommonUtils.sleepMs(LOG, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 3);
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
     Assert.assertFalse(mTFS.getFile(fileId1).isInMemory());
     Assert.assertTrue(mTFS.getFile(fileId2).isInMemory());
   }
