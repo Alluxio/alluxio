@@ -43,6 +43,7 @@ public class TachyonFSIntegrationTestIso {
   private TachyonFS mTfs = null;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
+  private int mWorkerToMasterHeartbeatIntervalMs;
 
   @After
   public final void after() throws Exception {
@@ -58,6 +59,9 @@ public class TachyonFSIntegrationTestIso {
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerTachyonConf.set(Constants.MAX_COLUMNS, "257");
+    mWorkerToMasterHeartbeatIntervalMs =
+        mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
+            Constants.SECOND_MS);
   }
 
   @Test
@@ -90,7 +94,8 @@ public class TachyonFSIntegrationTestIso {
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
         WriteType.CACHE_THROUGH, fileSize));
 
-    CommonUtils.sleepMs(null, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf));
+    CommonUtils.sleepMs(null, mWorkerToMasterHeartbeatIntervalMs);
+
     tFile = mTfs.getFile(fileIds.get(0));
     Assert.assertFalse(tFile.isInMemory());
     for (int k = 1; k <= numOfFiles; k ++) {
@@ -282,6 +287,6 @@ public class TachyonFSIntegrationTestIso {
   }
 
   private long getSleepMs() {
-    return (CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 2 + 10);
+    return mWorkerToMasterHeartbeatIntervalMs * 2 + 10;
   }
 }

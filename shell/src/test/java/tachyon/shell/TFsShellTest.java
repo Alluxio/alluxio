@@ -610,7 +610,9 @@ public class TFsShellTest {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.free(new String[] {"free", "/testFile"});
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    CommonUtils.sleepMs(null, CommonUtils.getToMasterHeartBeatIntervalMs(tachyonConf) * 2 + 10);
+    CommonUtils
+        .sleepMs(null, tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
+            Constants.SECOND_MS) * 2 + 10);
     Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
   }
 
