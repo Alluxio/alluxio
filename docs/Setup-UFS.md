@@ -15,7 +15,7 @@ group: More
     * [Format](#format-the-filesystem)
     * [Verify](#verify-that-glusterfs-is-ready-to-use)
 * [Swift & IBM SoftLayer](#openstack-swift-and-ibm-softlayer-object-store-alpha)
-    * [Config](#configuration)
+    * [Configuration](#configuration)
     * [Local file system usage](#local-file-system-usage)
     * [Accessing IBM SoftLayer](#accessing-ibm-softlayer-object-store)
 * [Add other UFS](#add-other-underlayer-storage-system)
