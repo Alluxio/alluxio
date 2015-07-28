@@ -152,4 +152,20 @@ public class FileUtils {
   public static void move(File from, File to) throws IOException {
     Files.move(from, to);
   }
+
+  /**
+   * Delete the file or directory
+   *
+   * Current implementation uses {@link java.io.File#delete();}, may change if
+   * there is a better solution.
+   *
+   * @param file file to delete
+   * @throws IOException when fails to delete
+   */
+  public static void delete(File file) throws IOException {
+    boolean deletionSucceeded = file.delete();
+    if (deletionSucceeded == false) {
+      throw new IOException("Failed to delete " + file);
+    }
+  }
 }
