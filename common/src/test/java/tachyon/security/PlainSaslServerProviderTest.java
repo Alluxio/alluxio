@@ -30,7 +30,7 @@ public class PlainSaslServerProviderTest {
   @Test
   public void createPlainSaslServerTest() throws Exception {
     // create plainSaslServer
-    SaslServer server = Sasl.createSaslServer(PlainSaslServerProvider.PROVIDER, "", "",
+    SaslServer server = Sasl.createSaslServer(PlainSaslServerProvider.MECHANISM, "", "",
         new HashMap<String, String>(), null);
     Assert.assertEquals(PlainSaslServerProvider.MECHANISM, server.getMechanismName());
   }
