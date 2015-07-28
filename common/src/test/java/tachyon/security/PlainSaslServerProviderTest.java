@@ -32,7 +32,15 @@ public class PlainSaslServerProviderTest {
     // create plainSaslServer
     SaslServer server = Sasl.createSaslServer("PLAIN", "", "",
         new HashMap<String, String>(), null);
-    Assert.assertEquals("PLAIN", server.getMechanismName());
+    Assert.assertEquals(PlainSaslServerProvider.MECHANISM, server.getMechanismName());
+  }
+
+  @Test
+  public void createNoSupportSaslServerTest() throws Exception {
+    // create a SaslServer which PlainSaslServerProvider has not supported
+    SaslServer server = Sasl.createSaslServer("NO_PLAIN", "", "",
+        new HashMap<String, String>(), null);
+    Assert.assertNull(server);
   }
 
   @Test
