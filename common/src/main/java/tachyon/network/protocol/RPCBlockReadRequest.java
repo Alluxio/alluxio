@@ -17,12 +17,7 @@ package tachyon.network.protocol;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
-import com.google.common.primitives.Shorts;
-
 import io.netty.buffer.ByteBuf;
-
-import tachyon.Constants;
-import tachyon.worker.DataServerMessage;
 
 /**
  * This represents an RPC request to read a block from a DataServer.
