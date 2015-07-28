@@ -156,10 +156,6 @@ public class BlockStoreLocation {
 
   @Override
   public int hashCode() {
-    return Arrays.hashCode(new Object[] {
-        mTierLevel,
-        mTierAlias,
-        mDirIndex,
-    });
+    return Arrays.hashCode(new Object[] {mTierLevel, mTierAlias, mDirIndex});
   }
 }
