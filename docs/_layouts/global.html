@@ -211,6 +211,7 @@
 
     var toc = document.getElementById("toc");
     if (toc != null) { // checks to see if table of contents exists in page
+        toc.classList.add("on");
         var topPadding = 12; // amount of space above header to start noticing a section
         var navBar = document.getElementById("topbar").offsetHeight;
         var tocEl = toc.nextElementSibling.getElementsByTagName("li"); // table of contents list
@@ -243,8 +244,7 @@
             for (var i = 0; i < sectionsLen; i++) {
                 if (window.scrollY > sections[i][1]) {
                     pos = i;
-                }
-                else {
+                } else {
                     break;
                 }
             }
@@ -268,8 +268,7 @@
                     sublist = active;
                     sublistChildren = tocEl[active].children[1].childElementCount;
                     tocEl[sublist].classList.toggle('list');
-                }
-                else if (sections[active][0].nodeName != parentTag) {
+                } else if (sections[active][0].nodeName != parentTag) {
                     // the current item is not of the header type of the parent items,
                     // so it is a sublist item and a sublist has been entered
                     sublist = sections[active][2];
@@ -279,7 +278,7 @@
             }
             locked = false;
 
-        };
+        }
 
         window.addEventListener("scroll", runOnScroll);
     }

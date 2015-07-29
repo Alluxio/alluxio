@@ -265,6 +265,11 @@ body {
 #toc + ul {
     display: none;
 }
+/* Prevent anchor links from being hidden under nav bar */
+h1, h2, h3, h4 {
+    margin-top: -70px;
+    padding-top: 70px;
+}
 @media (min-width: 1350px) {
     #toc + ul {
         position: fixed;
@@ -280,13 +285,15 @@ body {
     #toc + ul li a {
         padding: 0 5px;
     }
-    #toc + ul li.active>a {
+    #toc.on + ul li.active>a {
         background-color: #DCDCDC;
         display: block;
         border-left: 2px solid #2f2f2f;
     }
     #toc + ul>li>ul {
         list-style: none;
+    }
+    #toc.on + ul>li>ul {
         display: none;
     }
     #toc + ul>li.list>ul {
