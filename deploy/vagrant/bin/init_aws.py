@@ -7,8 +7,6 @@
 3. Auto set up security group
 """
 
-from __future__ import print_function, with_statement
-
 import os
 import sys
 from sys import stderr
@@ -44,14 +42,12 @@ def set_security_group(conn, name):
 def get_aws_secret():
     access_key = os.getenv('AWS_ACCESS_KEY_ID') 
     if access_key is None:
-        error("ERROR: The environment variable AWS_ACCESS_KEY_ID must be set", 
-                file=stderr)
+        error("ERROR: The environment variable AWS_ACCESS_KEY_ID must be set")
         sys.exit(1)
 
     secret_key = os.getenv('AWS_SECRET_ACCESS_KEY') 
     if secret_key is None:
-        error("ERROR: The environment variable AWS_SECRET_ACCESS_KEY must be set", 
-                file=stderr)
+        error("ERROR: The environment variable AWS_SECRET_ACCESS_KEY must be set")
         sys.exit(1)
 
     return access_key, secret_key
@@ -76,7 +72,7 @@ def get_conn():
         conn = ec2.connect_to_region(get_ec2_conf()['Region'])
         return conn
     except Exception as e:
-        print(e, file=stderr)
+        error(e.message)
         sys.exit(1)
 
 

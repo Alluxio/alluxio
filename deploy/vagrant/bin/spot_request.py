@@ -27,7 +27,7 @@ def get_bdm(ec2_conf):
         dev = bdm.BlockDeviceType()
         if d['VirtualName'].startswith('ephemeral'):
             # Instance Storage
-            dev.ephemeral_name=d['VirtualName']
+            dev.ephemeral_name = d['VirtualName']
         else:
             # EBS
             dev.size = d['Ebs.VolumeSize']
@@ -181,8 +181,9 @@ def wait_for_ssh(hosts):
 
 def parse():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--submit', action='store_true')
-    parser.add_argument('-c', '--cancel', action='store_true')
+    grp = parser.add_mutually_exclusive_group(required=True)
+    grp.add_argument('-s', '--submit', action='store_true')
+    grp.add_argument('-c', '--cancel', action='store_true')
     return parser.parse_args()
 
 

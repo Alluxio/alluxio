@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 import os
+from sys import stderr
 import errno
 
 
@@ -32,7 +35,7 @@ def info(msg):
 
 
 def error(msg):
-    print(_red(">>> " + msg, True))
+    print(_red(">>> " + msg, True), file=stderr)
 
 
 def warn(msg):
