@@ -15,15 +15,15 @@
 
 package tachyon.security.authentication;
 
-import org.junit.Test;
+import javax.security.sasl.AuthenticationException;
 
-import tachyon.Constants;
+/**
+ * This authentication provider allows any combination of username and password.
+ */
+public class SimpleAuthenticationProviderImpl implements AuthenticationProvider {
 
-public class AnonymousAuthenticationProviderImplTest {
-  @Test
-  public void createAnonymousAuthenticationProviderTest() throws Exception {
-    System.setProperty(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
-        AnonymousAuthenticationProviderImpl.class.getName());
-    new AnonymousAuthenticationProviderImpl();
+  @Override
+  public void authenticate(String user, String password) throws AuthenticationException {
+    // no-op authentication
   }
 }

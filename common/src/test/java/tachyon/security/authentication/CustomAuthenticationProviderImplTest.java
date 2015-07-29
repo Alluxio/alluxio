@@ -22,36 +22,39 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 
 public class CustomAuthenticationProviderImplTest {
+
+  private TachyonConf mConf = new TachyonConf();
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Test
   public void classNotFoundTest() throws Exception {
     String notExistClass = "tachyon.test.custom.provider";
-    System.setProperty(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+    mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
         notExistClass);
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(notExistClass + " not found");
-    new CustomAuthenticationProviderImpl();
+    new CustomAuthenticationProviderImpl(mConf);
   }
 
   @Test
   public void classNotProviderInterfaceTest() throws Exception {
-    System.setProperty(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+    mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
         CustomAuthenticationProviderImplTest.class.getName());
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(CustomAuthenticationProviderImplTest.class.getName()
         + " isn't implement AuthenticationProvider");
-    new CustomAuthenticationProviderImpl();
+    new CustomAuthenticationProviderImpl(mConf);
   }
 
   @Test
   public void createCustomeProviderTest() throws Exception {
-    System.setProperty(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+    mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
         NoopAuthenticationProvider.class.getName());
-    new CustomAuthenticationProviderImpl();
+    new CustomAuthenticationProviderImpl(mConf);
   }
 
   public static class NoopAuthenticationProvider implements AuthenticationProvider {

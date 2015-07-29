@@ -28,19 +28,21 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.security.authentication.AuthenticationFactory.AuthTypes;
 import tachyon.security.authentication.AuthenticationProvider;
-import tachyon.security.authentication.AuthenticationProviderFactory.AuthenticationMethod;
 
 public class PlainServerCallbackHandlerTest {
+  private TachyonConf mConf = new TachyonConf();
   private CallbackHandler mPlainServerCBHandler =
-      new PlainSaslServer.PlainServerCallbackHandler(AuthenticationMethod.CUSTOM.name());
+      new PlainSaslServer.PlainServerCallbackHandler(AuthTypes.CUSTOM, mConf);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
-    System.setProperty(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+    mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
         NameMatchAuthenticationProvider.class.getName());
   }
 

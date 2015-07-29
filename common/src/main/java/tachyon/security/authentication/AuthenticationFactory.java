@@ -46,6 +46,13 @@ public class AuthenticationFactory {
 
     /**
      * User is aware in Tachyon.
+     * Login user is OS user. The user is verified by Custom authentication provider
+     * (Use with property tachyon.authentication.provider.custom.class).
+     */
+    CUSTOM("CUSTOM"),
+
+    /**
+     * User is aware in Tachyon.
      * The user is verified by Kerberos authentication.
      */
     KERBEROS("KERBEROS");
@@ -73,6 +80,7 @@ public class AuthenticationFactory {
   String getAuthTypeStr() {
     return mAuthTypeStr;
   }
+
 
   // TODO: add methods of getting different Thrift class in follow-up PR.
 }
