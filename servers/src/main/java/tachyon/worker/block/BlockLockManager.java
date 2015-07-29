@@ -58,7 +58,7 @@ public class BlockLockManager {
   /** A hashing function to map blockId to one of the locks */
   private final HashFunction mHashFunc = Hashing.murmur3_32();
 
-  public BlockLockManager(BlockMetadataManager metaManager) {
+  public BlockLockManager() {
     for (int i = 0; i < NUM_LOCKS; i ++) {
       mLockArray[i] = new ClientRWLock();
     }
