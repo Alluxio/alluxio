@@ -15,26 +15,43 @@
 
 package tachyon.security;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import tachyon.security.authentication.AuthenticationFactory;
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 
 /**
- * Unit test for methods in {@link tachyon.security.UserInformation},
- * which gets or creates a Tachyon user
+ * Unit test for {@link tachyon.security.LoginUser}
  */
-public class UserInformationTest {
+public class LoginUserTest {
+
+  private static Method sGet;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  // Use reflection to get the private static method get(conf) in LoginUser and set it accessible.
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    sGet = LoginUser.class.getDeclaredMethod("get", TachyonConf.class);
+    sGet.setAccessible(true);
+  }
+
+  // User reflection to reset the private static member sLoginUser in LoginUser.
   @Before
   public void before() throws Exception {
-    UserInformation.reset();
+    Field field = LoginUser.class.getDeclaredField("sLoginUser");
+    field.setAccessible(true);
+    field.set(null, null);
   }
 
   /**
@@ -43,9 +60,10 @@ public class UserInformationTest {
    */
   @Test
   public void getSimpleLoginUserTest() throws Exception {
-    UserInformation.setsAuthType(AuthenticationFactory.AuthType.SIMPLE);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
 
-    User loginUser = UserInformation.getTachyonLoginUser();
+    User loginUser = (User) sGet.invoke(null, conf);
 
     Assert.assertNotNull(loginUser);
     Assert.assertFalse(loginUser.getName().isEmpty());
@@ -53,19 +71,25 @@ public class UserInformationTest {
 
   // TODO: getKerberosLoginUserTest()
 
-  // TODO: createRemoteUserTest()
-
   /**
    * Test whether we can get exception when getting a login user in non-security mode
    * @throws Exception
    */
   @Test
-  public void securityEnabledTest() throws Exception {
+  public void securityEnabledTest() throws Throwable {
     // TODO: add Kerberos in the white list when it is supported.
     // throw exception when AuthType is not "SIMPLE"
-    UserInformation.setsAuthType(AuthenticationFactory.AuthType.NOSASL);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "NOSASL");
+
     mThrown.expect(UnsupportedOperationException.class);
-    mThrown.expectMessage("UserInformation is only supported in SIMPLE mode");
-    UserInformation.getTachyonLoginUser();
+    mThrown.expectMessage("User is only supported in SIMPLE mode");
+
+    // The InvocationTargetException wraps the wanted UnsupportedOperationException.
+    try {
+      sGet.invoke(null, conf);
+    } catch (InvocationTargetException e) {
+      throw e.getTargetException();
+    }
   }
 }
