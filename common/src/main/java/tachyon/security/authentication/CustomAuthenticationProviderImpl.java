@@ -27,8 +27,7 @@ public class CustomAuthenticationProviderImpl implements AuthenticationProvider 
 
   private final AuthenticationProvider mCustomProvider;
 
-  public CustomAuthenticationProviderImpl() {
-    TachyonConf conf = new TachyonConf();
+  public CustomAuthenticationProviderImpl(TachyonConf conf) {
     String customProviderName =
         conf.get(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS, "");
     if (Strings.isNullOrEmpty(customProviderName)) {

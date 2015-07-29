@@ -16,50 +16,20 @@
 package tachyon.security.authentication;
 
 import javax.security.sasl.AuthenticationException;
-import javax.security.sasl.SaslClient;
-import javax.security.sasl.SaslServer;
+
+import tachyon.conf.TachyonConf;
+import tachyon.security.authentication.AuthenticationFactory.AuthTypes;
 
 public class AuthenticationProviderFactory {
-  public enum AuthenticationMethod {
-    /**
-     * SIMPLE AuthenticationMethod stands for PLAIN mechanism SASL negotiation
-     * CUSTOM AuthenticationMethod stands for delegating the implementation of
-     * {@link SaslServer} and {@link SaslClient} to user to customize the SASL
-     * negotiation
-     */
-    SIMPLE("SIMPLE"),
-    CUSTOM("CUSTOM");
-
-    private final String mAuthMethod;
-
-    AuthenticationMethod(String authMethod) {
-      mAuthMethod = authMethod;
-    }
-
-    public String getmAuthMethod() {
-      return mAuthMethod;
-    }
-
-    public static AuthenticationMethod getValidAuthenticationMethod(String authMethodStr) {
-      for (AuthenticationMethod auth : AuthenticationMethod.values()) {
-        if (authMethodStr.equalsIgnoreCase(auth.getmAuthMethod())) {
-          return auth;
-        }
-      }
-      throw new UnsupportedOperationException("Not a valid authentication method: "
-          + authMethodStr);
-    }
-  }
-
-  public static AuthenticationProvider getAuthenticationProvider(AuthenticationMethod method)
-      throws AuthenticationException {
-    if (method == AuthenticationMethod.SIMPLE) {
-      return new AnonymousAuthenticationProviderImpl();
-    } else if (method == AuthenticationMethod.CUSTOM) {
-      return new CustomAuthenticationProviderImpl();
-    } else {
-      throw new AuthenticationException("Unsupported authentication method: " + method
-          .getmAuthMethod());
+  public static AuthenticationProvider getAuthenticationProvider(AuthTypes authType,
+      TachyonConf conf) throws AuthenticationException {
+    switch (authType) {
+      case SIMPLE:
+        return new SimpleAuthenticationProviderImpl();
+      case CUSTOM:
+        return new CustomAuthenticationProviderImpl(conf);
+      default:
+        throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());
     }
   }
 }
