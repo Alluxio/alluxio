@@ -20,6 +20,7 @@ deploy/vagrant/conf/init.yml
 deploy/vagrant/spot/roles/create_ec2/vars/
 deploy/vagrant/spot/roles/tag_ec2/vars/
 deploy/vagrant/bin/*.pyc
+deploy/vagrant/.request_ids
 docs/_site
 docs/api
 docs/serve/

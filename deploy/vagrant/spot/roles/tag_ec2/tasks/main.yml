@@ -1,8 +1,0 @@
-- name: Tag the instances
-  ec2_tag: resource={{ item.key }} region="{{ region }}" state=present
-  args:
-    tags:
-      Name: "{{ item.value }}"
-  with_dict: tags
-
-# vim :set filetype=ansible.yaml:
