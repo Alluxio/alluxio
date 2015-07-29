@@ -46,14 +46,6 @@ public class BlockLockManagerTest {
   }
 
   @Test
-  public void lockNonExistingBlockTest() throws Exception {
-    long nonExistingBlockId = TEST_BLOCK_ID + 1;
-    mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to lockBlock: no blockId " + nonExistingBlockId + " found");
-    mLockManager.lockBlock(TEST_USER_ID, nonExistingBlockId, BlockLockType.READ);
-  }
-
-  @Test
   public void lockBlockTest() throws Exception {
     // Read-lock on can both get through
     long lockId1 = mLockManager.lockBlock(TEST_USER_ID, TEST_BLOCK_ID, BlockLockType.READ);

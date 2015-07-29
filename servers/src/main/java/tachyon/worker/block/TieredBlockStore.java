@@ -118,15 +118,13 @@ public class TieredBlockStore implements BlockStore {
   public long lockBlock(long userId, long blockId) throws NotFoundException {
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.READ);
     mMetadataLock.readLock().lock();
-    try {
-      if (!mMetaManager.hasBlockMeta(blockId)) {
-        mLockManager.unlockBlock(lockId);
-        throw new NotFoundException("Failed to lockBlock: no blockId " + blockId + " found");
-      }
-      return lockId;
-    } finally {
+    if (mMetaManager.hasBlockMeta(blockId)) {
       mMetadataLock.readLock().unlock();
+      return lockId;
     }
+    mMetadataLock.readLock().unlock();
+    mLockManager.unlockBlock(lockId);
+    throw new NotFoundException("Failed to lockBlock: no blockId " + blockId + " found");
   }
 
   @Override

@@ -37,7 +37,7 @@ import tachyon.exception.NotFoundException;
 /**
  * Handle all block locks.
  * <p>
- * This class is NOT thread-safe.
+ * This class is thread-safe.
  */
 public class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
