@@ -111,8 +111,6 @@ public class BlockMetadataManagerView {
    * @throws IllegalArgumentException if tierAlias is not found
    */
   public StorageTierView getTierView(int tierAlias) {
-    // TODO: can we ensure the returning tierview is same as
-    // new StorageTierView(mMetadataManager.getTier(tierAlias)) ?
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
     if (null == tierView) {
       throw new IllegalArgumentException("Cannot find tier view with alias: " + tierAlias);
@@ -138,7 +136,6 @@ public class BlockMetadataManagerView {
    * @throws IllegalArgumentException if tierAlias is not found
    */
   public List<StorageTierView> getTierViewsBelow(int tierAlias) {
-    // TODO: similar concern as in getTierView
     int level = getTierView(tierAlias).getTierViewLevel();
     return mTierViews.subList(level + 1, mTierViews.size());
   }
