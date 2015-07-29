@@ -55,9 +55,9 @@ public class PlainSaslServerProvider extends Provider {
      * mechanism and to configure the authentication exchange of the selected mechanism.
      * @param callbackHandler. The possibly null callback handler to used by the SASL
      * mechanisms to do further operation.
-     *@return A possibly null SaslServer created using the parameters supplied.
-     *If null, this factory cannot produce a SaslServer using the parameters supplied.
-     *@exception SaslException If cannot create a SaslServer because of an error.
+     * @return A possibly null SaslServer created using the parameters supplied.
+     * If null, this factory cannot produce a SaslServer using the parameters supplied.
+     * @exception SaslException If cannot create a SaslServer because of an error.
      */
     @Override
     public SaslServer createSaslServer(String mechanism, String protocol, String serverName,
