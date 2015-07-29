@@ -42,7 +42,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * Manages the metadata of all blocks in managed space. This information is used by the
  * TieredBlockStore, Allocator and Evictor.
  * <p>
- * This class is thread-safe and all operations on block metadata such as StorageTier, StorageDir
+ * This class is NOT thread-safe. All operations on block metadata such as StorageTier, StorageDir
  * should go through this class.
  */
 // TODO: consider how to better expose information to Evictor and Allocator.
@@ -55,19 +55,6 @@ public class BlockMetadataManager {
   private Map<Integer, StorageTier> mAliasToTiers;
 
   private BlockMetadataManager() {}
-
-  private void initBlockMetadataManager(TachyonConf tachyonConf) throws AlreadyExistsException,
-      IOException, OutOfSpaceException {
-    // Initialize storage tiers
-    int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
-    mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
-    mTiers = new ArrayList<StorageTier>(totalTiers);
-    for (int level = 0; level < totalTiers; level ++) {
-      StorageTier tier = StorageTier.newStorageTier(tachyonConf, level);
-      mTiers.add(tier);
-      mAliasToTiers.put(tier.getTierAlias(), tier);
-    }
-  }
 
   public static BlockMetadataManager newBlockMetadataManager(TachyonConf tachyonConf) {
     BlockMetadataManager ret = new BlockMetadataManager();
@@ -83,6 +70,19 @@ public class BlockMetadataManager {
       throw new RuntimeException(ooe);
     }
     return ret;
+  }
+
+  private void initBlockMetadataManager(TachyonConf tachyonConf) throws AlreadyExistsException,
+      IOException, OutOfSpaceException {
+    // Initialize storage tiers
+    int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
+    mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
+    mTiers = new ArrayList<StorageTier>(totalTiers);
+    for (int level = 0; level < totalTiers; level ++) {
+      StorageTier tier = StorageTier.newStorageTier(tachyonConf, level);
+      mTiers.add(tier);
+      mAliasToTiers.put(tier.getTierAlias(), tier);
+    }
   }
 
   /**
