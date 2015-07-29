@@ -27,6 +27,7 @@ import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.util.io.PathUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Class for convenience methods used by {@link TFsShell}.

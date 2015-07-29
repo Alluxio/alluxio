@@ -174,12 +174,11 @@ public class TachyonFS extends AbstractTachyonFS {
   private TachyonFS(TachyonConf tachyonConf) {
     super(tachyonConf);
 
-    String masterHost =
-        tachyonConf.get(Constants.MASTER_HOSTNAME,
-            NetworkAddressUtils.getLocalHostName(tachyonConf));
-    int masterPort = tachyonConf.getInt(Constants.MASTER_PORT);
-
-    mMasterAddress = new InetSocketAddress(masterHost, masterPort);
+    //String masterHost = NetworkUtils.getMasterHostName(tachyonConf);
+        //tachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(tachyonConf));
+    //int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+    //mMasterAddress = new InetSocketAddress(masterHost, masterPort);
+    mMasterAddress = NetworkAddressUtils.getMasterConnectAddress(mTachyonConf);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("client-heartbeat-%d", true));

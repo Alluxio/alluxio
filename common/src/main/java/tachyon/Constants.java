@@ -126,8 +126,10 @@ public class Constants {
   public static final String MASTER_HOSTNAME_LISTENING = "tachyon.master.hostname.listening";
   public static final String MASTER_HOSTNAME_LISTENING_WILDCARD = "*";
   public static final String MASTER_JOURNAL_FOLDER = "tachyon.master.journal.folder";
+  public static final String MASTER_BIND_HOST = "tachyon.master.bind.host";
   public static final String MASTER_PORT = "tachyon.master.port";
   public static final String MASTER_ADDRESS = "tachyon.master.address";
+  public static final String MASTER_WEB_BIND_HOST = "tachyon.master.web.bind.host";
   public static final String MASTER_WEB_PORT = "tachyon.master.web.port";
   public static final String MASTER_TEMPORARY_FOLDER = "tachyon.master.temporary.folder";
   public static final String MASTER_HEARTBEAT_INTERVAL_MS = "tachyon.master.heartbeat.interval.ms";
@@ -140,8 +142,11 @@ public class Constants {
   public static final String MASTER_RETRY_COUNT = "tachyon.master.retry";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
+  public static final String WORKER_BIND_HOST = "tachyon.worker.bind.host";
   public static final String WORKER_PORT = "tachyon.worker.port";
+  public static final String WORKER_DATA_BIND_HOST = "tachyon.worker.data.bind.host";
   public static final String WORKER_DATA_PORT = "tachyon.worker.data.port";
+  public static final String WORKER_WEB_BIND_HOST = "tachyon.worker.web.bind.host";
   public static final String WORKER_WEB_PORT = "tachyon.worker.web.port";
   public static final String WORKER_DATA_FOLDER = "tachyon.worker.data.folder";
   public static final String WORKER_HEARTBEAT_TIMEOUT_MS = "tachyon.worker.heartbeat.timeout.ms";

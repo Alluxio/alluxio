@@ -16,7 +16,6 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -105,7 +104,7 @@ public final class BlockWorker {
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mMasterClient = new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
+    mMasterClient = new MasterClient(NetworkAddressUtils.getMasterConnectAddress(mTachyonConf),
         mMasterClientExecutorService, mTachyonConf);
 
     // Set up BlockDataManager
@@ -123,7 +122,9 @@ public final class BlockWorker {
     InetSocketAddress dataServerAddress =
         new InetSocketAddress(NetworkAddressUtils.getLocalHostName(mTachyonConf), dataServerPort);
     mDataServer =
-        DataServer.Factory.createDataServer(dataServerAddress, mBlockDataManager, mTachyonConf);
+        DataServer.Factory.createDataServer(
+            NetworkAddressUtils.getWorkerDataBindAddress(mTachyonConf), mBlockDataManager,
+            mTachyonConf);
 
     // Setup RPC Server
     mServiceHandler = new BlockServiceHandler(mBlockDataManager);
@@ -131,16 +132,22 @@ public final class BlockWorker {
     int thriftServerPort = NetworkAddressUtils.getPort(mThriftServerSocket);
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
-        new NetAddress(NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf).getAddress()
-            .getHostAddress(), thriftServerPort, mDataServer.getPort());
+    // new NetAddress(BlockWorkerUtils.getWorkerAddress(mTachyonConf).getAddress()
+    // .getCanonicalHostName(), thriftServerPort, mDataServer.getPort());
+        new NetAddress(NetworkAddressUtils.getWorkerConnectAddress(mTachyonConf).getAddress()
+            .getCanonicalHostName(), thriftServerPort, mDataServer.getPort());
 
     // Set up web server
-    int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT);
+    // int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT,
+    // Constants.DEFAULT_WORKER_WEB_PORT);
     mWebServer =
-        new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(mWorkerNetAddress.getMHost(),
-            webPort), mBlockDataManager, NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf),
-            mStartTimeMs, mTachyonConf);
-
+        // new WorkerUIWebServer("Tachyon Worker", new
+        // InetSocketAddress(mWorkerNetAddress.getMHost(),
+        // webPort), mBlockDataManager, BlockWorkerUtils.getWorkerAddress(mTachyonConf),
+        // mStartTimeMs, mTachyonConf);
+        new WorkerUIWebServer("Tachyon Worker",
+            NetworkAddressUtils.getWorkerWebBindAddress(mTachyonConf), mBlockDataManager,
+            NetworkAddressUtils.getWorkerBindAddress(mTachyonConf), mStartTimeMs, mTachyonConf);
     // Setup Worker to Master Syncer
     // We create three threads for two syncers and one cleaner: mBlockMasterSync,
     // mPinListSync and mUserCleanerThread
@@ -260,7 +267,7 @@ public final class BlockWorker {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf));
+      return new TServerSocket(NetworkAddressUtils.getWorkerBindAddress(mTachyonConf));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);
