@@ -120,6 +120,7 @@ public class TieredBlockStore implements BlockStore {
     mMetadataLock.readLock().lock();
     try {
       if (!mMetaManager.hasBlockMeta(blockId)) {
+        mLockManager.unlockBlock(lockId);
         throw new NotFoundException("Failed to lockBlock: no blockId " + blockId + " found");
       }
       return lockId;
