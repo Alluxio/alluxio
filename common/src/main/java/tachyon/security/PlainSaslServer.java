@@ -154,7 +154,7 @@ public class PlainSaslServer implements SaslServer {
   }
 
   /**
-   * PlainServerCallbackHandler is used to used by the SASL mechanisms to get further information
+   * PlainServerCallbackHandler is used by the SASL mechanisms to get further information
    * to complete the authentication. For example, a SASL mechanism might uses this callback handler
    * to do verify operation.
    */
