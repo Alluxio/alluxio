@@ -47,8 +47,6 @@ public class BlockLockManager {
   /** The unique id of each lock */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
 
-  /** The object that serves all metadata requests for the block store */
-  private final BlockMetadataManager mMetaManager;
   /** A map from a block ID to its lock */
   private final ClientRWLock[] mLockArray = new ClientRWLock[NUM_LOCKS];
   /** A map from a user ID to all the locks hold by this user */
@@ -61,23 +59,21 @@ public class BlockLockManager {
   private final HashFunction mHashFunc = Hashing.murmur3_32();
 
   public BlockLockManager(BlockMetadataManager metaManager) {
-    mMetaManager = Preconditions.checkNotNull(metaManager);
     for (int i = 0; i < NUM_LOCKS; i ++) {
       mLockArray[i] = new ClientRWLock();
     }
   }
 
   /**
-   * Locks a block if it exists, throws NotFoundException otherwise.
+   * Locks a block. Note that, lock striping is used so even this block does not exist, a lock id
+   * is still returned.
    *
    * @param userId the ID of user
    * @param blockId the ID of block
    * @param blockLockType READ or WRITE
    * @return lock id if the block exists
-   * @throws NotFoundException when blockId can not be found
    */
-  public long lockBlock(long userId, long blockId, BlockLockType blockLockType)
-      throws NotFoundException {
+  public long lockBlock(long userId, long blockId, BlockLockType blockLockType) {
     // hashing blockId into the range of [0, NUM_LOCKS-1]
     int hashValue = Math.abs(mHashFunc.hashLong(blockId).asInt()) % NUM_LOCKS;
     ClientRWLock blockLock = mLockArray[hashValue];
@@ -88,10 +84,6 @@ public class BlockLockManager {
       lock = blockLock.writeLock();
     }
     lock.lock();
-    if (!mMetaManager.hasBlockMeta(blockId)) {
-      lock.unlock();
-      throw new NotFoundException("Failed to lockBlock: no blockId " + blockId + " found");
-    }
     long lockId = LOCK_ID_GEN.getAndIncrement();
     synchronized (mSharedMapsLock) {
       mLockIdToRecordMap.put(lockId, new LockRecord(userId, blockId, lock));
