@@ -27,7 +27,7 @@ import tachyon.network.protocol.databuffer.DataNettyBuffer;
 /**
  * This represents the response of a {@link RPCBlockReadRequest}.
  */
-public class RPCBlockReadResponse extends RPCResponse {
+public class RPCBlockReadResponse extends RPCResponse implements PayloadMessage {
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
