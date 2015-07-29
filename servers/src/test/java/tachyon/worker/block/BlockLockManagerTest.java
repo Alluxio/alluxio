@@ -42,7 +42,7 @@ public class BlockLockManagerTest {
   public void before() throws Exception {
     BlockMetadataManager mockMetaManager = Mockito.mock(BlockMetadataManager.class);
     Mockito.when(mockMetaManager.hasBlockMeta(TEST_BLOCK_ID)).thenReturn(true);
-    mLockManager = new BlockLockManager(mockMetaManager);
+    mLockManager = new BlockLockManager();
   }
 
   @Test

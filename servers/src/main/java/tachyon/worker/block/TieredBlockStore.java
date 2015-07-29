@@ -97,7 +97,7 @@ public class TieredBlockStore implements BlockStore {
   public TieredBlockStore(TachyonConf tachyonConf) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
-    mLockManager = new BlockLockManager(mMetaManager);
+    mLockManager = new BlockLockManager();
 
     BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
         Collections.<Integer>emptySet(), Collections.<Long>emptySet());
@@ -241,7 +241,9 @@ public class TieredBlockStore implements BlockStore {
       if (locationToFree == null) {
         return;
       }
-      freeSpaceInternal(userId, additionalBytes, locationToFree);
+      if (i < MAX_RETRIES - 1) {
+        freeSpaceInternal(userId, additionalBytes, locationToFree);
+      }
     }
   }
 
@@ -267,7 +269,9 @@ public class TieredBlockStore implements BlockStore {
       mMetadataLock.readLock().lock();
       long blockSize = mMetaManager.getBlockMeta(blockId).getBlockSize();
       mMetadataLock.readLock().unlock();
-      freeSpaceInternal(userId, blockSize, newLocation);
+      if (i < MAX_RETRIES - 1) {
+        freeSpaceInternal(userId, blockSize, newLocation);
+      }
     }
   }
 
