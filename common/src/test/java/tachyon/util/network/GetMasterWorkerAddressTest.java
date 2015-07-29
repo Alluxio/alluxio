@@ -91,12 +91,12 @@ public class GetMasterWorkerAddressTest {
     String defaultHostname = NetworkAddressUtils.getLocalHostName(mCustomPropsTachyonConf);
     int defaultPort = Constants.DEFAULT_WORKER_PORT;
 
-    InetSocketAddress workerAddress =
-        NetworkAddressUtils.getLocalWorkerAddress(mCustomPropsTachyonConf);
+    InetSocketAddress workerAddress = 
+        NetworkAddressUtils.getWorkerAddress(mCustomPropsTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
 
-    workerAddress = NetworkAddressUtils.getLocalWorkerAddress(mNullTachyonConf);
+    workerAddress = NetworkAddressUtils.getWorkerAddress(mNullTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), workerAddress);
   }

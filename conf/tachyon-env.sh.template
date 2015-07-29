@@ -46,6 +46,18 @@ if [ -z "$JAVA_HOME" ]; then
   export JAVA_HOME="$(dirname $(which java))/.."
 fi
 
+### Host binding strategy on multihomed networking ###
+# 1) Environment variables via tachyon-env.sh or from OS settings
+# 2) Default properties via tachyon-default.properties file
+# 3) Local host name for the host this JVM is running on
+#
+#export TACHYON_MASTER_BIND_HOST=localhost
+#export TACHYON_MASTER_WEB_BIND_HOST=$TACHYON_MASTER_BIND_HOST
+#export TACHYON_WORKER_BIND_HOST=`hostname -A | cut -d" " -f1`
+#export TACHYON_WORKER_DATA_BIND_HOST=$TACHYON_WORKER_BIND_HOST
+#export TACHYON_WORKER_WEB_BIND_HOST=$TACHYON_WORKER_BIND_HOST
+
+
 export JAVA="$JAVA_HOME/bin/java"
 export TACHYON_MASTER_ADDRESS=localhost
 export TACHYON_UNDERFS_ADDRESS=$TACHYON_HOME/underFSStorage

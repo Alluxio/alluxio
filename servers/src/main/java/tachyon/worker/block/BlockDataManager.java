@@ -90,7 +90,7 @@ public final class BlockDataManager {
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
 
     // Connect to UFS to handle UFS security
-    InetSocketAddress workerAddress = NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf);
+    InetSocketAddress workerAddress = NetworkAddressUtils.getWorkerConnectAddress(mTachyonConf);
     mUfs.connectFromWorker(mTachyonConf, NetworkAddressUtils.getFqdnHost(workerAddress));
 
     // Register the heartbeat reporter so it can record block store changes

@@ -102,23 +102,24 @@ public class TachyonMaster {
     TachyonConf.assertValidPort(port, mTachyonConf);
     TachyonConf.assertValidPort(webPort, mTachyonConf);
 
-    String hostnameExternal = mTachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
-    // The master listens to the MASTER_HOSTNAME_LISTENING configuration option.
-    // MASTER_HOSTNAME_LISTENING defaults to MASTER_HOSTNAME if unspecified. If set to
-    // MASTER_HOSTNAME_LISTENING_WILDCARD, server listens to all addresses.
-    String hostnameListening =
-        mTachyonConf.get(Constants.MASTER_HOSTNAME_LISTENING, hostnameExternal);
-
-    InetSocketAddress address = new InetSocketAddress(hostnameExternal, port);
-    InetSocketAddress addressListening;
-    if (hostnameListening.equals(Constants.MASTER_HOSTNAME_LISTENING_WILDCARD)) {
-      addressListening = new InetSocketAddress(port);
-    } else {
-      addressListening = new InetSocketAddress(hostnameListening, port);
-    }
+    // String hostnameExternal = mTachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
+    // // The master listens to the MASTER_HOSTNAME_LISTENING configuration option.
+    // // MASTER_HOSTNAME_LISTENING defaults to MASTER_HOSTNAME if unspecified. If set to
+    // // MASTER_HOSTNAME_LISTENING_WILDCARD, server listens to all addresses.
+    // String hostnameListening =
+    // mTachyonConf.get(Constants.MASTER_HOSTNAME_LISTENING, hostnameExternal);
+    //
+    // InetSocketAddress address = new InetSocketAddress(hostnameExternal, port);
+    // InetSocketAddress addressListening;
+    // if (hostnameListening.equals(Constants.MASTER_HOSTNAME_LISTENING_WILDCARD)) {
+    // addressListening = new InetSocketAddress(port);
+    // } else {
+    // addressListening = new InetSocketAddress(hostnameListening, port);
+    // }
+    InetSocketAddress masterBindAddress = NetworkAddressUtils.getMasterBindAddress(mTachyonConf);
 
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
-
+    
     mIsStarted = false;
     mWebPort = webPort;
     mMinWorkerThreads =
@@ -137,7 +138,7 @@ public class TachyonMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      mServerTServerSocket = new TServerSocket(addressListening);
+      mServerTServerSocket = new TServerSocket(masterBindAddress);
       mPort = NetworkAddressUtils.getPort(mServerTServerSocket);
 
       String journalFolder =
@@ -149,7 +150,9 @@ public class TachyonMaster {
         Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
             "Tachyon was not formatted! The journal folder is " + journalFolder);
       }
-      mMasterAddress = new InetSocketAddress(NetworkAddressUtils.getFqdnHost(address), mPort);
+      // mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(masterAddress), mPort);
+      mMasterAddress =
+          new InetSocketAddress(NetworkAddressUtils.getMasterHostName(tachyonConf), mPort);
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService, mTachyonConf);
 
@@ -240,7 +243,8 @@ public class TachyonMaster {
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
-    ufs.connectFromMaster(mTachyonConf, NetworkAddressUtils.getFqdnHost(mMasterAddress));
+    // ufs.connectFromMaster(mTachyonConf, NetworkUtils.getFqdnHost(mMasterAddress));
+    ufs.connectFromMaster(mTachyonConf, NetworkAddressUtils.getMasterHostName(mTachyonConf));
   }
 
   private void setup() throws IOException, TTransportException {
@@ -251,8 +255,10 @@ public class TachyonMaster {
     mMasterInfo.init();
 
     mWebServer =
-        new MasterUIWebServer("Tachyon Master Server", new InetSocketAddress(
-            NetworkAddressUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo, mTachyonConf);
+        // new MasterUIWebServer("Tachyon Master Server", new InetSocketAddress(
+        // NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo, mTachyonConf);
+        new MasterUIWebServer("Tachyon Master Server",
+            NetworkAddressUtils.getMasterWebBindAddress(mTachyonConf), mMasterInfo, mTachyonConf);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =

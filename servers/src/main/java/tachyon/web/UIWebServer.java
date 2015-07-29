@@ -70,6 +70,7 @@ public abstract class UIWebServer {
 
     mServer = new Server();
     SelectChannelConnector connector = new SelectChannelConnector();
+    connector.setHost(address.getHostName());
     connector.setPort(address.getPort());
     connector.setAcceptors(webThreadCount);
     mServer.setConnectors(new Connector[] {connector});
