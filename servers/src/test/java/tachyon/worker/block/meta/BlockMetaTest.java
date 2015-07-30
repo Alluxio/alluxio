@@ -25,7 +25,7 @@ import org.junit.rules.TemporaryFolder;
 
 import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 public class BlockMetaTest {
   private static final long TEST_USER_ID = 2;
@@ -75,6 +75,6 @@ public class BlockMetaTest {
     TempBlockMeta tempBlockMeta =
         new TempBlockMeta(TEST_USER_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mBlockMeta = new BlockMeta(tempBlockMeta);
-    Assert.assertEquals(CommonUtils.concatPath(mTestDirPath, TEST_BLOCK_ID), mBlockMeta.getPath());
+    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_BLOCK_ID), mBlockMeta.getPath());
   }
 }

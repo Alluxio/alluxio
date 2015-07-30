@@ -31,7 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
+import tachyon.util.io.FileUtils;
 
 /**
  * This implementation of {@link BlockOutStream} writes a single block to the local file system.
@@ -104,9 +105,9 @@ public class LocalBlockOutStream extends BlockOutStream {
     mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
     // change the permission of the temporary file in order that the worker can move it.
-    CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
+    FileUtils.changeLocalFileToFullPermission(mLocalFilePath);
     // use the sticky bit, only the client and the worker can write to the block
-    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
+    FileUtils.setLocalFileStickyBit(mLocalFilePath);
     LOG.info(mLocalFilePath + " was created! tachyonFile: " + file + ", blockIndex: " + blockIndex
         + ", blockId: " + mBlockId + ", blockCapacityByte: " + mBlockCapacityByte);
     mAvailableBytes += initialBytes;
@@ -130,7 +131,7 @@ public class LocalBlockOutStream extends BlockOutStream {
 
     MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, mInFileBytes, length);
     out.put(buf, offset, length);
-    CommonUtils.cleanDirectBuffer(out);
+    BufferUtils.cleanDirectBuffer(out);
     mInFileBytes += length;
     mAvailableBytes -= length;
     mTachyonFS.getClientMetrics().incBytesWrittenLocal(length);
@@ -254,7 +255,7 @@ public class LocalBlockOutStream extends BlockOutStream {
       mBuffer.clear();
     }
 
-    CommonUtils.putIntByteBuffer(mBuffer, b);
+    BufferUtils.putIntByteBuffer(mBuffer, b);
     mWrittenBytes ++;
   }
 }

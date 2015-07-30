@@ -38,9 +38,7 @@ public class RPCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Override
-  public void decode(ChannelHandlerContext ctx,
-                     ByteBuf in,
-                     List<Object> out) {
+  public void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
     RPCMessage.Type type = RPCMessage.Type.decode(in);
     RPCMessage message = RPCMessage.decodeMessage(type, in);
     out.add(message);
