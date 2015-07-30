@@ -113,7 +113,12 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public long lockBlock(long userId, long blockId) throws IOException {
-    return mLockManager.lockBlock(userId, blockId, BlockLockType.READ);
+    mEvictionLock.readLock().lock();
+    try {
+      return mLockManager.lockBlock(userId, blockId, BlockLockType.READ);
+    } finally {
+      mEvictionLock.readLock().unlock();
+    }
   }
 
   @Override
