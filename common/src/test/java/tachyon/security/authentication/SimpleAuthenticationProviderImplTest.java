@@ -17,13 +17,18 @@ package tachyon.security.authentication;
 
 import org.junit.Test;
 
-import tachyon.Constants;
-
 public class SimpleAuthenticationProviderImplTest {
+
   @Test
-  public void createAnonymousAuthenticationProviderTest() throws Exception {
-    System.setProperty(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
-        SimpleAuthenticationProviderImpl.class.getName());
+  public void createSimpleAuthenticationProviderTest() throws Exception {
     new SimpleAuthenticationProviderImpl();
+  }
+
+  @Test
+  public void anyUserAllowConnectTest() throws Exception {
+    AuthenticationProvider authenticationProvider = new SimpleAuthenticationProviderImpl();
+    authenticationProvider.authenticate("foo", "");
+    authenticationProvider.authenticate("bar", "*.:");
+    authenticationProvider.authenticate("*.:", "?");
   }
 }

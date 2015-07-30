@@ -155,16 +155,14 @@ public class PlainSaslServer implements SaslServer {
 
   /**
    * PlainServerCallbackHandler is used by the SASL mechanisms to get further information
-   * to complete the authentication. For example, a SASL mechanism might uses this callback handler
+   * to complete the authentication. For example, a SASL mechanism might use this callback handler
    * to do verify operation.
    */
   public static final class PlainServerCallbackHandler implements CallbackHandler {
-    private final AuthTypes mAuthType;
-    private final TachyonConf mConf;
+    private final AuthenticationProvider mAuthenticationPrivoder;
 
-    public PlainServerCallbackHandler(AuthTypes authType, TachyonConf conf) {
-      mAuthType = authType;
-      mConf = conf;
+    public PlainServerCallbackHandler(AuthenticationProvider authenticationProvider) {
+      mAuthenticationPrivoder = authenticationProvider;
     }
 
     @Override
@@ -187,9 +185,8 @@ public class PlainSaslServer implements SaslServer {
         }
       }
 
-      AuthenticationProvider provider =
-          AuthenticationProviderFactory.getAuthenticationProvider(mAuthType, mConf);
-      provider.authenticate(username, password);
+      mAuthenticationPrivoder.authenticate(username, password);
+
       if (ac != null) {
         ac.setAuthorized(true);
       }

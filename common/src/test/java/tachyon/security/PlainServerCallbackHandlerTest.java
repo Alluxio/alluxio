@@ -31,19 +31,22 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.security.authentication.AuthenticationFactory.AuthTypes;
 import tachyon.security.authentication.AuthenticationProvider;
+import tachyon.security.authentication.AuthenticationProviderFactory;
 
 public class PlainServerCallbackHandlerTest {
-  private TachyonConf mConf = new TachyonConf();
-  private CallbackHandler mPlainServerCBHandler =
-      new PlainSaslServer.PlainServerCallbackHandler(AuthTypes.CUSTOM, mConf);
+  private TachyonConf mConf;
+  private CallbackHandler mPlainServerCBHandler;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
+    mConf = new TachyonConf();
     mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
         NameMatchAuthenticationProvider.class.getName());
+    mPlainServerCBHandler = new PlainSaslServer.PlainServerCallbackHandler(
+        AuthenticationProviderFactory.getAuthenticationProvider(AuthTypes.CUSTOM, mConf));
   }
 
   @Test
