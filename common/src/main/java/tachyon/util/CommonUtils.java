@@ -64,6 +64,10 @@ public final class CommonUtils {
     }
   }
 
+  public static void warmUpJVM() {
+    for (int k = 0; k < 10000000; k ++) {
+    }
+  }
   /**
    * Creates new instance of a class by calling a constructor that receives ctorClassArgs arguments
    *
