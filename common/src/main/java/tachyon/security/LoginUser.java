@@ -66,7 +66,7 @@ public class LoginUser {
    * @return the login user
    * @throws java.io.IOException if login fails
    */
-  private static User get(TachyonConf conf) throws IOException {
+  public static User get(TachyonConf conf) throws IOException {
     if (sLoginUser == null) {
       synchronized (LoginUser.class) {
         if (sLoginUser == null) {
@@ -85,7 +85,7 @@ public class LoginUser {
    */
   private static User login(TachyonConf conf) throws IOException {
     AuthenticationFactory.AuthType sAuthType = AuthenticationFactory.getAuthTypeFromConf(conf);
-    isSecurityEnabled(sAuthType);
+    checkSecurityEnabled(sAuthType);
 
     try {
       Subject subject = new Subject();
@@ -110,11 +110,11 @@ public class LoginUser {
   }
 
   /**
-   * Check whether Tachyon is running in secure mode, such as SIMPLE, KERBEROS.
+   * Check whether Tachyon is running in secure mode, such as SIMPLE, KERBEROS, CUSTOM.
    * @param authType the authentication type in configuration
    */
-  private static void isSecurityEnabled(AuthenticationFactory.AuthType authType) {
-    //TODO: add Kerberos condition check.
+  private static void checkSecurityEnabled(AuthenticationFactory.AuthType authType) {
+    //TODO: add Kerberos and Custom condition check.
     if (authType != AuthenticationFactory.AuthType.SIMPLE) {
       throw new UnsupportedOperationException("User is only supported in SIMPLE mode");
     }

@@ -16,7 +16,9 @@
 package tachyon.security.authentication;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -27,8 +29,11 @@ import tachyon.conf.TachyonConf;
  */
 public class AuthenticationFactoryTest {
 
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
+
   @Test
-  public void authTypesTest() {
+  public void authenticationFactoryConstructorTest() {
     TachyonConf tachyonConf = new TachyonConf();
     tachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
 
@@ -36,6 +41,27 @@ public class AuthenticationFactoryTest {
 
     Assert.assertEquals(AuthenticationFactory.AuthType.SIMPLE.getAuthName(),
         authenticationFactory.getAuthTypeStr());
+  }
+
+  @Test
+  public void getAuthTypeFromConfTest() {
+    TachyonConf tachyonConf = new TachyonConf();
+    AuthenticationFactory.AuthType authType;
+
+    // should return a SIMPLE AuthType with conf "SIMPLE"
+    tachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+    authType = AuthenticationFactory.getAuthTypeFromConf(tachyonConf);
+    Assert.assertEquals(AuthenticationFactory.AuthType.SIMPLE, authType);
+
+    // should return a SIMPLE AuthType with conf "simple"
+    tachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "simple");
+    authType = AuthenticationFactory.getAuthTypeFromConf(tachyonConf);
+    Assert.assertEquals(AuthenticationFactory.AuthType.SIMPLE, authType);
+
+    // should throw exception with conf "wrong"
+    tachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "wrong");
+    mThrown.expect(IllegalArgumentException.class);
+    authType = AuthenticationFactory.getAuthTypeFromConf(tachyonConf);
   }
 
   // TODO: add more tests for methods of AuthenticationFactory
