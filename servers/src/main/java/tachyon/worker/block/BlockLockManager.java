@@ -66,6 +66,12 @@ public class BlockLockManager {
     }
   }
 
+  /**
+   * Get index of the lock that will be used to lock the block
+   * 
+   * @param blockId the id of the block
+   * @return hash index of the lock
+   */
   public static int blockHashIndex(long blockId) {
     return Math.abs(HASH_FUNC.hashLong(blockId).asInt()) % NUM_LOCKS;
   }
