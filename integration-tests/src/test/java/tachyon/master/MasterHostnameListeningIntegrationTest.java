@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Simple tests for the MASTER_HOSTNAME_LISTENING configuration option.
@@ -76,7 +76,7 @@ public class MasterHostnameListeningIntegrationTest {
 
   @Test
   public void listenSameAddressTest() throws Exception {
-    startCluster(NetworkUtils.getLocalHostName(100));
+    startCluster(NetworkAddressUtils.getLocalHostName(100));
     MasterClient masterClient =
         new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
     masterClient.connect();

@@ -26,7 +26,7 @@ import com.google.common.primitives.Ints;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
 
 /**
  * This implementation of {@link BlockOutStream} writes a single block to a remote worker.
@@ -227,7 +227,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
     if (mBuffer.position() >= mBufferBytes) {
       flushBuffer();
     }
-    CommonUtils.putIntByteBuffer(mBuffer, b);
+    BufferUtils.putIntByteBuffer(mBuffer, b);
     mWrittenBytes ++;
   }
 }

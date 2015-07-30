@@ -30,7 +30,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * BlockInStream for remote block.
@@ -217,7 +217,7 @@ public class RemoteBlockInStream extends BlockInStream {
     // While we still have bytes to read, make sure the buffer is set to read the byte at mBlockPos.
     // If we fail to set mCurrentBuffer, we stream the rest from the underfs
     while (bytesLeft > 0 && mAttemptReadFromWorkers && updateCurrentBuffer()) {
-      int bytesToRead = (int) Math.min(bytesLeft, mCurrentBuffer.remaining());
+      int bytesToRead = Math.min(bytesLeft, mCurrentBuffer.remaining());
       mCurrentBuffer.get(b, off, bytesToRead);
       if (mRecache) {
         mBlockOutStream.write(b, off, bytesToRead);
@@ -266,7 +266,7 @@ public class RemoteBlockInStream extends BlockInStream {
     try {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
-      String localhost = NetworkUtils.getLocalHostName(conf);
+      String localhost = NetworkAddressUtils.getLocalHostName(conf);
 
       for (NetAddress blockLocation : blockLocations) {
         String host = blockLocation.mHost;
@@ -283,7 +283,7 @@ public class RemoteBlockInStream extends BlockInStream {
               + "(or local read is disabled) blockId:{}", blockInfo.blockId);
         }
         LOG.info(host + ":" + port + " current host is " + localhost + " "
-            + NetworkUtils.getLocalIpAddress(conf));
+            + NetworkAddressUtils.getLocalIpAddress(conf));
 
         try {
           buf =

@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * <code>Users</code> represents and manages all users contacting a worker.
@@ -78,7 +78,7 @@ public class Users {
    * @return String contains the user's temporary data folder in the under filesystem.
    */
   public String getUserUfsTempFolder(long userId) {
-    return CommonUtils.concatPath(mUserUnderFSFolder, userId);
+    return PathUtils.concatPath(mUserUnderFSFolder, userId);
   }
 
   /**
@@ -90,8 +90,7 @@ public class Users {
     LOG.info("Cleaning up user " + userId);
     UserInfo tUser = null;
     synchronized (mUsers) {
-      tUser = mUsers.get(userId);
-      mUsers.remove(userId);
+      tUser = mUsers.remove(userId);
     }
 
     if (tUser == null) {

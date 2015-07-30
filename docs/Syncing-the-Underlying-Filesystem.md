@@ -1,6 +1,8 @@
 ---
 layout: global
-title: Syncing the Underlayer Filesystem
+title: Syncing the Under Storage System
+nickname: Sync Under Storage System
+group: More
 ---
 
 Often, there is already data in the underlying store, but when Tachyon is started, it will not have

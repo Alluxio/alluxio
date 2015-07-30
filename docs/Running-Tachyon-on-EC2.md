@@ -1,6 +1,9 @@
 ---
 layout: global
 title: Running Tachyon on EC2
+nickname: EC2
+group: Deployment
+priority: 1
 ---
 
 Tachyon can be launched on EC2 using the [Spark EC2

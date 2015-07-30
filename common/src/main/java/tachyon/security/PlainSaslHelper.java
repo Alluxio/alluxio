@@ -13,29 +13,26 @@
  * the License.
  */
 
-package tachyon.worker.block.allocator;
+package tachyon.security;
+
+import java.security.Security;
 
 /**
- * Different types of {@link Allocator}.
+ * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.
+ * There is a new provider {@link PlainSaslServerProvider} needed to support server-side
+ * PLAIN mechanism.
+ * PlainSaslHelper is used to register this provider.
  */
-public enum AllocatorType {
+public class PlainSaslHelper {
+  static {
+    Security.addProvider(new PlainSaslServerProvider());
+  }
+
   /**
-   * Default type which will be determined in {@link AllocatorFactory} mainly used in
-   * {@link tachyon.conf.TachyonConf#getEnum} as default value when getting the AllocatorType
-   * from the TachyonConf
+   * @param name the name of the provider
+   * @return true if the provider was registered
    */
-  DEFAULT,
-  /**
-   * Allocate to the storage dir with the most free space
-   */
-  MAX_FREE,
-  /**
-   * Allocate to the first storage dir with space
-   */
-  GREEDY,
-  /**
-   * Round-robin allocation to the storage dir across tiers, but
-   * it will allocate the block in the highest tier possible.
-   */
-  ROUND_ROBIN,
+  public static boolean isPlainSaslProviderAdded() {
+    return Security.getProvider(PlainSaslServerProvider.PROVIDER) != null;
+  }
 }
