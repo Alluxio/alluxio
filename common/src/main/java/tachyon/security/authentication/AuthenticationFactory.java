@@ -15,6 +15,8 @@
 
 package tachyon.security.authentication;
 
+import java.util.Locale;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,13 +62,14 @@ public class AuthenticationFactory {
       return mAuthType;
     }
 
+    /**
+     * Validate the authentication type string and return a corresponding AuthType.
+     * @param authTypeStr authentication type string from configuration
+     * @return the corresponding AuthType
+     * @throws java.lang.IllegalArgumentException if the string does not match any type
+     */
     public static AuthType getValidAuthType(String authTypeStr) {
-      for (AuthType authType : AuthType.values()) {
-        if (authTypeStr.equalsIgnoreCase(authType.getAuthName())) {
-          return authType;
-        }
-      }
-      throw new IllegalArgumentException("Not a valid authentication type: " + authTypeStr);
+      return AuthType.valueOf(authTypeStr.toUpperCase(Locale.ENGLISH));
     }
   }
 
@@ -84,6 +87,12 @@ public class AuthenticationFactory {
     return mAuthTypeStr;
   }
 
+  /**
+   * Get an AuthType from the authentication type string in configuration
+   * @param conf the TachyonConf
+   * @return the corresponding AuthType
+   * @throws java.lang.IllegalArgumentException if the string does not match any type.
+   */
   public static AuthType getAuthTypeFromConf(TachyonConf conf) {
     // TODO: change the default value from NOSASL to SIMPLE, after feature is stable.
     return AuthType.getValidAuthType(conf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,

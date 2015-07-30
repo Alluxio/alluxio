@@ -16,12 +16,9 @@
 package tachyon.security;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -34,17 +31,8 @@ import tachyon.conf.TachyonConf;
  */
 public class LoginUserTest {
 
-  private static Method sGet;
-
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
-
-  // Use reflection to get the private static method get(conf) in LoginUser and set it accessible.
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    sGet = LoginUser.class.getDeclaredMethod("get", TachyonConf.class);
-    sGet.setAccessible(true);
-  }
 
   // User reflection to reset the private static member sLoginUser in LoginUser.
   @Before
@@ -63,7 +51,7 @@ public class LoginUserTest {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
 
-    User loginUser = (User) sGet.invoke(null, conf);
+    User loginUser = LoginUser.get(conf);
 
     Assert.assertNotNull(loginUser);
     Assert.assertFalse(loginUser.getName().isEmpty());
@@ -77,19 +65,13 @@ public class LoginUserTest {
    */
   @Test
   public void securityEnabledTest() throws Throwable {
-    // TODO: add Kerberos in the white list when it is supported.
+    // TODO: add Kerberos/Custom in the white list when it is supported.
     // throw exception when AuthType is not "SIMPLE"
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "NOSASL");
 
     mThrown.expect(UnsupportedOperationException.class);
     mThrown.expectMessage("User is only supported in SIMPLE mode");
-
-    // The InvocationTargetException wraps the wanted UnsupportedOperationException.
-    try {
-      sGet.invoke(null, conf);
-    } catch (InvocationTargetException e) {
-      throw e.getTargetException();
-    }
+    LoginUser.get(conf);
   }
 }

@@ -50,6 +50,7 @@ public class TachyonJaasConfiguration extends Configuration {
   @Override
   public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
     if (appName.equalsIgnoreCase(AuthenticationFactory.AuthType.SIMPLE.getAuthName())) {
+      // TODO: also return SIMPLE for AuthenticationFactory.AuthType.CUSTOM
       return SIMPLE;
     } else if (appName.equalsIgnoreCase(AuthenticationFactory.AuthType.KERBEROS.getAuthName())) {
       // TODO: return KERBEROS;
