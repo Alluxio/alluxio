@@ -17,6 +17,7 @@ package tachyon.security.authentication;
 
 import javax.security.sasl.AuthenticationException;
 
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -46,8 +47,16 @@ public class CustomAuthenticationProviderImplTest {
         CustomAuthenticationProviderImplTest.class.getName());
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(CustomAuthenticationProviderImplTest.class.getName()
-        + " isn't implement AuthenticationProvider");
+        + " didn't implement AuthenticationProvider");
     new CustomAuthenticationProviderImpl(mConf);
+  }
+
+  @Test
+  public void classIsProviderInterfaceTest() throws Exception {
+    mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+        NoopAuthenticationProvider.class.getName());
+    CustomAuthenticationProviderImpl provider = new CustomAuthenticationProviderImpl(mConf);
+    Assert.assertTrue(provider instanceof  AuthenticationProvider);
   }
 
   @Test

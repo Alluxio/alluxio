@@ -23,6 +23,12 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
+/**
+ * This authentication provider implements the {@code CUSTOM} authentication. It allows a {@link
+ * AuthenticationProvider} to be specified at configuration time.
+ * It uses the property tachyon.authentication.provider.custom.class in the Tachyon's {@link
+ * TachyonConf Configuration}.
+ */
 public class CustomAuthenticationProviderImpl implements AuthenticationProvider {
 
   private final AuthenticationProvider mCustomProvider;
