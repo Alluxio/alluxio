@@ -105,11 +105,11 @@ public class TachyonConf {
 
   /**
    * Test constructor for TachyonConfTest class.
-   * 
+   *
    * Here is the order of the sources to load the properties:
    *   -) System properties if desired
-   *   -) Site specific properties via tachyon-site.properties file
    *   -) Environment variables via tachyon-env.sh or from OS settings
+   *   -) Site specific properties via tachyon-site.properties file
    *   -) Default properties via tachyon-default.properties file
    */
   TachyonConf(boolean includeSystemProperties) {
@@ -132,29 +132,6 @@ public class TachyonConf {
       defaultProps.load(defaultInputStream);
     } catch (IOException e) {
       throw new RuntimeException("Unable to load default Tachyon properties file.", e);
-    }
-
-    // Override default properties if there exist corresponding environment variables
-    if (getenv("TACHYON_MASTER_ADDRESS") != null) {
-      defaultProps.setProperty(Constants.MASTER_HOSTNAME, getenv("TACHYON_MASTER_ADDRESS"));
-    }
-    if (getenv("TACHYON_MASTER_BIND_HOST") != null) {
-      defaultProps.setProperty(Constants.MASTER_BIND_HOST, getenv("TACHYON_MASTER_BIND_HOST"));
-    }
-    if (getenv("TACHYON_MASTER_WEB_BIND_HOST") != null) {
-      defaultProps.setProperty(Constants.MASTER_WEB_BIND_HOST,
-          getenv("TACHYON_MASTER_WEB_BIND_HOST"));
-    }
-    if (getenv("TACHYON_WORKER_BIND_HOST") != null) {
-      defaultProps.setProperty(Constants.WORKER_BIND_HOST, getenv("TACHYON_WORKER_BIND_HOST"));
-    }
-    if (getenv("TACHYON_WORKER_DATA_BIND_HOST") != null) {
-      defaultProps.setProperty(Constants.WORKER_DATA_BIND_HOST,
-          getenv("TACHYON_WORKER_DATA_BIND_HOST"));
-    }
-    if (getenv("TACHYON_WORKER_WEB_BIND_HOST") != null) {
-      defaultProps.setProperty(Constants.WORKER_WEB_BIND_HOST,
-          getenv("TACHYON_WORKER_WEB_BIND_HOST"));
     }
 
     // Load site specific properties file

@@ -44,8 +44,8 @@ import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
-import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.io.BufferUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Unit tests on TFsShell.

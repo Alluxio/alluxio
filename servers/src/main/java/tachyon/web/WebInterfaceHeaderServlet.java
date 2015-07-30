@@ -50,11 +50,6 @@ public class WebInterfaceHeaderServlet extends HttpServlet {
       throws ServletException, IOException {
     int masterWebPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT, 
         Constants.DEFAULT_MASTER_WEB_PORT);
-//    String masterHostName =
-//        mTachyonConf.get(Constants.MASTER_HOSTNAME, NetworkUtils.getLocalHostName(mTachyonConf));
-//    if (masterHostName.equals("localhost")) {
-//      masterHostName = NetworkUtils.getLocalHostName(mTachyonConf);
-//    }
     String masterHostName = NetworkAddressUtils.getMasterHostName(mTachyonConf);
     request.setAttribute("masterHost", masterHostName);
     request.setAttribute("masterPort", masterWebPort);

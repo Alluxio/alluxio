@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.thrift.transport.TServerSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -167,7 +166,7 @@ public final class NetworkAddressUtils {
   /**
    * Check if the underlying OS is Windows.
    */
-  public static boolean sIsWindows = SystemUtils.IS_OS_WINDOWS;
+  public static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
   /**
    * Gets a local IP address for the host this JVM is running on
@@ -212,7 +211,7 @@ public final class NetworkAddressUtils {
         // unix-like systems. This optimization can help avoid to get some special addresses, such
         // as loopback address"127.0.0.1", virtual bridge address "192.168.122.1" as far as
         // possible.
-        if (!sIsWindows) {
+        if (!WINDOWS) {
           List<NetworkInterface> netIFs = Collections.list(networkInterfaces);
           Collections.reverse(netIFs);
           networkInterfaces = Collections.enumeration(netIFs);
@@ -224,7 +223,7 @@ public final class NetworkAddressUtils {
           while (addresses.hasMoreElements()) {
             address = addresses.nextElement();
 
-            // Address must not be link wildcard, local or loopback. And it must be reachable
+            // Address must not be link local or loopback. And it must be reachable
             if (!address.isLinkLocalAddress() && !address.isLoopbackAddress()
                 && (address instanceof Inet4Address) && address.isReachable(timeout)) {
               sLocalIP = address.getHostAddress();
