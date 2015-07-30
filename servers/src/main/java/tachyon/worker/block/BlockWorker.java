@@ -132,19 +132,11 @@ public final class BlockWorker {
     int thriftServerPort = NetworkAddressUtils.getPort(mThriftServerSocket);
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
-    // new NetAddress(BlockWorkerUtils.getWorkerAddress(mTachyonConf).getAddress()
-    // .getCanonicalHostName(), thriftServerPort, mDataServer.getPort());
         new NetAddress(NetworkAddressUtils.getWorkerConnectAddress(mTachyonConf).getAddress()
             .getCanonicalHostName(), thriftServerPort, mDataServer.getPort());
 
     // Set up web server
-    // int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT,
-    // Constants.DEFAULT_WORKER_WEB_PORT);
     mWebServer =
-        // new WorkerUIWebServer("Tachyon Worker", new
-        // InetSocketAddress(mWorkerNetAddress.getMHost(),
-        // webPort), mBlockDataManager, BlockWorkerUtils.getWorkerAddress(mTachyonConf),
-        // mStartTimeMs, mTachyonConf);
         new WorkerUIWebServer("Tachyon Worker",
             NetworkAddressUtils.getWorkerWebBindAddress(mTachyonConf), mBlockDataManager,
             NetworkAddressUtils.getWorkerBindAddress(mTachyonConf), mStartTimeMs, mTachyonConf);

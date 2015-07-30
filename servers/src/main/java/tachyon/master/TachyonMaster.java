@@ -102,20 +102,6 @@ public class TachyonMaster {
     TachyonConf.assertValidPort(port, mTachyonConf);
     TachyonConf.assertValidPort(webPort, mTachyonConf);
 
-    // String hostnameExternal = mTachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
-    // // The master listens to the MASTER_HOSTNAME_LISTENING configuration option.
-    // // MASTER_HOSTNAME_LISTENING defaults to MASTER_HOSTNAME if unspecified. If set to
-    // // MASTER_HOSTNAME_LISTENING_WILDCARD, server listens to all addresses.
-    // String hostnameListening =
-    // mTachyonConf.get(Constants.MASTER_HOSTNAME_LISTENING, hostnameExternal);
-    //
-    // InetSocketAddress address = new InetSocketAddress(hostnameExternal, port);
-    // InetSocketAddress addressListening;
-    // if (hostnameListening.equals(Constants.MASTER_HOSTNAME_LISTENING_WILDCARD)) {
-    // addressListening = new InetSocketAddress(port);
-    // } else {
-    // addressListening = new InetSocketAddress(hostnameListening, port);
-    // }
     InetSocketAddress masterBindAddress = NetworkAddressUtils.getMasterBindAddress(mTachyonConf);
 
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
@@ -150,7 +136,6 @@ public class TachyonMaster {
         Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
             "Tachyon was not formatted! The journal folder is " + journalFolder);
       }
-      // mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(masterAddress), mPort);
       mMasterAddress =
           new InetSocketAddress(NetworkAddressUtils.getMasterHostName(tachyonConf), mPort);
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
@@ -255,8 +240,6 @@ public class TachyonMaster {
     mMasterInfo.init();
 
     mWebServer =
-        // new MasterUIWebServer("Tachyon Master Server", new InetSocketAddress(
-        // NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo, mTachyonConf);
         new MasterUIWebServer("Tachyon Master Server",
             NetworkAddressUtils.getMasterWebBindAddress(mTachyonConf), mMasterInfo, mTachyonConf);
 
