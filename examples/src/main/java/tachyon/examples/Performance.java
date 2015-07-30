@@ -531,12 +531,8 @@ public class Performance {
             + "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ", sThreads, sFiles / sThreads,
             sFiles, sBlockSizeBytes / 1024, sBlocksPerFile, sFileBytes / Constants.MB,
             fileBufferBytes / 1024, sBaseFileNumber);
-    
-    try {
-      Thread.sleep(1000); //warm up
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+
+    CommonUtils.warmUpJVM();
 
     if (testCase == 1) {
       sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;
