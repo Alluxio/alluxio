@@ -42,19 +42,6 @@ public class LoginUser {
    * This constructor should never be invoked.
    */
   private LoginUser() {
-
-  }
-
-  /**
-   * Get current singleton login user.
-   * This method is called to identify the singleton user who runs Tachyon client.
-   * When Tachyon client gets a user by this method and connects to Tachyon service,
-   * this user represents the client and is maintained in service.
-   * @return the login user
-   * @throws java.io.IOException if login fails
-   */
-  public static User get() throws IOException {
-    return get(new TachyonConf());
   }
 
   /**
