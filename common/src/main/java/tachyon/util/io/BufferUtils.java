@@ -17,12 +17,10 @@ package tachyon.util.io;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
-import sun.misc.Cleaner;
-import sun.nio.ch.DirectBuffer;
 
 /**
  * Utilities related to buffers, not only ByteBuffer.
@@ -39,8 +37,16 @@ public class BufferUtils {
       return;
     }
     if (buffer.isDirect()) {
-      Cleaner cleaner = ((DirectBuffer) buffer).cleaner();
-      cleaner.clean();
+      try {
+        final Method getCleanerMethod = buffer.getClass().getMethod("cleaner");
+        getCleanerMethod.setAccessible(true);
+        final Object cleaner = getCleanerMethod.invoke(buffer);
+        if (cleaner != null) {
+          cleaner.getClass().getMethod("clean").invoke(cleaner);
+        }
+      } catch (Exception e) {
+        buffer = null;
+      }
     }
   }
 
