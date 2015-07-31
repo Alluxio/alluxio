@@ -46,7 +46,7 @@ public class CustomAuthenticationProviderImpl implements AuthenticationProvider 
       customProviderClass = Class.forName(customProviderName);
       if (!AuthenticationProvider.class.isAssignableFrom(customProviderClass)) {
         throw new RuntimeException(customProviderClass
-            + " isn't implement AuthenticationProvider");
+            + " didn't implement AuthenticationProvider");
       }
     } catch (ClassNotFoundException cfe) {
       throw new RuntimeException(customProviderName + " not found");
@@ -59,6 +59,10 @@ public class CustomAuthenticationProviderImpl implements AuthenticationProvider 
       throw new RuntimeException(customProviderClass.getName()
           + " instantiate failed :" + e.getMessage());
     }
+  }
+
+  public AuthenticationProvider getCustomProvider() {
+    return mCustomProvider;
   }
 
   @Override
