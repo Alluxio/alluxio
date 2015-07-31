@@ -532,9 +532,7 @@ public class Performance {
             sFiles, sBlockSizeBytes / 1024, sBlocksPerFile, sFileBytes / Constants.MB,
             fileBufferBytes / 1024, sBaseFileNumber);
 
-    for (int k = 0; k < 10000000; k ++) {
-      // Warmup
-    }
+    CommonUtils.warmUpLoop();
 
     if (testCase == 1) {
       sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;

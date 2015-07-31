@@ -65,6 +65,14 @@ public final class CommonUtils {
   }
 
   /**
+   * Common empty loop utilities to warm up
+   */
+  public static void warmUpLoop() {
+    for (int k = 0; k < 10000000; k ++) {
+    }
+  }
+
+  /**
    * Creates new instance of a class by calling a constructor that receives ctorClassArgs arguments
    *
    * @param cls the class to create
