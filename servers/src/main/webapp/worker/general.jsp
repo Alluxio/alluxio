@@ -70,13 +70,15 @@
                 <% List<Long> capacityBytesOnTiers = (List<Long>) request.getAttribute("capacityBytesOnTiers"); %>
                 <% List<Long> usedBytesOnTiers = (List<Long>) request.getAttribute("usedBytesOnTiers"); %>
                 <% for (int i = 0; i < capacityBytesOnTiers.size(); i ++) { %>
-                <tr>
-                  <th><%= StorageLevelAlias.values()[i].name() %> Capacity / Used</th>
-                  <th>
-                    <%= CommonUtils.getSizeFromBytes(capacityBytesOnTiers.get(i)) %> /
-                    <%= CommonUtils.getSizeFromBytes(usedBytesOnTiers.get(i)) %>
-                  </th>
-                </tr>
+                  <% if (capacityBytesOnTiers.get(i) > 0) { %>
+                  <tr>
+                    <th><%= StorageLevelAlias.values()[i].name() %> Capacity / Used</th>
+                    <th>
+                      <%= CommonUtils.getSizeFromBytes(capacityBytesOnTiers.get(i)) %> /
+                      <%= CommonUtils.getSizeFromBytes(usedBytesOnTiers.get(i)) %>
+                    </th>
+                  </tr>
+                  <% } %>
                 <% } %>
               </tbody>
             </table>
