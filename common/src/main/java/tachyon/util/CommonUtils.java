@@ -68,6 +68,7 @@ public final class CommonUtils {
     for (int k = 0; k < 10000000; k ++) {
     }
   }
+  
   /**
    * Creates new instance of a class by calling a constructor that receives ctorClassArgs arguments
    *
