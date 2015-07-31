@@ -532,7 +532,7 @@ public class Performance {
             sFiles, sBlockSizeBytes / 1024, sBlocksPerFile, sFileBytes / Constants.MB,
             fileBufferBytes / 1024, sBaseFileNumber);
 
-    CommonUtils.warmUpJVM();
+    CommonUtils.warmUpLoop();
 
     if (testCase == 1) {
       sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;
