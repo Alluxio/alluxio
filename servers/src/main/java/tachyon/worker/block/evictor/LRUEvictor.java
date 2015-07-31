@@ -164,7 +164,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     StorageDirView candidateNextDir = null;
     for (StorageTierView tierView : tierViewsBelow) {
       candidateNextDir =
-          cascadingEvict(dirCandidates.candidateSize(),
+          cascadingEvict(dirCandidates.candidateSize() - candidateDirView.getAvailableBytes(),
               BlockStoreLocation.anyDirInTier(tierView.getTierViewAlias()), plan);
       if (candidateNextDir != null) {
         break;
