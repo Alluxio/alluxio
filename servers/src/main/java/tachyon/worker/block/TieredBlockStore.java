@@ -450,6 +450,9 @@ public class TieredBlockStore implements BlockStore {
       OutOfSpaceException {
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
     try {
+      // When committing TempBlockMeta, its BlockMeta calculates the block size according to the
+      // size of the file of this TempBlockMeta. Therefore, commitTempBlockMeta must complete
+      // before moving actual block file to its committed path.
       BlockStoreLocation loc;
       String srcPath;
       String dstPath;
