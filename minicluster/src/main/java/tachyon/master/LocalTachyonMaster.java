@@ -104,7 +104,7 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     tachyonConf.set(Constants.WEB_THREAD_COUNT, "1");
-    tachyonConf.set(Constants.WEB_RESOURCES, System.getProperty("user.dir") + "/src/main/webapp");
+    tachyonConf.set(Constants.WEB_RESOURCES, System.getProperty("user.dir") + "/../servers/src/main/webapp");
 
     mTachyonMaster = new TachyonMaster(tachyonConf);
 
