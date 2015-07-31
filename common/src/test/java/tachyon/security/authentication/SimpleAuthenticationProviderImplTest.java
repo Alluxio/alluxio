@@ -27,6 +27,7 @@ public class SimpleAuthenticationProviderImplTest {
   @Test
   public void anyUserAllowConnectTest() throws Exception {
     AuthenticationProvider authenticationProvider = new SimpleAuthenticationProviderImpl();
+    authenticationProvider.authenticate("", "");
     authenticationProvider.authenticate("foo", "");
     authenticationProvider.authenticate("bar", "*.:");
     authenticationProvider.authenticate("*.:", "?");

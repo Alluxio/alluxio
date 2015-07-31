@@ -52,11 +52,11 @@ public class CustomAuthenticationProviderImplTest {
   }
 
   @Test
-  public void classIsProviderInterfaceTest() throws Exception {
+  public void underlyingCustomProviderTest() throws Exception {
     mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
         NoopAuthenticationProvider.class.getName());
     CustomAuthenticationProviderImpl provider = new CustomAuthenticationProviderImpl(mConf);
-    Assert.assertTrue(provider instanceof  AuthenticationProvider);
+    Assert.assertTrue(provider.getCustomProvider() instanceof  NoopAuthenticationProvider);
   }
 
   @Test
