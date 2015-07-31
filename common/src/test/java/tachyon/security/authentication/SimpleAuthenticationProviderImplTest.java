@@ -20,11 +20,6 @@ import org.junit.Test;
 public class SimpleAuthenticationProviderImplTest {
 
   @Test
-  public void createSimpleAuthenticationProviderTest() throws Exception {
-    new SimpleAuthenticationProviderImpl();
-  }
-
-  @Test
   public void anyUserAllowConnectTest() throws Exception {
     AuthenticationProvider authenticationProvider = new SimpleAuthenticationProviderImpl();
     authenticationProvider.authenticate("", "");
