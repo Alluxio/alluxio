@@ -17,12 +17,7 @@ package tachyon.network.protocol;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
-import com.google.common.primitives.Shorts;
-
 import io.netty.buffer.ByteBuf;
-
-import tachyon.Constants;
-import tachyon.worker.DataServerMessage;
 
 /**
  * This represents an RPC request to read a block from a DataServer.
@@ -70,9 +65,9 @@ public class RPCBlockReadRequest extends RPCRequest {
 
   @Override
   public void validate() {
-    Preconditions.checkState(mOffset >= 0, "Offset can not be negative: %s", mOffset);
+    Preconditions.checkState(mOffset >= 0, "Offset cannot be negative: %s", mOffset);
     Preconditions.checkState(mLength >= 0 || mLength == -1,
-        "Length can not be negative except -1: %s", mLength);
+        "Length cannot be negative (except for -1): %s", mLength);
   }
 
   @Override

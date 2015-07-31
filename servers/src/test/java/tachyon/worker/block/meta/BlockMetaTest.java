@@ -23,9 +23,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import tachyon.TestUtils;
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
+import tachyon.util.io.PathUtils;
 
 public class BlockMetaTest {
   private static final long TEST_USER_ID = 2;
@@ -40,10 +41,15 @@ public class BlockMetaTest {
 
   @Before
   public void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
-    StorageTier tier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
-    mDir = StorageDir.newStorageDir(tier, 0 /* index */, 100 /* capacity */, mTestDirPath);
+    // Set up tier with one storage dir under mTestDirPath with 100 bytes capacity.
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", mTestDirPath);
+    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", "100b");
+    tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
+
+    StorageTier tier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
+    mDir = tier.getDir(0);
   }
 
   @Test
@@ -57,15 +63,15 @@ public class BlockMetaTest {
 
     // With the block file partially written, expect committed block size equals real file size.
     long expectedBlockSize = TEST_BLOCK_SIZE / 2;
-    byte[] buf = TestUtils.getIncreasingByteArray((int) expectedBlockSize);
-    TestUtils.writeBufferToFile(tempBlockMeta.getCommitPath(), buf);
+    byte[] buf = BufferUtils.getIncreasingByteArray((int) expectedBlockSize);
+    BufferUtils.writeBufferToFile(tempBlockMeta.getCommitPath(), buf);
     mBlockMeta = new BlockMeta(tempBlockMeta);
     Assert.assertEquals(expectedBlockSize, mBlockMeta.getBlockSize());
 
     // With the block file fully written, expect committed block size equals target block size.
     expectedBlockSize = TEST_BLOCK_SIZE;
-    buf = TestUtils.getIncreasingByteArray((int) expectedBlockSize);
-    TestUtils.writeBufferToFile(tempBlockMeta.getCommitPath(), buf);
+    buf = BufferUtils.getIncreasingByteArray((int) expectedBlockSize);
+    BufferUtils.writeBufferToFile(tempBlockMeta.getCommitPath(), buf);
     mBlockMeta = new BlockMeta(tempBlockMeta);
     Assert.assertEquals(expectedBlockSize, mBlockMeta.getBlockSize());
   }
@@ -75,6 +81,6 @@ public class BlockMetaTest {
     TempBlockMeta tempBlockMeta =
         new TempBlockMeta(TEST_USER_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mBlockMeta = new BlockMeta(tempBlockMeta);
-    Assert.assertEquals(CommonUtils.concatPath(mTestDirPath, TEST_BLOCK_ID), mBlockMeta.getPath());
+    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_BLOCK_ID), mBlockMeta.getPath());
   }
 }

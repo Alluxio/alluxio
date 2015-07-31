@@ -35,7 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * This class creates a streaming interface for writing a file in s3. The data will be persisted
@@ -68,7 +68,7 @@ public class S3OutputStream extends OutputStream {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
-    mFile = new File(CommonUtils.concatPath("/tmp", UUID.randomUUID()));
+    mFile = new File(PathUtils.concatPath("/tmp", UUID.randomUUID()));
     try {
       mHash = MessageDigest.getInstance("MD5");
       mLocalOutputStream =

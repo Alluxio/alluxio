@@ -33,7 +33,6 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.TestUtils;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFSTestUtils;
@@ -44,7 +43,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.FormatUtils;
+import tachyon.util.io.BufferUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Unit tests on TFsShell.
@@ -98,7 +99,7 @@ public class TFsShellTest {
   public void catTest() throws IOException {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.cat(new String[] {"cat", "/testFile"});
-    byte[] expect = TestUtils.getIncreasingByteArray(10);
+    byte[] expect = BufferUtils.getIncreasingByteArray(10);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
   }
 
@@ -107,11 +108,10 @@ public class TFsShellTest {
     File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
-    byte[] toWrite = TestUtils.getIncreasingByteArray(SIZE_BYTES);
+    byte[] toWrite = BufferUtils.getIncreasingByteArray(SIZE_BYTES);
     fos.write(toWrite);
     fos.close();
-    mFsShell
-        .copyFromLocal(new String[] {"copyFromLocal", testFile.getAbsolutePath(), "/testFile"});
+    mFsShell.copyFromLocal(new String[] {"copyFromLocal", testFile.getAbsolutePath(), "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyFromLocal", testFile.getAbsolutePath(),
         "/testFile"}), mOutput.toString());
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
@@ -120,7 +120,7 @@ public class TFsShellTest {
     InStream tfis = tFile.getInStream(ReadType.NO_CACHE);
     byte[] read = new byte[SIZE_BYTES];
     tfis.read(read);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(SIZE_BYTES, read));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));
   }
 
   @Test
@@ -129,9 +129,10 @@ public class TFsShellTest {
     testDir.mkdir();
     File testDirInner = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testDirInner");
     testDirInner.mkdir();
-    File testFile = generateFileContent("/testDir/testFile", TestUtils.getIncreasingByteArray(10));
-    generateFileContent(
-        "/testDir/testDirInner/testFile2", TestUtils.getIncreasingByteArray(10, 20));
+    File testFile =
+        generateFileContent("/testDir/testFile", BufferUtils.getIncreasingByteArray(10));
+    generateFileContent("/testDir/testDirInner/testFile2",
+        BufferUtils.getIncreasingByteArray(10, 20));
     mFsShell.copyFromLocal(new String[] {"copyFromLocal", testFile.getParent(), "/testDir"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyFromLocal", testFile.getParent(),
         "/testDir"}), mOutput.toString());
@@ -142,14 +143,14 @@ public class TFsShellTest {
     Assert.assertEquals(10, tFile.length());
     Assert.assertEquals(20, tFile2.length());
     byte[] read = readContent(tFile, 10);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, read));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
     read = readContent(tFile2, 20);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, 20, read));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, 20, read));
   }
 
   @Test
   public void copyFromLocalTestWithFullURI() throws IOException {
-    File testFile = generateFileContent("/srcFileURI", TestUtils.getIncreasingByteArray(10));
+    File testFile = generateFileContent("/srcFileURI", BufferUtils.getIncreasingByteArray(10));
     String tachyonURI =
         "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
             + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
@@ -162,7 +163,7 @@ public class TFsShellTest {
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/destFileURI"));
     Assert.assertThat(tFile.length(), CoreMatchers.equalTo(10L));
     byte[] read = readContent(tFile, 10);
-    Assert.assertThat(TestUtils.equalIncreasingByteArray(10, read), CoreMatchers.equalTo(true));
+    Assert.assertThat(BufferUtils.equalIncreasingByteArray(10, read), CoreMatchers.equalTo(true));
   }
 
   @Test
@@ -193,7 +194,7 @@ public class TFsShellTest {
     byte[] read = new byte[SIZE_BYTES];
     fis.read(read);
     fis.close();
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(SIZE_BYTES, read));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));
   }
 
   @Test
@@ -208,7 +209,7 @@ public class TFsShellTest {
     byte[] read = new byte[10];
     fis.read(read);
     fis.close();
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, read));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
   }
 
   @Test
@@ -352,14 +353,14 @@ public class TFsShellTest {
     String expected = "";
     String format = "%-10s%-25s%-15s%-5s\n";
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(10),
+        String.format(format, FormatUtils.getSizeFromBytes(10),
             TFsShell.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
             "/testRoot/testFileA");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(0),
+        String.format(format, FormatUtils.getSizeFromBytes(0),
             TFsShell.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(30),
+        String.format(format, FormatUtils.getSizeFromBytes(30),
             TFsShell.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory",
             "/testRoot/testFileC");
     Assert.assertEquals(expected, mOutput.toString());
@@ -381,14 +382,14 @@ public class TFsShellTest {
     String expected = "";
     String format = "%-10s%-25s%-15s%-5s\n";
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(10),
+        String.format(format, FormatUtils.getSizeFromBytes(10),
             TFsShell.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
             "/testRoot/testFileA");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(0),
+        String.format(format, FormatUtils.getSizeFromBytes(0),
             TFsShell.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
     expected +=
-        String.format(format, CommonUtils.getSizeFromBytes(30),
+        String.format(format, FormatUtils.getSizeFromBytes(30),
             TFsShell.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory",
             "/testRoot/testFileC");
     Assert.assertEquals(expected, mOutput.toString());
@@ -428,7 +429,8 @@ public class TFsShellTest {
   @Test
   public void mkdirTest() throws IOException {
     String qualifiedPath =
-        "tachyon://" + NetworkUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS)
+        "tachyon://"
+            + NetworkAddressUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS)
             + ":" + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
     mFsShell.mkdir(new String[] {"mkdir", qualifiedPath});
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/root/testFile1"));
@@ -560,7 +562,7 @@ public class TFsShellTest {
   public void tailLargeFileTest() throws IOException {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 2048);
     mFsShell.tail(new String[] {"tail", "/testFile"});
-    byte[] expect = TestUtils.getIncreasingByteArray(1024, 1024);
+    byte[] expect = BufferUtils.getIncreasingByteArray(1024, 1024);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
   }
 
@@ -574,7 +576,7 @@ public class TFsShellTest {
   public void tailSmallFileTest() throws IOException {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.tail(new String[] {"tail", "/testFile"});
-    byte[] expect = TestUtils.getIncreasingByteArray(10);
+    byte[] expect = BufferUtils.getIncreasingByteArray(10);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
   }
 
@@ -608,7 +610,9 @@ public class TFsShellTest {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.free(new String[] {"free", "/testFile"});
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(tachyonConf) * 2 + 10);
+    CommonUtils
+        .sleepMs(null, tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
+            Constants.SECOND_MS) * 2 + 10);
     Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
   }
 

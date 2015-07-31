@@ -43,6 +43,8 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
 
   private final Bootstrap mClientBootstrap;
   private final ClientHandler mHandler;
+  /** A reference to read response so we can explicitly release the resource after reading.*/
+  private RPCBlockReadResponse mReadResponse = null;
 
   // TODO: Creating a new remote block reader may be expensive, so consider a connection pool.
   public NettyRemoteBlockReader() {
@@ -74,6 +76,9 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
 
           RPCResponse.Status status = blockResponse.getStatus();
           if (status == RPCResponse.Status.SUCCESS) {
+            // always clear the previous response before reading another one
+            close();
+            mReadResponse = blockResponse;
             return blockResponse.getPayloadDataBuffer().getReadOnlyByteBuffer();
           }
           throw new IOException(status.getMessage() + " response: " + blockResponse);
@@ -86,6 +91,17 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       }
     } catch (Exception e) {
       throw new IOException(e);
+    }
+  }
+
+  /**
+   * Release the underlying buffer of previous/current read response.
+   */
+  @Override
+  public void close() throws IOException {
+    if (mReadResponse != null) {
+      mReadResponse.getPayloadDataBuffer().release();
+      mReadResponse = null;
     }
   }
 }
