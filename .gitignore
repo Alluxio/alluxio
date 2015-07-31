@@ -26,8 +26,6 @@ docs/api
 docs/serve/
 journal/
 logs/
-perf/conf/tachyon-perf-env.sh
-perf/result
 script/
 target/
 tests.log*
