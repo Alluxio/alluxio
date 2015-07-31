@@ -78,4 +78,9 @@ public final class TCPRemoteBlockReader implements RemoteBlockReader {
       socketChannel.close();
     }
   }
+
+  @Override
+  public void close() throws IOException {
+    // nothing to do for TCPRemoteBlockReader
+  }
 }

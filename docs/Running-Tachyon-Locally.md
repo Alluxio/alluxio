@@ -1,6 +1,9 @@
 ---
 layout: global
 title: Running Tachyon Locally
+nickname: Local
+group: Deployment
+priority: 1
 ---
 
 # Run Tachyon Standalone on a Single Machine.

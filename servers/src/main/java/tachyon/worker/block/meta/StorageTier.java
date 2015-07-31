@@ -24,7 +24,8 @@ import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.OutOfSpaceException;
-import tachyon.util.CommonUtils;
+import tachyon.util.FormatUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Represents a tier of storage, for example memory or SSD. It serves as a container of
@@ -51,11 +52,19 @@ public class StorageTier {
     mTierAlias = alias.getValue();
   }
 
-  private void initStorageTier(TachyonConf tachyonConf) throws AlreadyExistsException,
+  private void initStorageTier(TachyonConf tachyonConf) throws AlreadyExistsException, IOException,
       OutOfSpaceException {
+    String workerDataFolder =
+        tachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
     String tierDirPathConf =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, mTierLevel);
     String[] dirPaths = tachyonConf.get(tierDirPathConf, "/mnt/ramdisk").split(",");
+
+    // Add the worker data folder path after each storage directory, the final path will be like
+    // /mnt/ramdisk/tachyonworker
+    for (int i = 0; i < dirPaths.length; i ++) {
+      dirPaths[i] = PathUtils.concatPath(dirPaths[i].trim(), workerDataFolder);
+    }
 
     String tierDirCapacityConf =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, mTierLevel);
@@ -66,7 +75,7 @@ public class StorageTier {
     long totalCapacity = 0;
     for (int i = 0; i < dirPaths.length; i ++) {
       int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
-      long capacity = CommonUtils.parseSpaceSize(dirQuotas[index]);
+      long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
       totalCapacity += capacity;
       mDirs.add(StorageDir.newStorageDir(this, i, capacity, dirPaths[i]));
     }
@@ -74,7 +83,7 @@ public class StorageTier {
   }
 
   public static StorageTier newStorageTier(TachyonConf tachyonConf, int tierLevel)
-      throws AlreadyExistsException, OutOfSpaceException {
+      throws AlreadyExistsException, IOException, OutOfSpaceException {
     StorageTier ret = new StorageTier(tachyonConf, tierLevel);
     ret.initStorageTier(tachyonConf);
     return ret;

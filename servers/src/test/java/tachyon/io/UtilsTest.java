@@ -27,7 +27,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.TestUtils;
+import tachyon.util.io.BufferUtils;
 
 public class UtilsTest {
   @Test
@@ -38,14 +38,14 @@ public class UtilsTest {
     List<ByteBuffer> bufs = new ArrayList<ByteBuffer>();
     bufs.add(null);
     bufs.add(ByteBuffer.allocate(0));
-    bufs.add(TestUtils.getIncreasingByteBuffer(99));
-    bufs.add(TestUtils.getIncreasingByteBuffer(10, 99));
+    bufs.add(BufferUtils.getIncreasingByteBuffer(99));
+    bufs.add(BufferUtils.getIncreasingByteBuffer(10, 99));
     bufs.add(null);
 
     for (int k = 0; k < bufs.size(); k ++) {
       Utils.writeByteBuffer(bufs.get(k), dos);
     }
-    ByteBuffer buf = TestUtils.getIncreasingByteBuffer(10, 99);
+    ByteBuffer buf = BufferUtils.getIncreasingByteBuffer(10, 99);
     buf.get();
     Utils.writeByteBuffer(buf, dos);
 

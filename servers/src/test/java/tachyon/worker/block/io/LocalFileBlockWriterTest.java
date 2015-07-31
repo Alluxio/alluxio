@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import tachyon.TestUtils;
+import tachyon.util.io.BufferUtils;
 
 public class LocalFileBlockWriterTest {
   private static final long TEST_BLOCK_SIZE = 1024;
@@ -52,7 +52,7 @@ public class LocalFileBlockWriterTest {
     WritableByteChannel channel = mWriter.getChannel();
     Assert.assertNotNull(channel);
 
-    ByteBuffer buffer = TestUtils.getIncreasingByteBuffer((int) TEST_BLOCK_SIZE);
+    ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer((int) TEST_BLOCK_SIZE);
     Assert.assertEquals(TEST_BLOCK_SIZE, channel.write(buffer));
     channel.close();
     Assert.assertEquals(TEST_BLOCK_SIZE, new File(mTestFilePath).length());
@@ -60,7 +60,7 @@ public class LocalFileBlockWriterTest {
 
   @Test
   public void appendTest() throws Exception {
-    ByteBuffer buf = TestUtils.getIncreasingByteBuffer((int) TEST_BLOCK_SIZE);
+    ByteBuffer buf = BufferUtils.getIncreasingByteBuffer((int) TEST_BLOCK_SIZE);
     Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buf));
     Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buf));
     mWriter.close();
@@ -72,7 +72,7 @@ public class LocalFileBlockWriterTest {
   public void closeTest() throws Exception {
     mThrown.expect(ClosedChannelException.class);
 
-    ByteBuffer buf = TestUtils.getIncreasingByteBuffer((int) TEST_BLOCK_SIZE);
+    ByteBuffer buf = BufferUtils.getIncreasingByteBuffer((int) TEST_BLOCK_SIZE);
     Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buf));
     mWriter.close();
     // Append after close, expect append to fail and throw ClosedChannelException

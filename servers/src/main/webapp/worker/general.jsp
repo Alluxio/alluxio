@@ -3,6 +3,7 @@
 <%@ page import="tachyon.StorageLevelAlias" %>
 <%@ page import="tachyon.util.*" %>
 <%@ page import="tachyon.web.WebInterfaceWorkerGeneralServlet.UiStorageDir" %>
+<%@ page import="tachyon.web.WebInterfaceWorkerGeneralServlet.UiWorkerInfo" %>
 
 <html>
 <head>
@@ -16,6 +17,7 @@
 <script src="../js/bootstrap.min.js"></script>
 <div class="container-fluid">
   <% request.setAttribute("useWorkerHeader", "1"); %>
+  <% UiWorkerInfo workerInfo = (UiWorkerInfo) request.getAttribute("workerInfo"); %>
   <jsp:include page="/header" />
   <div class="row-fluid">
     <div class="accordion span6" id="accordion1">
@@ -31,19 +33,19 @@
               <tbody>
                 <tr>
                   <th>Worker Address:</th>
-                  <th><%= request.getAttribute("workerAddress") %></th>
+                  <th><%= workerInfo.getWorkerAddress() %></th>
                 </tr>
                 <tr>
                   <th>Started:</th>
-                  <th><%= request.getAttribute("startTime") %></th>
+                  <th><%= workerInfo.getStartTime() %></th>
                 </tr>
                 <tr>
                   <th>Uptime:</th>
-                  <th><%= request.getAttribute("uptime") %></th>
+                  <th><%= workerInfo.getUptime() %></th>
                 </tr>
                 <tr>
                   <th>Version:</th>
-                  <th><%= request.getAttribute("version") %></th>
+                  <th><%= UiWorkerInfo.VERSION %></th>
                 </tr>
               </tbody>
             </table>
@@ -73,8 +75,8 @@
                 <tr>
                   <th><%= StorageLevelAlias.values()[i].name() %> Capacity / Used</th>
                   <th>
-                    <%= CommonUtils.getSizeFromBytes(capacityBytesOnTiers.get(i)) %> /
-                    <%= CommonUtils.getSizeFromBytes(usedBytesOnTiers.get(i)) %>
+                    <%= FormatUtils.getSizeFromBytes(capacityBytesOnTiers.get(i)) %> /
+                    <%= FormatUtils.getSizeFromBytes(usedBytesOnTiers.get(i)) %>
                   </th>
                 </tr>
                 <% } %>
@@ -108,8 +110,8 @@
                   <tr>
                     <th><%= StorageDirId.getStorageLevelAlias(dir.getStorageDirId()) %></th>
                     <th><%= dir.getDirPath() %></th>
-                    <th><%= CommonUtils.getSizeFromBytes(dir.getCapacityBytes()) %></th>
-                    <th><%= CommonUtils.getSizeFromBytes(dir.getUsedBytes()) %></th>
+                    <th><%= FormatUtils.getSizeFromBytes(dir.getCapacityBytes()) %></th>
+                    <th><%= FormatUtils.getSizeFromBytes(dir.getUsedBytes()) %></th>
                     <th>
                       <div class="progress custom-progress">
                         <% int usedSpacePercent = (int) (100.0 * dir.getUsedBytes() / dir.getCapacityBytes()); %>

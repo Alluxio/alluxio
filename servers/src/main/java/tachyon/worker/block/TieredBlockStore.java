@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.Files;
 
 import tachyon.Constants;
 import tachyon.Pair;
@@ -39,20 +38,18 @@ import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
-import tachyon.thrift.InvalidPathException;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.FileUtils;
+import tachyon.util.io.PathUtils;
 import tachyon.worker.block.allocator.Allocator;
-import tachyon.worker.block.allocator.AllocatorFactory;
-import tachyon.worker.block.allocator.AllocatorType;
 import tachyon.worker.block.evictor.EvictionPlan;
 import tachyon.worker.block.evictor.Evictor;
-import tachyon.worker.block.evictor.EvictorFactory;
-import tachyon.worker.block.evictor.EvictorType;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockReader;
 import tachyon.worker.block.io.LocalFileBlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -94,22 +91,18 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
     mLockManager = new BlockLockManager(mMetaManager);
 
-    AllocatorType allocatorType =
-        mTachyonConf.getEnum(Constants.WORKER_ALLOCATE_STRATEGY_TYPE, AllocatorType.DEFAULT);
     BlockMetadataManagerView initManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
             Collections.<Long>emptySet());
-    mAllocator = AllocatorFactory.create(allocatorType, initManagerView);
+    mAllocator = Allocator.Factory.createAllocator(mTachyonConf, initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
-    EvictorType evictorType =
-        mTachyonConf.getEnum(Constants.WORKER_EVICT_STRATEGY_TYPE, EvictorType.DEFAULT);
     initManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
             Collections.<Long>emptySet());
-    mEvictor = EvictorFactory.create(evictorType, initManagerView);
+    mEvictor = Evictor.Factory.createEvictor(mTachyonConf, initManagerView);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
@@ -300,25 +293,25 @@ public class TieredBlockStore implements BlockStore {
     // is considered "dead" may still be using or committing this block.
     // A user may have multiple temporary directories for temp blocks, in diffrent StorageTier
     // and StorageDir.
-    Set<String> dirs = new HashSet<String>(tempBlocksToRemove.size());
     for (TempBlockMeta tempBlockMeta : tempBlocksToRemove) {
       String fileName = tempBlockMeta.getPath();
-      try {
-        String dirName = CommonUtils.getParent(fileName);
-        dirs.add(dirName);
-      } catch (InvalidPathException e) {
-        LOG.error("Error in cleanup userId {}: cannot parse parent dir of {}", userId, fileName);
-      }
       if (!new File(fileName).delete()) {
         LOG.error("Error in cleanup userId {}: cannot delete file {}", userId, fileName);
       } else {
         removedTempBlocks.add(tempBlockMeta.getBlockId());
       }
     }
-    // TODO: Cleanup the user folder across tiered storage.
-    for (String dirName : dirs) {
-      if (!new File(dirName).delete()) {
-        LOG.error("Error in cleanup userId {}: cannot delete directory {}", userId, dirName);
+
+    // Go through all the storage directories and delete the user folders which should be empty
+    for (StorageTier tier : mMetaManager.getTiers()) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        File userFolder = new File(PathUtils.concatPath(dir.getDirPath(), userId));
+        if (userFolder.exists() && !userFolder.delete()) {
+          // This error means we could not delete the directory but should not affect the
+          // correctness of the method since the data has already been deleted. It is not
+          // necessary to throw an exception here.
+          LOG.error("Failed to clean up user: {} with directory: {}", userId, userFolder.getPath());
+        }
       }
     }
 
@@ -348,20 +341,38 @@ public class TieredBlockStore implements BlockStore {
     }
   }
 
-  // Abort a temp block. This method requires eviction lock in READ mode.
-  private void abortBlockNoLock(long userId, long blockId) throws NotFoundException,
-      InvalidStateException, IOException {
+  /**
+   * Validate blockId is a temporary block and owned by userId, if the validation succeeds, return
+   * the {@link tachyon.worker.block.meta.TempBlockMeta} of blockId.
+   *
+   * @param userId the ID of user
+   * @param blockId the ID of block
+   * @throws NotFoundException if blockId can not be found in temporary blocks
+   * @throws AlreadyExistsException if blockId already exists in committed blocks
+   * @throws InvalidStateException if blockId is not owned by userId
+   * @return the {@link tachyon.worker.block.meta.TempBlockMeta} of blockId
+   */
+  private TempBlockMeta validateUserTempBlock(long userId, long blockId) throws NotFoundException,
+      AlreadyExistsException, InvalidStateException {
     if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new InvalidStateException("Failed to abort block " + blockId + ": block is committed");
+      throw new AlreadyExistsException("blockId " + blockId + " is committed");
     }
 
     TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
     // Check the userId is the owner of this temp block
     long ownerUserId = tempBlockMeta.getUserId();
     if (ownerUserId != userId) {
-      throw new InvalidStateException("Failed to abort temp block " + blockId + ": ownerUserId "
-          + ownerUserId + " but userId " + userId);
+      throw new InvalidStateException("ownerUserId of blockId " + blockId + " is " + ownerUserId
+          + " but userId passed in is " + userId);
     }
+
+    return tempBlockMeta;
+  }
+
+  // Abort a temp block. This method requires eviction lock in READ mode.
+  private void abortBlockNoLock(long userId, long blockId) throws NotFoundException,
+      AlreadyExistsException, InvalidStateException, IOException {
+    TempBlockMeta tempBlockMeta = validateUserTempBlock(userId, blockId);
     String path = tempBlockMeta.getPath();
     if (!new File(path).delete()) {
       throw new IOException("Failed to abort temp block " + blockId + ": cannot delete " + path);
@@ -373,25 +384,10 @@ public class TieredBlockStore implements BlockStore {
   private void commitBlockNoLock(long userId, long blockId, TempBlockMeta tempBlockMeta)
       throws AlreadyExistsException, InvalidStateException, NotFoundException, IOException,
       OutOfSpaceException {
-    // TODO: share the condition checking among commitBlockNoLock and abortBlockNoLock in a helper
-    // function.
-    if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException("Failed to commit block " + blockId
-          + ": block is committed");
-    }
-    // Check the userId is the owner of this temp block
-    long ownerUserId = tempBlockMeta.getUserId();
-    if (ownerUserId != userId) {
-      throw new InvalidStateException("Failed to commit temp block " + blockId + ": ownerUserId "
-          + ownerUserId + " but userId " + userId);
-    }
+    validateUserTempBlock(userId, blockId);
     String sourcePath = tempBlockMeta.getPath();
     String destPath = tempBlockMeta.getCommitPath();
-    boolean renamed = new File(sourcePath).renameTo(new File(destPath));
-    if (!renamed) {
-      throw new IOException("Failed to commit temp block " + blockId + ": cannot rename from "
-          + sourcePath + " to " + destPath);
-    }
+    FileUtils.move(new File(sourcePath), new File(destPath));
     mMetaManager.commitTempBlockMeta(tempBlockMeta);
   }
 
@@ -510,9 +506,7 @@ public class TieredBlockStore implements BlockStore {
     BlockMeta newBlockMeta = mMetaManager.getBlockMeta(blockId);
     String srcFilePath = blockMeta.getPath();
     String dstFilePath = newBlockMeta.getPath();
-    // NOTE: Because this move can possibly across storage devices (e.g., from memory to SSD),
-    // renameTo may not work, use guava's move instead.
-    Files.move(new File(srcFilePath), new File(dstFilePath));
+    FileUtils.move(new File(srcFilePath), new File(dstFilePath));
   }
 
   /**

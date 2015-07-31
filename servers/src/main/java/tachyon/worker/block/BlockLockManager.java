@@ -229,7 +229,7 @@ public class BlockLockManager {
   /**
    * Inner class to keep record of a lock.
    */
-  private class LockRecord {
+  private static class LockRecord {
     private final long mUserId;
     private final long mBlockId;
     private final Lock mLock;

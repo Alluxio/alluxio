@@ -15,8 +15,6 @@
 
 package tachyon.network.protocol;
 
-import java.nio.ByteBuffer;
-
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
@@ -24,7 +22,7 @@ import com.google.common.primitives.Shorts;
 import io.netty.buffer.ByteBuf;
 
 import tachyon.network.protocol.databuffer.DataBuffer;
-import tachyon.network.protocol.databuffer.DataByteBuffer;
+import tachyon.network.protocol.databuffer.DataNettyBuffer;
 
 /**
  * This represents the response of a {@link RPCBlockReadRequest}.
@@ -76,12 +74,11 @@ public class RPCBlockReadResponse extends RPCResponse {
     long offset = in.readLong();
     long length = in.readLong();
     short status = in.readShort();
+
     DataBuffer data = null;
     if (length > 0) {
-      // TODO: look into accessing Netty ByteBuf directly, to avoid copying the data.
-      ByteBuffer buffer = ByteBuffer.allocate((int) length);
-      in.readBytes(buffer);
-      data = new DataByteBuffer(buffer, (int) length);
+      // use DataNettyBuffer instead of DataByteBuffer to avoid copying
+      data = new DataNettyBuffer(in, (int) length);
     }
     return new RPCBlockReadResponse(blockId, offset, length, data, Status.fromShort(status));
   }
