@@ -421,6 +421,7 @@
           <excludes>
             <!-- Code Exclusions -->
             <exclude>**/src/main/java/tachyon/thrift/*</exclude>
+            <exclude>**/src/main/java/tachyon/perf/thrift/*</exclude>
             <exclude>**/src/main/webapp/**/*</exclude>
             <exclude>**/src/thrift/*</exclude>
             <exclude>**/src/deb/**/*</exclude>
@@ -435,6 +436,7 @@
             <exclude>**/deploy/**/*</exclude>
             <exclude>**/bin/*</exclude>
             <exclude>**/conf/*</exclude>
+            <exclude>**/conf/testsuite/*</exclude>
             <exclude>**/libexec/*</exclude>
             <exclude>**/src/main/findbugs/*</exclude>
             <exclude>**/src/main/resources/tachyon_checks*</exclude>
