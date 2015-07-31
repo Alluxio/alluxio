@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <property>
+    <name>basic.files.per.thread</name>
+    <value>1</value>
+    <description>the number of basic files to write at the beginning for each thread</description>
+  </property>
+  <property>
+    <name>read.files.per.thread</name>
+    <value>2</value>
+    <description>the number of files to read for each thread</description>
+  </property>
+  <property>
+    <name>write.files.per.thread</name>
+    <value>1</value>
+    <description>the number of files to write for each thread</description>
+  </property>
+  <property>
+    <name>block.size.bytes</name>
+    <value>134217728</value>
+    <description>the block size of a file</description>
+  </property>
+  <property>
+    <name>file.length.bytes</name>
+    <value>134217728</value>
+    <description>the file size in bytes</description>
+  </property>
+  <property>
+    <name>buffer.size.bytes</name>
+    <value>4194304</value>
+    <description>the size of the buffer read and write once</description>
+  </property>
+  <property>
+    <name>read.type</name>
+    <value>CACHE</value>
+    <description>the ReadType of the read operation, now only used for TachyonFS</description>
+  </property>
+  <property>
+    <name>write.type</name>
+    <value>TRY_CACHE</value>
+    <description>the WriteType of the write operation, now only used for TachyonFS</description>
+  </property>
+</configuration>
+

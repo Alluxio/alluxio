@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <property>
+    <name>clients.per.thread</name>
+    <value>2</value>
+    <description>the number of clients to connect to the file system for each thread</description>
+  </property>
+  <property>
+    <name>op.second.per.thread</name>
+    <value>4</value>
+    <description>the metadata operations time for each thread, in seconds</description>
+  </property>
+</configuration>
+

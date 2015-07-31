@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <property>
+    <name>files.per.thread</name>
+    <value>2</value>
+    <description>the number of files to read for each read thread</description>
+  </property>
+  <property>
+    <name>read.mode</name>
+    <value>SEQUENCE</value>
+    <description>the read mode of read test, should be RANDOM or SEQUENCE</description>
+  </property>
+  <property>
+    <name>buffer.size.bytes</name>
+    <value>4194304</value>
+    <description>the size of the buffer read once</description>
+  </property>
+  <property>
+    <name>read.type</name>
+    <value>NO_CACHE</value>
+    <description>the ReadType of the read operation, no it only used for Tachyon</description>
+  </property>
+  <property>
+    <name>taskid.offset</name>
+    <value>0</value>
+    <description>The offset to add to each taskid, defining the directory to read from (taskid + offset). A non-zero offset may ensure all reads are remote. An offset of 0 ensures local reads.</description>
+  </property>
+</configuration>
