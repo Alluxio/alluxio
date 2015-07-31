@@ -109,6 +109,17 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-local</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-common</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-underfs-s3</artifactId>
       <version>${project.version}</version>
       <exclusions>
