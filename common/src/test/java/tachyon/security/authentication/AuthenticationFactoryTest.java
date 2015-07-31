@@ -61,6 +61,8 @@ public class AuthenticationFactoryTest {
     // should throw exception with conf "wrong"
     tachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "wrong");
     mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("wrong is not a valid authentication type. Check the configuration "
+        + "parameter " + Constants.TACHYON_SECURITY_AUTHENTICATION);
     authType = AuthenticationFactory.getAuthTypeFromConf(tachyonConf);
   }
 

@@ -69,7 +69,12 @@ public class AuthenticationFactory {
      * @throws java.lang.IllegalArgumentException if the string does not match any type
      */
     public static AuthType getValidAuthType(String authTypeStr) {
-      return AuthType.valueOf(authTypeStr.toUpperCase(Locale.ENGLISH));
+      try {
+        return AuthType.valueOf(authTypeStr.toUpperCase(Locale.ENGLISH));
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException(authTypeStr + " is not a valid authentication type. "
+            + "Check the configuration parameter " + Constants.TACHYON_SECURITY_AUTHENTICATION, e);
+      }
     }
   }
 
