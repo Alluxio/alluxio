@@ -95,7 +95,7 @@ public class BlockMetadataManagerView {
    */
   public boolean isBlockLocked(long blockId) {
     int index = BlockLockManager.blockHashIndex(blockId);
-    if (index <= mInUseLocks.length()) {
+    if (index < mInUseLocks.length()) {
       return mInUseLocks.get(index);
     } else {
       return false;
