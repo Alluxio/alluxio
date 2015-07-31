@@ -24,7 +24,13 @@ import javax.security.auth.login.Configuration;
 import tachyon.security.authentication.AuthenticationFactory;
 
 /**
- * A JAAS configuration that defines the login modules, by which we use to login.
+ * A JAAS configuration that defines the login modules, by which JAAS uses to login.
+ *
+ * In implementation, we define several modes (Simple, Kerberos, ...) by constructing different
+ * arrays of AppConfigurationEntry, and select the proper array based on the configured mode.
+ *
+ * Then JAAS login framework use the selected array of AppConfigurationEntry to determine the
+ * login modules to be used.
  */
 public class TachyonJaasConfiguration extends Configuration {
 
@@ -41,6 +47,11 @@ public class TachyonJaasConfiguration extends Configuration {
   // TODO: add Kerberos_LOGIN module
   // private static final AppConfigurationEntry KERBEROS_LOGIN = ...
 
+  /**
+   * In SIMPLE mode, JAAS use the OS specific login module to fetch the OS user,
+   * and then use the {@link tachyon.security.TachyonLoginModule} to convert it to a Tachyon user
+   * represented by {@link tachyon.security.User}
+   */
   private static final AppConfigurationEntry[] SIMPLE = new
       AppConfigurationEntry[]{OS_SPECIFIC_LOGIN, TACHYON_LOGIN};
 
