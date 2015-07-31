@@ -56,14 +56,7 @@ public class CustomAuthenticationProviderImplTest {
     mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
         NoopAuthenticationProvider.class.getName());
     CustomAuthenticationProviderImpl provider = new CustomAuthenticationProviderImpl(mConf);
-    Assert.assertTrue(provider.getCustomProvider() instanceof  NoopAuthenticationProvider);
-  }
-
-  @Test
-  public void createCustomeProviderTest() throws Exception {
-    mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
-        NoopAuthenticationProvider.class.getName());
-    new CustomAuthenticationProviderImpl(mConf);
+    Assert.assertTrue(provider.getCustomProvider() instanceof NoopAuthenticationProvider);
   }
 
   public static class NoopAuthenticationProvider implements AuthenticationProvider {

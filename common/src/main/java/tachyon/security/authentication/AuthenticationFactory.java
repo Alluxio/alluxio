@@ -81,6 +81,5 @@ public class AuthenticationFactory {
     return mAuthTypeStr;
   }
 
-
   // TODO: add methods of getting different Thrift class in follow-up PR.
 }
