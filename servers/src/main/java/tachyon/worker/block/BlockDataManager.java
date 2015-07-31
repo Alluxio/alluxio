@@ -220,7 +220,7 @@ public class BlockDataManager {
     } catch (TException te) {
       throw new IOException("Failed to commit block to master.", te);
     } finally {
-      mBlockStore.unlockBlock(userId, blockId);
+      mBlockStore.unlockBlock(lockId);
     }
   }
 
