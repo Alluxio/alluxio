@@ -220,6 +220,13 @@ public class TachyonConf {
     return updated;
   }
 
+  public String get(String key) {
+    String raw = mProperties.getProperty(key, null);
+    String value = lookup(raw);
+    LOG.debug("Get Tachyon property {} as {}", key, value);
+    return value;
+  }
+
   public boolean containsKey(String key) {
     return mProperties.containsKey(key);
   }

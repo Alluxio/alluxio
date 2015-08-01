@@ -62,7 +62,7 @@ public class WebInterfaceDownloadLocalServlet extends HttpServlet {
     }
 
     // Download a file from the local filesystem.
-    String baseDir = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String baseDir = mTachyonConf.get(Constants.TACHYON_HOME);
     File logsDir = new File(baseDir, "logs");
 
     // Only allow filenames as the path, to avoid downloading arbitrary local files.

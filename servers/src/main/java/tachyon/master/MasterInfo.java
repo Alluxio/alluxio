@@ -150,7 +150,7 @@ public class MasterInfo extends ImageWriter {
                 dep.addLostFile(tFile.getId());
                 LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
                     + " . Trying to recompute it using dependency " + dep.mId);
-                String tmp = mTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER, "/tmp");
+                String tmp = mTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER);
                 if (!getPath(tFile).toString().startsWith(tmp)) {
                   mMustRecomputedDpendencies.add(depId);
                 }
@@ -165,7 +165,7 @@ public class MasterInfo extends ImageWriter {
       if (hadFailedWorker) {
         LOG.warn("Restarting failed workers.");
         try {
-          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
           java.lang.Runtime.getRuntime()
               .exec(tachyonHome + "/bin/tachyon-start.sh restart_workers");
         } catch (IOException e) {
@@ -226,7 +226,7 @@ public class MasterInfo extends ImageWriter {
         }
 
         for (String cmd : cmds) {
-          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
           String filePath = tachyonHome + "/logs/rerun-" + mRerunCounter.incrementAndGet();
           // TODO use bounded threads (ExecutorService)
           Thread thread = new Thread(new RecomputeCommand(cmd, filePath));
