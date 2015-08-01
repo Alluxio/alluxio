@@ -141,11 +141,10 @@ public class TachyonMaster {
       mServerTServerSocket = new TServerSocket(addressListening);
       mPort = NetworkAddressUtils.getPort(mServerTServerSocket);
 
-      String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
       String journalFolder =
-          mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, tachyonHome + "/journal/");
+          mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
       String formatFilePrefix =
-          mTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX, Constants.FORMAT_FILE_PREFIX);
+          mTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX);
       UnderFileSystem ufs = UnderFileSystem.get(journalFolder, mTachyonConf);
       if (ufs.providesStorage()) {
         Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
@@ -161,9 +160,9 @@ public class TachyonMaster {
         // InetSocketAddress.toString causes test issues, so build the string by hand
         String zkName =
             NetworkAddressUtils.getFqdnHost(mMasterAddress) + ":" + mMasterAddress.getPort();
-        String zkAddress = mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS, null);
-        String zkElectionPath = mTachyonConf.get(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
-        String zkLeaderPath = mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
+        String zkAddress = mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS);
+        String zkElectionPath = mTachyonConf.get(Constants.ZOOKEEPER_ELECTION_PATH);
+        String zkLeaderPath = mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH);
         mLeaderSelectorClient =
             new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
         mEditLogProcessor =
@@ -239,9 +238,8 @@ public class TachyonMaster {
   }
 
   private void connectToUFS() throws IOException {
-    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
     String ufsAddress =
-        mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
+        mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
     ufs.connectFromMaster(mTachyonConf, NetworkAddressUtils.getFqdnHost(mMasterAddress));
   }

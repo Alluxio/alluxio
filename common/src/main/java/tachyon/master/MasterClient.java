@@ -285,8 +285,8 @@ public final class MasterClient implements Closeable {
     }
 
     LeaderInquireClient leaderInquireClient =
-        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS, null),
-            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, null));
+        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS),
+            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH));
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);
