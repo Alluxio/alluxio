@@ -555,7 +555,12 @@ public class TieredBlockStore implements BlockStore {
 
     // 1. remove blocks to make room.
     for (long blockId : plan.toEvict()) {
-      removeBlockInternal(userId, blockId);
+      try {
+        removeBlockInternal(userId, blockId);
+      } catch (NotFoundException nfe) {
+        LOG.info("Failed to evict blockId " + blockId + ", it could be already deleted");
+        return;
+      }
       synchronized (mBlockStoreEventListeners) {
         for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
           listener.onRemoveBlockByWorker(userId, blockId);
@@ -582,8 +587,14 @@ public class TieredBlockStore implements BlockStore {
       for (Pair<Long, BlockStoreLocation> entry : toMove) {
         long blockId = entry.getFirst();
         BlockStoreLocation newLocation = entry.getSecond();
-        Pair<BlockStoreLocation, BlockStoreLocation> locationPair =
-            moveBlockInternal(userId, blockId, newLocation);
+        Pair<BlockStoreLocation, BlockStoreLocation> locationPair;
+        try {
+          // TODO: this should also specify the src location
+          locationPair = moveBlockInternal(userId, blockId, newLocation);
+        } catch (NotFoundException nfe) {
+          LOG.info("Failed to move blockId " + blockId + ", it could be already deleted");
+          return;
+        }
         BlockStoreLocation oldLocation = locationPair.getFirst();
         synchronized (mBlockStoreEventListeners) {
           for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -667,7 +678,7 @@ public class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Remove a block. This method requires block lock in WRITE mode and eviction lock in READ mode.
+   * Remove a block.
    */
   private void removeBlockInternal(long userId, long blockId)
       throws InvalidStateException, NotFoundException, IOException {
