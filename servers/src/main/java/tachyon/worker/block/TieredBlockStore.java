@@ -84,14 +84,9 @@ public class TieredBlockStore implements BlockStore {
   private final Evictor mEvictor;
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
-  /**
-   * A set of pinned inodes fetched from the master
-   */
+  /** A set of pinned inodes fetched from the master */
   private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
-
-  /**
-   * Lock to guard metadata operations
-   */
+  /** Lock to guard metadata operations */
   private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
 
   public TieredBlockStore(TachyonConf tachyonConf) {
