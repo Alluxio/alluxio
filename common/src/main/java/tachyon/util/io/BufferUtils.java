@@ -15,6 +15,7 @@
 
 package tachyon.util.io;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -148,14 +149,19 @@ public class BufferUtils {
   }
 
   /**
-   * * Writes buffer to the given file path
+   * Writes buffer to the given file path. Overwrites this file if exists.
    *
    * @param path file path to write the data
    * @param buffer raw data
    * @throws java.io.IOException
    */
   public static void writeBufferToFile(String path, byte[] buffer) throws IOException {
-    FileOutputStream os = new FileOutputStream(path);
+    File file = new File(path);
+    if (file.exists()) {
+      FileUtils.delete(file);
+    }
+    FileUtils.createFile(file);
+    FileOutputStream os = new FileOutputStream(file);
     os.write(buffer);
     os.close();
   }

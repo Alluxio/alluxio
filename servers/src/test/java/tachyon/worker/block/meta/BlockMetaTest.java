@@ -15,6 +15,7 @@
 
 package tachyon.worker.block.meta;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.junit.Assert;
@@ -26,6 +27,7 @@ import org.junit.rules.TemporaryFolder;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.BufferUtils;
+import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 
 public class BlockMetaTest {
@@ -34,6 +36,7 @@ public class BlockMetaTest {
   private static final long TEST_BLOCK_SIZE = 100;
   private StorageDir mDir;
   private BlockMeta mBlockMeta;
+  private TempBlockMeta mTempBlockMeta;
   private String mTestDirPath;
 
   @Rule
@@ -50,37 +53,32 @@ public class BlockMetaTest {
 
     StorageTier tier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
     mDir = tier.getDir(0);
+    mTempBlockMeta =
+        new TempBlockMeta(TEST_USER_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
   }
 
   @Test
   public void getBlockSizeTest() throws IOException {
-    TempBlockMeta tempBlockMeta =
-        new TempBlockMeta(TEST_USER_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
-
     // With the block file not really existing, expect committed block size to be zero.
-    mBlockMeta = new BlockMeta(tempBlockMeta);
+    mBlockMeta = new BlockMeta(mTempBlockMeta);
     Assert.assertEquals(0, mBlockMeta.getBlockSize());
 
     // With the block file partially written, expect committed block size equals real file size.
-    long expectedBlockSize = TEST_BLOCK_SIZE / 2;
-    byte[] buf = BufferUtils.getIncreasingByteArray((int) expectedBlockSize);
-    BufferUtils.writeBufferToFile(tempBlockMeta.getCommitPath(), buf);
-    mBlockMeta = new BlockMeta(tempBlockMeta);
-    Assert.assertEquals(expectedBlockSize, mBlockMeta.getBlockSize());
+    byte[] buf = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE - 1);
+    BufferUtils.writeBufferToFile(mTempBlockMeta.getPath(), buf);
+    mBlockMeta = new BlockMeta(mTempBlockMeta);
+    Assert.assertEquals(TEST_BLOCK_SIZE - 1, mBlockMeta.getBlockSize());
 
     // With the block file fully written, expect committed block size equals target block size.
-    expectedBlockSize = TEST_BLOCK_SIZE;
-    buf = BufferUtils.getIncreasingByteArray((int) expectedBlockSize);
-    BufferUtils.writeBufferToFile(tempBlockMeta.getCommitPath(), buf);
-    mBlockMeta = new BlockMeta(tempBlockMeta);
-    Assert.assertEquals(expectedBlockSize, mBlockMeta.getBlockSize());
+    buf = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE);
+    BufferUtils.writeBufferToFile(mTempBlockMeta.getPath(), buf);
+    mBlockMeta = new BlockMeta(mTempBlockMeta);
+    Assert.assertEquals(TEST_BLOCK_SIZE, mBlockMeta.getBlockSize());
   }
 
   @Test
   public void getPathTest() {
-    TempBlockMeta tempBlockMeta =
-        new TempBlockMeta(TEST_USER_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
-    mBlockMeta = new BlockMeta(tempBlockMeta);
+    mBlockMeta = new BlockMeta(mTempBlockMeta);
     Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_BLOCK_ID), mBlockMeta.getPath());
   }
 }
