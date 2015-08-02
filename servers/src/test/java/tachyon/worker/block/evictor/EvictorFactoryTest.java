@@ -24,17 +24,19 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 
 /*
- * Test EvictorFactory by passing different AllocatorType 
- * and test if it generate the correct Evictor instance.
+ * Test EvictorFactory by passing different AllocatorType and test if it generate the correct
+ * Evictor instance.
  */
 public class EvictorFactoryTest {
   private static BlockMetadataManager sBlockMetadataManager;
   private static BlockMetadataManagerView sBlockMetadataManagerView;
-  
+
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
@@ -43,29 +45,35 @@ public class EvictorFactoryTest {
     File tempFolder = mTestFolder.newFolder();
     if (sBlockMetadataManagerView == null) {
       if (sBlockMetadataManager == null) {
-        sBlockMetadataManager = EvictorTestUtils.defaultMetadataManager(
-           tempFolder.getAbsolutePath());
+        sBlockMetadataManager =
+            EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
       }
-      sBlockMetadataManagerView = new BlockMetadataManagerView(sBlockMetadataManager, 
-          Collections.<Integer>emptySet(), Collections.<Long>emptySet());
+      sBlockMetadataManagerView =
+          new BlockMetadataManagerView(sBlockMetadataManager, Collections.<Integer>emptySet(),
+              Collections.<Long>emptySet());
     }
   }
-  
+
   @Test
   public void createGreedyAllocatorTest() {
-    Evictor evictor = EvictorFactory.create(EvictorType.GREEDY, sBlockMetadataManagerView);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, GreedyEvictor.class.getName());
+    Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView);
     Assert.assertTrue(evictor instanceof GreedyEvictor);
   }
-  
+
   @Test
   public void createLRUAllocatorTest() {
-    Evictor evictor = EvictorFactory.create(EvictorType.LRU, sBlockMetadataManagerView);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, LRUEvictor.class.getName());
+    Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView);
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
-  
+
   @Test
   public void createDefaultAllocatorTest() {
-    Evictor evictor = EvictorFactory.create(EvictorType.DEFAULT, sBlockMetadataManagerView);
+    TachyonConf conf = new TachyonConf();
+    Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView);
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
 }
