@@ -31,11 +31,11 @@ Install [python >= 2.7, not python3](http://python.org/).
 
 Under `deploy/vagrant` directory in your Tachyon repo, run the following to install dependent python libs:
 
-    sudo bash bin/install.sh.
+    sudo bash bin/install.sh
 
 If anything goes wrong, install [pip](https://pip.pypa.io/en/latest/installing.html) on your own, then in the same directory, run(may need sudo):
 
-    pip install -r pip-req.txt.
+    pip install -r pip-req.txt
 
 ## Quick Start With VirtualBox
 
