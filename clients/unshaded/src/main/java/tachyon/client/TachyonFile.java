@@ -458,14 +458,16 @@ public class TachyonFile implements Comparable<TachyonFile> {
     // Using the dummy stream to read remote buffer.
     ByteBuffer inBuf = dummyStream.readRemoteByteBuffer(mTachyonFS, blockInfo, 0,
         blockInfo.length, mTachyonConf);
-    // Close the stream object.
-    dummyStream.close();
     if (inBuf == null) {
+      // Close the stream object.
+      dummyStream.close();
       return null;
     }
     // Copy data in network buffer into client buffer.
     ByteBuffer outBuf = ByteBuffer.allocate((int) inBuf.capacity());
     outBuf.put(inBuf);
+    // Close the stream object (must be called after buffer is copied)
+    dummyStream.close();
     return new TachyonByteBuffer(mTachyonFS, outBuf, blockInfo.blockId, -1);
   }
 
