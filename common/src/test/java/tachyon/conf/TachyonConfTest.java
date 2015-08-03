@@ -110,7 +110,7 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS);
     Assert.assertEquals(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS, intValue);
 
-    long longBytesValue = sDefaultTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE, 0L);
+    long longBytesValue = sDefaultTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
     Assert.assertTrue(longBytesValue == Constants.MB * 5);
   }
 
@@ -194,7 +194,7 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS);
     Assert.assertTrue(intValue == 0);
 
-    long longValue = sDefaultTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE, 0L);
+    long longValue = sDefaultTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE);
     Assert.assertTrue(longValue == (128 * Constants.MB));
   }
 
@@ -206,13 +206,13 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
     Assert.assertTrue(intValue == Constants.SECOND_MS);
 
-    long longValue = sDefaultTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES, 0L);
+    long longValue = sDefaultTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES);
     Assert.assertTrue(longValue == (8 * Constants.MB));
 
-    longValue = sDefaultTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, 0L);
+    longValue = sDefaultTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     Assert.assertTrue(longValue == Constants.MB);
 
-    longValue = sDefaultTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, 0);
+    longValue = sDefaultTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE);
     Assert.assertTrue(longValue == 8 * Constants.MB);
   }
 

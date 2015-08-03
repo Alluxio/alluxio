@@ -316,6 +316,10 @@ public class TachyonConf {
     }
   }
 
+  public long getBytes(String key) {
+    return getBytes(key, 0L);
+  }
+
   public <T> Class<T> getClass(String key, Class<T> defaultValue) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);

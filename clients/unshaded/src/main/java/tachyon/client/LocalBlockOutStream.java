@@ -70,8 +70,8 @@ public class LocalBlockOutStream extends BlockOutStream {
    */
   LocalBlockOutStream(TachyonFile file, WriteType opType, int blockIndex, TachyonConf tachyonConf)
       throws IOException {
-    this(file, opType, blockIndex, tachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES,
-        8 * Constants.MB), tachyonConf);
+    this(file, opType, blockIndex, tachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES),
+        tachyonConf);
   }
 
   /**
@@ -112,7 +112,7 @@ public class LocalBlockOutStream extends BlockOutStream {
         + ", blockId: " + mBlockId + ", blockCapacityByte: " + mBlockCapacityByte);
     mAvailableBytes += initialBytes;
 
-    mBufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB);
+    mBufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     mBuffer = ByteBuffer.allocate(Ints.checkedCast(mBufferBytes));
   }
 
