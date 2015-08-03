@@ -15,6 +15,10 @@
 
 package tachyon.util.io;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tachyon.Constants;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -26,6 +30,7 @@ import java.util.List;
  * Utilities related to buffers, not only ByteBuffer.
  */
 public class BufferUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /**
    * Force to unmap direct buffer if the buffer is no longer used. It is unsafe operation and
    * currently a walk-around to avoid huge memory occupation caused by memory map.
@@ -45,6 +50,7 @@ public class BufferUtils {
           cleaner.getClass().getMethod("clean").invoke(cleaner);
         }
       } catch (Exception e) {
+        LOG.warn("Fail to unmap direct buffer due to ", e);
         buffer = null;
       }
     }
