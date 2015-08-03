@@ -23,7 +23,7 @@ PROVIDERS=("aws" "vb")
 TOTAL="$1"
 PROVIDER="$2"
 [ "$TOTAL" -lt 2 ] && error_exit "number of machines should at least be 2"
-[[ $PROVIDERS =~ (^| )$PROVIDER($| ) ]] || error_exit "provider $PROVIDER not supported yet"
+[[ "${PROVIDERS[*]}" =~ (^| )$PROVIDER( |$) ]] || error_exit "provider $PROVIDER not supported yet"
 
 HERE=`dirname "$0"`
 cd $HERE
