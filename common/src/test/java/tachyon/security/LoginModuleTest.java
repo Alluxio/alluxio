@@ -24,7 +24,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit test for the login module defined in {@link tachyon.security.UserInformation}
+ * Unit test for the login modules defined in {@link tachyon.security.TachyonLoginModule} and
+ * used in {@link tachyon.security.TachyonJaasConfiguration}
  */
 public class LoginModuleTest {
 
@@ -35,14 +36,14 @@ public class LoginModuleTest {
    */
   @Test
   public void simpleLoginTest() throws Exception {
-    String clazzName = UserInformation.getOsPrincipalClassName();
+    String clazzName = TachyonJaasProperties.getOsPrincipalClassName();
     Class<? extends Principal> clazz = (Class<? extends Principal>) ClassLoader
         .getSystemClassLoader().loadClass(clazzName);
     Subject subject = new Subject();
 
     // login, add OS user into subject, and add corresponding Tachyon user into subject
     LoginContext loginContext = new LoginContext("simple", subject, null,
-        new UserInformation.TachyonJaasConfiguration());
+        new TachyonJaasConfiguration());
     loginContext.login();
 
     // verify whether OS user and Tachyon user is added.

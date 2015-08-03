@@ -28,10 +28,7 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 
-import tachyon.conf.TachyonConf;
-import tachyon.security.authentication.AuthenticationFactory.AuthTypes;
 import tachyon.security.authentication.AuthenticationProvider;
-import tachyon.security.authentication.AuthenticationProviderFactory;
 
 /**
  * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.

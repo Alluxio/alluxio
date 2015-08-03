@@ -15,24 +15,12 @@
 
 package tachyon.security;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.security.auth.login.AppConfigurationEntry;
-import javax.security.auth.login.Configuration;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import tachyon.Constants;
 import tachyon.util.PlatformUtils;
 
 /**
- * This class wraps a JAAS Subject and provides methods to determine the user. It supports
- * Windows, Unix, and Kerberos login modules.
+ * This class collects constants used in JAAS login.
  */
-public class UserInformation {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+public class TachyonJaasProperties {
 
   private static final String OS_LOGIN_MODULE_NAME;
   private static final String OS_PRINCIPAL_CLASS_NAME;
@@ -41,12 +29,12 @@ public class UserInformation {
   private static final boolean AIX = PlatformUtils.OS_NAME.equals("AIX");
 
   static {
-    OS_LOGIN_MODULE_NAME = getOSLoginModuleName();
+    OS_LOGIN_MODULE_NAME = findOSLoginModuleName();
     OS_PRINCIPAL_CLASS_NAME = findOsPrincipalClassName();
   }
 
   // Return the OS login module class name.
-  private static String getOSLoginModuleName() {
+  private static String findOSLoginModuleName() {
     if (PlatformUtils.IBM_JAVA) {
       if (WINDOWS) {
         return IS_64_BIT ? "com.ibm.security.auth.module.Win64LoginModule"
@@ -85,39 +73,11 @@ public class UserInformation {
     return principalClassName;
   }
 
+  static String getOsLoginModuleName() {
+    return OS_LOGIN_MODULE_NAME;
+  }
+
   static String getOsPrincipalClassName() {
     return OS_PRINCIPAL_CLASS_NAME;
   }
-
-  /**
-   * A JAAS configuration that defines the login modules, by which we use to login.
-   */
-  static class TachyonJaasConfiguration extends Configuration {
-    private static final Map<String, String> BASIC_JAAS_OPTIONS = new HashMap<String,String>();
-
-    private static final AppConfigurationEntry OS_SPECIFIC_LOGIN =
-        new AppConfigurationEntry(OS_LOGIN_MODULE_NAME,
-            AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, BASIC_JAAS_OPTIONS);
-
-    private static final AppConfigurationEntry TACHYON_LOGIN =
-        new AppConfigurationEntry(TachyonLoginModule.class.getName(),
-            AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, BASIC_JAAS_OPTIONS);
-
-    // TODO: add Kerberos_LOGIN module
-    // private static final AppConfigurationEntry KERBEROS_LOGIN = ...
-
-    private static final AppConfigurationEntry[] SIMPLE = new
-        AppConfigurationEntry[]{OS_SPECIFIC_LOGIN, TACHYON_LOGIN};
-
-    // TODO: add Kerberos mode
-    // private static final AppConfigurationEntry[] KERBEROS = ...
-
-    @Override
-    public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
-      // TODO: switch branch based on appName. (Simple, Kerberos, etc)
-      return SIMPLE;
-    }
-  }
-
-  // TODO: TACHYON-613 - add methods to get login user
 }
