@@ -83,7 +83,7 @@ public class BlockStoreMeta {
 
   public int getNumberOfBlocks() {
     int numberOfBlocks = 0;
-    for (List blockIds : mBlockIdsOnDirs.values()) {
+    for (List<Long> blockIds : mBlockIdsOnDirs.values()) {
       numberOfBlocks += blockIds.size();
     }
     return numberOfBlocks;
