@@ -89,7 +89,7 @@ public class TachyonLoginModule implements LoginModule {
 
     // get a OS user
     if (user == null) {
-      user = getPrincipalUser(UserInformation.getOsPrincipalClassName());
+      user = getPrincipalUser(TachyonJaasProperties.getOsPrincipalClassName());
     }
 
     // if a user is found, convert it to a Tachyon user and save it.

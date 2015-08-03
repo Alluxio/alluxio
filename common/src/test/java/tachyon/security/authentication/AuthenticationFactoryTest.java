@@ -16,26 +16,54 @@
 package tachyon.security.authentication;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 /**
  * Unit test for inner class {@link tachyon.security.authentication.AuthenticationFactory
- * .AuthTypes} and methods of {@link tachyon.security.authentication.AuthenticationFactory}
+ * .AuthType} and methods of {@link tachyon.security.authentication.AuthenticationFactory}
  */
 public class AuthenticationFactoryTest {
 
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
+
   @Test
-  public void authTypesTest() {
+  public void authenticationFactoryConstructorTest() {
     TachyonConf tachyonConf = new TachyonConf();
     tachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
 
     AuthenticationFactory authenticationFactory = new AuthenticationFactory(tachyonConf);
 
-    Assert.assertEquals(AuthenticationFactory.AuthTypes.SIMPLE.getAuthName(),
+    Assert.assertEquals(AuthenticationFactory.AuthType.SIMPLE.getAuthName(),
         authenticationFactory.getAuthTypeStr());
+  }
+
+  @Test
+  public void getAuthTypeFromConfTest() {
+    TachyonConf tachyonConf = new TachyonConf();
+    AuthenticationFactory.AuthType authType;
+
+    // should return a SIMPLE AuthType with conf "SIMPLE"
+    tachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+    authType = AuthenticationFactory.getAuthTypeFromConf(tachyonConf);
+    Assert.assertEquals(AuthenticationFactory.AuthType.SIMPLE, authType);
+
+    // should return a SIMPLE AuthType with conf "simple"
+    tachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "simple");
+    authType = AuthenticationFactory.getAuthTypeFromConf(tachyonConf);
+    Assert.assertEquals(AuthenticationFactory.AuthType.SIMPLE, authType);
+
+    // should throw exception with conf "wrong"
+    tachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "wrong");
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("wrong is not a valid authentication type. Check the configuration "
+        + "parameter " + Constants.TACHYON_SECURITY_AUTHENTICATION);
+    authType = AuthenticationFactory.getAuthTypeFromConf(tachyonConf);
   }
 
   // TODO: add more tests for methods of AuthenticationFactory

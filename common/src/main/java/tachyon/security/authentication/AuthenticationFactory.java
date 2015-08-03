@@ -15,6 +15,8 @@
 
 package tachyon.security.authentication;
 
+import java.util.Locale;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +34,7 @@ public class AuthenticationFactory {
   /**
    * Different authentication types for Tachyon.
    */
-  public enum AuthTypes {
+  public enum AuthType {
     /**
      * Authentication is disabled. No user info in Tachyon.
      */
@@ -59,12 +61,27 @@ public class AuthenticationFactory {
 
     private final String mAuthType;
 
-    AuthTypes(String authType) {
+    AuthType(String authType) {
       mAuthType = authType;
     }
 
     public String getAuthName() {
       return mAuthType;
+    }
+
+    /**
+     * Validate the authentication type string and return a corresponding AuthType.
+     * @param authTypeStr authentication type string from configuration
+     * @return the corresponding AuthType
+     * @throws java.lang.IllegalArgumentException if the string does not match any type
+     */
+    public static AuthType getValidAuthType(String authTypeStr) {
+      try {
+        return AuthType.valueOf(authTypeStr.toUpperCase(Locale.ENGLISH));
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException(authTypeStr + " is not a valid authentication type. "
+            + "Check the configuration parameter " + Constants.TACHYON_SECURITY_AUTHENTICATION, e);
+      }
     }
   }
 
@@ -73,12 +90,25 @@ public class AuthenticationFactory {
 
   public AuthenticationFactory(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
+    // TODO: change the default value from NOSASL to SIMPLE, after feature is stable.
     mAuthTypeStr = tachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
-        AuthTypes.NOSASL.getAuthName());
+        AuthType.NOSASL.getAuthName());
   }
 
   String getAuthTypeStr() {
     return mAuthTypeStr;
+  }
+
+  /**
+   * Get an AuthType from the authentication type string in configuration
+   * @param conf the TachyonConf
+   * @return the corresponding AuthType
+   * @throws java.lang.IllegalArgumentException if the string does not match any type.
+   */
+  public static AuthType getAuthTypeFromConf(TachyonConf conf) {
+    // TODO: change the default value from NOSASL to SIMPLE, after feature is stable.
+    return AuthType.getValidAuthType(conf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
+        AuthType.NOSASL.getAuthName()));
   }
 
   // TODO: add methods of getting different Thrift class in follow-up PR.
