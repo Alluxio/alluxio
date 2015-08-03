@@ -355,6 +355,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return TachyonByteBuffer containing the block.
    * @throws IOException
    */
+  @Deprecated
   public TachyonByteBuffer readByteBuffer(int blockIndex) throws IOException {
     if (!isComplete()) {
       return null;
