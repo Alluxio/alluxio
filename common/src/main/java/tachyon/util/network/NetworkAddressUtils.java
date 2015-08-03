@@ -54,7 +54,7 @@ public final class NetworkAddressUtils {
    * explicitly specified, Tachyon will automatically select an appropriate host name.
    *
    * @param conf Tachyon configuration used to look up the host resolution timeout
-   * @return the user specified hostname ($TACHYON_MASTER_BIND_HOST) for binding.
+   * @return the user specified master host name.
    */
   public static String getMasterHostName(TachyonConf conf) {
     return conf.get(Constants.MASTER_HOSTNAME, getLocalHostName(conf));
