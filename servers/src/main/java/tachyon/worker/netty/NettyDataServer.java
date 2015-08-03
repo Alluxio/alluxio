@@ -122,9 +122,9 @@ public final class NettyDataServer implements DataServer {
    */
   private ServerBootstrap createBootstrapOfType(final ChannelType type) {
     final ServerBootstrap boot = new ServerBootstrap();
-    final int bossThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS, 1);
+    final int bossThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS);
     // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
-    final int workerThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 0);
+    final int workerThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS);
     final EventLoopGroup bossGroup =
         NettyUtils.createEventLoop(type, bossThreadCount, "data-server-boss-%d", false);
     final EventLoopGroup workerGroup =

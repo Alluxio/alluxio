@@ -82,9 +82,9 @@ public class BlockMasterSync implements Runnable {
         new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
             mMasterClientExecutorService, mTachyonConf);
     mHeartbeatIntervalMs =
-        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     mHeartbeatTimeoutMs =
-        mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS, 10 * Constants.SECOND_MS);
+        mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
     mWorkerId = 0;

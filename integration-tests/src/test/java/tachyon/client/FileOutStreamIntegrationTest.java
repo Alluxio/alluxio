@@ -232,8 +232,7 @@ public class FileOutStreamIntegrationTest {
     OutStream os = file.getOutStream(WriteType.THROUGH);
     Assert.assertTrue(os instanceof FileOutStream);
     os.write((byte) 0);
-    Thread.sleep(mMasterTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
-        Constants.SECOND_MS) * 2);
+    Thread.sleep(mMasterTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS) * 2);
     Assert.assertEquals(origId, mTfs.getUserId());
     os.write((byte) 1);
     os.close();

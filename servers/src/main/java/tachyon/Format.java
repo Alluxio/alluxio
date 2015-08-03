@@ -81,7 +81,7 @@ public class Format {
     } else if (args[0].toUpperCase().equals("WORKER")) {
       String workerDataFolder =
           tachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
-      int maxStorageLevels = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
+      int maxStorageLevels = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
       for (int level = 0; level < maxStorageLevels; level ++) {
         String tierLevelDirPath =
             String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);

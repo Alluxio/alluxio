@@ -109,7 +109,7 @@ public class BlockWorker {
 
     // Set up DataServer
     int dataServerPort =
-        mTachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
+        mTachyonConf.getInt(Constants.WORKER_DATA_PORT);
     InetSocketAddress dataServerAddress =
         new InetSocketAddress(NetworkAddressUtils.getLocalHostName(mTachyonConf), dataServerPort);
     mDataServer =
@@ -125,7 +125,7 @@ public class BlockWorker {
             .getHostAddress(), thriftServerPort, mDataServer.getPort());
 
     // Set up web server
-    int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
+    int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT);
     mWebServer =
         new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(mWorkerNetAddress.getMHost(),
             webPort), mBlockDataManager, NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf),
@@ -232,8 +232,7 @@ public class BlockWorker {
         mTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS, Runtime.getRuntime()
             .availableProcessors());
     int maxWorkerThreads =
-        mTachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS,
-            Constants.DEFAULT_WORKER_MAX_WORKER_THREADS);
+        mTachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS);
     WorkerService.Processor<BlockServiceHandler> processor =
         new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
     return new TThreadPoolServer(new TThreadPoolServer.Args(mThriftServerSocket)

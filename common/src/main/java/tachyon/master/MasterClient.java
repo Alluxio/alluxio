@@ -174,7 +174,7 @@ public final class MasterClient implements Closeable {
     }
 
     Exception lastException = null;
-    int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT, 29);
+    int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT);
     RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, maxConnectsTry);
     do {
       mMasterAddress = getMasterAddress();
@@ -193,7 +193,7 @@ public final class MasterClient implements Closeable {
 
         String threadName = "master-heartbeat-" + mMasterAddress;
         int interval =
-            mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+            mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
         mHeartbeat =
             mExecutorService.submit(new HeartbeatThread(threadName, heartBeater, interval / 2));
       } catch (TTransportException e) {

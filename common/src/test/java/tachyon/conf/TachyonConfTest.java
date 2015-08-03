@@ -104,10 +104,10 @@ public class TachyonConfTest {
     booleanValue = sDefaultTachyonConf.getBoolean(Constants.ASYNC_ENABLED, true);
     Assert.assertTrue(!booleanValue);
 
-    int intValue = sDefaultTachyonConf.getInt(Constants.MAX_COLUMNS, 0);
+    int intValue = sDefaultTachyonConf.getInt(Constants.MAX_COLUMNS);
     Assert.assertTrue(intValue == 1000);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS);
     Assert.assertEquals(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS, intValue);
 
     long longBytesValue = sDefaultTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE, 0L);
@@ -139,22 +139,22 @@ public class TachyonConfTest {
     value = sDefaultTachyonConf.get(Constants.MASTER_ADDRESS);
     Assert.assertTrue(value != null);
 
-    int intValue = sDefaultTachyonConf.getInt(Constants.MASTER_PORT, 0);
+    int intValue = sDefaultTachyonConf.getInt(Constants.MASTER_PORT);
     Assert.assertTrue(intValue == 19998);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WEB_PORT, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WEB_PORT);
     Assert.assertTrue(intValue == 19999);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WEB_THREAD_COUNT, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.WEB_THREAD_COUNT);
     Assert.assertTrue(intValue == 1);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS);
     Assert.assertTrue(intValue == Constants.SECOND_MS);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
     Assert.assertTrue(intValue == Runtime.getRuntime().availableProcessors());
 
-    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
     Assert.assertTrue(intValue == 10 * Constants.SECOND_MS);
   }
 
@@ -164,34 +164,34 @@ public class TachyonConfTest {
     Assert.assertTrue(value != null);
     Assert.assertTrue(("/mnt/ramdisk").equals(value));
 
-    int intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PORT, 0);
+    int intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PORT);
     Assert.assertTrue(intValue == 29998);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_DATA_PORT, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_DATA_PORT);
     Assert.assertTrue(intValue == 29999);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
     Assert.assertTrue(intValue == 10 * Constants.SECOND_MS);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     Assert.assertTrue(intValue == Constants.SECOND_MS);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS);
     Assert.assertTrue(intValue == Runtime.getRuntime().availableProcessors());
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS);
     Assert.assertTrue(intValue == 10 * Constants.SECOND_MS);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS);
     Assert.assertTrue(intValue == 1);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
     Assert.assertTrue(intValue == 1000);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS, 1);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS);
     Assert.assertTrue(intValue == 1);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS);
     Assert.assertTrue(intValue == 0);
 
     long longValue = sDefaultTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE, 0L);
@@ -200,10 +200,10 @@ public class TachyonConfTest {
 
   @Test
   public void testUserDefault() {
-    int intValue = sDefaultTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS, 0);
+    int intValue = sDefaultTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
     Assert.assertTrue(intValue == 3);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS, 0);
+    intValue = sDefaultTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
     Assert.assertTrue(intValue == Constants.SECOND_MS);
 
     long longValue = sDefaultTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES, 0L);

@@ -224,7 +224,7 @@ public final class LocalTachyonCluster {
         mWorkerCapacityBytes + "");
     mkdir(mTachyonHome + "/ramdisk");
 
-    int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
+    int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath = String.format(
           Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);

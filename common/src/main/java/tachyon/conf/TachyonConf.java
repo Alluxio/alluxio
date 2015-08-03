@@ -221,10 +221,7 @@ public class TachyonConf {
   }
 
   public String get(String key) {
-    String raw = mProperties.getProperty(key, null);
-    String value = lookup(raw);
-    LOG.debug("Get Tachyon property {} as {}", key, value);
-    return value;
+    return get(key, null);
   }
 
   public boolean containsKey(String key) {
@@ -241,6 +238,10 @@ public class TachyonConf {
       }
     }
     return defaultValue;
+  }
+
+  public int getInt(String key) {
+    return getInt(key, 0);
   }
 
   public long getLong(String key, final long defaultValue) {

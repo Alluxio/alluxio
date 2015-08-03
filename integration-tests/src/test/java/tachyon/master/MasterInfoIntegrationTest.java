@@ -679,7 +679,7 @@ public class MasterInfoIntegrationTest {
   @Test(expected = TableColumnException.class)
   public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistException,
       TableColumnException, TachyonException {
-    int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS, 1000);
+    int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS);
     mMasterInfo.createRawTable(new TachyonURI("/testTable"), maxColumns + 1, (ByteBuffer) null);
   }
 
