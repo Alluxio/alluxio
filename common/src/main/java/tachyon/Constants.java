@@ -242,4 +242,6 @@ public class Constants {
   /** Security */
   // Authentication
   public static final String TACHYON_SECURITY_AUTHENTICATION = "tachyon.security.authentication";
+  public static final String TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS =
+      "tachyon.authentication.provider.custom.class";
 }

@@ -22,10 +22,16 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
+import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
+
+import tachyon.conf.TachyonConf;
+import tachyon.security.authentication.AuthenticationFactory.AuthTypes;
+import tachyon.security.authentication.AuthenticationProvider;
+import tachyon.security.authentication.AuthenticationProviderFactory;
 
 /**
  * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.
@@ -96,6 +102,8 @@ public class PlainSaslServer implements SaslServer {
       if (!authCallback.isAuthorized()) {
         throw new SaslException("AuthorizeCallback authorized failure");
       }
+    } catch (AuthenticationException ae) {
+      throw new SaslException("AuthenticationProvider authenticate failed:" + ae.getMessage(), ae);
     } catch (IOException ioe) {
       throw new SaslException("Error validating the response", ioe);
     } catch (UnsupportedCallbackException uce) {
@@ -142,6 +150,46 @@ public class PlainSaslServer implements SaslServer {
   private void throwIfNotComplete() {
     if (!mCompleted) {
       throw new IllegalStateException("PLAIN authentication not completed");
+    }
+  }
+
+  /**
+   * PlainServerCallbackHandler is used by the SASL mechanisms to get further information
+   * to complete the authentication. For example, a SASL mechanism might use this callback handler
+   * to do verify operation.
+   */
+  public static final class PlainServerCallbackHandler implements CallbackHandler {
+    private final AuthenticationProvider mAuthenticationPrivoder;
+
+    public PlainServerCallbackHandler(AuthenticationProvider authenticationProvider) {
+      mAuthenticationPrivoder = authenticationProvider;
+    }
+
+    @Override
+    public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+      String username = null;
+      String password = null;
+      AuthorizeCallback ac = null;
+
+      for (Callback callback : callbacks) {
+        if (callback instanceof NameCallback) {
+          NameCallback nc = (NameCallback) callback;
+          username = nc.getName();
+        } else if (callback instanceof PasswordCallback) {
+          PasswordCallback pc = (PasswordCallback) callback;
+          password = new String(pc.getPassword());
+        } else if (callback instanceof AuthorizeCallback) {
+          ac = (AuthorizeCallback) callback;
+        } else {
+          throw new UnsupportedCallbackException(callback, "Unsupport callback");
+        }
+      }
+
+      mAuthenticationPrivoder.authenticate(username, password);
+
+      if (ac != null) {
+        ac.setAuthorized(true);
+      }
     }
   }
 }
