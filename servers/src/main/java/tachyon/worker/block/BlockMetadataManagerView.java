@@ -17,6 +17,7 @@ package tachyon.worker.block;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,11 +45,10 @@ public class BlockMetadataManagerView {
   private List<StorageTierView> mTierViews = new ArrayList<StorageTierView>();
   /** A list of pinned inodes */
   private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
-  /** A list of blocks that are currently being read */
-  private final Set<Long> mLockedBlocks = new HashSet<Long>();
+  /** Indices of locks that are being used */
+  private final BitSet mInUseLocks = new BitSet();
   /** A map from tier alias to StorageTierView */
   private Map<Integer, StorageTierView> mAliasToTierViews = new HashMap<Integer, StorageTierView>();
-
 
   /**
    * Constructor of BlockMatadataManagerView.
@@ -64,8 +64,11 @@ public class BlockMetadataManagerView {
       Set<Long> lockedBlocks) {
     mMetadataManager = Preconditions.checkNotNull(manager);
     mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes));
-    mLockedBlocks.addAll(Preconditions.checkNotNull(lockedBlocks));
-
+    Preconditions.checkNotNull(lockedBlocks);
+    for (Long blockId : lockedBlocks) {
+      mInUseLocks.set(BlockLockManager.blockHashIndex(blockId));
+    }
+    
     // iteratively create all StorageTierViews and StorageDirViews
     for (StorageTier tier : manager.getTiers()) {
       StorageTierView tierView = new StorageTierView(tier, this);
@@ -91,14 +94,19 @@ public class BlockMetadataManagerView {
    * @return boolean, true if block is locked
    */
   public boolean isBlockLocked(long blockId) {
-    return mLockedBlocks.contains(blockId);
+    int index = BlockLockManager.blockHashIndex(blockId);
+    if (index < mInUseLocks.length()) {
+      return mInUseLocks.get(index);
+    } else {
+      return false;
+    }
   }
 
   /**
    * Test if the block is evictable
    *
    * @param blockId to be tested
-   * @return boolean, true if the block can be eveicted
+   * @return boolean, true if the block can be evicted
    */
   public boolean isBlockEvictable(long blockId) {
     return (!isBlockPinned(blockId) && !isBlockLocked(blockId));

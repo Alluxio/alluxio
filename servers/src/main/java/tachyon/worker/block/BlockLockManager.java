@@ -45,6 +45,8 @@ public class BlockLockManager {
   private static final int NUM_LOCKS = 1000;
   /** The unique id of each lock */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
+  /** A hashing function to map blockId to one of the locks */
+  private static final HashFunction HASH_FUNC = Hashing.murmur3_32();
 
   /** The object that serves all metadata requests for the block store */
   private final BlockMetadataManager mMetaManager;
@@ -56,14 +58,22 @@ public class BlockLockManager {
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
   /** To guard access on mLockIdToRecordMap and mUserIdToLockIdsMap */
   private final Object mSharedMapsLock = new Object();
-  /** A hashing function to map blockId to one of the locks */
-  private final HashFunction mHashFunc = Hashing.murmur3_32();
 
   public BlockLockManager(BlockMetadataManager metaManager) {
     mMetaManager = Preconditions.checkNotNull(metaManager);
     for (int i = 0; i < NUM_LOCKS; i ++) {
       mLockArray[i] = new ClientRWLock();
     }
+  }
+
+  /**
+   * Get index of the lock that will be used to lock the block
+   * 
+   * @param blockId the id of the block
+   * @return hash index of the lock
+   */
+  public static int blockHashIndex(long blockId) {
+    return Math.abs(HASH_FUNC.hashLong(blockId).asInt()) % NUM_LOCKS;
   }
 
   /**
@@ -77,8 +87,8 @@ public class BlockLockManager {
    */
   public long lockBlock(long userId, long blockId, BlockLockType blockLockType) throws IOException {
     // hashing blockId into the range of [0, NUM_LOCKS-1]
-    int hashValue = Math.abs(mHashFunc.hashLong(blockId).asInt()) % NUM_LOCKS;
-    ClientRWLock blockLock = mLockArray[hashValue];
+    int index = blockHashIndex(blockId);
+    ClientRWLock blockLock = mLockArray[index];
     Lock lock;
     if (blockLockType == BlockLockType.READ) {
       lock = blockLock.readLock();
