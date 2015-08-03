@@ -17,6 +17,7 @@ package tachyon.worker.block;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -298,6 +299,13 @@ public class BlockMetadataManagerTest {
 
   @Test
   public void getBlockStoreMetaTest() throws Exception {
-    Assert.assertNotNull(mMetaManager.getBlockStoreMeta());
+    BlockStoreMeta meta = mMetaManager.getBlockStoreMeta();
+    Assert.assertNotNull(meta);
+
+    // Assert the capacities are at alias level [MEM: 1000][SSD: 0][HDD: 8000]
+    List<Long> exceptedCapacityBytesOnTiers = new ArrayList<Long>(Arrays.asList(1000L, 0L, 8000L));
+    List<Long> exceptedUsedBytesOnTiers = new ArrayList<Long>(Arrays.asList(0L, 0L, 0L));
+    Assert.assertEquals(exceptedCapacityBytesOnTiers, meta.getCapacityBytesOnTiers());
+    Assert.assertEquals(exceptedUsedBytesOnTiers, meta.getUsedBytesOnTiers());
   }
 }
