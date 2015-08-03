@@ -106,6 +106,10 @@ public class LocalTachyonClusterMultiMaster {
     return Constants.HEADER_FT + mHostname + ":" + mMasters.get(0).getMetaPort();
   }
 
+  public int getMasterPort() {
+    return mMasters.get(0).getMetaPort();
+  }
+
   public boolean killLeader() {
     for (int k = 0; k < mNumOfMasters; k ++) {
       if (mMasters.get(k).isStarted()) {
@@ -156,10 +160,11 @@ public class LocalTachyonClusterMultiMaster {
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
     mMasterConf.set(Constants.USE_ZOOKEEPER, "true");
-    mMasterConf.set(Constants.MASTER_ADDRESS, mHostname);
+    mMasterConf.set(Constants.MASTER_HOSTNAME, mHostname);
     mMasterConf.set(Constants.MASTER_BIND_HOST, mHostname);
-    mMasterConf.set(Constants.MASTER_PORT, mMasters.get(0).getMetaPort() + "");
+    mMasterConf.set(Constants.MASTER_PORT, "0");
     mMasterConf.set(Constants.MASTER_WEB_BIND_HOST, mHostname);
+    mMasterConf.set(Constants.MASTER_WEB_PORT, "0");
     mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
     mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
     mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
@@ -183,7 +188,11 @@ public class LocalTachyonClusterMultiMaster {
       final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
       master.start();
       mMasters.add(master);
+      // Each master should generate a new port for binding
+      mMasterConf.set(Constants.MASTER_PORT, "0");
     }
+    // Use first master port
+    mMasterConf.set(Constants.MASTER_PORT, getMasterPort() + "");
 
     CommonUtils.sleepMs(null, 10);
 
@@ -222,6 +231,7 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerConf.set(Constants.WORKER_DATA_BIND_HOST, mHostname);
     mWorkerConf.set(Constants.WORKER_DATA_PORT, "0");
     mWorkerConf.set(Constants.WORKER_WEB_BIND_HOST, mHostname);
+    mWorkerConf.set(Constants.WORKER_WEB_PORT, "0");
     mWorkerConf.set(Constants.WORKER_MIN_WORKER_THREADS, "1");
     mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, "100");
 

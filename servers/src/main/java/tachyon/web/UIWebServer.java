@@ -104,12 +104,23 @@ public abstract class UIWebServer {
     mServer.setHandler(handler);
   }
 
+  public Server getServer() {
+    return mServer;
+  }
+
   public void shutdownWebServer() throws Exception {
+    // close all connectors and release all binding ports
+    for (Connector connector : mServer.getConnectors()) {
+      connector.close();
+    }
+
     mServer.stop();
   }
 
   public void startWebServer() {
     try {
+      mServer.getConnectors()[0].close();
+      mServer.getConnectors()[0].open();
       mServer.start();
       if (mAddress.getPort() == 0) {
         mAddress =

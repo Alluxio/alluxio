@@ -102,10 +102,8 @@ public class TachyonMaster {
     TachyonConf.assertValidPort(port, mTachyonConf);
     TachyonConf.assertValidPort(webPort, mTachyonConf);
 
-    InetSocketAddress masterBindAddress = NetworkAddressUtils.getMasterBindAddress(mTachyonConf);
-
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
-    
+
     mIsStarted = false;
     mWebPort = webPort;
     mMinWorkerThreads =
@@ -124,8 +122,11 @@ public class TachyonMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      mServerTServerSocket = new TServerSocket(masterBindAddress);
+      mServerTServerSocket =
+          new TServerSocket(NetworkAddressUtils.getMasterBindAddress(mTachyonConf));
       mPort = NetworkAddressUtils.getPort(mServerTServerSocket);
+      // reset master port
+      mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(mPort));
 
       String journalFolder =
           mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
@@ -136,8 +137,7 @@ public class TachyonMaster {
         Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
             "Tachyon was not formatted! The journal folder is " + journalFolder);
       }
-      mMasterAddress =
-          new InetSocketAddress(NetworkAddressUtils.getMasterHostName(tachyonConf), mPort);
+      mMasterAddress = NetworkAddressUtils.getMasterConnectAddress(mTachyonConf);
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService, mTachyonConf);
 
@@ -189,6 +189,13 @@ public class TachyonMaster {
     return mPort;
   }
 
+  /**
+   * Get the actual web server bind port (used by unit test only)
+   */
+  int getWebBindPort() {
+    return mWebServer.getServer().getConnectors()[0].getLocalPort();
+  }
+
   private boolean isFormatted(String folder, String path) throws IOException {
     if (!folder.endsWith(TachyonURI.SEPARATOR)) {
       folder += TachyonURI.SEPARATOR;
@@ -228,7 +235,6 @@ public class TachyonMaster {
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
-    // ufs.connectFromMaster(mTachyonConf, NetworkUtils.getFqdnHost(mMasterAddress));
     ufs.connectFromMaster(mTachyonConf, NetworkAddressUtils.getMasterHostName(mTachyonConf));
   }
 

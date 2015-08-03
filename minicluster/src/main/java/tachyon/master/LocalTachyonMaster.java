@@ -69,7 +69,7 @@ public final class LocalTachyonMaster {
     UnderFileSystemUtils.mkdirIfNotExists(mDataDir, tachyonConf);
     UnderFileSystemUtils.mkdirIfNotExists(mLogDir, tachyonConf);
 
-    mHostname = NetworkAddressUtils.getLocalHostName(250);
+    mHostname = NetworkAddressUtils.getMasterHostName(tachyonConf);
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
     // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
@@ -90,9 +90,6 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
     tachyonConf.set(Constants.UNDERFS_ADDRESS, mUnderFSFolder);
 
-    tachyonConf.set(Constants.MASTER_PORT, "0");
-    tachyonConf.set(Constants.MASTER_WEB_PORT, "0");
-
     tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
     tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
 
@@ -110,9 +107,8 @@ public final class LocalTachyonMaster {
 
     mTachyonMaster = new TachyonMaster(tachyonConf);
 
-    // Reset the ports
+    // Reset the master port
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getMetaPort()));
-    tachyonConf.set(Constants.MASTER_WEB_PORT, Integer.toString(getMetaPort() + 1));
 
     Runnable runMaster = new Runnable() {
       @Override
@@ -190,6 +186,10 @@ public final class LocalTachyonMaster {
 
   public int getMetaPort() {
     return mTachyonMaster.getMetaPort();
+  }
+
+  public int getWebPort() {
+    return mTachyonMaster.getWebBindPort();
   }
 
   public String getUri() {
