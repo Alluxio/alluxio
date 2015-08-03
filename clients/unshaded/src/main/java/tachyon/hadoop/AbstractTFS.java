@@ -283,8 +283,7 @@ abstract class AbstractTFS extends FileSystem {
 
   @Override
   public long getDefaultBlockSize() {
-    return mTachyonConf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE,
-        Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    return mTachyonConf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
   }
 
   @Override

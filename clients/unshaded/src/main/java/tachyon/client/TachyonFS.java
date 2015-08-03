@@ -906,7 +906,7 @@ public class TachyonFS extends AbstractTachyonFS {
     }
 
     long userQuotaUnitBytes =
-        mTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES, 8 * Constants.MB);
+        mTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES);
 
     long toRequestSpaceBytes = Math.max(requestSpaceBytes, userQuotaUnitBytes);
     for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
