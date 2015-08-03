@@ -185,7 +185,7 @@ public class TachyonFS extends AbstractTachyonFS {
     String masterHost =
         tachyonConf.get(Constants.MASTER_HOSTNAME,
             NetworkAddressUtils.getLocalHostName(tachyonConf));
-    int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+    int masterPort = tachyonConf.getInt(Constants.MASTER_PORT);
 
     mMasterAddress = new InetSocketAddress(masterHost, masterPort);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
@@ -197,8 +197,7 @@ public class TachyonFS extends AbstractTachyonFS {
         mCloser.register(new WorkerClient(mMasterClient, mExecutorService, mTachyonConf,
             mClientMetrics));
     mUserFailedSpaceRequestLimits =
-        mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS,
-            Constants.DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS);
+        mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
 
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
     String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
@@ -368,7 +367,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized int createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws IOException {
     validateUri(path);
-    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
+    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
     if (columns < 1 || columns > maxColumns) {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
           + maxColumns);

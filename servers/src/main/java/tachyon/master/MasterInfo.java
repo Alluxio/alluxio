@@ -97,7 +97,7 @@ public class MasterInfo extends ImageWriter {
       synchronized (mWorkers) {
         for (Entry<Long, MasterWorkerInfo> worker : mWorkers.entrySet()) {
           int masterWorkerTimeoutMs =
-              mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS, 10 * Constants.SECOND_MS);
+              mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
           if (CommonUtils.getCurrentMs()
               - worker.getValue().getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
             LOG.error("The worker " + worker.getValue() + " got timed out!");
@@ -1076,7 +1076,7 @@ public class MasterInfo extends ImageWriter {
       TachyonException {
     LOG.info("createRawTable" + FormatUtils.parametersToString(path, columns));
 
-    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
+    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
     if (columns <= 0 || columns >= maxColumns) {
       throw new TableColumnException("Column " + columns + " should between 0 to " + maxColumns);
     }
@@ -1874,7 +1874,7 @@ public class MasterInfo extends ImageWriter {
     mHeartbeat =
         mExecutorService.submit(new HeartbeatThread("Master Heartbeat",
             new MasterInfoHeartbeatExecutor(), mTachyonConf.getInt(
-                Constants.MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS)));
+                Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
 
     mRecompute = mExecutorService.submit(new RecomputationScheduler());
   }

@@ -96,8 +96,8 @@ public class TachyonMaster {
   public TachyonMaster(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
 
-    int port = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    int webPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT, Constants.DEFAULT_MASTER_WEB_PORT);
+    int port = mTachyonConf.getInt(Constants.MASTER_PORT);
+    int webPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT);
 
     TachyonConf.assertValidPort(port, mTachyonConf);
     TachyonConf.assertValidPort(webPort, mTachyonConf);
@@ -126,8 +126,7 @@ public class TachyonMaster {
             .availableProcessors());
 
     mMaxWorkerThreads =
-        mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS,
-            Constants.DEFAULT_MASTER_MAX_WORKER_THREADS);
+        mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS);
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
         Constants.MASTER_MAX_WORKER_THREADS + " can not be less than "
             + Constants.MASTER_MIN_WORKER_THREADS);
