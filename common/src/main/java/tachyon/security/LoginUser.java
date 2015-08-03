@@ -71,13 +71,13 @@ public class LoginUser {
    * @throws IOException if login fails
    */
   private static User login(TachyonConf conf) throws IOException {
-    AuthenticationFactory.AuthType sAuthType = AuthenticationFactory.getAuthTypeFromConf(conf);
-    checkSecurityEnabled(sAuthType);
+    AuthenticationFactory.AuthType authType = AuthenticationFactory.getAuthTypeFromConf(conf);
+    checkSecurityEnabled(authType);
 
     try {
       Subject subject = new Subject();
 
-      LoginContext loginContext = new LoginContext(sAuthType.getAuthName(), subject, null,
+      LoginContext loginContext = new LoginContext(authType.getAuthName(), subject, null,
           new TachyonJaasConfiguration());
       loginContext.login();
 

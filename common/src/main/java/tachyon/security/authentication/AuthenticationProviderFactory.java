@@ -18,10 +18,10 @@ package tachyon.security.authentication;
 import javax.security.sasl.AuthenticationException;
 
 import tachyon.conf.TachyonConf;
-import tachyon.security.authentication.AuthenticationFactory.AuthTypes;
+import tachyon.security.authentication.AuthenticationFactory.AuthType;
 
 public class AuthenticationProviderFactory {
-  public static AuthenticationProvider getAuthenticationProvider(AuthTypes authType,
+  public static AuthenticationProvider getAuthenticationProvider(AuthType authType,
       TachyonConf conf) throws AuthenticationException {
     switch (authType) {
       case SIMPLE:
