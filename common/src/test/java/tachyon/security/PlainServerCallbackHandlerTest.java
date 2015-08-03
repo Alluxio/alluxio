@@ -29,7 +29,7 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.security.authentication.AuthenticationFactory.AuthTypes;
+import tachyon.security.authentication.AuthenticationFactory.AuthType;
 import tachyon.security.authentication.AuthenticationProvider;
 import tachyon.security.authentication.AuthenticationProviderFactory;
 
@@ -46,7 +46,7 @@ public class PlainServerCallbackHandlerTest {
     mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
         NameMatchAuthenticationProvider.class.getName());
     mPlainServerCBHandler = new PlainSaslServer.PlainServerCallbackHandler(
-        AuthenticationProviderFactory.getAuthenticationProvider(AuthTypes.CUSTOM, mConf));
+        AuthenticationProviderFactory.getAuthenticationProvider(AuthType.CUSTOM, mConf));
   }
 
   @Test
