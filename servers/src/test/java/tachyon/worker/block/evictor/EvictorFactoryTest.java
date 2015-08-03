@@ -29,9 +29,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 
-/*
- * Test EvictorFactory by passing different AllocatorType and test if it generate the correct
- * Evictor instance.
+/**
+ * Test {@link Evictor.Factory} by passing in different evictor strategy class names through the
+ * Tachyon configuration and verifying the correct Evictor instance is created.
  */
 public class EvictorFactoryTest {
   private static BlockMetadataManager sBlockMetadataManager;
@@ -55,7 +55,7 @@ public class EvictorFactoryTest {
   }
 
   @Test
-  public void createGreedyAllocatorTest() {
+  public void createGreedyEvictorTest() {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, GreedyEvictor.class.getName());
     Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView);
@@ -63,7 +63,7 @@ public class EvictorFactoryTest {
   }
 
   @Test
-  public void createLRUAllocatorTest() {
+  public void createLRUEvictorTest() {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, LRUEvictor.class.getName());
     Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView);
@@ -71,7 +71,7 @@ public class EvictorFactoryTest {
   }
 
   @Test
-  public void createDefaultAllocatorTest() {
+  public void createDefaultEvictorTest() {
     TachyonConf conf = new TachyonConf();
     Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView);
     Assert.assertTrue(evictor instanceof LRUEvictor);
