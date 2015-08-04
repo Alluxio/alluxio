@@ -32,9 +32,10 @@ import org.junit.runners.Parameterized;
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
-import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.util.io.BufferUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests for <code>tachyon.client.RemoteBlockInStream</code>.
@@ -102,7 +103,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest1() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
       int fileId =
@@ -125,7 +126,7 @@ public class RemoteBlockInStreamIntegrationTest {
         value = is.read();
       }
       Assert.assertEquals(cnt, k);
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       if (k == 0) {
         Assert.assertTrue(file.isInMemory());
@@ -149,7 +150,7 @@ public class RemoteBlockInStreamIntegrationTest {
         value = is.read();
       }
       Assert.assertEquals(cnt, k);
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       Assert.assertTrue(file.isInMemory());
 
@@ -169,7 +170,7 @@ public class RemoteBlockInStreamIntegrationTest {
         value = is.read();
       }
       Assert.assertEquals(cnt, k);
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       Assert.assertTrue(file.isInMemory());
     }
@@ -180,7 +181,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest2() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
       int fileId =
@@ -195,7 +196,7 @@ public class RemoteBlockInStreamIntegrationTest {
       }
       byte[] ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       if (k == 0) {
         Assert.assertTrue(file.isInMemory());
@@ -211,7 +212,7 @@ public class RemoteBlockInStreamIntegrationTest {
       }
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       Assert.assertTrue(file.isInMemory());
 
@@ -223,7 +224,7 @@ public class RemoteBlockInStreamIntegrationTest {
       }
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       Assert.assertTrue(file.isInMemory());
     }
@@ -234,7 +235,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest3() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
       int fileId =
@@ -249,7 +250,7 @@ public class RemoteBlockInStreamIntegrationTest {
       }
       byte[] ret = new byte[k / 2];
       Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k / 2, ret));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
       is.close();
       if (k == 0) {
         Assert.assertTrue(file.isInMemory());
@@ -265,7 +266,7 @@ public class RemoteBlockInStreamIntegrationTest {
       }
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret, 0, k));
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       Assert.assertTrue(file.isInMemory());
 
@@ -277,7 +278,7 @@ public class RemoteBlockInStreamIntegrationTest {
       }
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       Assert.assertTrue(file.isInMemory());
     }
@@ -288,7 +289,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest4() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.MUST_CACHE;
       int fileId =
@@ -308,7 +309,7 @@ public class RemoteBlockInStreamIntegrationTest {
         value = is.read();
       }
       Assert.assertEquals(cnt, k);
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       Assert.assertTrue(file.isInMemory());
     }
@@ -319,7 +320,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest5() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.MUST_CACHE;
       int fileId =
@@ -332,7 +333,7 @@ public class RemoteBlockInStreamIntegrationTest {
       int start = 0;
       while (start < k) {
         int read = is.read(ret);
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(start, read, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(start, read, ret));
         start += read;
       }
       is.close();
@@ -345,7 +346,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest6() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.MUST_CACHE;
       int fileId =
@@ -358,7 +359,7 @@ public class RemoteBlockInStreamIntegrationTest {
       int start = 0;
       while (start < k / 2) {
         int read = is.read(ret, 0, (k / 2) - start);
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(start, read, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(start, read, ret));
         start += read;
       }
       is.close();
@@ -371,7 +372,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest7() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
       int fileId =
@@ -386,7 +387,7 @@ public class RemoteBlockInStreamIntegrationTest {
       }
       byte[] ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       Assert.assertEquals(-1, is.read(ret));
       is.close();
       Assert.assertFalse(file.isInMemory());
@@ -401,7 +402,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest1() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
       int fileId =
@@ -436,7 +437,7 @@ public class RemoteBlockInStreamIntegrationTest {
   public void seekExceptionTest2() throws IOException {
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Seek position is past block size");
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
       int fileId =
@@ -462,7 +463,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void seekTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
       int fileId =
@@ -492,7 +493,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void skipTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
       int fileId =
@@ -525,7 +526,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void completeFileReadTriggersRecache() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     int len = 2;
     int fileId = TachyonFSTestUtils.createByteFile(mTfs, uniqPath, WriteType.THROUGH, len);
     TachyonFile file = mTfs.getFile(fileId);
@@ -546,7 +547,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void incompleteFileReadCancelsRecache() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     int fileId = TachyonFSTestUtils.createByteFile(mTfs, uniqPath, WriteType.THROUGH, 2);
     TachyonFile file = mTfs.getFile(fileId);
     InStream is = new RemoteBlockInStream(file, ReadType.CACHE, 0, mMasterTachyonConf);
@@ -563,7 +564,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void readMultiBlockFile() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     int blockSizeByte = 10;
     int numBlocks = 10;
     int fileId = mTfs.createFile(new TachyonURI(uniqPath), blockSizeByte);
@@ -591,7 +592,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void seekAroundLocalBlock() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     // The number of bytes per remote block read should be set to 100 in the before function
     int fileId = TachyonFSTestUtils.createByteFile(mTfs, uniqPath, WriteType.MUST_CACHE, 200);
     TachyonFile file = mTfs.getFile(fileId);

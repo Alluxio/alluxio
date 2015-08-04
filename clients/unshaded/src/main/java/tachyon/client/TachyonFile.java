@@ -355,6 +355,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return TachyonByteBuffer containing the block.
    * @throws IOException
    */
+  @Deprecated
   public TachyonByteBuffer readByteBuffer(int blockIndex) throws IOException {
     if (!isComplete()) {
       return null;
@@ -450,13 +451,25 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * @param blockInfo The blockInfo of the block to read.
    * @return TachyonByteBuffer containing the block.
+   * @throws IOException if the underlying stream throws IOException during close().
    */
-  TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) {
-    // We call into the remote block in stream class to read a remote byte buffer
-    ByteBuffer buf =
-        RemoteBlockInStream.readRemoteByteBuffer(mTachyonFS, blockInfo, 0, blockInfo.length,
-            mTachyonConf);
-    return (buf == null) ? null : new TachyonByteBuffer(mTachyonFS, buf, blockInfo.blockId, -1);
+  TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) throws IOException {
+    // Create a dummy RemoteBlockInstream object.
+    RemoteBlockInStream dummyStream = RemoteBlockInStream.getDummyStream();
+    // Using the dummy stream to read remote buffer.
+    ByteBuffer inBuf = dummyStream.readRemoteByteBuffer(mTachyonFS, blockInfo, 0,
+        blockInfo.length, mTachyonConf);
+    if (inBuf == null) {
+      // Close the stream object.
+      dummyStream.close();
+      return null;
+    }
+    // Copy data in network buffer into client buffer.
+    ByteBuffer outBuf = ByteBuffer.allocate((int) inBuf.capacity());
+    outBuf.put(inBuf);
+    // Close the stream object (must be called after buffer is copied)
+    dummyStream.close();
+    return new TachyonByteBuffer(mTachyonFS, outBuf, blockInfo.blockId, -1);
   }
 
   // TODO remove this method. do streaming cache. This is not a right API.

@@ -82,7 +82,7 @@ You can monitor instances' running state through [AWS web console](https://conso
 
 ## After Cluster Set Up
 
-When command `./create <number of machines> aws` succeeds, two purple lines like below will be shown in shell output:
+When command `./create <number of machines> aws` succeeds, two green lines like below will be shown in shell output:
 
     >>> TachyonMaster public IP is xxx <<<
     >>> visit default port of the web UI of what you deployed <<<

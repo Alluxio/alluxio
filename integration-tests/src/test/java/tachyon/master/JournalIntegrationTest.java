@@ -28,7 +28,6 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.TestUtils;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;

@@ -17,6 +17,8 @@ package tachyon.worker.block;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,6 +35,7 @@ import tachyon.master.BlockInfo;
 import tachyon.worker.block.evictor.EvictorTestUtils;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.StorageTierView;
 
@@ -168,5 +171,66 @@ public class BlockMetadataManagerViewTest {
         Sets.<Long>newHashSet(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
+  }
+
+  /**
+   * Assert if two TierViews are the same by comparing their contents.
+   */
+  private void assertSameTierView(StorageTierView tierView1, StorageTierView tierView2) {
+    Assert.assertEquals(tierView1.getTierViewAlias(), tierView2.getTierViewAlias());
+    Assert.assertEquals(tierView1.getTierViewLevel(), tierView2.getTierViewLevel());
+    List<StorageDirView> dirViews1 = tierView1.getDirViews();
+    List<StorageDirView> dirViews2 = tierView2.getDirViews();
+    Assert.assertEquals(dirViews1.size(), dirViews2.size());
+    for (int i = 0; i < dirViews1.size(); i ++) {
+      StorageDirView dirView1 = dirViews1.get(i);
+      StorageDirView dirView2 = dirViews2.get(i);
+      Assert.assertEquals(dirView1.getAvailableBytes(), dirView2.getAvailableBytes());
+      Assert.assertEquals(dirView1.getCapacityBytes(), dirView2.getCapacityBytes());
+      Assert.assertEquals(dirView1.getCommittedBytes(), dirView2.getCommittedBytes());
+      Assert.assertEquals(dirView1.getDirViewIndex(), dirView2.getDirViewIndex());
+      Assert.assertEquals(dirView1.getEvictableBlocks(), dirView2.getEvictableBlocks());
+      Assert.assertEquals(dirView1.getEvitableBytes(), dirView2.getEvitableBytes());
+    }
+  }
+
+  /**
+   * Test that <code>BlockMetadataManagerView.getTierView(tierAlias)</code> returns the same
+   * TierView as <code>new StorageTierView(mMetadataManager.getTier(tierAlias), this)</code>.
+   */
+  @Test
+  public void sameTierViewTest() throws Exception {
+    int tierAlias = mMetaManager.getTiers().get(TEST_TIER_LEVEL).getTierAlias();
+    StorageTierView tierView1 = mMetaManagerView.getTierView(tierAlias);
+
+    // Do some operations on metadata
+    StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_LEVEL).getDir(TEST_DIR);
+    BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
+    dir.addBlockMeta(blockMeta);
+
+    StorageTierView tierView2 = new StorageTierView(mMetaManager.getTier(tierAlias),
+        mMetaManagerView);
+    assertSameTierView(tierView1, tierView2);
+  }
+
+  /**
+   * Test that <code>BlockMetadataManagerView.getTierViewsBelow(tierAlias)</code> returns the same
+   * TierViews as constructing by <code>BlockMetadataManager.getTiersBelow(tierAlias)</code>.
+   */
+  @Test
+  public void sameTierViewsBelowTest() throws Exception {
+    int tierAlias = mMetaManager.getTiers().get(TEST_TIER_LEVEL).getTierAlias();
+    List<StorageTierView> tierViews1 = mMetaManagerView.getTierViewsBelow(tierAlias);
+
+    // Do some operations on metadata
+    StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_LEVEL + 1).getDir(TEST_DIR);
+    BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
+    dir.addBlockMeta(blockMeta);
+
+    List<StorageTier> tiers2 = mMetaManager.getTiersBelow(tierAlias);
+    Assert.assertEquals(tierViews1.size(), tiers2.size());
+    for (int i = 0; i < tierViews1.size(); i ++) {
+      assertSameTierView(tierViews1.get(i), new StorageTierView(tiers2.get(i), mMetaManagerView));
+    }
   }
 }

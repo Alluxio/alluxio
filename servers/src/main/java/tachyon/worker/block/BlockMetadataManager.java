@@ -57,7 +57,7 @@ public class BlockMetadataManager {
   private BlockMetadataManager() {}
 
   private void initBlockMetadataManager(TachyonConf tachyonConf) throws AlreadyExistsException,
-      OutOfSpaceException {
+      IOException, OutOfSpaceException {
     // Initialize storage tiers
     int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
@@ -77,6 +77,8 @@ public class BlockMetadataManager {
       // since it is the responsibility of BlockMetadataManager.
     } catch (AlreadyExistsException aee) {
       throw new RuntimeException(aee);
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
     } catch (OutOfSpaceException ooe) {
       throw new RuntimeException(ooe);
     }
