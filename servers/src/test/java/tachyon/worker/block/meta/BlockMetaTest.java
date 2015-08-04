@@ -67,13 +67,13 @@ public class BlockMetaTest {
 
     // With the block file partially written, expect committed block size equals real file size.
     byte[] buf = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE - 1);
-    BufferUtils.writeBufferToFile(mTempBlockMeta.getPath(), buf);
+    BufferUtils.writeBufferToFile(mTempBlockMeta.getCommitPath(), buf);
     mBlockMeta = new BlockMeta(mTempBlockMeta);
     Assert.assertEquals(TEST_BLOCK_SIZE - 1, mBlockMeta.getBlockSize());
 
     // With the block file fully written, expect committed block size equals target block size.
     buf = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE);
-    BufferUtils.writeBufferToFile(mTempBlockMeta.getPath(), buf);
+    BufferUtils.writeBufferToFile(mTempBlockMeta.getCommitPath(), buf);
     mBlockMeta = new BlockMeta(mTempBlockMeta);
     Assert.assertEquals(TEST_BLOCK_SIZE, mBlockMeta.getBlockSize());
   }
