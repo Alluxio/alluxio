@@ -100,7 +100,7 @@ public class BlockLockManager {
     // The block lock may be busy, wait up to one second to obtain it.
     boolean success;
     try {
-      success = lock.tryLock(1000L, TimeUnit.SECONDS);
+      success = lock.tryLock(Constants.SECOND_MS, TimeUnit.SECONDS);
     } catch (InterruptedException ie) {
       // The UserLock implementation does not throw this exception, something is wrong if it happens
       LOG.error("Interrupted exception in tryLock, this should not occur!");
