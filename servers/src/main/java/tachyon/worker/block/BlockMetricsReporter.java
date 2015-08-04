@@ -52,7 +52,9 @@ public class BlockMetricsReporter extends BlockStoreEventListenerBase {
       BlockStoreLocation newLocation) {
     int oldTier = oldLocation.tierAlias();
     int newTier = newLocation.tierAlias();
-    if (newTier == 1 && oldTier != newTier) {
+    if (newTier > oldTier) {
+      mWorkerSource.incBlocksEvicted();
+    } else if (newTier == 1 && oldTier != newTier) {
       mWorkerSource.incBlocksPromoted();
     }
   }
