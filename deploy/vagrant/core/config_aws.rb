@@ -13,6 +13,8 @@ def config_aws(config, i, total, name)
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
   config.vm.provider :aws do |aws, override|
+    aws.access_key_id = ENV["AWS_ACCESS_KEY_ID"]
+    aws.secret_access_key = ENV["AWS_SECRET_ACCESS_KEY"]
     aws.keypair_name = KEYPAIR
     aws.security_groups = SECURITY_GROUP
     aws.ami = AMI
