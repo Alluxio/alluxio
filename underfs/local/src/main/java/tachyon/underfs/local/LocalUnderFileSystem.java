@@ -113,7 +113,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
-    ret.add(NetworkAddressUtils.getWorkerConnectHost(mTachyonConf));
+    ret.add(NetworkAddressUtils.getWorkerHost(mTachyonConf));
     return ret;
   }
 

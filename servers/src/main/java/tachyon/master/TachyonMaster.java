@@ -137,7 +137,7 @@ public class TachyonMaster {
         Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
             "Tachyon was not formatted! The journal folder is " + journalFolder);
       }
-      mMasterAddress = NetworkAddressUtils.getMasterConnectAddress(mTachyonConf);
+      mMasterAddress = NetworkAddressUtils.getMasterAddress(mTachyonConf);
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService, mTachyonConf);
 
@@ -235,7 +235,7 @@ public class TachyonMaster {
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
-    ufs.connectFromMaster(mTachyonConf, NetworkAddressUtils.getMasterHostName(mTachyonConf));
+    ufs.connectFromMaster(mTachyonConf, NetworkAddressUtils.getMasterHost(mTachyonConf));
   }
 
   private void setup() throws IOException, TTransportException {
