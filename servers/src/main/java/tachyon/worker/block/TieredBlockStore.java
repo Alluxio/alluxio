@@ -59,16 +59,25 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * Allocator to decide where to put a new block, an Evictor to decide where to evict a stale block,
  * a BlockMetadataManager to maintain the status of the tiered storage, and a LockManager to
  * coordinate read/write on the same block.
- * <p/>
- * This class is thread-safe.
- * <p/>
- * Locking hierarchy
- * <p/>
- * A read/write lock to ensure eviction is atomic w.r.t. other operations. An eviction may trigger a
- * sequence of block remove and move and we want eviction to be atomic so no remove or move
- * interleaves during eviction is working. The current workaround is to wrap single block operations
- * like remove and move by read lock and wrap eviction operations by write lock that can wait for
- * previous operations and block following operations.
+ * <p>
+ * This class is thread-safe, using the following lock hierarchy to ensure thread-safety:
+ * <ul>
+ * <li>
+ * Any block-level operation (e.g., read, move or remove) on an existing block must acquire a block
+ * lock for this block via {@link TieredBlockStore#mLockManager}. This block lock is a read/write
+ * lock, guarding both the metadata operations and the following I/O on this block. It coordinates
+ * different threads (clients) when accessing the same block concurrently.</li>
+ * <li>
+ * Any metadata operation (read or write) must go through {@link TieredBlockStore#mMetaManager} and
+ * guarded by {@link TieredBlockStore#mMetadataLock}. This is also a read/write lock and coordinates
+ * different threads (clients) when accessing the shared data structure for metadata.</li>
+ * <li>
+ * Method {@link #createBlockMeta} does not acquire the block lock, because it only creates a temp
+ * block which is only visible to its writer before committed (thus no concurrent access).</li>
+ * <li>
+ * Eviction is done in {@link #freeSpaceInternal} and it is on the basis of best effort. For
+ * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
+ * </ul>
  */
 public class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -135,7 +144,8 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public BlockWriter getBlockWriter(long userId, long blockId) throws NotFoundException,
       IOException {
-    // NOTE, a temp block is supposed to be visible for one writer
+    // NOTE: a temp block is supposed to be visible for its own writer, unnecessary to acquire
+    // block lock here since no sharing
     mMetadataLock.readLock().lock();
     try {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
@@ -168,9 +178,9 @@ public class TieredBlockStore implements BlockStore {
       if (tempBlockMeta != null) {
         return tempBlockMeta;
       }
-      // Failed to allocate a temp block, so trigger Evictor to make some space Note that, even
-      // {@link freeSpaceInternal} succeeds, it does not ensure the next allocation successful,
-      // because these two operations are not atomic.
+      // Failed to allocate a temp block, so trigger Evictor to make some space.
+      // NOTE: Successful {@link freeSpaceInternal} here does not ensure the next try of allocation
+      // also successful, because these two operations are not atomic.
       if (i < MAX_RETRIES - 1) {
         freeSpaceInternal(userId, initialBlockSize, location);
       }
@@ -368,55 +378,44 @@ public class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Check if a blockId is available as a new temp block.
+   * Check if a blockId is available as a new temp block. This method must be enclosed by metadata
+   * lock.
    *
    * @param blockId the ID of block
    * @throws AlreadyExistsException if blockId already exists
    */
   private void checkTempBlockIdAvailable(long blockId) throws AlreadyExistsException {
-    mMetadataLock.readLock().lock();
-    try {
-      if (mMetaManager.hasTempBlockMeta(blockId)) {
-        throw new AlreadyExistsException("TempBlockMeta blockId " + blockId + " exists");
-      }
-      if (mMetaManager.hasBlockMeta(blockId)) {
-        throw new AlreadyExistsException("TempBlockMeta blockId " + blockId + " committed");
-      }
-    } finally {
-      mMetadataLock.readLock().unlock();
+    if (mMetaManager.hasTempBlockMeta(blockId)) {
+      throw new AlreadyExistsException("TempBlockMeta blockId " + blockId + " exists");
+    }
+    if (mMetaManager.hasBlockMeta(blockId)) {
+      throw new AlreadyExistsException("TempBlockMeta blockId " + blockId + " committed");
     }
   }
 
   /**
-   * Check if blockId is a temporary block and owned by userId, return the
-   * {@link tachyon.worker.block.meta.TempBlockMeta} of blockId if the validation succeeds.
+   * Check if blockId is a temporary block and owned by userId. This method must be enclosed by
+   * metadata lock.
    *
    * @param userId the ID of user
    * @param blockId the ID of block
-   * @return the {@link tachyon.worker.block.meta.TempBlockMeta} of blockId
    * @throws NotFoundException if blockId can not be found in temporary blocks
    * @throws AlreadyExistsException if blockId already exists in committed blocks
    * @throws InvalidStateException if blockId is not owned by userId
    */
-  private TempBlockMeta checkTempBlockExists(long userId, long blockId) throws NotFoundException,
+  private void checkTempBlockOwnedByUser(long userId, long blockId) throws NotFoundException,
       AlreadyExistsException, InvalidStateException {
-    mMetadataLock.readLock().lock();
-    try {
-      if (mMetaManager.hasBlockMeta(blockId)) {
-        throw new AlreadyExistsException("blockId " + blockId + " is committed");
-      }
-      TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-      // Check the userId is the owner of this temp block
-      long ownerUserId = tempBlockMeta.getUserId();
-      if (ownerUserId != userId) {
-        throw new InvalidStateException("ownerUserId of blockId " + blockId + " is " + ownerUserId
-            + " but userId passed in is " + userId);
-      }
-      return tempBlockMeta;
-    } finally {
-      mMetadataLock.readLock().unlock();
+    if (mMetaManager.hasBlockMeta(blockId)) {
+      throw new AlreadyExistsException("blockId " + blockId + " is committed");
+    }
+    TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
+    long ownerUserId = tempBlockMeta.getUserId();
+    if (ownerUserId != userId) {
+      throw new InvalidStateException("ownerUserId of blockId " + blockId + " is " + ownerUserId
+          + " but userId passed in is " + userId);
     }
   }
+
 
   // Abort a temp block.
   private void abortBlockInternal(long userId, long blockId) throws NotFoundException,
@@ -426,7 +425,8 @@ public class TieredBlockStore implements BlockStore {
       String path;
       mMetadataLock.writeLock().lock();
       try {
-        TempBlockMeta tempBlockMeta = checkTempBlockExists(userId, blockId);
+        checkTempBlockOwnedByUser(userId, blockId);
+        TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
         path = tempBlockMeta.getPath();
         mMetaManager.abortTempBlockMeta(tempBlockMeta);
       } finally {
@@ -454,7 +454,8 @@ public class TieredBlockStore implements BlockStore {
       String dstPath;
       mMetadataLock.writeLock().lock();
       try {
-        TempBlockMeta tempBlockMeta = checkTempBlockExists(userId, blockId);
+        checkTempBlockOwnedByUser(userId, blockId);
+        TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
         srcPath = tempBlockMeta.getPath();
         dstPath = tempBlockMeta.getCommitPath();
         loc = tempBlockMeta.getBlockLocation();
@@ -484,6 +485,8 @@ public class TieredBlockStore implements BlockStore {
    */
   private TempBlockMeta createBlockMetaInternal(long userId, long blockId,
       BlockStoreLocation location, long initialBlockSize) throws AlreadyExistsException {
+    // NOTE: a temp block is supposed to be visible for its own writer, unnecessary to acquire
+    // block lock here since no sharing
     mMetadataLock.writeLock().lock();
     try {
       checkTempBlockIdAvailable(blockId);
@@ -524,6 +527,8 @@ public class TieredBlockStore implements BlockStore {
   private Pair<Boolean, BlockStoreLocation> requestSpaceInternal(long blockId, long additionalBytes)
       throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException,
       InvalidStateException {
+    // NOTE: a temp block is supposed to be visible for its own writer, unnecessary to acquire
+    // block lock here since no sharing
     mMetadataLock.writeLock().lock();
     try {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
@@ -626,8 +631,8 @@ public class TieredBlockStore implements BlockStore {
 
   /**
    * Moves a block to new location only if allocator finds available space in newLocation. This
-   * method will not trigger any eviction. Returns the source and destination location of this
-   * move, or null if this failed.
+   * method will not trigger any eviction. Returns the source and destination location of this move,
+   * or null if this failed.
    */
   private Pair<BlockStoreLocation, BlockStoreLocation> moveBlockInternal(long userId, long blockId,
       BlockStoreLocation newLocation) throws NotFoundException, AlreadyExistsException,
