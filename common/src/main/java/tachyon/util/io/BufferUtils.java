@@ -149,11 +149,11 @@ public class BufferUtils {
   }
 
   /**
-   * Writes buffer to the given file path. Overwrites this file if exists.
+   * Writes buffer to the given file path. If this file already exists, deletes it first.
    *
    * @param path file path to write the data
    * @param buffer raw data
-   * @throws java.io.IOException
+   * @throws java.io.IOException if an I/O error occurred or failed to delete existing file
    */
   public static void writeBufferToFile(String path, byte[] buffer) throws IOException {
     File file = new File(path);

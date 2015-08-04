@@ -335,6 +335,16 @@ public class BlockMetadataManager {
     return false;
   }
 
+  /**
+   * Moves an existing block to another location currently hold by a temp block.
+   *
+   * @param blockMeta the meta data of the block to move
+   * @param tempBlockMeta a placeholder in the destination directory
+   * @return the new block metadata if success, absent otherwise
+   * @throws NotFoundException when the block to move is not found
+   * @throws AlreadyExistsException when the block to move already exists in the destination
+   * @throws OutOfSpaceException when destination have no extra space to hold the block to move
+   */
   public BlockMeta moveBlockMeta(BlockMeta blockMeta, TempBlockMeta tempBlockMeta)
       throws NotFoundException, OutOfSpaceException, AlreadyExistsException {
     StorageDir srcDir = blockMeta.getParentDir();
