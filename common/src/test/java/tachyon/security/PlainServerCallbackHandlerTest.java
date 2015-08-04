@@ -66,7 +66,7 @@ public class PlainServerCallbackHandlerTest {
   @Test
   public void authenticateNameNotMatchTest() throws Exception {
     mThrown.expect(AuthenticationException.class);
-    mThrown.expectMessage("Only allow the user startWith tachyon");
+    mThrown.expectMessage("Only allow the user starting with tachyon");
 
     String authenticateId = "not-tachyon-1";
     NameCallback ncb = new NameCallback(" authentication id: ");
@@ -84,7 +84,7 @@ public class PlainServerCallbackHandlerTest {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
       if (!user.matches("^tachyon.*")) {
-        throw new AuthenticationException("Only allow the user startWith tachyon");
+        throw new AuthenticationException("Only allow the user starting with tachyon");
       }
     }
   }
