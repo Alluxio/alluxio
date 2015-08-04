@@ -15,23 +15,20 @@
 
 package tachyon.worker.block.evictor;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.Pair;
@@ -41,18 +38,19 @@ import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
-import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageDirView;
-import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.StorageTierView;
 
 /**
- * This class is used to evict blocks by LRFU. LRFU combines LRU and LFU, it evicts blocks with
- * small frequency or large recency. Actually, LRFU evicts blocks with minimum CRF. CRF of a block
- * is the sum of F(t) = pow((1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor}) and each
- * access to a block has a F(t) value where t is the time interval since that access time to 
- * current. When {@link #mStepFactor} is close to 0, LRFU is close to LFU. Conversely, LRFU is 
- * close to LRU when {@link #mStepFactor} is close to 1
+ * This class is used to evict blocks by LRFU. LRFU evict blocks with minimum CRF, where CRF of a 
+ * block is the sum of F(t) = pow(1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor}).
+ * Each access to a block has a F(t) value and t is the time interval since that access to current.
+ * As the formula of F(t) shows, when (1.0 / {@link #mStepFactor}) time units passed, F(t) will 
+ * cut to the (1.0 / {@link #mAttenuationFactor}) of the old value. So {@link #mStepFactor} 
+ * controls the step and {@link #mAttenuationFactor} controls the attenuation. Actually, LRFU
+ * combines LRU and LFU, it evicts blocks with small frequency or large recency. When 
+ * {@link #mStepFactor} is close to 0, LRFU is close to LFU. Conversely, LRFU is close to LRU
+ * when {@link #mStepFactor} is close to 1.
  */
 public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor {
 
@@ -61,17 +59,17 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
   private static final double DEFAULT_ATTENUATION_FACTOR = 2.0;
 
   private BlockMetadataManagerView mManagerView;
-  // Map from block id to the last access time of the block
-  private Map<Long, Long> mBlockIdToLastAccessTime = new ConcurrentHashMap<Long, Long>();
+  // Map from block id to the last updated logic time count
+  private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMap<Long, Long>();
   // Map from block id to the CRF value of the block
-  private Map<Long, Double> mBlockIdToCRFValue = new ConcurrentHashMap<Long, Double>();
+  private final Map<Long, Double> mBlockIdToCRFValue = new ConcurrentHashMap<Long, Double>();
   // In the range of [0, 1]. Closer to 0, LRFU closer to LFU. Closer to 1, LRFU closer to LRU
   private final double mStepFactor;
   // In the range of [2, INF]
   private final double mAttenuationFactor;
   private final TachyonConf mTachyonConf;
 
-  //logic time
+  //logic time count
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
 
   public LRFUEvictor(BlockMetadataManagerView view) {
@@ -82,48 +80,20 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
     mAttenuationFactor = mTachyonConf
         .getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_ATTENUATION_FACTOR, 
             DEFAULT_ATTENUATION_FACTOR);
+    Preconditions.checkArgument(mStepFactor >= 0.0 && mStepFactor <= 1.0, 
+        "Step factor should be in the range of [0.0, 1.0]");
+    Preconditions.checkArgument(mAttenuationFactor >= 2.0,
+        "Attenuation factor should be no less than 2.0");
 
     // Preloading blocks
     for (StorageTierView tier : mManagerView.getTierViews()) {
       for (StorageDirView dir : tier.getDirViews()) {
         for (BlockMeta block : dir.getEvictableBlocks()) {
-          mBlockIdToLastAccessTime.put(block.getBlockId(), 0L);
+          mBlockIdToLastUpdateTime.put(block.getBlockId(), 0L);
           mBlockIdToCRFValue.put(block.getBlockId(), 0.0);
         }
       }
     }
-  }
-
-  /**
-   * @return a StorageDirView in the range of location that already has availableBytes larger than
-   *         bytesToBeAvailable, otherwise null
-   */
-  private StorageDirView selectDirWithRequestedSpace(long bytesToBeAvailable,
-      BlockStoreLocation location) {
-    if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTierView tierView : mManagerView.getTierViews()) {
-        for (StorageDirView dirView : tierView.getDirViews()) {
-          if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
-            return dirView;
-          }
-        }
-      }
-      return null;
-    }
-
-    int tierAlias = location.tierAlias();
-    StorageTierView tierView = mManagerView.getTierView(tierAlias);
-    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-      for (StorageDirView dirView : tierView.getDirViews()) {
-        if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
-          return dirView;
-        }
-      }
-      return null;
-    }
-
-    StorageDirView dirView = tierView.getDirView(location.dir());
-    return (dirView.getAvailableBytes() >= bytesToBeAvailable) ? dirView : null;
   }
 
   /**
@@ -145,11 +115,12 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
    * @return the first StorageDirView in the range of location to evict/move bytes from, or null if
    *         there is no plan
    */
-  protected StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
+  private StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
       EvictionPlan plan, List<Map.Entry<Long, Double>> sortedCRF) {
 
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
-    StorageDirView candidateDirView = selectDirWithRequestedSpace(bytesToBeAvailable, location);
+    StorageDirView candidateDirView = EvictorUtils
+        .selectDirWithRequestedSpace(bytesToBeAvailable, location, mManagerView);
     if (candidateDirView != null) {
       return candidateDirView;
     }
@@ -176,6 +147,8 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
       } catch (NotFoundException nfe) {
         LOG.warn("Remove block {} from LRFU Cache because {}", blockId, nfe);
         it.remove();
+        mBlockIdToLastUpdateTime.remove(blockId);
+        mBlockIdToCRFValue.remove(blockId);
       }
     }
 
@@ -215,7 +188,7 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
       BlockMetadataManagerView view) {
-    synchronized (mBlockIdToLastAccessTime) {
+    synchronized (mBlockIdToLastUpdateTime) {
       updateCRFValue();
       mManagerView = view;
 
@@ -264,7 +237,7 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
    * @return Function value of F(t)
    */
   private double calculateFunction(long logicTimeInterval) {
-    return 1.0 * Math.pow(1.0 / mAttenuationFactor, 1.0 * logicTimeInterval * mStepFactor);
+    return Math.pow(1.0 / mAttenuationFactor, logicTimeInterval * mStepFactor);
   }
 
   /**
@@ -273,7 +246,7 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
    * time, other blocks who are not accessed recently will only be updated until 
    * {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataManagerView)} is called 
    * because blocks need to be sorted in the increasing order of CRF. When this function is called,
-   * {@link #mBlockIdToLastAccessTime} and {@link #mBlockIdToCRFValue} need to be locked in case
+   * {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} need to be locked in case
    * of the changing of values.
    */
   private void updateCRFValue() {
@@ -284,62 +257,64 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
       long blockId = entry.getKey();
       double crfValue = entry.getValue();
       mBlockIdToCRFValue.put(blockId, crfValue
-          * calculateFunction(currentLogicTime - mBlockIdToLastAccessTime.get(blockId)));
-      mBlockIdToLastAccessTime.put(blockId, currentLogicTime);
+          * calculateFunction(currentLogicTime - mBlockIdToLastUpdateTime.get(blockId)));
+      mBlockIdToLastUpdateTime.put(blockId, currentLogicTime);
     }
   }
 
-  @Override
-  public void onAccessBlock(long userId, long blockId) {
-    synchronized (mBlockIdToLastAccessTime) {
+  /**
+   * Update {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
+   * accessed or committed.
+   * 
+   * @param blockId
+   */
+  private void updateOnAccessAndCommit(long blockId) {
+    synchronized (mBlockIdToLastUpdateTime) {
       long currentLogicTime = mLogicTimeCount.incrementAndGet();
       // update CRF value
       // CRF(currentLogicTime)=CRF(lastAccessTime)*F(currentLogicTime-lastAccessTime)+F(0) 
       if (mBlockIdToCRFValue.containsKey(blockId)) {
         mBlockIdToCRFValue.put(blockId, mBlockIdToCRFValue.get(blockId)
-            * calculateFunction(currentLogicTime - mBlockIdToLastAccessTime.get(blockId))
-            + 1.0);
+            * calculateFunction(currentLogicTime - mBlockIdToLastUpdateTime.get(blockId)) + 1.0);
       } else {
         mBlockIdToCRFValue.put(blockId, 1.0);
       }
       // update currentLogicTime to lastAccessTime
-      mBlockIdToLastAccessTime.put(blockId, currentLogicTime);
+      mBlockIdToLastUpdateTime.put(blockId, currentLogicTime);
     }
+  }
+  
+  /**
+   * Update {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
+   * removed.
+   * 
+   * @param blockId id of the accessed or committed block
+   */
+  private void updateOnRemoveBlock(long blockId) {
+    synchronized (mBlockIdToLastUpdateTime) {
+      mLogicTimeCount.incrementAndGet();
+      mBlockIdToCRFValue.remove(blockId);
+      mBlockIdToLastUpdateTime.remove(blockId);
+    }
+  }
+  
+  @Override
+  public void onAccessBlock(long userId, long blockId) {
+    updateOnAccessAndCommit(blockId);
   }
 
   @Override
   public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {
-    synchronized (mBlockIdToLastAccessTime) {
-      long currentLogicTime = mLogicTimeCount.incrementAndGet();
-      // update CRF value
-      // CRF(currentLogicTime)=CRF(lastAccessTime)*F(currentLogicTime-lastAccessTime)+F(0)
-      if (mBlockIdToCRFValue.containsKey(blockId)) {
-        mBlockIdToCRFValue.put(blockId, mBlockIdToCRFValue.get(blockId)
-            * calculateFunction(currentLogicTime - mBlockIdToLastAccessTime.get(blockId))
-            + 1.0);
-      } else {
-        mBlockIdToCRFValue.put(blockId, 1.0);
-      }
-      // update currentLogicTime to lastAccessTime
-      mBlockIdToLastAccessTime.put(blockId, currentLogicTime);
-    }
+    updateOnAccessAndCommit(blockId);
   }
 
   @Override
   public void onRemoveBlockByClient(long userId, long blockId) {
-    synchronized (mBlockIdToLastAccessTime) {
-      mLogicTimeCount.incrementAndGet();
-      mBlockIdToCRFValue.remove(blockId);
-      mBlockIdToLastAccessTime.remove(blockId);
-    }
+    updateOnRemoveBlock(blockId);
   }
 
   @Override
   public void onRemoveBlockByWorker(long userId, long blockId) {
-    synchronized (mBlockIdToLastAccessTime) {
-      mLogicTimeCount.incrementAndGet();
-      mBlockIdToCRFValue.remove(blockId);
-      mBlockIdToLastAccessTime.remove(blockId);
-    }
+    updateOnRemoveBlock(blockId);
   }
 }
