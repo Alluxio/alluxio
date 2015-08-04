@@ -174,7 +174,7 @@ public class TieredBlockStore implements BlockStore {
       IOException, InvalidStateException {
     for (int i = 0; i < MAX_RETRIES; i ++) {
       TempBlockMeta tempBlockMeta =
-          createBlockMetaInternal(userId, blockId, location, initialBlockSize);
+          createBlockMetaInternal(userId, blockId, location, initialBlockSize, true);
       if (tempBlockMeta != null) {
         return tempBlockMeta;
       }
@@ -380,10 +380,12 @@ public class TieredBlockStore implements BlockStore {
    */
   private void checkTempBlockIdAvailable(long blockId) throws AlreadyExistsException {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
-      throw new AlreadyExistsException("TempBlockMeta blockId " + blockId + " exists");
+      throw new AlreadyExistsException("checkTempBlockIdAvailable failed: blockId " + blockId
+          + " exists");
     }
     if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException("TempBlockMeta blockId " + blockId + " committed");
+      throw new AlreadyExistsException("checkTempBlockIdAvailable failed: blockId " + blockId
+          + " committed");
     }
   }
 
@@ -400,13 +402,14 @@ public class TieredBlockStore implements BlockStore {
   private void checkTempBlockOwnedByUser(long userId, long blockId) throws NotFoundException,
       AlreadyExistsException, InvalidStateException {
     if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException("blockId " + blockId + " is committed");
+      throw new AlreadyExistsException("checkTempBlockOwnedByUser failed: blockId " + blockId + ""
+          + " is committed");
     }
     TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
     long ownerUserId = tempBlockMeta.getUserId();
     if (ownerUserId != userId) {
-      throw new InvalidStateException("ownerUserId of blockId " + blockId + " is " + ownerUserId
-          + " but userId passed in is " + userId);
+      throw new InvalidStateException("checkTempBlockOwnedByUser failed: ownerUserId of blockId "
+          + blockId + " is " + ownerUserId + " but userId passed in is " + userId);
     }
   }
 
@@ -487,17 +490,21 @@ public class TieredBlockStore implements BlockStore {
    * @param blockId block Id
    * @param location location to create the block
    * @param initialBlockSize initial block size in bytes
+   * @param newBlock true if this temp block is created for a new block
    * @return a temp block created if successful, or null if allocation failed (instead of throwing
    *         OutOfSpaceException because allocation failure could be an expected case)
    * @throws AlreadyExistsException if there is a block already having the same block id
    */
   private TempBlockMeta createBlockMetaInternal(long userId, long blockId,
-      BlockStoreLocation location, long initialBlockSize) throws AlreadyExistsException {
+      BlockStoreLocation location, long initialBlockSize, boolean newBlock) throws
+      AlreadyExistsException {
     // NOTE: a temp block is supposed to be visible for its own writer, unnecessary to acquire
     // block lock here since no sharing
     mMetadataLock.writeLock().lock();
     try {
-      checkTempBlockIdAvailable(blockId);
+      if (newBlock) {
+        checkTempBlockIdAvailable(blockId);
+      }
       TempBlockMeta tempBlock =
           mAllocator.allocateBlockWithView(userId, blockId, initialBlockSize, location,
               getUpdatedView());
@@ -666,7 +673,8 @@ public class TieredBlockStore implements BlockStore {
         mMetadataLock.readLock().unlock();
       }
 
-      TempBlockMeta dstTempBlock = createBlockMetaInternal(userId, blockId, newLocation, blockSize);
+      TempBlockMeta dstTempBlock = createBlockMetaInternal(userId, blockId, newLocation,
+          blockSize, false);
       if (dstTempBlock == null) {
         return new MoveBlockResult(false, blockSize, null, null);
       }
