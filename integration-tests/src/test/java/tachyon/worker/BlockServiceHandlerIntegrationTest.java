@@ -27,7 +27,6 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.TestUtils;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
@@ -41,6 +40,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockServiceHandler;
 
@@ -91,7 +91,7 @@ public class BlockServiceHandlerIntegrationTest {
     ufs.mkdirs(tmpFolder, true);
     String filename = PathUtils.concatPath(tmpFolder, fileId);
     OutputStream out = ufs.create(filename);
-    out.write(TestUtils.getIncreasingByteArray(blockSize));
+    out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
     mWorkerServiceHandler.addCheckpoint(USER_ID, fileId);
 
@@ -152,7 +152,7 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId = mTfs.getBlockId(fileId, 0);
 
     OutStream out = mTfs.getFile(fileId).getOutStream(WriteType.MUST_CACHE);
-    out.write(TestUtils.getIncreasingByteArray(blockSize));
+    out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
 
     String localPath = mWorkerServiceHandler.lockBlock(blockId, USER_ID);
@@ -166,7 +166,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     // The data in the local file should equal the data we wrote earlier
     Assert.assertEquals(blockSize, bytesRead);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(bytesRead, data));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(bytesRead, data));
 
     mWorkerServiceHandler.unlockBlock(blockId, USER_ID);
   }
@@ -274,12 +274,13 @@ public class BlockServiceHandlerIntegrationTest {
     UnderFileSystem ufs = UnderFileSystem.get(filename, mMasterTachyonConf);
     ufs.mkdirs(PathUtils.getParent(filename), true);
     OutputStream out = ufs.create(filename);
-    out.write(TestUtils.getIncreasingByteArray(len), 0, len);
+    out.write(BufferUtils.getIncreasingByteArray(len), 0, len);
     out.close();
   }
 
   // Sleeps for a duration so that the worker heartbeat to master can be processed
   private void waitForHeartbeat() {
-    CommonUtils.sleepMs(null, TestUtils.getToMasterHeartBeatIntervalMs(mWorkerTachyonConf) * 3);
+    CommonUtils.sleepMs(null, mWorkerTachyonConf.getInt(
+        Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS) * 3);
   }
 }

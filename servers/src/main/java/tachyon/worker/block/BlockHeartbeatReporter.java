@@ -65,10 +65,7 @@ public class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
       BlockStoreLocation newLocation) {
     Long storageDirId = newLocation.getStorageDirId();
     synchronized (mLock) {
-      // Add the block to the removed block list to remove the previous location
-      // TODO: We should have a better mechanism to indicate block movement
-      mRemovedBlocks.add(blockId);
-      // Remove the block from our list of added blocks in this heartbeat, if it was added to
+      // Remove the block from our list of added blocks in this heartbeat, if it was added, to
       // prevent adding the block twice.
       removeBlockFromAddedBlocks(blockId);
       // Add the block back with the new storagedir.
@@ -105,10 +102,7 @@ public class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
       BlockStoreLocation newLocation) {
     Long storageDirId = newLocation.getStorageDirId();
     synchronized (mLock) {
-      // Add the block to the removed block list to remove the previous location
-      // TODO: We should have a better mechanism to indicate block movement
-      mRemovedBlocks.add(blockId);
-      // Remove the block from our list of added blocks in this heartbeat, if it was added to
+      // Remove the block from our list of added blocks in this heartbeat, if it was added, to
       // prevent adding the block twice.
       removeBlockFromAddedBlocks(blockId);
       // Add the block back with the new storagedir.

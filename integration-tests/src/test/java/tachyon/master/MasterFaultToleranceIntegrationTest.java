@@ -27,7 +27,6 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
-import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.util.CommonUtils;

@@ -34,11 +34,11 @@ import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
 import tachyon.Constants;
-import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.util.io.BufferUtils;
 import tachyon.worker.block.BlockStoreLocation;
 
 public class StorageDirTest {
@@ -48,9 +48,9 @@ public class StorageDirTest {
   private static final long TEST_BLOCK_SIZE = 20;
   private static final long TEST_TEMP_BLOCK_ID = 10;
   private static final long TEST_TEMP_BLOCK_SIZE = 30;
-  private static final String TEST_DIR_PATH = "/mnt/ramdisk/0/";
   private static final int TEST_DIR_INDEX = 1;
   private static final long TEST_DIR_CAPACITY = 1000;
+  private String mTestDirPath;
   private StorageTier mTier;
   private StorageDir mDir;
   private BlockMeta mBlockMeta;
@@ -64,9 +64,17 @@ public class StorageDirTest {
 
   @Before
   public void before() throws Exception {
+    // Creates a dummy test dir under mTestDirPath with 1 byte space so initialization can occur
+    mTestDirPath = mFolder.newFolder().getAbsolutePath();
     TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
+        mFolder.newFolder().getAbsolutePath());
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
+        "1b");
+    tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
+
     mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
-    mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, TEST_DIR_PATH);
+    mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, mTestDirPath);
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta =
         new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
@@ -80,8 +88,8 @@ public class StorageDirTest {
   private void newBlockFile(File dir, String name, int lenBytes) throws IOException {
     File block = new File(dir, name);
     block.createNewFile();
-    byte[] data = TestUtils.getIncreasingByteArray(lenBytes);
-    TestUtils.writeBufferToFile(block.getAbsolutePath(), data);
+    byte[] data = BufferUtils.getIncreasingByteArray(lenBytes);
+    BufferUtils.writeBufferToFile(block.getAbsolutePath(), data);
   }
 
   @Test
@@ -190,7 +198,7 @@ public class StorageDirTest {
 
   @Test
   public void getDirPathTest() {
-    Assert.assertEquals(TEST_DIR_PATH, mDir.getDirPath());
+    Assert.assertEquals(mTestDirPath, mDir.getDirPath());
   }
 
   @Test

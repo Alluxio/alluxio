@@ -27,8 +27,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
-import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.util.io.BufferUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests for <code>tachyon.client.LocalBlockInStream</code>.
@@ -70,7 +71,7 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest1() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
         int fileId =
@@ -93,7 +94,7 @@ public class LocalBlockInStreamIntegrationTest {
           value = is.read();
         }
         Assert.assertEquals(cnt, k);
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
         Assert.assertTrue(file.isInMemory());
 
@@ -113,7 +114,7 @@ public class LocalBlockInStreamIntegrationTest {
           value = is.read();
         }
         Assert.assertEquals(cnt, k);
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
         Assert.assertTrue(file.isInMemory());
       }
@@ -125,7 +126,7 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest2() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
         int fileId =
@@ -140,7 +141,7 @@ public class LocalBlockInStreamIntegrationTest {
         }
         byte[] ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
         Assert.assertTrue(file.isInMemory());
 
@@ -152,7 +153,7 @@ public class LocalBlockInStreamIntegrationTest {
         }
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
         Assert.assertTrue(file.isInMemory());
       }
@@ -164,7 +165,7 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest3() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
         int fileId =
@@ -179,7 +180,7 @@ public class LocalBlockInStreamIntegrationTest {
         }
         byte[] ret = new byte[k / 2];
         Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k / 2, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
         is.close();
         Assert.assertTrue(file.isInMemory());
 
@@ -191,7 +192,7 @@ public class LocalBlockInStreamIntegrationTest {
         }
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
-        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
         Assert.assertTrue(file.isInMemory());
       }
@@ -206,7 +207,7 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest1() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
         int fileId =
@@ -244,7 +245,7 @@ public class LocalBlockInStreamIntegrationTest {
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Seek position is past buffer limit");
 
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
         int fileId =
@@ -273,7 +274,7 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void seekTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
         int fileId =
@@ -303,7 +304,7 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void skipTest() throws IOException {
-    String uniqPath = TestUtils.uniqPath();
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : sWriteCacheType) {
         int fileId =

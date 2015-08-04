@@ -33,8 +33,8 @@ import com.google.common.primitives.Ints;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
+import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManager;
@@ -175,7 +175,7 @@ public class EvictorTestUtils {
           "Parent directory of %s can not be created for temp block", block.getPath()));
     }
     BlockWriter writer = new LocalFileBlockWriter(block);
-    writer.append(TestUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
+    writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
     writer.close();
 
     // commit block

@@ -42,4 +42,9 @@ public abstract class DataBuffer {
    * @return a read-only ByteBuffer representing the data
    */
   public abstract ByteBuffer getReadOnlyByteBuffer();
+
+  /**
+   * Release the underlying buffer of this DataBuffer if no longer needed.
+   */
+  public abstract void release();
 }

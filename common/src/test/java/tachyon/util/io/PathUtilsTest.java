@@ -16,13 +16,39 @@
 package tachyon.util.io;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
+import tachyon.thrift.InvalidPathException;
 
 public class PathUtilsTest {
+  @Rule
+  public final ExpectedException mException = ExpectedException.none();
+
   @Test
-  public void concatPath() {
+  public void getPathComponentsNoExceptionTest() throws InvalidPathException {
+    Assert.assertArrayEquals(new String[] {""}, PathUtils.getPathComponents("/"));
+    Assert.assertArrayEquals(new String[] {"", "bar"}, PathUtils.getPathComponents("/bar"));
+    Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
+        PathUtils.getPathComponents("/foo/bar"));
+    Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
+        PathUtils.getPathComponents("/foo/bar/"));
+    Assert.assertArrayEquals(new String[] {"", "bar"},
+        PathUtils.getPathComponents("/foo/../bar"));
+    Assert.assertArrayEquals(new String[] {"", "foo", "bar", "a", "b", "c"},
+        PathUtils.getPathComponents("/foo//bar/a/b/c"));
+  }
+
+  @Test
+  public void getPathComponentsExceptionTest() throws InvalidPathException {
+    mException.expect(InvalidPathException.class);
+    PathUtils.getPathComponents("/\\   foo / bar");
+  }
+
+  @Test
+  public void concatPathTest() {
     Assert.assertEquals("/", PathUtils.concatPath("/"));
     Assert.assertEquals("/", PathUtils.concatPath("/", ""));
     Assert.assertEquals("/bar", PathUtils.concatPath("/", "bar"));

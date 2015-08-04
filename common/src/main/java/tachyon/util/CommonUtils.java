@@ -23,6 +23,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+
 /**
  * Common utilities shared by all components in Tachyon.
  */
@@ -58,6 +61,14 @@ public final class CommonUtils {
       if (shouldInterrupt) {
         Thread.currentThread().interrupt();
       }
+    }
+  }
+
+  /**
+   * Common empty loop utilities to warm up
+   */
+  public static void warmUpLoop() {
+    for (int k = 0; k < 10000000; k ++) {
     }
   }
 

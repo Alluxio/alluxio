@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +37,7 @@ import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.util.io.FileUtils;
 import tachyon.worker.block.BlockStoreLocation;
 
 /**
@@ -90,7 +90,7 @@ public class StorageDir {
    * @throws OutOfSpaceException when meta data can not be added due to limited left space
    */
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
-      String dirPath) throws AlreadyExistsException, OutOfSpaceException {
+      String dirPath) throws AlreadyExistsException, IOException, OutOfSpaceException {
     StorageDir dir = new StorageDir(tier, dirIndex, capacityBytes, dirPath);
     dir.initializeMeta();
     return dir;
@@ -103,10 +103,22 @@ public class StorageDir {
    * should be in format like {dir}/{blockId}. other paths will be deleted.
    *
    * @throws AlreadyExistsException when meta data of existing committed blocks already exists
+   * @throws IOException if the storage directory cannot be created with the appropriate permissions
    * @throws OutOfSpaceException when meta data can not be added due to limited left space
    */
-  private void initializeMeta() throws AlreadyExistsException, OutOfSpaceException {
+  private void initializeMeta() throws AlreadyExistsException, IOException, OutOfSpaceException {
     File dir = new File(mDirPath);
+
+    // Create the storage directory path if it does not exist
+    if (!dir.exists()) {
+      // TODO: Make this a utility method
+      if (dir.mkdirs()) {
+        FileUtils.changeLocalFilePermission(mDirPath, "777");
+        FileUtils.setLocalFileStickyBit(mDirPath);
+      } else {
+        throw new IOException("Failed to create storage dir " + mDirPath);
+      }
+    }
     File[] paths = dir.listFiles();
     if (paths == null) {
       return;
@@ -115,7 +127,8 @@ public class StorageDir {
       if (!path.isFile()) {
         LOG.error("{} in StorageDir is not a file", path.getAbsolutePath());
         try {
-          FileUtils.deleteDirectory(path);
+          // TODO: Resolve this conflict in class names
+          org.apache.commons.io.FileUtils.deleteDirectory(path);
         } catch (IOException ioe) {
           LOG.error("can not delete directory {}: {}", path.getAbsolutePath(), ioe);
         }
