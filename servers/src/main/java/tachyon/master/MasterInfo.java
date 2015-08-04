@@ -78,6 +78,9 @@ import tachyon.underfs.UnderFileSystem.SpaceType;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.balancer.Balancer;
+import tachyon.worker.balancer.BalancerFactory;
+import tachyon.worker.balancer.BalancerType;
 
 /**
  * A global view of filesystem in master.
@@ -297,6 +300,8 @@ public class MasterInfo extends ImageWriter {
 
   private final TachyonConf mTachyonConf;
   private final String mUFSDataFolder;
+  
+  private final Balancer mBalancer;
 
   public MasterInfo(InetSocketAddress address, Journal journal, ExecutorService executorService,
       TachyonConf tachyonConf) throws IOException {
@@ -322,6 +327,11 @@ public class MasterInfo extends ImageWriter {
 
     mJournal.loadImage(this);
     mMasterSource = new MasterSource(this);
+    
+    BalancerType balancerType =
+            mTachyonConf.getEnum(Constants.WORKER_BALANCER_STRATEGY_TYPE, BalancerType.DEFAULT);
+    LOG.info("balancerType : {}", balancerType);
+    mBalancer = BalancerFactory.create(balancerType);
   }
 
   /**
@@ -1777,32 +1787,8 @@ public class MasterInfo extends ImageWriter {
       if (mWorkerAddressToId.isEmpty()) {
         return null;
       }
-      if (random) {
-        int index = new Random(mWorkerAddressToId.size()).nextInt(mWorkerAddressToId.size());
-        for (NetAddress address : mWorkerAddressToId.keySet()) {
-          if (index == 0) {
-            LOG.debug("getRandomWorker: {}", address);
-            return address;
-          }
-          index --;
-        }
-        for (NetAddress address : mWorkerAddressToId.keySet()) {
-          LOG.debug("getRandomWorker: {}", address);
-          return address;
-        }
-      } else {
-        for (NetAddress address : mWorkerAddressToId.keySet()) {
-          InetAddress inetAddress = InetAddress.getByName(address.getMHost());
-          if (inetAddress.getHostName().equals(host) || inetAddress.getHostAddress().equals(host)
-              || inetAddress.getCanonicalHostName().equals(host)) {
-            LOG.debug("getLocalWorker: {}" + address);
-            return address;
-          }
-        }
-      }
+      return mBalancer.getWorker(random, host, mWorkers, mWorkerAddressToId);  
     }
-    LOG.info("getLocalWorker: no local worker on " + host);
-    return null;
   }
 
   /**

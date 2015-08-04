@@ -176,6 +176,8 @@ public class Constants {
   public static final String WORKER_EVICT_STRATEGY_CLASS = "tachyon.worker.evict.strategy.class";
   public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =
       "tachyon.worker.tieredstore.level.max";
+  public static final String WORKER_BALANCER_STRATEGY_TYPE = "tachyon.worker.balance.strategy";
+  
   /**
    * This format is used as a template to generate the property name for a given level.
    * e.g., {@code String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level)}
