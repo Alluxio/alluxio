@@ -194,7 +194,11 @@ public class BlockMasterSync implements Runnable {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
-          mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
+          try {
+            mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
+          } catch (IOException ioe) {
+            LOG.warn("Failed to delete block instructed by master due to concurrent read.");
+          }
         }
         break;
       // No action required
