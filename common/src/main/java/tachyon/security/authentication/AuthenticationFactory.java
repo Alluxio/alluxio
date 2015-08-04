@@ -17,11 +17,16 @@ package tachyon.security.authentication;
 
 import java.util.Locale;
 
+import javax.security.sasl.SaslException;
+
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.security.PlainSaslHelper;
 
 /**
  * This class is the main entry for Tachyon authentication.
@@ -85,18 +90,16 @@ public class AuthenticationFactory {
     }
   }
 
-  private final String mAuthTypeStr;
+  private final AuthType mAuthType;
   private final TachyonConf mTachyonConf;
 
   public AuthenticationFactory(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    // TODO: change the default value from NOSASL to SIMPLE, after feature is stable.
-    mAuthTypeStr = tachyonConf.get(Constants.TACHYON_SECURITY_AUTHENTICATION,
-        AuthType.NOSASL.getAuthName());
+    mAuthType = getAuthTypeFromConf(tachyonConf);
   }
 
-  String getAuthTypeStr() {
-    return mAuthTypeStr;
+  AuthType getAuthType() {
+    return mAuthType;
   }
 
   /**
@@ -111,5 +114,27 @@ public class AuthenticationFactory {
         AuthType.NOSASL.getAuthName()));
   }
 
-  // TODO: add methods of getting different Thrift class in follow-up PR.
+  /**
+   * For server side, this method return a TTransportFactory based on the auth type. It is used as
+   * one argument to build a Thrift TServer.
+   * @return a corresponding TTransportFactory
+   * @throws SaslException if building a TransportFactory fails
+   */
+  public TTransportFactory getServerTransportFactory() throws SaslException {
+    switch (mAuthType) {
+      case NOSASL:
+        return new TFramedTransport.Factory();
+      case SIMPLE:
+      case CUSTOM:
+        return PlainSaslHelper.getPlainServerTransportFactory(mAuthType, mTachyonConf);
+      case KERBEROS:
+        throw new UnsupportedOperationException("Kerberos is not supported currently.");
+      default:
+        throw new UnsupportedOperationException("Unsupported authentication type: " + mAuthType
+            .getAuthName());
+    }
+  }
+
+  // TODO: get client side TTransport based on auth type
+  // public TTransport getClientTransport(InetSocketAddress serverAddress) throws SaslException {}
 }
