@@ -274,16 +274,16 @@ public final class LocalTachyonCluster {
     mMaster.stop();
     mWorker.stop();
 
-    System.clearProperty("tachyon.home");
-    System.clearProperty("tachyon.worker.port");
-    System.clearProperty("tachyon.worker.data.port");
-    System.clearProperty("tachyon.worker.data.folder");
-    System.clearProperty("tachyon.worker.memory.size");
-    System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
-    System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
-    System.clearProperty("tachyon.worker.tieredstore.level.max");
-    System.clearProperty("tachyon.worker.network.netty.worker.threads");
-    System.clearProperty("tachyon.worker.min.worker.threads");
+    System.clearProperty(Constants.TACHYON_HOME);
+    System.clearProperty(Constants.WORKER_PORT);
+    System.clearProperty(Constants.WORKER_DATA_PORT);
+    System.clearProperty(Constants.WORKER_DATA_FOLDER);
+    System.clearProperty(Constants.WORKER_MEMORY_SIZE);
+    System.clearProperty(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE);
+    System.clearProperty(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    System.clearProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
+    System.clearProperty(Constants.WORKER_NETTY_WORKER_THREADS);
+    System.clearProperty(Constants.WORKER_MIN_WORKER_THREADS);
   }
 
   /**
