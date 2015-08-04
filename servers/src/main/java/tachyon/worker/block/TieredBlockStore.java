@@ -255,26 +255,20 @@ public class TieredBlockStore implements BlockStore {
   public void moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
       throws NotFoundException, AlreadyExistsException, InvalidStateException, OutOfSpaceException,
       IOException {
-    Pair<BlockStoreLocation, BlockStoreLocation> moveResult;
-    BlockStoreLocation srcLocation;
-    BlockStoreLocation dstLocation;
     for (int i = 0; i < MAX_RETRIES; i ++) {
-      moveResult = moveBlockInternal(userId, blockId, newLocation);
-      if (moveResult != null) {
-        srcLocation = moveResult.getFirst();
-        dstLocation = moveResult.getSecond();
+      MoveBlockResult moveResult = moveBlockInternal(userId, blockId, newLocation);
+      if (moveResult.done()) {
         synchronized (mBlockStoreEventListeners) {
           for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-            listener.onMoveBlockByClient(userId, blockId, srcLocation, dstLocation);
+            listener.onMoveBlockByClient(userId, blockId, moveResult.srcLocation(),
+                moveResult.dstLocation());
           }
         }
         return;
       }
-      mMetadataLock.readLock().lock();
-      long blockSize = mMetaManager.getBlockMeta(blockId).getBlockSize();
-      mMetadataLock.readLock().unlock();
+
       if (i < MAX_RETRIES - 1) {
-        freeSpaceInternal(userId, blockSize, newLocation);
+        freeSpaceInternal(userId, moveResult.blockSize(), newLocation);
       }
     }
   }
@@ -423,17 +417,24 @@ public class TieredBlockStore implements BlockStore {
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
     try {
       String path;
-      mMetadataLock.writeLock().lock();
+      TempBlockMeta tempBlockMeta;
+      mMetadataLock.readLock().lock();
       try {
         checkTempBlockOwnedByUser(userId, blockId);
-        TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
+        tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
         path = tempBlockMeta.getPath();
+      } finally {
+        mMetadataLock.readLock().unlock();
+      }
+
+      FileUtils.delete(new File(path));
+
+      mMetadataLock.writeLock().lock();
+      try {
         mMetaManager.abortTempBlockMeta(tempBlockMeta);
       } finally {
         mMetadataLock.writeLock().unlock();
       }
-
-      FileUtils.delete(new File(path));
     } finally {
       mLockManager.unlockBlock(lockId);
     }
@@ -452,19 +453,26 @@ public class TieredBlockStore implements BlockStore {
       BlockStoreLocation loc;
       String srcPath;
       String dstPath;
-      mMetadataLock.writeLock().lock();
+      TempBlockMeta tempBlockMeta;
+      mMetadataLock.readLock().lock();
       try {
         checkTempBlockOwnedByUser(userId, blockId);
-        TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
+        tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
         srcPath = tempBlockMeta.getPath();
         dstPath = tempBlockMeta.getCommitPath();
         loc = tempBlockMeta.getBlockLocation();
+      } finally {
+        mMetadataLock.readLock().unlock();
+      }
+
+      FileUtils.move(new File(srcPath), new File(dstPath));
+
+      mMetadataLock.writeLock().lock();
+      try {
         mMetaManager.commitTempBlockMeta(tempBlockMeta);
       } finally {
         mMetadataLock.writeLock().unlock();
       }
-
-      FileUtils.move(new File(srcPath), new File(dstPath));
       return loc;
     } finally {
       mLockManager.unlockBlock(lockId);
@@ -597,18 +605,17 @@ public class TieredBlockStore implements BlockStore {
       for (Pair<Long, BlockStoreLocation> entry : toMove) {
         long blockId = entry.getFirst();
         BlockStoreLocation newLocation = entry.getSecond();
-        Pair<BlockStoreLocation, BlockStoreLocation> locationPair;
+        MoveBlockResult moveResult;
         try {
           // TODO: this should also specify the src location
-          locationPair = moveBlockInternal(userId, blockId, newLocation);
+          moveResult = moveBlockInternal(userId, blockId, newLocation);
         } catch (NotFoundException nfe) {
           LOG.info("Failed to move blockId " + blockId + ", it could be already deleted");
           return;
         }
-        BlockStoreLocation oldLocation = locationPair.getFirst();
         synchronized (mBlockStoreEventListeners) {
           for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-            listener.onMoveBlockByWorker(userId, blockId, oldLocation, newLocation);
+            listener.onMoveBlockByWorker(userId, blockId, moveResult.srcLocation(), newLocation);
           }
         }
       }
@@ -631,21 +638,21 @@ public class TieredBlockStore implements BlockStore {
 
   /**
    * Moves a block to new location only if allocator finds available space in newLocation. This
-   * method will not trigger any eviction. Returns the source and destination location of this move,
-   * or null if this failed.
+   * method will not trigger any eviction. Returns MoveBlockResult, or null if this failed.
    */
-  private Pair<BlockStoreLocation, BlockStoreLocation> moveBlockInternal(long userId, long blockId,
+  private MoveBlockResult moveBlockInternal(long userId, long blockId,
       BlockStoreLocation newLocation) throws NotFoundException, AlreadyExistsException,
       InvalidStateException, OutOfSpaceException, IOException {
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
     try {
+      long blockSize;
       String srcFilePath;
       String dstFilePath;
       BlockMeta srcBlockMeta;
-      BlockMeta dstBlockMeta;
       BlockStoreLocation srcLocation;
       BlockStoreLocation dstLocation;
-      mMetadataLock.writeLock().lock();
+
+      mMetadataLock.readLock().lock();
       try {
         if (mMetaManager.hasTempBlockMeta(blockId)) {
           throw new InvalidStateException("Failed to move block " + blockId
@@ -654,36 +661,29 @@ public class TieredBlockStore implements BlockStore {
         srcBlockMeta = mMetaManager.getBlockMeta(blockId);
         srcLocation = srcBlockMeta.getBlockLocation();
         srcFilePath = srcBlockMeta.getPath();
-        long blockSize = srcBlockMeta.getBlockSize();
-        TempBlockMeta tempBlock =
-            mAllocator.allocateBlockWithView(userId, blockId, blockSize, newLocation,
-                getUpdatedView());
-        if (tempBlock == null) {
-          // Allocator fails to find a proper place in newLocation to move this block.
-          return null;
-        }
-        try {
-          mMetaManager.moveBlockMeta(srcBlockMeta, tempBlock);
-        } catch (OutOfSpaceException ose) {
-          // If we reach here, allocator is not working properly
-          LOG.error("Unexpected failure: " + blockSize + " bytes allocated at " + newLocation
-              + " by allocator, but moveBlockMeta failed");
-          throw Throwables.propagate(ose);
-        } catch (AlreadyExistsException aee) {
-          // If we reach here, allocator is not working properly
-          LOG.error("Unexpected failure: " + blockSize + " bytes allocated at " + newLocation
-              + " by allocator, but moveBlockMeta failed");
-          throw Throwables.propagate(aee);
-        }
-        dstBlockMeta = mMetaManager.getBlockMeta(blockId);
-        dstLocation = dstBlockMeta.getBlockLocation();
-        dstFilePath = dstBlockMeta.getPath();
+        blockSize = srcBlockMeta.getBlockSize();
+      } finally {
+        mMetadataLock.readLock().unlock();
+      }
+
+      TempBlockMeta dstTempBlock = createBlockMetaInternal(userId, blockId, newLocation, blockSize);
+      if (dstTempBlock == null) {
+        return new MoveBlockResult(false, blockSize, null, null);
+      }
+      dstLocation = dstTempBlock.getBlockLocation();
+      dstFilePath = dstTempBlock.getCommitPath();
+
+      // Heavy IO operation, still guarded by block lock but not metadata lock.
+      FileUtils.move(new File(srcFilePath), new File(dstFilePath));
+
+      mMetadataLock.writeLock().lock();
+      try {
+        mMetaManager.moveBlockMeta(srcBlockMeta, dstTempBlock);
       } finally {
         mMetadataLock.writeLock().unlock();
       }
-      // Heavy IO operation, still guarded by block lock but not metadata lock.
-      FileUtils.move(new File(srcFilePath), new File(dstFilePath));
-      return new Pair<BlockStoreLocation, BlockStoreLocation>(srcLocation, dstLocation);
+
+      return new MoveBlockResult(true, blockSize, srcLocation, dstLocation);
     } finally {
       mLockManager.unlockBlock(lockId);
     }
@@ -728,6 +728,40 @@ public class TieredBlockStore implements BlockStore {
     synchronized (mPinnedInodes) {
       mPinnedInodes.clear();
       mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
+    }
+  }
+
+  /**
+   * A wrapper on necessary info after a move block operation
+   */
+  private static class MoveBlockResult {
+    private final boolean mDone;
+    private final long mBlockSize;
+    private final BlockStoreLocation mSrcLocation;
+    private final BlockStoreLocation mDstLocation;
+
+    MoveBlockResult(boolean done, long blockSize, BlockStoreLocation srcLocation,
+        BlockStoreLocation dstLocation) {
+      mDone = done;
+      mBlockSize = blockSize;
+      mSrcLocation = srcLocation;
+      mDstLocation = dstLocation;
+    }
+
+    boolean done() {
+      return mDone;
+    }
+
+    long blockSize() {
+      return mBlockSize;
+    }
+
+    BlockStoreLocation srcLocation() {
+      return mSrcLocation;
+    }
+
+    BlockStoreLocation dstLocation() {
+      return mDstLocation;
     }
   }
 }
