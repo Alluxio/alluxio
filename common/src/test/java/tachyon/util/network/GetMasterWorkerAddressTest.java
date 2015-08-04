@@ -26,7 +26,6 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.network.NetworkAddressUtils;
 
 public class GetMasterWorkerAddressTest {
   private static Map<String, String> sTestProperties = new LinkedHashMap<String, String>();

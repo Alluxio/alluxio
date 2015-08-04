@@ -308,7 +308,7 @@ public class RemoteBlockInStream extends BlockInStream {
     try {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
-      String localhost = NetworkAddressUtils.getWorkerConnectHost(conf);
+      String localhost = NetworkAddressUtils.getWorkerHost(conf);
 
       for (NetAddress blockLocation : blockLocations) {
         String host = blockLocation.mHost;

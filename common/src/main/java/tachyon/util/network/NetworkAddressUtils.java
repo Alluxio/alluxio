@@ -56,75 +56,200 @@ public final class NetworkAddressUtils {
    * @param conf Tachyon configuration used to look up the host resolution timeout
    * @return the user specified master host name.
    */
-  public static String getMasterHostName(TachyonConf conf) {
-    return conf.get(Constants.MASTER_HOSTNAME, getLocalHostName(conf));
+  public static String getMasterHost(TachyonConf conf) {
+    return getConnectHost(conf.get(Constants.MASTER_HOSTNAME, ""),
+        conf.get(Constants.MASTER_BIND_HOST, ""), conf);
   }
 
   /**
-   * Gets a binding hostname for master
+   * Helper method to get the {@link InetSocketAddress} connection address of the master.
    *
-   * Host binding strategy on multihomed networking: 1) Environment variables via tachyon-env.sh or
-   * from OS settings 2) Default properties via tachyon-default.properties file 3) A reachable local
-   * host name for the host this JVM is running on
-   *
-   * @param conf Tachyon configuration used to look up the host resolution timeout
-   * @return the user specified hostname ($TACHYON_MASTER_BIND_HOST) for binding.
+   * @param conf the configuration of Tachyon
+   * @return a connection address that a client uses to communicate with service endpoint.
    */
-  public static String getMasterBindHost(TachyonConf conf) {
-    return conf.get(Constants.MASTER_BIND_HOST, getLocalHostName(conf));
+  public static InetSocketAddress getMasterAddress(TachyonConf conf) {
+    String host =
+        getConnectHost(conf.get(Constants.MASTER_HOSTNAME, ""),
+            conf.get(Constants.MASTER_BIND_HOST, ""), conf);
+    int port = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+    return new InetSocketAddress(host, port);
   }
 
   /**
-   * Gets a binding hostname for master web server
-   *
-   * @param conf Tachyon configuration used to look up the host resolution timeout
-   * @return the user specified hostname ($TACHYON_MASTER_WEB_BIND_HOST) for binding.
+   * Helper method to get the {@link InetSocketAddress} bind address of the master server.
+   * <p>
+   * Host binding strategy on multihomed networking:
+   * <ol>
+   * <li>Environment variables via tachyon-env.sh or from OS settings
+   * <li>Default properties via tachyon-default.properties file
+   * <li>A reachable local host name for the host this JVM is running on
+   * </ol>
+   * 
+   * @param conf the configuration of Tachyon
+   * @return the master's server bind address
    */
-  public static String getMasterWebBindHost(TachyonConf conf) {
-    return conf.get(Constants.MASTER_WEB_BIND_HOST, getLocalHostName(conf));
+  public static InetSocketAddress getMasterBindAddress(TachyonConf conf) {
+    String host = conf.get(Constants.MASTER_BIND_HOST, "");
+    int port = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+    TachyonConf.assertValidPort(port, conf);
+    if (!host.isEmpty()) {
+      return new InetSocketAddress(host, port);
+    } else {
+      return new InetSocketAddress(getLocalHostName(conf), port);
+    }
+  }
+
+  /**
+   * Helper method to get the {@link InetSocketAddress} connection address of the master web server.
+   *
+   * @param conf the configuration of Tachyon
+   * @return a connection address that a client uses to communicate with service endpoint.
+   */
+  public static InetSocketAddress getMasterWebAddress(TachyonConf conf) {
+    String host =
+        getConnectHost(conf.get(Constants.MASTER_WEB_HOSTNAME, ""),
+            conf.get(Constants.MASTER_WEB_BIND_HOST, ""), conf);
+    int port = conf.getInt(Constants.MASTER_WEB_PORT, Constants.DEFAULT_MASTER_WEB_PORT);
+    return new InetSocketAddress(host, port);
+  }
+
+  /**
+   * Helper method to get the {@link InetSocketAddress} bind address of the master web server.
+   *
+   * @param conf the configuration of Tachyon
+   * @return the master's web server bind address
+   */
+  public static InetSocketAddress getMasterWebBindAddress(TachyonConf conf) {
+    String host = conf.get(Constants.MASTER_WEB_BIND_HOST, "");
+    int port = conf.getInt(Constants.MASTER_WEB_PORT, Constants.DEFAULT_MASTER_WEB_PORT);
+    TachyonConf.assertValidPort(port, conf);
+    if (!host.isEmpty()) {
+      return new InetSocketAddress(host, port);
+    } else {
+      return new InetSocketAddress(getLocalHostName(conf), port);
+    }
   }
 
   /**
    * Helper method to get the {@link java.net.InetSocketAddress} connect hostname of the worker.
    *
    * @param conf the configuration of Tachyon
-   * @return the worker's connect hostname
+   * @return a connection hostname that a client uses to communicate with service endpoint.
    */
-  public static String getWorkerConnectHost(TachyonConf conf) {
-    if (conf.get(Constants.WORKER_BIND_HOST, "localhost").equals("0.0.0.0")) {
-      return NetworkAddressUtils.getLocalHostName(conf);
+  public static String getWorkerHost(TachyonConf conf) {
+    return getConnectHost(conf.get(Constants.WORKER_HOSTNAME, ""),
+        conf.get(Constants.WORKER_BIND_HOST, ""), conf);
+  }
+
+  /**
+   * Helper method to get the {@link InetSocketAddress} connection address of the worker.
+   *
+   * @param conf the configuration of Tachyon
+   * @return a connection address that a client uses to communicate with service endpoint.
+   */
+  public static InetSocketAddress getWorkerAddress(TachyonConf conf) {
+    String host = getWorkerHost(conf);
+    int port = conf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
+    return new InetSocketAddress(host, port);
+  }
+
+  /**
+   * Helper method to get the {@link InetSocketAddress} of the worker bind address.
+   *
+   * @param conf the configuration of Tachyon
+   * @return the worker's bind address
+   */
+  public static InetSocketAddress getWorkerBindAddress(TachyonConf conf) {
+    String host = conf.get(Constants.WORKER_BIND_HOST, "");
+    int port = conf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
+    TachyonConf.assertValidPort(port, conf);
+    if (!host.isEmpty()) {
+      return new InetSocketAddress(host, port);
+    } else {
+      return new InetSocketAddress(getLocalHostName(conf), port);
     }
-    return getWorkerBindHost(conf);
   }
 
   /**
-   * Gets a binding hostname for worker
+   * Helper method to get the {@link InetSocketAddress} connection address of the worker data
+   * server.
    *
-   * @param conf Tachyon configuration used to look up the host resolution timeout
-   * @return the user specified hostname ($TACHYON_WORKER_BIND_HOST) for binding.
+   * @param conf the configuration of Tachyon
+   * @return a connection address that a client uses to communicate with service endpoint.
    */
-  public static String getWorkerBindHost(TachyonConf conf) {
-    return conf.get(Constants.WORKER_BIND_HOST, getLocalHostName(conf));
+  public static InetSocketAddress getWorkerDataAddress(TachyonConf conf) {
+    String host =
+        getConnectHost(conf.get(Constants.WORKER_DATA_HOSTNAME, ""),
+            conf.get(Constants.WORKER_DATA_BIND_HOST, ""), conf);
+    int port = conf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_PORT);
+    return new InetSocketAddress(host, port);
   }
 
   /**
-   * Gets a binding hostname for worker data server
+   * Helper method to get the {@link InetSocketAddress} bind address of the worker data server.
    *
-   * @param conf Tachyon configuration used to look up the host resolution timeout
-   * @return the user specified hostname ($TACHYON_WORKER_DATA_BIND_HOST) for binding.
+   * @param conf the configuration of Tachyon
+   * @return the worker's data server bind address
    */
-  public static String getWorkerDataBindHost(TachyonConf conf) {
-    return conf.get(Constants.WORKER_DATA_BIND_HOST, getLocalHostName(conf));
+  public static InetSocketAddress getWorkerDataBindAddress(TachyonConf conf) {
+    String host = conf.get(Constants.WORKER_DATA_BIND_HOST, "");
+    int port = conf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_PORT);
+    TachyonConf.assertValidPort(port, conf);
+    if (!host.isEmpty()) {
+      return new InetSocketAddress(host, port);
+    } else {
+      return new InetSocketAddress(getLocalHostName(conf), port);
+    }
   }
 
   /**
-   * Gets a binding hostname for worker web server
+   * Helper method to get the {@link InetSocketAddress} connection address of the worker web server.
    *
-   * @param conf Tachyon configuration used to look up the host resolution timeout
-   * @return the user specified hostname ($TACHYON_WORKER_WEB_BIND_HOST) for binding.
+   * @param conf the configuration of Tachyon
+   * @return a connection address that a client uses to communicate with service endpoint.
    */
-  public static String getWorkerWebBindHost(TachyonConf conf) {
-    return conf.get(Constants.WORKER_WEB_BIND_HOST, getLocalHostName(conf));
+  public static InetSocketAddress getWorkerWebAddress(TachyonConf conf) {
+    String host =
+        getConnectHost(conf.get(Constants.WORKER_WEB_HOSTNAME, ""),
+            conf.get(Constants.WORKER_WEB_BIND_HOST, ""), conf);
+    int port = conf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
+    return new InetSocketAddress(host, port);
+  }
+
+  /**
+   * Helper method to get the {@link InetSocketAddress} bind address of the worker web server.
+   *
+   * @param conf the configuration of Tachyon
+   * @return the worker's web server bind address
+   */
+  public static InetSocketAddress getWorkerWebBindAddress(TachyonConf conf) {
+    String host = conf.get(Constants.WORKER_WEB_BIND_HOST, "");
+    int port = conf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
+    TachyonConf.assertValidPort(port, conf);
+    if (!host.isEmpty()) {
+      return new InetSocketAddress(host, port);
+    } else {
+      return new InetSocketAddress(getLocalHostName(conf), port);
+    }
+  }
+
+  /**
+   * Retrieve user specified connection hostname. If the connection hostname is not explicitly
+   * specified, Tachyon will try bind hostname. If it's failed, Tachyon will automatically select an
+   * appropriate local host name.
+   *
+   * @param hostName connection hostname
+   * @param bindHost bind host
+   * @return the connection endpoint for reaching the service.
+   */
+  private static String getConnectHost(String hostName, String bindHost, TachyonConf conf) {
+    if (!hostName.equals("0.0.0.0") && !hostName.isEmpty()) {
+      return hostName;
+    } else if (!bindHost.equals("0.0.0.0") && !bindHost.isEmpty()) {
+      return bindHost;
+    } else {
+      return getLocalHostName(conf);
+    }
   }
 
   /**
@@ -137,16 +262,17 @@ public final class NetworkAddressUtils {
     if (sLocalHost != null) {
       return sLocalHost;
     }
-    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
-        Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout =
+        conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
+            Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalHostName(hostResolutionTimeout);
   }
 
   /**
    * Gets a local host name for the host this JVM is running on
    *
-   * @param timeout Timeout in milliseconds to use for checking that a possible local
-   *                host is reachable
+   * @param timeout Timeout in milliseconds to use for checking that a possible local host is
+   *        reachable
    * @return the local host name, which is not based on a loopback ip address.
    */
   public static String getLocalHostName(int timeout) {
@@ -178,8 +304,9 @@ public final class NetworkAddressUtils {
     if (sLocalIP != null) {
       return sLocalIP;
     }
-    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
-        Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout =
+        conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
+            Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalIpAddress(hostResolutionTimeout);
   }
 
@@ -303,8 +430,8 @@ public final class NetworkAddressUtils {
 
   /**
    * Gets the port for the underline socket. This function calls
-   * {@link #getSocket(org.apache.thrift.transport.TServerSocket)}, so reflection will be
-   * used to get the port.
+   * {@link #getSocket(org.apache.thrift.transport.TServerSocket)}, so reflection will be used to
+   * get the port.
    *
    * @see #getSocket(org.apache.thrift.transport.TServerSocket)
    */
@@ -328,189 +455,6 @@ public final class NetworkAddressUtils {
     } catch (IllegalAccessException e) {
       throw Throwables.propagate(e);
     }
-  }
-
-  /**
-   * Gets the Tachyon master address from the configuration
-   *
-   * @param conf the configuration of Tachyon
-   * @return the InetSocketAddress of the master
-   */
-  public static InetSocketAddress getMasterAddress(TachyonConf conf) {
-    String masterHost = conf.get(Constants.MASTER_HOSTNAME, getLocalHostName(conf));
-    int masterPort = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    return new InetSocketAddress(masterHost, masterPort);
-  }
-
-  /**
-   * Helper method to get the {@link InetSocketAddress} connect address of the master.
-   *
-   * @param conf the configuration of Tachyon
-   * @return the master's connect address
-   */
-  public static InetSocketAddress getMasterConnectAddress(TachyonConf conf) {
-    if (conf.get(Constants.MASTER_BIND_HOST, "localhost").equals("0.0.0.0")) {
-      String masterHostName = getMasterHostName(conf);
-      int masterPort = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-      TachyonConf.assertValidPort(masterPort, conf);
-      return new InetSocketAddress(masterHostName, masterPort);
-    }
-    return getMasterBindAddress(conf);
-  }
-
-  /**
-   * Gets the Tachyon master address from the configuration
-   *
-   * @param conf the configuration of Tachyon
-   * @return the InetSocketAddress of the master
-   */
-  public static InetSocketAddress getMasterBindAddress(TachyonConf conf) {
-    String masterBindHost = getMasterBindHost(conf);
-    int masterPort = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    TachyonConf.assertValidPort(masterPort, conf);
-    return new InetSocketAddress(masterBindHost, masterPort);
-  }
-
-  /**
-   * Helper method to get the {@link InetSocketAddress} connect address of the master.
-   *
-   * @param conf the configuration of Tachyon
-   * @return the master's connect address
-   */
-  public static InetSocketAddress getMasterWebConnectAddress(TachyonConf conf) {
-    if (conf.get(Constants.MASTER_WEB_BIND_HOST, "localhost").equals("0.0.0.0")) {
-      String masterLocalhost = getMasterHostName(conf);
-      int masterPort = conf.getInt(Constants.MASTER_WEB_PORT, Constants.DEFAULT_MASTER_WEB_PORT);
-      return new InetSocketAddress(masterLocalhost, masterPort);
-    }
-    return getMasterWebBindAddress(conf);
-  }
-
-  /**
-   * Gets the Tachyon master address from the configuration
-   *
-   * @param conf the configuration of Tachyon
-   * @return the InetSocketAddress of the master
-   */
-  public static InetSocketAddress getMasterWebBindAddress(TachyonConf conf) {
-    String masterWebBindlhost = getMasterWebBindHost(conf);
-    int masterWebPort = conf.getInt(Constants.MASTER_WEB_PORT, Constants.DEFAULT_MASTER_WEB_PORT);
-    TachyonConf.assertValidPort(masterWebPort, conf);
-    return new InetSocketAddress(masterWebBindlhost, masterWebPort);
-  }
-
-  /**
-   * Helper method to get the {@link InetSocketAddress} of the worker.
-   *
-   * @param conf the configuration of Tachyon
-   * @return the worker's address
-   */
-  public static InetSocketAddress getWorkerAddress(TachyonConf conf) {
-    String workerHost = getLocalHostName(conf);
-    int workerPort = conf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
-    return new InetSocketAddress(workerHost, workerPort);
-  }
-
-  /**
-   * Helper method to get the {@link InetSocketAddress} connect address of the worker.
-   *
-   * @param conf the configuration of Tachyon
-   * @return the worker's connect address
-   */
-  public static InetSocketAddress getWorkerConnectAddress(TachyonConf conf) {
-    if (conf.get(Constants.WORKER_BIND_HOST, "localhost").equals("0.0.0.0")) {
-      String workerLocalhost = getLocalHostName(conf);
-      int workerPort = conf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
-      return new InetSocketAddress(workerLocalhost, workerPort);
-    }
-    return getWorkerBindAddress(conf);
-  }
-
-  /**
-   * Helper method to get the {@link InetSocketAddress} of the worker bind address.
-   *
-   * @param conf the configuration of Tachyon
-   * @return the worker's address for binding
-   */
-  public static InetSocketAddress getWorkerBindAddress(TachyonConf conf) {
-    String workerBindHost = getWorkerBindHost(conf);
-    int workerPort = conf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
-    TachyonConf.assertValidPort(workerPort, conf);
-    return new InetSocketAddress(workerBindHost, workerPort);
-  }
-
-  /**
-   * Helper method to get the {@link InetSocketAddress} connect address of the worker data server.
-   *
-   * @param conf the configuration of Tachyon
-   * @return the worker's data server connect address
-   */
-  public static InetSocketAddress getWorkerDataConnectAddress(TachyonConf conf) {
-    if (conf.get(Constants.WORKER_BIND_HOST, "localhost").equals("0.0.0.0")) {
-      String workerLocalhost = getLocalHostName(conf);
-      int workerDataPort =
-          conf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
-      return new InetSocketAddress(workerLocalhost, workerDataPort);
-    }
-    return getWorkerDataBindAddress(conf);
-  }
-
-  /**
-   * Helper method to get the {@link InetSocketAddress} of bind address of the worker data server.
-   *
-   * @param conf the configuration of Tachyon
-   * @return the worker's data server address for binding
-   */
-  public static InetSocketAddress getWorkerDataBindAddress(TachyonConf conf) {
-    String workerDataBindHost = getWorkerDataBindHost(conf);
-    int workerDataPort =
-        conf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
-    TachyonConf.assertValidPort(workerDataPort, conf);
-    return new InetSocketAddress(workerDataBindHost, workerDataPort);
-  }
-
-  /**
-   * Helper method to get the {@link InetSocketAddress} connect address of the worker data server.
-   *
-   * @param conf the configuration of Tachyon
-   * @return the worker's data server connect address
-   */
-  public static InetSocketAddress getWorkerWebConnectAddress(TachyonConf conf) {
-    if (conf.get(Constants.WORKER_BIND_HOST, "localhost").equals("0.0.0.0")) {
-      String workerLocalhost = getLocalHostName(conf);
-      int workerWebPort = conf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
-      return new InetSocketAddress(workerLocalhost, workerWebPort);
-    }
-    return getWorkerWebBindAddress(conf);
-  }
-
-  /**
-   * Helper method to get the {@link InetSocketAddress} of the worker web bind address.
-   *
-   * @param conf the configuration of Tachyon
-   * @return the worker's web bind address
-   */
-  public static InetSocketAddress getWorkerWebBindAddress(TachyonConf conf) {
-    String workerWebBindHost = getWorkerWebBindHost(conf);
-    int workerWebPort = conf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
-    TachyonConf.assertValidPort(workerWebPort, conf);
-    return new InetSocketAddress(workerWebBindHost, workerWebPort);
-  }
-
-  /**
-   * Gets the {@link java.net.InetSocketAddress} of the local worker.
-   *
-   * Make sure there is a local worker before calling this method.
-   *
-   * @param conf the configuration of Tachyon
-   * @return the worker's address
-   */
-  public static InetSocketAddress getLocalWorkerAddress(TachyonConf conf) {
-    String workerHostname = getLocalHostName(conf);
-    // Cannot rely on tachyon-default.properties because GetMasterWorkerAddressTest will test with
-    // fake conf
-    int workerPort = conf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
-    return new InetSocketAddress(workerHostname, workerPort);
   }
 
   /**

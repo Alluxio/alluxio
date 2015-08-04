@@ -69,7 +69,7 @@ public final class LocalTachyonMaster {
     UnderFileSystemUtils.mkdirIfNotExists(mDataDir, tachyonConf);
     UnderFileSystemUtils.mkdirIfNotExists(mLogDir, tachyonConf);
 
-    mHostname = NetworkAddressUtils.getMasterHostName(tachyonConf);
+    mHostname = NetworkAddressUtils.getMasterHost(tachyonConf);
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
     // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
