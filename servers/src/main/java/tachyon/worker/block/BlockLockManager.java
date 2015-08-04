@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 
@@ -68,7 +69,7 @@ public class BlockLockManager {
 
   /**
    * Get index of the lock that will be used to lock the block
-   * 
+   *
    * @param blockId the id of the block
    * @return hash index of the lock
    */
@@ -94,6 +95,19 @@ public class BlockLockManager {
       lock = blockLock.readLock();
     } else { // blockLockType == BlockLockType.WRITE
       lock = blockLock.writeLock();
+    }
+
+    // The block lock may be busy, wait up to one second to obtain it.
+    boolean success;
+    try {
+      success = lock.tryLock(Constants.SECOND_MS, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException ie) {
+      // The UserLock implementation does not throw this exception, something is wrong if it happens
+      LOG.error("Interrupted exception in tryLock, this should not occur!");
+      throw new IOException(ie.getMessage(), ie.getCause());
+    }
+    if (!success) {
+      throw new IOException("Failed to lockBlock: " + blockId + " for user: " + userId + " in 1s.");
     }
     lock.lock();
     if (!mMetaManager.hasBlockMeta(blockId)) {
