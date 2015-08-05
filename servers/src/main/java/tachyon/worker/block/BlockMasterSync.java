@@ -197,7 +197,7 @@ public class BlockMasterSync implements Runnable {
           try {
             mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
           } catch (IOException ioe) {
-            LOG.warn("Failed to delete block instructed by master due to concurrent read.");
+            LOG.warn("Failed master delete block cmd for: " + block + " due to concurrent read.");
           }
         }
         break;
