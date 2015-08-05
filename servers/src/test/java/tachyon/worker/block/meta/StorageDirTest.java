@@ -67,9 +67,10 @@ public class StorageDirTest {
     // Creates a dummy test dir under mTestDirPath with 1 byte space so initialization can occur
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
     TachyonConf tachyonConf = new TachyonConf();
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", mFolder.newFolder()
-        .getAbsolutePath());
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", "1b");
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
+        mFolder.newFolder().getAbsolutePath());
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
+        "1b");
     tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
 
     mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
