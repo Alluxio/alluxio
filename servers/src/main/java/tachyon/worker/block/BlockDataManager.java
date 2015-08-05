@@ -194,7 +194,6 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to commit
-   * @return true if successful, false otherwise
    * @throws AlreadyExistsException if blockId already exists in committed blocks
    * @throws NotFoundException if the temporary block cannot be found
    * @throws InvalidStateException if blockId does not belong to userId
@@ -517,7 +516,7 @@ public class BlockDataManager {
    * Set the pinlist for the underlying blockstore.
    * Typically called by PinListSync.
    *
-   * @param pinnedInodes, a set of pinned inodes
+   * @param pinnedInodes a set of pinned inodes
    */
   public void updatePinList(Set<Integer> pinnedInodes) {
     mBlockStore.updatePinnedInodes(pinnedInodes);
