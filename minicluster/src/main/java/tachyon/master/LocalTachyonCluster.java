@@ -29,9 +29,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.thrift.NetAddress;
-import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.UnderFileSystemUtils;
 import tachyon.worker.block.BlockWorker;
 
 /**
@@ -137,36 +137,13 @@ public final class LocalTachyonCluster {
     return mWorkerDataFolder;
   }
 
-  private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, getMasterTachyonConf());
-
-    if (ufs.exists(path) && !ufs.delete(path, true)) {
-      throw new IOException("Folder " + path + " already exists but can not be deleted.");
-    }
-  }
-
-  private void mkdir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, getMasterTachyonConf());
-
-    if (ufs.exists(path)) {
-      ufs.delete(path, true);
-    }
-    if (!ufs.mkdirs(path, true)) {
-      throw new IOException("Failed to make folder: " + path);
-    }
-  }
-
-  public void start() throws IOException {
-    start(new TachyonConf());
-  }
-
-  public void start(TachyonConf tachyonConf) throws IOException {
-    mTachyonHome =
-        File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
-    mWorkerDataFolder = "/datastore";
-
-    mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
-
+  /**
+   * Configure and start master
+   *
+   * @param tachyonConf Master's configuration
+   * @throws IOException
+   */
+  public void startMaster(TachyonConf tachyonConf) throws IOException {
     mMasterConf = tachyonConf;
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
@@ -174,29 +151,18 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
     mMasterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "64");
 
-    // Since tests are always running on a single host keep the resolution timeout low as otherwise
-    // people running with strange network configurations will see very slow tests
-    mMasterConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
-
-    // Lower the number of threads that the cluster will spin off.
-    // default thread overhead is too much.
-    mMasterConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
-    mMasterConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
-    mMasterConf.set(Constants.WEB_THREAD_COUNT, "1");
-
-    // re-build the dir to set permission to 777
-    deleteDir(mTachyonHome);
-    mkdir(mTachyonHome);
-
     mMaster = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
     mMaster.start();
+  }
 
-    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
-    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
-
-    CommonUtils.sleepMs(null, 10);
-
-    mWorkerConf = new TachyonConf(mMasterConf);
+  /**
+   * Configure and start worker
+   *
+   * @param tachyonConf Worker's configuration
+   * @throws IOException
+   */
+  public void startWorker(TachyonConf tachyonConf) throws IOException {
+    mWorkerConf = tachyonConf;
     mWorkerConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
     mWorkerConf.set(Constants.MASTER_PORT, getMasterPort() + "");
     mWorkerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
@@ -206,13 +172,13 @@ public final class LocalTachyonCluster {
     mWorkerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
     mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
     mWorkerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, "15");
-    mWorkerConf.set(Constants.WORKER_MIN_WORKER_THREADS, Integer.toString(1));
-    mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, Integer.toString(100));
-    mWorkerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, Integer.toString(2));
+    mWorkerConf.set(Constants.WORKER_MIN_WORKER_THREADS, "1");
+    mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, "100");
+    mWorkerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, "2");
 
     // Perform immediate shutdown of data server. Graceful shutdown is unnecessary and slow
-    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
-    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
+    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, "0");
+    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, "0");
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
@@ -223,7 +189,7 @@ public final class LocalTachyonCluster {
         mTachyonHome + "/ramdisk");
     mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
         mWorkerCapacityBytes + "");
-    mkdir(mTachyonHome + "/ramdisk");
+    UnderFileSystemUtils.mkdirIfNotExists(mTachyonHome + "/ramdisk", mWorkerConf);
 
     int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
     for (int level = 1; level < maxLevel; level ++) {
@@ -234,7 +200,7 @@ public final class LocalTachyonCluster {
       for (String dirPath : dirPaths) {
         String newPath = mTachyonHome + dirPath;
         newPaths.add(newPath);
-        mkdir(newPath);
+        UnderFileSystemUtils.mkdirIfNotExists(newPath, mWorkerConf);
       }
       mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level),
           Joiner.on(',').join(newPaths));
@@ -253,6 +219,27 @@ public final class LocalTachyonCluster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
+  }
+
+  public void start() throws IOException {
+    start(new TachyonConf());
+  }
+
+  public void start(TachyonConf tachyonConf) throws IOException {
+    mTachyonHome =
+        File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
+    mWorkerDataFolder = "/datastore";
+    mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
+
+    startMaster(tachyonConf);
+
+    UnderFileSystemUtils.mkdirIfNotExists(
+        mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"), mMasterConf);
+    UnderFileSystemUtils.mkdirIfNotExists(
+        mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"), mMasterConf);
+    CommonUtils.sleepMs(null, 10);
+
+    startWorker(new TachyonConf(mMasterConf));
   }
 
   /**
