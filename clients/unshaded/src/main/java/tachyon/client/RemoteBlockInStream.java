@@ -347,7 +347,7 @@ public class RemoteBlockInStream extends BlockInStream {
       long blockId, long offset, long length, TachyonConf conf) throws IOException {
     // always clear the previous reader before assigning it to a new one
     closeReader();
-    RemoteBlockReader mCurrentReader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
+    mCurrentReader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
     return mCurrentReader.readRemoteBlock(
         address.getHostName(), address.getPort(), blockId, offset, length);
   }
