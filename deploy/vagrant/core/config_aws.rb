@@ -24,7 +24,7 @@ def config_aws(config, i, total, name)
       'Name' => TAG + "-" + name,
     }
 	  aws.availability_zone = AVAILABILITY_ZONE
-    if (aws.subnet_id != None and aws.subnet_id != "")
+    if (SUBNET != nil and SUBNET != "")
       aws.subnet_id = SUBNET
       aws.associate_public_ip = TRUE
       aws.security_groups = ENV['AWS_SECURITY_GROUP_ID_TACH']
