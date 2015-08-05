@@ -65,7 +65,6 @@ public class TieredBlockStoreTestUtils {
    * @param tierCapacity like {@link #TIER_CAPACITY}, should be in the same dimension with tierPath,
    *        each element is the capacity of the corresponding dir in tierPath
    * @return the created TachyonConf
-   * @throws Exception when initialization of TieredBlockStore fails
    */
   public static TachyonConf newTachyonConf(int[] tierLevel, String[] tierAlias,
       String[][] tierPath, long[][] tierCapacity) {
@@ -151,7 +150,7 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Cache bytes into StroageDir.
+   * Cache bytes into StorageDir.
    *
    * @param userId user who caches the data
    * @param blockId id of the cached block

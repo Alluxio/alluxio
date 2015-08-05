@@ -41,7 +41,7 @@ public class EvictorTestUtils {
    * @param plan the eviction plan
    * @param meta the meta data manager
    * @return true if blocks are in the same dir otherwise false
-   * @throws tachyon.exception.NotFoundException if fail to get meta data of a block
+   * @throws NotFoundException if fail to get meta data of a block
    */
   public static boolean blocksInTheSameDir(EvictionPlan plan, BlockMetadataManager meta)
       throws NotFoundException {
