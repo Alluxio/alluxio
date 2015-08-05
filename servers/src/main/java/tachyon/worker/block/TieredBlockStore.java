@@ -122,11 +122,11 @@ public class TieredBlockStore implements BlockStore {
   public long lockBlock(long userId, long blockId) throws NotFoundException {
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.READ);
     mMetadataLock.readLock().lock();
-    if (mMetaManager.hasBlockMeta(blockId)) {
-      mMetadataLock.readLock().unlock();
+    boolean hasBlock = mMetaManager.hasBlockMeta(blockId);
+    mMetadataLock.readLock().unlock();
+    if (hasBlock) {
       return lockId;
     }
-    mMetadataLock.readLock().unlock();
     mLockManager.unlockBlock(lockId);
     throw new NotFoundException("Failed to lockBlock: no blockId " + blockId + " found");
   }
@@ -144,7 +144,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public BlockWriter getBlockWriter(long userId, long blockId) throws NotFoundException,
       IOException {
-    // NOTE: a temp block is supposed to be visible for its own writer, unnecessary to acquire
+    // NOTE: a temp block is supposed to be visible by its own writer, unnecessary to acquire
     // block lock here since no sharing
     mMetadataLock.readLock().lock();
     try {
@@ -171,7 +171,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public TempBlockMeta createBlockMeta(long userId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws AlreadyExistsException, OutOfSpaceException, NotFoundException,
-      IOException, InvalidStateException {
+      IOException {
     int numRetries = 0;
     while (numRetries < MAX_RETRIES) {
       TempBlockMeta tempBlockMeta =
@@ -191,6 +191,7 @@ public class TieredBlockStore implements BlockStore {
         + "failed to allocate " + initialBlockSize + " bytes after " + MAX_RETRIES + " retries");
   }
 
+  // TODO: make this method to return a snapshot
   @Override
   public BlockMeta getVolatileBlockMeta(long blockId) throws NotFoundException {
     mMetadataLock.readLock().lock();
@@ -215,7 +216,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void commitBlock(long userId, long blockId) throws AlreadyExistsException,
-      InvalidStateException, NotFoundException, IOException, OutOfSpaceException {
+      InvalidStateException, NotFoundException, IOException {
     BlockStoreLocation loc = commitBlockInternal(userId, blockId);
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -237,8 +238,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void requestSpace(long userId, long blockId, long additionalBytes)
-      throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException,
-      InvalidStateException {
+      throws NotFoundException, OutOfSpaceException, IOException {
     int numRetries = 0;
     while (numRetries < MAX_RETRIES) {
       Pair<Boolean, BlockStoreLocation> requestResult =
@@ -290,6 +290,12 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void accessBlock(long userId, long blockId) throws NotFoundException {
+    mMetadataLock.readLock().lock();
+    boolean hasBlock = mMetaManager.hasBlockMeta(blockId);
+    mMetadataLock.readLock().unlock();
+    if (!hasBlock) {
+      throw new NotFoundException("Failed to accessBlock: no blockId " + blockId + " found");
+    }
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         listener.onAccessBlock(userId, blockId);
@@ -299,13 +305,17 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void freeSpace(long userId, long availableBytes, BlockStoreLocation location)
-      throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException,
-      InvalidStateException {
+      throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException {
+    // TODO: consider whether to retry here
     freeSpaceInternal(userId, availableBytes, location);
   }
 
   @Override
   public void cleanupUser(long userId) {
+    // Release all locks the user is holding.
+    mLockManager.cleanupUser(userId);
+
+    // Collect a list of temp blocks the given user owns and abort all of them with best effort
     List<TempBlockMeta> tempBlocksToRemove;
     mMetadataLock.readLock().lock();
     try {
@@ -313,11 +323,6 @@ public class TieredBlockStore implements BlockStore {
     } finally {
       mMetadataLock.readLock().unlock();
     }
-
-    // TODO: fix the block removing below, there is possible risk condition when the client which
-    // is considered "dead" may still be using or committing this block.
-    // A user may have multiple temporary directories for temp blocks, in different StorageTier
-    // and StorageDir.
     for (TempBlockMeta tempBlockMeta : tempBlocksToRemove) {
       try {
         abortBlockInternal(userId, tempBlockMeta.getBlockId());
@@ -327,7 +332,9 @@ public class TieredBlockStore implements BlockStore {
       }
     }
 
-    // Go through all the storage directories and delete the user folders which should be empty
+    // A user may create multiple temporary directories for temp blocks, in different StorageTier
+    // and StorageDir. Go through all the storage directories and delete the user folders which
+    // should be empty
     for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         File userFolder = new File(PathUtils.concatPath(dir.getDirPath(), userId));
@@ -343,29 +350,22 @@ public class TieredBlockStore implements BlockStore {
         }
       }
     }
-
-    // Release all locks the user is holding.
-    mLockManager.cleanupUser(userId);
   }
 
   @Override
   public boolean hasBlockMeta(long blockId) {
     mMetadataLock.readLock().lock();
-    try {
-      return mMetaManager.hasBlockMeta(blockId);
-    } finally {
-      mMetadataLock.readLock().unlock();
-    }
+    boolean hasBlock = mMetaManager.hasBlockMeta(blockId);
+    mMetadataLock.readLock().unlock();
+    return hasBlock;
   }
 
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
     mMetadataLock.readLock().lock();
-    try {
-      return mMetaManager.getBlockStoreMeta();
-    } finally {
-      mMetadataLock.readLock().unlock();
-    }
+    BlockStoreMeta storeMeta = mMetaManager.getBlockStoreMeta();
+    mMetadataLock.readLock().unlock();
+    return storeMeta;
   }
 
   @Override
@@ -376,8 +376,8 @@ public class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Check if a blockId is available as a new temp block. This method must be enclosed by metadata
-   * lock.
+   * Checks if a blockId is available for a new temp block. This method must be enclosed by
+   * {@link #mMetadataLock}.
    *
    * @param blockId the ID of block
    * @throws AlreadyExistsException if blockId already exists
@@ -394,8 +394,8 @@ public class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Check if blockId is a temporary block and owned by userId. This method must be enclosed by
-   * metadata lock.
+   * Checks if blockId is a temporary block and owned by userId. This method must be enclosed by
+   * {@link #mMetadataLock}.
    *
    * @param userId the ID of user
    * @param blockId the ID of block
@@ -417,8 +417,16 @@ public class TieredBlockStore implements BlockStore {
     }
   }
 
-
-  // Abort a temp block.
+  /**
+   * Aborts a temp block.
+   *
+   * @param userId the ID of user
+   * @param blockId the ID of block
+   * @throws NotFoundException if blockId can not be found in temporary blocks
+   * @throws AlreadyExistsException if blockId already exists in committed blocks
+   * @throws InvalidStateException if blockId is not owned by userId
+   * @throws IOException if I/O errors occur when deleting the block file
+   */
   private void abortBlockInternal(long userId, long blockId) throws NotFoundException,
       AlreadyExistsException, InvalidStateException, IOException {
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
@@ -439,24 +447,34 @@ public class TieredBlockStore implements BlockStore {
       mMetadataLock.writeLock().lock();
       try {
         mMetaManager.abortTempBlockMeta(tempBlockMeta);
+      } catch (NotFoundException nfe) {
+        throw Throwables.propagate(nfe); // We shall never reach here
       } finally {
         mMetadataLock.writeLock().unlock();
       }
     } finally {
       mLockManager.unlockBlock(lockId);
     }
-
   }
 
-  // Commit a temp block.
+  /**
+   * Commits a temp block.
+   *
+   * @param userId the ID of user
+   * @param blockId the ID of block
+   * @throws NotFoundException if blockId can not be found in temporary blocks
+   * @throws AlreadyExistsException if blockId already exists in committed blocks
+   * @throws InvalidStateException if blockId is not owned by userId
+   * @throws IOException if I/O errors occur when deleting the block file
+   * @return destination location to move the block
+   */
   private BlockStoreLocation commitBlockInternal(long userId, long blockId)
-      throws AlreadyExistsException, InvalidStateException, NotFoundException, IOException,
-      OutOfSpaceException {
+      throws AlreadyExistsException, InvalidStateException, NotFoundException, IOException {
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
     try {
-      // When committing TempBlockMeta, its BlockMeta calculates the block size according to the
-      // size of the file of this TempBlockMeta. Therefore, commitTempBlockMeta must complete
-      // before moving actual block file to its committed path.
+      // When committing TempBlockMeta, the final BlockMeta calculates the block size according to
+      // the actual file size of this TempBlockMeta. Therefore, commitTempBlockMeta must happen
+      // after moving actual block file to its committed path.
       BlockStoreLocation loc;
       String srcPath;
       String dstPath;
@@ -477,6 +495,12 @@ public class TieredBlockStore implements BlockStore {
       mMetadataLock.writeLock().lock();
       try {
         mMetaManager.commitTempBlockMeta(tempBlockMeta);
+      } catch (AlreadyExistsException aee) {
+        throw Throwables.propagate(aee); // we shall never reach here
+      } catch (NotFoundException nfe) {
+        throw Throwables.propagate(nfe); // we shall never reach here
+      } catch (OutOfSpaceException ose) {
+        throw Throwables.propagate(ose); // we shall never reach here
       } finally {
         mMetadataLock.writeLock().unlock();
       }
@@ -497,7 +521,7 @@ public class TieredBlockStore implements BlockStore {
    * @param newBlock true if this temp block is created for a new block
    * @return a temp block created if successful, or null if allocation failed (instead of throwing
    *         OutOfSpaceException because allocation failure could be an expected case)
-   * @throws AlreadyExistsException if there is a block already having the same block id
+   * @throws AlreadyExistsException if there is already a block with the same block id
    */
   private TempBlockMeta createBlockMetaInternal(long userId, long blockId,
       BlockStoreLocation location, long initialBlockSize, boolean newBlock)
@@ -542,7 +566,7 @@ public class TieredBlockStore implements BlockStore {
    *
    * @param blockId block Id
    * @param additionalBytes additional bytes to request for this block
-   * @return a pair of boolean and BlockStoreLocation where the boolean indicates if the operation
+   * @return a pair of boolean and BlockStoreLocation. The boolean indicates if the operation
    *         succeeds and the BlockStoreLocation denotes where to free more space if it fails.
    * @throws NotFoundException if this block is not found
    */
@@ -561,8 +585,7 @@ public class TieredBlockStore implements BlockStore {
         mMetaManager.resizeTempBlockMeta(tempBlockMeta, tempBlockMeta.getBlockSize()
             + additionalBytes);
       } catch (InvalidStateException ise) {
-        // we shall never reach here
-        throw Throwables.propagate(ise);
+        throw Throwables.propagate(ise); // we shall never reach here
       }
       return new Pair<Boolean, BlockStoreLocation>(true, null);
     } finally {
@@ -577,12 +600,11 @@ public class TieredBlockStore implements BlockStore {
    * @param userId the user Id
    * @param availableBytes amount of space in bytes to free
    * @param location location of space
-   * @throws OutOfSpaceException if impossible to achieve the free requirement
+   * @throws OutOfSpaceException if it is impossible to achieve the free requirement
    * @throws IOException if I/O errors occur when removing or moving block files
-   * @throws InvalidStateException if some blocks to remove or move is temp block
    */
   private void freeSpaceInternal(long userId, long availableBytes, BlockStoreLocation location)
-      throws OutOfSpaceException, IOException, InvalidStateException {
+      throws OutOfSpaceException, IOException {
     EvictionPlan plan;
     mMetadataLock.readLock().lock();
     try {
@@ -599,6 +621,10 @@ public class TieredBlockStore implements BlockStore {
     for (long blockId : plan.toEvict()) {
       try {
         removeBlockInternal(userId, blockId);
+      } catch (InvalidStateException ise) {
+        // Evictor is not working properly
+        LOG.error("Failed to evict blockId " + blockId + ", this is temp block");
+        continue;
       } catch (NotFoundException nfe) {
         LOG.info("Failed to evict blockId " + blockId + ", it could be already deleted");
         continue;
@@ -633,6 +659,10 @@ public class TieredBlockStore implements BlockStore {
         try {
           // TODO: this should also specify the src location
           moveResult = moveBlockInternal(userId, blockId, newLocation);
+        } catch (InvalidStateException ise) {
+          // Evictor is not working properly
+          LOG.error("Failed to evict blockId " + blockId + ", this is temp block");
+          continue;
         } catch (AlreadyExistsException aee) {
           continue;
         } catch (NotFoundException nfe) {
