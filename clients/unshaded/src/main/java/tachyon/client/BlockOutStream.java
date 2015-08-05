@@ -62,8 +62,8 @@ public abstract class BlockOutStream extends OutStream {
     if (tachyonFile.mTachyonFS.hasLocalWorker()
         && tachyonConf.getBoolean(Constants.USER_ENABLE_LOCAL_WRITE,
             Constants.DEFAULT_USER_ENABLE_LOCAL_WRITE)
-            && tachyonConf.get(Constants.WORKER_BALANCER_STRATEGY_TYPE, "DEFAULT")
-                   .equalsIgnoreCase("DEFAULT")) {
+            && tachyonConf.get(Constants.MASTER_BALANCER_STRATEGY_TYPE, "LOCALFIRST")
+                   .equalsIgnoreCase("LOCALFIRST")) {
       LOG.info("Writing with local stream. tachyonFile: " + tachyonFile + ", blockIndex: "
           + blockIndex + ", opType: " + opType);
       return new LocalBlockOutStream(tachyonFile, opType, blockIndex, initialBytes, tachyonConf);
