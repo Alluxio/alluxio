@@ -343,7 +343,7 @@ public class TieredBlockStore implements BlockStore {
             FileUtils.delete(userFolder);
           }
         } catch (IOException ioe) {
-          // This error means we could not delete the directory but should not affect the
+          // This error means we could not delete the directory but should not affect t©©he
           // correctness of the method since the data has already been deleted. It is not
           // necessary to throw an exception here.
           LOG.error("Failed to clean up user: {} with directory: {}", userId, userFolder.getPath());
@@ -442,6 +442,7 @@ public class TieredBlockStore implements BlockStore {
         mMetadataLock.readLock().unlock();
       }
 
+      // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
       FileUtils.delete(new File(path));
 
       mMetadataLock.writeLock().lock();
@@ -490,6 +491,7 @@ public class TieredBlockStore implements BlockStore {
         mMetadataLock.readLock().unlock();
       }
 
+      // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
       FileUtils.move(new File(srcPath), new File(dstPath));
 
       mMetadataLock.writeLock().lock();
@@ -684,7 +686,7 @@ public class TieredBlockStore implements BlockStore {
    * Get the most updated view with most recent information on pinned inodes, and currently locked
    * blocks.
    *
-   * @return BlockMetadataManagerView, a updated view with most recent infomation.
+   * @return BlockMetadataManagerView, an updated view with most recent information.
    */
   private BlockMetadataManagerView getUpdatedView() {
     // TODO: update the view object instead of creating new one every time
@@ -729,8 +731,6 @@ public class TieredBlockStore implements BlockStore {
         srcLocation = srcBlockMeta.getBlockLocation();
         srcFilePath = srcBlockMeta.getPath();
         blockSize = srcBlockMeta.getBlockSize();
-      } catch (NotFoundException nfe) {
-        throw nfe;
       } finally {
         mMetadataLock.readLock().unlock();
       }
@@ -743,16 +743,16 @@ public class TieredBlockStore implements BlockStore {
       dstLocation = dstTempBlock.getBlockLocation();
       dstFilePath = dstTempBlock.getCommitPath();
 
-      // Heavy IO operation, still guarded by block lock but not metadata lock.
+      // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
       FileUtils.move(new File(srcFilePath), new File(dstFilePath));
 
       mMetadataLock.writeLock().lock();
       try {
-        // If this metadata update fails, let us panic for now because we don't have rollback
-        // scheme now.
+        // If this metadata update fails now, let us panic for now.
+        // TODO: add rollback scheme to recover
         mMetaManager.moveBlockMeta(srcBlockMeta, dstTempBlock);
       } catch (AlreadyExistsException aee) {
-        throw Throwables.propagate(aee);
+        throw Throwables.propagate(aee); // we shall never reach here
       } catch (NotFoundException nfe) {
         throw Throwables.propagate(nfe); // we shall never reach here
       } catch (OutOfSpaceException ose) {
@@ -782,22 +782,30 @@ public class TieredBlockStore implements BlockStore {
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
     try {
       String filePath;
-      mMetadataLock.writeLock().lock();
+      BlockMeta blockMeta;
+      mMetadataLock.readLock().lock();
       try {
         if (mMetaManager.hasTempBlockMeta(blockId)) {
           throw new InvalidStateException("Failed to remove block " + blockId
               + ": block is uncommitted");
         }
-        BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
+        blockMeta = mMetaManager.getBlockMeta(blockId);
         filePath = blockMeta.getPath();
-        mMetaManager.removeBlockMeta(blockMeta);
       } finally {
-        // If we fail to lock, the block is no longer in tiered store
-        mMetadataLock.writeLock().unlock();
+        mMetadataLock.readLock().unlock();
       }
 
-      // Heavy IO operation, still guarded by block lock but not metadata lock.
+      // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
       FileUtils.delete(new File(filePath));
+
+      mMetadataLock.writeLock().lock();
+      try {
+        mMetaManager.removeBlockMeta(blockMeta);
+      } catch (NotFoundException nfe) {
+        throw Throwables.propagate(nfe); // we shall never reach here
+      } finally {
+        mMetadataLock.writeLock().unlock();
+      }
     } finally {
       mLockManager.unlockBlock(lockId);
     }
