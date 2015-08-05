@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.block.evictor;
+package tachyon.worker.block;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,12 +34,11 @@ import com.google.common.primitives.Ints;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.NotFoundException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.exception.NotFoundException;
-import tachyon.worker.block.BlockMetadataManager;
-import tachyon.worker.block.BlockStoreEventListener;
-import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.evictor.EvictionPlan;
+import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
@@ -47,11 +46,9 @@ import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * This class provides utility methods for testing Evictors.
+ * This class provides utility methods for testing tiered block store.
  */
-public class EvictorTestUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
+public class TieredBlockStoreTestUtils {
   /**
    * Default configurations of a TieredBlockStore for use in {@link #defaultMetadataManager}. They
    * represent a block store with a MEM tier and a SSD tier, there are two directories with capacity
@@ -63,11 +60,12 @@ public class EvictorTestUtils {
   public static final String[][] TIER_PATH =
       { {"/mem/0", "/mem/1"}, {"/ssd/0", "/ssd/1", "/ssd/2"}};
   public static final long[][] TIER_CAPACITY = { {100, 200}, {1000, 2000, 3000}};
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Create a {@link BlockMetadataManager} for a {@link tachyon.worker.block.TieredBlockStore}
-   * configured by the parameters. For simplicity, you can use
-   * {@link #defaultMetadataManager(String)} which calls this method with default values.
+   * Create a {@link TachyonConf} for a {@link TieredBlockStore} configured by the parameters. For
+   * simplicity, you can use {@link #defaultTachyonConf(String)} which calls this method with
+   * default values.
    *
    * @param tierLevel like {@link #TIER_LEVEL}, length must be > 0.
    * @param tierAlias like {@link #TIER_ALIAS}, each corresponds to an element in tierLevel
@@ -75,11 +73,11 @@ public class EvictorTestUtils {
    *        same list index in tierAlias
    * @param tierCapacity like {@link #TIER_CAPACITY}, should be in the same dimension with tierPath,
    *        each element is the capacity of the corresponding dir in tierPath
-   * @return the created BlockMetadataManager
+   * @return the created TachyonConf
    * @throws Exception when initialization of TieredBlockStore fails
    */
-  public static BlockMetadataManager newMetadataManager(int[] tierLevel, String[] tierAlias,
-      String[][] tierPath, long[][] tierCapacity) throws Exception {
+  public static TachyonConf newTachyonConf(int[] tierLevel, String[] tierAlias,
+      String[][] tierPath, long[][] tierCapacity) {
     // make sure dimensions are legal
     Preconditions.checkNotNull(tierLevel);
     Preconditions.checkNotNull(tierAlias);
@@ -123,15 +121,11 @@ public class EvictorTestUtils {
           String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, level),
           sb.toString());
     }
-
-    return BlockMetadataManager.newBlockMetadataManager(tachyonConf);
+    return tachyonConf;
   }
 
   /**
-   * Create a BlockMetadataManager by calling
-   * {@link #newMetadataManager(int[], String[], String[][], long[][])} with default values:
-   * {@link #TIER_LEVEL}, {@link #TIER_ALIAS}, {@link #TIER_PATH} with the baseDir as path prefix,
-   * {@link #TIER_CAPACITY}.
+   * Create a BlockMetadataManager with {@link #defaultTachyonConf}.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
@@ -139,6 +133,20 @@ public class EvictorTestUtils {
    * @throws Exception when error happens during creating temporary folder
    */
   public static BlockMetadataManager defaultMetadataManager(String baseDir) throws Exception {
+    TachyonConf tachyonConf = defaultTachyonConf(baseDir);
+    return BlockMetadataManager.newBlockMetadataManager(tachyonConf);
+  }
+
+  /**
+   * Create a {@link TachyonConf} with default values of {@link #TIER_LEVEL}, {@link #TIER_ALIAS},
+   * {@link #TIER_PATH} with the baseDir as path prefix, {@link #TIER_CAPACITY}.
+   *
+   * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
+   *        directory needs to exist before calling this method.
+   * @return the created metadata manager
+   * @throws Exception when error happens during creating temporary folder
+   */
+  public static TachyonConf defaultTachyonConf(String baseDir) throws Exception {
     String[][] dirs = new String[TIER_PATH.length][];
     for (int i = 0; i < TIER_PATH.length; i ++) {
       int len = TIER_PATH[i].length;
@@ -148,8 +156,9 @@ public class EvictorTestUtils {
         FileUtils.forceMkdir(new File(dirs[i][j]));
       }
     }
-    return newMetadataManager(TIER_LEVEL, TIER_ALIAS, dirs, TIER_CAPACITY);
+    return newTachyonConf(TIER_LEVEL, TIER_ALIAS, dirs, TIER_CAPACITY);
   }
+
 
   /**
    * Cache bytes into StroageDir.
@@ -357,18 +366,19 @@ public class EvictorTestUtils {
   }
 
   /**
-   * Only when plan is not null and at least one of {@link EvictorTestUtils#validCascadingPlan},
-   * {@link #validNonCascadingPlan} is true, the assertion will be passed, used in unit test.
+   * Only when plan is not null and at least one of
+   * {@link TieredBlockStoreTestUtils#validCascadingPlan}, {@link #validNonCascadingPlan} is true,
+   * the assertion will be passed, used in unit test.
    *
    * @param bytesToBeAvailable the requested bytes to be available
    * @param plan the eviction plan, should not be null
    * @param metaManager the meta data manager
    * @throws Exception when fail
    */
-  public static void assertValidPlan(long bytesToBeAvailable, EvictionPlan plan,
+  public static void assertEvictionPlanValid(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager metaManager) throws Exception {
     Assert.assertNotNull(plan);
     Assert.assertTrue(validNonCascadingPlan(bytesToBeAvailable, plan, metaManager)
-        || EvictorTestUtils.validCascadingPlan(bytesToBeAvailable, plan, metaManager));
+        || TieredBlockStoreTestUtils.validCascadingPlan(bytesToBeAvailable, plan, metaManager));
   }
 }
