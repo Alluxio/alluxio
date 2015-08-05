@@ -44,6 +44,8 @@ public class BlockLockManager {
   /** The number of locks, larger value leads to finer locking granularity, but more space. */
   // TODO: Make this configurable
   private static final int NUM_LOCKS = 1000;
+  /** Time to wait to acquire a lock */
+  private static final int LOCK_ACQUIRE_TIMEOUT_MS = 5000;
   /** The unique id of each lock */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
   /** A hashing function to map blockId to one of the locks */
@@ -97,10 +99,10 @@ public class BlockLockManager {
       lock = blockLock.writeLock();
     }
 
-    // The block lock may be busy, wait up to one second to obtain it.
+    // The block lock may be busy, wait up to five seconds to obtain it.
     boolean success;
     try {
-      success = lock.tryLock(5, TimeUnit.MILLISECONDS);
+      success = lock.tryLock(LOCK_ACQUIRE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     } catch (InterruptedException ie) {
       // The UserLock implementation does not throw this exception, something is wrong if it happens
       LOG.error("Interrupted exception in tryLock, this should not occur!");
