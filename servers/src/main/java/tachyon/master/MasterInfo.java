@@ -56,6 +56,9 @@ import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.master.balancer.Balancer;
+import tachyon.master.balancer.BalancerFactory;
+import tachyon.master.balancer.BalancerType;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -78,9 +81,6 @@ import tachyon.underfs.UnderFileSystem.SpaceType;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.balancer.Balancer;
-import tachyon.worker.balancer.BalancerFactory;
-import tachyon.worker.balancer.BalancerType;
 
 /**
  * A global view of filesystem in master.
@@ -329,7 +329,7 @@ public class MasterInfo extends ImageWriter {
     mMasterSource = new MasterSource(this);
     
     BalancerType balancerType =
-            mTachyonConf.getEnum(Constants.WORKER_BALANCER_STRATEGY_TYPE, BalancerType.DEFAULT);
+            mTachyonConf.getEnum(Constants.MASTER_BALANCER_STRATEGY_TYPE, BalancerType.LOCALFIRST);
     LOG.info("balancerType : {}", balancerType);
     mBalancer = BalancerFactory.create(balancerType);
   }

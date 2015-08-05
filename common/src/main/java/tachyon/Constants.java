@@ -137,6 +137,7 @@ public class Constants {
   public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
   public static final String MASTER_PRINCIPAL_KEY = "tachyon.master.principal";
   public static final String MASTER_RETRY_COUNT = "tachyon.master.retry";
+  public static final String MASTER_BALANCER_STRATEGY_TYPE = "tachyon.master.balance.strategy";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_PORT = "tachyon.worker.port";
@@ -176,7 +177,6 @@ public class Constants {
   public static final String WORKER_EVICT_STRATEGY_CLASS = "tachyon.worker.evict.strategy.class";
   public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =
       "tachyon.worker.tieredstore.level.max";
-  public static final String WORKER_BALANCER_STRATEGY_TYPE = "tachyon.worker.balance.strategy";
   
   /**
    * This format is used as a template to generate the property name for a given level.
