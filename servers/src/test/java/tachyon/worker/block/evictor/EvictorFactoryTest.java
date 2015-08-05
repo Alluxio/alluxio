@@ -28,6 +28,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
+import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 /**
  * Test {@link Evictor.Factory} by passing in different evictor strategy class names through the
@@ -46,11 +47,10 @@ public class EvictorFactoryTest {
     if (sBlockMetadataManagerView == null) {
       if (sBlockMetadataManager == null) {
         sBlockMetadataManager =
-            EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+            TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
       }
-      sBlockMetadataManagerView =
-          new BlockMetadataManagerView(sBlockMetadataManager, Collections.<Integer>emptySet(),
-              Collections.<Long>emptySet());
+      sBlockMetadataManagerView = new BlockMetadataManagerView(sBlockMetadataManager,
+          Collections.<Integer>emptySet(), Collections.<Long>emptySet());
     }
   }
 
