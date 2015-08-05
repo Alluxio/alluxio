@@ -99,14 +99,6 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
   /**
    * A recursive implementation of cascading LRFU eviction.
    *
-   * It will try to free space in next tier view to transfer blocks there, if the next tier view
-   * does not have enough free space to hold the blocks, the next next tier view will be tried and
-   * so on until the bottom tier is reached, if blocks can not even be transferred to the bottom
-   * tier, they will be evicted, otherwise, only blocks to be freed in the bottom tier will be
-   * evicted.
-   *
-   * this method is only used in {@link #freeSpaceWithView}
-   *
    * @param bytesToBeAvailable bytes to be available after eviction
    * @param location target location to evict blocks from
    * @param plan the plan to be recursively updated, is empty when first called in
