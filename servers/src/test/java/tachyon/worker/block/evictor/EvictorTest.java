@@ -16,16 +16,14 @@
 package tachyon.worker.block.evictor;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 
-import com.google.common.reflect.ClassPath;
-import com.google.common.reflect.Reflection;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,6 +31,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.Reflection;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -79,7 +80,7 @@ public class EvictorTest {
       ClassPath path = ClassPath.from(Thread.currentThread().getContextClassLoader());
       List<ClassPath.ClassInfo> clazzInPackage =
           new ArrayList<ClassPath.ClassInfo>(path.getTopLevelClassesRecursive(packageName));
-      for (ClassPath.ClassInfo clazz: clazzInPackage) {
+      for (ClassPath.ClassInfo clazz : clazzInPackage) {
         Set<Class<?>> interfaces =
             new HashSet<Class<?>>(Arrays.asList(clazz.load().getInterfaces()));
         if (interfaces.size() > 0 && interfaces.contains(Evictor.class)) {
@@ -144,8 +145,8 @@ public class EvictorTest {
     for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir != dirLeft) {
-          TieredBlockStoreTestUtils.cache(USER_ID, blockId, dir.getCapacityBytes(), dir, mMetaManager,
-              mEvictor);
+          TieredBlockStoreTestUtils.cache(USER_ID, blockId, dir.getCapacityBytes(), dir,
+              mMetaManager, mEvictor);
           blockId ++;
         }
       }
@@ -166,7 +167,7 @@ public class EvictorTest {
 
     EvictionPlan plan =
         mEvictor.freeSpaceWithView(capacityBytes, dir.toBlockStoreLocation(), mManagerView);
-    TieredBlockStoreTestUtils.assertEvictionPlanValid(capacityBytes, plan, mMetaManager);
+    EvictorTestUtils.assertEvictionPlanValid(capacityBytes, plan, mMetaManager);
   }
 
   @Test
@@ -178,8 +179,8 @@ public class EvictorTest {
     long blockId = BLOCK_ID;
     List<StorageDir> dirs = tier.getStorageDirs();
     for (StorageDir dir : dirs) {
-      TieredBlockStoreTestUtils.cache(USER_ID, blockId, dir.getCapacityBytes() - 1, dir, mMetaManager,
-          mEvictor);
+      TieredBlockStoreTestUtils.cache(USER_ID, blockId, dir.getCapacityBytes() - 1, dir,
+          mMetaManager, mEvictor);
       blockId ++;
     }
 
@@ -187,7 +188,7 @@ public class EvictorTest {
     EvictionPlan plan =
         mEvictor.freeSpaceWithView(requestBytes,
             BlockStoreLocation.anyDirInTier(tier.getTierAlias()), mManagerView);
-    TieredBlockStoreTestUtils.assertEvictionPlanValid(requestBytes, plan, mMetaManager);
+    EvictorTestUtils.assertEvictionPlanValid(requestBytes, plan, mMetaManager);
   }
 
   @Test
@@ -200,14 +201,15 @@ public class EvictorTest {
       for (StorageDir dir : tier.getStorageDirs()) {
         long capacity = dir.getCapacityBytes();
         minCapacity = Math.min(minCapacity, capacity);
-        TieredBlockStoreTestUtils.cache(USER_ID, blockId, capacity - 1, dir, mMetaManager, mEvictor);
+        TieredBlockStoreTestUtils
+            .cache(USER_ID, blockId, capacity - 1, dir, mMetaManager, mEvictor);
         blockId ++;
       }
     }
 
-    EvictionPlan plan = mEvictor.freeSpaceWithView(
-        minCapacity, BlockStoreLocation.anyTier(), mManagerView);
-    TieredBlockStoreTestUtils.assertEvictionPlanValid(minCapacity, plan, mMetaManager);
+    EvictionPlan plan =
+        mEvictor.freeSpaceWithView(minCapacity, BlockStoreLocation.anyTier(), mManagerView);
+    EvictorTestUtils.assertEvictionPlanValid(minCapacity, plan, mMetaManager);
   }
 
   @Test
