@@ -100,8 +100,7 @@ public class PlainSaslServer implements SaslServer {
         throw new SaslException("AuthorizeCallback authorized failure");
       }
     } catch (AuthenticationException ae) {
-      throw new SaslException("AuthenticationProvider authenticate failed: " + ae.getMessage(),
-          ae);
+      throw new SaslException("AuthenticationProvider authenticate failed: " + ae.getMessage(), ae);
     } catch (IOException ioe) {
       throw new SaslException("Error validating the response", ioe);
     } catch (UnsupportedCallbackException uce) {

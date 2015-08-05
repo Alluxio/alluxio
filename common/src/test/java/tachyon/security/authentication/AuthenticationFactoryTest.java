@@ -24,6 +24,7 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
+import javax.security.sasl.AuthenticationException;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -41,7 +42,6 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.security.PlainServerCallbackHandlerTest;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -103,7 +103,7 @@ public class AuthenticationFactoryTest {
     startServerThread(mTachyonConf);
 
     // create client and connect to server
-    TTransport client = createClient(null);
+    TTransport client = createClient(null, null);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -124,7 +124,7 @@ public class AuthenticationFactoryTest {
     startServerThread(mTachyonConf);
 
     // when connecting, authentication happens. It is a no-op in Simple mode.
-    TTransport client = createClient("anyone");
+    TTransport client = createClient("anyone", "whatever");
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -141,21 +141,21 @@ public class AuthenticationFactoryTest {
   public void customAuthenticationTest() throws Exception {
     mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
     mTachyonConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
-        PlainServerCallbackHandlerTest.NameMatchAuthenticationProvider.class.getName());
+        MockAuthenticationProvider.class.getName());
 
     // start server
     startServerThread(mTachyonConf);
 
-    // when connecting, authentication happens. Users starting with "tachyon" can pass.
-    TTransport client = createClient("tachyon");
+    // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
+    TTransport client = createClient("tachyon", "strongPWD");
     client.open();
     Assert.assertTrue(client.isOpen());
 
-    // Users not starting with "tachyon" can not pass, and throw exception.
-    TTransport wrongClient = createClient("not-tachyon");
+    // User with wrong password can not pass auth, and throw exception.
+    TTransport wrongClient = createClient("tachyon", "weakPWD");
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: AuthenticationProvider authenticate failed: "
-        + "Only allow the user starting with tachyon");
+        + "User authentication fails");
     try {
       wrongClient.open();
     } catch (TTransportException e) {
@@ -201,15 +201,33 @@ public class AuthenticationFactoryTest {
 
     serverThread.start();
 
-    // ensure server is running
+    // ensure server is running, and break if it does not start serving in 2 seconds.
+    int count = 40;
     while (!mServer.isServing() && serverThread.isAlive()) {
+      if (count <= 0) {
+        throw new RuntimeException("TThreadPoolServer does not start serving");
+      }
       Thread.sleep(50);
+      count --;
+    }
+  }
+
+  /**
+   * This customized authentication provider is used in CUSTOM mode. It authenticate the user by
+   * verifying the specific username:password pair.
+   */
+  public static class MockAuthenticationProvider implements AuthenticationProvider {
+    @Override
+    public void authenticate(String user, String password) throws AuthenticationException {
+      if (!user.equalsIgnoreCase("tachyon") || !password.equalsIgnoreCase("strongPWD")) {
+        throw new AuthenticationException("User authentication fails");
+      }
     }
   }
 
   // FIXME: API for creating client transport is on-going in TACHYON-621.
   // This code is temporarily used to simulate a client transport. Use the API when it's done.
-  private TTransport createClient(String user) throws Exception {
+  private TTransport createClient(String user, String password) throws Exception {
     // the underlining client socket for connecting to server
     TTransport tTransport = new TSocket(NetworkAddressUtils.getFqdnHost(mServerAddress),
         mServerAddress.getPort());
@@ -218,7 +236,7 @@ public class AuthenticationFactoryTest {
     if (user != null) {
       // Simple and Custom mode
       return new TSaslClientTransport("PLAIN", null, null, null, new HashMap<String,
-          String>(), new PlainCallbackHandler(user, "noPassword"), tTransport);
+          String>(), new PlainClientCallbackHandler(user, password), tTransport);
     } else {
       // NOSASL mode. The original Tachyon logic
       return new TFramedTransport(tTransport);
@@ -230,12 +248,12 @@ public class AuthenticationFactoryTest {
   /**
    * A client side callback to put application provided username/pwd into SASL transport.
    */
-  private static class PlainCallbackHandler implements CallbackHandler {
+  private static class PlainClientCallbackHandler implements CallbackHandler {
 
     private final String mUserName;
     private final String mPassword;
 
-    public PlainCallbackHandler(String mUserName, String mPassword) {
+    public PlainClientCallbackHandler(String mUserName, String mPassword) {
       this.mUserName = mUserName;
       this.mPassword = mPassword;
     }

@@ -98,7 +98,7 @@ public class AuthenticationFactory {
     mAuthType = getAuthTypeFromConf(tachyonConf);
   }
 
-  AuthType getAuthType() {
+  public AuthType getAuthType() {
     return mAuthType;
   }
 
