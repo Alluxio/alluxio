@@ -16,8 +16,6 @@
 package tachyon.worker.block;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
@@ -32,7 +30,6 @@ import com.google.common.collect.Sets;
 
 import tachyon.exception.NotFoundException;
 import tachyon.master.BlockInfo;
-import tachyon.worker.block.evictor.EvictorTestUtils;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageDirView;
@@ -58,7 +55,7 @@ public class BlockMetadataManagerViewTest {
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager =
-        EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+        TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView =
         Mockito.spy(new BlockMetadataManagerView(mMetaManager, Sets.<Integer>newHashSet(),
             Sets.<Long>newHashSet()));
