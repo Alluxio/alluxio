@@ -144,8 +144,9 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public BlockWriter getBlockWriter(long userId, long blockId) throws NotFoundException,
       IOException {
-    // NOTE: a temp block is supposed to be visible by its own writer, unnecessary to acquire
+    // NOTE: a temp block is supposed to only be visible by its own writer, unnecessary to acquire
     // block lock here since no sharing
+    // TODO: handle the case where multiple writers compete for the same block
     mMetadataLock.readLock().lock();
     try {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
@@ -172,18 +173,18 @@ public class TieredBlockStore implements BlockStore {
   public TempBlockMeta createBlockMeta(long userId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws AlreadyExistsException, OutOfSpaceException, NotFoundException,
       IOException {
-    int numRetries = 0;
-    while (numRetries < MAX_RETRIES) {
+    for (int i = 0; i < MAX_RETRIES + 1; i ++) {
       TempBlockMeta tempBlockMeta =
           createBlockMetaInternal(userId, blockId, location, initialBlockSize, true);
       if (tempBlockMeta != null) {
         return tempBlockMeta;
       }
-      // Failed to allocate a temp block, so trigger Evictor to make some space.
-      // NOTE: Successful {@link freeSpaceInternal} here does not ensure the next try of allocation
-      // also successful, because these two operations are not atomic.
-      freeSpaceInternal(userId, initialBlockSize, location);
-      numRetries ++;
+      if (i < MAX_RETRIES) {
+        // Failed to create a temp block, so trigger Evictor to make some space.
+        // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
+        // allocation also successful, because these two operations are not atomic.
+        freeSpaceInternal(userId, initialBlockSize, location);
+      }
     }
     // TODO: we are probably seeing a rare transient failure, maybe define and throw some other
     // types of exception to indicate this case.
@@ -239,15 +240,15 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void requestSpace(long userId, long blockId, long additionalBytes)
       throws NotFoundException, OutOfSpaceException, IOException {
-    int numRetries = 0;
-    while (numRetries < MAX_RETRIES) {
+    for (int i = 0; i < MAX_RETRIES + 1; i ++) {
       Pair<Boolean, BlockStoreLocation> requestResult =
           requestSpaceInternal(blockId, additionalBytes);
       if (requestResult.getFirst()) {
         return;
       }
-      freeSpaceInternal(userId, additionalBytes, requestResult.getSecond());
-      numRetries ++;
+      if (i < MAX_RETRIES) {
+        freeSpaceInternal(userId, additionalBytes, requestResult.getSecond());
+      }
     }
     throw new OutOfSpaceException("Failed to requestSpace: blockId " + blockId
         + " failed to allocate " + additionalBytes + " extra bytes after " + MAX_RETRIES
@@ -258,8 +259,7 @@ public class TieredBlockStore implements BlockStore {
   public void moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
       throws NotFoundException, AlreadyExistsException, InvalidStateException, OutOfSpaceException,
       IOException {
-    int numRetries = 0;
-    while (numRetries < MAX_RETRIES) {
+    for (int i = 0; i < MAX_RETRIES + 1; i ++) {
       MoveBlockResult moveResult = moveBlockInternal(userId, blockId, newLocation);
       if (moveResult.done()) {
         synchronized (mBlockStoreEventListeners) {
@@ -270,8 +270,9 @@ public class TieredBlockStore implements BlockStore {
         }
         return;
       }
-      freeSpaceInternal(userId, moveResult.blockSize(), newLocation);
-      numRetries ++;
+      if (i < MAX_RETRIES) {
+        freeSpaceInternal(userId, moveResult.blockSize(), newLocation);
+      }
     }
     throw new OutOfSpaceException("Failed to moveBlock: blockId " + blockId
         + " failed to find space in " + newLocation + " after " + MAX_RETRIES + " retries");

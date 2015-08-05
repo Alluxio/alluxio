@@ -153,7 +153,7 @@ public class BufferUtils {
    *
    * @param path file path to write the data
    * @param buffer raw data
-   * @throws java.io.IOException if an I/O error occurred or failed to delete existing file
+   * @throws java.io.IOException
    */
   public static void writeBufferToFile(String path, byte[] buffer) throws IOException {
     File file = new File(path);
