@@ -28,7 +28,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
-import tachyon.worker.block.evictor.EvictorTestUtils;
+import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 public class StorageTierViewTest {
   private static final int TEST_TIER_LEVEL = 0;
@@ -45,7 +45,7 @@ public class StorageTierViewTest {
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     BlockMetadataManager metaManager =
-        EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+        TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     BlockMetadataManagerView metaManagerView =
         new BlockMetadataManagerView(metaManager, Sets.<Integer>newHashSet(),
             Sets.<Long>newHashSet());
@@ -55,21 +55,21 @@ public class StorageTierViewTest {
 
   @Test
   public void getDirViewsTest() {
-    Assert.assertEquals(EvictorTestUtils.TIER_PATH[TEST_TIER_LEVEL].length, mTestTierView
+    Assert.assertEquals(TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length, mTestTierView
         .getDirViews().size());
   }
 
   @Test
   public void getDirViewTest() throws Exception {
-    for (int index = 0; index < EvictorTestUtils.TIER_PATH[TEST_TIER_LEVEL].length; index ++) {
-      Assert.assertEquals(index, mTestTierView.getDirView(index).getDirViewIndex());
+    for (int i = 0; i < TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length; i ++) {
+      Assert.assertEquals(i, mTestTierView.getDirView(i).getDirViewIndex());
     }
   }
 
   @Test
   public void getDirViewBadIndexTest() throws Exception {
     mThrown.expect(IndexOutOfBoundsException.class);
-    int badDirIndex = EvictorTestUtils.TIER_PATH[TEST_TIER_LEVEL].length;
+    int badDirIndex = TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length;
     Assert.assertEquals(badDirIndex, mTestTierView.getDirView(badDirIndex).getDirViewIndex());
   }
 
