@@ -73,7 +73,8 @@ public class LRUEvictorTest {
 
   @Test
   public void evictInBottomTierTest() throws Exception {
-    int bottomTierLevel = TieredBlockStoreTestUtils.TIER_LEVEL[TieredBlockStoreTestUtils.TIER_LEVEL.length - 1];
+    int bottomTierLevel =
+        TieredBlockStoreTestUtils.TIER_LEVEL[TieredBlockStoreTestUtils.TIER_LEVEL.length - 1];
     // capacity increases with index
     long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[bottomTierLevel];
     int nDir = bottomTierDirCapacity.length;
@@ -113,7 +114,7 @@ public class LRUEvictorTest {
     for (int i = 0; i < nDir; i ++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
-      Assert.assertTrue(TieredBlockStoreTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
+      Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       Assert.assertEquals(0, plan.toEvict().size());
       Assert.assertEquals(1, plan.toMove().size());
       long blockId = plan.toMove().get(0).getFirst();
@@ -145,7 +146,7 @@ public class LRUEvictorTest {
     for (int i = 0; i < nDirInFirstTier; i ++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
-      Assert.assertTrue(TieredBlockStoreTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
+      Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       // least recently used block in the first tier needs to be moved to the second tier
       Assert.assertEquals(1, plan.toMove().size());
       long blockIdMovedInFirstTier = plan.toMove().get(0).getFirst();

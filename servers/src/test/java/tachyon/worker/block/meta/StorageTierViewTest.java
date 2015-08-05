@@ -61,8 +61,8 @@ public class StorageTierViewTest {
 
   @Test
   public void getDirViewTest() throws Exception {
-    for (int index = 0; index < TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length; index ++) {
-      Assert.assertEquals(index, mTestTierView.getDirView(index).getDirViewIndex());
+    for (int i = 0; i < TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length; i ++) {
+      Assert.assertEquals(i, mTestTierView.getDirView(i).getDirViewIndex());
     }
   }
 
