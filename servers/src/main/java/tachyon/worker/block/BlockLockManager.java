@@ -107,8 +107,9 @@ public class BlockLockManager {
       throw new IOException(ie.getMessage(), ie.getCause());
     }
     if (!success) {
-      LOG.error("Failed to lockBlock: " + blockId + " for user: " + userId + " in 1s.");
-      throw new IOException("Failed to lockBlock: " + blockId + " for user: " + userId + " in 1s.");
+      String errMsg = "Failed to lockBlock: " + blockId + " for user: " + userId + " in 5ms.";
+      LOG.error(errMsg);
+      throw new IOException(errMsg);
     }
     if (!mMetaManager.hasBlockMeta(blockId)) {
       lock.unlock();
