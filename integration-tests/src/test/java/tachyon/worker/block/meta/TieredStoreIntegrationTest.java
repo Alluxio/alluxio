@@ -109,7 +109,7 @@ public class TieredStoreIntegrationTest {
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // After the file is closed, the master's delete should go through and new files can be created
-    int newFile = TachyonFSTestUtils.createByteFile(mTFS, "/test3", WriteType.MUST_CACHE,
+    int newFile = TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE,
         MEM_CAPACITY_BYTES);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
     Assert.assertTrue(mTFS.getFile(newFile).isInMemory());
