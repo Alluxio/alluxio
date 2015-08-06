@@ -80,13 +80,13 @@ public class BlockLockManager {
   }
 
   /**
-   * Locks a block if it exists, throws IOException otherwise.
+   * Attempts to lock a block if it exists.
    *
    * @param userId the ID of user
    * @param blockId the ID of block
    * @param blockLockType READ or WRITE
-   * @return lock id if the block exists
-   * @throws IOException
+   * @return lock ID
+   * @throws IOException if the block does not exist or if the lock attempt exceeded the timeout
    */
   public long lockBlock(long userId, long blockId, BlockLockType blockLockType) throws IOException {
     // hashing blockId into the range of [0, NUM_LOCKS-1]
