@@ -36,6 +36,7 @@ import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListener;
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.TieredBlockStoreTestUtils;
 import tachyon.worker.block.meta.StorageDir;
 
 /**
@@ -59,7 +60,7 @@ public class LRFUEvictorTest {
   @Before
   public final void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
-    mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+    mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
             Collections.<Long>emptySet());
@@ -74,7 +75,7 @@ public class LRFUEvictorTest {
   private void cache(long userId, long blockId, long bytes, int tierLevel, int dirIdx)
       throws Exception {
     StorageDir dir = mMetaManager.getTiers().get(tierLevel).getDir(dirIdx);
-    EvictorTestUtils.cache(userId, blockId, bytes, dir, mMetaManager, mEvictor);
+    TieredBlockStoreTestUtils.cache(userId, blockId, bytes, dir, mMetaManager, mEvictor);
   }
 
   // access the block to update evictor
@@ -111,10 +112,11 @@ public class LRFUEvictorTest {
 
   @Test
   public void evictInBottomTierTest() throws Exception {
-    int bottomTierLevel = EvictorTestUtils.TIER_LEVEL[EvictorTestUtils.TIER_LEVEL.length - 1];
+    int bottomTierLevel = TieredBlockStoreTestUtils
+        .TIER_LEVEL[TieredBlockStoreTestUtils.TIER_LEVEL.length - 1];
     Map<Long, Double> blockIdToCRF = new HashMap<Long, Double>();
     // capacity increases with index
-    long[] bottomTierDirCapacity = EvictorTestUtils.TIER_CAPACITY[bottomTierLevel];
+    long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[bottomTierLevel];
     int nDir = bottomTierDirCapacity.length;
     // fill in dirs from larger to smaller capacity with blockId equal to BLOCK_ID plus dir index
     for (int i = 0; i < nDir; i ++) {
@@ -164,8 +166,8 @@ public class LRFUEvictorTest {
     // Two tiers, each dir in the second tier has more space than any dir in the first tier. Fill in
     // the first tier, leave the second tier empty. Request space from the first tier, blocks should
     // be moved from the first to the second tier without eviction.
-    int firstTierLevel = EvictorTestUtils.TIER_LEVEL[0];
-    long[] firstTierDirCapacity = EvictorTestUtils.TIER_CAPACITY[0];
+    int firstTierLevel = TieredBlockStoreTestUtils.TIER_LEVEL[0];
+    long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[0];
     int nDir = firstTierDirCapacity.length;
     Map<Long, Double> blockIdToCRF = new HashMap<Long, Double>();
     for (int i = 0; i < nDir; i ++) {
@@ -218,12 +220,12 @@ public class LRFUEvictorTest {
     // second tier should be evicted to hold blocks moved from the first tier.
     long blockId = BLOCK_ID;
     long totalBlocks = 0;
-    for (int tierLevel : EvictorTestUtils.TIER_LEVEL) {
-      totalBlocks += EvictorTestUtils.TIER_CAPACITY[tierLevel].length;
+    for (int tierLevel : TieredBlockStoreTestUtils.TIER_LEVEL) {
+      totalBlocks += TieredBlockStoreTestUtils.TIER_CAPACITY[tierLevel].length;
     }
     Map<Long, Double> blockIdToCRF = new HashMap<Long, Double>();
-    for (int tierLevel : EvictorTestUtils.TIER_LEVEL) {
-      long[] tierCapacity = EvictorTestUtils.TIER_CAPACITY[tierLevel];
+    for (int tierLevel : TieredBlockStoreTestUtils.TIER_LEVEL) {
+      long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[tierLevel];
       for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx ++) {
         cache(USER_ID, blockId, tierCapacity[dirIdx], tierLevel, dirIdx);
         // update CRF of blocks when blocks are committed
@@ -256,17 +258,17 @@ public class LRFUEvictorTest {
     List<Long> blocksInSecondTier = new ArrayList<Long>();
     for (int i = 0; i < blockCRF.size(); i ++) {
       long block = blockCRF.get(i).getKey();
-      if (block - BLOCK_ID < EvictorTestUtils.TIER_CAPACITY[0].length) {
+      if (block - BLOCK_ID < TieredBlockStoreTestUtils.TIER_CAPACITY[0].length) {
         blocksInFirstTier.add(block);
-      } else if (block - BLOCK_ID < EvictorTestUtils.TIER_CAPACITY[0].length
-          + EvictorTestUtils.TIER_CAPACITY[1].length) {
+      } else if (block - BLOCK_ID < TieredBlockStoreTestUtils.TIER_CAPACITY[0].length
+          + TieredBlockStoreTestUtils.TIER_CAPACITY[1].length) {
         blocksInSecondTier.add(block);
       }
     }
     BlockStoreLocation anyDirInFirstTier =
-        BlockStoreLocation.anyDirInTier(EvictorTestUtils.TIER_LEVEL[0] + 1);
-    int nDirInFirstTier = EvictorTestUtils.TIER_CAPACITY[0].length;
-    long smallestCapacity = EvictorTestUtils.TIER_CAPACITY[0][0];
+        BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_LEVEL[0] + 1);
+    int nDirInFirstTier = TieredBlockStoreTestUtils.TIER_CAPACITY[0].length;
+    long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[0][0];
     for (int i = 0; i < nDirInFirstTier; i ++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
