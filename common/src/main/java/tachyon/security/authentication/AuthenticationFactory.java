@@ -15,11 +15,14 @@
 
 package tachyon.security.authentication;
 
+import java.net.InetSocketAddress;
 import java.util.Locale;
 
 import javax.security.sasl.SaslException;
 
 import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.security.PlainSaslHelper;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * This class is the main entry for Tachyon authentication.
@@ -139,4 +143,28 @@ public class AuthenticationFactory {
 
   // TODO: get client side TTransport based on auth type
   // public TTransport getClientTransport(InetSocketAddress serverAddress) throws SaslException {}
+
+  /**
+   * Create a new Thrift socket what will connect to the given address
+   * @param address The given address to connect
+   * @return An unconnected socket
+   */
+  public static TSocket createTSocket(InetSocketAddress address) {
+    return new TSocket(NetworkAddressUtils.getFqdnHost(address), address.getPort());
+  }
+
+  /**
+   * Create a ClientTransport for Plain
+   * @param username User Name of PlainClient
+   * @param password Password of PlainClient
+   * @param tTransport The original Transport
+   * @return Wrapped Transport with Plain
+   * @throws SaslException
+   */
+  public static TTransport createPlainClientTransport(String username, String password,
+      TTransport tTransport) throws SaslException {
+    return PlainSaslHelper.getPlainTransport(username, password, tTransport);
+  }
+
+  // TODO: add methods of getting different Thrift class in follow-up PR.
 }
