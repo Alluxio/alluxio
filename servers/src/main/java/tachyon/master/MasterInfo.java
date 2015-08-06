@@ -18,7 +18,6 @@ package tachyon.master;
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
@@ -31,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -57,8 +55,6 @@ import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.balancer.Balancer;
-import tachyon.master.balancer.BalancerFactory;
-import tachyon.master.balancer.BalancerType;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -328,10 +324,7 @@ public class MasterInfo extends ImageWriter {
     mJournal.loadImage(this);
     mMasterSource = new MasterSource(this);
     
-    BalancerType balancerType =
-            mTachyonConf.getEnum(Constants.MASTER_BALANCER_STRATEGY_TYPE, BalancerType.LOCALFIRST);
-    LOG.info("balancerType : {}", balancerType);
-    mBalancer = BalancerFactory.create(balancerType);
+    mBalancer = Balancer.Factory.createBalancer(mTachyonConf);
   }
 
   /**

@@ -137,7 +137,6 @@ public class Constants {
   public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
   public static final String MASTER_PRINCIPAL_KEY = "tachyon.master.principal";
   public static final String MASTER_RETRY_COUNT = "tachyon.master.retry";
-  public static final String MASTER_BALANCER_STRATEGY_TYPE = "tachyon.master.balance.strategy";
   public static final String MASTER_BALANCER_STRATEGY_CLASS = 
       "tachyon.master.balancer.strategy.class";
   

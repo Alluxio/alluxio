@@ -18,7 +18,6 @@ package tachyon.master.balancer;
 import java.net.UnknownHostException;
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -26,9 +25,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.MasterWorkerInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.worker.block.BlockMetadataManagerView;
-import tachyon.worker.block.allocator.Allocator;
-import tachyon.worker.block.allocator.MaxFreeAllocator;
 
 /**
  * Interface for the balancing policy on workers for write.
@@ -38,10 +34,9 @@ public interface Balancer {
 
   class Factory {
     /**
-     * Create a new {@link Allocator} instance, will return {@link MaxFreeBalancer} by default
+     * Create a new {@link Balancer} instance, will return {@link LocalFirstBalancer} by default
      *
      * @param conf Tachyon conf defined Balancer type
-     * @param view BlockMetadataManagerView to pass to Balancer
      * @return the generated Balancer, it will be a {@link LocalFirstBalancer} by default
      */
     public static Balancer createBalancer(TachyonConf conf) {
