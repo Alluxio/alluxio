@@ -101,25 +101,6 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Retrieve user specified connection hostname. If the connection hostname is not explicitly
-   * specified, Tachyon will try bind hostname. If it's failed, Tachyon will automatically select an
-   * appropriate local host name.
-   *
-   * @param hostName connection hostname
-   * @param bindHost bind host
-   * @return the connection endpoint for reaching the service.
-   */
-  private static String getConnectHost(String hostName, String bindHost, TachyonConf conf) {
-    if (!hostName.equals("0.0.0.0") && !hostName.isEmpty()) {
-      return hostName;
-    } else if (!bindHost.equals("0.0.0.0") && !bindHost.isEmpty()) {
-      return bindHost;
-    } else {
-      return getLocalHostName(conf);
-    }
-  }
-
-  /**
    * Helper method to get the {@link InetSocketAddress} connection address on a given service.
    *
    * @param service the service name used to connect
