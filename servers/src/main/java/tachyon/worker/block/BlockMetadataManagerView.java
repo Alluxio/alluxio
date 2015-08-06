@@ -55,9 +55,8 @@ public class BlockMetadataManagerView {
    * TODO: incrementally update the view
    *
    * @param manager which the view should be constructed from
-   * @param pinnedInodes, a set of pinned nodes
-   * @param lockedBlocks, a set of locked blocks
-   * @return BlockMetadataManagerView constructed
+   * @param pinnedInodes a set of pinned inodes
+   * @param lockedBlocks a set of locked blocks
    */
   public BlockMetadataManagerView(BlockMetadataManager manager, Set<Integer> pinnedInodes,
       Set<Long> lockedBlocks) {
