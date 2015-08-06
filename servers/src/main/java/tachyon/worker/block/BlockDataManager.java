@@ -35,6 +35,8 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
@@ -90,7 +92,8 @@ public final class BlockDataManager {
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
 
     // Connect to UFS to handle UFS security
-    InetSocketAddress workerAddress = NetworkAddressUtils.getWorkerAddress(mTachyonConf);
+    InetSocketAddress workerAddress =
+        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf);
     mUfs.connectFromWorker(mTachyonConf, NetworkAddressUtils.getFqdnHost(workerAddress));
 
     // Register the heartbeat reporter so it can record block store changes

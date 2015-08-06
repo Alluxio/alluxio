@@ -347,16 +347,6 @@ public class TachyonConf {
   }
 
   /**
-   * Retrieve system environment variable.
-   *
-   * @param name the name of the environment variable look for
-   * @return the string value of the variable in run-time
-   */
-  public String getenv(String name) {
-    return System.getenv(name);
-  }
-
-  /**
    * Return the properties as a Map.
    *
    * @return a Map from each property name to its property values

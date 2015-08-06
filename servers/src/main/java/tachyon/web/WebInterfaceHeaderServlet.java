@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * Servlet that provides data for the header navigation bar.
@@ -50,7 +51,8 @@ public class WebInterfaceHeaderServlet extends HttpServlet {
       throws ServletException, IOException {
     int masterWebPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT, 
         Constants.DEFAULT_MASTER_WEB_PORT);
-    String masterHostName = NetworkAddressUtils.getMasterHost(mTachyonConf);
+    String masterHostName =
+        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mTachyonConf);
     request.setAttribute("masterHost", masterHostName);
     request.setAttribute("masterPort", masterWebPort);
     getServletContext().getRequestDispatcher("/header.jsp").include(request, response);

@@ -31,6 +31,7 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * BlockInStream for remote block.
@@ -308,7 +309,7 @@ public class RemoteBlockInStream extends BlockInStream {
     try {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
-      String localhost = NetworkAddressUtils.getWorkerHost(conf);
+      String localhost = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, conf);
 
       for (NetAddress blockLocation : blockLocations) {
         String host = blockLocation.mHost;

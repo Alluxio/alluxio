@@ -93,10 +93,6 @@ public final class LocalTachyonCluster {
     return mMasterConf;
   }
 
-  public InetSocketAddress getMasterAddress() {
-    return new InetSocketAddress(mLocalhostName, getMasterPort());
-  }
-
   public String getMasterHostname() {
     return mLocalhostName;
   }

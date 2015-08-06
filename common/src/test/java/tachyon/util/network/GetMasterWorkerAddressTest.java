@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 public class GetMasterWorkerAddressTest {
   private static Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
@@ -68,19 +69,23 @@ public class GetMasterWorkerAddressTest {
     String defaultHostname = NetworkAddressUtils.getLocalHostName(mCustomPropsTachyonConf);
     int defaultPort = Constants.DEFAULT_MASTER_PORT;
 
-    InetSocketAddress masterAddress = NetworkAddressUtils.getMasterAddress(mCustomPropsTachyonConf);
+    InetSocketAddress masterAddress =
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mCustomPropsTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);
 
-    masterAddress = NetworkAddressUtils.getMasterAddress(mNullMasterHostNameTachyonConf);
+    masterAddress =
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
+            mNullMasterHostNameTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
 
-    masterAddress = NetworkAddressUtils.getMasterAddress(mNullMasterPortTachyonConf);
+    masterAddress =
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mNullMasterPortTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster3", defaultPort), masterAddress);
 
-    masterAddress = NetworkAddressUtils.getMasterAddress(mNullTachyonConf);
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mNullTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
   }
@@ -91,11 +96,11 @@ public class GetMasterWorkerAddressTest {
     int defaultPort = Constants.DEFAULT_WORKER_PORT;
 
     InetSocketAddress workerAddress = 
-        NetworkAddressUtils.getWorkerAddress(mCustomPropsTachyonConf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mCustomPropsTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
 
-    workerAddress = NetworkAddressUtils.getWorkerAddress(mNullTachyonConf);
+    workerAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mNullTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), workerAddress);
   }

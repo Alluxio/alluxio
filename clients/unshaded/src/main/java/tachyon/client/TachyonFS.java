@@ -46,6 +46,7 @@ import tachyon.thrift.ClientWorkerInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
@@ -174,7 +175,7 @@ public class TachyonFS extends AbstractTachyonFS {
   private TachyonFS(TachyonConf tachyonConf) {
     super(tachyonConf);
 
-    mMasterAddress = NetworkAddressUtils.getMasterAddress(tachyonConf);
+    mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, tachyonConf);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("client-heartbeat-%d", true));
