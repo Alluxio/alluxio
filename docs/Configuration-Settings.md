@@ -351,8 +351,8 @@ The user configuration specifies values regarding file system access.
   <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.
     Valid options are MUST_CACHE (write must cache), TRY_CACHE (write will try to cache),
     CACHE_THROUGH (try to cache, write to UnderFS synchronously), THROUGH (no cache, write to
-    UnderFS synchronously), ASYNC_THROUGH (must cache and write to UnderFS asynchronously, or
-    synchronous write to UnderFS).</td>
+    UnderFS synchronously), ASYNC_THROUGH (Experimental, must cache and write to UnderFS asynchronously,
+    or synchronous write to UnderFS).</td>
 </tr>
 <tr>
   <td>tachyon.user.quota.unit.bytes</td>
