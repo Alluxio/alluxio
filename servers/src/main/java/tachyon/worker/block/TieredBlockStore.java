@@ -261,7 +261,7 @@ public class TieredBlockStore implements BlockStore {
       IOException {
     for (int i = 0; i < MAX_RETRIES + 1; i ++) {
       MoveBlockResult moveResult = moveBlockInternal(userId, blockId, newLocation);
-      if (moveResult.done()) {
+      if (moveResult.success()) {
         synchronized (mBlockStoreEventListeners) {
           for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
             listener.onMoveBlockByClient(userId, blockId, moveResult.srcLocation(),
@@ -344,7 +344,7 @@ public class TieredBlockStore implements BlockStore {
             FileUtils.delete(userFolder);
           }
         } catch (IOException ioe) {
-          // This error means we could not delete the directory but should not affect t©©he
+          // This error means we could not delete the directory but should not affect the
           // correctness of the method since the data has already been deleted. It is not
           // necessary to throw an exception here.
           LOG.error("Failed to clean up user: {} with directory: {}", userId, userFolder.getPath());
@@ -672,7 +672,7 @@ public class TieredBlockStore implements BlockStore {
           LOG.info("Failed to move blockId " + blockId + ", it could be already deleted");
           continue;
         }
-        if (moveResult.done()) {
+        if (moveResult.success()) {
           synchronized (mBlockStoreEventListeners) {
             for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
               listener.onMoveBlockByWorker(userId, blockId, moveResult.srcLocation(), newLocation);
@@ -704,7 +704,7 @@ public class TieredBlockStore implements BlockStore {
    * @param userId user Id
    * @param blockId block Id
    * @param newLocation new location to move this block
-   * @return move result
+   * @return the resulting information about the move operation
    * @throws NotFoundException if block is not found
    * @throws AlreadyExistsException if a block with same Id already exists in new location
    * @throws InvalidStateException if the block to move is a temp block
@@ -749,8 +749,8 @@ public class TieredBlockStore implements BlockStore {
 
       mMetadataLock.writeLock().lock();
       try {
-        // If this metadata update fails now, let us panic for now.
-        // TODO: add rollback scheme to recover
+        // If this metadata update fails, we panic for now.
+        // TODO: implement rollback scheme to recover from IO failures
         mMetaManager.moveBlockMeta(srcBlockMeta, dstTempBlock);
       } catch (AlreadyExistsException aee) {
         throw Throwables.propagate(aee); // we shall never reach here
@@ -829,21 +829,25 @@ public class TieredBlockStore implements BlockStore {
    * A wrapper on necessary info after a move block operation
    */
   private static class MoveBlockResult {
-    private final boolean mDone;
+    /** Whether this move operation succeeds */
+    private final boolean mSuccess;
+    /** Size of this block in bytes */
     private final long mBlockSize;
+    /** Source location of this block to move */
     private final BlockStoreLocation mSrcLocation;
+    /** Destination location of this block to move */
     private final BlockStoreLocation mDstLocation;
 
-    MoveBlockResult(boolean done, long blockSize, BlockStoreLocation srcLocation,
+    MoveBlockResult(boolean success, long blockSize, BlockStoreLocation srcLocation,
         BlockStoreLocation dstLocation) {
-      mDone = done;
+      mSuccess = success;
       mBlockSize = blockSize;
       mSrcLocation = srcLocation;
       mDstLocation = dstLocation;
     }
 
-    boolean done() {
-      return mDone;
+    boolean success() {
+      return mSuccess;
     }
 
     long blockSize() {
