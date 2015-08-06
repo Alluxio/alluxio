@@ -47,9 +47,9 @@ newly added nodes in order to balance disk space utilization between the nodes?*
 >   Depending on the system setup, Tachyon may leverage local SSD and HDD. It keeps hot data in
    Tachyon, and cold data in UnderFS.
 
-**Can I run Tachyon as a standalone for experimenting and validation?**
+**Can I run Tachyon in stand-alone mode for experimenting and validation?**
 
->    Yes, Tachyon can run in a stand-alone mode. Instructions are available
+>    Yes, Tachyon can run in stand-alone mode. Instructions are available
     [here](http://tachyon-project.org/Running-Tachyon-Locally.html).
 
 **Can I run Tachyon in a cluster mode?**
