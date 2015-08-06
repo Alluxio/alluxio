@@ -40,6 +40,8 @@ import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
@@ -123,8 +125,8 @@ public final class BlockWorker {
         new InetSocketAddress(NetworkAddressUtils.getLocalHostName(mTachyonConf), dataServerPort);
     mDataServer =
         DataServer.Factory.createDataServer(
-            NetworkAddressUtils.getWorkerDataBindAddress(mTachyonConf), mBlockDataManager,
-            mTachyonConf);
+            NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mTachyonConf),
+            mBlockDataManager, mTachyonConf);
 
     // Setup RPC Server
     mServiceHandler = new BlockServiceHandler(mBlockDataManager);
@@ -132,14 +134,15 @@ public final class BlockWorker {
     int thriftServerPort = NetworkAddressUtils.getPort(mThriftServerSocket);
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
-        new NetAddress(NetworkAddressUtils.getWorkerAddress(mTachyonConf).getAddress()
-            .getCanonicalHostName(), thriftServerPort, mDataServer.getPort());
+        new NetAddress(NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf)
+            .getAddress().getCanonicalHostName(), thriftServerPort, mDataServer.getPort());
 
     // Set up web server
     mWebServer =
-        new WorkerUIWebServer("Tachyon Worker",
-            NetworkAddressUtils.getWorkerWebBindAddress(mTachyonConf), mBlockDataManager,
-            NetworkAddressUtils.getWorkerBindAddress(mTachyonConf), mStartTimeMs, mTachyonConf);
+        new WorkerUIWebServer("Tachyon Worker", NetworkAddressUtils.getBindAddress(
+            ServiceType.WORKER_WEB, mTachyonConf), mBlockDataManager,
+            NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, mTachyonConf), mStartTimeMs,
+            mTachyonConf);
     // Setup Worker to Master Syncer
     // We create three threads for two syncers and one cleaner: mBlockMasterSync,
     // mPinListSync and mUserCleanerThread
@@ -259,7 +262,8 @@ public final class BlockWorker {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(NetworkAddressUtils.getWorkerBindAddress(mTachyonConf));
+      return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
+          mTachyonConf));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);

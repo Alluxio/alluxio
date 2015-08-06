@@ -46,32 +46,8 @@ if [ -z "$JAVA_HOME" ]; then
   export JAVA_HOME="$(dirname $(which java))/.."
 fi
 
-### Host binding strategy on multihomed networking ###
-# 1) Environment variables via tachyon-env.sh or from OS settings
-# 2) Default properties via tachyon-default.properties file
-# 3) Local host name for the host this JVM is running on
-#
-# TACHYON_MASTER_BIND_HOST=localhost
-# TACHYON_MASTER_WEB_BIND_HOST=$TACHYON_MASTER_BIND_HOST
-# TACHYON_WORKER_BIND_HOST=`hostname -A | cut -d" " -f1`
-# TACHYON_WORKER_DATA_BIND_HOST=$TACHYON_WORKER_BIND_HOST
-# TACHYON_WORKER_WEB_BIND_HOST=$TACHYON_WORKER_BIND_HOST
-
-TACHYON_MASTER_BIND_HOST=0.0.0.0
-TACHYON_MASTER_WEB_BIND_HOST=0.0.0.0
-TACHYON_WORKER_BIND_HOST=0.0.0.0
-TACHYON_WORKER_DATA_BIND_HOST=0.0.0.0
-TACHYON_WORKER_WEB_BIND_HOST=0.0.0.0
-
-#TACHYON_MASTER_HOSTNAME=$TACHYON_MASTER_BIND_HOST
-#TACHYON_MASTER_WEB_HOSTNAME=$TACHYON_MASTER_WEB_BIND_HOST
-#TACHYON_WORKER_HOSTNAME=$TACHYON_WORKER_BIND_HOST
-#TACHYON_WORKER_DATA_HOSTNAME=$TACHYON_WORKER_DATA_BIND_HOST
-#TACHYON_WORKER_WEB_HOSTNAME=$TACHYON_WORKER_WEB_BIND_HOST
-
-
 export JAVA="$JAVA_HOME/bin/java"
-export TACHYON_MASTER_ADDRESS=$TACHYON_MASTER_HOSTNAME
+export TACHYON_MASTER_ADDRESS=localhost
 export TACHYON_UNDERFS_ADDRESS=$TACHYON_HOME/underFSStorage
 #export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:9000
 export TACHYON_WORKER_MEMORY_SIZE=1GB
@@ -107,17 +83,8 @@ export TACHYON_JAVA_OPTS+="
   -Dtachyon.worker.data.folder=/tachyonworker/
   -Dtachyon.master.max.worker.threads=$TACHYON_MASTER_MAX_WORKER_THREADS
   -Dtachyon.master.worker.timeout.ms=60000
+  -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
   -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
-  -Dtachyon.master.bind.host=$TACHYON_MASTER_BIND_HOST
-  -Dtachyon.master.web.bind.host=$TACHYON_MASTER_WEB_BIND_HOST
-  -Dtachyon.worker.bind.host=$TACHYON_WORKER_BIND_HOST
-  -Dtachyon.worker.data.bind.host=$TACHYON_WORKER_DATA_BIND_HOST
-  -Dtachyon.worker.web.bind.host=$TACHYON_WORKER_WEB_BIND_HOST
-  -Dtachyon.master.hostname=$TACHYON_MASTER_HOSTNAME
-  -Dtachyon.master.web.hostname=$TACHYON_MASTER_WEB_HOSTNAME
-  -Dtachyon.worker.hostname=$TACHYON_WORKER_HOSTNAME
-  -Dtachyon.worker.data.hostname=$TACHYON_WORKER_DATA_HOSTNAME
-  -Dtachyon.worker.web.hostname=$TACHYON_WORKER_WEB_HOSTNAME
   -Dorg.apache.jasper.compiler.disablejsr199=true
   -Djava.net.preferIPv4Stack=true
 "

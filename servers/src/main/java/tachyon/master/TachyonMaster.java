@@ -42,6 +42,7 @@ import tachyon.thrift.MasterService;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.MasterUIWebServer;
 import tachyon.web.UIWebServer;
@@ -123,7 +124,8 @@ public class TachyonMaster {
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
       mServerTServerSocket =
-          new TServerSocket(NetworkAddressUtils.getMasterBindAddress(mTachyonConf));
+          new TServerSocket(
+              NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, mTachyonConf));
       mPort = NetworkAddressUtils.getPort(mServerTServerSocket);
       // reset master port
       mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(mPort));
@@ -137,7 +139,7 @@ public class TachyonMaster {
         Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
             "Tachyon was not formatted! The journal folder is " + journalFolder);
       }
-      mMasterAddress = NetworkAddressUtils.getMasterAddress(mTachyonConf);
+      mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf);
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService, mTachyonConf);
 
@@ -235,7 +237,8 @@ public class TachyonMaster {
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
-    ufs.connectFromMaster(mTachyonConf, NetworkAddressUtils.getMasterHost(mTachyonConf));
+    ufs.connectFromMaster(mTachyonConf,
+        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mTachyonConf));
   }
 
   private void setup() throws IOException, TTransportException {
@@ -246,8 +249,8 @@ public class TachyonMaster {
     mMasterInfo.init();
 
     mWebServer =
-        new MasterUIWebServer("Tachyon Master Server",
-            NetworkAddressUtils.getMasterWebBindAddress(mTachyonConf), mMasterInfo, mTachyonConf);
+        new MasterUIWebServer("Tachyon Master Server", NetworkAddressUtils.getBindAddress(
+            ServiceType.MASTER_WEB, mTachyonConf), mMasterInfo, mTachyonConf);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
