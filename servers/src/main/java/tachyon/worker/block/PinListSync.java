@@ -61,7 +61,6 @@ public class PinListSync implements Runnable {
    *
    * @param blockDataManager the blockDataManager this syncer is updating to
    * @param tachyonConf the configuration values to be used
-   * @return PinListSync constructed
    */
   public PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
     mBlockDataManager = blockDataManager;

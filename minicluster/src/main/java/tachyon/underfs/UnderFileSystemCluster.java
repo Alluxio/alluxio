@@ -136,7 +136,7 @@ public abstract class UnderFileSystemCluster {
   /**
    * Check if the cluster started.
    *
-   * @return
+   * @return if the cluster actually started
    */
   public abstract boolean isStarted();
 
