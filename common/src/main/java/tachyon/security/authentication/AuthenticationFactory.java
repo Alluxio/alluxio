@@ -119,6 +119,7 @@ public class AuthenticationFactory {
    * one argument to build a Thrift TServer.
    * @return a corresponding TTransportFactory
    * @throws SaslException if building a TransportFactory fails
+   * @throws UnsupportedOperationException if the auth type is not supported or recognized.
    */
   public TTransportFactory getServerTransportFactory() throws SaslException {
     switch (mAuthType) {
