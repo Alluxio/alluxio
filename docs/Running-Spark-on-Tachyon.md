@@ -31,7 +31,7 @@ recompile Spark with the right version of tachyon-client by changing the version
   <td> v0.5.0 </td>
 </tr>
 <tr>
-  <td> 1.4.xAbove </td>
+  <td> 1.4.x </td>
   <td> v0.6.4 </td>
 </tr>
 <tr>
