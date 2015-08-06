@@ -15,12 +15,20 @@
 
 package tachyon.security;
 
+import java.io.IOException;
+import java.security.Security;
 import java.util.HashMap;
 
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.SaslException;
-import java.security.Security;
 
+import org.apache.thrift.transport.TSaslClientTransport;
 import org.apache.thrift.transport.TSaslServerTransport;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
 
 import tachyon.conf.TachyonConf;
@@ -41,7 +49,6 @@ public class PlainSaslHelper {
   }
 
   /**
-   * @param name the name of the provider
    * @return true if the provider was registered
    */
   public static boolean isPlainSaslProviderAdded() {
@@ -70,4 +77,44 @@ public class PlainSaslHelper {
   // TODO: get client side PLAIN TTransport
 //  public static TTransport getPlainClientTransport(String username, String password,
 //      TTransport wrappedTransport) throws SaslException {}
+  /**
+   * Get a ClientTransport for Plain
+   * @param username User Name of PlainClient
+   * @param password Password of PlainClient
+   * @param wrappedTransport The original Transport
+   * @return Wrapped Transport with Plain
+   * @throws SaslException
+   */
+  public static TTransport getPlainTransport(String username, String password,
+      TTransport wrappedTransport) throws SaslException {
+    return new TSaslClientTransport("PLAIN", null, null, null, new HashMap<String, String>(),
+        new PlainCallbackHandler(username, password), wrappedTransport);
+  }
+
+  public static class PlainCallbackHandler implements CallbackHandler {
+
+    private final String mUserName;
+    private final String mPassword;
+
+    public PlainCallbackHandler(String mUserName, String mPassword) {
+      this.mUserName = mUserName;
+      this.mPassword = mPassword;
+    }
+
+    @Override
+    public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+      for (Callback callback : callbacks) {
+        if (callback instanceof NameCallback) {
+          NameCallback nameCallback = (NameCallback) callback;
+          nameCallback.setName(mUserName);
+        } else if (callback instanceof PasswordCallback) {
+          PasswordCallback passCallback = (PasswordCallback) callback;
+          passCallback.setPassword(mPassword.toCharArray());
+        } else {
+          throw new UnsupportedCallbackException(callback, callback.getClass()
+              + " is unsupported.");
+        }
+      }
+    }
+  }
 }
