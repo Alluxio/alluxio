@@ -530,7 +530,7 @@ public class TieredBlockStore implements BlockStore {
   /**
    * updates the pinned blocks
    *
-   * @param inodes, a set of IDs inodes that are pinned
+   * @param inodes a set of IDs inodes that are pinned
    */
   @Override
   public void updatePinnedInodes(Set<Integer> inodes) {
