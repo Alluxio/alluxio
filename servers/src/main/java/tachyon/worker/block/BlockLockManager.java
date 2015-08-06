@@ -109,7 +109,7 @@ public class BlockLockManager {
       throw new IOException(ie.getMessage(), ie.getCause());
     }
     if (!success) {
-      String errMsg = "Failed to lockBlock: " + blockId + " for user: " + userId + " in 5ms.";
+      String errMsg = "5s timeout when attempting lockBlock: " + blockId + " for user: " + userId;
       LOG.error(errMsg);
       throw new IOException(errMsg);
     }
