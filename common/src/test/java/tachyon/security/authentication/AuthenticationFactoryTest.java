@@ -25,6 +25,7 @@ import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.AuthenticationException;
+import javax.security.sasl.SaslException;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -63,33 +64,39 @@ public class AuthenticationFactoryTest {
 
   @Test
   public void authenticationFactoryConstructorTest() {
-    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
-
-    AuthenticationFactory authenticationFactory = new AuthenticationFactory(mTachyonConf);
-
-    Assert.assertEquals(AuthenticationFactory.AuthType.SIMPLE, authenticationFactory.getAuthType());
-  }
-
-  @Test
-  public void getAuthTypeFromConfTest() {
     AuthenticationFactory.AuthType authType;
+
+    // should return a NOSASL AuthType with conf "NOSASL"
+    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "NOSASL");
+    authType = new AuthenticationFactory(mTachyonConf).getAuthType();
+    Assert.assertEquals(AuthenticationFactory.AuthType.NOSASL, authType);
 
     // should return a SIMPLE AuthType with conf "SIMPLE"
     mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
-    authType = AuthenticationFactory.getAuthTypeFromConf(mTachyonConf);
+    authType = new AuthenticationFactory(mTachyonConf).getAuthType();
     Assert.assertEquals(AuthenticationFactory.AuthType.SIMPLE, authType);
 
-    // should return a SIMPLE AuthType with conf "simple"
+    // should return a CUSTOM AuthType with conf "CUSTOM"
+    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+    authType = new AuthenticationFactory(mTachyonConf).getAuthType();
+    Assert.assertEquals(AuthenticationFactory.AuthType.CUSTOM, authType);
+
+    // should return a KERBEROS AuthType with conf "KERBEROS"
+    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "KERBEROS");
+    authType = new AuthenticationFactory(mTachyonConf).getAuthType();
+    Assert.assertEquals(AuthenticationFactory.AuthType.KERBEROS, authType);
+
+    // case insensitive - should return a SIMPLE AuthType with conf "simple"
     mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "simple");
-    authType = AuthenticationFactory.getAuthTypeFromConf(mTachyonConf);
+    authType = new AuthenticationFactory(mTachyonConf).getAuthType();
     Assert.assertEquals(AuthenticationFactory.AuthType.SIMPLE, authType);
 
-    // should throw exception with conf "wrong"
+    // wrong configuration - should throw exception with conf "wrong"
     mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "wrong");
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("wrong is not a valid authentication type. Check the configuration "
         + "parameter " + Constants.TACHYON_SECURITY_AUTHENTICATION);
-    authType = AuthenticationFactory.getAuthTypeFromConf(mTachyonConf);
+    authType = new AuthenticationFactory(mTachyonConf).getAuthType();
   }
 
   /**
@@ -103,7 +110,7 @@ public class AuthenticationFactoryTest {
     startServerThread(mTachyonConf);
 
     // create client and connect to server
-    TTransport client = createClient(null, null);
+    TTransport client = createClient(mTachyonConf, null, null);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -124,13 +131,85 @@ public class AuthenticationFactoryTest {
     startServerThread(mTachyonConf);
 
     // when connecting, authentication happens. It is a no-op in Simple mode.
-    TTransport client = createClient("anyone", "whatever");
+    TTransport client = createClient(mTachyonConf, "anyone", "whatever");
     client.open();
     Assert.assertTrue(client.isOpen());
 
     // clean up
     client.close();
     mServer.stop();
+  }
+
+  /**
+   * In SIMPLE mode, if client's username is null, an exception should be thrown in client side.
+   */
+  @Test
+  public void simpleAuthenticationNullUserTest() throws Exception {
+    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+
+    // check case that user is null
+    mThrown.expect(SaslException.class);
+    mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
+    TTransport client = createClient(mTachyonConf, null, "whatever");
+  }
+
+  /**
+   * In SIMPLE mode, if client's password is null, an exception should be thrown in client side.
+   */
+  @Test
+  public void simpleAuthenticationNullPasswordTest() throws Exception {
+    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+
+    // check case that password is null
+    mThrown.expect(SaslException.class);
+    mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
+    TTransport client = createClient(mTachyonConf, "anyone", null);
+  }
+
+  /**
+   * In SIMPLE mode, if client's username is empty, an exception should be thrown in server side.
+   */
+  @Test
+  public void simpleAuthenticationEmptyUserTest() throws Exception {
+    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+
+    // start server
+    startServerThread(mTachyonConf);
+
+    // check case that user is empty
+    mThrown.expect(TTransportException.class);
+    mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
+        + " identity provided");
+    TTransport client = createClient(mTachyonConf, "", "whatever");
+    try {
+      client.open();
+    } finally {
+      mServer.stop();
+    }
+  }
+
+  /**
+   * In SIMPLE mode, if client's password is empty, an exception should be thrown in server side.
+   * Although password is actually not used and we do not really authenticate the user in SIMPLE
+   * mode, we need the Plain SASL server has ability to check empty password.
+   */
+  @Test
+  public void simpleAuthenticationEmptyPasswordTest() throws Exception {
+    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+
+    // start server
+    startServerThread(mTachyonConf);
+
+    // check case that password is empty
+    mThrown.expect(TTransportException.class);
+    mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No password "
+        + "provided");
+    TTransport client = createClient(mTachyonConf, "anyone", "");
+    try {
+      client.open();
+    } finally {
+      mServer.stop();
+    }
   }
 
   /**
@@ -147,22 +226,95 @@ public class AuthenticationFactoryTest {
     startServerThread(mTachyonConf);
 
     // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
-    TTransport client = createClient("tachyon", "strongPWD");
+    TTransport client = createClient(mTachyonConf, "tachyon", "correct-password");
     client.open();
     Assert.assertTrue(client.isOpen());
 
     // User with wrong password can not pass auth, and throw exception.
-    TTransport wrongClient = createClient("tachyon", "weakPWD");
+    TTransport wrongClient = createClient(mTachyonConf, "tachyon", "wrong-password");
     mThrown.expect(TTransportException.class);
-    mThrown.expectMessage("Peer indicated failure: AuthenticationProvider authenticate failed: "
+    mThrown.expectMessage("Peer indicated failure: Plain authentication failed: "
         + "User authentication fails");
     try {
       wrongClient.open();
-    } catch (TTransportException e) {
-      // clean up and re-throw the expected exception
+    } finally {
+      // clean up
       client.close();
       mServer.stop();
-      throw e;
+    }
+  }
+
+  /**
+   * In CUSTOM mode, if client's username is null, an exception should be thrown in client side.
+   */
+  @Test
+  public void customAuthenticationNullUserTest() throws Exception {
+    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+
+    // check case that user is null
+    mThrown.expect(SaslException.class);
+    mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
+    TTransport client = createClient(mTachyonConf, null, "correct-password");
+  }
+
+  /**
+   * In CUSTOM mode, if client's password is null, an exception should be thrown in client side.
+   */
+  @Test
+  public void customAuthenticationNullPasswordTest() throws Exception {
+    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+
+    // check case that password is null
+    mThrown.expect(SaslException.class);
+    mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
+    TTransport client = createClient(mTachyonConf, "tachyon", null);
+  }
+
+  /**
+   * In CUSTOM mode, if client's username is empty, an exception should be thrown in server side.
+   */
+  @Test
+  public void customAuthenticationEmptyUserTest() throws Exception {
+    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+    mTachyonConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+        MockAuthenticationProvider.class.getName());
+
+    // start server
+    startServerThread(mTachyonConf);
+
+    // check case that user is empty
+    mThrown.expect(TTransportException.class);
+    mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
+        + " identity provided");
+    TTransport client = createClient(mTachyonConf, "", "correct-password");
+    try {
+      client.open();
+    } finally {
+      mServer.stop();
+    }
+  }
+
+  /**
+   * In CUSTOM mode, if client's password is empty, an exception should be thrown in server side.
+   */
+  @Test
+  public void customAuthenticationEmptyPasswordTest() throws Exception {
+    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+    mTachyonConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+        MockAuthenticationProvider.class.getName());
+
+    // start server
+    startServerThread(mTachyonConf);
+
+    // check case that password is empty
+    mThrown.expect(TTransportException.class);
+    mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No password "
+        + "provided");
+    TTransport client = createClient(mTachyonConf, "tachyon", "");
+    try {
+      client.open();
+    } finally {
+      mServer.stop();
     }
   }
 
@@ -219,7 +371,7 @@ public class AuthenticationFactoryTest {
   public static class MockAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
-      if (!user.equalsIgnoreCase("tachyon") || !password.equalsIgnoreCase("strongPWD")) {
+      if (!user.equals("tachyon") || !password.equals("correct-password")) {
         throw new AuthenticationException("User authentication fails");
       }
     }
@@ -227,13 +379,14 @@ public class AuthenticationFactoryTest {
 
   // FIXME: API for creating client transport is on-going in TACHYON-621.
   // This code is temporarily used to simulate a client transport. Use the API when it's done.
-  private TTransport createClient(String user, String password) throws Exception {
+  private TTransport createClient(TachyonConf conf, String user, String password)
+      throws SaslException {
     // the underlining client socket for connecting to server
     TTransport tTransport = new TSocket(NetworkAddressUtils.getFqdnHost(mServerAddress),
         mServerAddress.getPort());
 
     // wrap above socket.
-    if (user != null) {
+    if (AuthenticationFactory.getAuthTypeFromConf(conf) != AuthenticationFactory.AuthType.NOSASL) {
       // Simple and Custom mode
       return new TSaslClientTransport("PLAIN", null, null, null, new HashMap<String,
           String>(), new PlainClientCallbackHandler(user, password), tTransport);
@@ -266,7 +419,7 @@ public class AuthenticationFactoryTest {
           nameCallback.setName(mUserName);
         } else if (callback instanceof PasswordCallback) {
           PasswordCallback passCallback = (PasswordCallback) callback;
-          passCallback.setPassword(mPassword.toCharArray());
+          passCallback.setPassword(mPassword == null ? null : mPassword.toCharArray());
         } else {
           throw new UnsupportedCallbackException(callback);
         }
