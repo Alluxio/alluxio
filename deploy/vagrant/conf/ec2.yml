@@ -105,9 +105,12 @@ Availability_Zone: "us-east-1a"
 
 # VPC and Subnet ID
 #
-# Depending on when you created your aws account, you may not have a default VPC and subnet set up for US-east-1.
-# In that case, you need to enable the VPC and Subnet settings to specify where you will launch your instance.
-# You mahy also need to change the Availability_Zone setting, because VPC can not be created in us-east-1a.
+# http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/default-vpc.html#default-vpc-basics
+# Some users do not have access to default VPC in all regions, and creating them involves contacting Amazon support.
+# This particular AMI would not launch under ec2-classic mode, it requires a VPC. 
+# If you do not have a default VPC, you may need to create one for your region, and enable the VPC and Subnet
+# settings to specify where you will launch your instance.
+#
 # Availability_Zone: "us-east-1b"
 # VPC: "vpc-id"
 # Subnet: "subnet-id"

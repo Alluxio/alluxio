@@ -18,11 +18,9 @@ from util import info, warn, error
 
 
 def get_or_make_group(conn, name, vpc=None):
-    if (vpc is None or vpc == ''):
-        groups = conn.get_all_security_groups([].append(name))
-    else:
-        groups = conn.get_all_security_groups([].append(name))
-        groups = [g for g in groups if (g.name == name and g.vpc_id == vpc)]
+    groups = conn.get_all_security_groups([name])
+    if (vpc is not None and vpc != ''):
+        groups = [g for g in groups if (g.vpc_id == vpc)]
     if len(groups) > 0:
         return groups[0]
     else:
