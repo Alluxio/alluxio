@@ -49,18 +49,46 @@ public final class NetworkAddressUtils {
 
   private NetworkAddressUtils() {}
 
+  /**
+   * Different types of services that client uses to connect. These types also indicate the service
+   * bind address
+   */
   public enum ServiceType {
-    MASTER_RPC, MASTER_WEB, WORKER_RPC, WORKER_DATA, WORKER_WEB
+
+    /**
+     * Master RPC service (Thrift)
+     */
+    MASTER_RPC,
+
+    /**
+     * Master web service (Jetty)
+     */
+    MASTER_WEB,
+
+    /**
+     * Worker RPC service (Thrift)
+     */
+    WORKER_RPC,
+
+    /**
+     * Worker data service (Netty)
+     */
+    WORKER_DATA,
+
+    /**
+     * Worker web service (Jetty)
+     */
+    WORKER_WEB
   }
 
   /**
-   * Gets service connection hostname. If the connection hostname is not explicitly. If the host
-   * name is not explicitly specified, Tachyon will try bind hostname. If the bind hostname is
-   * wildcard, Tachyon will automatically select an appropriate local hostname.
+   * Gets service connection hostname. If the connection hostname is not explicitly specified,
+   * Tachyon will try bind hostname. If the bind hostname is wildcard, Tachyon will automatically
+   * select an appropriate local hostname.
    *
    * @param service Service type used to connect
    * @param conf Tachyon configuration used to look up the host resolution timeout
-   * @return the connection endpoint for reaching the service.
+   * @return the connection hostname that a client can use to reach the service.
    */
   public static String getConnectHost(ServiceType service, TachyonConf conf) {
     String connectHost;
@@ -105,7 +133,7 @@ public final class NetworkAddressUtils {
    *
    * @param service the service name used to connect
    * @param conf the configuration of Tachyon
-   * @return a connection address that a client uses to communicate with service endpoint.
+   * @return a connection endpoint that a client uses to communicate with service.
    */
   public static InetSocketAddress getConnectAddress(ServiceType service, TachyonConf conf) {
     switch (service) {
@@ -132,7 +160,7 @@ public final class NetworkAddressUtils {
   /**
    * Helper method to get the {@link InetSocketAddress} bind address on a given service.
    * <p>
-   * Host binding strategy on multihomed networking:
+   * Host binding strategy on multihomed networks:
    * <ol>
    * <li>Environment variables via tachyon-env.sh or from OS settings
    * <li>Default properties via tachyon-default.properties file

@@ -21,11 +21,137 @@ import java.net.UnknownHostException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
-import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 public class NetworkAddressUtilsTest {
+
+  @Test
+  public void testGetConnectAddress() throws Exception {
+    TachyonConf conf = new TachyonConf();
+    String localHostName = NetworkAddressUtils.getLocalHostName(conf);
+    int defaultPort = Constants.DEFAULT_MASTER_PORT;
+    InetSocketAddress masterAddress;
+
+    // all default
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress(localHostName, defaultPort), masterAddress);
+
+    // bind host only
+    conf.set(Constants.MASTER_HOSTNAME, "");
+    conf.set(Constants.MASTER_BIND_HOST, "master.bind.host");
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress("master.bind.host", defaultPort), masterAddress);
+
+    // connect host and bind host
+    conf.set(Constants.MASTER_HOSTNAME, "master.connect.host");
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress("master.connect.host", defaultPort), masterAddress);
+
+    // wildcard connect host and bind host
+    conf.set(Constants.MASTER_HOSTNAME, Constants.WILDCARD_ADDRESS);
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress("master.bind.host", defaultPort), masterAddress);
+
+    // wildcard connect host and wildcard bind host
+    conf.set(Constants.MASTER_BIND_HOST, Constants.WILDCARD_ADDRESS);
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress(localHostName, defaultPort), masterAddress);
+
+    // connect host and wildcard bind host
+    conf.set(Constants.MASTER_HOSTNAME, "master.connect.host");
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress("master.connect.host", defaultPort), masterAddress);
+
+    // connect host and wildcard bind host with port
+    conf.set(Constants.MASTER_PORT, "10000");
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress("master.connect.host", 10000), masterAddress);
+
+    // connect host and bind host with port
+    conf.set(Constants.MASTER_BIND_HOST, "master.bind.host");
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress("master.connect.host", 10000), masterAddress);
+
+    // empty connect host and bind host with port
+    conf.set(Constants.MASTER_HOSTNAME, "");
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress("master.bind.host", 10000), masterAddress);
+
+    // empty connect host and wildcard bind host with port
+    conf.set(Constants.MASTER_BIND_HOST, Constants.WILDCARD_ADDRESS);
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress(localHostName, 10000), masterAddress);
+  }
+
+  @Test
+  public void testGetBindAddress() throws Exception {
+    TachyonConf conf = new TachyonConf();
+    String localHostName = NetworkAddressUtils.getLocalHostName(conf);
+    int defaultPort = Constants.DEFAULT_WORKER_PORT;
+    InetSocketAddress workerAddress;
+
+    // all default
+    workerAddress = NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress(Constants.WILDCARD_ADDRESS, defaultPort),
+        workerAddress);
+
+    // bind host only
+    conf.set(Constants.WORKER_BIND_HOST, "worker.bind.host");
+    workerAddress = NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress("worker.bind.host", defaultPort), workerAddress);
+
+    // connect host and bind host
+    conf.set(Constants.WORKER_HOSTNAME, "worker.connect.host");
+    workerAddress = NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress("worker.bind.host", defaultPort), workerAddress);
+
+    // wildcard connect host and bind host
+    conf.set(Constants.WORKER_HOSTNAME, Constants.WILDCARD_ADDRESS);
+    workerAddress = NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress("worker.bind.host", defaultPort), workerAddress);
+
+    // wildcard connect host and wildcard bind host
+    conf.set(Constants.WORKER_BIND_HOST, Constants.WILDCARD_ADDRESS);
+    workerAddress = NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress(Constants.WILDCARD_ADDRESS, defaultPort),
+        workerAddress);
+
+    // connect host and wildcard bind host
+    conf.set(Constants.WORKER_HOSTNAME, "worker.connect.host");
+    workerAddress = NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress(Constants.WILDCARD_ADDRESS, defaultPort),
+        workerAddress);
+
+    // connect host and wildcard bind host with port
+    conf.set(Constants.WORKER_PORT, "20000");
+    workerAddress = NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress(Constants.WILDCARD_ADDRESS, 20000), workerAddress);
+
+    // connect host and bind host with port
+    conf.set(Constants.WORKER_BIND_HOST, "worker.bind.host");
+    workerAddress = NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress("worker.bind.host", 20000), workerAddress);
+
+    // empty connect host and bind host with port
+    conf.set(Constants.WORKER_HOSTNAME, "");
+    workerAddress = NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress("worker.bind.host", 20000), workerAddress);
+
+    // empty connect host and wildcard bind host with port
+    conf.set(Constants.WORKER_BIND_HOST, Constants.WILDCARD_ADDRESS);
+    workerAddress = NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress(Constants.WILDCARD_ADDRESS, 20000), workerAddress);
+
+    // empty connect host and empty bind host with port
+    conf.set(Constants.WORKER_BIND_HOST, "");
+    workerAddress = NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, conf);
+    Assert.assertEquals(new InetSocketAddress(localHostName, 20000), workerAddress);
+
+  }
 
   @Test
   public void replaceHostNameTest() throws UnknownHostException {
