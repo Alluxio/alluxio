@@ -27,7 +27,7 @@ newly added nodes in order to balance disk space utilization between the nodes?*
 
 >   Yes. Please see this [page](http://tachyon-project.org/Fault-Tolerant-Tachyon-Cluster.html).
 
-**What is UnderFS and how many UnderlayerFS are supported?**
+**What is UnderFS and how many UnderFS are supported?**
 
 >   Tachyon uses UnderFS as its persistent storage system. It currently supports Amazon S3, HDFS,
    GlusterFS. Many more are coming.
