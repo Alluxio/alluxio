@@ -99,12 +99,8 @@ public class PlainSaslServer implements SaslServer {
       if (!authCallback.isAuthorized()) {
         throw new SaslException("AuthorizeCallback authorized failure");
       }
-    } catch (AuthenticationException ae) {
-      throw new SaslException("AuthenticationProvider authenticate failed:" + ae.getMessage(), ae);
-    } catch (IOException ioe) {
-      throw new SaslException("Error validating the response", ioe);
-    } catch (UnsupportedCallbackException uce) {
-      throw new SaslException("Error validating the response", uce);
+    } catch (Exception e) {
+      throw new SaslException("Plain authentication failed: " + e.getMessage(), e);
     }
     mCompleted = true;
     return null;
