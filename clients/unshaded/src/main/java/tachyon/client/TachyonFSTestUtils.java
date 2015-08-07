@@ -45,7 +45,7 @@ public final class TachyonFSTestUtils {
    * @param fileURI
    * @param op
    * @param len
-   * @return
+   * @return created file id.
    * @throws IOException
    */
   public static int createByteFile(TachyonFS tfs, TachyonURI fileURI, WriteType op, int len)

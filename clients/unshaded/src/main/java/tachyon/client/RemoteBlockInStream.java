@@ -164,7 +164,6 @@ public class RemoteBlockInStream extends BlockInStream {
    * when we close the dummy stream.)
    *
    * @return a dummy RemoteBlockInStream object.
-   * @see {@link tachyon.client.TachyonFile#readRemoteByteBuffer(ClientBlockInfo)} for usage
    */
   public static RemoteBlockInStream getDummyStream() {
     return new RemoteBlockInStream(new TachyonFile(null, -1, null),

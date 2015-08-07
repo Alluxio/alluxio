@@ -85,7 +85,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    * Method available() is not supported in HdfsFileInputStream and an IOException will be thrown
    * to override the default behavior of returning 0 in all cases.
    *
-   * @return
+   * @return not supported.
    * @throws IOException
    */
   @Override
