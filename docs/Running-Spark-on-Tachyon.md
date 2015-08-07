@@ -1,6 +1,8 @@
 ---
 layout: global
 title: Running Spark on Tachyon
+nickname: Apache Spark
+group: Frameworks
 ---
 
 ## Compatibility

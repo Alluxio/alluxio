@@ -15,8 +15,11 @@
 
 package tachyon.worker.block.evictor;
 
-import java.io.IOException;
+import com.google.common.base.Throwables;
 
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 
@@ -24,12 +27,32 @@ import tachyon.worker.block.BlockStoreLocation;
  * Interface for the eviction policy in Tachyon
  */
 public interface Evictor {
+
+  class Factory {
+    /**
+     *
+     * @param conf TachyonConf to determine the evictor type
+     * @param view BlockMetadataManagerView to pass to Evictor
+     * @return the generated Evictor
+     */
+    public static Evictor createEvictor(TachyonConf conf, BlockMetadataManagerView view) {
+      try {
+        return CommonUtils.createNewClassInstance(
+            conf.getClass(Constants.WORKER_EVICT_STRATEGY_CLASS, LRUEvictor.class),
+            new Class[]{BlockMetadataManagerView.class},
+            new Object[]{view});
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
+    }
+  }
+
   /**
    * Frees space in the given block store location and with the given view.
    * After eviction, at least one StorageDir in the location
    * has the specific amount of free space after eviction. The location can be a specific
    * StorageDir, or {@link BlockStoreLocation#anyTier} or {@link BlockStoreLocation#anyDirInTier}.
-   * The view is generated and passed by the calling {@link BlockStore}.
+   * The view is generated and passed by the calling {@link tachyon.worker.block.BlockStore}.
    *
    * <P>
    * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,
@@ -42,8 +65,8 @@ public interface Evictor {
    * @param view generated and passed by block store
    * @return an eviction plan (possibly with empty fields) to get the free space, or null if no plan
    *         is feasible
-   * @throws IOException if given block location is invalid
+   * @throws IllegalArgumentException if given block location is invalid
    */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-      BlockMetadataManagerView view) throws IOException;
+      BlockMetadataManagerView view);
 }

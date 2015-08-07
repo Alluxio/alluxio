@@ -3,16 +3,15 @@ Tachyon
 
 The master branch is in version 0.8.0-SNAPSHOT:
 
-- [Tachyon Homepage](http://www.tachyonproject.org)
+- [Tachyon Document](http://www.tachyonproject.org) | [Master Branch Document](http://tachyon-project.org/master/)
 - [Contribute to Tachyon](http://tachyon-project.org/master/Contributing-to-Tachyon.html) and
 [New Contributor's Tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20Open)
-  - Please limit 2 tasks per new contributor. Afterwards, try some Beginner/Intermediate tasks,
+  - Please limit 2 tasks per new contributor. Afterwards, try some [beginner tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner%20AND%20status%20%3D%20Open) or [intermediate tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Intermediate%20AND%20status%20%3D%20Open),
   or ask in the [Developer Mailing List](https://groups.google.com/forum/#!forum/tachyon-dev).
 - [Releases](https://github.com/amplab/tachyon/tags)
 - [Tachyon JIRA](https://tachyon.atlassian.net/browse/TACHYON)
-- [Master Branch Document](http://tachyon-project.org/master/)
-- [User Group](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
-- [Meetup Group](http://www.meetup.com/Tachyon)
+- [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
+- [Bay Area Meetup Group](http://www.meetup.com/Tachyon)
 
 ## Building applications with Tachyon
 

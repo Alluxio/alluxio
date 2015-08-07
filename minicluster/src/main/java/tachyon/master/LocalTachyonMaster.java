@@ -25,7 +25,8 @@ import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
-import tachyon.util.NetworkUtils;
+import tachyon.util.io.PathUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.UnderFileSystemUtils;
 
 /**
@@ -68,7 +69,7 @@ public final class LocalTachyonMaster {
     UnderFileSystemUtils.mkdirIfNotExists(mDataDir, tachyonConf);
     UnderFileSystemUtils.mkdirIfNotExists(mLogDir, tachyonConf);
 
-    mHostname = NetworkUtils.getLocalHostName(250);
+    mHostname = NetworkAddressUtils.getLocalHostName(250);
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
     // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
@@ -104,7 +105,8 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     tachyonConf.set(Constants.WEB_THREAD_COUNT, "1");
-    tachyonConf.set(Constants.WEB_RESOURCES, System.getProperty("user.dir") + "/src/main/webapp");
+    tachyonConf.set(Constants.WEB_RESOURCES,
+        PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
 
     mTachyonMaster = new TachyonMaster(tachyonConf);
 

@@ -26,10 +26,12 @@ import com.google.common.base.Joiner;
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.OutOfSpaceException;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.block.BlockWorker;
 
 /**
@@ -163,7 +165,7 @@ public final class LocalTachyonCluster {
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";
 
-    mLocalhostName = NetworkUtils.getLocalHostName(100);
+    mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
 
     mMasterConf = tachyonConf;
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
@@ -216,23 +218,26 @@ public final class LocalTachyonCluster {
     // people running with strange network configurations will see very slow tests
     mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
-    mWorkerConf.set("tachyon.worker.tieredstore.level0.alias", "MEM");
-    mWorkerConf.set("tachyon.worker.tieredstore.level0.dirs.path", mTachyonHome + "/ramdisk");
-    mWorkerConf.set("tachyon.worker.tieredstore.level0.dirs.quota", mWorkerCapacityBytes + "");
+    mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 0), "MEM");
+    mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
+        mTachyonHome + "/ramdisk");
+    mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
+        mWorkerCapacityBytes + "");
     mkdir(mTachyonHome + "/ramdisk");
 
     int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
     for (int level = 1; level < maxLevel; level ++) {
-      String tierLevelDirPath = "tachyon.worker.tieredstore.level" + level + ".dirs.path";
+      String tierLevelDirPath = String.format(
+          Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
       List<String> newPaths = new ArrayList<String>();
-      for (int i = 0; i < dirPaths.length; i ++) {
-        String dirPath = mTachyonHome + dirPaths[i];
-        newPaths.add(dirPath);
-        mkdir(dirPath);
+      for (String dirPath : dirPaths) {
+        String newPath = mTachyonHome + dirPath;
+        newPaths.add(newPath);
+        mkdir(newPath);
       }
-      mWorkerConf.set("tachyon.worker.tieredstore.level" + level + ".dirs.path", Joiner.on(',')
-          .join(newPaths));
+      mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level),
+          Joiner.on(',').join(newPaths));
     }
 
     mWorker = new BlockWorker(mWorkerConf);
@@ -269,16 +274,16 @@ public final class LocalTachyonCluster {
     mMaster.stop();
     mWorker.stop();
 
-    System.clearProperty("tachyon.home");
-    System.clearProperty("tachyon.worker.port");
-    System.clearProperty("tachyon.worker.data.port");
-    System.clearProperty("tachyon.worker.data.folder");
-    System.clearProperty("tachyon.worker.memory.size");
-    System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
-    System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
-    System.clearProperty("tachyon.worker.tieredstore.level.max");
-    System.clearProperty("tachyon.worker.network.netty.worker.threads");
-    System.clearProperty("tachyon.worker.min.worker.threads");
+    System.clearProperty(Constants.TACHYON_HOME);
+    System.clearProperty(Constants.WORKER_PORT);
+    System.clearProperty(Constants.WORKER_DATA_PORT);
+    System.clearProperty(Constants.WORKER_DATA_FOLDER);
+    System.clearProperty(Constants.WORKER_MEMORY_SIZE);
+    System.clearProperty(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE);
+    System.clearProperty(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    System.clearProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
+    System.clearProperty(Constants.WORKER_NETTY_WORKER_THREADS);
+    System.clearProperty(Constants.WORKER_MIN_WORKER_THREADS);
   }
 
   /**

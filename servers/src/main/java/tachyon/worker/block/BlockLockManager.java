@@ -15,7 +15,6 @@
 
 package tachyon.worker.block;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -33,6 +32,8 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
 import tachyon.Constants;
+import tachyon.exception.InvalidStateException;
+import tachyon.exception.NotFoundException;
 
 /**
  * Handle all block locks.
@@ -86,9 +87,10 @@ public class BlockLockManager {
    * @param blockId the ID of block
    * @param blockLockType READ or WRITE
    * @return lock ID
-   * @throws IOException if the block does not exist or if the lock attempt exceeded the timeout
+   * @throws NotFoundException if the block does not exist or the block lock timeout is exceeded
    */
-  public long lockBlock(long userId, long blockId, BlockLockType blockLockType) throws IOException {
+  public long lockBlock(long userId, long blockId, BlockLockType blockLockType)
+      throws NotFoundException {
     // hashing blockId into the range of [0, NUM_LOCKS-1]
     int index = blockHashIndex(blockId);
     ClientRWLock blockLock = mLockArray[index];
@@ -106,16 +108,18 @@ public class BlockLockManager {
     } catch (InterruptedException ie) {
       // The UserLock implementation does not throw this exception, something is wrong if it happens
       LOG.error("Interrupted exception in tryLock, this should not occur!");
-      throw new IOException(ie.getMessage(), ie.getCause());
+      // TODO: Throw an appropriate exception here
+      throw new NotFoundException(ie.getMessage(), ie.getCause());
     }
     if (!success) {
       String errMsg = "5s timeout when attempting lockBlock: " + blockId + " for user: " + userId;
       LOG.error(errMsg);
-      throw new IOException(errMsg);
+      // TODO: Throw an appropriate exception here
+      throw new NotFoundException(errMsg);
     }
     if (!mMetaManager.hasBlockMeta(blockId)) {
       lock.unlock();
-      throw new IOException("Failed to lockBlock: no blockId " + blockId + " found");
+      throw new NotFoundException("Failed to lockBlock: no blockId " + blockId + " found");
     }
     long lockId = LOCK_ID_GEN.getAndIncrement();
     synchronized (mSharedMapsLock) {
@@ -131,17 +135,18 @@ public class BlockLockManager {
   }
 
   /**
-   * Releases a lock by its lockId or throw IOException.
+   * Releases a lock by its lockId or throws NotFoundException.
    *
    * @param lockId the ID of the lock
-   * @throws IOException if no lock is associated with this lock
+   * @throws NotFoundException if no lock is associated with this lock id
    */
-  public void unlockBlock(long lockId) throws IOException {
+  public void unlockBlock(long lockId) throws NotFoundException {
     Lock lock;
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
-        throw new IOException("Failed to unlockBlock: lockId " + lockId + " has no lock record");
+        throw new NotFoundException("Failed to unlockBlock: lockId " + lockId
+            + " has no lock record");
       }
       long userId = record.userId();
       lock = record.lock();
@@ -156,13 +161,14 @@ public class BlockLockManager {
   }
 
   // TODO: temporary, remove me later.
-  public void unlockBlock(long userId, long blockId) throws IOException {
+  public void unlockBlock(long userId, long blockId) throws NotFoundException {
     synchronized (mSharedMapsLock) {
       Set<Long> userLockIds = mUserIdToLockIdsMap.get(userId);
       for (long lockId : userLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (null == record) {
-          throw new IOException("Failed to unlockBlock: lockId " + lockId + " has no lock record");
+          throw new NotFoundException("Failed to unlockBlock: lockId " + lockId
+              + " has no lock record");
         }
         if (blockId == record.blockId()) {
           mLockIdToRecordMap.remove(lockId);
@@ -175,7 +181,8 @@ public class BlockLockManager {
           return;
         }
       }
-      throw new IOException("Failed to unlock blockId " + blockId + " for userId " + userId);
+      throw new NotFoundException("Failed to unlock blockId " + blockId + " for userId " + userId
+          + ": no lock is found for userId " + userId);
     }
   }
 
@@ -185,20 +192,25 @@ public class BlockLockManager {
    * @param userId The ID of the user
    * @param blockId The ID of the block
    * @param lockId The ID of the lock
+   * @throws NotFoundException when no lock record can be found for lockId
+   * @throws InvalidStateException when userId or blockId is not consistent with that in the
+   *         lock record for lockId
    */
-  public void validateLock(long userId, long blockId, long lockId) throws IOException {
+  public void validateLock(long userId, long blockId, long lockId) throws NotFoundException,
+      InvalidStateException {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
-        throw new IOException("Failed to validateLock: lockId " + lockId + " has no lock record");
+        throw new NotFoundException("Failed to validateLock: lockId " + lockId
+            + " has no lock record");
       }
       if (userId != record.userId()) {
-        throw new IOException("Failed to validateLock: lockId " + lockId + " is owned by userId "
-            + record.userId() + ", not " + userId);
+        throw new InvalidStateException("Failed to validateLock: lockId " + lockId
+            + " is owned by userId " + record.userId() + ", not " + userId);
       }
       if (blockId != record.blockId()) {
-        throw new IOException("Failed to validateLock: lockId " + lockId + " is for blockId "
-            + record.blockId() + ", not " + blockId);
+        throw new InvalidStateException("Failed to validateLock: lockId " + lockId
+            + " is for blockId " + record.blockId() + ", not " + blockId);
       }
     }
   }
@@ -246,7 +258,7 @@ public class BlockLockManager {
   /**
    * Inner class to keep record of a lock.
    */
-  private class LockRecord {
+  private static class LockRecord {
     private final long mUserId;
     private final long mBlockId;
     private final Lock mLock;

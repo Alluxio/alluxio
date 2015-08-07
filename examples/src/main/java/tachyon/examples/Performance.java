@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -44,6 +44,7 @@ import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
+import tachyon.util.FormatUtils;
 
 public class Performance {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -70,7 +71,7 @@ public class Performance {
     final long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < sFiles; k ++) {
       int fileId = sMtc.createFile(new TachyonURI(sFileName + (k + sBaseFileNumber)));
-      CommonUtils.printTimeTakenMs(startTimeMs, LOG, "user_createFiles with fileId " + fileId);
+      FormatUtils.printTimeTakenMs(startTimeMs, LOG, "user_createFiles with fileId " + fileId);
     }
   }
 
@@ -110,7 +111,7 @@ public class Performance {
     public void memoryCopyParition() throws IOException {
       if (sDebugMode) {
         mBuf.flip();
-        CommonUtils.printByteBuffer(LOG, mBuf);
+        FormatUtils.printByteBuffer(LOG, mBuf);
       }
       mBuf.flip();
       long sum = 0;
@@ -190,7 +191,7 @@ public class Performance {
     public void writeParition() throws IOException {
       if (sDebugMode) {
         mBuf.flip();
-        CommonUtils.printByteBuffer(LOG, mBuf);
+        FormatUtils.printByteBuffer(LOG, mBuf);
       }
 
       mBuf.flip();
@@ -278,7 +279,7 @@ public class Performance {
 
           if (sDebugMode) {
             buf.mData.order(ByteOrder.nativeOrder()).flip();
-            CommonUtils.printByteBuffer(LOG, buf.mData);
+            FormatUtils.printByteBuffer(LOG, buf.mData);
           }
           buf.mData.clear();
           logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
@@ -330,7 +331,7 @@ public class Performance {
     public void io() throws IOException {
       if (sDebugMode) {
         mBuf.flip();
-        CommonUtils.printByteBuffer(LOG, mBuf);
+        FormatUtils.printByteBuffer(LOG, mBuf);
       }
       mBuf.flip();
       long sum = 0;
@@ -531,9 +532,7 @@ public class Performance {
             sFiles, sBlockSizeBytes / 1024, sBlocksPerFile, sFileBytes / Constants.MB,
             fileBufferBytes / 1024, sBaseFileNumber);
 
-    for (int k = 0; k < 10000000; k ++) {
-      // Warmup
-    }
+    CommonUtils.warmUpLoop();
 
     if (testCase == 1) {
       sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;

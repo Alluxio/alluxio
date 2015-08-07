@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import tachyon.TestUtils;
+import tachyon.util.io.BufferUtils;
 
 public class LocalFileBlockReaderTest {
   private static final long TEST_BLOCK_SIZE = 1024;
@@ -42,8 +42,8 @@ public class LocalFileBlockReaderTest {
   @Before
   public void before() throws Exception {
     mTestFilePath = mFolder.newFile().getAbsolutePath();
-    byte[] buffer = TestUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE);
-    TestUtils.writeBufferToFile(mTestFilePath, buffer);
+    byte[] buffer = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE);
+    BufferUtils.writeBufferToFile(mTestFilePath, buffer);
     mReader = new LocalFileBlockReader(mTestFilePath);
   }
 
@@ -54,7 +54,7 @@ public class LocalFileBlockReaderTest {
     ByteBuffer buffer = ByteBuffer.allocate((int) TEST_BLOCK_SIZE);
     int bytesRead = channel.read(buffer);
     Assert.assertEquals(TEST_BLOCK_SIZE, bytesRead);
-    Assert.assertTrue(TestUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
   }
 
   @Test
@@ -76,17 +76,17 @@ public class LocalFileBlockReaderTest {
 
     // Read 1/4 block by setting the length to be 1/4 of the block size.
     buffer = mReader.read(0, TEST_BLOCK_SIZE / 4);
-    Assert.assertTrue(TestUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE / 4, buffer));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE / 4, buffer));
 
 
     // Read entire block by setting the length to be block size.
     buffer = mReader.read(0, TEST_BLOCK_SIZE);
-    Assert.assertTrue(TestUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
 
     // Read entire block by setting the length to be -1
     int length = -1;
     buffer = mReader.read(0, length);
-    Assert.assertTrue(TestUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
   }
 
   @Test

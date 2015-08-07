@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -88,7 +88,7 @@ public class LocalFileBlockWriter implements BlockWriter {
     ByteBuffer outputBuf =
         mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, offset, inputBufLength);
     outputBuf.put(inputBuf);
-    CommonUtils.cleanDirectBuffer(outputBuf);
+    BufferUtils.cleanDirectBuffer(outputBuf);
     return outputBuf.limit();
   }
 

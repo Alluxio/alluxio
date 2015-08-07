@@ -15,17 +15,17 @@
 
 package tachyon.worker.block;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.exception.NotFoundException;
 import tachyon.master.BlockInfo;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageTier;
@@ -33,9 +33,9 @@ import tachyon.worker.block.meta.StorageTierView;
 
 /**
  * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators,
- * filtering out un-evictable blocks and un-allocatable space (TODO) internally, so that
- * evictors and allocators can be developed with much simpler logic, without worrying about
- * various constraints, e.g. pinned files, locked blocks, etc.
+ * filtering out un-evictable blocks and un-allocatable space (TODO) internally, so that evictors
+ * and allocators can be developed with much simpler logic, without worrying about various
+ * constraints, e.g. pinned files, locked blocks, etc.
  */
 public class BlockMetadataManagerView {
 
@@ -51,14 +51,12 @@ public class BlockMetadataManagerView {
   private Map<Integer, StorageTierView> mAliasToTierViews = new HashMap<Integer, StorageTierView>();
 
   /**
-   * Constructor of BlockMatadataManagerView.
-   * Now we always creating a new view before freespace.
+   * Constructor of BlockMatadataManagerView. Now we always creating a new view before freespace.
    * TODO: incrementally update the view
    *
    * @param manager which the view should be constructed from
-   * @param pinnedInodes, a set of pinned nodes
-   * @param lockedBlocks, a set of locked blocks
-   * @return BlockMetadataManagerView constructed
+   * @param pinnedInodes a set of pinned inodes
+   * @param lockedBlocks a set of locked blocks
    */
   public BlockMetadataManagerView(BlockMetadataManager manager, Set<Integer> pinnedInodes,
       Set<Long> lockedBlocks) {
@@ -68,7 +66,7 @@ public class BlockMetadataManagerView {
     for (Long blockId : lockedBlocks) {
       mInUseLocks.set(BlockLockManager.blockHashIndex(blockId));
     }
-    
+
     // iteratively create all StorageTierViews and StorageDirViews
     for (StorageTier tier : manager.getTiers()) {
       StorageTierView tierView = new StorageTierView(tier, this);
@@ -117,14 +115,12 @@ public class BlockMetadataManagerView {
    *
    * @param tierAlias the alias of this tierView
    * @return the StorageTierView object associated with the alias
-   * @throws IOException if tierAlias is not found
+   * @throws IllegalArgumentException if tierAlias is not found
    */
-  public StorageTierView getTierView(int tierAlias) throws IOException {
-    // TODO: can we ensure the returning tierview is same as
-    // new StorageTierView(mMetadataManager.getTier(tierAlias)) ?
+  public StorageTierView getTierView(int tierAlias) {
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
     if (null == tierView) {
-      throw new IOException("Cannot find tier view with alias: " + tierAlias);
+      throw new IllegalArgumentException("Cannot find tier view with alias: " + tierAlias);
     } else {
       return tierView;
     }
@@ -144,34 +140,34 @@ public class BlockMetadataManagerView {
    *
    * @param tierAlias the alias of a tierView
    * @return the list of StorageTierView
-   * @throws IOException if tierAlias is not found
+   * @throws IllegalArgumentException if tierAlias is not found
    */
-  public List<StorageTierView> getTierViewsBelow(int tierAlias) throws IOException {
-    // TODO: similar concern as in getTierView
+  public List<StorageTierView> getTierViewsBelow(int tierAlias) {
     int level = getTierView(tierAlias).getTierViewLevel();
     return mTierViews.subList(level + 1, mTierViews.size());
   }
 
   /**
-   * Get available bytes given certain location
-   * Redirecting to {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}
+   * Get available bytes given certain location Redirecting to
+   * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}
    *
    * @param location location the check available bytes
    * @return available bytes
+   * @throws IllegalArgumentException if location does not belong to tiered storage
    */
-  public long getAvailableBytes(BlockStoreLocation location) throws IOException {
+  public long getAvailableBytes(BlockStoreLocation location) {
     return mMetadataManager.getAvailableBytes(location);
   }
 
   /**
-   * Return null if block is pinned or currently being locked,
-   * otherwise return {@link BlockMetadataManager#getBlockMeta(long)}
+   * Return null if block is pinned or currently being locked, otherwise return
+   * {@link BlockMetadataManager#getBlockMeta(long)}
    *
    * @param blockId the block ID
    * @return metadata of the block or null
-   * @throws IOException if no BlockMeta for this blockId is found
+   * @throws NotFoundException if no BlockMeta for this blockId is found
    */
-  public BlockMeta getBlockMeta(long blockId) throws IOException {
+  public BlockMeta getBlockMeta(long blockId) throws NotFoundException {
     if (isBlockEvictable(blockId)) {
       return mMetadataManager.getBlockMeta(blockId);
     } else {

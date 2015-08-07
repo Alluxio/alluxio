@@ -25,11 +25,10 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.TestUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
 
 /**
  * Integration tests for tachyon.client.TachyonFile.
@@ -54,7 +53,7 @@ public class TachyonFileIntegrationTest {
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
@@ -215,7 +214,7 @@ public class TachyonFileIntegrationTest {
       byte[] buf = new byte[k];
       lfile.read(buf, 0, k);
 
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, buf));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, buf));
 
       lfile.close();
     }

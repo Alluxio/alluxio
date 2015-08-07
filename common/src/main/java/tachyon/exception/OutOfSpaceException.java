@@ -13,24 +13,23 @@
  * the License.
  */
 
-package tachyon.worker.block.allocator;
+package tachyon.exception;
 
 /**
- * Different types of {@link Allocator}.
+ * Exception used when storage space is insufficient.
+ *
+ * For example:
+ * <ul>
+ * <li>worker cannot satisfy the requested space</li>
+ * <li>evictor cannot satisfy the space to be available after eviction</li>
+ * </ul>
  */
-public enum AllocatorType {
-  /**
-   * Default type which will be determined in {@link AllocatorFactory} mainly used in
-   * {@link tachyon.conf.TachyonConf#getEnum} as default value when getting the AllocatorType
-   * from the TachyonConf
-   */
-  DEFAULT,
-  /**
-   * Allocate to the storage dir with the most free space
-   */
-  MAX_FREE,
-  /**
-   * Allocate to the first storage dir with space
-   */
-  GREEDY,
+public class OutOfSpaceException extends Exception {
+  public OutOfSpaceException(String message) {
+    super(message);
+  }
+
+  public OutOfSpaceException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

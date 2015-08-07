@@ -18,9 +18,16 @@
 # three patterns and not ending in "da"(this is revserved by default) as devices specified in block device mapping
 # Next, determine those of them that are not mounted yet
 
+# Ansible will mount ephemeral disk0 to /media/ephemeral# by default, we would like to mount to /disk#
+ephemeral=`ls /media | egrep '^ephemeral'`
+for d in $ephemeral; do sudo umount /media/$d; done
+
 # Solution to determine the devices that haven't been mounted is:
 # find those in the set of the user specified devices but not in the results of `df` yet
 dev=`ls /dev | egrep '^sd|^hd|^xvd' | grep -v da`
+# Ansible will create symbolic links for /dev/xvd? to /dev/sd?, resolve the links
+real_dev=`for d in $dev; do readlink -f /dev/$d; done`
+dev=`echo $real_dev | sed "s/\/dev\///g" | tr ' ' '\n' | sort | uniq`
 echo "possible devices defined in block device mapping: "
 printf "%s\n" $dev
 
@@ -36,8 +43,8 @@ printf "%s\n" $to_mount
 # format disk, sequentially mount to /disk0, /disk1, ...
 n=0
 for disk in $to_mount; do
- sudo mkfs.ext4 "/dev/$disk"
- sudo mkdir "/disk$n"
+ sudo mkfs.ext4 -F "/dev/$disk" # format to ext4 even if it has been formated before
+ sudo mkdir -p "/disk$n"
  sudo mount "/dev/$disk" "/disk$n"
  sudo chown -R `whoami` "/disk$n"
  n=$(( $n + 1 ))

@@ -41,7 +41,7 @@ import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Servlet that provides data for browsing the file system.
@@ -265,7 +265,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       return;
     }
 
-    String[] splitPath = CommonUtils.getPathComponents(path.toString());
+    String[] splitPath = PathUtils.getPathComponents(path.toString());
     UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
     TachyonURI currentPath = new TachyonURI(TachyonURI.SEPARATOR);
     pathInfos[0] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));

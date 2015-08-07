@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -30,7 +30,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientWorkerInfo;
-import tachyon.util.CommonUtils;
+import tachyon.util.FormatUtils;
 
 /**
  * Servlet that provides data for displaying detail info of all workers.
@@ -63,7 +63,7 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
     }
 
     public String getCapacity() {
-      return CommonUtils.getSizeFromBytes(mCapacityBytes);
+      return FormatUtils.getSizeFromBytes(mCapacityBytes);
     }
 
     public int getFreeSpacePercent() {
@@ -87,7 +87,7 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
     }
 
     public String getUsedMemory() {
-      return CommonUtils.getSizeFromBytes(mUsedBytes);
+      return FormatUtils.getSizeFromBytes(mUsedBytes);
     }
 
     public int getUsedSpacePercent() {
@@ -107,7 +107,7 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
 
   /**
    * Populates attributes before redirecting to a jsp.
-   * 
+   *
    * @param request The HttpServletRequest object
    * @param response The HttpServletReponse object
    * @throws ServletException
@@ -122,7 +122,7 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
 
   /**
    * Order the nodes by hostName and generate NodeInfo list for UI display
-   * 
+   *
    * @param workerInfos The list of ClientWorkerInfo objects
    * @return The list of NodeInfo objects
    */
@@ -144,7 +144,7 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
 
   /**
    * Populates key, value pairs for UI display
-   * 
+   *
    * @param request The HttpServletRequest object
    * @throws IOException
    */

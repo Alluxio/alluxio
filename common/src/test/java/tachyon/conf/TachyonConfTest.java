@@ -10,7 +10,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Unit test for TachyonConf class
@@ -126,7 +126,7 @@ public class TachyonConfTest {
 
     value = sDefaultTachyonConf.get(Constants.MASTER_HOSTNAME, null);
     Assert.assertTrue(value != null);
-    Assert.assertTrue(NetworkUtils.getLocalHostName(100).equals(value));
+    Assert.assertTrue(NetworkAddressUtils.getLocalHostName(100).equals(value));
 
     value = sDefaultTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER, null);
     Assert.assertTrue(value != null);

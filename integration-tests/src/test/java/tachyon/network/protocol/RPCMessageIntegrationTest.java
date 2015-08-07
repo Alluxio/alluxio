@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -46,10 +46,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import tachyon.Constants;
-import tachyon.TestUtils;
 import tachyon.network.protocol.databuffer.DataByteBuffer;
 import tachyon.network.protocol.databuffer.DataFileChannel;
-import tachyon.util.NetworkUtils;
+import tachyon.util.io.BufferUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * This tests the encoding and decoding of RPCMessage's. This is done by setting up a simple
@@ -105,7 +105,8 @@ public class RPCMessageIntegrationTest {
     bootstrap.childHandler(new PipelineInitializer(sIncomingHandler));
 
     InetSocketAddress address =
-        new InetSocketAddress(NetworkUtils.getLocalHostName(100), Constants.DEFAULT_MASTER_PORT);
+        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(100),
+            Constants.DEFAULT_MASTER_PORT);
     ChannelFuture cf = bootstrap.bind(address).syncUninterruptibly();
     sLocalAddress = cf.channel().localAddress();
 
@@ -140,7 +141,7 @@ public class RPCMessageIntegrationTest {
     mOutgoingChannel.close().syncUninterruptibly();
   }
 
-  private void assertValid(RPCBlockRequest expected, RPCBlockRequest actual) {
+  private void assertValid(RPCBlockReadRequest expected, RPCBlockReadRequest actual) {
     Assert.assertEquals(expected.getType(), actual.getType());
     Assert.assertEquals(expected.getEncodedLength(), actual.getEncodedLength());
     Assert.assertEquals(expected.getBlockId(), actual.getBlockId());
@@ -148,7 +149,7 @@ public class RPCMessageIntegrationTest {
     Assert.assertEquals(expected.getLength(), actual.getLength());
   }
 
-  private void assertValid(RPCBlockResponse expected, RPCBlockResponse actual) {
+  private void assertValid(RPCBlockReadResponse expected, RPCBlockReadResponse actual) {
     Assert.assertEquals(expected.getType(), actual.getType());
     Assert.assertEquals(expected.getEncodedLength(), actual.getEncodedLength());
     Assert.assertEquals(expected.getBlockId(), actual.getBlockId());
@@ -160,7 +161,7 @@ public class RPCMessageIntegrationTest {
       Assert.assertNull(expected.getPayloadDataBuffer());
       Assert.assertNull(actual.getPayloadDataBuffer());
     } else {
-      Assert.assertTrue(TestUtils.equalIncreasingByteBuffer((int) OFFSET, (int) LENGTH, actual
+      Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer((int) OFFSET, (int) LENGTH, actual
           .getPayloadDataBuffer().getReadOnlyByteBuffer()));
     }
   }
@@ -173,7 +174,7 @@ public class RPCMessageIntegrationTest {
     Assert.assertEquals(expected.getLength(), actual.getLength());
     Assert.assertEquals(expected.getUserId(), actual.getUserId());
     if (expected.getLength() > 0) {
-      Assert.assertTrue(TestUtils.equalIncreasingByteBuffer((int) OFFSET, (int) LENGTH, actual
+      Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer((int) OFFSET, (int) LENGTH, actual
           .getPayloadDataBuffer().getReadOnlyByteBuffer()));
     }
   }
@@ -201,7 +202,7 @@ public class RPCMessageIntegrationTest {
     String path = f.getAbsolutePath();
 
     FileOutputStream os = new FileOutputStream(path);
-    os.write(TestUtils.getIncreasingByteArray((int) (OFFSET + LENGTH)));
+    os.write(BufferUtils.getIncreasingByteArray((int) (OFFSET + LENGTH)));
     os.close();
 
     return new FileInputStream(f).getChannel();
@@ -217,53 +218,55 @@ public class RPCMessageIntegrationTest {
   }
 
   @Test
-  public void RPCBlockRequestTest() {
-    RPCBlockRequest msg = new RPCBlockRequest(BLOCK_ID, OFFSET, LENGTH);
-    RPCBlockRequest decoded = (RPCBlockRequest) encodeThenDecode(msg);
+  public void RPCBlockReadRequestTest() {
+    RPCBlockReadRequest msg = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH);
+    RPCBlockReadRequest decoded = (RPCBlockReadRequest) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
 
   @Test
-  public void RPCBlockResponseTest() {
-    ByteBuffer payload = TestUtils.getIncreasingByteBuffer((int) OFFSET, (int) LENGTH);
-    RPCBlockResponse msg =
-        new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload, LENGTH),
+  public void RPCBlockReadResponseTest() {
+    ByteBuffer payload = BufferUtils.getIncreasingByteBuffer((int) OFFSET, (int) LENGTH);
+    RPCBlockReadResponse msg =
+        new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload, LENGTH),
             RPCResponse.Status.SUCCESS);
-    RPCBlockResponse decoded = (RPCBlockResponse) encodeThenDecode(msg);
+    RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
 
   @Test
-  public void RPCBlockResponseEmptyPayloadTest() {
-    RPCBlockResponse msg = new RPCBlockResponse(BLOCK_ID, OFFSET, 0, null,
-        RPCResponse.Status.SUCCESS);
-    RPCBlockResponse decoded = (RPCBlockResponse) encodeThenDecode(msg);
+  public void RPCBlockReadResponseEmptyPayloadTest() {
+    RPCBlockReadResponse msg =
+        new RPCBlockReadResponse(BLOCK_ID, OFFSET, 0, null, RPCResponse.Status.SUCCESS);
+    RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
 
   @Test
-  public void RPCBlockResponseErrorTest() {
-    RPCBlockResponse msg = RPCBlockResponse.createErrorResponse(new RPCBlockRequest(BLOCK_ID,
-        OFFSET, LENGTH), RPCResponse.Status.FILE_DNE);
-    RPCBlockResponse decoded = (RPCBlockResponse) encodeThenDecode(msg);
+  public void RPCBlockReadResponseErrorTest() {
+    RPCBlockReadResponse msg =
+        RPCBlockReadResponse.createErrorResponse(new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH),
+            RPCResponse.Status.FILE_DNE);
+    RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
 
   @Test
-  public void RPCBlockResponseFileChannelTest() throws IOException {
+  public void RPCBlockReadResponseFileChannelTest() throws IOException {
     FileChannel payload = getTempFileChannel();
-    RPCBlockResponse msg =
-        new RPCBlockResponse(BLOCK_ID, OFFSET, LENGTH,
-            new DataFileChannel(payload, OFFSET, LENGTH), RPCResponse.Status.SUCCESS);
-    RPCBlockResponse decoded = (RPCBlockResponse) encodeThenDecode(msg);
+    RPCBlockReadResponse msg =
+        new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, new DataFileChannel(payload, OFFSET,
+            LENGTH), RPCResponse.Status.SUCCESS);
+    RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
 
   @Test
   public void RPCBlockWriteRequestTest() {
-    ByteBuffer payload = TestUtils.getIncreasingByteBuffer((int) OFFSET, (int) LENGTH);
-    RPCBlockWriteRequest msg = new RPCBlockWriteRequest(USER_ID, BLOCK_ID, OFFSET, LENGTH,
-        new DataByteBuffer(payload, LENGTH));
+    ByteBuffer payload = BufferUtils.getIncreasingByteBuffer((int) OFFSET, (int) LENGTH);
+    RPCBlockWriteRequest msg =
+        new RPCBlockWriteRequest(USER_ID, BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload,
+            LENGTH));
     RPCBlockWriteRequest decoded = (RPCBlockWriteRequest) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }

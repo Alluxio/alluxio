@@ -13,31 +13,18 @@
  * the License.
  */
 
-package tachyon.worker.block.evictor;
-
-import tachyon.worker.block.BlockMetadataManagerView;
+package tachyon.exception;
 
 /**
- * Factory of {@link Evictor} based on {@link EvictorType}
+ * Exception used when some entity that we attempted to create (e.g., block, file, directory or
+ * lock) already exists.
  */
-public class EvictorFactory {
-  private EvictorFactory() {}
+public class AlreadyExistsException extends Exception {
+  public AlreadyExistsException(String message) {
+    super(message);
+  }
 
-  /**
-   * Creates an {@link Evictor} instance according to {@link EvictorType}
-   *
-   * @param evictorType EvictorType of the Evictor to create
-   * @param view BlockMetadataManagerView to pass to Evictor
-   * @return the generated Evictor
-   */
-  public static Evictor create(EvictorType evictorType, BlockMetadataManagerView view) {
-    switch (evictorType) {
-      case GREEDY:
-        return new GreedyEvictor(view);
-      case LRU:
-        return new LRUEvictor(view);
-      default:
-        return new LRUEvictor(view);
-    }
+  public AlreadyExistsException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

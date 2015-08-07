@@ -13,33 +13,17 @@
  * the License.
  */
 
-package tachyon.worker.block.allocator;
-
-
-import tachyon.worker.block.BlockMetadataManagerView;
+package tachyon.exception;
 
 /**
- * Factory of {@link Allocator} based on {@link AllocatorType}
+ * Exception used when some requested entity (e.g., block, file, directory or lock) was not found.
  */
-public class AllocatorFactory {
-  /**
-   * Create a new {@link Allocator}
-   *
-   * @param allocatorType AllocatorType which determines the class of allocator to create
-   * @param view BlockMetadataManagerView to pass to Allocator
-   * @return the generated Allocator
-   */
-  public static Allocator create(AllocatorType allocatorType, BlockMetadataManagerView view) {
-    switch (allocatorType) {
-      case GREEDY:
-        return new GreedyAllocator(view);
-      case MAX_FREE:
-        return new MaxFreeAllocator(view);
-      default:
-        return new MaxFreeAllocator(view);
-    }
+public class NotFoundException extends Exception {
+  public NotFoundException(String message) {
+    super(message);
   }
 
-  private AllocatorFactory() {}
+  public NotFoundException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }
-
