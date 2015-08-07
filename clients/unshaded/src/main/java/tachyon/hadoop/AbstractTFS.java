@@ -107,7 +107,7 @@ abstract class AbstractTFS extends FileSystem {
    * @param replication under filesystem replication factor
    * @param blockSize block size in bytes
    * @param progress queryable progress
-   * @return
+   * @return an FSDataOutputStream created at the indicated path of a file
    * @throws IOException if overwrite is not specified and the path already exists or if the path is
    *         a folder
    */
@@ -453,12 +453,12 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Attempts to open the specified path for reading.
+   * Attempts to open the specified file for reading.
    *
-   * @param cPath path to open
+   * @param cPath the file name to open
    * @param bufferSize the size in bytes of the buffer to be used
-   * @return
-   * @throws IOException if the file cannot be opened (ie. is a directory)
+   * @return an FSDataInputStream at the indicated path of a file
+   * @throws IOException if the file cannot be opened (i.e., the path is a folder)
    */
   @Override
   public FSDataInputStream open(Path cPath, int bufferSize) throws IOException {
