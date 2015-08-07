@@ -1,6 +1,8 @@
 ---
 layout: global
 title: Tiered Storage on Tachyon (Beta)
+nickname: Tiered Storage
+group: More
 ---
 
 Tachyon supports tiered storage, which allows Tachyon to manage other storage types besides memory.
@@ -80,8 +82,8 @@ Tachyon uses allocators for choosing locations for writing new blocks. Tachyon h
 customized allocators, but there are a few default implementations of allocators. Here are the
 existing allocators in Tachyon:
 
-* GREEDY: allocates the new block to the first storage directory that has sufficient space
-* MAX_FREE: allocates the block in the storage directory with most free space.
+* GreedyAllocator: allocates the new block to the first storage directory that has sufficient space
+* MaxFreeAllocator: allocates the block in the storage directory with most free space.
 
 In the future, additional allocators will be available. Since Tachyon supports custom allocators,
 you can also develop your own allocator appropriate for your workload.
@@ -91,8 +93,8 @@ you can also develop your own allocator appropriate for your workload.
 Tachyon uses evictors for deciding which blocks to move to a lower tier, when space needs to be
 freed. Tachyon supports custom evictors, and implementations include:
 
-* GREEDY: evicts arbitrary blocks until the required size is freed
-* LRU: evicts the least-recently-used blocks until the required size is freed
+* GreedyEvictor: evicts arbitrary blocks until the required size is freed
+* LRUEvictor: evicts the least-recently-used blocks until the required size is freed
 
 In the future, additional evictors will be available. Since Tachyon supports custom evictors,
 you can also develop your own evictor appropriate for your workload.
@@ -144,8 +146,8 @@ multiple storage directories in the HDD tier.
 Additionally, the specific evictor and allocator strategies can be configured. Those configuration
 parameters are:
 
-    tachyon.worker.allocate.strategy=MAX_FREE
-    tachyon.worker.evict.strategy=LRU
+    tachyon.worker.allocate.strategy.class=tachyon.worker.block.allocator.MaxFreeAllocator
+    tachyon.worker.evict.strategy.class=tachyon.worker.block.evictor.LRUEvictor
 
 # Configuration Parameters For Tiered Storage
 
@@ -188,19 +190,19 @@ These are the configuration parameters for tiered storage.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.allocate.strategy</td>
-  <td>MAX_FREE</td>
+  <td>tachyon.worker.allocate.strategy.class</td>
+  <td>tachyon.worker.block.allocator.MaxFreeAllocator</td>
   <td>
-  The allocation strategy to use for new blocks in Tachyon. Currently, the possible strategies are
-  GREEDY and MAX_FREE.
+  The class name of the allocation strategy to use for new blocks in Tachyon. Currently, the
+  supported allocators are GreedyAllocator and MaxFreeAllocator.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.evict.strategy</td>
-  <td>LRU</td>
+  <td>tachyon.worker.evict.strategy.class</td>
+  <td>tachyon.worker.block.evictor.LRUEvictor</td>
   <td>
-  The block eviction strategy to use when a storage layer runs out of space. Currently, the
-  supported strategies are GREEDY and LRU.
+  The class name of the block eviction strategy to use when a storage layer runs out of space.
+  Currently, the supported evictors are GreedyEvictor and LRUEvictor.
   </td>
 </tr>
 </table>

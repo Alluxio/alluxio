@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.util;
+package tachyon.util.network;
 
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -23,13 +23,15 @@ import org.junit.Test;
 
 import tachyon.TachyonURI;
 import tachyon.thrift.NetAddress;
+import tachyon.util.network.NetworkAddressUtils;
 
-public class NetworkUtilsTest {
+public class NetworkAddressUtilsTest {
 
   @Test
   public void replaceHostNameTest() throws UnknownHostException {
-    Assert.assertEquals(NetworkUtils.replaceHostName(TachyonURI.EMPTY_URI), TachyonURI.EMPTY_URI);
-    Assert.assertEquals(NetworkUtils.replaceHostName(null), null);
+    Assert.assertEquals(NetworkAddressUtils.replaceHostName(TachyonURI.EMPTY_URI),
+        TachyonURI.EMPTY_URI);
+    Assert.assertEquals(NetworkAddressUtils.replaceHostName(null), null);
 
     TachyonURI[] paths =
         new TachyonURI[] {new TachyonURI("hdfs://localhost:9000/dir"),
@@ -38,21 +40,22 @@ public class NetworkUtilsTest {
             new TachyonURI("/dir"), new TachyonURI("anythingElse")};
 
     for (TachyonURI path : paths) {
-      Assert.assertEquals(NetworkUtils.replaceHostName(path), path);
+      Assert.assertEquals(NetworkAddressUtils.replaceHostName(path), path);
     }
   }
 
   @Test
   public void resolveHostNameTest() throws UnknownHostException {
-    Assert.assertEquals(NetworkUtils.resolveHostName(""), null);
-    Assert.assertEquals(NetworkUtils.resolveHostName(null), null);
-    Assert.assertEquals(NetworkUtils.resolveHostName("localhost"), "localhost");
+    Assert.assertEquals(NetworkAddressUtils.resolveHostName(""), null);
+    Assert.assertEquals(NetworkAddressUtils.resolveHostName(null), null);
+    Assert.assertEquals(NetworkAddressUtils.resolveHostName("localhost"), "localhost");
   }
 
   @Test
   public void getFqdnHostTest() throws UnknownHostException {
-    Assert.assertEquals(NetworkUtils.getFqdnHost(new InetSocketAddress("localhost", 0)),
+    Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new InetSocketAddress("localhost", 0)),
         "localhost");
-    Assert.assertEquals(NetworkUtils.getFqdnHost(new NetAddress("localhost", 0, 0)), "localhost");
+    Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new NetAddress("localhost", 0, 0)),
+        "localhost");
   }
 }

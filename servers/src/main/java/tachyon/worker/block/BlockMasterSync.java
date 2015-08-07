@@ -16,7 +16,6 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,7 +30,7 @@ import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
 
 /**
@@ -79,7 +78,7 @@ public class BlockMasterSync implements Runnable {
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
     mMasterClient =
-        new MasterClient(BlockWorkerUtils.getMasterAddress(mTachyonConf),
+        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
             mMasterClientExecutorService, mTachyonConf);
     mHeartbeatIntervalMs =
         mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
@@ -145,7 +144,7 @@ public class BlockMasterSync implements Runnable {
                 blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();
         handleMasterCommand(cmdFromMaster);
-      } catch (IOException ioe) {
+      } catch (Exception ioe) {
         // An error occurred, retry after 1 second or error if heartbeat timeout is reached
         LOG.error("Failed to receive or execute master heartbeat command.", ioe);
         resetMasterClient();
@@ -153,14 +152,6 @@ public class BlockMasterSync implements Runnable {
         if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {
           throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
         }
-      }
-
-      // Check if any users have become zombies, if so clean them up
-      // TODO: Make this unrelated to master sync
-      try {
-        mBlockDataManager.cleanupUsers();
-      } catch (IOException ioe) {
-        LOG.error("Failed to clean up users", ioe);
       }
     }
   }
@@ -179,16 +170,16 @@ public class BlockMasterSync implements Runnable {
    * This call will block until the command is complete.
    *
    * @param cmd the command to execute.
-   * @throws IOException if an error occurs when executing the command
+   * @throws Exception if an error occurs when executing the command
    */
   // TODO: Evaluate the necessity of each command
   // TODO: Do this in a non blocking way
-  private void handleMasterCommand(Command cmd) throws IOException {
+  private void handleMasterCommand(Command cmd) throws Exception {
     if (cmd == null) {
       return;
     }
     switch (cmd.mCommandType) {
-      // Currently unused
+    // Currently unused
       case Delete:
         break;
       // Master requests blocks to be removed from Tachyon managed space.
@@ -223,7 +214,7 @@ public class BlockMasterSync implements Runnable {
   private void resetMasterClient() {
     mMasterClient.close();
     mMasterClient =
-        new MasterClient(BlockWorkerUtils.getMasterAddress(mTachyonConf),
+        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
             mMasterClientExecutorService, mTachyonConf);
   }
 }

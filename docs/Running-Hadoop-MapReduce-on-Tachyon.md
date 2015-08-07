@@ -1,6 +1,8 @@
 ---
 layout: global
 title: Running Hadoop MapReduce on Tachyon
+nickname: Apache Hadoop MapReduce
+group: Frameworks
 ---
 
 This guide describes how to get Tachyon running with Hadoop MapReduce, so that you can easily use
@@ -13,7 +15,7 @@ The prerequisite for this part is that you have
 Tachyon and Hadoop in accordance to these guides [Local Mode](Running-Tachyon-Locally.html) or
 [Cluster Mode](Running-Tachyon-on-a-Cluster.html)
 
-If running a Hadoop 1.x cluster, ensure that the `hadoop/conf/core-site.xml` file in your Hadoop 
+If running a Hadoop 1.x cluster, ensure that the `hadoop/conf/core-site.xml` file in your Hadoop
 installation's conf directory has the following properties added:
 
     <property>

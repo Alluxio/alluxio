@@ -15,7 +15,6 @@
 
 package tachyon.worker.block;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -32,6 +31,8 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.NotFoundException;
+import tachyon.exception.OutOfSpaceException;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
@@ -60,13 +61,16 @@ public class BlockMetadataManagerTest {
     tachyonConf.set(Constants.TACHYON_HOME, mTachyonHome);
     tachyonConf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
     // TODO improve the code using String.format
-    tachyonConf.set("tachyon.worker.tieredstore.level0.alias", "MEM");
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", mTachyonHome + "/ramdisk");
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", 1000 + "");
-    tachyonConf.set("tachyon.worker.tieredstore.level1.alias", "HDD");
-    tachyonConf.set("tachyon.worker.tieredstore.level1.dirs.path", mTachyonHome + "/disk1,"
-        + mTachyonHome + "/disk2");
-    tachyonConf.set("tachyon.worker.tieredstore.level1.dirs.quota", 3000 + "," + 5000);
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 0), "MEM");
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
+        mTachyonHome + "/ramdisk");
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
+        1000 + "");
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1), "HDD");
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
+        mTachyonHome + "/disk1," + mTachyonHome + "/disk2");
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
+        3000 + "," + 5000);
 
     mMetaManager = BlockMetadataManager.newBlockMetadataManager(tachyonConf);
   }
@@ -101,7 +105,7 @@ public class BlockMetadataManagerTest {
   @Test
   public void getTierNotExistingTest() throws Exception {
     int badTierAlias = 2;
-    mThrown.expect(IOException.class);
+    mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Cannot find tier with alias " + badTierAlias);
     mMetaManager.getTier(badTierAlias);
   }
@@ -175,14 +179,14 @@ public class BlockMetadataManagerTest {
 
   @Test
   public void getBlockMetaNotExistingTest() throws Exception {
-    mThrown.expect(IOException.class);
+    mThrown.expect(NotFoundException.class);
     mThrown.expectMessage("Failed to get BlockMeta: blockId " + TEST_BLOCK_ID + " not found");
     mMetaManager.getBlockMeta(TEST_BLOCK_ID);
   }
 
   @Test
   public void getTempBlockMetaNotExistingTest() throws Exception {
-    mThrown.expect(IOException.class);
+    mThrown.expect(NotFoundException.class);
     mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + TEST_TEMP_BLOCK_ID
         + " not found");
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID);
@@ -216,7 +220,7 @@ public class BlockMetadataManagerTest {
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, 2000, dir);
     dir.addBlockMeta(blockMeta);
 
-    mThrown.expect(IOException.class);
+    mThrown.expect(OutOfSpaceException.class);
     mThrown.expectMessage("does not have enough space");
     mMetaManager.moveBlockMeta(blockMeta, new BlockStoreLocation(1, 0, 0));
   }

@@ -24,7 +24,7 @@ import com.google.common.base.Throwables;
 import tachyon.conf.TachyonConf;
 import tachyon.LocalFilesystemCluster;
 import tachyon.TachyonURI;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 public abstract class UnderFileSystemCluster {
   class ShutdownHook extends Thread {
@@ -126,7 +126,7 @@ public abstract class UnderFileSystemCluster {
       String path = getUnderFilesystemAddress() + TachyonURI.SEPARATOR;
       UnderFileSystem ufs = UnderFileSystem.get(path, mTachyonConf);
       for (String p : ufs.list(path)) {
-        ufs.delete(CommonUtils.concatPath(path, p), true);
+        ufs.delete(PathUtils.concatPath(path, p), true);
       }
     }
   }
@@ -136,7 +136,7 @@ public abstract class UnderFileSystemCluster {
   /**
    * Check if the cluster started.
    *
-   * @return
+   * @return if the cluster actually started
    */
   public abstract boolean isStarted();
 

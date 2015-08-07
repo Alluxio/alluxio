@@ -27,7 +27,6 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
-import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.util.CommonUtils;
@@ -49,7 +48,7 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
     mLocalTachyonClusterMultiMaster =
         new LocalTachyonClusterMultiMaster(10000, MASTERS, BLOCK_SIZE);

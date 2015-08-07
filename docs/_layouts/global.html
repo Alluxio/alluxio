@@ -14,12 +14,7 @@
     <meta name="description" content="">
 
     <link rel="stylesheet" href="css/bootstrap.min.css">
-    <style>
-        body {
-            padding-top: 60px;
-            padding-bottom: 40px;
-        }
-    </style>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <meta name="viewport" content="width=device-width">
     <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
     <link rel="stylesheet" href="css/main.css">
@@ -36,7 +31,6 @@
         ga('create', 'UA-47563775-2', 'tachyon-project.org');
         ga('send', 'pageview');
     </script>
-
 </head>
 <body>
 <!--[if lt IE 7]>
@@ -50,90 +44,91 @@
 <div class="navbar navbar-fixed-top" id="topbar">
     <div class="navbar-inner">
         <div class="container">
-            <div class="brand">
-                <div style="position:absolute;">
-                    <a href="index.html">
-                        <img src="img/logo.png" alt="Tachyon Logo" style="height:34px;"/>
-                    </a>
+            <a href="index.html">
+                <div class="brand" style="display:table;">
+                    <div style="position:relative;display:table-cell;vertical-align:middle;">
+                        <img src="img/logo-white.png" alt="Tachyon Logo" style="height:34px;"/>
+                        <div style="position:absolute;right:0;top:30px;text-shadow:none;">
+                            <span class="version">{{site.TACHYON_MASTER_VERSION_SHORT}}</span>
+                        </div>
+                    </div>
                 </div>
-                <div style="float:right;margin-top:30px;">
-                    <span class="version">{{site.TACHYON_MASTER_VERSION_SHORT}}</span>
-                </div>
-            </div>
+            </a>
             <ul class="nav">
-                <li><a href="index.html">Overview</a></li>
+                {% if page.group == "Home" %}
+                    <li class="active"><a>Overview</a></li>
+                {% else %}
+                    <li><a href="index.html">Overview</a></li>
+                {% endif %}
+                {% if page.group == "FAQ" %}
+                    <li class="active"><a>FAQ</a></li>
+                {% else %}
+                    <li><a href="FAQ.html">FAQ</a></li>
+                {% endif %}
 
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Basics<b
-                            class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="Running-Tachyon-Locally.html">Local Mode</a></li>
-                        <li><a href="Running-Tachyon-on-a-Cluster.html">Cluster Mode</a></li>
-                        <li><a href="Command-Line-Interface.html">Command Line</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Frameworks on Tachyon<b
-                            class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="Running-Spark-on-Tachyon.html">Apache Spark</a></li>
-                        <li><a href="Running-Shark-on-Tachyon.html">Shark</a></li>
-                        <li><a href="Running-Hadoop-MapReduce-on-Tachyon.html">Apache Hadoop MapReduce</a></li>
-                        <li><a href="Running-Flink-on-Tachyon.html">Apache Flink</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Deployment<b
-                            class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="Running-Tachyon-Locally.html">Single Node</a></li>
-                        <li><a href="Running-Tachyon-on-a-Cluster.html">Cluster</a></li>
-                        <li><a href="Fault-Tolerant-Tachyon-Cluster.html">Fault
-                        Tolerant Cluster</a></li>
-                        <li><a href="Deploy-Module.html">Tachyon Deploy Module (Virtualbox and AWS EC2)</a></li>
-                        <li><a href="Running-Tachyon-on-EC2.html">AWS EC2 through mesos/spark-ec2</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Development<b
-                            class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="Building-Tachyon-Master-Branch.html">Build Master Branch</a>
-                        </li>
-                        <li><a href="Contributing-to-Tachyon.html">Contributing to
-                            Tachyon</a></li>
-                        <li><a href="https://tachyon.atlassian.net/browse/TACHYON">Reporting
-                            Issues</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">More<b
-                            class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="Configuration-Settings.html">Configuration Settings</a></li>
-                        <li><a href="Fault-Tolerant-Tachyon-Cluster.html">Fault Tolerant Cluster</a>
-                        </li>
-                        <li><a href="Setup-UFS.html">Configure UnderFileSystem</a></li>
-                        <li><a href="Syncing-the-Underlying-Filesystem.html">Sync Underlayer FS</a></li>
-                        <li><a href="FAQ.html">FAQ</a></li>
-                        <li><a href="Tiered-Storage-on-Tachyon.html">Tiered Storage (Beta)</a></li>
-                        <li class="divider"></li>
-                        <li>Presentations:</li>
-                        <li><a href="http://goo.gl/fP9qkF">Strata and Hadoop World 2014</a></li>
-                        <li><a href="http://goo.gl/DKrE4M">Spark Summit 2014</a></li>
-                        <li><a href="http://goo.gl/AHgz0E">Strata and Hadoop World 2013</a></li>
-                        <li class="divider"></li>
-                        <li><a href="http://tachyon-project.org/master">Master branch document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.6.3">V0.6.3 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.6.2">V0.6.2 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.6.1">V0.6.1 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.6.0">V0.6.0 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.5.0">V0.5.0 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.4.1">V0.4.1 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.4.0">V0.4.0 Document</a></li>
-                        <li><a href="http://tachyon-project.org/v0.3.0">V0.3.0 Document</a></li>
-                    </ul>
-                </li>
+                {% assign categories = "Deployment|Development|Frameworks|More" | split: "|" %}
+                {% for groupName in categories %}
+                    <li class="dropdown">
+                        {% if page.group == groupName %}
+                            <a href="#" class="dropdown-toggle active" data-toggle="dropdown">{{groupName}}<b
+                                class="caret"></b></a>
+                        {% else %}
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{groupName}}<b
+                                class="caret"></b></a>
+                        {% endif %}
+
+                        <ul class="dropdown-menu">
+                            {% assign currentGroup = site.pages | where:'group',groupName %}
+                            {% assign currentGroup = currentGroup | sort:'priority' %}
+                            {% for node in currentGroup %}
+                                {% if page.url == node.url %}
+                                    <li class="active">
+                                        <a>
+                                            {% if node.nickname == null %}
+                                                {{node.title}}
+                                            {% else %}
+                                                {{node.nickname}}
+                                            {% endif %}
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <!-- trim the leading slash to make the path relative to preserve version links -->
+                                    <li><a href="{{ node.url | remove-first: '/' }}">
+                                        {% if node.nickname == null %}
+                                            {{node.title}}
+                                        {% else %}
+                                            {{node.nickname}}
+                                        {% endif %}
+                                    </a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if groupName == "Development" %}
+                                <li><a href="https://tachyon.atlassian.net/browse/TACHYON">Reporting
+                                    Issues</a></li>
+                            {% elsif groupName == "More" %}
+                                <li class="divider"></li>
+                                <li><p>Presentations</p></li>
+                                <li><a href="http://goo.gl/0HpqeS">Tachyon Workshop 2015</a></li>
+                                <li><a href="http://goo.gl/fP9qkF">Strata and Hadoop World 2014</a></li>
+                                <li><a href="http://goo.gl/DKrE4M">Spark Summit 2014</a></li>
+                                <li><a href="http://goo.gl/AHgz0E">Strata and Hadoop World 2013</a></li>
+                                <li class="divider"></li>
+                                <li><a href="http://tachyon-project.org/master">Master branch document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.7.0">V0.7.0 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.6.4">V0.6.4 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.6.3">V0.6.3 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.6.2">V0.6.2 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.6.1">V0.6.1 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.6.0">V0.6.0 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.5.0">V0.5.0 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.4.1">V0.4.1 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.4.0">V0.4.0 Document</a></li>
+                                <li><a href="http://tachyon-project.org/v0.3.0">V0.3.0 Document</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                {% endfor %}
             </ul>
         </div>
     </div>
@@ -209,6 +204,8 @@
         }, 1)
     })
 </script>
+
+<script src="js/scrollspy.js"></script>
 
 </body>
 </html>

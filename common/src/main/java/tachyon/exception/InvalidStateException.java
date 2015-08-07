@@ -13,24 +13,23 @@
  * the License.
  */
 
-package tachyon.worker.block.evictor;
+package tachyon.exception;
 
 /**
- * Different types of {@link Evictor}.
+ * Exception used when the system is not in a state required for the operation.
+ *
+ * For example:
+ * <ul>
+ * <li>userId or blockId does not correspond to that in the record of lockId</li>
+ * <li>user A wants to commit a temp block owned by user B</li>
+ * </ul>
  */
-public enum EvictorType {
-  /**
-   * Default type which will be determined in {@link EvictorFactory} mainly used in
-   * {@link tachyon.conf.TachyonConf#getEnum} as default value when get EvictorType from
-   * configuration
-   */
-  DEFAULT,
-  /**
-   * Evict old blocks among several StorageDirs by LRU
-   */
-  LRU,
-  /**
-   * Evict blocks continually until a StorageDir has enough space
-   */
-  GREEDY,
+public class InvalidStateException extends Exception {
+  public InvalidStateException(String message) {
+    super(message);
+  }
+
+  public InvalidStateException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

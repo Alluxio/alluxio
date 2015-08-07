@@ -1,7 +1,21 @@
 ---
 layout: global
 title: Building Tachyon Master Branch
+nickname: Building Master Branch
+group: Development
 ---
+
+### toc
+* [Building Master](#)
+* [Unit Tests](#unit-tests)
+* [Distro Support](#distro-support)
+    * [Apache](#apache)
+    * [Cloudera](#cloudera)
+    * [MapR](#mapr)
+    * [Pivotal](#pivotal)
+    * [Hortonworks](#hortonworks)
+* [System Settings](#system-settings)
+    * [Mac](#mac)
 
 This guide describes how to compile Tachyon from the beginning.
 
@@ -14,7 +28,7 @@ Checkout the Tachyon master branch from Github and package:
     $ cd tachyon
     $ mvn install
 
-If you getting java.lang.OutOfMemoryError: Java heap space, please execute 
+If you getting java.lang.OutOfMemoryError: Java heap space, please execute
 
     $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 
@@ -52,7 +66,7 @@ You can also stop the system by using:
 
     $ ./bin/tachyon-stop.sh
 
-# Unit tests
+# Unit Tests
 
 To run all unit tests:
 
