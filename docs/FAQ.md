@@ -7,8 +7,8 @@ group: FAQ
 
 **What is Tachyon?**
 
-> [Tachyon](http://tachyon-project.org/index.html) is a memory centric distributed, reliable
-   storage system enabling data sharing across cluster at memory speed.
+> [Tachyon](http://tachyon-project.org/index.html) is a memory centric, distributed, reliable
+   storage system enabling data sharing across clusters at memory speed.
 
 **What platforms and Java versions does Tachyon run on?**
 
@@ -16,40 +16,40 @@ group: FAQ
 
 **Is there an easy way to see the status and health of a cluster?**
 
->   Yes, Once Tachyon is installed, the UI is available at `http://master_ip:19999`
+>   Yes, once Tachyon is installed, the UI is available at `http://master_ip:19999`
 
 **If I add new nodes to the cluster, will tachyon re-balance / move the cached blocks to the
 newly added nodes in order to balance disk space utilization between the nodes?**
 
->   No, Currently re-balancing of data blocks in not available.
+>   No, currently re-balancing of data blocks is not available.
 
 **Is Tachyon master fault tolerant?**
 
 >   Yes. Please see this [page](http://tachyon-project.org/Fault-Tolerant-Tachyon-Cluster.html).
 
-**What is under FS and how many Underlayer FS are supported?**
+**What is UnderFS and how many UnderFS are supported?**
 
->   Tachyon uses UnderFS as its persistent storage system. It currently support Amazon S3, HDFS,
+>   Tachyon uses UnderFS as its persistent storage system. It currently supports Amazon S3, HDFS,
    GlusterFS. Many more are coming.
 
 **Can I easily add support to other UnderFS?**
 
->   Yes, in fact support for other Under FS is in progress by many contributors. Here is the
+>   Yes, in fact support for other UnderFS is in progress by many contributors. Here is the
    [introduction](http://tachyon-project.org/Setup-UFS.html) to adding other UnderFS.
 
 **In which language is Tachyon developed?**
 
 >   Tachyon is primarily developed in Java and exposes Java-like File API's for other applications
-   to interact with. We are working on other language binding though.
+   to interact with. We are working on other language bindings though.
 
 **What happens if my data set does not fit in memory?**
 
 >   Depending on the system setup, Tachyon may leverage local SSD and HDD. It keeps hot data in
    Tachyon, and cold data in UnderFS.
 
-**Can I run Tachyon as a standalone for experimenting and validation?**
+**Can I run Tachyon in stand-alone mode for experimenting and validation?**
 
->    Yes, Tachyon run in a stand-alone mode. Instructions are available
+>    Yes, Tachyon can run in stand-alone mode. Instructions are available
     [here](http://tachyon-project.org/Running-Tachyon-Locally.html).
 
 **Can I run Tachyon in a cluster mode?**
@@ -62,7 +62,7 @@ newly added nodes in order to balance disk space utilization between the nodes?*
 >    No, Tachyon runs on different UnderFS like HDFS, Amazon S3, GlusterFS.
     Instructions on configuration are available [here](http://tachyon-project.org/Setup-UFS.html).
 
-**Does tachyon work along side with other Frameworks?**
+**Does Tachyon work along side with other frameworks?**
 
 >    Yes, Tachyon works with [Hadoop](http://hadoop.apache.org/), [Spark](http://spark.apache.org/),
     [HBase](http://hbase.apache.org/), [Flink](http://flink.apache.org/), etc.

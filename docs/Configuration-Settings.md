@@ -23,7 +23,7 @@ There are two types of configuration parameters for Tachyon:
 Tachyon introduces default and site specific configuration properties files to set the configuration
 properties.
 
-Each site deployment and application client can override the default via tachyon.site.properties
+Each site deployment and application client can override the default via tachyon-site.properties
 file. This file has to be located in the classpath of the Java VM where Tachyon is running.
 
 The easiest way is to put the site properties file in a directory specified by `$TACHYON_CONF_DIR`,
