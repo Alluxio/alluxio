@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.block;
 
 import tachyon.thrift.NetAddress;
 
@@ -25,7 +25,7 @@ public class UserBlockLocation {
   public NetAddress mAddress;
   public int mTier;
 
-  UserBlockLocation(long workerId, NetAddress address, int tier) {
+  public UserBlockLocation(long workerId, NetAddress address, int tier) {
     mWorkerId = workerId;
     mAddress = address;
     mTier = tier;

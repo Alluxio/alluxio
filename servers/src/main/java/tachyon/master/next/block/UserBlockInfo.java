@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.block;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ public class UserBlockInfo {
   public long mLength;
   public List<UserBlockLocation> mLocations;
 
-  UserBlockInfo(long blockId, long length, List<UserBlockLocation> locations) {
+  public UserBlockInfo(long blockId, long length, List<UserBlockLocation> locations) {
     mBlockId = blockId;
     mLength = length;
     mLocations = locations;
