@@ -21,6 +21,7 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.AuthorizeCallback;
+import javax.security.sasl.SaslException;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -63,15 +64,15 @@ public class PlainSaslServerTest{
 
   @Test
   public void userIsNotSetTest() throws Exception {
-    mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage("No authentication identity provided");
+    mThrown.expect(SaslException.class);
+    mThrown.expectMessage("Plain authentication failed: No authentication identity provided");
     mPlainSaslServer.evaluateResponse(getUserInfo("", "anonymous"));
   }
 
   @Test
   public void passwordIsNotSetTest() throws Exception {
-    mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage("No password provided");
+    mThrown.expect(SaslException.class);
+    mThrown.expectMessage("Plain authentication failed: No password provided");
     mPlainSaslServer.evaluateResponse(getUserInfo("tachyon", ""));
   }
 
