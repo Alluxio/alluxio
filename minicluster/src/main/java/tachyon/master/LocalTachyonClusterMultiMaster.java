@@ -103,7 +103,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public String getUri() {
-    return Constants.HEADER_FT + mHostname + ":" + mMasters.get(0).getMetaPort();
+    return Constants.HEADER_FT + mHostname + ":" + getMasterPort();
   }
 
   public int getMasterPort() {

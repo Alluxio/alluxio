@@ -188,6 +188,10 @@ public final class LocalTachyonMaster {
     return mTachyonMaster.getMetaPort();
   }
 
+  public String getBindHost() {
+    return mTachyonMaster.getBindHost();
+  }
+
   public int getWebPort() {
     return mTachyonMaster.getWebBindPort();
   }

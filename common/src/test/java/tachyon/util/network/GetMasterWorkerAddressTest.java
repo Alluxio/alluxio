@@ -69,22 +69,26 @@ public class GetMasterWorkerAddressTest {
     String defaultHostname = NetworkAddressUtils.getLocalHostName(mCustomPropsTachyonConf);
     int defaultPort = Constants.DEFAULT_MASTER_PORT;
 
+    // connect host and port
     InetSocketAddress masterAddress =
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mCustomPropsTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);
 
+    // port only
     masterAddress =
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
             mNullMasterHostNameTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
 
+    // connect host only
     masterAddress =
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mNullMasterPortTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster3", defaultPort), masterAddress);
 
+    // all default
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mNullTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
@@ -95,11 +99,13 @@ public class GetMasterWorkerAddressTest {
     String defaultHostname = NetworkAddressUtils.getLocalHostName(mCustomPropsTachyonConf);
     int defaultPort = Constants.DEFAULT_WORKER_PORT;
 
+    // port only
     InetSocketAddress workerAddress = 
         NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mCustomPropsTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
 
+    // all default
     workerAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mNullTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), workerAddress);

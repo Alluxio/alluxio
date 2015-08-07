@@ -109,6 +109,10 @@ public final class LocalTachyonCluster {
     return mMaster.getMetaPort();
   }
 
+  public String getMasterBindHost() {
+    return mMaster.getBindHost();
+  }
+
   public int getMasterWebPort() {
     return mMaster.getWebPort();
   }

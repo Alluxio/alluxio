@@ -29,8 +29,11 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerContext;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertThat;
+
 /**
- * Simple tests for the MASTER_HOSTNAME_LISTENING configuration option.
+ * Simple integration tests for the bind configuration options.
  */
 public class MasterHostnameListeningIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -44,8 +47,11 @@ public class MasterHostnameListeningIntegrationTest {
     mExecutorService.shutdown();
   }
 
-  private final void startCluster(String hostnameListening) throws Exception {
+  private final void startCluster(String masterBindHost) throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(100, 100, Constants.GB);
+    TachyonConf tachyonConf = new WorkerContext.getConf();
+    if (masterBindHost != null) {
+      tachyonConf.set(Constants.MASTER_BIND_HOST, masterBindHost);
     TachyonConf tachyonConf = WorkerContext.getConf();
     if (hostnameListening != null) {
       tachyonConf.set(Constants.MASTER_HOSTNAME_LISTENING, hostnameListening);
@@ -57,7 +63,7 @@ public class MasterHostnameListeningIntegrationTest {
 
   @Test
   public void listenEmptyTest() throws Exception {
-    startCluster(null);
+    startCluster("");
     MasterClient masterClient =
         new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
     masterClient.connect();
@@ -67,11 +73,14 @@ public class MasterHostnameListeningIntegrationTest {
 
   @Test
   public void listenWildcardTest() throws Exception {
-    startCluster("*");
+    startCluster(Constants.WILDCARD_ADDRESS);
     MasterClient masterClient =
         new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
+    String bindHost = mLocalTachyonCluster.getMasterBindHost();
+    assertThat("Master bind address " + bindHost + "is not wildcard address", bindHost,
+        containsString(Constants.WILDCARD_ADDRESS));
     masterClient.close();
   }
 
@@ -87,7 +96,7 @@ public class MasterHostnameListeningIntegrationTest {
 
   @Test
   public void connectDifferentAddressTest() throws Exception {
-    startCluster(null);
+    startCluster("");
 
     // Connect to master on loopback, while master is listening on local hostname.
     InetSocketAddress address =

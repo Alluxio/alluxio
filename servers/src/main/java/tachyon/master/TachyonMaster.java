@@ -192,6 +192,13 @@ public class TachyonMaster {
   }
 
   /**
+   * Get hostname of the endpoint this socket is bound to (used by unit test only)
+   */
+  String getBindHost() {
+    return NetworkAddressUtils.getSocket(mServerTServerSocket).getLocalSocketAddress().toString();
+  }
+
+  /**
    * Get the actual web server bind port (used by unit test only)
    */
   int getWebBindPort() {
