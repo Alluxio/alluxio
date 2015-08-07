@@ -17,7 +17,7 @@ package tachyon.master.next;
 
 import org.apache.thrift.TProcessor;
 
-interface Master {
+public interface Master {
   TProcessor getProcessor();
 
   String getProcessorName();

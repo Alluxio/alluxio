@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.block;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
+import tachyon.master.next.Master;
 import tachyon.master.next.block.BlockIdGenerator;
 import tachyon.master.next.block.BlockInfo;
 import tachyon.master.next.block.BlockLocation;
@@ -40,7 +41,7 @@ import tachyon.master.next.block.UserBlockLocation;
 import tachyon.thrift.NetAddress;
 import tachyon.util.FormatUtils;
 
-class BlockMaster implements Master, ContainerIdGenerator {
+public class BlockMaster implements Master, ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Block metadata management.
