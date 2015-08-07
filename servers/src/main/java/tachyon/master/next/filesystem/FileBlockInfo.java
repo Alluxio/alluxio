@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.filesystem;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,7 +63,7 @@ public class FileBlockInfo {
    * @param blockIndex
    * @param length must be smaller than 2^31 (i.e., 2GB)
    */
-  FileBlockInfo(InodeFile inodeFile, int blockIndex, long length) {
+  public FileBlockInfo(InodeFile inodeFile, int blockIndex, long length) {
     Preconditions.checkArgument((length >> 31) == 0, "length must be smaller than 2^31");
     mInodeFile = inodeFile;
     mBlockIndex = blockIndex;

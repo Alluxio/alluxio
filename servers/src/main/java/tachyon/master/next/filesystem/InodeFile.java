@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.filesystem;
 
 import java.util.ArrayList;
 import java.util.List;

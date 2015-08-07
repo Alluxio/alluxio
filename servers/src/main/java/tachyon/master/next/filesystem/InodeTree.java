@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.filesystem;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +38,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
-class InodeTree {
+public class InodeTree {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private InodeDirectory mRoot;
