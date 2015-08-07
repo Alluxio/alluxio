@@ -32,6 +32,7 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.Dependency;
 import tachyon.master.next.block.BlockId;
+import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.block.BlockWorkerInfo;
 import tachyon.master.next.block.UserBlockInfo;
 import tachyon.master.next.block.UserBlockLocation;
