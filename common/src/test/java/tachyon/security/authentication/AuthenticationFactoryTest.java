@@ -215,12 +215,13 @@ public class AuthenticationFactoryTest {
   /**
    * In CUSTOM mode, the TTransport mechanism is PLAIN. When server authenticate the connected
    * client user, it use configured AuthenticationProvider.
+   * If the username:password pair matches, a connection should be built.
    */
   @Test
-  public void customAuthenticationTest() throws Exception {
+  public void customAuthenticationExactNamePasswordMatchTest() throws Exception {
     mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
     mTachyonConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
-        MockAuthenticationProvider.class.getName());
+        ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
     startServerThread(mTachyonConf);
@@ -230,6 +231,24 @@ public class AuthenticationFactoryTest {
     client.open();
     Assert.assertTrue(client.isOpen());
 
+    // clean up
+    client.close();
+    mServer.stop();
+  }
+
+  /**
+   * In CUSTOM mode, If the username:password pair does not match based on the configured
+   * AuthenticationProvider, an exception should be thrown in server side.
+   */
+  @Test
+  public void customAuthenticationExactNamePasswordNotMatchTest() throws Exception {
+    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+    mTachyonConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+        ExactlyMatchAuthenticationProvider.class.getName());
+
+    // start server
+    startServerThread(mTachyonConf);
+
     // User with wrong password can not pass auth, and throw exception.
     TTransport wrongClient = createClient(mTachyonConf, "tachyon", "wrong-password");
     mThrown.expect(TTransportException.class);
@@ -238,8 +257,6 @@ public class AuthenticationFactoryTest {
     try {
       wrongClient.open();
     } finally {
-      // clean up
-      client.close();
       mServer.stop();
     }
   }
@@ -277,7 +294,7 @@ public class AuthenticationFactoryTest {
   public void customAuthenticationEmptyUserTest() throws Exception {
     mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
     mTachyonConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
-        MockAuthenticationProvider.class.getName());
+        ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
     startServerThread(mTachyonConf);
@@ -301,7 +318,7 @@ public class AuthenticationFactoryTest {
   public void customAuthenticationEmptyPasswordTest() throws Exception {
     mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
     mTachyonConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
-        MockAuthenticationProvider.class.getName());
+        ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
     startServerThread(mTachyonConf);
@@ -368,7 +385,7 @@ public class AuthenticationFactoryTest {
    * This customized authentication provider is used in CUSTOM mode. It authenticate the user by
    * verifying the specific username:password pair.
    */
-  public static class MockAuthenticationProvider implements AuthenticationProvider {
+  public static class ExactlyMatchAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
       if (!user.equals("tachyon") || !password.equals("correct-password")) {
