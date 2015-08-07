@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.filesystem;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -31,6 +31,7 @@ import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.Dependency;
+import tachyon.master.next.Master;
 import tachyon.master.next.block.BlockId;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.block.BlockWorkerInfo;
@@ -57,7 +58,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
-class FileSystemMaster implements Master {
+public class FileSystemMaster implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mTachyonConf;
