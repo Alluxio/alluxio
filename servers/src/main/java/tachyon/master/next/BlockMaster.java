@@ -30,6 +30,11 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
+import tachyon.master.next.block.BlockIdGenerator;
+import tachyon.master.next.block.BlockInfo;
+import tachyon.master.next.block.BlockLocation;
+import tachyon.master.next.block.BlockWorkerInfo;
+import tachyon.master.next.block.ContainerIdGenerator;
 import tachyon.thrift.NetAddress;
 import tachyon.util.FormatUtils;
 

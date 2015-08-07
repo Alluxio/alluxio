@@ -23,11 +23,10 @@ import java.util.Map;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.Pair;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.ClientBlockInfo;
+import tachyon.master.next.block.BlockId;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 

@@ -13,8 +13,22 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.block;
 
-interface ContainerIdGenerator {
-  long getNewContainerId();
+import java.util.concurrent.atomic.AtomicLong;
+
+public class BlockIdGenerator {
+
+  private final AtomicLong mNextContainerId;
+
+  // TODO: when needed, add functionality to create new full block ids.
+
+  public BlockIdGenerator() {
+    mNextContainerId = new AtomicLong(0);
+  }
+
+  public long getNewBlockContainerId() {
+    return mNextContainerId.getAndIncrement();
+  }
+
 }

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.block;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ public class BlockInfo {
   /** Maps from the worker id to the alias the block is on. */
   private final Map<Long, Integer> mWorkerIdToAlias;
 
-  BlockInfo(long blockId, long length) {
+  public BlockInfo(long blockId, long length) {
     // TODO: check valid length?
     mBlockId = blockId;
     mLength = length;
