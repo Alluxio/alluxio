@@ -85,7 +85,7 @@ public class PlainSaslHelper {
    * @return Wrapped Transport with Plain
    * @throws SaslException
    */
-  public static TTransport getPlainTransport(String username, String password,
+  public static TTransport getPlainClientTransport(String username, String password,
       TTransport wrappedTransport) throws SaslException {
     return new TSaslClientTransport("PLAIN", null, null, null, new HashMap<String, String>(),
         new PlainCallbackHandler(username, password), wrappedTransport);
@@ -96,9 +96,9 @@ public class PlainSaslHelper {
     private final String mUserName;
     private final String mPassword;
 
-    public PlainCallbackHandler(String mUserName, String mPassword) {
-      this.mUserName = mUserName;
-      this.mPassword = mPassword;
+    public PlainCallbackHandler(String userName, String password) {
+      this.mUserName = userName;
+      this.mPassword = password;
     }
 
     @Override
