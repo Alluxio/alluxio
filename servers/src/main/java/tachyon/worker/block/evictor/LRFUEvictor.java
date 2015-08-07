@@ -256,22 +256,25 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
 
   /**
    * Update {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
-   * accessed or committed.
+   * accessed or committed. Only CRF of the accessed or committed block will be updated, CRF
+   * of other blocks will be lazily updated (only when {@link #updateCRFValue()} is called).
+   * If the block is updated at the first time, CRF of the block will be set to 1.0, otherwise
+   * the CRF of the block will be set to {1.0 + old CRF * F(current time - last update time)}.
    * 
-   * @param blockId
+   * @param blockId id of the block to be accessed or committed
    */
   private void updateOnAccessAndCommit(long blockId) {
     synchronized (mBlockIdToLastUpdateTime) {
       long currentLogicTime = mLogicTimeCount.incrementAndGet();
       // update CRF value
-      // CRF(currentLogicTime)=CRF(lastAccessTime)*F(currentLogicTime-lastAccessTime)+F(0) 
+      // CRF(currentLogicTime)=CRF(lastUpdateTime)*F(currentLogicTime-lastUpdateTime)+F(0) 
       if (mBlockIdToCRFValue.containsKey(blockId)) {
         mBlockIdToCRFValue.put(blockId, mBlockIdToCRFValue.get(blockId)
             * calculateFunction(currentLogicTime - mBlockIdToLastUpdateTime.get(blockId)) + 1.0);
       } else {
         mBlockIdToCRFValue.put(blockId, 1.0);
       }
-      // update currentLogicTime to lastAccessTime
+      // update currentLogicTime to lastUpdateTime
       mBlockIdToLastUpdateTime.put(blockId, currentLogicTime);
     }
   }
@@ -280,7 +283,7 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
    * Update {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
    * removed.
    * 
-   * @param blockId id of the accessed or committed block
+   * @param blockId id of the block to be removed
    */
   private void updateOnRemoveBlock(long blockId) {
     synchronized (mBlockIdToLastUpdateTime) {
