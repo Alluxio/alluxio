@@ -93,6 +93,7 @@ public class Constants {
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String TACHYON_DEBUG = "tachyon.debug";
   public static final String TACHYON_LOGGER_TYPE = "tachyon.logger.type";
+  public static final String TACHYON_ACCESS_LOGGER_TYPE = "tachyon.accesslogger.type";
   public static final String TACHYON_VERSION = "tachyon.version";
   public static final String WEB_RESOURCES = "tachyon.web.resources";
   public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
@@ -223,6 +224,8 @@ public class Constants {
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 
   public static final String LOGGER_TYPE = System.getProperty(TACHYON_LOGGER_TYPE, "");
+  public static final String ACCESS_LOGGER_TYPE =
+      System.getProperty(TACHYON_ACCESS_LOGGER_TYPE, "");
   public static final boolean DEBUG = Boolean.valueOf(System.getProperty(TACHYON_DEBUG, "false"));
 
   public static final long CLIENT_METRICS_VERSION = 1L;
