@@ -535,7 +535,7 @@ class FileSystemMaster implements Master {
     return true;
   }
 
-  public Set<Integer> getPinIdList() {
+  public Set<Long> getPinIdList() {
     synchronized (mInodeTree) {
       return mInodeTree.getPinIdSet();
     }

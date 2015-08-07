@@ -68,7 +68,7 @@ public class FileBlockInfo {
     Preconditions.checkArgument((length >> 31) == 0, "length must be smaller than 2^31");
     mInodeFile = inodeFile;
     mBlockIndex = blockIndex;
-    mBlockId = computeBlockId(mInodeFile.getId(), mBlockIndex);
+    mBlockId = BlockId.createBlockId(mInodeFile.getBlockContainerId(), mBlockIndex);
     mOffset = inodeFile.getBlockSizeByte() * blockIndex;
     mLength = length;
   }
