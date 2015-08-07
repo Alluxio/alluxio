@@ -171,7 +171,7 @@ public abstract class Inode {
    *
    * @param parentId The new parent
    */
-  public synchronized void setParentId(int parentId) {
+  public synchronized void setParentId(long parentId) {
     mParentId = parentId;
   }
 

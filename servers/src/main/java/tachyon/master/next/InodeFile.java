@@ -122,6 +122,10 @@ public class InodeFile extends Inode {
     return ret;
   }
 
+  public long getBlockContainerId() {
+    return mBlockContainerId;
+  }
+
   /**
    * Get the block size of the file
    *
