@@ -30,6 +30,8 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
+import tachyon.master.next.block.BlockId;
+import tachyon.master.next.block.ContainerIdGenerator;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
