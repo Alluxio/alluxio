@@ -35,6 +35,8 @@ import tachyon.master.next.block.BlockInfo;
 import tachyon.master.next.block.BlockLocation;
 import tachyon.master.next.block.BlockWorkerInfo;
 import tachyon.master.next.block.ContainerIdGenerator;
+import tachyon.master.next.block.UserBlockInfo;
+import tachyon.master.next.block.UserBlockLocation;
 import tachyon.thrift.NetAddress;
 import tachyon.util.FormatUtils;
 
