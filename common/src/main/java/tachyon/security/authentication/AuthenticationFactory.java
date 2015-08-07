@@ -117,15 +117,16 @@ public class AuthenticationFactory {
   /**
    * For server side, this method return a TTransportFactory based on the auth type. It is used as
    * one argument to build a Thrift TServer.
+   * If the auth type is not supported or recognized, an UnsupportedOperationException is thrown.
    * @return a corresponding TTransportFactory
    * @throws SaslException if building a TransportFactory fails
-   * @throws UnsupportedOperationException if the auth type is not supported or recognized.
    */
   public TTransportFactory getServerTransportFactory() throws SaslException {
     switch (mAuthType) {
       case NOSASL:
         return new TFramedTransport.Factory();
       case SIMPLE:
+        // intent to fall through
       case CUSTOM:
         return PlainSaslHelper.getPlainServerTransportFactory(mAuthType, mTachyonConf);
       case KERBEROS:

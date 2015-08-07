@@ -33,7 +33,7 @@ import tachyon.security.authentication.AuthenticationProviderFactory;
  * There is a new provider {@link PlainSaslServerProvider} needed to support server-side
  * PLAIN mechanism.
  * PlainSaslHelper is used to register this provider.
- * It also provide methods to generate PLAIN transport for server and client.
+ * It also provides methods to generate PLAIN transport for server and client.
  */
 public class PlainSaslHelper {
   static {
