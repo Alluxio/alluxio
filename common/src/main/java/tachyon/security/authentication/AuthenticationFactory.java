@@ -163,7 +163,7 @@ public class AuthenticationFactory {
    */
   public static TTransport createPlainClientTransport(String username, String password,
       TTransport tTransport) throws SaslException {
-    return PlainSaslHelper.getPlainTransport(username, password, tTransport);
+    return PlainSaslHelper.getPlainClientTransport(username, password, tTransport);
   }
 
   // TODO: add methods of getting different Thrift class in follow-up PR.
