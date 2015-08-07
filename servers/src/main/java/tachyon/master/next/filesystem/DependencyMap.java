@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.filesystem;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,7 +29,7 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.master.Dependency;
 
-class DependencyMap {
+public class DependencyMap {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Map<Integer, Dependency> mDependencyMap;
