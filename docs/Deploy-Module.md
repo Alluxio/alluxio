@@ -73,6 +73,7 @@ Set name of keypair to **Keypair** and path to the pem key to **Key_Path** in `c
 Install aws vagrant plugin(To date, version 0.5.0 is tested):
 
     vagrant plugin install vagrant-aws
+    vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
 
 By default, if you don't have a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
