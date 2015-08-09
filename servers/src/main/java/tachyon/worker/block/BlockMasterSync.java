@@ -70,8 +70,8 @@ public class BlockMasterSync implements Runnable {
   private volatile boolean mRunning;
   /** The id of the worker */
   private long mWorkerId;
-  /** The thread pool to remove block*/
-  private final ExecutorService mFixedExecutor = Executors.newFixedThreadPool(10);
+  /** The thread pool to remove block */
+  private final ExecutorService mFixedExecutionService = Executors.newFixedThreadPool(Constants.MASTER_DEFAULT_BLOCKREMOVERPOOL_SIZE);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
       NetAddress workerAddress) {
@@ -189,8 +189,8 @@ public class BlockMasterSync implements Runnable {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
-          mFixedExecutor.execute( new BlockRemover(mBlockDataManager,
-                  Users.MASTER_COMMAND_USER_ID, block) );
+          mFixedExecutionService.execute(new BlockRemover(mBlockDataManager,
+                  Users.MASTER_COMMAND_USER_ID, block));
         }
         break;
       // No action required
@@ -227,10 +227,10 @@ public class BlockMasterSync implements Runnable {
     private long mUserId;
     private long mBlockId;
 
-    public BlockRemover( BlockDataManager mBlockDataManager, long userId, long blockId) {
-      this.mBlockDataManager = mBlockDataManager;
-      this.mUserId = userId;
-      this.mBlockId = blockId;
+    public BlockRemover( BlockDataManager blockDataManager, long userId, long blockId) {
+      mBlockDataManager = blockDataManager;
+      mUserId = userId;
+      mBlockId = blockId;
     }
 
     @Override
