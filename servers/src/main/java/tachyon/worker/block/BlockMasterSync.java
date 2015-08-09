@@ -71,7 +71,8 @@ public class BlockMasterSync implements Runnable {
   /** The id of the worker */
   private long mWorkerId;
   /** The thread pool to remove block */
-  private final ExecutorService mFixedExecutionService = Executors.newFixedThreadPool(Constants.MASTER_DEFAULT_BLOCKREMOVERPOOL_SIZE);
+  private final ExecutorService mFixedExecutionService =
+          Executors.newFixedThreadPool(Constants.MASTER_DEFAULT_BLOCKREMOVERPOOL_SIZE);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
       NetAddress workerAddress) {
