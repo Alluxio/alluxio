@@ -137,6 +137,7 @@ public class Constants {
   public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
   public static final String MASTER_PRINCIPAL_KEY = "tachyon.master.principal";
   public static final String MASTER_RETRY_COUNT = "tachyon.master.retry";
+  public static final int MASTER_DEFAULT_BLOCKREMOVERPOOL_SIZE = 10;
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_PORT = "tachyon.worker.port";
