@@ -49,7 +49,7 @@ public interface RemoteBlockReader extends Closeable {
    * @param blockId the id of the block trying to read.
    * @param offset the offset of the block.
    * @param length the length the client wants to read.
-   * @return
+   * @return a byte buffer containing the remote data block.
    * @throws IOException
    */
   ByteBuffer readRemoteBlock(String host, int port, long blockId, long offset,
