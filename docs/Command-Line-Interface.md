@@ -117,4 +117,19 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>free "path"</td>
     <td>Free a file or all files under a directory from memory. File/directory will still be available in underfs.</td>
   </tr>
+  <tr>
+    <td>getUsedBytes</td>
+    <td>getUsedBytes</td>
+    <td>Get number of bytes used in the TachyonFS.</td>
+  </tr>
+  <tr>
+    <td>getCapacityBytes</td>
+    <td>getCapacityBytes</td>
+    <td>Get the capacity of the TachyonFS.</td>
+  </tr>
+  <tr>
+    <td>du</td>
+    <td>du "path"</td>
+    <td>Displays the size of a file or a directory specified by the input path.</td>
+  </tr>
 </table>
