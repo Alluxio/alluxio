@@ -76,8 +76,8 @@
                   <tr>
                     <th><%= StorageLevelAlias.values()[i].name() %> Capacity / Used</th>
                     <th>
-                      <%= CommonUtils.getSizeFromBytes(capacityBytesOnTiers.get(i)) %> /
-                      <%= CommonUtils.getSizeFromBytes(usedBytesOnTiers.get(i)) %>
+                      <%= FormatUtils.getSizeFromBytes(capacityBytesOnTiers.get(i)) %> /
+                      <%= FormatUtils.getSizeFromBytes(usedBytesOnTiers.get(i)) %>
                     </th>
                   </tr>
                   <% } %>
