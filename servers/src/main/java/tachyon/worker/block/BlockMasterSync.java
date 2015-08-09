@@ -71,7 +71,7 @@ public class BlockMasterSync implements Runnable {
   /** The id of the worker */
   private long mWorkerId;
   /** The thread pool to remove block */
-  public static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
+  private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
   private final ExecutorService mFixedExecutionService =
           Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
@@ -242,7 +242,7 @@ public class BlockMasterSync implements Runnable {
       } catch (IOException ioe) {
         LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
       } catch (InvalidStateException e) {
-        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block uncommitted");
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block uncommitted.");
       } catch (NotFoundException e) {
         LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block not found.");
       }
