@@ -49,6 +49,7 @@ import tachyon.util.FormatUtils;
  * Class for handling command line inputs.
  */
 public class TFsShell implements Closeable {
+  
   /**
    * Main method, starts a new TFsShell
    *
@@ -85,12 +86,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int cat(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs cat <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int cat(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     TachyonFile tFile = tachyonClient.getFile(path);
 
@@ -126,11 +122,6 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int copyFromLocal(String[] argv) throws IOException {
-    if (argv.length != 3) {
-      System.out.println("Usage: tfs copyFromLocal <src> <remoteDst>");
-      return -1;
-    }
-
     String srcPath = argv[1];
     TachyonURI dstPath = new TachyonURI(argv[2]);
     File src = new File(srcPath);
@@ -194,11 +185,6 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int copyToLocal(String[] argv) throws IOException {
-    if (argv.length != 3) {
-      System.out.println("Usage: tfs copyToLocal <src> <localdst>");
-      return -1;
-    }
-
     TachyonURI srcPath = new TachyonURI(argv[1]);
     String dstPath = argv[2];
     File dst = new File(dstPath);
@@ -234,12 +220,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int count(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs count <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int count(TachyonURI path) throws IOException {
     try {
       long[] values = countHelper(path);
       String format = "%-25s%-25s%-15s%n";
@@ -283,12 +264,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int fileinfo(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs fileinfo <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int fileinfo(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
     if (fileId == -1) {
@@ -310,12 +286,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int location(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs location <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int location(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
     if (fileId == -1) {
@@ -337,12 +308,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int ls(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs ls <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int ls(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     List<ClientFileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);
@@ -375,12 +341,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int lsr(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs lsr <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int lsr(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     List<ClientFileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);
@@ -397,7 +358,7 @@ public class TFsShell implements Closeable {
       System.out.format(format, FormatUtils.getSizeFromBytes(file.getLength()),
           convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
       if (file.isFolder) {
-        lsr(new String[] {"lsr", file.getPath()});
+        lsr(new TachyonURI(path.getScheme(), path.getAuthority(), file.getPath()));
       }
     }
     return 0;
@@ -411,12 +372,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int mkdir(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs mkdir <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int mkdir(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     if (tachyonClient.mkdir(path)) {
       System.out.println("Successfully created directory " + path);
@@ -433,11 +389,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int getUsedBytes(String[] argv) throws IOException {
-    if (argv.length != 1) {
-      System.out.println("Usage: tfs getUsedBytes");
-      return -1;
-    }
+  public int getUsedBytes() throws IOException {
     TachyonURI path = new TachyonURI(TachyonURI.SEPARATOR);
     TachyonFS tachyonClient = createFS(path);
     long usedBytes = tachyonClient.getUsedBytes();
@@ -455,11 +407,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int getCapacityBytes(String[] argv) throws IOException {
-    if (argv.length != 1) {
-      System.out.println("Usage: tfs getCapacityBytes");
-      return -1;
-    }
+  public int getCapacityBytes() throws IOException {
     TachyonURI path = new TachyonURI(TachyonURI.SEPARATOR);
     TachyonFS tachyonClient = createFS(path);
     long capacityBytes = tachyonClient.getCapacityBytes();
@@ -478,12 +426,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int pin(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs pin <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int pin(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
 
@@ -527,6 +470,37 @@ public class TFsShell implements Closeable {
     System.out.println("       [du <path>]");
   }
 
+  public int getNumOfArgs(String cmd) {
+    if (cmd.equals("getUsedBytes") 
+        || cmd.equals("getCapacityBytes")) {
+      return 1;
+    } else if (cmd.equals("cat") 
+        || cmd.equals("count") 
+        || cmd.equals("ls") 
+        || cmd.equals("lsr")
+        || cmd.equals("mkdir") 
+        || cmd.equals("rm") 
+        || cmd.equals("rmr") 
+        || cmd.equals("tail")
+        || cmd.equals("touch") 
+        || cmd.equals("fileinfo") 
+        || cmd.equals("location")
+        || cmd.equals("report") 
+        || cmd.equals("pin") 
+        || cmd.equals("unpin") 
+        || cmd.equals("free")
+        || cmd.equals("du")) {
+      return 2;
+    } else if (cmd.equals("copyFromLocal") 
+        || cmd.equals("copyToLocal") 
+        || cmd.equals("request")
+        || cmd.equals("mv")) {
+      return 3;
+    } else {
+      return -1;
+    }
+  }
+  
   /**
    * Renames a file or directory specified by argv. Will fail if the new path name already exists.
    *
@@ -535,10 +509,6 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int rename(String[] argv) throws IOException {
-    if (argv.length != 3) {
-      System.out.println("Usage: tfs mv <src> <dst>");
-      return -1;
-    }
     TachyonURI srcPath = new TachyonURI(argv[1]);
     TachyonURI dstPath = new TachyonURI(argv[2]);
     TachyonFS tachyonClient = createFS(srcPath);
@@ -551,12 +521,7 @@ public class TFsShell implements Closeable {
     }
   }
 
-  public int report(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs report <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int report(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
     tachyonClient.reportLostFile(fileId);
@@ -565,10 +530,6 @@ public class TFsShell implements Closeable {
   }
 
   public int request(String[] argv) throws IOException {
-    if (argv.length != 3) {
-      System.out.println("Usage: tfs request <tachyonaddress> <dependencyId>");
-      return -1;
-    }
     TachyonURI path = new TachyonURI(argv[1]);
     int depId = Integer.parseInt(argv[2]);
     TachyonFS tachyonClient = createFS(path);
@@ -584,12 +545,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int rm(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs rm <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int rm(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     TachyonFile tFile = tachyonClient.getFile(path);
     if (tFile == null) {
@@ -616,12 +572,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int rmr(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs rmr <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int rmr(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     if (tachyonClient.delete(path, true)) {
       System.out.println(path + " has been removed");
@@ -638,12 +589,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int du(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs du <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int du(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     if (tachyonClient.exist(path)) {
       long sizeInBytes = getFileOrFolderSize(tachyonClient, path);
@@ -667,53 +613,68 @@ public class TFsShell implements Closeable {
       return -1;
     }
 
+    // Sanity check on the number of arguments
     String cmd = argv[0];
+    int numOfArgs = getNumOfArgs(cmd);    
+    if (numOfArgs != argv.length) {
+      System.out.println(cmd + " takes " + numOfArgs + " parameters.\n\n");
+      printUsage();
+      return -1;
+    }
+    
+    TachyonURI path = new TachyonURI(argv[1]);
     int exitCode = -1;
     try {
-      if (cmd.equals("cat")) {
-        exitCode = cat(argv);
-      } else if (cmd.equals("count")) {
-        exitCode = count(argv);
-      } else if (cmd.equals("ls")) {
-        exitCode = ls(argv);
-      } else if (cmd.equals("lsr")) {
-        exitCode = lsr(argv);
-      } else if (cmd.equals("mkdir")) {
-        exitCode = mkdir(argv);
-      } else if (cmd.equals("getUsedBytes")) {
-        exitCode = getUsedBytes(argv);
+      // need 0 parameter
+      if (cmd.equals("getUsedBytes")) {
+        return getUsedBytes();
       } else if (cmd.equals("getCapacityBytes")) {
-        exitCode = getCapacityBytes(argv);
-      } else if (cmd.equals("rm")) {
-        exitCode = rm(argv);
-      } else if (cmd.equals("rmr")) {
-        exitCode = rmr(argv);
-      } else if (cmd.equals("tail")) {
-        exitCode = tail(argv);
-      } else if (cmd.equals("mv")) {
-        exitCode = rename(argv);
-      } else if (cmd.equals("touch")) {
-        exitCode = touch(argv);
-      } else if (cmd.equals("copyFromLocal")) {
-        exitCode = copyFromLocal(argv);
+        return getCapacityBytes();
+      }  
+      
+      // need 2 parameter
+      if (cmd.equals("copyFromLocal")) {
+        return copyFromLocal(argv);
       } else if (cmd.equals("copyToLocal")) {
-        exitCode = copyToLocal(argv);
-      } else if (cmd.equals("fileinfo")) {
-        exitCode = fileinfo(argv);
-      } else if (cmd.equals("location")) {
-        exitCode = location(argv);
-      } else if (cmd.equals("report")) {
-        exitCode = report(argv);
+        return copyToLocal(argv);
       } else if (cmd.equals("request")) {
-        exitCode = request(argv);
+        return request(argv);
+      } else if (cmd.equals("mv")) {
+        return rename(argv);
+      }
+      
+      if (cmd.equals("cat")) {
+        exitCode = cat(path);
+      } else if (cmd.equals("count")) {
+        exitCode = count(path);
+      } else if (cmd.equals("ls")) {
+        exitCode = ls(path);
+      } else if (cmd.equals("lsr")) {
+        exitCode = lsr(path);
+      } else if (cmd.equals("mkdir")) {
+        exitCode = mkdir(path);
+      } else if (cmd.equals("rm")) {
+        exitCode = rm(path);
+      } else if (cmd.equals("rmr")) {
+        exitCode = rmr(path);
+      } else if (cmd.equals("tail")) {
+        exitCode = tail(path);
+      } else if (cmd.equals("touch")) {
+        exitCode = touch(path);
+      } else if (cmd.equals("fileinfo")) {
+        exitCode = fileinfo(path);
+      } else if (cmd.equals("location")) {
+        exitCode = location(path);
+      } else if (cmd.equals("report")) {
+        exitCode = report(path);
       } else if (cmd.equals("pin")) {
-        exitCode = pin(argv);
+        exitCode = pin(path);
       } else if (cmd.equals("unpin")) {
-        exitCode = unpin(argv);
+        exitCode = unpin(path);
       } else if (cmd.equals("free")) {
-        exitCode = free(argv);
+        exitCode = free(path);
       } else if (cmd.equals("du")) {
-        exitCode = du(argv);
+        exitCode = du(path);
       } else {
         printUsage();
         return -1;
@@ -732,12 +693,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.f
    * @throws IOException
    */
-  public int tail(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs tail <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int tail(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     TachyonFile tFile = tachyonClient.getFile(path);
 
@@ -777,12 +733,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command if successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int touch(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs touch <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int touch(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     TachyonFile tFile = tachyonClient.getFile(tachyonClient.createFile(path));
     OutputStream out = tFile.getOutStream(WriteType.THROUGH);
@@ -799,12 +750,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int unpin(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs unpin <path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int unpin(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
     try {
@@ -825,12 +771,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command if successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int free(String[] argv) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs free <file path | folder path>");
-      return -1;
-    }
-    TachyonURI path = new TachyonURI(argv[1]);
+  public int free(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
     if (tachyonClient.freepath(path, true)) {
       System.out.println(path + " was successfully freed from memory.");
