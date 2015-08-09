@@ -305,10 +305,9 @@ public final class MasterClient implements Closeable {
   public synchronized long getUserId() throws IOException {
     if (mIsClosed) {
       return -1;
-    } else {
-      connect();
-      return mUserId;
     }
+    connect();
+    return mUserId;
   }
 
   /**
