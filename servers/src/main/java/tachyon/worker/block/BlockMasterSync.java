@@ -71,8 +71,9 @@ public class BlockMasterSync implements Runnable {
   /** The id of the worker */
   private long mWorkerId;
   /** The thread pool to remove block */
+  public static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
   private final ExecutorService mFixedExecutionService =
-          Executors.newFixedThreadPool(Constants.MASTER_DEFAULT_BLOCKREMOVERPOOL_SIZE);
+          Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
       NetAddress workerAddress) {
@@ -228,7 +229,7 @@ public class BlockMasterSync implements Runnable {
     private long mUserId;
     private long mBlockId;
 
-    public BlockRemover( BlockDataManager blockDataManager, long userId, long blockId) {
+    public BlockRemover(BlockDataManager blockDataManager, long userId, long blockId) {
       mBlockDataManager = blockDataManager;
       mUserId = userId;
       mBlockId = blockId;
@@ -240,9 +241,9 @@ public class BlockMasterSync implements Runnable {
         mBlockDataManager.removeBlock(mUserId, mBlockId);
       } catch (IOException ioe) {
         LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
-      } catch ( InvalidStateException e) {
+      } catch (InvalidStateException e) {
         LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block uncommitted");
-      } catch ( NotFoundException e ) {
+      } catch (NotFoundException e) {
         LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block not found.");
       }
     }
