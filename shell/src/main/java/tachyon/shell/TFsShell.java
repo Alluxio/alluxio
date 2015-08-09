@@ -619,7 +619,7 @@ public class TFsShell implements Closeable {
     String cmd = argv[0];
     int numOfArgs = getNumOfArgs(cmd);    
     if (numOfArgs != argv.length) {
-      System.out.println(cmd + " takes " + numOfArgs + " parameters.\n\n");
+      System.out.println(cmd + " takes " + numOfArgs + " arguments.\n");
       printUsage();
       return -1;
     }
@@ -627,14 +627,49 @@ public class TFsShell implements Closeable {
     TachyonURI path = new TachyonURI(argv[1]);
     int exitCode = -1;
     try {
-      // need 0 parameter
+      // Commands need 0 argument
       if (cmd.equals("getUsedBytes")) {
         return getUsedBytes();
       } else if (cmd.equals("getCapacityBytes")) {
         return getCapacityBytes();
       }  
+            
+      //Commands need 1 argument
+      if (cmd.equals("cat")) {
+        return cat(path);
+      } else if (cmd.equals("count")) {
+        return count(path);
+      } else if (cmd.equals("ls")) {
+        return ls(path);
+      } else if (cmd.equals("lsr")) {
+        return lsr(path);
+      } else if (cmd.equals("mkdir")) {
+        return mkdir(path);
+      } else if (cmd.equals("rm")) {
+        return rm(path);
+      } else if (cmd.equals("rmr")) {
+        return rmr(path);
+      } else if (cmd.equals("tail")) {
+        return tail(path);
+      } else if (cmd.equals("touch")) {
+        return touch(path);
+      } else if (cmd.equals("fileinfo")) {
+        return fileinfo(path);
+      } else if (cmd.equals("location")) {
+        return location(path);
+      } else if (cmd.equals("report")) {
+        return report(path);
+      } else if (cmd.equals("pin")) {
+        return pin(path);
+      } else if (cmd.equals("unpin")) {
+        return unpin(path);
+      } else if (cmd.equals("free")) {
+        return free(path);
+      } else if (cmd.equals("du")) {
+        return du(path);
+      }
       
-      // need 2 parameter
+      // Commands need 2+ arguments
       if (cmd.equals("copyFromLocal")) {
         return copyFromLocal(argv);
       } else if (cmd.equals("copyToLocal")) {
@@ -645,42 +680,11 @@ public class TFsShell implements Closeable {
         return rename(argv);
       }
       
-      if (cmd.equals("cat")) {
-        exitCode = cat(path);
-      } else if (cmd.equals("count")) {
-        exitCode = count(path);
-      } else if (cmd.equals("ls")) {
-        exitCode = ls(path);
-      } else if (cmd.equals("lsr")) {
-        exitCode = lsr(path);
-      } else if (cmd.equals("mkdir")) {
-        exitCode = mkdir(path);
-      } else if (cmd.equals("rm")) {
-        exitCode = rm(path);
-      } else if (cmd.equals("rmr")) {
-        exitCode = rmr(path);
-      } else if (cmd.equals("tail")) {
-        exitCode = tail(path);
-      } else if (cmd.equals("touch")) {
-        exitCode = touch(path);
-      } else if (cmd.equals("fileinfo")) {
-        exitCode = fileinfo(path);
-      } else if (cmd.equals("location")) {
-        exitCode = location(path);
-      } else if (cmd.equals("report")) {
-        exitCode = report(path);
-      } else if (cmd.equals("pin")) {
-        exitCode = pin(path);
-      } else if (cmd.equals("unpin")) {
-        exitCode = unpin(path);
-      } else if (cmd.equals("free")) {
-        exitCode = free(path);
-      } else if (cmd.equals("du")) {
-        exitCode = du(path);
-      } else {
-        printUsage();
-        return -1;
-      }
+      // Unknown command
+      System.out.println(cmd + " is an unknown command.\n");
+      printUsage();
+      return -1;
+      
     } catch (IOException ioe) {
       System.out.println(ioe.getMessage());
     }
