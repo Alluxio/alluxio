@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidStateException;
+import tachyon.exception.NotFoundException;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
@@ -68,6 +70,8 @@ public class BlockMasterSync implements Runnable {
   private volatile boolean mRunning;
   /** The id of the worker */
   private long mWorkerId;
+  /** The thread pool to remove block*/
+  private final ExecutorService fixedExecutor = Executors.newFixedThreadPool(10);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
       NetAddress workerAddress) {
@@ -185,11 +189,7 @@ public class BlockMasterSync implements Runnable {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
-          try {
-            mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
-          } catch (IOException ioe) {
-            LOG.warn("Failed master free block cmd for: " + block + " due to concurrent read.");
-          }
+          fixedExecutor.execute( new BlockRemover(mBlockDataManager, Users.MASTER_COMMAND_USER_ID, block) );
         }
         break;
       // No action required
@@ -216,5 +216,34 @@ public class BlockMasterSync implements Runnable {
     mMasterClient =
         new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
             mMasterClientExecutorService, mTachyonConf);
+  }
+
+  /**
+   * Thread to remove block from master
+   */
+  private class BlockRemover implements Runnable {
+    private BlockDataManager mBlockDataManager;
+    private long userId;
+    private long blockId;
+
+    public BlockRemover( BlockDataManager mBlockDataManager, long userId, long blockId) {
+      this.mBlockDataManager = mBlockDataManager;
+      this.userId = userId;
+      this.blockId = blockId;
+    }
+
+    @Override
+    public void run()  {
+      try {
+        mBlockDataManager.removeBlock(userId, blockId);
+      } catch (IOException ioe) {
+        LOG.warn("Failed master free block cmd for: " + blockId + " due to concurrent read.");
+      } catch ( InvalidStateException e) {
+        LOG.warn("Failed master free block cmd for: " + blockId + " due to block uncommitted");
+      } catch ( NotFoundException e ) {
+        LOG.warn("Failed master free block cmd for: " + blockId + " due to block not found.");
+      }
+    }
+
   }
 }
