@@ -236,7 +236,7 @@ public class BlockMasterSync implements Runnable {
     }
 
     @Override
-    public void run()  {
+    public void run() {
       try {
         mBlockDataManager.removeBlock(mUserId, mBlockId);
       } catch (IOException ioe) {
