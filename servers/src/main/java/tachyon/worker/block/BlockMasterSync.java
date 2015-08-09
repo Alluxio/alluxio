@@ -71,7 +71,7 @@ public class BlockMasterSync implements Runnable {
   /** The id of the worker */
   private long mWorkerId;
   /** The thread pool to remove block*/
-  private final ExecutorService fixedExecutor = Executors.newFixedThreadPool(10);
+  private final ExecutorService mFixedExecutor = Executors.newFixedThreadPool(10);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
       NetAddress workerAddress) {
@@ -189,7 +189,8 @@ public class BlockMasterSync implements Runnable {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
-          fixedExecutor.execute( new BlockRemover(mBlockDataManager, Users.MASTER_COMMAND_USER_ID, block) );
+          mFixedExecutor.execute( new BlockRemover(mBlockDataManager,
+                  Users.MASTER_COMMAND_USER_ID, block) );
         }
         break;
       // No action required
@@ -223,25 +224,25 @@ public class BlockMasterSync implements Runnable {
    */
   private class BlockRemover implements Runnable {
     private BlockDataManager mBlockDataManager;
-    private long userId;
-    private long blockId;
+    private long mUserId;
+    private long mBlockId;
 
     public BlockRemover( BlockDataManager mBlockDataManager, long userId, long blockId) {
       this.mBlockDataManager = mBlockDataManager;
-      this.userId = userId;
-      this.blockId = blockId;
+      this.mUserId = userId;
+      this.mBlockId = blockId;
     }
 
     @Override
     public void run()  {
       try {
-        mBlockDataManager.removeBlock(userId, blockId);
+        mBlockDataManager.removeBlock(mUserId, mBlockId);
       } catch (IOException ioe) {
-        LOG.warn("Failed master free block cmd for: " + blockId + " due to concurrent read.");
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
       } catch ( InvalidStateException e) {
-        LOG.warn("Failed master free block cmd for: " + blockId + " due to block uncommitted");
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block uncommitted");
       } catch ( NotFoundException e ) {
-        LOG.warn("Failed master free block cmd for: " + blockId + " due to block not found.");
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block not found.");
       }
     }
 
