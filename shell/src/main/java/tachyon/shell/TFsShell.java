@@ -118,6 +118,49 @@ public class TFsShell implements Closeable {
   }
 
   /**
+   * Copies a file specified by argv from the under filesystem to the filesystem. Will
+   * fail if the path given already exists in the filesystem. 
+   * example: copyFromUFS
+   *
+   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */ 
+  public int loadFile(String[] argv) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs loadFile <filename>");
+      return -1;
+    }
+
+    TachyonURI filePath = new TachyonURI(argv[1]);
+    TachyonFS tachyonClient = createFS(filePath);
+    int ret = loadPath(tachyonClient, filePath);
+    if (ret == 0) {
+      System.out.println("File " + filePath + " loaded");
+    }
+    return ret;
+  }
+
+  private int loadPath(TachyonFS tachyonClient, TachyonURI filePath) throws IOException {
+    TachyonFile tFile = tachyonClient.getFile(filePath);
+    Closer closer = Closer.create();
+    // TODO: Support directory loading
+    if (tFile != null && !tFile.isDirectory()) {
+      InStream in = closer.register(tFile.getInStream(ReadType.CACHE));
+      byte[] buf = new byte[8 * Constants.MB];
+      try {
+        while (in.read(buf) != -1) {
+        }
+        return 0;
+      } finally {
+        closer.close();
+      }
+    } else {
+      throw new IOException("operation not supported");
+    }
+  }
+
+  /**
    * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
    * fail if the path given already exists in the filesystem.
    *
@@ -513,6 +556,7 @@ public class TFsShell implements Closeable {
     System.out.println("       [tail <path>]");
     System.out.println("       [touch <path>]");
     System.out.println("       [mv <src> <dst>]");
+    System.out.println("       [loadFile <path>]");
     System.out.println("       [copyFromLocal <src> <remoteDst>]");
     System.out.println("       [copyToLocal <src> <localDst>]");
     System.out.println("       [fileinfo <path>]");
@@ -694,6 +738,8 @@ public class TFsShell implements Closeable {
         exitCode = rename(argv);
       } else if (cmd.equals("touch")) {
         exitCode = touch(argv);
+      } else if (cmd.equals("loadFile")) {
+        exitCode = loadFile(argv);
       } else if (cmd.equals("copyFromLocal")) {
         exitCode = copyFromLocal(argv);
       } else if (cmd.equals("copyToLocal")) {
