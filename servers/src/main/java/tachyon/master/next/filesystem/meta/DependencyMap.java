@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next.filesystem;
+package tachyon.master.next.filesystem.meta;
 
 import java.util.HashMap;
 import java.util.HashSet;

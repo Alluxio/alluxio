@@ -13,18 +13,14 @@
  * the License.
  */
 
-package tachyon.master.next.filesystem;
+package tachyon.master.next.filesystem.meta;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.StorageDirId;
-import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.block.meta.BlockId;
 import tachyon.thrift.NetAddress;
