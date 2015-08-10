@@ -1,3 +1,2 @@
 # A Tachyon Worker will be started on each of the machines listed below.
-212.128.48.168
-212.128.48.169
+localhost

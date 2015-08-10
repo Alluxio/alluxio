@@ -16,12 +16,14 @@
 package tachyon.client;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.ClientWorkerInfo;
 
 /**
  * <code>BlockOutStream</code> interface for writing data to a block. This class is not client
@@ -58,14 +60,21 @@ public abstract class BlockOutStream extends OutStream {
    */
   public static BlockOutStream get(TachyonFile tachyonFile, WriteType opType, int blockIndex,
       long initialBytes, TachyonConf tachyonConf) throws IOException {
-    if (tachyonFile.mTachyonFS.hasLocalWorker()
+    if ((tachyonFile.mTachyonFS.getWorkerDataServerAddress().getHostName().toString().equals(
+        tachyonFile.mTachyonFS.getUri().getHost())
         && tachyonConf.getBoolean(Constants.USER_ENABLE_LOCAL_WRITE,
+        Constants.DEFAULT_USER_ENABLE_LOCAL_WRITE)
+        && tachyonConf.get(
+        Constants.MASTER_BALANCER_STRATEGY_CLASS, "tachyon.master.balancer.MaxFreeBalancer")
+            .equalsIgnoreCase("tachyon.master.balancer.MaxFreeBalancer")) 
+        || (tachyonFile.mTachyonFS.hasLocalWorker()
+            && tachyonConf.getBoolean(Constants.USER_ENABLE_LOCAL_WRITE,
             Constants.DEFAULT_USER_ENABLE_LOCAL_WRITE)
             && tachyonConf.get(
             Constants.MASTER_BALANCER_STRATEGY_CLASS, "tachyon.master.balancer.LocalFirstBalancer")
-            .equalsIgnoreCase("tachyon.master.balancer.LocalFirstBalancer")) {
+            .equalsIgnoreCase("tachyon.master.balancer.LocalFirstBalancer"))) {
       LOG.info("Writing with local stream. tachyonFile: " + tachyonFile + ", blockIndex: "
-          + blockIndex + ", opType: " + opType);
+              + blockIndex + ", opType: " + opType);
       return new LocalBlockOutStream(tachyonFile, opType, blockIndex, initialBytes, tachyonConf);
     }
 
