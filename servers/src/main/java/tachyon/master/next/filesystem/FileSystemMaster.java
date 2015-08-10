@@ -38,7 +38,6 @@ import tachyon.master.next.block.meta.BlockWorkerInfo;
 import tachyon.master.next.block.meta.UserBlockInfo;
 import tachyon.master.next.block.meta.UserBlockLocation;
 import tachyon.master.next.filesystem.meta.DependencyMap;
-import tachyon.master.next.filesystem.meta.FileBlockInfo;
 import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
