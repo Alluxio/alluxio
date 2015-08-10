@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 
@@ -44,8 +45,12 @@ public class BlockLockManager {
   /** The number of locks, larger value leads to finer locking granularity, but more space. */
   // TODO: Make this configurable
   private static final int NUM_LOCKS = 1000;
+  /** Time to wait to acquire a lock */
+  private static final int LOCK_ACQUIRE_TIMEOUT_MS = 5000;
   /** The unique id of each lock */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
+  /** A hashing function to map blockId to one of the locks */
+  private static final HashFunction HASH_FUNC = Hashing.murmur3_32();
 
   /** The object that serves all metadata requests for the block store */
   private final BlockMetadataManager mMetaManager;
@@ -57,8 +62,6 @@ public class BlockLockManager {
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
   /** To guard access on mLockIdToRecordMap and mUserIdToLockIdsMap */
   private final Object mSharedMapsLock = new Object();
-  /** A hashing function to map blockId to one of the locks */
-  private final HashFunction mHashFunc = Hashing.murmur3_32();
 
   public BlockLockManager(BlockMetadataManager metaManager) {
     mMetaManager = Preconditions.checkNotNull(metaManager);
@@ -68,26 +71,52 @@ public class BlockLockManager {
   }
 
   /**
-   * Locks a block if it exists, throws NotFoundException otherwise.
+   * Get index of the lock that will be used to lock the block
+   *
+   * @param blockId the id of the block
+   * @return hash index of the lock
+   */
+  public static int blockHashIndex(long blockId) {
+    return Math.abs(HASH_FUNC.hashLong(blockId).asInt()) % NUM_LOCKS;
+  }
+
+  /**
+   * Attempts to lock a block if it exists.
    *
    * @param userId the ID of user
    * @param blockId the ID of block
    * @param blockLockType READ or WRITE
-   * @return lock id if the block exists
-   * @throws NotFoundException when blockId can not be found
+   * @return lock ID
+   * @throws NotFoundException if the block does not exist or the block lock timeout is exceeded
    */
   public long lockBlock(long userId, long blockId, BlockLockType blockLockType)
       throws NotFoundException {
     // hashing blockId into the range of [0, NUM_LOCKS-1]
-    int hashValue = Math.abs(mHashFunc.hashLong(blockId).asInt()) % NUM_LOCKS;
-    ClientRWLock blockLock = mLockArray[hashValue];
+    int index = blockHashIndex(blockId);
+    ClientRWLock blockLock = mLockArray[index];
     Lock lock;
     if (blockLockType == BlockLockType.READ) {
       lock = blockLock.readLock();
     } else { // blockLockType == BlockLockType.WRITE
       lock = blockLock.writeLock();
     }
-    lock.lock();
+
+    // The block lock may be busy, wait up to five seconds to obtain it.
+    boolean success;
+    try {
+      success = lock.tryLock(LOCK_ACQUIRE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException ie) {
+      // The UserLock implementation does not throw this exception, something is wrong if it happens
+      LOG.error("Interrupted exception in tryLock, this should not occur!");
+      // TODO: Throw an appropriate exception here
+      throw new NotFoundException(ie.getMessage(), ie.getCause());
+    }
+    if (!success) {
+      String errMsg = "5s timeout when attempting lockBlock: " + blockId + " for user: " + userId;
+      LOG.error(errMsg);
+      // TODO: Throw an appropriate exception here
+      throw new NotFoundException(errMsg);
+    }
     if (!mMetaManager.hasBlockMeta(blockId)) {
       lock.unlock();
       throw new NotFoundException("Failed to lockBlock: no blockId " + blockId + " found");
