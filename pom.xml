@@ -385,7 +385,7 @@
         <configuration>
           <configLocation>${checkstyle.path}tachyon_checks.xml</configLocation>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/tachyon/thrift/**</excludes>
+          <excludes>**/tachyon/thrift/**,**/tachyon/security/authentication/thrift/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -422,6 +422,7 @@
             <!-- Code Exclusions -->
             <exclude>**/src/main/java/tachyon/thrift/*</exclude>
             <exclude>**/src/main/java/tachyon/perf/thrift/*</exclude>
+            <exclude>**/src/test/java/tachyon/security/authentication/thrift/*</exclude>
             <exclude>**/src/main/webapp/**/*</exclude>
             <exclude>**/src/thrift/*</exclude>
             <exclude>**/src/deb/**/*</exclude>

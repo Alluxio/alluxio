@@ -149,7 +149,11 @@ public class PlainSaslServer implements SaslServer {
   /**
    * PlainServerCallbackHandler is used by the SASL mechanisms to get further information
    * to complete the authentication. For example, a SASL mechanism might use this callback handler
-   * to do verify operation.
+   * to do verification operation.
+   *
+   * After verification succeeds, a {@link tachyon.security.User} with this authenticated username
+   * will be created and set to a Threadlocal variable. Following methods executed in this thread
+   * could get this user, which represents the client user connecting to this server.
    */
   public static final class PlainServerCallbackHandler implements CallbackHandler {
     private final AuthenticationProvider mAuthenticationPrivoder;
@@ -182,6 +186,7 @@ public class PlainSaslServer implements SaslServer {
 
       if (ac != null) {
         ac.setAuthorized(true);
+        RemoteClientUser.set(username);
       }
     }
   }
