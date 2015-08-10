@@ -67,38 +67,6 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   }
 
   /**
-   * @return a StorageDirView in the range of location that already has availableBytes larger than
-   *         bytesToBeAvailable, otherwise null
-   */
-  private StorageDirView selectDirWithRequestedSpace(long bytesToBeAvailable,
-      BlockStoreLocation location) {
-    if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTierView tierView : mManagerView.getTierViews()) {
-        for (StorageDirView dirView : tierView.getDirViews()) {
-          if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
-            return dirView;
-          }
-        }
-      }
-      return null;
-    }
-
-    int tierAlias = location.tierAlias();
-    StorageTierView tierView = mManagerView.getTierView(tierAlias);
-    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-      for (StorageDirView dirView : tierView.getDirViews()) {
-        if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
-          return dirView;
-        }
-      }
-      return null;
-    }
-
-    StorageDirView dirView = tierView.getDirView(location.dir());
-    return (dirView.getAvailableBytes() >= bytesToBeAvailable) ? dirView : null;
-  }
-
-  /**
    * A recursive implementation of cascading LRU eviction.
    *
    * It will try to free space in next tier view to transfer blocks there, if the next tier view
@@ -116,11 +84,29 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    * @return the first StorageDirView in the range of location to evict/move bytes from, or null if
    *         there is no plan
    */
-  protected StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
-      EvictionPlan plan) {
-
+  protected StorageDirView cascadingEvict(final long bytesToBeAvailable,
+      final BlockStoreLocation location, EvictionPlan plan) {
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
-    StorageDirView candidateDirView = selectDirWithRequestedSpace(bytesToBeAvailable, location);
+    BlockMetadataManagerView.DirVisitor visitor = new BlockMetadataManagerView.DirVisitor() {
+      private StorageDirView mDir = null;
+
+      @Override
+      public boolean visit(StorageDirView dirView) {
+        if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
+          mDir = dirView;
+          return true;
+        }
+        return false;
+      }
+
+      @Override
+      public StorageDirView getDir() {
+        return mDir;
+      }
+    };
+
+    mManagerView.visitDirs(location, visitor);
+    StorageDirView candidateDirView = visitor.getDir();
     if (candidateDirView != null) {
       return candidateDirView;
     }
@@ -181,8 +167,8 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   }
 
   @Override
-  public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
-      BlockMetadataManagerView view) {
+  public EvictionPlan freeSpaceWithView(final long bytesToBeAvailable,
+      final BlockStoreLocation location, final BlockMetadataManagerView view) {
     mManagerView = view;
 
     List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();

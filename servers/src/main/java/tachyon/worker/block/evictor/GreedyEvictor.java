@@ -44,28 +44,30 @@ public class GreedyEvictor implements Evictor {
   public GreedyEvictor(BlockMetadataManagerView view) {}
 
   @Override
-  public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-      BlockMetadataManagerView view) {
+  public EvictionPlan freeSpaceWithView(final long availableBytes,
+      final BlockStoreLocation location, final BlockMetadataManagerView view) {
     // 1. Select a StorageDirView that has enough capacity for required bytes.
-    StorageDirView selectedDirView = null;
-    if (location.equals(BlockStoreLocation.anyTier())) {
-      selectedDirView = selectEvictableDirFromAnyTier(view, availableBytes);
-    } else {
-      int tierAlias = location.tierAlias();
-      StorageTierView tierView = view.getTierView(tierAlias);
-      if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-        selectedDirView = selectEvictableDirFromTier(tierView, availableBytes);
-      } else {
-        int dirIndex = location.dir();
-        StorageDirView dir = tierView.getDirView(dirIndex);
-        if (canEvictBlocksFromDir(dir, availableBytes)) {
-          selectedDirView = dir;
+    BlockMetadataManagerView.DirVisitor visitor = new BlockMetadataManagerView.DirVisitor() {
+      private StorageDirView mDir = null;
+
+      @Override
+      public boolean visit(StorageDirView dirView) {
+        if (canEvictBlocksFromDir(dirView, availableBytes)) {
+          mDir = dirView;
+          return true;
         }
+        return false;
       }
-    }
+
+      @Override
+      public StorageDirView getDir() {
+        return mDir;
+      }
+    };
+
+    view.visitDirs(location, visitor);
+    StorageDirView selectedDirView = visitor.getDir();
     if (selectedDirView == null) {
-      LOG.error("Failed to freeSpace: No StorageDirView has enough capacity of {} bytes",
-          availableBytes);
       return null;
     }
 
@@ -119,29 +121,6 @@ public class GreedyEvictor implements Evictor {
   // available after eviction.
   private boolean canEvictBlocksFromDir(StorageDirView dirView, long bytesToBeAvailable) {
     return dirView.getAvailableBytes() + dirView.getEvitableBytes() >= bytesToBeAvailable;
-  }
-
-  // Selects a dir with enough space (including space evictable) from all tiers
-  private StorageDirView selectEvictableDirFromAnyTier(BlockMetadataManagerView view,
-      long availableBytes) {
-    for (StorageTierView tierView : view.getTierViews()) {
-      for (StorageDirView dirView : tierView.getDirViews()) {
-        if (canEvictBlocksFromDir(dirView, availableBytes)) {
-          return dirView;
-        }
-      }
-    }
-    return null;
-  }
-
-  // Selects a dir with enough space (including space evictable) from a given tier
-  private StorageDirView selectEvictableDirFromTier(StorageTierView tierView, long availableBytes) {
-    for (StorageDirView dirView : tierView.getDirViews()) {
-      if (canEvictBlocksFromDir(dirView, availableBytes)) {
-        return dirView;
-      }
-    }
-    return null;
   }
 
   private StorageDirView selectAvailableDir(BlockMeta block, List<StorageTierView> candidateTiers,

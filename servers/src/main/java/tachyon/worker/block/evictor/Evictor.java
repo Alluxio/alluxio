@@ -67,6 +67,6 @@ public interface Evictor {
    *         is feasible
    * @throws IllegalArgumentException if given block location is invalid
    */
-  EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
-      BlockMetadataManagerView view);
+  EvictionPlan freeSpaceWithView(final long availableBytes, final BlockStoreLocation location,
+      final BlockMetadataManagerView view);
 }
