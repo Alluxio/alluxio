@@ -144,7 +144,6 @@ public class TFsShell implements Closeable {
   private int loadPath(TachyonFS tachyonClient, TachyonURI filePath) throws IOException {
     TachyonFile tFile = tachyonClient.getFile(filePath);
     Closer closer = Closer.create();
-    // TODO: Support directory loading
     if (tFile == null) {
       return -1;
     }
