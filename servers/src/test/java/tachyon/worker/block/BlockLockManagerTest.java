@@ -42,15 +42,7 @@ public class BlockLockManagerTest {
   public void before() throws Exception {
     BlockMetadataManager mockMetaManager = Mockito.mock(BlockMetadataManager.class);
     Mockito.when(mockMetaManager.hasBlockMeta(TEST_BLOCK_ID)).thenReturn(true);
-    mLockManager = new BlockLockManager(mockMetaManager);
-  }
-
-  @Test
-  public void lockNonExistingBlockTest() throws Exception {
-    long nonExistingBlockId = TEST_BLOCK_ID + 1;
-    mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to lockBlock: no blockId " + nonExistingBlockId + " found");
-    mLockManager.lockBlock(TEST_USER_ID, nonExistingBlockId, BlockLockType.READ);
+    mLockManager = new BlockLockManager();
   }
 
   @Test
