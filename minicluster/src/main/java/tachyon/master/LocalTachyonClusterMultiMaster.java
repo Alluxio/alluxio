@@ -107,7 +107,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public int getMasterPort() {
-    return mMasters.get(0).getMetaPort();
+    return mMasters.get(0).getRPCLocalPort();
   }
 
   public boolean killLeader() {

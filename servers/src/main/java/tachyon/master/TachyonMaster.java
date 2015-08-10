@@ -79,7 +79,6 @@ public class TachyonMaster {
   private MetricsSystem mMasterMetricsSystem;
   private Journal mJournal;
   private EditLogProcessor mEditLogProcessor;
-  private int mWebPort;
 
   private int mMaxWorkerThreads;
   private int mMinWorkerThreads;
@@ -89,24 +88,16 @@ public class TachyonMaster {
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  /** metadata port */
+  /** metadata port (RPC local port) */
   private final int mPort;
 
   private final TachyonConf mTachyonConf;
 
   public TachyonMaster(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-
-    int port = mTachyonConf.getInt(Constants.MASTER_PORT);
-    int webPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT);
-
-    TachyonConf.assertValidPort(port, mTachyonConf);
-    TachyonConf.assertValidPort(webPort, mTachyonConf);
-
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
 
     mIsStarted = false;
-    mWebPort = webPort;
     mMinWorkerThreads =
         mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS, Runtime.getRuntime()
             .availableProcessors());
@@ -126,7 +117,7 @@ public class TachyonMaster {
       mServerTServerSocket =
           new TServerSocket(
               NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, mTachyonConf));
-      mPort = NetworkAddressUtils.getPort(mServerTServerSocket);
+      mPort = NetworkAddressUtils.getThriftPort(mServerTServerSocket);
       // reset master port
       mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(mPort));
 
@@ -185,24 +176,32 @@ public class TachyonMaster {
   }
 
   /**
-   * Get the port used by unit test only
+   * Get the actual bind hostname on RPC service (used by unit test only).
    */
-  int getMetaPort() {
+  public String getRPCBindHost() {
+    return NetworkAddressUtils.getThriftSocket(mServerTServerSocket).getLocalSocketAddress()
+        .toString();
+  }
+
+  /**
+   * Get the actual port that the RPC service is listening on (used by unit test only)
+   */
+  public int getRPCLocalPort() {
     return mPort;
   }
 
   /**
-   * Get hostname of the endpoint this socket is bound to (used by unit test only)
+   * Get the actual bind hostname on web service (used by unit test only).
    */
-  String getBindHost() {
-    return NetworkAddressUtils.getSocket(mServerTServerSocket).getLocalSocketAddress().toString();
+  public String getWebBindHost() {
+    return mWebServer.getBindHost();
   }
 
   /**
-   * Get the actual web server bind port (used by unit test only)
+   * Get the actual port that the web service is listening on (used by unit test only)
    */
-  int getWebBindPort() {
-    return mWebServer.getServer().getConnectors()[0].getLocalPort();
+  public int getWebLocalPort() {
+    return mWebServer.getLocalPort();
   }
 
   private boolean isFormatted(String folder, String path) throws IOException {
@@ -256,7 +255,7 @@ public class TachyonMaster {
     mMasterInfo.init();
 
     mWebServer =
-        new MasterUIWebServer("Tachyon Master Server", NetworkAddressUtils.getBindAddress(
+        new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
             ServiceType.MASTER_WEB, mTachyonConf), mMasterInfo, mTachyonConf);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);

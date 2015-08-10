@@ -58,27 +58,59 @@ public final class NetworkAddressUtils {
     /**
      * Master RPC service (Thrift)
      */
-    MASTER_RPC,
+    MASTER_RPC("Tachyon Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
+        Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT),
 
     /**
      * Master web service (Jetty)
      */
-    MASTER_WEB,
+    MASTER_WEB("Tachyon Master Web service", Constants.MASTER_WEB_HOSTNAME,
+        Constants.MASTER_WEB_BIND_HOST, Constants.MASTER_WEB_PORT,
+        Constants.DEFAULT_MASTER_WEB_PORT),
 
     /**
      * Worker RPC service (Thrift)
      */
-    WORKER_RPC,
+    WORKER_RPC("Tachyon Worker RPC service", Constants.WORKER_HOSTNAME, Constants.WORKER_BIND_HOST,
+        Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT),
 
     /**
      * Worker data service (Netty)
      */
-    WORKER_DATA,
+    WORKER_DATA("Tachyon Worker data service", Constants.WORKER_DATA_HOSTNAME,
+        Constants.WORKER_DATA_BIND_HOST, Constants.WORKER_DATA_PORT,
+        Constants.DEFAULT_WORKER_DATA_PORT),
 
     /**
      * Worker web service (Jetty)
      */
-    WORKER_WEB
+    WORKER_WEB("Tachyon Worker Web service", Constants.WORKER_WEB_HOSTNAME,
+        Constants.WORKER_WEB_BIND_HOST, Constants.WORKER_WEB_PORT,
+        Constants.DEFAULT_WORKER_WEB_PORT);
+
+    // service name
+    public final String mServiceName;
+
+    // the key of connect hostname
+    public final String mHostNameKey;
+
+    // the key of bind hostname
+    public final String mBindHostKey;
+
+    // the key of port
+    public final String mPortKey;
+
+    // default port number
+    public final int mDefaultPort;
+
+    ServiceType(String serviceName, String hostNameKey, String bindHostKey, String portKey,
+        int defaultPort) {
+      this.mServiceName = serviceName;
+      this.mHostNameKey = hostNameKey;
+      this.mBindHostKey = bindHostKey;
+      this.mPortKey = portKey;
+      this.mDefaultPort = defaultPort;
+    }
   }
 
   /**
@@ -91,33 +123,8 @@ public final class NetworkAddressUtils {
    * @return the connection hostname that a client can use to reach the service.
    */
   public static String getConnectHost(ServiceType service, TachyonConf conf) {
-    String connectHost;
-    String bindHost;
-
-    switch (service) {
-      case MASTER_RPC:
-        connectHost = conf.get(Constants.MASTER_HOSTNAME, "");
-        bindHost = conf.get(Constants.MASTER_BIND_HOST, "");
-        break;
-      case MASTER_WEB:
-        connectHost = conf.get(Constants.MASTER_WEB_HOSTNAME, "");
-        bindHost = conf.get(Constants.MASTER_WEB_BIND_HOST, "");
-        break;
-      case WORKER_RPC:
-        connectHost = conf.get(Constants.WORKER_HOSTNAME, "");
-        bindHost = conf.get(Constants.WORKER_BIND_HOST, "");
-        break;
-      case WORKER_DATA:
-        connectHost = conf.get(Constants.WORKER_DATA_HOSTNAME, "");
-        bindHost = conf.get(Constants.WORKER_DATA_BIND_HOST, "");
-        break;
-      case WORKER_WEB:
-        connectHost = conf.get(Constants.WORKER_WEB_HOSTNAME, "");
-        bindHost = conf.get(Constants.WORKER_WEB_BIND_HOST, "");
-        break;
-      default:
-        throw new IllegalArgumentException("Unknown service type: " + service);
-    }
+    String connectHost = conf.get(service.mHostNameKey, "");
+    String bindHost = conf.get(service.mBindHostKey, "");
 
     if (!connectHost.equals("0.0.0.0") && !connectHost.isEmpty()) {
       return connectHost;
@@ -129,6 +136,18 @@ public final class NetworkAddressUtils {
   }
 
   /**
+   * Gets the port number on a given service type. If user defined port number is not explicitly
+   * specified, Tachyon will select the default port number on the service.
+   *
+   * @param service Service type used to connect
+   * @param conf Tachyon configuration used to look up the host resolution timeout
+   * @return the service port number.
+   */
+  public static int getPort(ServiceType service, TachyonConf conf) {
+    return conf.getInt(service.mPortKey, service.mDefaultPort);
+  }
+
+  /**
    * Helper method to get the {@link InetSocketAddress} connection address on a given service.
    *
    * @param service the service name used to connect
@@ -136,25 +155,7 @@ public final class NetworkAddressUtils {
    * @return a connection endpoint that a client uses to communicate with service.
    */
   public static InetSocketAddress getConnectAddress(ServiceType service, TachyonConf conf) {
-    switch (service) {
-      case MASTER_RPC:
-        return new InetSocketAddress(getConnectHost(service, conf), conf.getInt(
-            Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT));
-      case MASTER_WEB:
-        return new InetSocketAddress(getConnectHost(service, conf), conf.getInt(
-            Constants.MASTER_WEB_PORT, Constants.DEFAULT_MASTER_WEB_PORT));
-      case WORKER_RPC:
-        return new InetSocketAddress(getConnectHost(service, conf), conf.getInt(
-            Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT));
-      case WORKER_DATA:
-        return new InetSocketAddress(getConnectHost(service, conf), conf.getInt(
-            Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_PORT));
-      case WORKER_WEB:
-        return new InetSocketAddress(getConnectHost(service, conf), conf.getInt(
-            Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT));
-      default:
-        throw new IllegalArgumentException("Unknown service type: " + service);
-    }
+    return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
   }
 
   /**
@@ -172,35 +173,10 @@ public final class NetworkAddressUtils {
    * @return the {@link InetSocketAddress} the service will bind to
    */
   public static InetSocketAddress getBindAddress(ServiceType service, TachyonConf conf) {
-    String host;
-    int port;
-
-    switch (service) {
-      case MASTER_RPC:
-        host = conf.get(Constants.MASTER_BIND_HOST, "");
-        port = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-        break;
-      case MASTER_WEB:
-        host = conf.get(Constants.MASTER_WEB_BIND_HOST, "");
-        port = conf.getInt(Constants.MASTER_WEB_PORT, Constants.DEFAULT_MASTER_WEB_PORT);
-        break;
-      case WORKER_RPC:
-        host = conf.get(Constants.WORKER_BIND_HOST, "");
-        port = conf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
-        break;
-      case WORKER_DATA:
-        host = conf.get(Constants.WORKER_DATA_BIND_HOST, "");
-        port = conf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_PORT);
-        break;
-      case WORKER_WEB:
-        host = conf.get(Constants.WORKER_WEB_BIND_HOST, "");
-        port = conf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
-        break;
-      default:
-        throw new IllegalArgumentException("Unknown service type: " + service);
-    }
-
+    String host = conf.get(service.mBindHostKey, "");
+    int port = getPort(service, conf);
     TachyonConf.assertValidPort(port, conf);
+
     if (!host.isEmpty()) {
       return new InetSocketAddress(host, port);
     } else {
@@ -386,13 +362,13 @@ public final class NetworkAddressUtils {
 
   /**
    * Gets the port for the underline socket. This function calls
-   * {@link #getSocket(org.apache.thrift.transport.TServerSocket)}, so reflection will be used to
-   * get the port.
+   * {@link #getThriftSocket(org.apache.thrift.transport.TServerSocket)}, so reflection will be used
+   * to get the port.
    *
-   * @see #getSocket(org.apache.thrift.transport.TServerSocket)
+   * @see #getThriftSocket(org.apache.thrift.transport.TServerSocket)
    */
-  public static int getPort(TServerSocket thriftSocket) {
-    return getSocket(thriftSocket).getLocalPort();
+  public static int getThriftPort(TServerSocket thriftSocket) {
+    return getThriftSocket(thriftSocket).getLocalPort();
   }
 
   /**
@@ -401,7 +377,7 @@ public final class NetworkAddressUtils {
    *
    * @throws java.lang.RuntimeException if reflection calls fail
    */
-  public static ServerSocket getSocket(final TServerSocket thriftSocket) {
+  public static ServerSocket getThriftSocket(final TServerSocket thriftSocket) {
     try {
       Field field = TServerSocket.class.getDeclaredField("serverSocket_");
       field.setAccessible(true);

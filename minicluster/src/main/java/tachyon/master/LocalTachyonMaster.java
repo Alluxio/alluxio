@@ -108,7 +108,7 @@ public final class LocalTachyonMaster {
     mTachyonMaster = new TachyonMaster(tachyonConf);
 
     // Reset the master port
-    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getMetaPort()));
+    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getRPCLocalPort()));
 
     Runnable runMaster = new Runnable() {
       @Override
@@ -184,20 +184,36 @@ public final class LocalTachyonMaster {
     System.clearProperty("tachyon.underfs.address");
   }
 
-  public int getMetaPort() {
-    return mTachyonMaster.getMetaPort();
+  /**
+   * Get the actual bind hostname on RPC service (used by unit test only).
+   */
+  public String getRPCBindHost() {
+    return mTachyonMaster.getRPCBindHost();
   }
 
-  public String getBindHost() {
-    return mTachyonMaster.getBindHost();
+  /**
+   * Get the actual port that the RPC service is listening on (used by unit test only)
+   */
+  public int getRPCLocalPort() {
+    return mTachyonMaster.getRPCLocalPort();
   }
 
-  public int getWebPort() {
-    return mTachyonMaster.getWebBindPort();
+  /**
+   * Get the actual bind hostname on web service (used by unit test only).
+   */
+  public String getWebBindHost() {
+    return mTachyonMaster.getWebBindHost();
+  }
+
+  /**
+   * Get the actual port that the web service is listening on (used by unit test only)
+   */
+  public int getWebLocalPort() {
+    return mTachyonMaster.getWebLocalPort();
   }
 
   public String getUri() {
-    return Constants.HEADER + mHostname + ":" + getMetaPort();
+    return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
   }
 
   public TachyonFS getClient() throws IOException {
