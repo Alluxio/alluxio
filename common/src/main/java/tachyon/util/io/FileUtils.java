@@ -191,4 +191,14 @@ public class FileUtils {
   public static void createDir(File file) throws IOException {
     file.mkdirs();
   }
+
+  /**
+   * Checks if a path exists.
+   *
+   * @param path the given path
+   * @return true if path exists, false otherwise
+   */
+  public static boolean exists(String path) {
+    return new File(path).exists();
+  }
 }
