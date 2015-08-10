@@ -35,7 +35,8 @@ public class RoundRobinAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
   // We need to remember the last dir index for every storage tier
-  private Map<StorageTierView, Integer> mTierToLastDirMap = new HashMap<StorageTierView, Integer>();
+  private final Map<StorageTierView, Integer> mTierToLastDirMap =
+      new HashMap<StorageTierView, Integer>();
 
   public RoundRobinAllocator(BlockMetadataManagerView view) {
     mManagerView = view;
@@ -45,71 +46,37 @@ public class RoundRobinAllocator implements Allocator {
   }
 
   @Override
-  public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
-      BlockStoreLocation location, BlockMetadataManagerView view) {
+  public TempBlockMeta allocateBlockWithView(final long userId, final long blockId,
+      final long blockSize, final BlockStoreLocation location,
+      final BlockMetadataManagerView view) {
     mManagerView = view;
-    return allocateBlock(userId, blockId, blockSize, location);
-  }
 
-  /**
-   * Should only be accessed by {@link allocateBlockWithView} inside class. Allocates a block from
-   * the given block store location. The location can be a specific location, or
-   * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
-   *
-   * @param userId the ID of user to apply for the block allocation
-   * @param blockId the ID of the block
-   * @param blockSize the size of block in bytes
-   * @param location the location in block store
-   * @return a temp block meta if success, null otherwise
-   * @throws IllegalArgumentException if block location is invalid
-   */
-  private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
-      BlockStoreLocation location) {
-    if (location.equals(BlockStoreLocation.anyTier())) {
-      int tierIndex = 0; // always starting from the first tier
-      for (int i = 0; i < mManagerView.getTierViews().size(); i ++) {
-        StorageTierView tierView = mManagerView.getTierViews().get(tierIndex);
-        int dirViewIndex = getNextAvailDirInTier(tierView, blockSize);
-        if (dirViewIndex >= 0) {
-          mTierToLastDirMap.put(tierView, dirViewIndex); // update
-          return tierView.getDirView(dirViewIndex).createTempBlockMeta(userId, blockId, blockSize);
-        } else { // we didn't find one in this tier, go to next tier
-          tierIndex ++;
+    BlockMetadataManagerView.DirVisitor visitor = new BlockMetadataManagerView.DirVisitor() {
+      private int mDirViewIndex;
+      private StorageDirView mDir = null;
+
+      @Override
+      public boolean visit(StorageDirView dirView) {
+        StorageTierView tierView = dirView.getParentTierView();
+        mDirViewIndex = mTierToLastDirMap.get(tierView);
+        mDirViewIndex = (mDirViewIndex + 1) % tierView.getDirViews().size();
+        mTierToLastDirMap.put(tierView, mDirViewIndex);
+        StorageDirView dir = tierView.getDirView(mDirViewIndex);
+        if (dir.getAvailableBytes() >= blockSize) {
+          mDir = dir;
+          return true;
         }
+        return false;
       }
-    } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
-      int dirViewIndex = getNextAvailDirInTier(tierView, blockSize);
-      if (dirViewIndex >= 0) {
-        mTierToLastDirMap.put(tierView, dirViewIndex); // update
-        return tierView.getDirView(dirViewIndex).createTempBlockMeta(userId, blockId, blockSize);
-      }
-    } else {
-      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
-      StorageDirView dirView = tierView.getDirView(location.dir());
-      if (dirView.getAvailableBytes() >= blockSize) {
-        return dirView.createTempBlockMeta(userId, blockId, blockSize);
-      }
-    }
 
-    return null;
-  }
-
-  /**
-   * Find an available dir in a given tier for a block with blockSize
-   *
-   * @param tier: the tier to find a dir
-   * @param blockSize: the requested block size
-   * @return: the index of the dir if nonnegative; -1 if fail to find a dir
-   */
-  private int getNextAvailDirInTier(StorageTierView tierView, long blockSize) {
-    int dirViewIndex = mTierToLastDirMap.get(tierView);
-    for (int i = 0; i < tierView.getDirViews().size(); i ++) { // try this many times
-      dirViewIndex = (dirViewIndex + 1) % tierView.getDirViews().size();
-      if (tierView.getDirView(dirViewIndex).getAvailableBytes() >= blockSize) {
-        return dirViewIndex;
+      @Override
+      public StorageDirView getDir() {
+        return mDir;
       }
-    }
-    return -1;
+    };
+
+    mManagerView.visitDirs(location, visitor);
+    StorageDirView dir = visitor.getDir();
+    return dir == null ? null : dir.createTempBlockMeta(userId, blockId, blockSize);
   }
 }

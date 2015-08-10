@@ -18,7 +18,6 @@ package tachyon.worker.block.allocator;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDirView;
-import tachyon.worker.block.meta.StorageTierView;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
@@ -33,56 +32,31 @@ public class GreedyAllocator implements Allocator {
   }
 
   @Override
-  public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
-      BlockStoreLocation location, BlockMetadataManagerView view) {
+  public TempBlockMeta allocateBlockWithView(final long userId, final long blockId,
+      final long blockSize, final BlockStoreLocation location,
+      final BlockMetadataManagerView view) {
     mManagerView = view;
-    return allocateBlock(userId, blockId, blockSize, location);
-  }
 
-  /**
-   * Should only be accessed by {@link allocateBlockWithView} inside class.
-   * Allocates a block from the given block store location. The location can be a specific location,
-   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
-   *
-   * @param userId the ID of user to apply for the block allocation
-   * @param blockId the ID of the block
-   * @param blockSize the size of block in bytes
-   * @param location the location in block store
-   * @return a temp block meta if success, null otherwise
-   * @throws IllegalArgumentException if block location is invalid
-   */
-  private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
-      BlockStoreLocation location) {
-    if (location.equals(BlockStoreLocation.anyTier())) {
-      // When any tier is ok, loop over all tier views and dir views,
-      // and return a temp block meta from the first available dirview.
-      for (StorageTierView tierView : mManagerView.getTierViews()) {
-        for (StorageDirView dirView : tierView.getDirViews()) {
-          if (dirView.getAvailableBytes() >= blockSize) {
-            return dirView.createTempBlockMeta(userId, blockId, blockSize);
-          }
-        }
-      }
-      return null;
-    }
+    BlockMetadataManagerView.DirVisitor visitor = new BlockMetadataManagerView.DirVisitor() {
+      private StorageDirView mDir = null;
 
-    int tierAlias = location.tierAlias();
-    StorageTierView tierView = mManagerView.getTierView(tierAlias);
-    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
-      // Loop over all dir views in the given tier
-      for (StorageDirView dirView : tierView.getDirViews()) {
+      @Override
+      public boolean visit(StorageDirView dirView) {
         if (dirView.getAvailableBytes() >= blockSize) {
-          return dirView.createTempBlockMeta(userId, blockId, blockSize);
+          mDir = dirView;
+          return true;
         }
+        return false;
       }
-      return null;
-    }
 
-    int dirIndex = location.dir();
-    StorageDirView dirView = tierView.getDirView(dirIndex);
-    if (dirView.getAvailableBytes() >= blockSize) {
-      return dirView.createTempBlockMeta(userId, blockId, blockSize);
-    }
-    return null;
+      @Override
+      public StorageDirView getDir() {
+        return mDir;
+      }
+    };
+
+    mManagerView.visitDirs(location, visitor);
+    StorageDirView dir = visitor.getDir();
+    return dir == null ? null : dir.createTempBlockMeta(userId, blockId, blockSize);
   }
 }
