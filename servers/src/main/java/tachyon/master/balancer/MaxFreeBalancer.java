@@ -16,6 +16,7 @@
 package tachyon.master.balancer;
 
 import java.net.UnknownHostException;
+import java.util.Collections;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -41,15 +42,17 @@ public class MaxFreeBalancer implements Balancer {
       Map<Long, MasterWorkerInfo> mWorkers,
       Map<NetAddress , Long> mWorkerAddressToId) throws UnknownHostException {
    
-    long minUsedBytes = Long.MAX_VALUE; 
-    NetAddress res = null;
+    long maxFreeSpace = Long.MIN_VALUE; 
+    long freeSpace;
+    NetAddress address = null; 
     for (MasterWorkerInfo workerInfo : mWorkers.values()) {
-      if (workerInfo.getUsedBytes() < minUsedBytes) {
-        res = workerInfo.getAddress();
-        minUsedBytes = workerInfo.getUsedBytes();
+      freeSpace = Collections.max(workerInfo.getFreeBytesOnTiers());
+      if (freeSpace > maxFreeSpace) {
+        address = workerInfo.getAddress();
+        maxFreeSpace = freeSpace;
       }
     }
-    LOG.info("****** getBalanceWorker: {} ******", res);
-    return res;
+    LOG.info("getWorker with MaxFreeBalancerStrategy: {}", address);
+    return address;
   }
 }

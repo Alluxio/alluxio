@@ -27,7 +27,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 
 /**
- * Interface for the balancing policy on workers for write.
+ * Interface for the balancing policy to choose the worker.
  */
 public interface Balancer {
 
@@ -35,7 +35,9 @@ public interface Balancer {
   class Factory {
     /**
      * Create a new {@link Balancer} instance, will return {@link LocalFirstBalancer} by default
-     *
+     * Or the strategy given in the conf if there is one 
+     * The possible strategies are : {@link LocalFirstBalancer} and {@link MaxFreeBalancer}
+     * 
      * @param conf Tachyon conf defined Balancer type
      * @return the generated Balancer, it will be a {@link LocalFirstBalancer} by default
      */

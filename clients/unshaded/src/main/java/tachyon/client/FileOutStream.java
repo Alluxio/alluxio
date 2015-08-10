@@ -182,7 +182,6 @@ public class FileOutStream extends OutStream {
         while (tLen > 0) {
           if (mCurrentBlockOutStream == null
               || mCurrentBlockOutStream.getRemainingSpaceBytes() == 0) {
-            LOG.info("getNextBlock()");
             getNextBlock();
           }
           long currentBlockLeftBytes = mCurrentBlockOutStream.getRemainingSpaceBytes();
