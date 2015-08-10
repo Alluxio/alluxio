@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 
@@ -90,7 +91,7 @@ public class BlockLockManager {
    * @throws NotFoundException if the block does not exist or the block lock timeout is exceeded
    */
   public long lockBlock(long userId, long blockId, BlockLockType blockLockType)
-      throws NotFoundException {
+      throws NotFoundException, TimeoutException {
     // hashing blockId into the range of [0, NUM_LOCKS-1]
     int index = blockHashIndex(blockId);
     ClientRWLock blockLock = mLockArray[index];
@@ -115,7 +116,7 @@ public class BlockLockManager {
       String errMsg = "5s timeout when attempting lockBlock: " + blockId + " for user: " + userId;
       LOG.error(errMsg);
       // TODO: Throw an appropriate exception here
-      throw new NotFoundException(errMsg);
+      throw new TimeoutException(errMsg);
     }
     if (!mMetaManager.hasBlockMeta(blockId)) {
       lock.unlock();

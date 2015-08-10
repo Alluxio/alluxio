@@ -17,6 +17,7 @@ package tachyon.worker.block;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;
@@ -41,7 +42,7 @@ interface BlockStore {
    * @return the lock ID if the lock is acquired successfully
    * @throws NotFoundException if blockId can not be found, for example, evicted already.
    */
-  long lockBlock(long userId, long blockId) throws NotFoundException;
+  long lockBlock(long userId, long blockId) throws NotFoundException, TimeoutException;
 
   /**
    * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock}).
@@ -85,7 +86,7 @@ interface BlockStore {
   // exception
   TempBlockMeta createBlockMeta(long userId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws AlreadyExistsException, OutOfSpaceException, NotFoundException,
-      IOException, InvalidStateException;
+      IOException, InvalidStateException, TimeoutException;
 
   /**
    * Gets the metadata of a block given its blockId or throws NotFoundException. This method does
@@ -167,7 +168,8 @@ interface BlockStore {
   // involves implementation details, also, NotFoundException has two semantic now, revisit this
   // with a more general exception
   void requestSpace(long userId, long blockId, long additionalBytes) throws NotFoundException,
-      OutOfSpaceException, IOException, AlreadyExistsException, InvalidStateException;
+      OutOfSpaceException, IOException, AlreadyExistsException, InvalidStateException,
+      TimeoutException ;
 
   /**
    * Creates a writer to write data to a temp block. Since the temp block is "private" to the
@@ -213,7 +215,7 @@ interface BlockStore {
    */
   void moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
       throws NotFoundException, AlreadyExistsException, InvalidStateException, OutOfSpaceException,
-      IOException;
+      IOException, TimeoutException;
 
   /**
    * Removes an existing block. If the block can not be found in this store.
@@ -225,7 +227,7 @@ interface BlockStore {
    * @throws IOException if block cannot be removed from current path
    */
   void removeBlock(long userId, long blockId) throws InvalidStateException, NotFoundException,
-      IOException;
+      IOException, TimeoutException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly
@@ -284,7 +286,7 @@ interface BlockStore {
   // exception
   void freeSpace(long userId, long availableBytes, BlockStoreLocation location)
       throws OutOfSpaceException, NotFoundException, IOException, AlreadyExistsException,
-      InvalidStateException;
+      InvalidStateException, TimeoutException;
 
   /**
    * Registers a {@link BlockStoreEventListener} to this block store.

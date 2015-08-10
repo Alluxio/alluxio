@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
@@ -109,7 +110,7 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public long lockBlock(long userId, long blockId) throws NotFoundException {
+  public long lockBlock(long userId, long blockId) throws NotFoundException, TimeoutException {
     mEvictionLock.readLock().lock();
     try {
       return mLockManager.lockBlock(userId, blockId, BlockLockType.READ);
@@ -146,7 +147,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public TempBlockMeta createBlockMeta(long userId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws AlreadyExistsException, OutOfSpaceException, NotFoundException,
-      IOException, InvalidStateException {
+      IOException, InvalidStateException, TimeoutException {
     mEvictionLock.writeLock().lock();
     try {
       return createBlockMetaNoLock(userId, blockId, location, initialBlockSize);
@@ -204,7 +205,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void requestSpace(long userId, long blockId, long additionalBytes)
       throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException,
-      InvalidStateException {
+      InvalidStateException, TimeoutException {
     // TODO: Change the lock to read lock and only upgrade to write lock if necessary
     mEvictionLock.writeLock().lock();
     try {
@@ -221,7 +222,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void moveBlock(long userId, long blockId, BlockStoreLocation newLocation)
       throws NotFoundException, AlreadyExistsException, InvalidStateException, OutOfSpaceException,
-      IOException {
+      IOException, TimeoutException {
     mEvictionLock.writeLock().lock();
     try {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
@@ -249,7 +250,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void removeBlock(long userId, long blockId) throws InvalidStateException,
-      NotFoundException, IOException {
+      NotFoundException, IOException, TimeoutException {
     mEvictionLock.readLock().lock();
     try {
       long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
@@ -281,7 +282,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void freeSpace(long userId, long availableBytes, BlockStoreLocation location)
       throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException,
-      InvalidStateException {
+      InvalidStateException, TimeoutException {
     mEvictionLock.writeLock().lock();
     try {
       freeSpaceInternal(userId, availableBytes, location);
@@ -399,7 +400,8 @@ public class TieredBlockStore implements BlockStore {
   // Create a temp block meta. This method requires eviction lock in READ mode.
   private TempBlockMeta createBlockMetaNoLock(long userId, long blockId,
       BlockStoreLocation location, long initialBlockSize) throws AlreadyExistsException,
-      OutOfSpaceException, NotFoundException, IOException, InvalidStateException {
+      OutOfSpaceException, NotFoundException, IOException, InvalidStateException,
+      TimeoutException {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
       throw new AlreadyExistsException("Failed to create TempBlockMeta: blockId " + blockId
           + " exists");
@@ -427,7 +429,7 @@ public class TieredBlockStore implements BlockStore {
   /** This method must be guarded by WRITE lock of mEvictionLock */
   private void freeSpaceInternal(long userId, long availableBytes, BlockStoreLocation location)
       throws OutOfSpaceException, IOException, NotFoundException, AlreadyExistsException,
-      InvalidStateException {
+      InvalidStateException, TimeoutException {
     EvictionPlan plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView());
     // Absent plan means failed to evict enough space.
     if (null == plan) {
