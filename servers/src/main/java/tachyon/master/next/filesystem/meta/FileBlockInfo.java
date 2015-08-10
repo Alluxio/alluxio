@@ -51,52 +51,6 @@ public class FileBlockInfo {
     mLength = length;
   }
 
-  /**
-   * Get the locations of the block, which are the workers' net address who has the data of the
-   * block in its tiered storage. The list is sorted by the storage level alias(MEM, SSD, HDD).
-   * That is, the worker who has the data of the block in its memory is in the top of the list.
-   *
-   * @return the net addresses of the locations
-   */
-  public synchronized List<NetAddress> getLocations(TachyonConf tachyonConf) {
-    List<NetAddress> ret = new ArrayList<NetAddress>();
-    if (ret.isEmpty() && mInodeFile.hasCheckpointed()) {
-      UnderFileSystem ufs = UnderFileSystem.get(mInodeFile.getUfsPath(), tachyonConf);
-      List<String> locs = null;
-      try {
-        locs = ufs.getFileLocations(mInodeFile.getUfsPath(), mOffset);
-      } catch (IOException e) {
-        return ret;
-      }
-      if (locs != null) {
-        for (String loc : locs) {
-          String resolvedHost = loc;
-          int resolvedPort = -1;
-          try {
-            String[] ipport = loc.split(":");
-            if (ipport.length == 2) {
-              resolvedHost = ipport[0];
-              resolvedPort = Integer.parseInt(ipport[1]);
-            }
-          } catch (NumberFormatException nfe) {
-            continue;
-          }
-          // The resolved port is the data transfer port not the rpc port
-          ret.add(new NetAddress(resolvedHost, -1, resolvedPort));
-        }
-      }
-    }
-    return ret;
-  }
-
-  /**
-   * @return true if the block is in some worker's memory, false otherwise
-   */
-  public synchronized boolean isInMemory() {
-    // TODO
-    return false;
-  }
-
   @Override
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("BlockInfo(mBlockIndex: ");

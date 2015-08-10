@@ -257,7 +257,6 @@ public class FileSystemMaster implements Master {
       mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
 
       long fileId = BlockId.getContainerId(blockId);
-      int blockIndex = BlockId.getSequenceNumber(blockId);
       Inode inode = mInodeTree.getInodeById(fileId);
 
       if (inode == null) {
@@ -270,7 +269,7 @@ public class FileSystemMaster implements Master {
       InodeFile fileInode = (InodeFile) inode;
 
       // Try to commit this block.
-      fileInode.commitBlock(new FileBlockInfo(fileInode, blockIndex, length));
+      fileInode.commitBlock(blockId, length);
 
       // TODO: write to journal
     }

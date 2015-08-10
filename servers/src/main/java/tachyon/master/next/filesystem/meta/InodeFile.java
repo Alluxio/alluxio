@@ -31,10 +31,14 @@ public class InodeFile extends Inode {
   private final long mBlockSizeBytes;
 
   // list of block ids.
-  private final List<FileBlockInfo> mBlocks = new ArrayList<FileBlockInfo>(3);
+  private final List<Long> mBlocks;
 
   // length of inode file in bytes.
   private long mLength = 0;
+
+  // The length in bytes of the last block in this file.
+  private long mLastBlockSizeBytes = -1;
+
   private boolean mIsComplete = false;
   private boolean mCache = false;
   private String mUfsPath = "";
@@ -53,38 +57,43 @@ public class InodeFile extends Inode {
                    long creationTimeMs) {
     super(name, BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber()), parentId,
         false, creationTimeMs);
+    mBlocks = new ArrayList<Long>(3);
     mBlockContainerId = blockContainerId;
     mBlockSizeBytes = blockSizeBytes;
+
+    // The assumption is that only the last block is allowed to be smaller than the file block size.
+    mLastBlockSizeBytes = mBlockSizeBytes;
   }
 
   /**
    * Commit a block to the file. It will check the legality. Cannot add the block if the file is
    * complete or the block's information doesn't match the file's information.
    *
-   * @param fileBlockInfo The block to be added
+   * @param blockId the id of the block to commit to this file
+   * @param lengthBytes the length of the block in bytes
    * @throws BlockInfoException
    */
-  public synchronized void commitBlock(FileBlockInfo fileBlockInfo) throws BlockInfoException {
+  public synchronized void commitBlock(long blockId, long lengthBytes) throws BlockInfoException {
     if (mIsComplete) {
       throw new BlockInfoException("The file is complete: " + this);
     }
-    if (mBlocks.size() > 0 && mBlocks.get(mBlocks.size() - 1).mLength != mBlockSizeBytes) {
-      throw new BlockInfoException("mBlockSizeBytes is " + mBlockSizeBytes + ", but the "
-          + "previous block size is " + mBlocks.get(mBlocks.size() - 1).mLength);
+    if (mBlocks.size() > 0 && mLastBlockSizeBytes != mBlockSizeBytes) {
+      throw new BlockInfoException("Only the last file block can be less than the file block size. "
+          + "file block size: " + mBlockSizeBytes + ", previous block size: " + mLastBlockSizeBytes
+          + ", this block size: " + lengthBytes);
     }
-    if (fileBlockInfo.mBlockIndex != mBlocks.size()) {
-      throw new BlockInfoException("BLOCK_INDEX mismatch: " + mBlocks.size() + " != "
-          + fileBlockInfo);
+    int blockIndex = BlockId.getSequenceNumber(blockId);
+    if (blockIndex != mBlocks.size()) {
+      throw new BlockInfoException("block index mismatch: expected index: " + mBlocks.size()
+          + " this index: " + blockIndex);
     }
-    if (fileBlockInfo.mOffset != mBlocks.size() * mBlockSizeBytes) {
-      throw new BlockInfoException("OFFSET mismatch: " + mBlocks.size() * mBlockSizeBytes + " != "
-          + fileBlockInfo);
+    if (lengthBytes > mBlockSizeBytes) {
+      throw new BlockInfoException("Block length is too large: file block size: " + mBlockSizeBytes
+          + " this block size: " + lengthBytes);
     }
-    if (fileBlockInfo.mLength > mBlockSizeBytes) {
-      throw new BlockInfoException("LENGTH too big: " + mBlockSizeBytes + " " + fileBlockInfo);
-    }
-    mLength += fileBlockInfo.mLength;
-    mBlocks.add(fileBlockInfo);
+    mLength += lengthBytes;
+    mLastBlockSizeBytes = lengthBytes;
+    mBlocks.add(blockId);
   }
 
   @Override
@@ -116,11 +125,7 @@ public class InodeFile extends Inode {
    * @return a duplication of all the blocks' ids of the file
    */
   public synchronized List<Long> getBlockIds() {
-    List<Long> ret = new ArrayList<Long>(mBlocks.size());
-    for (FileBlockInfo fileBlockInfo : mBlocks) {
-      ret.add(fileBlockInfo.mBlockId);
-    }
-    return ret;
+    return new ArrayList<Long>(mBlocks);
   }
 
   public long getBlockContainerId() {
@@ -157,10 +162,8 @@ public class InodeFile extends Inode {
     }
 
     long inMemoryLength = 0;
-    for (FileBlockInfo info : mBlocks) {
-      if (info.isInMemory()) {
-        inMemoryLength += info.mLength;
-      }
+    // TODO: access the block master for this information.
+    for (long blockId : mBlocks) {
     }
     return (int) (inMemoryLength * 100 / mLength);
   }
@@ -282,12 +285,10 @@ public class InodeFile extends Inode {
       throw new SuspectedFileSizeException("InodeFile new length " + length + " is illegal.");
     }
     mLength = 0;
-    while (length >= mBlockSizeBytes) {
-      commitBlock(new FileBlockInfo(this, mBlocks.size(), mBlockSizeBytes));
-      length -= mBlockSizeBytes;
-    }
-    if (length > 0) {
-      commitBlock(new FileBlockInfo(this, mBlocks.size(), (int) length));
+    while (length > 0) {
+      long blockSize = Math.min(length, mBlockSizeBytes);
+      commitBlock(BlockId.createBlockId(mBlockContainerId, mBlocks.size()), blockSize);
+      length -= blockSize;
     }
     mIsComplete = true;
   }
