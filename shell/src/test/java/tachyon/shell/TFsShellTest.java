@@ -126,9 +126,22 @@ public class TFsShellTest {
   @Test
   public void loadFileTest() throws IOException {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.THROUGH, 10);
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
     // Testing loading of a single file
     mFsShell.loadFile(new String[] {"loadFile", "/testFile"});
     Assert.assertTrue(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
+  }
+
+  @Test
+  public void loadDirTest() throws IOException {
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.THROUGH, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB", WriteType.MUST_CACHE, 10);
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testRoot/testFileB")).isInMemory());
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testRoot/testFileA")).isInMemory());
+    // Testing loading of a directory
+    mFsShell.loadFile(new String[] {"loadFile", "/testRoot"});
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testRoot/testFileA")).isInMemory());
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testRoot/testFileB")).isInMemory());
   }
 
   @Test
