@@ -26,13 +26,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import javax.security.sasl.SaslException;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,9 +45,7 @@ import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
-import tachyon.security.LoginUser;
 import tachyon.security.authentication.AuthenticationFactory;
-import tachyon.security.authentication.AuthenticationFactory.AuthType;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -186,7 +181,8 @@ public final class MasterClient implements Closeable {
       LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect with master"
           + " @ " + mMasterAddress);
 
-      mProtocol = new TBinaryProtocol(createTransport());
+      AuthenticationFactory factory = new AuthenticationFactory(mTachyonConf);
+      mProtocol = new TBinaryProtocol(factory.getClientTransport(mMasterAddress));
       mClient = new MasterService.Client(mProtocol);
       try {
         mProtocol.getTransport().open();
@@ -224,28 +220,6 @@ public final class MasterClient implements Closeable {
     // Reaching here indicates that we did not successfully connect.
     throw new IOException("Failed to connect with master @ " + mMasterAddress + " after "
         + (retry.getRetryCount()) + " attempts", lastException);
-  }
-
-  /**
-   * Create transport per the connection options Supported transport options are: NOSASL, SIMPLE,
-   * CUSTOM, KERBEROS
-   * @throws TTransportException
-   */
-  private TTransport createTransport() throws IOException {
-    TTransport tTransport = AuthenticationFactory.createTSocket(mMasterAddress);
-    AuthType authType = AuthenticationFactory.getAuthTypeFromConf(mTachyonConf);
-    switch (authType) {
-      case NOSASL:
-        return new TFramedTransport(tTransport);
-      case SIMPLE:
-      case CUSTOM:
-        String username = LoginUser.get(mTachyonConf).getName();
-        return AuthenticationFactory.createPlainClientTransport(username, "noPassword", tTransport);
-      case KERBEROS:
-        throw new SaslException("Kerberos is not supported currently.");
-      default:
-        throw new SaslException("Unsupported authentication type: " + authType.getAuthName());
-    }
   }
 
   /**

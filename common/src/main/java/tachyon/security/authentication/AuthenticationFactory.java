@@ -15,6 +15,7 @@
 
 package tachyon.security.authentication;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Locale;
 
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.security.LoginUser;
 import tachyon.security.PlainSaslHelper;
 import tachyon.util.network.NetworkAddressUtils;
 
@@ -141,8 +143,29 @@ public class AuthenticationFactory {
     }
   }
 
-  // TODO: get client side TTransport based on auth type
-  // public TTransport getClientTransport(InetSocketAddress serverAddress) throws SaslException {}
+  /**
+   * Create a transport per the connection options. Supported transport options are: NOSASL,
+   * SIMPLE, CUSTOM, KERBEROS
+   * 
+   * @param serverAddress the server address which clients will connect to
+   * @return a TTransport for client
+   * @throws IOException if building a TransportFactory fails or user login fails
+   */
+  public TTransport getClientTransport(InetSocketAddress serverAddress) throws IOException {
+    TTransport tTransport = AuthenticationFactory.createTSocket(serverAddress);
+    switch (mAuthType) {
+      case NOSASL:
+        return new TFramedTransport(tTransport);
+      case SIMPLE:
+      case CUSTOM:
+        String username = LoginUser.get(mTachyonConf).getName();
+        return PlainSaslHelper.getPlainClientTransport(username, "noPassword", tTransport);
+      case KERBEROS:
+        throw new SaslException("Kerberos is not supported currently.");
+      default:
+        throw new SaslException("Unsupported authentication type: " + mAuthType.getAuthName());
+    }
+  }
 
   /**
    * Create a new Thrift socket what will connect to the given address
@@ -151,19 +174,6 @@ public class AuthenticationFactory {
    */
   public static TSocket createTSocket(InetSocketAddress address) {
     return new TSocket(NetworkAddressUtils.getFqdnHost(address), address.getPort());
-  }
-
-  /**
-   * Create a ClientTransport for Plain
-   * @param username User Name of PlainClient
-   * @param password Password of PlainClient
-   * @param tTransport The original Transport
-   * @return Wrapped Transport with Plain
-   * @throws SaslException
-   */
-  public static TTransport createPlainClientTransport(String username, String password,
-      TTransport tTransport) throws SaslException {
-    return PlainSaslHelper.getPlainClientTransport(username, password, tTransport);
   }
 
   // TODO: add methods of getting different Thrift class in follow-up PR.
