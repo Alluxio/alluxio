@@ -176,5 +176,4 @@ public class AuthenticationFactory {
     return new TSocket(NetworkAddressUtils.getFqdnHost(address), address.getPort());
   }
 
-  // TODO: add methods of getting different Thrift class in follow-up PR.
 }
