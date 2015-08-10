@@ -100,13 +100,13 @@ public class FileUtils {
    * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
    * of the folder containing the 'file'.
    *
-   * @param file absolute file path
+   * @param file file path to set the sticky bit
    */
   public static void setLocalFileStickyBit(String file) {
     try {
       // sticky bit is not implemented in PosixFilePermission
       if (file.startsWith(TachyonURI.SEPARATOR)) {
-        Runtime.getRuntime().exec("chmod o+t " + file);
+        Runtime.getRuntime().exec("chmod o+t " + new File(file).getAbsolutePath());
       }
     } catch (IOException e) {
       LOG.info("Can not set the sticky bit of the file : " + file);
