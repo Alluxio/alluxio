@@ -43,6 +43,8 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.security.RemoteClientUser;
+import tachyon.security.authentication.thrift.ClientUserTestService;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -122,6 +124,9 @@ public class AuthenticationFactoryTest {
   /**
    * In SIMPLE mode, the TTransport mechanism is PLAIN. When server authenticate the connected
    * client user, it use {@link tachyon.security.authentication.SimpleAuthenticationProviderImpl}.
+   *
+   * Two connections are built by two different users. The client user info should be maintained
+   * in server threadlocal correctly.
    */
   @Test
   public void simpleAuthenticationTest() throws Exception {
@@ -135,8 +140,20 @@ public class AuthenticationFactoryTest {
     client.open();
     Assert.assertTrue(client.isOpen());
 
+    // check user 'anyone'
+    verifyClientUser(client, "anyone");
+
+    // another connection by user 'anyone1'
+    TTransport client1 = createClient(mTachyonConf, "anyone1", "whatever");
+    client1.open();
+    Assert.assertTrue(client1.isOpen());
+
+    // check user 'anyone1'
+    verifyClientUser(client1, "anyone1");
+
     // clean up
     client.close();
+    client1.close();
     mServer.stop();
   }
 
@@ -216,6 +233,9 @@ public class AuthenticationFactoryTest {
    * In CUSTOM mode, the TTransport mechanism is PLAIN. When server authenticate the connected
    * client user, it use configured AuthenticationProvider.
    * If the username:password pair matches, a connection should be built.
+   *
+   * Two connections are built by two different users. The client user info should be maintained
+   * in server threadlocal correctly.
    */
   @Test
   public void customAuthenticationExactNamePasswordMatchTest() throws Exception {
@@ -231,8 +251,20 @@ public class AuthenticationFactoryTest {
     client.open();
     Assert.assertTrue(client.isOpen());
 
+    // check user 'tachyon'
+    verifyClientUser(client, "tachyon");
+
+    // another connection by user 'tachyon1'
+    TTransport client1 = createClient(mTachyonConf, "tachyon1", "correct-password1");
+    client1.open();
+    Assert.assertTrue(client1.isOpen());
+
+    // check user 'tachyon1'
+    verifyClientUser(client1, "tachyon1");
+
     // clean up
     client.close();
+    client1.close();
     mServer.stop();
   }
 
@@ -355,9 +387,13 @@ public class AuthenticationFactoryTest {
 
     TServerSocket wrappedServerSocket = new TServerSocket(mServerAddress);
 
+    ClientUserTestServiceHandler handler = new ClientUserTestServiceHandler();
+    ClientUserTestService.Processor<ClientUserTestServiceHandler> processor = new
+        ClientUserTestService.Processor<ClientUserTestServiceHandler>(handler);
+
     mServer = new TThreadPoolServer(new TThreadPoolServer.Args(wrappedServerSocket)
         .maxWorkerThreads(2).minWorkerThreads(1)
-        .processor(null).transportFactory(tTransportFactory)
+        .processor(processor).transportFactory(tTransportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     // start the server in a new thread
@@ -382,15 +418,50 @@ public class AuthenticationFactoryTest {
   }
 
   /**
+   * Build a Thrift RPC client based on the transport, and then invoke RPC method to get the
+   * client username maintained in server. Check whether it equals the connected one.
+   * @param clientTransport
+   * @param userName
+   * @throws Exception
+   */
+  private void verifyClientUser(TTransport clientTransport, String userName) throws Exception {
+    ClientUserTestService.Client mClient = new ClientUserTestService.Client(
+        new TBinaryProtocol(clientTransport));
+    Assert.assertEquals(userName, mClient.whoAmI());
+  }
+
+  /**
    * This customized authentication provider is used in CUSTOM mode. It authenticate the user by
    * verifying the specific username:password pair.
    */
   public static class ExactlyMatchAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
-      if (!user.equals("tachyon") || !password.equals("correct-password")) {
-        throw new AuthenticationException("User authentication fails");
+      if (user.equals("tachyon")) {
+        if (password.equals("correct-password")) {
+          return;
+        }
+      } else if (user.equals("tachyon1")) {
+        if (password.equals("correct-password1")) {
+          return;
+        }
       }
+      throw new AuthenticationException("User authentication fails");
+    }
+  }
+
+  /**
+   * In order to test whether the client user is saved in the threadlocal variable of server
+   * side, a very simple thrift RPC service is defined at {@link tachyon.security.authentication
+   * .thrift.ClientUserTestService}. This class is the server side handler implementation of it.
+   *
+   * This handler fetch the client user maintained in threadlocal and return it to client for
+   * verification. The returned user should be the same as the one used for building connection.
+   */
+  private static class ClientUserTestServiceHandler implements ClientUserTestService.Iface {
+    @Override
+    public String whoAmI() {
+      return RemoteClientUser.get().getName();
     }
   }
 
