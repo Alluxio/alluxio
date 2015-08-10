@@ -69,9 +69,9 @@ Block_Device_Mapping: []
 # Some Instance Type must need PV/HVM:
 #   http://aws.amazon.com/amazon-linux-ami/instance-type-matrix/
 # PV
-AMI: "ami-b06a98d8"
+AMI: "ami-1ccae774"
 # HVM
-# AMI: "ami-5b697332"
+# AMI: "ami-1ecae776"
 
 # EC2 network security groups and subnet id
 # Ensure ports used by Tachyon are on
