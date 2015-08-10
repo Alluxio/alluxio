@@ -18,6 +18,7 @@ package tachyon.worker.netty;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,6 +105,13 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
     } catch (NotFoundException ioe) {
       LOG.error("Failed to lock block: " + blockId, ioe);
+      RPCBlockReadResponse resp =
+          RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.BLOCK_LOCK_ERROR);
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(ChannelFutureListener.CLOSE);
+      return;
+    } catch (TimeoutException tee) {
+      LOG.error("Failed to lock block: " + blockId, tee);
       RPCBlockReadResponse resp =
           RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.BLOCK_LOCK_ERROR);
       ChannelFuture future = ctx.writeAndFlush(resp);

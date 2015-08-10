@@ -17,6 +17,7 @@ package tachyon.worker.block;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -107,6 +108,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
       throw new TException(ioe);
     } catch (OutOfSpaceException ooe) {
       throw new TException(ooe);
+    } catch (TimeoutException tee) {
+      throw new TException(tee);
     }
   }
 
@@ -161,6 +164,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
       throw new FileDoesNotExistException(nfe.getMessage());
     } catch (InvalidStateException fpe) {
       throw new TException(fpe);
+    } catch (TimeoutException tee) {
+      throw new TException(tee);
     }
   }
 
@@ -190,6 +195,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
       throw new TException(ooe);
     } catch (IOException ioe) {
       throw new TException(ioe);
+    } catch (TimeoutException tee) {
+      throw new TException(tee);
     }
   }
 
@@ -223,6 +230,8 @@ public class BlockServiceHandler implements WorkerService.Iface {
       throw new TException(ioe);
     } catch (InvalidStateException ise) {
       throw new TException(ise);
+    } catch (TimeoutException tee) {
+      throw new TException(tee);
     }
   }
 

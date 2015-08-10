@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -201,7 +202,8 @@ public class BlockDataManager {
    * @throws OutOfSpaceException if there is no more space left to hold the block
    */
   public void commitBlock(long userId, long blockId) throws AlreadyExistsException,
-      NotFoundException, InvalidStateException, IOException, OutOfSpaceException {
+      NotFoundException, InvalidStateException, IOException, OutOfSpaceException,
+      TimeoutException {
     mBlockStore.commitBlock(userId, blockId);
 
     // TODO: Reconsider how to do this without heavy locking
@@ -245,7 +247,7 @@ public class BlockDataManager {
   // exception
   public String createBlock(long userId, long blockId, int tierAlias, long initialBytes)
       throws AlreadyExistsException, OutOfSpaceException, NotFoundException, IOException,
-      InvalidStateException {
+      InvalidStateException, TimeoutException {
     BlockStoreLocation loc =
         tierAlias == -1 ? BlockStoreLocation.anyTier() : BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
@@ -275,7 +277,7 @@ public class BlockDataManager {
   // exception
   public void createBlockRemote(long userId, long blockId, int tierAlias, long initialBytes)
       throws AlreadyExistsException, OutOfSpaceException, NotFoundException, IOException,
-      InvalidStateException {
+      InvalidStateException, TimeoutException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(userId, blockId, loc, initialBytes);
     FileUtils.createBlockPath(createdBlock.getPath());
@@ -358,7 +360,7 @@ public class BlockDataManager {
    * @return the lockId that uniquely identifies the lock obtained
    * @throws NotFoundException if blockId cannot be found, for example, evicted already.
    */
-  public long lockBlock(long userId, long blockId) throws NotFoundException {
+  public long lockBlock(long userId, long blockId) throws NotFoundException, TimeoutException {
     return mBlockStore.lockBlock(userId, blockId);
   }
 
@@ -377,7 +379,8 @@ public class BlockDataManager {
    * @throws IOException if block cannot be moved from current location to newLocation
    */
   public void moveBlock(long userId, long blockId, int tierAlias) throws NotFoundException,
-      AlreadyExistsException, InvalidStateException, OutOfSpaceException, IOException {
+      AlreadyExistsException, InvalidStateException, OutOfSpaceException, IOException,
+      TimeoutException {
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tierAlias);
     mBlockStore.moveBlock(userId, blockId, dst);
   }
@@ -428,7 +431,7 @@ public class BlockDataManager {
    * @throws IOException if block cannot be removed from current path
    */
   public void removeBlock(long userId, long blockId) throws InvalidStateException,
-      NotFoundException, IOException {
+      NotFoundException, IOException, TimeoutException {
     mBlockStore.removeBlock(userId, blockId);
   }
 
@@ -455,7 +458,7 @@ public class BlockDataManager {
   // with a more general exception
   public void requestSpace(long userId, long blockId, long additionalBytes)
       throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException,
-      InvalidStateException {
+      InvalidStateException, TimeoutException {
     mBlockStore.requestSpace(userId, blockId, additionalBytes);
   }
 
