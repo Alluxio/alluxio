@@ -121,20 +121,12 @@ public class FileUtils {
    * @throws java.io.IOException
    */
   public static void createBlockPath(String path) throws IOException {
-    File localFolder;
     try {
-      localFolder = new File(PathUtils.getParent(path));
+      createStorageDirPath(PathUtils.getParent(path));
     } catch (InvalidPathException e) {
-      throw new IOException(e);
-    }
-
-    if (!localFolder.exists()) {
-      if (localFolder.mkdirs()) {
-        changeLocalFileToFullPermission(localFolder.getAbsolutePath());
-        LOG.info("Folder {} was created!", localFolder);
-      } else {
-        throw new IOException("Failed to create folder " + localFolder);
-      }
+      throw new IOException("Failed to create block path, get parent path of " + path + "failed");
+    } catch (IOException ioe) {
+      throw new IOException("Failed to create block path " + path);
     }
   }
 
