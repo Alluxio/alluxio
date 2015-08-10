@@ -124,6 +124,14 @@ public class TFsShellTest {
   }
 
   @Test
+  public void loadFileTest() throws IOException {
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.THROUGH, 10);
+    // Testing loading of a single file
+    mFsShell.loadFile(new String[] {"loadFile", "/testFile"});
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
+  }
+
+  @Test
   public void copyFromLocalTest() throws IOException {
     File testDir = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir");
     testDir.mkdir();
