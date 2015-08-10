@@ -15,7 +15,6 @@
 
 package tachyon.worker.block.meta;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.junit.Assert;
@@ -27,7 +26,6 @@ import org.junit.rules.TemporaryFolder;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.BufferUtils;
-import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 
 public class BlockMetaTest {
