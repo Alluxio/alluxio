@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.NotFoundException;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
@@ -185,7 +186,13 @@ public class BlockMasterSync implements Runnable {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
-          mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
+          try {
+            mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
+          } catch (NotFoundException nfe) {
+            // TODO: Throw a better exception here
+            // NotFoundException will be thrown if the block is unable to be locked.
+            LOG.warn("Failed master free block cmd for: " + block + " due to concurrent read.");
+          }
         }
         break;
       // No action required

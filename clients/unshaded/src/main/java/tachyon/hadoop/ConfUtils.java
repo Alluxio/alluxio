@@ -52,7 +52,7 @@ public class ConfUtils {
     try {
       DefaultStringifier.store(target, confProperties, Constants.TACHYON_CONF_SITE);
     } catch (IOException ex) {
-      LOG.error("Unable to store TachyonConf in Haddop configuration", ex);
+      LOG.error("Unable to store TachyonConf in Hadoop configuration", ex);
       throw new RuntimeException(ex);
     }
   }
@@ -72,7 +72,7 @@ public class ConfUtils {
         tachyonConfProperties = DefaultStringifier.load(source, Constants.TACHYON_CONF_SITE,
             Properties.class);
       } catch (IOException e) {
-        LOG.error("Unable to load TachyonConf from Haddop configuration", e);
+        LOG.error("Unable to load TachyonConf from Hadoop configuration", e);
         throw new RuntimeException(e);
       }
 
