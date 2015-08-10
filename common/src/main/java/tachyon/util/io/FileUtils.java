@@ -168,4 +168,27 @@ public class FileUtils {
       throw new IOException("Failed to delete " + file);
     }
   }
+  
+  /**
+   * Create the storage directory path, including any necessary but nonexistent parent directories.
+   * If the directory already exists, do nothing. 
+   * 
+   * Also, appropriate directory permissions (777 + StickyBit, namely "drwxrwxrwt") are set.
+   * 
+   * @param path storage directory path to create
+   * @throws IOException when fails to create storage directory path
+   */
+  public static void createStorageDirPath(String path) throws IOException {
+    File dir = new File(path);
+    String absolutePath = dir.getAbsolutePath();
+    if (!dir.exists()) {
+      if (dir.mkdirs()) {
+        changeLocalFileToFullPermission(absolutePath);
+        setLocalFileStickyBit(absolutePath);
+        LOG.info("Folder {} was created!", path);
+      } else {
+        throw new IOException("Failed to create folder " + path);
+      }
+    }
+  }
 }
