@@ -137,6 +137,8 @@ public class TFsShell implements Closeable {
     int ret = loadPath(tachyonClient, filePath);
     if (ret == 0) {
       System.out.println("File " + filePath + " loaded");
+    } else {
+      System.out.println("Operation failed");
     }
     return ret;
   }
@@ -145,7 +147,10 @@ public class TFsShell implements Closeable {
     TachyonFile tFile = tachyonClient.getFile(filePath);
     Closer closer = Closer.create();
     // TODO: Support directory loading
-    if (tFile != null && !tFile.isDirectory()) {
+    if (tFile == null) {
+      return -1;
+    }
+    if (!tFile.isDirectory()) {
       InStream in = closer.register(tFile.getInStream(ReadType.CACHE));
       byte[] buf = new byte[8 * Constants.MB];
       try {
@@ -156,7 +161,15 @@ public class TFsShell implements Closeable {
         closer.close();
       }
     } else {
-      throw new IOException("operation not supported");
+      List<ClientFileInfo> files = tachyonClient.listStatus(filePath); 
+      Collections.sort(files);
+      for (ClientFileInfo file : files) {
+        TachyonURI newPath = new TachyonURI(file.getPath());
+        if (loadPath(tachyonClient, newPath) == -1) {
+          return -1;
+        }
+      }
+      return 0;
     }
   }
 
