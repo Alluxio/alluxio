@@ -148,7 +148,7 @@ public class BufferUtils {
   }
 
   /**
-   * * Writes buffer to the given file path
+   * Writes buffer to the given file path.
    *
    * @param path file path to write the data
    * @param buffer raw data
