@@ -66,6 +66,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   @Override
   public TProcessor getProcessor() {
+    // TODO
     return null;
   }
 
@@ -103,6 +104,10 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       }
     }
     return ret;
+  }
+
+  public Set<Long> getLostBlocks() {
+    return mLostBlocks;
   }
 
   public void removeBlocks(List<Long> blockIds) {
