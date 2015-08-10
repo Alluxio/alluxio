@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next.block;
+package tachyon.master.next.block.meta;
 
 import tachyon.thrift.NetAddress;
 

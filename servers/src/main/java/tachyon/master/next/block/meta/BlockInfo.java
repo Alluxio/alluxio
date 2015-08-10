@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next.block;
+package tachyon.master.next.block.meta;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,6 +63,10 @@ public class BlockInfo {
 
   public List<Long> getWorkers() {
     return Lists.newArrayList(mWorkerIdToAlias.keySet());
+  }
+
+  public int getNumLocations() {
+    return mWorkerIdToAlias.size();
   }
 
   /**

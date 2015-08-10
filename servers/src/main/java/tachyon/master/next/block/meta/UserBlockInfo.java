@@ -13,21 +13,22 @@
  * the License.
  */
 
-package tachyon.master.next.block;
+package tachyon.master.next.block.meta;
 
-import tachyon.thrift.NetAddress;
+import java.util.List;
 
 /**
- * The location of the block, exposed to by the block master.
+ * Block information exposed by the block master.
  */
-public class UserBlockLocation {
-  public long mWorkerId;
-  public NetAddress mAddress;
-  public int mTier;
+public class UserBlockInfo {
+  // TODO: this should become a thrift object.
+  public long mBlockId;
+  public long mLength;
+  public List<UserBlockLocation> mLocations;
 
-  public UserBlockLocation(long workerId, NetAddress address, int tier) {
-    mWorkerId = workerId;
-    mAddress = address;
-    mTier = tier;
+  public UserBlockInfo(long blockId, long length, List<UserBlockLocation> locations) {
+    mBlockId = blockId;
+    mLength = length;
+    mLocations = locations;
   }
 }
