@@ -86,12 +86,11 @@ public class TieredBlockStoreTest {
     TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID2, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
 
-    long lockId1, lockId2;
-    lockId1 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
+    long lockId1 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
     Assert.assertTrue(Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1))
         .isEmpty());
 
-    lockId2 = mBlockStore.lockBlock(USER_ID2, BLOCK_ID2);
+    long lockId2 = mBlockStore.lockBlock(USER_ID2, BLOCK_ID2);
     Assert.assertNotEquals(lockId1, lockId2);
     Assert.assertTrue(Sets.difference(mLockManager.getLockedBlocks(),
         Sets.newHashSet(BLOCK_ID1, BLOCK_ID2)).isEmpty());
