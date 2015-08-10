@@ -113,9 +113,9 @@ public class TFsShell implements Closeable {
   }
 
   /**
-   * Copies a file or directory specified by argv from the under filesystem to the filesystem. 
+   * Load a file or directory in Tachyon space, makes it resident in memory.
    *
-   * @param argv [] Array of arguments given by the user's input from the terminal
+   * @param filePath The TachyonURI path to load into Tachyon memory
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */ 
@@ -132,7 +132,6 @@ public class TFsShell implements Closeable {
 
   private int loadPath(TachyonFS tachyonClient, TachyonURI filePath) throws IOException {
     TachyonFile tFile = tachyonClient.getFile(filePath);
-    Closer closer = Closer.create();
     if (tFile == null) {
       return -1;
     }
@@ -147,12 +146,15 @@ public class TFsShell implements Closeable {
       }
       return 0;
     } else {
+      Closer closer = Closer.create();
       InStream in = closer.register(tFile.getInStream(ReadType.CACHE));
       byte[] buf = new byte[8 * Constants.MB];
       try {
         while (in.read(buf) != -1) {
         }
         return 0;
+      } catch (Throwable e) {
+        throw closer.rethrow(e);
       } finally {
         closer.close();
       }
