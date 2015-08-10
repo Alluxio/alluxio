@@ -24,6 +24,7 @@ import org.junit.Before;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
@@ -63,8 +64,11 @@ public class BaseAllocatorTest {
   }
 
   protected void resetManagerView() throws Exception {
+    //TODO: we will probably want to set WorkerContext.tachyonConf
+    TachyonConf tachyonConf = WorkerContext.getConf();
+    tachyonConf.merge(createTestTachyonConf());
     mManagerView = new BlockMetadataManagerView(
-        BlockMetadataManager.newBlockMetadataManager(createTestTachyonConf()),
+        BlockMetadataManager.newBlockMetadataManager(),
         new HashSet<Integer>(), new HashSet<Long>());
   }
 
