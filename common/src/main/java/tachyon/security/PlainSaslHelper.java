@@ -74,29 +74,26 @@ public class PlainSaslHelper {
     return saslFactory;
   }
 
-  // TODO: get client side PLAIN TTransport
-//  public static TTransport getPlainClientTransport(String username, String password,
-//      TTransport wrappedTransport) throws SaslException {}
   /**
    * Get a ClientTransport for Plain
    * @param username User Name of PlainClient
    * @param password Password of PlainClient
    * @param wrappedTransport The original Transport
    * @return Wrapped Transport with Plain
-   * @throws SaslException
+   * @throws SaslException if an AuthenticationProvider is not found
    */
   public static TTransport getPlainClientTransport(String username, String password,
       TTransport wrappedTransport) throws SaslException {
     return new TSaslClientTransport("PLAIN", null, null, null, new HashMap<String, String>(),
-        new PlainCallbackHandler(username, password), wrappedTransport);
+        new PlainClientCallbackHandler(username, password), wrappedTransport);
   }
 
-  public static class PlainCallbackHandler implements CallbackHandler {
+  public static class PlainClientCallbackHandler implements CallbackHandler {
 
     private final String mUserName;
     private final String mPassword;
 
-    public PlainCallbackHandler(String userName, String password) {
+    public PlainClientCallbackHandler(String userName, String password) {
       this.mUserName = userName;
       this.mPassword = password;
     }
@@ -104,15 +101,17 @@ public class PlainSaslHelper {
     @Override
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
       for (Callback callback : callbacks) {
-        if (callback instanceof NameCallback) {
-          NameCallback nameCallback = (NameCallback) callback;
-          nameCallback.setName(mUserName);
-        } else if (callback instanceof PasswordCallback) {
-          PasswordCallback passCallback = (PasswordCallback) callback;
-          passCallback.setPassword(mPassword.toCharArray());
-        } else {
-          throw new UnsupportedCallbackException(callback, callback.getClass()
-              + " is unsupported.");
+        if (callback != null) {
+          if (callback instanceof NameCallback) {
+            NameCallback nameCallback = (NameCallback) callback;
+            nameCallback.setName(mUserName);
+          } else if (callback instanceof PasswordCallback) {
+            PasswordCallback passCallback = (PasswordCallback) callback;
+            passCallback.setPassword(mPassword == null ? null : mPassword.toCharArray());
+          } else {
+            throw new UnsupportedCallbackException(callback, callback.getClass()
+                + " is unsupported.");
+          }
         }
       }
     }

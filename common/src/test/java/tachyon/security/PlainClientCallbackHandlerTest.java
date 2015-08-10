@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -43,7 +43,8 @@ public class PlainClientCallbackHandlerTest {
     String user = "tachyon-user-1";
     String password = "tachyon-user-1-password";
 
-    CallbackHandler clientCBHandler = new PlainSaslHelper.PlainCallbackHandler(user, password);
+    CallbackHandler clientCBHandler =
+        new PlainSaslHelper.PlainClientCallbackHandler(user, password);
     clientCBHandler.handle(callbacks);
 
     validateCallbacks(user, password, callbacks);
@@ -62,7 +63,42 @@ public class PlainClientCallbackHandlerTest {
 
     String user = "tachyon-user-2";
     String password = "tachyon-user-2-password";
-    CallbackHandler clientCBHandler = new PlainSaslHelper.PlainCallbackHandler(user, password);
+    CallbackHandler clientCBHandler =
+        new PlainSaslHelper.PlainClientCallbackHandler(user, password);
+    clientCBHandler.handle(callbacks);
+
+    validateCallbacks(user, password, callbacks);
+  }
+
+
+  @Test
+  public void nullPasswordCallbackTest() throws Exception {
+
+    Callback[] callbacks = new Callback[2];
+    callbacks[0] = new NameCallback("Username:");
+    callbacks[1] = new PasswordCallback("Password:", true);
+
+    String user = "tachyon-user-3";
+    String password = null;
+    CallbackHandler clientCBHandler =
+        new PlainSaslHelper.PlainClientCallbackHandler(user, password);
+    clientCBHandler.handle(callbacks);
+
+    validateCallbacks(user, password, callbacks);
+  }
+
+  @Test
+  public void nullCallbackTest() throws Exception {
+
+    Callback[] callbacks = new Callback[3];
+    callbacks[0] = new NameCallback("Username:");
+    callbacks[1] = new PasswordCallback("Password:", true);
+    callbacks[2] = null;
+
+    String user = "tachyon-user-4";
+    String password = "tachyon-user-4-password";
+    CallbackHandler clientCBHandler =
+        new PlainSaslHelper.PlainClientCallbackHandler(user, password);
     clientCBHandler.handle(callbacks);
 
     validateCallbacks(user, password, callbacks);
@@ -75,7 +111,7 @@ public class PlainClientCallbackHandlerTest {
         Assert.assertEquals(user, ((NameCallback) cb).getName());
       } else if (cb instanceof PasswordCallback) {
         char[] passwordChar = ((PasswordCallback) cb).getPassword();
-        Assert.assertEquals(passwd, String.copyValueOf(passwordChar));
+        Assert.assertEquals(passwd, passwordChar == null ? null : String.copyValueOf(passwordChar));
       }
     }
   }
