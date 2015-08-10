@@ -40,7 +40,7 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>count</td>
     <td>count "path"</td>
-    <td>Display the number of folders and files matching the specified prefix in "path".</td>
+    <td>Displays the number of folders and files matching the specified prefix in "path".</td>
   </tr>
   <tr>
     <td>du</td>
@@ -70,7 +70,7 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>location</td>
     <td>location "path"</td>
-    <td>Display a list of hosts that have the file data.</td>
+    <td>Displays a list of hosts that have the file data.</td>
   </tr>
   <tr>
     <td>ls</td>
