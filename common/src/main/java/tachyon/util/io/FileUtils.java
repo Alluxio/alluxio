@@ -170,7 +170,7 @@ public class FileUtils {
   }
 
   /**
-   * Creates a file and its intermediate directories if necessary.
+   * Creates an empty file and its intermediate directories if necessary.
    *
    * @param file the file to create
    * @throws IOException if an I/O error occurred or file already exists
@@ -180,5 +180,15 @@ public class FileUtils {
     if (!file.createNewFile()) {
       throw new IOException("File already exists " + file.getPath());
     }
+  }
+
+  /**
+   * Creates an empty directory and its intermediate directories if necessary.
+   *
+   * @param file the file to create
+   * @throws IOException if an I/O error occurred or file already exists
+   */
+  public static void createDir(File file) throws IOException {
+    file.mkdirs();
   }
 }

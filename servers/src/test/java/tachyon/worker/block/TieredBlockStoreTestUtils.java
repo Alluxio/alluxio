@@ -16,20 +16,20 @@
 package tachyon.worker.block;
 
 import java.io.File;
-import java.io.IOException;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.Files;
 import com.google.common.primitives.Ints;
 
 import tachyon.Constants;
+import tachyon.Pair;
+import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.util.io.FileUtils;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockWriter;
@@ -47,10 +47,11 @@ public class TieredBlockStoreTestUtils {
    * 2000, 3000 bytes separately in the SSD tier.
    */
   public static final int[] TIER_LEVEL = {0, 1};
-  public static final String[] TIER_ALIAS = {"MEM", "SSD"};
+  public static final StorageLevelAlias[] TIER_ALIAS = {StorageLevelAlias.MEM,
+      StorageLevelAlias.SSD};
   public static final String[][] TIER_PATH =
       { {"/mem/0", "/mem/1"}, {"/ssd/0", "/ssd/1", "/ssd/2"}};
-  public static final long[][] TIER_CAPACITY = { {100, 200}, {1000, 2000, 3000}};
+  public static final long[][] TIER_CAPACITY = { {2000, 3000}, {10000, 20000, 30000}};
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -66,7 +67,7 @@ public class TieredBlockStoreTestUtils {
    *        each element is the capacity of the corresponding dir in tierPath
    * @return the created TachyonConf
    */
-  public static TachyonConf newTachyonConf(int[] tierLevel, String[] tierAlias,
+  public static TachyonConf newTachyonConf(int[] tierLevel, StorageLevelAlias[] tierAlias,
       String[][] tierPath, long[][] tierCapacity) {
     // make sure dimensions are legal
     Preconditions.checkNotNull(tierLevel);
@@ -92,7 +93,7 @@ public class TieredBlockStoreTestUtils {
     for (int i = 0; i < nTier; i ++) {
       int level = tierLevel[i];
       tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level),
-          tierAlias[i]);
+          tierAlias[i].toString());
 
       StringBuilder sb = new StringBuilder();
       for (String path : tierPath[i]) {
@@ -143,7 +144,7 @@ public class TieredBlockStoreTestUtils {
       dirs[i] = new String[len];
       for (int j = 0; j < len; j ++) {
         dirs[i][j] = PathUtils.concatPath(baseDir, TIER_PATH[i][j]);
-        FileUtils.forceMkdir(new File(dirs[i][j]));
+        FileUtils.createDir(new File(dirs[i][j]));
       }
     }
     return newTachyonConf(TIER_LEVEL, TIER_ALIAS, dirs, TIER_CAPACITY);
@@ -162,22 +163,12 @@ public class TieredBlockStoreTestUtils {
    */
   public static void cache(long userId, long blockId, long bytes, StorageDir dir,
       BlockMetadataManager meta, Evictor evictor) throws Exception {
-    // prepare temp block
-    TempBlockMeta block = new TempBlockMeta(userId, blockId, bytes, dir);
-    meta.addTempBlockMeta(block);
-
-    // write data
-    File tempFile = new File(block.getPath());
-    if (!tempFile.getParentFile().mkdir()) {
-      throw new IOException(String.format(
-          "Parent directory of %s can not be created for temp block", block.getPath()));
-    }
-    BlockWriter writer = new LocalFileBlockWriter(block);
-    writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
-    writer.close();
+    Pair<TempBlockMeta, File> result = makeTempBlock(userId, blockId, bytes, dir, meta);
+    TempBlockMeta block = result.getFirst();
+    File tempFile = result.getSecond();
 
     // commit block
-    Files.move(tempFile, new File(block.getCommitPath()));
+    FileUtils.move(tempFile, new File(block.getCommitPath()));
     meta.commitTempBlockMeta(block);
 
     // update evictor
@@ -187,4 +178,29 @@ public class TieredBlockStoreTestUtils {
     }
   }
 
+  /**
+   * Make a temp block in StorageDir.
+   *
+   * @param userId user who caches the data
+   * @param blockId id of the cached block
+   * @param bytes size of the block in bytes
+   * @param dir the StorageDir the block resides in
+   * @param meta the metadata manager to update meta of the block
+   * @return a pair of temp block meta and the file handler
+   * @throws Exception when fail to create this block
+   */
+  public static Pair<TempBlockMeta, File> makeTempBlock(long userId, long blockId, long bytes,
+      StorageDir dir, BlockMetadataManager meta) throws Exception {
+    // prepare temp block
+    TempBlockMeta block = new TempBlockMeta(userId, blockId, bytes, dir);
+    meta.addTempBlockMeta(block);
+
+    // write data
+    File tempFile = new File(block.getPath());
+    FileUtils.createFile(tempFile);
+    BlockWriter writer = new LocalFileBlockWriter(block);
+    writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
+    writer.close();
+    return new Pair<TempBlockMeta, File>(block, tempFile);
+  }
 }
