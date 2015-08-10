@@ -163,7 +163,7 @@ public class TieredBlockStoreTestUtils {
    */
   public static void cache(long userId, long blockId, long bytes, StorageDir dir,
       BlockMetadataManager meta, Evictor evictor) throws Exception {
-    Pair<TempBlockMeta, File> result = makeTempBlock(userId, blockId, bytes, dir, meta);
+    Pair<TempBlockMeta, File> result = createTempBlock(userId, blockId, bytes, dir, meta);
     TempBlockMeta block = result.getFirst();
     File tempFile = result.getSecond();
 
@@ -189,7 +189,7 @@ public class TieredBlockStoreTestUtils {
    * @return a pair of temp block meta and the file handler
    * @throws Exception when fail to create this block
    */
-  public static Pair<TempBlockMeta, File> makeTempBlock(long userId, long blockId, long bytes,
+  public static Pair<TempBlockMeta, File> createTempBlock(long userId, long blockId, long bytes,
       StorageDir dir, BlockMetadataManager meta) throws Exception {
     // prepare temp block
     TempBlockMeta block = new TempBlockMeta(userId, blockId, bytes, dir);
