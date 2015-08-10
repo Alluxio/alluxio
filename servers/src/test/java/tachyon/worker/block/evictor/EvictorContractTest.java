@@ -15,30 +15,22 @@
 
 package tachyon.worker.block.evictor;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
 
-import tachyon.Constants;
-import tachyon.conf.TachyonConf;
-import tachyon.worker.block.BlockMetadataManager;
-import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 import tachyon.worker.block.meta.StorageDir;
@@ -55,21 +47,13 @@ import tachyon.worker.block.meta.StorageTier;
  * that blocks evicted by LRUEvictor are in the right order should be in LRUEvictorTest.
  */
 @RunWith(Parameterized.class)
-public class EvictorContractTest {
-  private static final int USER_ID = 2;
-  private static final long BLOCK_ID = 10;
+public class EvictorContractTest extends BaseEvictorTest {
   // TODO: fix the confusing tier alias and tier level concept
   private static final int TEST_TIER_LEVEL = 0;
   private static final int TEST_DIR = 0;
 
   private StorageDir mTestDir;
-  private BlockMetadataManager mMetaManager;
-  private BlockMetadataManagerView mManagerView;
-  private Evictor mEvictor;
   private final String mEvictorClassName;
-
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
@@ -99,16 +83,10 @@ public class EvictorContractTest {
 
   @Before
   public final void before() throws Exception {
-    File tempFolder = mTestFolder.newFolder();
-    mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
-            Collections.<Long>emptySet());
+    init(mEvictorClassName);
+
     List<StorageTier> tiers = mMetaManager.getTiers();
     mTestDir = tiers.get(TEST_TIER_LEVEL).getDir(TEST_DIR);
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, mEvictorClassName);
-    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
   }
 
   @Test
