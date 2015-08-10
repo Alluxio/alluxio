@@ -51,8 +51,6 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * thread-safe.
  */
 public class BlockDataManager {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /** Block store delta reporter for master heartbeat */
   private final BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
