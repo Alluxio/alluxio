@@ -219,7 +219,8 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         StorageLevelAlias storageLevelAlias =
             StorageDirId.getStorageLevelAlias(blockMeta.getParentDir().getStorageDirId());
         // The block last access time is not available. Use -1 for now.
-        uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, -1);
+        // The location information is also not available for now.
+        uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, -1, null);
       }
     }
     if (!blockExistOnWorker) {
