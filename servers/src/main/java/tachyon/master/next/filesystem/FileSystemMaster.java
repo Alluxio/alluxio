@@ -82,6 +82,7 @@ public class FileSystemMaster implements Master {
 
   @Override
   public TProcessor getProcessor() {
+    // TODO
     return null;
   }
 
@@ -253,8 +254,6 @@ public class FileSystemMaster implements Master {
       long length) throws FileDoesNotExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
-
       long fileId = BlockId.getContainerId(blockId);
       Inode inode = mInodeTree.getInodeById(fileId);
 
@@ -265,10 +264,11 @@ public class FileSystemMaster implements Master {
         throw new FileDoesNotExistException("File " + fileId + " is a directory.");
       }
 
-      InodeFile fileInode = (InodeFile) inode;
-
       // Try to commit this block.
-      fileInode.commitBlock(blockId, length);
+      ((InodeFile) inode).commitBlock(blockId, length);
+
+      // Commit the block in the block master.
+      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
 
       // TODO: write to journal
     }
@@ -346,13 +346,8 @@ public class FileSystemMaster implements Master {
   }
 
   public long getBlockId(long fileId, int blockIndex) {
-    // TODO
+    // TODO: expose block ids in the file system master?
     return 0;
-  }
-
-  public ClientBlockInfo getClientBlockInfo(long blockId) {
-    // TODO: remove???
-    return null;
   }
 
   public List<ClientBlockInfo> getFileBlockInfoList(long fileId) throws FileDoesNotExistException {
