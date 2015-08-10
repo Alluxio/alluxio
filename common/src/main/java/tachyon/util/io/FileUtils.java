@@ -183,4 +183,17 @@ public class FileUtils {
       }
     }
   }
+
+  /**
+   * Creates a file and its intermediate directories if necessary.
+   *
+   * @param file the file to create
+   * @throws IOException if an I/O error occurred or file already exists
+   */
+  public static void createFile(File file) throws IOException {
+    Files.createParentDirs(file);
+    if (!file.createNewFile()) {
+      throw new IOException("File already exists " + file.getPath());
+    }
+  }
 }
