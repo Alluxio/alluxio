@@ -180,9 +180,24 @@ number.
     specified for `tachyon.master.hostname`.</td>
 </tr>
 <tr>
+  <td>tachyon.master.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon's master node binds to.</td>
+</tr>
+<tr>
   <td>tachyon.master.port</td>
   <td>19998</td>
   <td>The port Tachyon's master node runs on.</td>
+</tr>
+<tr>
+  <td>tachyon.master.web.hostname</td>
+  <td>localhost</td>
+  <td>The connection hostname of master's web service that an external client uses to communicate with the service.</td>
+</tr>
+<tr>
+  <td>tachyon.master.web.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon's master's web server binds to.</td>
 </tr>
 <tr>
   <td>tachyon.master.web.port</td>
@@ -220,14 +235,44 @@ number.
 <table class="table">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
+  <td>tachyon.worker.hostname</td>
+  <td>localhost</td>
+  <td>The connection hostname of worker's RPC service that an external client uses to communicate with the service.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon's worker node binds to.</td>
+</tr>
+<tr>
   <td>tachyon.worker.port</td>
   <td>29998</td>
   <td>The port Tachyon's worker node runs on.</td>
 </tr>
 <tr>
+  <td>tachyon.worker.data.hostname</td>
+  <td>localhost</td>
+  <td>The connection hostname of worker's data service that an external client uses to communicate with the service.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.data.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon's data server binds to.</td>
+</tr>
+<tr>
   <td>tachyon.worker.data.port</td>
   <td>29999</td>
   <td>The port Tachyon's worker's data server runs on.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.web.hostname</td>
+  <td>localhost</td>
+  <td>The connection hostname of worker's web service that an external client uses to communicate with the service.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.web.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon's worker's web server binds to.</td>
 </tr>
 <tr>
   <td>tachyon.worker.web.port</td>

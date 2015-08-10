@@ -17,7 +17,6 @@ package tachyon.master;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -89,6 +88,10 @@ public final class LocalTachyonCluster {
     return mMaster.getImagePath();
   }
 
+  public LocalTachyonMaster getMaster() {
+    return mMaster;
+  }
+
   public TachyonConf getMasterTachyonConf() {
     return mMasterConf;
   }
@@ -106,15 +109,7 @@ public final class LocalTachyonCluster {
   }
 
   public int getMasterPort() {
-    return mMaster.getMetaPort();
-  }
-
-  public String getMasterBindHost() {
-    return mMaster.getBindHost();
-  }
-
-  public int getMasterWebPort() {
-    return mMaster.getWebPort();
+    return mMaster.getRPCLocalPort();
   }
 
   public String getTachyonHome() {
@@ -230,6 +225,8 @@ public final class LocalTachyonCluster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
+    // waiting for worker web server startup
+    CommonUtils.sleepMs(null, 100);
   }
 
   public void start() throws IOException {
