@@ -37,6 +37,8 @@ import tachyon.master.next.block.meta.BlockLocation;
 import tachyon.master.next.block.meta.BlockWorkerInfo;
 import tachyon.master.next.block.meta.UserBlockInfo;
 import tachyon.master.next.block.meta.UserBlockLocation;
+import tachyon.thrift.Command;
+import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
 import tachyon.util.FormatUtils;
 
@@ -215,11 +217,12 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     return 0;
   }
 
-  public void workerHeartbeat(long workerId, List<Long> usedBytesOnTiers,
+  public Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds) {
     synchronized (mWorkers) {
       if (!mWorkers.containsKey(workerId)) {
         LOG.warn("Could not find worker id: " + workerId + " for heartbeat.");
+        return new Command(CommandType.Register, new ArrayList<Long>());
       }
       BlockWorkerInfo workerInfo = mWorkers.get(workerId);
       processWorkerRemovedBlocks(workerInfo, removedBlockIds);
@@ -227,6 +230,12 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
       workerInfo.updateUsedBytes(usedBytesOnTiers);
       workerInfo.updateLastUpdatedTimeMs();
+
+      List<Long> toRemoveBlocks = workerInfo.getToRemoveBlocks();
+      if (toRemoveBlocks.isEmpty()) {
+        return new Command(CommandType.Nothing, new ArrayList<Long>());
+      }
+      return new Command(CommandType.Free, toRemoveBlocks);
     }
   }
 

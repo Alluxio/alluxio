@@ -187,7 +187,7 @@ public class BlockWorkerInfo {
   /**
    * @return IDs of blocks the worker should remove
    */
-  public synchronized List<Long> getToRemovedBlocks() {
+  public synchronized List<Long> getToRemoveBlocks() {
     return new ArrayList<Long>(mToRemoveBlocks);
   }
 
