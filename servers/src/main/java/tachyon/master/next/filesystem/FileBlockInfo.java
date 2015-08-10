@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
-import tachyon.master.next.block.BlockId;
+import tachyon.master.next.block.meta.BlockId;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 

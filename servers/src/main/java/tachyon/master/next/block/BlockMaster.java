@@ -16,6 +16,7 @@
 package tachyon.master.next.block;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,13 +32,11 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.master.next.Master;
-import tachyon.master.next.block.BlockIdGenerator;
-import tachyon.master.next.block.BlockInfo;
-import tachyon.master.next.block.BlockLocation;
-import tachyon.master.next.block.BlockWorkerInfo;
-import tachyon.master.next.block.ContainerIdGenerator;
-import tachyon.master.next.block.UserBlockInfo;
-import tachyon.master.next.block.UserBlockLocation;
+import tachyon.master.next.block.meta.BlockInfo;
+import tachyon.master.next.block.meta.BlockLocation;
+import tachyon.master.next.block.meta.BlockWorkerInfo;
+import tachyon.master.next.block.meta.UserBlockInfo;
+import tachyon.master.next.block.meta.UserBlockLocation;
 import tachyon.thrift.NetAddress;
 import tachyon.util.FormatUtils;
 
@@ -47,6 +46,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   // Block metadata management.
   private final Map<Long, BlockInfo> mBlocks;
   private final BlockIdGenerator mBlockIdGenerator;
+  private final Set<Long> mLostBlocks;
 
   // Worker metadata management.
   private final Map<Long, BlockWorkerInfo> mWorkers;
@@ -59,6 +59,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     mAddressToWorkerId = new HashMap<NetAddress, Long>();
     mBlockIdGenerator = new BlockIdGenerator();
     mWorkerCounter = new AtomicInteger(0);
+    mLostBlocks = new HashSet<Long>();
   }
 
   @Override
@@ -139,9 +140,9 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       mBlocks.put(blockId, blockInfo);
     }
     blockInfo.addWorker(workerId, tierAlias);
+    // TODO: update lost workers?
   }
 
-  // TODO: get worker location info from the worker map?
   public List<UserBlockInfo> getBlockInfoList(List<Long> blockIds) {
     List<UserBlockInfo> ret = new ArrayList<UserBlockInfo>(blockIds.size());
     for (long blockId : blockIds) {
@@ -167,7 +168,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   }
 
   public long getWorkerId(NetAddress workerNetAddress) {
-    // TODO: this is cloned in case thrift re-uses the object. Does thrift re-use it?
+    // TODO: this NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
     NetAddress workerAddress = new NetAddress(workerNetAddress);
     LOG.info("registerWorker(): WorkerNetAddress: " + workerAddress);
 
@@ -196,39 +197,85 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         return 0;
       }
       BlockWorkerInfo workerInfo = mWorkers.get(workerId);
+      workerInfo.updateLastUpdatedTimeMs();
 
       // Gather all blocks on this worker.
       HashSet<Long> newBlocks = new HashSet<Long>();
       for (List<Long> blockIds : currentBlockIds.values()) {
         newBlocks.addAll(blockIds);
       }
+
+      // Detect any lost blocks on this worker.
       Set<Long> removedBlocks = workerInfo.register(totalBytesOnTiers, usedBytesOnTiers, newBlocks);
 
-      // TODO: keep track of lost blocks.
-
-      // TODO: lock mBlocks?
-      for (Entry<Long, List<Long>> blockIds : currentBlockIds.entrySet()) {
-        long storageDirId = blockIds.getKey();
-        for (long blockId : blockIds.getValue()) {
-          BlockInfo blockInfo = mBlocks.get(blockId);
-          if (blockInfo != null) {
-            // TODO: change API so that this is tier level or type, not storage dir id.
-            int tierAlias = StorageDirId.getStorageLevelAliasValue(storageDirId);
-            blockInfo.addWorker(workerId, tierAlias);
-          } else {
-            LOG.warn("failed to register workerId: " + workerId + " to blockId: " + blockId);
-          }
-        }
-      }
-
-
-
+      processWorkerRemovedBlocks(workerInfo, removedBlocks);
+      processWorkerAddedBlocks(workerInfo, currentBlockIds);
       LOG.info("registerWorker(): " + workerInfo);
     }
     return 0;
   }
 
-  public void workerHeartbeat() {
-    // TODO
+  public void workerHeartbeat(long workerId, List<Long> usedBytesOnTiers,
+      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds) {
+    synchronized (mWorkers) {
+      if (!mWorkers.containsKey(workerId)) {
+        LOG.warn("Could not find worker id: " + workerId + " for heartbeat.");
+      }
+      BlockWorkerInfo workerInfo = mWorkers.get(workerId);
+      processWorkerRemovedBlocks(workerInfo, removedBlockIds);
+      processWorkerAddedBlocks(workerInfo, addedBlockIds);
+
+      workerInfo.updateUsedBytes(usedBytesOnTiers);
+      workerInfo.updateLastUpdatedTimeMs();
+    }
+  }
+
+  /**
+   * Updates the worker and block metadata for blocks removed from a worker.
+   *
+   * @param workerInfo The worker metadata object
+   * @param removedBlockIds A list of block ids removed from the worker
+   */
+  private void processWorkerRemovedBlocks(BlockWorkerInfo workerInfo,
+      Collection<Long> removedBlockIds) {
+    // TODO: lock mBlocks?
+    for (long removedBlockId : removedBlockIds) {
+      BlockInfo blockInfo = mBlocks.get(removedBlockId);
+      if (blockInfo == null) {
+        continue;
+      }
+      workerInfo.removeBlock(blockInfo.getBlockId());
+      blockInfo.removeWorker(workerInfo.getId());
+      if (blockInfo.getNumLocations() == 0) {
+        mLostBlocks.add(removedBlockId);
+      }
+    }
+  }
+
+  /**
+   * Updates the worker and block metadata for blocks added to a worker.
+   *
+   * @param workerInfo The worker metadata object
+   * @param addedBlockIds Mapping from StorageDirId to a list of block ids added to the directory.
+   */
+  private void processWorkerAddedBlocks(BlockWorkerInfo workerInfo,
+      Map<Long, List<Long>> addedBlockIds) {
+    // TODO: lock mBlocks?
+    for (Entry<Long, List<Long>> blockIds : addedBlockIds.entrySet()) {
+      long storageDirId = blockIds.getKey();
+      for (long blockId : blockIds.getValue()) {
+        BlockInfo blockInfo = mBlocks.get(blockId);
+        if (blockInfo != null) {
+          workerInfo.addBlock(blockId);
+          // TODO: change upper API so that this is tier level or type, not storage dir id.
+          int tierAlias = StorageDirId.getStorageLevelAliasValue(storageDirId);
+          blockInfo.addWorker(workerInfo.getId(), tierAlias);
+          // TODO: update lost workers?
+        } else {
+          LOG.warn("failed to register workerId: " + workerInfo.getId() + " to blockId: "
+              + blockId);
+        }
+      }
+    }
   }
 }

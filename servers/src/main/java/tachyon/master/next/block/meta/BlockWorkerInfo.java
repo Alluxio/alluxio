@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.next.block;
+package tachyon.master.next.block.meta;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,6 +47,7 @@ public class BlockWorkerInfo {
   private long mLastUpdatedTimeMs;
   /** If true, the worker is considered registered. */
   private boolean mIsRegistered;
+  // TODO: convert all tier information to tierAlias (or storage type).
   /** Total bytes on each storage tier */
   private List<Long> mTotalBytesOnTiers;
   /** Used bytes on each storage tier */
@@ -93,7 +94,7 @@ public class BlockWorkerInfo {
       // up-to-date and update the existing block information.
       LOG.info("re-registering an existing workerId: " + mId);
 
-      // Compute the differences between the existing block data, and the new data.
+      // Compute the difference between the existing block data, and the new data.
       removedBlocks = Sets.difference(mBlocks, newBlocks);
     } else {
       removedBlocks = Collections.emptySet();
@@ -116,6 +117,16 @@ public class BlockWorkerInfo {
   }
 
   /**
+   * Removes a block from the worker
+   *
+   * @param blockId the ID of the block to be removed
+   */
+  public synchronized void removeBlock(long blockId) {
+    mBlocks.remove(blockId);
+    mToRemoveBlocks.remove(blockId);
+  }
+
+  /**
    * @return Generated {@link ClientWorkerInfo} for this worker
    */
   public synchronized ClientWorkerInfo generateClientWorkerInfo() {
@@ -129,13 +140,6 @@ public class BlockWorkerInfo {
     ret.usedBytes = mUsedBytes;
     ret.starttimeMs = mStartTimeMs;
     return ret;
-  }
-
-  /**
-   * @return true if this worker is already registered, false otherwise.
-   */
-  public boolean isRegistered() {
-    return isRegistered();
   }
 
   /**

@@ -13,8 +13,9 @@
  * the License.
  */
 
-package tachyon.master.next.block;
+package tachyon.master.next.block.meta;
 
+// TODO: this should probably be moved to common/.
 public class BlockId {
 
   private static final int CONTAINER_ID_BITS = 40;
