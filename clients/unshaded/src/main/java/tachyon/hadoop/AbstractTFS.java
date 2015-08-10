@@ -504,6 +504,10 @@ abstract class AbstractTFS extends FileSystem {
   @Override
   public boolean rename(Path src, Path dst) throws IOException {
     LOG.info("rename(" + src + ", " + dst + ")");
+    if (mStatistics != null) {
+      mStatistics.incrementWriteOps(1);
+    }
+
     TachyonURI srcPath = new TachyonURI(Utils.getPathWithoutScheme(src));
     TachyonURI dstPath = new TachyonURI(Utils.getPathWithoutScheme(dst));
     ClientFileInfo info = mTFS.getFileStatus(-1, dstPath);
