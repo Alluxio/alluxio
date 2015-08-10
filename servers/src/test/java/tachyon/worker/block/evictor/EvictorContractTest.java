@@ -55,7 +55,7 @@ import tachyon.worker.block.meta.StorageTier;
  * that blocks evicted by LRUEvictor are in the right order should be in LRUEvictorTest.
  */
 @RunWith(Parameterized.class)
-public class EvictorTest {
+public class EvictorContractTest {
   private static final int USER_ID = 2;
   private static final long BLOCK_ID = 10;
   // TODO: fix the confusing tier alias and tier level concept
@@ -93,7 +93,7 @@ public class EvictorTest {
     return list;
   }
 
-  public EvictorTest(String evictorClassName) {
+  public EvictorContractTest(String evictorClassName) {
     mEvictorClassName = evictorClassName;
   }
 
