@@ -45,8 +45,7 @@ public class TieredBlockStoreTest {
   private static final long TEMP_BLOCK_ID = 1003;
   private static final long BLOCK_SIZE = 512;
   private static final StorageLevelAlias FIRST_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[0];
-  private static final StorageLevelAlias SECOND_TIER_ALIAS =
-      TieredBlockStoreTestUtils.TIER_ALIAS[1];
+
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
   @Rule
