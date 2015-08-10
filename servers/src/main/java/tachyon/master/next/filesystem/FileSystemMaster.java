@@ -264,6 +264,7 @@ public class FileSystemMaster implements Master {
         throw new FileDoesNotExistException("File " + fileId + " is a directory.");
       }
 
+      // TODO: allow "committing" existing blocks, for lineage.
       // Try to commit this block.
       ((InodeFile) inode).commitBlock(blockId, length);
 
