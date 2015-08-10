@@ -41,6 +41,7 @@ import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.evictor.EvictionPlan;
 import tachyon.worker.block.evictor.Evictor;
@@ -96,9 +97,9 @@ public class TieredBlockStore implements BlockStore {
   /** Lock to guard metadata operations */
   private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
 
-  public TieredBlockStore(TachyonConf tachyonConf) {
-    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mMetaManager = BlockMetadataManager.newBlockMetadataManager(mTachyonConf);
+  public TieredBlockStore() {
+    mTachyonConf = WorkerContext.getConf();
+    mMetaManager = BlockMetadataManager.newBlockMetadataManager();
     mLockManager = new BlockLockManager();
 
     BlockMetadataManagerView initManagerView =

@@ -30,6 +30,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockWriter;
@@ -123,8 +124,9 @@ public class TieredBlockStoreTestUtils {
    * @throws Exception when error happens during creating temporary folder
    */
   public static BlockMetadataManager defaultMetadataManager(String baseDir) throws Exception {
-    TachyonConf tachyonConf = defaultTachyonConf(baseDir);
-    return BlockMetadataManager.newBlockMetadataManager(tachyonConf);
+    TachyonConf tachyonConf = WorkerContext.getConf();
+    tachyonConf.merge(defaultTachyonConf(baseDir));
+    return BlockMetadataManager.newBlockMetadataManager();
   }
 
   /**

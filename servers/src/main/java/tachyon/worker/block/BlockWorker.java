@@ -45,6 +45,7 @@ import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 
 /**
@@ -91,16 +92,15 @@ public class BlockWorker {
   /**
    * Creates a Tachyon Block Worker.
    *
-   * @param tachyonConf the configuration values to be used
    * @throws IOException for other exceptions
    */
-  public BlockWorker(TachyonConf tachyonConf) throws IOException {
-    mTachyonConf = tachyonConf;
+  public BlockWorker() throws IOException {
+    mTachyonConf = WorkerContext.getConf();
     mStartTimeMs = System.currentTimeMillis();
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
-    mBlockDataManager = new BlockDataManager(tachyonConf, workerSource);
+    mBlockDataManager = new BlockDataManager(workerSource);
 
     // Setup metrics collection
     mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
@@ -109,9 +109,9 @@ public class BlockWorker {
 
     // Set up DataServer
     int dataServerPort =
-        tachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
+        mTachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
     InetSocketAddress dataServerAddress =
-        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(tachyonConf), dataServerPort);
+        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(mTachyonConf), dataServerPort);
     mDataServer =
         DataServer.Factory.createDataServer(dataServerAddress, mBlockDataManager, mTachyonConf);
 

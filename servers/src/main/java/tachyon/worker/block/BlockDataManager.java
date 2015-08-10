@@ -40,6 +40,7 @@ import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
@@ -77,15 +78,15 @@ public class BlockDataManager {
   /**
    * Creates a BlockDataManager based on the configuration values.
    *
-   * @param tachyonConf the configuration values to use
    * @param workerSource object for collecting the worker metrics
    * @throws IOException if fail to connect to under filesystem
    */
-  public BlockDataManager(TachyonConf tachyonConf, WorkerSource workerSource)
+  public BlockDataManager(WorkerSource workerSource)
       throws IOException {
+    // TODO: We may not need to assign the conf to a variable
+    mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
-    mBlockStore = new TieredBlockStore(tachyonConf);
-    mTachyonConf = tachyonConf;
+    mBlockStore = new TieredBlockStore();
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
