@@ -34,29 +34,12 @@ import tachyon.underfs.UnderFileSystem;
  * Block info on the master side.
  */
 public class FileBlockInfo {
-  /**
-   * Compute the block id based on its inode id and its index among all blocks of the inode. In
-   * Tachyon, blockId is calculated by ((inodeId << 30) + blockIndex).
-   *
-   * @param inodeId The inode id of the block
-   * @param blockIndex The index of the block in the inode
-   * @return the block id
-   */
-  public static long computeBlockId(int inodeId, int blockIndex) {
-    return ((long) inodeId << 30) + blockIndex;
-  }
-
   private final InodeFile mInodeFile;
 
   public final int mBlockIndex;
   public final long mBlockId;
   public final long mOffset;
   public final long mLength;
-
-  /* Map worker's workerId to its NetAddress */
-  private final Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>(5);
-  /* Map worker's NetAddress to storageDirId */
-  private final Map<NetAddress, Long> mStorageDirIds = new HashMap<NetAddress, Long>(5);
 
   /**
    * @param inodeFile
@@ -80,14 +63,7 @@ public class FileBlockInfo {
    * @return the net addresses of the locations
    */
   public synchronized List<NetAddress> getLocations(TachyonConf tachyonConf) {
-    List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
-    for (StorageLevelAlias alias : StorageLevelAlias.values()) {
-      for (Map.Entry<NetAddress, Long> entry : mStorageDirIds.entrySet()) {
-        if (alias.getValue() == StorageDirId.getStorageLevelAliasValue(entry.getValue())) {
-          ret.add(entry.getKey());
-        }
-      }
-    }
+    List<NetAddress> ret = new ArrayList<NetAddress>();
     if (ret.isEmpty() && mInodeFile.hasCheckpointed()) {
       UnderFileSystem ufs = UnderFileSystem.get(mInodeFile.getUfsPath(), tachyonConf);
       List<String> locs = null;
@@ -121,12 +97,7 @@ public class FileBlockInfo {
    * @return true if the block is in some worker's memory, false otherwise
    */
   public synchronized boolean isInMemory() {
-    for (long storageDirId : mStorageDirIds.values()) {
-      int storageLevelValue = StorageDirId.getStorageLevelAliasValue(storageDirId);
-      if (storageLevelValue == StorageLevelAlias.MEM.getValue()) {
-        return true;
-      }
-    }
+    // TODO
     return false;
   }
 
@@ -137,7 +108,6 @@ public class FileBlockInfo {
     sb.append(", mBlockId: ").append(mBlockId);
     sb.append(", mOffset: ").append(mOffset);
     sb.append(", mLength: ").append(mLength);
-    sb.append(", mLocations: ").append(mLocations).append(")");
     return sb.toString();
   }
 }
