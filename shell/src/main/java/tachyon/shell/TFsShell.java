@@ -118,9 +118,7 @@ public class TFsShell implements Closeable {
   }
 
   /**
-   * Copies a file specified by argv from the under filesystem to the filesystem. Will
-   * fail if the path given already exists in the filesystem. 
-   * example: copyFromUFS
+   * Copies a file or directory specified by argv from the under filesystem to the filesystem. 
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
