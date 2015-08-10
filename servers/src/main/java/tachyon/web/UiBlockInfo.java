@@ -41,7 +41,7 @@ public final class UiBlockInfo {
   }
 
   public UiBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs,
-                     boolean inMemory, List<NetAddress> locations) {
+      boolean inMemory, List<NetAddress> locations) {
     mId = blockId;
     mBlockLength = blockLength;
     mInMemory = inMemory;
