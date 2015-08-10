@@ -17,6 +17,9 @@ package tachyon;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * It uses a hierarchical URI internally. URI requires that String is escaped, TachyonURI does not.
@@ -26,6 +29,7 @@ import java.net.URISyntaxException;
 public final class TachyonURI implements Comparable<TachyonURI> {
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";
+  public static final String WILDCARD = "*";
 
   public static final TachyonURI EMPTY_URI = new TachyonURI("");
 
@@ -184,6 +188,44 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     return depth;
   }
 
+  
+  /**
+   * Get the first n component of the TachyonURI path.
+   * There is no trailing separator as the path will be normalized by normalizePath() 
+   * 
+   * <pre>
+   * /a/b/c, 0              -> /
+   * /a/b/c, 1              -> /a
+   * /a/b/c, 2              -> /a/b
+   * /a/b/c, 3              -> /a/b/c
+   * /a/b/c, 4              -> null
+   * </pre>
+   * 
+   * @return the first n path component, null if the path has less than n components
+   */
+  public String getLeadingPath(int n) {
+    String path = mUri.getPath();
+    if (n == 0 && path.indexOf(TachyonURI.SEPARATOR) == 0) { //the special case
+      return TachyonURI.SEPARATOR;
+    }
+    int depth = getDepth();
+    if (depth < n) {
+      return null;
+    } else if (depth == n) {
+      return path;
+    } else {
+      String[] comp = path.split(SEPARATOR);
+      return StringUtils.join(Arrays.asList(comp).subList(0, n + 1), SEPARATOR);
+    }
+  }
+  
+  /**
+   * Whether or not the URI contains wildcard(s)
+   */
+  public boolean containsWildcard() {
+    return mUri.getPath().contains(WILDCARD);
+  }
+  
   /**
    * Gets the host of this TachyonURI.
    *
