@@ -1,6 +1,8 @@
 ---
 layout: global
 title: Running Spark on Tachyon
+nickname: Apache Spark
+group: Frameworks
 ---
 
 ## Compatibility
@@ -34,7 +36,7 @@ recompile Spark with the right version of tachyon-client by changing the version
 </tr>
 <tr>
   <td> 1.5.x and Above </td>
-  <td> v0.7.1 </td>
+  <td> v0.7.0 </td>
 </tr>
 </table>
 

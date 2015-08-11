@@ -31,8 +31,8 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
+import tachyon.util.io.PathUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Utilities related to under filesystem
@@ -56,7 +56,7 @@ public class UfsUtils {
       filePath = path.getPath().substring(
           ufsRootPath.getPath().lastIndexOf(TachyonURI.SEPARATOR) + 1);
     }
-    return new TachyonURI(CommonUtils.concatPath(tfsRootPath, filePath));
+    return new TachyonURI(PathUtils.concatPath(tfsRootPath, filePath));
   }
 
   /**
@@ -96,8 +96,8 @@ public class UfsUtils {
     LOG.info("Loading to " + tachyonPath + " " + ufsAddrRootPath + " " + excludePathPrefix);
     try {
       // resolve and replace hostname embedded in the given ufsAddress/tachyonAddress
-      ufsAddrRootPath = NetworkUtils.replaceHostName(ufsAddrRootPath);
-      tachyonPath = NetworkUtils.replaceHostName(tachyonPath);
+      ufsAddrRootPath = NetworkAddressUtils.replaceHostName(ufsAddrRootPath);
+      tachyonPath = NetworkAddressUtils.replaceHostName(tachyonPath);
     } catch (UnknownHostException e) {
       LOG.error("Failed to resolve hostname", e);
       throw new IOException(e);
@@ -177,7 +177,7 @@ public class UfsUtils {
               continue;
             }
             LOG.info("Get: " + filePath);
-            String aPath = CommonUtils.concatPath(ufsPath, filePath);
+            String aPath = PathUtils.concatPath(ufsPath, filePath);
             String checkPath = aPath.substring(ufsAddrRootPath.toString().length());
             if (checkPath.startsWith(TachyonURI.SEPARATOR)) {
               checkPath = checkPath.substring(TachyonURI.SEPARATOR.length());
@@ -190,7 +190,7 @@ public class UfsUtils {
           }
         }
         // ufsPath is a directory, so only concat the tfsRoot with the relative path
-        TachyonURI tfsPath = new TachyonURI(CommonUtils.concatPath(
+        TachyonURI tfsPath = new TachyonURI(PathUtils.concatPath(
             tachyonPath, ufsPath.getPath().substring(ufsAddrRootPath.getPath().length())));
         LOG.debug("Loading ufs. ufs path is a directory. tfsPath = " + tfsPath + ".");
         if (!tfs.exist(tfsPath)) {

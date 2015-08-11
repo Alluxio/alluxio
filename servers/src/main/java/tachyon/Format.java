@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
 import tachyon.util.UnderFileSystemUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Format Tachyon File System.
@@ -39,7 +39,7 @@ public class Format {
     LOG.info("Formatting {}:{}", name, folder);
     if (ufs.exists(folder)) {
       for (String file : ufs.list(folder)) {
-        if (!ufs.delete(CommonUtils.concatPath(folder, file), true)) {
+        if (!ufs.delete(PathUtils.concatPath(folder, file), true)) {
           LOG.info("Failed to remove {}:{}", name, file);
           return false;
         }
@@ -91,7 +91,7 @@ public class Format {
         String[] dirPaths = tachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {
-          String dirWorkerDataFolder = CommonUtils.concatPath(dirPath.trim(), workerDataFolder);
+          String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
           UnderFileSystem ufs = UnderFileSystem.get(dirWorkerDataFolder, tachyonConf);
           if (ufs.exists(dirWorkerDataFolder)) {
             if (!formatFolder(name, dirWorkerDataFolder, tachyonConf)) {

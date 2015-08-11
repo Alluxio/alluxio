@@ -42,7 +42,6 @@ public class StorageDirView {
    * @param dir which the dirView is constructed from
    * @param tierView which the dirView is under
    * @param managerView which the dirView is associated with
-   * @return StorageDirView constructed
    */
   public StorageDirView(StorageDir dir, StorageTierView tierView,
       BlockMetadataManagerView managerView) {

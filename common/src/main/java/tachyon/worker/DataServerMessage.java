@@ -51,7 +51,7 @@ public class DataServerMessage {
    * @return the created block request message
    */
   public static DataServerMessage createBlockRequestMessage() {
-    DataServerMessage ret = new DataServerMessage(false, RPCMessage.Type.RPC_BLOCK_REQUEST);
+    DataServerMessage ret = new DataServerMessage(false, RPCMessage.Type.RPC_BLOCK_READ_REQUEST);
     ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
     return ret;
   }
@@ -79,7 +79,7 @@ public class DataServerMessage {
    * @return The created block request message
    */
   public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len) {
-    DataServerMessage ret = new DataServerMessage(true, RPCMessage.Type.RPC_BLOCK_REQUEST);
+    DataServerMessage ret = new DataServerMessage(true, RPCMessage.Type.RPC_BLOCK_READ_REQUEST);
 
     ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
     ret.mBlockId = blockId;
@@ -122,7 +122,7 @@ public class DataServerMessage {
    */
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
       long offset, long len, ByteBuffer data) {
-    DataServerMessage ret = new DataServerMessage(toSend, RPCMessage.Type.RPC_BLOCK_RESPONSE);
+    DataServerMessage ret = new DataServerMessage(toSend, RPCMessage.Type.RPC_BLOCK_READ_RESPONSE);
 
     if (toSend) {
       if (data != null) {
@@ -212,7 +212,7 @@ public class DataServerMessage {
     mHeader.clear();
     // The header must match the Netty RPC messages.
 
-    if (mMessageType == RPCMessage.Type.RPC_BLOCK_REQUEST) {
+    if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_REQUEST) {
       mHeader.putLong(REQUEST_HEADER_LENGTH); // frame length
     } else {
       // The response message has a payload.
@@ -224,7 +224,7 @@ public class DataServerMessage {
     mHeader.putLong(mOffset);
     mHeader.putLong(mLength);
 
-    if (mMessageType == RPCMessage.Type.RPC_BLOCK_RESPONSE) {
+    if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE) {
       // The response message has a status.
       mHeader.putShort(mStatus.getId());
     }
@@ -357,7 +357,7 @@ public class DataServerMessage {
         // TODO make this better to truncate the file.
         Preconditions.checkState(mLength < Integer.MAX_VALUE,
             "received length is too large: " + mLength);
-        if (mMessageType == RPCMessage.Type.RPC_BLOCK_RESPONSE) {
+        if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE) {
           // The response message has a status.
           mStatus = RPCResponse.Status.fromShort(mHeader.getShort());
           if (mStatus == RPCResponse.Status.SUCCESS) {
@@ -367,9 +367,9 @@ public class DataServerMessage {
           }
         }
         LOG.info("data {}, blockId:{} offset:{} dataLength:{}", mData, mBlockId, mOffset, mLength);
-        if (mMessageType == RPCMessage.Type.RPC_BLOCK_REQUEST) {
+        if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_REQUEST) {
           mIsMessageReady = true;
-        } else if (mMessageType == RPCMessage.Type.RPC_BLOCK_RESPONSE
+        } else if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE
             && (mLength <= 0 || mStatus != RPCResponse.Status.SUCCESS)) {
           // There is no more to read from the socket.
           mIsMessageReady = true;

@@ -15,10 +15,6 @@
 
 package tachyon.worker.block.allocator;
 
-import java.io.IOException;
-
-import com.google.common.base.Preconditions;
-
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDirView;
@@ -33,12 +29,12 @@ public class MaxFreeAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
   public MaxFreeAllocator(BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view);
+    mManagerView = view;
   }
 
   @Override
   public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
-      BlockStoreLocation location, BlockMetadataManagerView view) throws IOException {
+      BlockStoreLocation location, BlockMetadataManagerView view) {
     mManagerView = view;
     return allocateBlock(userId, blockId, blockSize, location);
   }
@@ -53,10 +49,10 @@ public class MaxFreeAllocator implements Allocator {
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @return a temp block meta if success, null otherwise
-   * @throws IOException if block location is invalid
+   * @throws IllegalArgumentException if block location is invalid
    */
   private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
-      BlockStoreLocation location) throws IOException {
+      BlockStoreLocation location) {
     StorageDirView candidateDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {

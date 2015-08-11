@@ -26,7 +26,8 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.WorkerContext;
 
 /**
  * Simple tests for the MASTER_HOSTNAME_LISTENING configuration option.
@@ -43,19 +44,19 @@ public class MasterHostnameListeningIntegrationTest {
     mExecutorService.shutdown();
   }
 
-  private final void startCluster(String hostnameListening) throws IOException {
+  private final void startCluster(String hostnameListening) throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(100, 100, Constants.GB);
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = WorkerContext.getConf();
     if (hostnameListening != null) {
       tachyonConf.set(Constants.MASTER_HOSTNAME_LISTENING, hostnameListening);
     }
-    mLocalTachyonCluster.start(tachyonConf);
+    mLocalTachyonCluster.start();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
   }
 
   @Test
-  public void listenEmptyTest() throws IOException {
+  public void listenEmptyTest() throws Exception {
     startCluster(null);
     MasterClient masterClient =
         new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
@@ -65,7 +66,7 @@ public class MasterHostnameListeningIntegrationTest {
   }
 
   @Test
-  public void listenWildcardTest() throws IOException {
+  public void listenWildcardTest() throws Exception {
     startCluster("*");
     MasterClient masterClient =
         new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
@@ -75,8 +76,8 @@ public class MasterHostnameListeningIntegrationTest {
   }
 
   @Test
-  public void listenSameAddressTest() throws IOException {
-    startCluster(NetworkUtils.getLocalHostName(100));
+  public void listenSameAddressTest() throws Exception {
+    startCluster(NetworkAddressUtils.getLocalHostName(100));
     MasterClient masterClient =
         new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
     masterClient.connect();
@@ -85,7 +86,7 @@ public class MasterHostnameListeningIntegrationTest {
   }
 
   @Test
-  public void connectDifferentAddressTest() throws IOException {
+  public void connectDifferentAddressTest() throws Exception {
     startCluster(null);
 
     // Connect to master on loopback, while master is listening on local hostname.

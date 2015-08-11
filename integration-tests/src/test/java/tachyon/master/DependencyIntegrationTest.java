@@ -47,7 +47,7 @@ public class DependencyIntegrationTest {
   }
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 8 * Constants.MB, Constants.GB);
     mLocalTachyonCluster.start();
     DependencyVariables.VARIABLES.put("master", mMasterValue);

@@ -76,6 +76,8 @@ import tachyon.thrift.TachyonException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystem.SpaceType;
 import tachyon.util.CommonUtils;
+import tachyon.util.FormatUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * A global view of filesystem in master.
@@ -338,7 +340,7 @@ public class MasterInfo extends ImageWriter {
   Pair<Boolean, Boolean> addCheckpointInternal(long workerId, int fileId, long length,
       TachyonURI checkpointPath, long opTimeMs) throws FileNotFoundException,
       SuspectedFileSizeException, BlockInfoException {
-    LOG.info(CommonUtils.parametersToString(workerId, fileId, length, checkpointPath));
+    LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
 
     if (workerId != -1) {
       MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
@@ -506,9 +508,9 @@ public class MasterInfo extends ImageWriter {
       throw new BlockInfoException("Invalid block size " + blockSizeByte);
     }
 
-    LOG.debug("createFile {}", CommonUtils.parametersToString(path));
+    LOG.debug("createFile {}", FormatUtils.parametersToString(path));
 
-    String[] pathNames = CommonUtils.getPathComponents(path.toString());
+    String[] pathNames = PathUtils.getPathComponents(path.toString());
     String name = path.getName();
 
     String[] parentPath = new String[pathNames.length - 1];
@@ -786,8 +788,8 @@ public class MasterInfo extends ImageWriter {
       if (srcPath.isRoot() || dstPath.isRoot()) {
         return false;
       }
-      String[] srcComponents = CommonUtils.getPathComponents(srcPath.toString());
-      String[] dstComponents = CommonUtils.getPathComponents(dstPath.toString());
+      String[] srcComponents = PathUtils.getPathComponents(srcPath.toString());
+      String[] dstComponents = PathUtils.getPathComponents(dstPath.toString());
       // We can't rename a path to one of its subpaths, so we check for that, by making sure
       // srcComponents isn't a prefix of dstComponents.
       if (srcComponents.length < dstComponents.length) {
@@ -937,7 +939,7 @@ public class MasterInfo extends ImageWriter {
   public int cacheBlock(long workerId, long usedBytesOnTier, long storageDirId, long blockId,
       long length) throws FileDoesNotExistException, BlockInfoException {
     LOG.debug("Cache block: {}",
-        CommonUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
+        FormatUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
 
     MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
     int storageLevelAliasValue = StorageDirId.getStorageLevelAliasValue(storageDirId);
@@ -1072,7 +1074,7 @@ public class MasterInfo extends ImageWriter {
   public int createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException,
       TachyonException {
-    LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
+    LOG.info("createRawTable" + FormatUtils.parametersToString(path, columns));
 
     int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
     if (columns <= 0 || columns >= maxColumns) {
@@ -1400,7 +1402,7 @@ public class MasterInfo extends ImageWriter {
 
     if (inode.isDirectory()) {
       for (Inode child : ((InodeFolder) inode).getChildren()) {
-        ret.add(child.generateClientFileInfo(CommonUtils.concatPath(path, child.getName())));
+        ret.add(child.generateClientFileInfo(PathUtils.concatPath(path, child.getName())));
       }
     } else {
       ret.add(inode.generateClientFileInfo(path.toString()));
@@ -1475,7 +1477,7 @@ public class MasterInfo extends ImageWriter {
    * Same as {@link #getInode(String[] pathNames)} except that it takes a path string.
    */
   private Inode getInode(TachyonURI path) throws InvalidPathException {
-    return getInode(CommonUtils.getPathComponents(path.toString()));
+    return getInode(PathUtils.getPathComponents(path.toString()));
   }
 
   /**

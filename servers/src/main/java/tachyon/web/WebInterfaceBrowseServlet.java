@@ -41,7 +41,7 @@ import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
-import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Servlet that provides data for browsing the file system.
@@ -53,9 +53,11 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final transient MasterInfo mMasterInfo;
+  private final transient TachyonConf mTachyonConf;
 
   public WebInterfaceBrowseServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
+    mTachyonConf = new TachyonConf();
   }
 
   /**
@@ -156,6 +158,8 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       }
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
+      request.setAttribute("workerWebPort", mTachyonConf.getInt(Constants.WORKER_WEB_PORT,
+          Constants.DEFAULT_WORKER_WEB_PORT));
       if (!currentFileInfo.getIsDirectory()) {
         String offsetParam = request.getParameter("offset");
         long relativeOffset = 0;
@@ -265,7 +269,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       return;
     }
 
-    String[] splitPath = CommonUtils.getPathComponents(path.toString());
+    String[] splitPath = PathUtils.getPathComponents(path.toString());
     UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
     TachyonURI currentPath = new TachyonURI(TachyonURI.SEPARATOR);
     pathInfos[0] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
