@@ -35,7 +35,7 @@ import tachyon.worker.block.meta.StorageDir;
  * a {@link BlockMetadataManagerView} for a default tiered storage defined in
  * {@link TieredBlockStoreTestUtils#defaultTachyonConf(String)}.
  */
-public class BaseEvictorTest {
+public class EvictorTestBase {
   protected static final int USER_ID = 2;
   protected static final long BLOCK_ID = 10;
 
