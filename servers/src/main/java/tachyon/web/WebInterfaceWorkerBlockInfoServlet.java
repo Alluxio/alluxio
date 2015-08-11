@@ -34,7 +34,7 @@ import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.NotFoundException;
 import tachyon.master.BlockInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
@@ -203,7 +203,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    */
   private UiFileInfo getUiFileInfo(TachyonFS tachyonClient, int fileId, TachyonURI filePath)
       throws FileDoesNotExistException, NotFoundException, IOException {
-    ClientFileInfo fileInfo = tachyonClient.getFileStatus(fileId, filePath, true);
+    FileInfo fileInfo = tachyonClient.getFileStatus(fileId, filePath, true);
     if (fileInfo == null) {
       throw new FileDoesNotExistException(fileId != -1 ? Integer.toString(fileId)
           : filePath.toString());

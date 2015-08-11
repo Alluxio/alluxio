@@ -24,7 +24,7 @@ import com.google.common.collect.Ordering;
 
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.FormatUtils;
 
@@ -83,7 +83,7 @@ public final class UiFileInfo {
   private final List<Long> mSizeOnTier = new ArrayList<Long>(Collections.nCopies(
       StorageLevelAlias.SIZE, 0L));
 
-  public UiFileInfo(ClientFileInfo fileInfo) {
+  public UiFileInfo(FileInfo fileInfo) {
     mId = fileInfo.getId();
     mDependencyId = fileInfo.getDependencyId();
     mName = fileInfo.getName();

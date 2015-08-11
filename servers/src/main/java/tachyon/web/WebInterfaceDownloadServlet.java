@@ -36,7 +36,7 @@ import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 
@@ -71,11 +71,11 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
     }
     TachyonURI currentPath = new TachyonURI(requestPath);
     try {
-      ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
-      if (null == clientFileInfo) {
+      FileInfo fileInfo = mMasterInfo.getClientFileInfo(currentPath);
+      if (null == fileInfo) {
         throw new FileDoesNotExistException(currentPath.toString());
       }
-      downloadFile(new TachyonURI(clientFileInfo.getPath()), request, response);
+      downloadFile(new TachyonURI(fileInfo.getPath()), request, response);
     } catch (FileDoesNotExistException fdne) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);

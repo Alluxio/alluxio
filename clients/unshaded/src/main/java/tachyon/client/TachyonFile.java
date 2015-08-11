@@ -32,7 +32,7 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
@@ -63,11 +63,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
     mTachyonConf = tachyonConf;
   }
 
-  private ClientFileInfo getCachedFileStatus() throws IOException {
+  private FileInfo getCachedFileStatus() throws IOException {
     return mTachyonFS.getFileStatus(mFileId, true);
   }
 
-  private ClientFileInfo getUnCachedFileStatus() throws IOException {
+  private FileInfo getUnCachedFileStatus() throws IOException {
     return mTachyonFS.getFileStatus(mFileId, false);
   }
 
@@ -156,7 +156,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("Cannot open a directory for reading.");
     }
 
-    ClientFileInfo fileStatus = getUnCachedFileStatus();
+    FileInfo fileStatus = getUnCachedFileStatus();
     List<Long> blocks = fileStatus.getBlockIds();
 
     if (blocks.size() == 0) {
@@ -267,7 +267,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   String getUfsPath() throws IOException {
-    ClientFileInfo info = getCachedFileStatus();
+    FileInfo info = getCachedFileStatus();
 
     if (!info.getUfsPath().isEmpty()) {
       return info.getUfsPath();

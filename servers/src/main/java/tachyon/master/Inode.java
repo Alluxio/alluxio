@@ -15,7 +15,7 @@
 
 package tachyon.master;
 
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 
 /**
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
@@ -71,12 +71,12 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   }
 
   /**
-   * Generate a ClientFileInfo of the file or folder.
+   * Generate a FileInfo of the file or folder.
    *
    * @param path The path of the file
-   * @return generated ClientFileInfo
+   * @return generated FileInfo
    */
-  public abstract ClientFileInfo generateClientFileInfo(String path);
+  public abstract FileInfo generateClientFileInfo(String path);
 
   /**
    * Get the create time of the inode.

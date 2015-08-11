@@ -40,7 +40,7 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.util.FormatUtils;
@@ -136,9 +136,9 @@ public class TFsShell implements Closeable {
       return -1;
     }
     if (tFile.isDirectory()) {
-      List<ClientFileInfo> files = tachyonClient.listStatus(filePath); 
+      List<FileInfo> files = tachyonClient.listStatus(filePath);
       Collections.sort(files);
-      for (ClientFileInfo file : files) {
+      for (FileInfo file : files) {
         TachyonURI newPath = new TachyonURI(file.getPath());
         if (loadPath(tachyonClient, newPath) == -1) {
           return -1;
@@ -294,9 +294,9 @@ public class TFsShell implements Closeable {
 
     long[] rtn = new long[] {0L, 1L, 0L};
 
-    List<ClientFileInfo> files = tachyonClient.listStatus(path);
+    List<FileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);
-    for (ClientFileInfo file : files) {
+    for (FileInfo file : files) {
       long[] toAdd = countHelper(new TachyonURI(file.getPath()));
       rtn[0] += toAdd[0];
       rtn[1] += toAdd[1];
@@ -358,10 +358,10 @@ public class TFsShell implements Closeable {
    */
   public int ls(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
-    List<ClientFileInfo> files = tachyonClient.listStatus(path);
+    List<FileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);
     String format = "%-10s%-25s%-15s%-5s%n";
-    for (ClientFileInfo file : files) {
+    for (FileInfo file : files) {
       String inMemory = "";
       if (!file.isFolder) {
         if (100 == file.inMemoryPercentage) {
@@ -391,10 +391,10 @@ public class TFsShell implements Closeable {
    */
   public int lsr(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
-    List<ClientFileInfo> files = tachyonClient.listStatus(path);
+    List<FileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);
     String format = "%-10s%-25s%-15s%-5s%n";
-    for (ClientFileInfo file : files) {
+    for (FileInfo file : files) {
       String inMemory = "";
       if (!file.isFolder) {
         if (100 == file.inMemoryPercentage) {
@@ -859,8 +859,8 @@ public class TFsShell implements Closeable {
    */
   private long getFileOrFolderSize(TachyonFS tachyonFS, TachyonURI path) throws IOException {
     long sizeInBytes = 0;
-    List<ClientFileInfo> files = tachyonFS.listStatus(path);
-    for (ClientFileInfo file : files) {
+    List<FileInfo> files = tachyonFS.listStatus(path);
+    for (FileInfo file : files) {
       if (file.isFolder) {
         TachyonURI subFolder = new TachyonURI(file.getPath());
         sizeInBytes += getFileOrFolderSize(tachyonFS, subFolder);

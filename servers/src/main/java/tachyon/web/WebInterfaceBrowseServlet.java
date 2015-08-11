@@ -38,7 +38,7 @@ import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.master.BlockInfo;
 import tachyon.master.MasterInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.io.PathUtils;
@@ -139,7 +139,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
     request.setAttribute("invalidPathError", "");
-    List<ClientFileInfo> filesInfo = null;
+    List<FileInfo> filesInfo = null;
     String requestPath = request.getParameter("path");
     if (requestPath == null || requestPath.isEmpty()) {
       requestPath = TachyonURI.SEPARATOR;
@@ -149,8 +149,8 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     request.setAttribute("viewingOffset", 0);
 
     try {
-      ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
-      UiFileInfo currentFileInfo = new UiFileInfo(clientFileInfo);
+      FileInfo fileInfo = mMasterInfo.getClientFileInfo(currentPath);
+      UiFileInfo currentFileInfo = new UiFileInfo(fileInfo);
       if (null == currentFileInfo.getAbsolutePath()) {
         throw new FileDoesNotExistException(currentPath.toString());
       }
@@ -173,12 +173,12 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
         if (endParam == null) {
           offset = relativeOffset;
         } else {
-          offset = clientFileInfo.getLength() - relativeOffset;
+          offset = fileInfo.getLength() - relativeOffset;
         }
         if (offset < 0) {
           offset = 0;
-        } else if (offset > clientFileInfo.getLength()) {
-          offset = clientFileInfo.getLength();
+        } else if (offset > fileInfo.getLength()) {
+          offset = fileInfo.getLength();
         }
         displayFile(new TachyonURI(currentFileInfo.getAbsolutePath()), request, offset);
         request.setAttribute("viewingOffset", offset);
@@ -203,7 +203,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
 
     List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(filesInfo.size());
-    for (ClientFileInfo fileInfo : filesInfo) {
+    for (FileInfo fileInfo : filesInfo) {
       UiFileInfo toAdd = new UiFileInfo(fileInfo);
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {

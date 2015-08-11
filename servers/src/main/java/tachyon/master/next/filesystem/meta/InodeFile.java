@@ -20,7 +20,7 @@ import java.util.List;
 
 import tachyon.master.next.block.meta.BlockId;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.SuspectedFileSizeException;
 
 /**
@@ -97,8 +97,8 @@ public class InodeFile extends Inode {
   }
 
   @Override
-  public ClientFileInfo generateClientFileInfo(String path) {
-    ClientFileInfo ret = new ClientFileInfo();
+  public FileInfo generateClientFileInfo(String path) {
+    FileInfo ret = new FileInfo();
 
     // TODO: change id to long.
     ret.id = (int) getId();

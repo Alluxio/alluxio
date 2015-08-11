@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -146,8 +146,8 @@ public class InodeFile extends Inode {
   }
 
   @Override
-  public ClientFileInfo generateClientFileInfo(String path) {
-    ClientFileInfo ret = new ClientFileInfo();
+  public FileInfo generateClientFileInfo(String path) {
+    FileInfo ret = new FileInfo();
 
     ret.id = getId();
     ret.name = getName();

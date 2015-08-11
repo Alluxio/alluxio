@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 
 /**
  * Tachyon file system's folder representation in master.
@@ -127,11 +127,11 @@ public class InodeFolder extends Inode {
    * Generates client file info for the folder.
    *
    * @param path The path of the folder in the filesystem
-   * @return the generated ClientFileInfo
+   * @return the generated FileInfo
    */
   @Override
-  public ClientFileInfo generateClientFileInfo(String path) {
-    ClientFileInfo ret = new ClientFileInfo();
+  public FileInfo generateClientFileInfo(String path) {
+    FileInfo ret = new FileInfo();
 
     ret.id = getId();
     ret.name = getName();

@@ -28,7 +28,7 @@ struct ClientWorkerInfo {
   7: i64 starttimeMs
 }
 
-struct ClientFileInfo {
+struct FileInfo {
   1: i32 id
   2: string name
   3: string path
@@ -129,7 +129,7 @@ service MasterService {
 
   list<ClientWorkerInfo> getWorkersInfo()
 
-  list<ClientFileInfo> liststatus(1: string path)
+  list<FileInfo> liststatus(1: string path)
     throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
 
   // Services to Workers
@@ -207,7 +207,7 @@ service MasterService {
   NetAddress user_getWorker(1: bool random, 2: string host)
     throws (1: NoWorkerException e)
 
-  ClientFileInfo getFileStatus(1: i32 fileId, 2: string path)
+  FileInfo getFileStatus(1: i32 fileId, 2: string path)
     throws (1: InvalidPathException eI)
 
   /**
