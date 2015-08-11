@@ -38,15 +38,15 @@ import tachyon.TachyonURI;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
-import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
 
@@ -443,7 +443,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the ClientBlockInfo of the specified block
    * @throws IOException
    */
-  synchronized ClientBlockInfo getClientBlockInfo(long blockId) throws IOException {
+  synchronized FileBlockInfo getClientBlockInfo(long blockId) throws IOException {
     return mMasterClient.user_getClientBlockInfo(blockId);
   }
 
@@ -533,7 +533,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the list of the blocks' info
    * @throws IOException
    */
-  public synchronized List<ClientBlockInfo> getFileBlocks(int fid) throws IOException {
+  public synchronized List<FileBlockInfo> getFileBlocks(int fid) throws IOException {
     // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
     return mMasterClient.user_getFileBlocks(fid, "");
   }

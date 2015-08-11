@@ -30,7 +30,6 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
@@ -38,6 +37,7 @@ import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.MasterService;
@@ -178,7 +178,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public ClientBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException,
+  public FileBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException,
       BlockInfoException, TException {
     return mMasterInfo.getClientBlockInfo(blockId);
   }
@@ -200,9 +200,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<ClientBlockInfo> user_getFileBlocks(int fileId, String path)
+  public List<FileBlockInfo> user_getFileBlocks(int fileId, String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
-    List<ClientBlockInfo> ret = null;
+    List<FileBlockInfo> ret = null;
     if (fileId != -1) {
       ret = mMasterInfo.getFileBlocks(fileId);
     } else {

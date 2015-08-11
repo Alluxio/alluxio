@@ -32,8 +32,8 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 
@@ -115,7 +115,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return the ClientBlockInfo of the specified block
    * @throws IOException
    */
-  public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
+  public synchronized FileBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
     return mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
   }
 
@@ -181,7 +181,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public String getLocalFilename(int blockIndex) throws IOException {
-    ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
+    FileBlockInfo blockInfo = getClientBlockInfo(blockIndex);
     long blockId = blockInfo.getBlockId();
     int blockLockId = mTachyonFS.getBlockLockId();
     String filename = mTachyonFS.lockBlock(blockId, blockLockId);
@@ -342,7 +342,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public boolean promoteBlock(int blockIndex) throws IOException {
-    ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
+    FileBlockInfo blockInfo = getClientBlockInfo(blockIndex);
     return mTachyonFS.promoteBlock(blockInfo.getBlockId());
   }
 
@@ -400,7 +400,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("Length can not be negative except -1: " + len);
     }
 
-    ClientBlockInfo info = getClientBlockInfo(blockIndex);
+    FileBlockInfo info = getClientBlockInfo(blockIndex);
     long blockId = info.blockId;
 
     int blockLockId = mTachyonFS.getBlockLockId();
@@ -453,7 +453,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return TachyonByteBuffer containing the block.
    * @throws IOException if the underlying stream throws IOException during close().
    */
-  TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) throws IOException {
+  TachyonByteBuffer readRemoteByteBuffer(FileBlockInfo blockInfo) throws IOException {
     // Create a dummy RemoteBlockInstream object.
     RemoteBlockInStream dummyStream = RemoteBlockInStream.getDummyStream();
     // Using the dummy stream to read remote buffer.

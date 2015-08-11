@@ -36,12 +36,12 @@ import tachyon.TachyonURI;
 import tachyon.client.InStream;
 import tachyon.client.OutStream;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.util.FormatUtils;
 
@@ -319,9 +319,9 @@ public class TFsShell implements Closeable {
       System.out.println(path + " does not exist.");
       return -1;
     }
-    List<ClientBlockInfo> blocks = tachyonClient.getFileBlocks(fileId);
+    List<FileBlockInfo> blocks = tachyonClient.getFileBlocks(fileId);
     System.out.println(path + " with file id " + fileId + " has the following blocks: ");
-    for (ClientBlockInfo block : blocks) {
+    for (FileBlockInfo block : blocks) {
       System.out.println(block);
     }
     return 0;

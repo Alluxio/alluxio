@@ -125,7 +125,7 @@ public class MasterService {
      * 
      * @param blockId
      */
-    public ClientBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
+    public FileBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
 
     /**
      * Get file blocks info.
@@ -133,7 +133,7 @@ public class MasterService {
      * @param fileId
      * @param path
      */
-    public List<ClientBlockInfo> user_getFileBlocks(int fileId, String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public List<FileBlockInfo> user_getFileBlocks(int fileId, String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
     /**
      * Delete file
@@ -847,7 +847,7 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getFileStatus failed: unknown result");
     }
 
-    public ClientBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
+    public FileBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
     {
       send_user_getClientBlockInfo(blockId);
       return recv_user_getClientBlockInfo();
@@ -860,7 +860,7 @@ public class MasterService {
       sendBase("user_getClientBlockInfo", args);
     }
 
-    public ClientBlockInfo recv_user_getClientBlockInfo() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
+    public FileBlockInfo recv_user_getClientBlockInfo() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
     {
       user_getClientBlockInfo_result result = new user_getClientBlockInfo_result();
       receiveBase(result, "user_getClientBlockInfo");
@@ -876,7 +876,7 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getClientBlockInfo failed: unknown result");
     }
 
-    public List<ClientBlockInfo> user_getFileBlocks(int fileId, String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public List<FileBlockInfo> user_getFileBlocks(int fileId, String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
       send_user_getFileBlocks(fileId, path);
       return recv_user_getFileBlocks();
@@ -890,7 +890,7 @@ public class MasterService {
       sendBase("user_getFileBlocks", args);
     }
 
-    public List<ClientBlockInfo> recv_user_getFileBlocks() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public List<FileBlockInfo> recv_user_getFileBlocks() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
       user_getFileBlocks_result result = new user_getFileBlocks_result();
       receiveBase(result, "user_getFileBlocks");
@@ -1989,7 +1989,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public ClientBlockInfo getResult() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException {
+      public FileBlockInfo getResult() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -2024,7 +2024,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public List<ClientBlockInfo> getResult() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
+      public List<FileBlockInfo> getResult() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -4587,7 +4587,7 @@ public class MasterService {
       }
     }
 
-    public static class user_getClientBlockInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getClientBlockInfo_args, ClientBlockInfo> {
+    public static class user_getClientBlockInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getClientBlockInfo_args, FileBlockInfo> {
       public user_getClientBlockInfo() {
         super("user_getClientBlockInfo");
       }
@@ -4596,10 +4596,10 @@ public class MasterService {
         return new user_getClientBlockInfo_args();
       }
 
-      public AsyncMethodCallback<ClientBlockInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<FileBlockInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<ClientBlockInfo>() { 
-          public void onComplete(ClientBlockInfo o) {
+        return new AsyncMethodCallback<FileBlockInfo>() { 
+          public void onComplete(FileBlockInfo o) {
             user_getClientBlockInfo_result result = new user_getClientBlockInfo_result();
             result.success = o;
             try {
@@ -4644,12 +4644,12 @@ public class MasterService {
         return false;
       }
 
-      public void start(I iface, user_getClientBlockInfo_args args, org.apache.thrift.async.AsyncMethodCallback<ClientBlockInfo> resultHandler) throws TException {
+      public void start(I iface, user_getClientBlockInfo_args args, org.apache.thrift.async.AsyncMethodCallback<FileBlockInfo> resultHandler) throws TException {
         iface.user_getClientBlockInfo(args.blockId,resultHandler);
       }
     }
 
-    public static class user_getFileBlocks<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getFileBlocks_args, List<ClientBlockInfo>> {
+    public static class user_getFileBlocks<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getFileBlocks_args, List<FileBlockInfo>> {
       public user_getFileBlocks() {
         super("user_getFileBlocks");
       }
@@ -4658,10 +4658,10 @@ public class MasterService {
         return new user_getFileBlocks_args();
       }
 
-      public AsyncMethodCallback<List<ClientBlockInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<List<FileBlockInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<List<ClientBlockInfo>>() { 
-          public void onComplete(List<ClientBlockInfo> o) {
+        return new AsyncMethodCallback<List<FileBlockInfo>>() { 
+          public void onComplete(List<FileBlockInfo> o) {
             user_getFileBlocks_result result = new user_getFileBlocks_result();
             result.success = o;
             try {
@@ -4706,7 +4706,7 @@ public class MasterService {
         return false;
       }
 
-      public void start(I iface, user_getFileBlocks_args args, org.apache.thrift.async.AsyncMethodCallback<List<ClientBlockInfo>> resultHandler) throws TException {
+      public void start(I iface, user_getFileBlocks_args args, org.apache.thrift.async.AsyncMethodCallback<List<FileBlockInfo>> resultHandler) throws TException {
         iface.user_getFileBlocks(args.fileId, args.path,resultHandler);
       }
     }
@@ -26222,7 +26222,7 @@ public class MasterService {
       schemes.put(TupleScheme.class, new user_getClientBlockInfo_resultTupleSchemeFactory());
     }
 
-    public ClientBlockInfo success; // required
+    public FileBlockInfo success; // required
     public FileDoesNotExistException eF; // required
     public BlockInfoException eB; // required
 
@@ -26295,7 +26295,7 @@ public class MasterService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientBlockInfo.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileBlockInfo.class)));
       tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_B, new org.apache.thrift.meta_data.FieldMetaData("eB", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -26308,7 +26308,7 @@ public class MasterService {
     }
 
     public user_getClientBlockInfo_result(
-      ClientBlockInfo success,
+      FileBlockInfo success,
       FileDoesNotExistException eF,
       BlockInfoException eB)
     {
@@ -26323,7 +26323,7 @@ public class MasterService {
      */
     public user_getClientBlockInfo_result(user_getClientBlockInfo_result other) {
       if (other.isSetSuccess()) {
-        this.success = new ClientBlockInfo(other.success);
+        this.success = new FileBlockInfo(other.success);
       }
       if (other.isSetEF()) {
         this.eF = new FileDoesNotExistException(other.eF);
@@ -26344,11 +26344,11 @@ public class MasterService {
       this.eB = null;
     }
 
-    public ClientBlockInfo getSuccess() {
+    public FileBlockInfo getSuccess() {
       return this.success;
     }
 
-    public user_getClientBlockInfo_result setSuccess(ClientBlockInfo success) {
+    public user_getClientBlockInfo_result setSuccess(FileBlockInfo success) {
       this.success = success;
       return this;
     }
@@ -26422,7 +26422,7 @@ public class MasterService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((ClientBlockInfo)value);
+          setSuccess((FileBlockInfo)value);
         }
         break;
 
@@ -26671,7 +26671,7 @@ public class MasterService {
           switch (schemeField.id) {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new ClientBlockInfo();
+                struct.success = new FileBlockInfo();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
@@ -26770,7 +26770,7 @@ public class MasterService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
-          struct.success = new ClientBlockInfo();
+          struct.success = new FileBlockInfo();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
@@ -27266,7 +27266,7 @@ public class MasterService {
       schemes.put(TupleScheme.class, new user_getFileBlocks_resultTupleSchemeFactory());
     }
 
-    public List<ClientBlockInfo> success; // required
+    public List<FileBlockInfo> success; // required
     public FileDoesNotExistException eF; // required
     public InvalidPathException eI; // required
 
@@ -27340,7 +27340,7 @@ public class MasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientBlockInfo.class))));
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileBlockInfo.class))));
       tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -27353,7 +27353,7 @@ public class MasterService {
     }
 
     public user_getFileBlocks_result(
-      List<ClientBlockInfo> success,
+      List<FileBlockInfo> success,
       FileDoesNotExistException eF,
       InvalidPathException eI)
     {
@@ -27368,9 +27368,9 @@ public class MasterService {
      */
     public user_getFileBlocks_result(user_getFileBlocks_result other) {
       if (other.isSetSuccess()) {
-        List<ClientBlockInfo> __this__success = new ArrayList<ClientBlockInfo>(other.success.size());
-        for (ClientBlockInfo other_element : other.success) {
-          __this__success.add(new ClientBlockInfo(other_element));
+        List<FileBlockInfo> __this__success = new ArrayList<FileBlockInfo>(other.success.size());
+        for (FileBlockInfo other_element : other.success) {
+          __this__success.add(new FileBlockInfo(other_element));
         }
         this.success = __this__success;
       }
@@ -27397,22 +27397,22 @@ public class MasterService {
       return (this.success == null) ? 0 : this.success.size();
     }
 
-    public java.util.Iterator<ClientBlockInfo> getSuccessIterator() {
+    public java.util.Iterator<FileBlockInfo> getSuccessIterator() {
       return (this.success == null) ? null : this.success.iterator();
     }
 
-    public void addToSuccess(ClientBlockInfo elem) {
+    public void addToSuccess(FileBlockInfo elem) {
       if (this.success == null) {
-        this.success = new ArrayList<ClientBlockInfo>();
+        this.success = new ArrayList<FileBlockInfo>();
       }
       this.success.add(elem);
     }
 
-    public List<ClientBlockInfo> getSuccess() {
+    public List<FileBlockInfo> getSuccess() {
       return this.success;
     }
 
-    public user_getFileBlocks_result setSuccess(List<ClientBlockInfo> success) {
+    public user_getFileBlocks_result setSuccess(List<FileBlockInfo> success) {
       this.success = success;
       return this;
     }
@@ -27486,7 +27486,7 @@ public class MasterService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((List<ClientBlockInfo>)value);
+          setSuccess((List<FileBlockInfo>)value);
         }
         break;
 
@@ -27734,11 +27734,11 @@ public class MasterService {
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
                   org.apache.thrift.protocol.TList _list172 = iprot.readListBegin();
-                  struct.success = new ArrayList<ClientBlockInfo>(_list172.size);
-                  ClientBlockInfo _elem173;
+                  struct.success = new ArrayList<FileBlockInfo>(_list172.size);
+                  FileBlockInfo _elem173;
                   for (int _i174 = 0; _i174 < _list172.size; ++_i174)
                   {
-                    _elem173 = new ClientBlockInfo();
+                    _elem173 = new FileBlockInfo();
                     _elem173.read(iprot);
                     struct.success.add(_elem173);
                   }
@@ -27786,7 +27786,7 @@ public class MasterService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (ClientBlockInfo _iter175 : struct.success)
+            for (FileBlockInfo _iter175 : struct.success)
             {
               _iter175.write(oprot);
             }
@@ -27835,7 +27835,7 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (ClientBlockInfo _iter176 : struct.success)
+            for (FileBlockInfo _iter176 : struct.success)
             {
               _iter176.write(oprot);
             }
@@ -27856,11 +27856,11 @@ public class MasterService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TList _list177 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<ClientBlockInfo>(_list177.size);
-            ClientBlockInfo _elem178;
+            struct.success = new ArrayList<FileBlockInfo>(_list177.size);
+            FileBlockInfo _elem178;
             for (int _i179 = 0; _i179 < _list177.size; ++_i179)
             {
-              _elem178 = new ClientBlockInfo();
+              _elem178 = new FileBlockInfo();
               _elem178.read(iprot);
               struct.success.add(_elem178);
             }
