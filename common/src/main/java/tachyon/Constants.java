@@ -174,6 +174,10 @@ public class Constants {
   public static final String WORKER_ALLOCATE_STRATEGY_CLASS =
       "tachyon.worker.allocate.strategy.class";
   public static final String WORKER_EVICT_STRATEGY_CLASS = "tachyon.worker.evict.strategy.class";
+  public static final String WORKER_EVICT_STRATEGY_LRFU_STEP_FACTOR =
+      "tachyon.worker.evict.strategy.lrfu.step.factor";
+  public static final String WORKER_EVICT_STRATEGY_LRFU_ATTENUATION_FACTOR =
+      "tachyon.worker.evict.strategy.lrfu.attenuation.factor";
   public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =
       "tachyon.worker.tieredstore.level.max";
   /**
