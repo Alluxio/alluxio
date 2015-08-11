@@ -1,5 +1,6 @@
 namespace java tachyon.thrift
 
+// Version 4: 0.8.0
 // Version 3: 0.6.0
 // Version 2: 0.5.0
 // Version 1: before 0.5.0
@@ -10,7 +11,7 @@ struct NetAddress {
   3: i32 mSecondaryPort
 }
 
-struct ClientBlockInfo {
+struct FileBlockInfo {
   1: i64 blockId
   2: i64 offset
   3: i64 length
@@ -212,13 +213,13 @@ service MasterService {
   /**
    * Get block's ClientBlockInfo.
    */
-  ClientBlockInfo user_getClientBlockInfo(1: i64 blockId)
+  FileBlockInfo user_getClientBlockInfo(1: i64 blockId)
     throws (1: FileDoesNotExistException eF, 2: BlockInfoException eB)
 
   /**
    * Get file blocks info.
    */
-  list<ClientBlockInfo> user_getFileBlocks(1: i32 fileId, 2: string path)
+  list<FileBlockInfo> user_getFileBlocks(1: i32 fileId, 2: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 
   /**

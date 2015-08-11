@@ -32,8 +32,8 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.Dependency;
 import tachyon.master.next.Master;
-import tachyon.master.next.block.meta.BlockId;
 import tachyon.master.next.block.BlockMaster;
+import tachyon.master.next.block.meta.BlockId;
 import tachyon.master.next.block.meta.BlockWorkerInfo;
 import tachyon.master.next.block.meta.UserBlockInfo;
 import tachyon.master.next.block.meta.UserBlockLocation;
@@ -43,11 +43,11 @@ import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
@@ -351,7 +351,7 @@ public class FileSystemMaster implements Master {
     return 0;
   }
 
-  public List<ClientBlockInfo> getFileBlockInfoList(long fileId) throws FileDoesNotExistException {
+  public List<FileBlockInfo> getFileBlockInfoList(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode == null || inode.isDirectory()) {
@@ -359,11 +359,11 @@ public class FileSystemMaster implements Master {
       }
       InodeFile tFile = (InodeFile) inode;
       List<UserBlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(tFile.getBlockIds());
-      List<ClientBlockInfo> ret = new ArrayList<ClientBlockInfo>();
+      List<FileBlockInfo> ret = new ArrayList<FileBlockInfo>();
 
       for (UserBlockInfo blockInfo : blockInfoList) {
         // Construct an file block info object to return.
-        ClientBlockInfo clientBlockInfo = new ClientBlockInfo();
+        FileBlockInfo clientBlockInfo = new FileBlockInfo();
 
         clientBlockInfo.blockId = blockInfo.mBlockId;
         clientBlockInfo.length = blockInfo.mLength;

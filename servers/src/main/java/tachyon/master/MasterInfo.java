@@ -33,10 +33,10 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
@@ -57,7 +57,6 @@ import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
@@ -66,6 +65,7 @@ import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
@@ -1196,7 +1196,7 @@ public class MasterInfo extends ImageWriter {
    * @throws FileDoesNotExistException
    * @throws BlockInfoException
    */
-  public ClientBlockInfo getClientBlockInfo(long blockId) throws FileDoesNotExistException,
+  public FileBlockInfo getClientBlockInfo(long blockId) throws FileDoesNotExistException,
       BlockInfoException {
     int fileId = BlockInfo.computeInodeId(blockId);
     synchronized (mRootLock) {
@@ -1204,7 +1204,7 @@ public class MasterInfo extends ImageWriter {
       if (inode == null || inode.isDirectory()) {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
-      ClientBlockInfo ret =
+      FileBlockInfo ret =
           ((InodeFile) inode)
               .getClientBlockInfo(BlockInfo.computeBlockIndex(blockId), mTachyonConf);
       LOG.debug("getClientBlockInfo: {} : {}", blockId, ret);
@@ -1331,13 +1331,13 @@ public class MasterInfo extends ImageWriter {
    * @return the block infos of the file
    * @throws FileDoesNotExistException
    */
-  public List<ClientBlockInfo> getFileBlocks(int fileId) throws FileDoesNotExistException {
+  public List<FileBlockInfo> getFileBlocks(int fileId) throws FileDoesNotExistException {
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fileId);
       if (inode == null || inode.isDirectory()) {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
-      List<ClientBlockInfo> ret = ((InodeFile) inode).getClientBlockInfos(mTachyonConf);
+      List<FileBlockInfo> ret = ((InodeFile) inode).getClientBlockInfos(mTachyonConf);
       LOG.debug("getFileLocations: {} {}", fileId, ret);
       return ret;
     }
@@ -1352,7 +1352,7 @@ public class MasterInfo extends ImageWriter {
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public List<ClientBlockInfo> getFileBlocks(TachyonURI path) throws FileDoesNotExistException,
+  public List<FileBlockInfo> getFileBlocks(TachyonURI path) throws FileDoesNotExistException,
       InvalidPathException {
     LOG.info("getFileLocations: " + path);
     synchronized (mRootLock) {

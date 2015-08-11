@@ -48,7 +48,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
@@ -56,6 +55,7 @@ import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.MasterService;
@@ -558,7 +558,7 @@ public final class MasterClient implements Closeable {
     return -1;
   }
 
-  public synchronized ClientBlockInfo user_getClientBlockInfo(long blockId) throws IOException {
+  public synchronized FileBlockInfo user_getClientBlockInfo(long blockId) throws IOException {
     while (!mIsClosed) {
       connect();
 
@@ -599,7 +599,7 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized List<ClientBlockInfo> user_getFileBlocks(int fileId, String path)
+  public synchronized List<FileBlockInfo> user_getFileBlocks(int fileId, String path)
       throws IOException {
     parameterCheck(fileId, path);
 
