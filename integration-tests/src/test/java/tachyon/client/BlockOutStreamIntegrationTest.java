@@ -39,7 +39,7 @@ public class BlockOutStreamIntegrationTest {
   }
 
   @BeforeClass
-  public static final void beforeClass() throws IOException {
+  public static final void beforeClass() throws Exception {
     sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     sLocalTachyonCluster.start();
   }

@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -26,7 +26,7 @@ import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.util.CommonUtils;
+import tachyon.util.FormatUtils;
 
 public final class UiFileInfo {
   /**
@@ -124,11 +124,11 @@ public final class UiFileInfo {
   }
 
   public void addBlock(StorageLevelAlias storageLevelAlias, long blockId, long blockSize,
-      long blockLastAccessTimeMs) {
+      long blockLastAccessTimeMs, List<NetAddress> locations) {
     int tier = storageLevelAlias.getValue() - 1;
     UiBlockInfo block =
         new UiBlockInfo(blockId, blockSize, blockLastAccessTimeMs,
-            storageLevelAlias == StorageLevelAlias.MEM);
+            storageLevelAlias == StorageLevelAlias.MEM, locations);
     mBlocksOnTier.get(tier).add(block);
     mSizeOnTier.set(tier, mSizeOnTier.get(tier) + blockSize);
   }
@@ -141,7 +141,7 @@ public final class UiFileInfo {
     if (mIsDirectory) {
       return "";
     } else {
-      return CommonUtils.getSizeFromBytes(mBlockSizeBytes);
+      return FormatUtils.getSizeFromBytes(mBlockSizeBytes);
     }
   }
 
@@ -209,7 +209,7 @@ public final class UiFileInfo {
     if (mIsDirectory) {
       return "";
     } else {
-      return CommonUtils.getSizeFromBytes(mSize);
+      return FormatUtils.getSizeFromBytes(mSize);
     }
   }
 

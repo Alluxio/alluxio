@@ -15,6 +15,7 @@
 
 package tachyon.client;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -27,13 +28,13 @@ import tachyon.util.CommonUtils;
 /**
  * The interface to read remote block from data server.
  */
-public interface RemoteBlockReader {
+public interface RemoteBlockReader extends Closeable {
 
   class Factory {
     public static RemoteBlockReader createRemoteBlockReader(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(conf.getClass(Constants.USER_REMOTE_BLOCK_READER,
-            ClientConstants.USER_REMOTE_BLOCK_READER_CLASS), null, null);
+            tachyon.client.netty.NettyRemoteBlockReader.class), null, null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
@@ -48,8 +49,8 @@ public interface RemoteBlockReader {
    * @param blockId the id of the block trying to read.
    * @param offset the offset of the block.
    * @param length the length the client wants to read.
-   * @return
-   * @throws IOException
+   * @return a byte buffer containing the remote data block.
+   * @throws IOException if the remote server is not reachable or responds with failures.
    */
   ByteBuffer readRemoteBlock(String host, int port, long blockId, long offset,
       long length) throws IOException;

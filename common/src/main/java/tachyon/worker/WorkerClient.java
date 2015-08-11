@@ -46,7 +46,7 @@ import tachyon.thrift.OutOfSpaceException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
-import tachyon.util.NetworkUtils;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * The client talks to a worker server. It keeps sending keep alive message to the worker server.
@@ -225,7 +225,7 @@ public class WorkerClient implements Closeable {
     if (!mConnected) {
       NetAddress workerNetAddress = null;
       try {
-        String localHostName = NetworkUtils.getLocalHostName(mTachyonConf);
+        String localHostName = NetworkAddressUtils.getLocalHostName(mTachyonConf);
         LOG.info("Trying to get local worker host : " + localHostName);
         workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
         mIsLocal = true;
@@ -247,7 +247,7 @@ public class WorkerClient implements Closeable {
         }
       }
 
-      String host = NetworkUtils.getFqdnHost(workerNetAddress);
+      String host = NetworkAddressUtils.getFqdnHost(workerNetAddress);
       int port = workerNetAddress.mPort;
       mWorkerAddress = new InetSocketAddress(host, port);
       mWorkerDataServerAddress = new InetSocketAddress(host, workerNetAddress.mSecondaryPort);
