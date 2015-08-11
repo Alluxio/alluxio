@@ -45,13 +45,19 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * Unit tests for tachyon.worker.block.BlockStoreMeta
  */
 public class BlockStoreMetaTest {
-  private static final long TEST_USER_ID = 33;
+  private static final long TEST_USER_ID = 33L;
   /** block size in Bytes for test */
-  private static final long TEST_BLOCK_SIZE = 200;
+  private static final long TEST_BLOCK_SIZE = 200L;
   /** num of dirs created for test in all different tiers */
-  private static final long TEST_DIR_NUM = 3;
+  private static final long TEST_DIR_NUM = 3L;
   /** num of total committed blocks */
-  private static final long COMMITTED_BLOCKS_NUM = 8;
+  private static final long COMMITTED_BLOCKS_NUM = 8L;
+  
+  /** quota setting for layers {MEM, SSD, HDD} respectively */
+  private static final long MEM_QUOTA = 2000L;
+  private static final long SSD_QUOTA = 0L;
+  private static final long HDD_DISK1_QUOTA = 3000L;
+  private static final long HDD_DISK2_QUOTA = 5000L;
   
   private BlockMetadataManager mMetadataManager;
   private BlockStoreMeta mBlockStoreMeta;
@@ -64,19 +70,19 @@ public class BlockStoreMetaTest {
     TachyonConf tachyonConf = new TachyonConf();
     // Setup a two-tier storage: MEM:{1000}, HDD{3000, 5000}, 
     // where missed SSD tier's quota is zero
-    String mTachyonHome = mTestFolder.newFolder().getAbsolutePath();
-    tachyonConf.set(Constants.TACHYON_HOME, mTachyonHome);
+    String tachyonHome = mTestFolder.newFolder().getAbsolutePath();
+    tachyonConf.set(Constants.TACHYON_HOME, tachyonHome);
     tachyonConf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 0), "MEM");
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
-        mTachyonHome + "/ramdisk");
+        tachyonHome + "/ramdisk");
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
-        2000 + "");
+        MEM_QUOTA + "b");
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1), "HDD");
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
-        mTachyonHome + "/disk1," + mTachyonHome + "/disk2");
+        tachyonHome + "/disk1," + tachyonHome + "/disk2");
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
-        3000 + "," + 5000);
+        HDD_DISK1_QUOTA + "," + HDD_DISK2_QUOTA);
     
     mMetadataManager = BlockMetadataManager.newBlockMetadataManager(tachyonConf);
     
@@ -119,14 +125,14 @@ public class BlockStoreMetaTest {
       }
     }
     Map<Long, List<Long>> actual = mBlockStoreMeta.getBlockList();
+    Assert.assertEquals(TEST_DIR_NUM, actual.keySet().size());
     Assert.assertEquals(dirIdToBlockIds, actual);
-    Assert.assertTrue(TEST_DIR_NUM == actual.keySet().size());
   }
   
   @Test
   public void getCapacityBytesTest() {
-    long capacityBytesTest = 2000 + 3000 + 5000L;
-    Assert.assertEquals(capacityBytesTest, mBlockStoreMeta.getCapacityBytes());
+    long expectedCapacityBytes = MEM_QUOTA + HDD_DISK1_QUOTA + HDD_DISK2_QUOTA;
+    Assert.assertEquals(expectedCapacityBytes, mBlockStoreMeta.getCapacityBytes());
   }
 
   @Test
@@ -138,17 +144,17 @@ public class BlockStoreMetaTest {
       }
     }
     Assert.assertEquals(dirsToCapacityBytes, mBlockStoreMeta.getCapacityBytesOnDirs());
-    Assert.assertEquals(new ArrayList<Long>(Arrays.asList(2000L,3000L,5000L)), 
-        new ArrayList<Long>(mBlockStoreMeta.getCapacityBytesOnDirs().values()));
+    Assert.assertTrue(mBlockStoreMeta.getCapacityBytesOnDirs().values()
+        .containsAll(Arrays.asList(MEM_QUOTA, HDD_DISK1_QUOTA, HDD_DISK2_QUOTA)));
   }
   
   @Test
   public void getCapacityBytesOnTiersTest() {
-    List<Long> capacityBytesOnTiersTest = new ArrayList<Long>();
-    capacityBytesOnTiersTest.add(2000L); // MEM
-    capacityBytesOnTiersTest.add(0L); // SSD(0 Bytes here)
-    capacityBytesOnTiersTest.add(3000 + 5000L); // HDD
-    Assert.assertEquals(capacityBytesOnTiersTest, mBlockStoreMeta.getCapacityBytesOnTiers());
+    List<Long> expectedCapacityBytesOnTiers = new ArrayList<Long>();
+    expectedCapacityBytesOnTiers.add(MEM_QUOTA); // MEM
+    expectedCapacityBytesOnTiers.add(SSD_QUOTA); // SSD(0 Bytes here)
+    expectedCapacityBytesOnTiers.add(HDD_DISK1_QUOTA + HDD_DISK2_QUOTA); // HDD
+    Assert.assertEquals(expectedCapacityBytesOnTiers, mBlockStoreMeta.getCapacityBytesOnTiers());
   }
   
   @Test
