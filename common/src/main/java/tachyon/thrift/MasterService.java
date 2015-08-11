@@ -166,7 +166,7 @@ public class MasterService {
      * @param id
      * @param path
      */
-    public ClientRawTableInfo user_getClientRawTableInfo(int id, String path) throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public RawTableInfo user_getClientRawTableInfo(int id, String path) throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
     public void user_updateRawTableMetadata(int tableId, ByteBuffer metadata) throws TableDoesNotExistException, TachyonException, org.apache.thrift.TException;
 
@@ -1088,7 +1088,7 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getRawTableId failed: unknown result");
     }
 
-    public ClientRawTableInfo user_getClientRawTableInfo(int id, String path) throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public RawTableInfo user_getClientRawTableInfo(int id, String path) throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
       send_user_getClientRawTableInfo(id, path);
       return recv_user_getClientRawTableInfo();
@@ -1102,7 +1102,7 @@ public class MasterService {
       sendBase("user_getClientRawTableInfo", args);
     }
 
-    public ClientRawTableInfo recv_user_getClientRawTableInfo() throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public RawTableInfo recv_user_getClientRawTableInfo() throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
       user_getClientRawTableInfo_result result = new user_getClientRawTableInfo_result();
       receiveBase(result, "user_getClientRawTableInfo");
@@ -2275,7 +2275,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public ClientRawTableInfo getResult() throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
+      public RawTableInfo getResult() throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -5092,7 +5092,7 @@ public class MasterService {
       }
     }
 
-    public static class user_getClientRawTableInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getClientRawTableInfo_args, ClientRawTableInfo> {
+    public static class user_getClientRawTableInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getClientRawTableInfo_args, RawTableInfo> {
       public user_getClientRawTableInfo() {
         super("user_getClientRawTableInfo");
       }
@@ -5101,10 +5101,10 @@ public class MasterService {
         return new user_getClientRawTableInfo_args();
       }
 
-      public AsyncMethodCallback<ClientRawTableInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<RawTableInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<ClientRawTableInfo>() { 
-          public void onComplete(ClientRawTableInfo o) {
+        return new AsyncMethodCallback<RawTableInfo>() { 
+          public void onComplete(RawTableInfo o) {
             user_getClientRawTableInfo_result result = new user_getClientRawTableInfo_result();
             result.success = o;
             try {
@@ -5149,7 +5149,7 @@ public class MasterService {
         return false;
       }
 
-      public void start(I iface, user_getClientRawTableInfo_args args, org.apache.thrift.async.AsyncMethodCallback<ClientRawTableInfo> resultHandler) throws TException {
+      public void start(I iface, user_getClientRawTableInfo_args args, org.apache.thrift.async.AsyncMethodCallback<RawTableInfo> resultHandler) throws TException {
         iface.user_getClientRawTableInfo(args.id, args.path,resultHandler);
       }
     }
@@ -34805,7 +34805,7 @@ public class MasterService {
       schemes.put(TupleScheme.class, new user_getClientRawTableInfo_resultTupleSchemeFactory());
     }
 
-    public ClientRawTableInfo success; // required
+    public RawTableInfo success; // required
     public TableDoesNotExistException eT; // required
     public InvalidPathException eI; // required
 
@@ -34878,7 +34878,7 @@ public class MasterService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientRawTableInfo.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RawTableInfo.class)));
       tmpMap.put(_Fields.E_T, new org.apache.thrift.meta_data.FieldMetaData("eT", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -34891,7 +34891,7 @@ public class MasterService {
     }
 
     public user_getClientRawTableInfo_result(
-      ClientRawTableInfo success,
+      RawTableInfo success,
       TableDoesNotExistException eT,
       InvalidPathException eI)
     {
@@ -34906,7 +34906,7 @@ public class MasterService {
      */
     public user_getClientRawTableInfo_result(user_getClientRawTableInfo_result other) {
       if (other.isSetSuccess()) {
-        this.success = new ClientRawTableInfo(other.success);
+        this.success = new RawTableInfo(other.success);
       }
       if (other.isSetET()) {
         this.eT = new TableDoesNotExistException(other.eT);
@@ -34927,11 +34927,11 @@ public class MasterService {
       this.eI = null;
     }
 
-    public ClientRawTableInfo getSuccess() {
+    public RawTableInfo getSuccess() {
       return this.success;
     }
 
-    public user_getClientRawTableInfo_result setSuccess(ClientRawTableInfo success) {
+    public user_getClientRawTableInfo_result setSuccess(RawTableInfo success) {
       this.success = success;
       return this;
     }
@@ -35005,7 +35005,7 @@ public class MasterService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((ClientRawTableInfo)value);
+          setSuccess((RawTableInfo)value);
         }
         break;
 
@@ -35254,7 +35254,7 @@ public class MasterService {
           switch (schemeField.id) {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new ClientRawTableInfo();
+                struct.success = new RawTableInfo();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
@@ -35353,7 +35353,7 @@ public class MasterService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
-          struct.success = new ClientRawTableInfo();
+          struct.success = new RawTableInfo();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }

@@ -32,7 +32,7 @@ import tachyon.TachyonURI;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.DependencyDoesNotExistException;
@@ -190,7 +190,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public ClientRawTableInfo user_getClientRawTableInfo(int id, String path)
+  public RawTableInfo user_getClientRawTableInfo(int id, String path)
       throws TableDoesNotExistException, InvalidPathException, TException {
     if (id != -1) {
       return mMasterInfo.getClientRawTableInfo(id);

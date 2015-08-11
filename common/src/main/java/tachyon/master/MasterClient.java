@@ -50,7 +50,7 @@ import tachyon.retry.RetryPolicy;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.DependencyDoesNotExistException;
@@ -576,7 +576,7 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized ClientRawTableInfo user_getClientRawTableInfo(int id, String path)
+  public synchronized RawTableInfo user_getClientRawTableInfo(int id, String path)
       throws IOException {
     parameterCheck(id, path);
 
@@ -584,7 +584,7 @@ public final class MasterClient implements Closeable {
       connect();
 
       try {
-        ClientRawTableInfo ret = mClient.user_getClientRawTableInfo(id, path);
+        RawTableInfo ret = mClient.user_getClientRawTableInfo(id, path);
         ret.setMetadata(BufferUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
         return ret;
       } catch (TableDoesNotExistException e) {

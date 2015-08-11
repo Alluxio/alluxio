@@ -53,7 +53,7 @@ struct ClientDependencyInfo {
   4: list<binary> data
 }
 
-struct ClientRawTableInfo {
+struct RawTableInfo {
   1: i32 id
   2: string name
   3: string path
@@ -252,7 +252,7 @@ service MasterService {
    * Get RawTable's info; Return a ClientRawTable instance with id 0 if the system does not contain
    * the table. path if valid iff id is -1.
    */
-  ClientRawTableInfo user_getClientRawTableInfo(1: i32 id, 2: string path)
+  RawTableInfo user_getClientRawTableInfo(1: i32 id, 2: string path)
     throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI)
 
   void user_updateRawTableMetadata(1: i32 tableId, 2: binary metadata)
