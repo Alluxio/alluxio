@@ -33,7 +33,7 @@ import tachyon.thrift.InvalidPathException;
 /**
  * Provides utility methods for working with files and directories.
  * 
- * Incoming methods please better take pathname string as parameters for standardization.
+ * By convention, methods take file path strings as parameters.
  */
 public class FileUtils {
   private static final Logger LOG = LoggerFactory.getLogger("");
@@ -180,7 +180,7 @@ public class FileUtils {
   /**
    * Creates a file and its intermediate directories if necessary.
    *
-   * @param pathPath pathname string of the file to create
+   * @param filePath pathname string of the file to create
    * @throws IOException if an I/O error occurred or file already exists
    */
   public static void createFile(String filePath) throws IOException {
