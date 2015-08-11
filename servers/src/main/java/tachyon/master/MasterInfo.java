@@ -59,7 +59,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
@@ -696,13 +696,13 @@ public class MasterInfo extends ImageWriter {
    * @return the table info
    * @throws TableDoesNotExistException
    */
-  ClientRawTableInfo getClientRawTableInfoInternal(TachyonURI path, Inode inode)
+  RawTableInfo getClientRawTableInfoInternal(TachyonURI path, Inode inode)
       throws TableDoesNotExistException {
     LOG.info("getClientRawTableInfo(" + path + ")");
     if (!mRawTables.exist(inode.getId())) {
       throw new TableDoesNotExistException("Table " + inode.getId() + " does not exist.");
     }
-    ClientRawTableInfo ret = new ClientRawTableInfo();
+    RawTableInfo ret = new RawTableInfo();
     ret.id = inode.getId();
     ret.name = inode.getName();
     ret.path = path.toString();
@@ -1277,7 +1277,7 @@ public class MasterInfo extends ImageWriter {
    * @return the table info
    * @throws TableDoesNotExistException
    */
-  public ClientRawTableInfo getClientRawTableInfo(int id) throws TableDoesNotExistException {
+  public RawTableInfo getClientRawTableInfo(int id) throws TableDoesNotExistException {
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(id);
       if (inode == null || !inode.isDirectory()) {
@@ -1295,7 +1295,7 @@ public class MasterInfo extends ImageWriter {
    * @throws TableDoesNotExistException
    * @throws InvalidPathException
    */
-  public ClientRawTableInfo getClientRawTableInfo(TachyonURI path)
+  public RawTableInfo getClientRawTableInfo(TachyonURI path)
       throws TableDoesNotExistException, InvalidPathException {
     synchronized (mRootLock) {
       Inode inode = getInode(path);

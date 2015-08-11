@@ -40,7 +40,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.underfs.UnderFileSystem;
@@ -654,8 +654,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   public synchronized RawTable getRawTable(int id) throws IOException {
-    ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfo(id, "");
-    return new RawTable(this, clientRawTableInfo);
+    RawTableInfo rawTableInfo = mMasterClient.user_getClientRawTableInfo(id, "");
+    return new RawTable(this, rawTableInfo);
   }
 
   /**
@@ -667,9 +667,9 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized RawTable getRawTable(TachyonURI path) throws IOException {
     validateUri(path);
-    ClientRawTableInfo clientRawTableInfo =
+    RawTableInfo rawTableInfo =
         mMasterClient.user_getClientRawTableInfo(-1, path.getPath());
-    return new RawTable(this, clientRawTableInfo);
+    return new RawTable(this, rawTableInfo);
   }
 
   /**
