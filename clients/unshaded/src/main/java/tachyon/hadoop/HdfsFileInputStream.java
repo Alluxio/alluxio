@@ -23,6 +23,7 @@ import com.google.common.primitives.Ints;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
@@ -45,7 +46,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private Path mHdfsPath;
   private Configuration mHadoopConf;
   private int mHadoopBufferSize;
-  private FileSystem.Statistics mStatistics;
+  private Statistics mStatistics;
   private TachyonFile mTachyonFile;
 
   private FSDataInputStream mHdfsInputStream = null;
