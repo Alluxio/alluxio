@@ -483,4 +483,14 @@ public class TachyonURITest {
           new TachyonURI(new TachyonURI(parent), new TachyonURI(child)).toString());
     }
   }
+  
+  @Test
+  public void testGetLeadingPath() {
+    Assert.assertEquals("/",      new TachyonURI("/a/b/c/").getLeadingPath(0));
+    Assert.assertEquals("/a",     new TachyonURI("/a/b/c/").getLeadingPath(1));
+    Assert.assertEquals("/a/b",   new TachyonURI("/a/b/c/").getLeadingPath(2));
+    Assert.assertEquals("/a/b/c", new TachyonURI("/a/b/c/").getLeadingPath(3));
+    Assert.assertEquals(null,     new TachyonURI("/a/b/c/").getLeadingPath(4));
+    Assert.assertEquals("/",      new TachyonURI("/").getLeadingPath(0));
+  }
 }
