@@ -45,17 +45,19 @@ public class TieredBlockStoreTest {
   private static final long TEMP_BLOCK_ID = 1003;
   private static final long BLOCK_SIZE = 512;
   private static final StorageLevelAlias FIRST_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[0];
-
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
   private TieredBlockStore mBlockStore;
   private BlockMetadataManager mMetaManager;
   private BlockLockManager mLockManager;
   private StorageDir mTestDir1;
   private StorageDir mTestDir2;
   private Evictor mEvictor;
+
+
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
@@ -83,7 +85,7 @@ public class TieredBlockStoreTest {
   public void differentUserLockDifferentBlocksTest() throws Exception {
     TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
-    TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID2, BLOCK_SIZE, mTestDir1, mMetaManager,
+    TieredBlockStoreTestUtils.cache(USER_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
         mEvictor);
 
     long lockId1 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
@@ -108,14 +110,14 @@ public class TieredBlockStoreTest {
   public void sameUserLockDifferentBlocksTest() throws Exception {
     TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
-    TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID2, BLOCK_SIZE, mTestDir1, mMetaManager,
+    TieredBlockStoreTestUtils.cache(USER_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
         mEvictor);
 
     long lockId1 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
     Assert.assertTrue(Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1))
         .isEmpty());
 
-    long lockId2 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
+    long lockId2 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID2);
     Assert.assertNotEquals(lockId1, lockId2);
   }
 
