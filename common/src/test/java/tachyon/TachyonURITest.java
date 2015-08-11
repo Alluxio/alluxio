@@ -485,7 +485,7 @@ public class TachyonURITest {
   }
   
   @Test
-  public void testGetLeadingPath() {
+  public void getLeadingPathTest() {
     Assert.assertEquals("/",      new TachyonURI("/a/b/c/").getLeadingPath(0));
     Assert.assertEquals("/a",     new TachyonURI("/a/b/c/").getLeadingPath(1));
     Assert.assertEquals("/a/b",   new TachyonURI("/a/b/c/").getLeadingPath(2));
