@@ -125,7 +125,6 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
     while (it.hasNext() && dirCandidates.candidateSize() < bytesToBeAvailable) {
       Entry<Long, Double> pair = it.next();
       long blockId = pair.getKey();
-      double crfValue = pair.getValue();
       try {
         BlockMeta block = mManagerView.getBlockMeta(blockId);
         if (null != block) { // might not present in this view
@@ -223,12 +222,13 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
   }
 
   /**
-   * Calculate function F(t) = pow (1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor})
+   * Calculate weight of an access, which is the function value of
+   * F(t) = pow (1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor})
    * 
    * @param logicTimeInterval time interval since that access to current
    * @return Function value of F(t)
    */
-  private double calculateFunction(long logicTimeInterval) {
+  private double calculateAccessWeight(long logicTimeInterval) {
     return Math.pow(1.0 / mAttenuationFactor, logicTimeInterval * mStepFactor);
   }
 
@@ -243,13 +243,11 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
    */
   private void updateCRFValue() {
     long currentLogicTime = mLogicTimeCount.get();
-    for (Iterator<Map.Entry<Long, Double>> it = mBlockIdToCRFValue.entrySet().iterator(); it
-        .hasNext();) {
-      Map.Entry<Long, Double> entry = it.next();
+    for (Entry<Long, Double> entry : mBlockIdToCRFValue.entrySet()) {
       long blockId = entry.getKey();
       double crfValue = entry.getValue();
       mBlockIdToCRFValue.put(blockId, crfValue
-          * calculateFunction(currentLogicTime - mBlockIdToLastUpdateTime.get(blockId)));
+          * calculateAccessWeight(currentLogicTime - mBlockIdToLastUpdateTime.get(blockId)));
       mBlockIdToLastUpdateTime.put(blockId, currentLogicTime);
     }
   }
@@ -270,7 +268,8 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
       // CRF(currentLogicTime)=CRF(lastUpdateTime)*F(currentLogicTime-lastUpdateTime)+F(0) 
       if (mBlockIdToCRFValue.containsKey(blockId)) {
         mBlockIdToCRFValue.put(blockId, mBlockIdToCRFValue.get(blockId)
-            * calculateFunction(currentLogicTime - mBlockIdToLastUpdateTime.get(blockId)) + 1.0);
+            * calculateAccessWeight(currentLogicTime - mBlockIdToLastUpdateTime
+                .get(blockId)) + 1.0);
       } else {
         mBlockIdToCRFValue.put(blockId, 1.0);
       }
