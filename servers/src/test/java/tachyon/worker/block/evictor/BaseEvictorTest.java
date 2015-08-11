@@ -28,6 +28,13 @@ import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 import tachyon.worker.block.meta.StorageDir;
 
+/**
+ * Base class for unit tests of evictors.
+ *
+ * It provides some utilities and initializes an {@link Evictor}, a {@link BlockMetadataManager} and
+ * a {@link BlockMetadataManagerView} for a default tiered storage defined in
+ * {@link TieredBlockStoreTestUtils#defaultTachyonConf(String)}.
+ */
 public class BaseEvictorTest {
   protected static final int USER_ID = 2;
   protected static final long BLOCK_ID = 10;
@@ -39,12 +46,31 @@ public class BaseEvictorTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
-  protected void cache(long userId, long blockId, long bytes, int tierLevel, int dirIdx)
+  /**
+   * Cache a block to the tiered storage managed by the {@link #mMetaManager}. It's a wrapper around
+   * {@link TieredBlockStoreTestUtils#cache}.
+   *
+   * @param userId ID of user to cache this block
+   * @param blockId ID of the block
+   * @param bytes length of the block in bytes
+   * @param tierLevel tier level for the block in the tiered storage
+   * @param dirIndex directory index in tierLevel for the block in the tiered storage
+   * @throws Exception when anything goes wrong, should not happen in unit tests
+   */
+  protected void cache(long userId, long blockId, long bytes, int tierLevel, int dirIndex)
       throws Exception {
-    StorageDir dir = mMetaManager.getTiers().get(tierLevel).getDir(dirIdx);
+    StorageDir dir = mMetaManager.getTiers().get(tierLevel).getDir(dirIndex);
     TieredBlockStoreTestUtils.cache(userId, blockId, bytes, dir, mMetaManager, mEvictor);
   }
 
+  /**
+   * Initialize an {@link Evictor}, a {@link BlockMetadataManager} and a
+   * {@link BlockMetadataManagerView} for a default tiered storage defined in
+   * {@link TieredBlockStoreTestUtils#defaultTachyonConf(String)}.
+   *
+   * @param evictorClassName class name of the specific evictor to be tested
+   * @throws Exception when anything goes wrong, should not happen in unit tests
+   */
   protected void init(String evictorClassName) throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
