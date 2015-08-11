@@ -60,11 +60,6 @@ public abstract class BlockOutStream extends OutStream {
    */
   public static BlockOutStream get(TachyonFile tachyonFile, WriteType opType, int blockIndex,
       long initialBytes, TachyonConf tachyonConf) throws IOException {
-    LOG.info(Boolean.toString(tachyonConf.get(
-        Constants.MASTER_BALANCER_STRATEGY_CLASS, "tachyon.master.balancer.MaxFreeBalancer")
-            .equalsIgnoreCase("tachyon.master.balancer.MaxFreeBalancer")));
-    LOG.info(tachyonFile.mTachyonFS.getWorkerDataServerAddress().getHostName().toString());
-    LOG.info(tachyonFile.mTachyonFS.getUri().getHost());
     if ((tachyonFile.mTachyonFS.getWorkerDataServerAddress().getHostName().toString().equals(
         tachyonFile.mTachyonFS.getUri().getHost())
         && tachyonConf.getBoolean(Constants.USER_ENABLE_LOCAL_WRITE,
