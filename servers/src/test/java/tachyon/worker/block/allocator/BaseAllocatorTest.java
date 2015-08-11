@@ -59,7 +59,7 @@ public class BaseAllocatorTest {
   protected BlockStoreLocation mAnyDirInTierLoc3 = BlockStoreLocation.anyDirInTier(3);
 
   @Before
-  public final void before() throws Exception {
+  public void before() throws Exception {
     resetManagerView();
   }
 

@@ -42,7 +42,7 @@ public class AllocatorContractTest extends BaseAllocatorTest {
   /**
    *  Try to find all implementation classes of {@link Allocator} in the same package
    */
-  public void setup() {
+  public void before() {
     mStrategies = new ArrayList<String>();
     try {
       String packageName = Reflection.getPackageName(Allocator.class);
