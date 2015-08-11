@@ -38,11 +38,12 @@ import tachyon.conf.TachyonConf;
 public class AllocatorContractTest extends BaseAllocatorTest {
   protected List<String> mStrategies;
 
-  @Before
   /**
    *  Try to find all implementation classes of {@link Allocator} in the same package
    */
-  public void before() {
+  @Before @Override
+  public void before() throws Exception {
+    super.before();
     mStrategies = new ArrayList<String>();
     try {
       String packageName = Reflection.getPackageName(Allocator.class);
