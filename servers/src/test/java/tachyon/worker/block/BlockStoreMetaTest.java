@@ -144,6 +144,7 @@ public class BlockStoreMetaTest {
       }
     }
     Assert.assertEquals(dirsToCapacityBytes, mBlockStoreMeta.getCapacityBytesOnDirs());
+    Assert.assertEquals(TEST_DIR_NUM, mBlockStoreMeta.getCapacityBytesOnDirs().values().size());
     Assert.assertTrue(mBlockStoreMeta.getCapacityBytesOnDirs().values()
         .containsAll(Arrays.asList(MEM_QUOTA, HDD_DISK1_QUOTA, HDD_DISK2_QUOTA)));
   }
