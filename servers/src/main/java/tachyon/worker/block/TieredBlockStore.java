@@ -338,16 +338,16 @@ public class TieredBlockStore implements BlockStore {
     // should be empty
     for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        File userFolder = new File(PathUtils.concatPath(dir.getDirPath(), userId));
+        String userFolderPath = PathUtils.concatPath(dir.getDirPath(), userId);
         try {
-          if (userFolder.exists()) {
-            FileUtils.delete(userFolder);
+          if (new File(userFolderPath).exists()) {
+            FileUtils.delete(userFolderPath);
           }
         } catch (IOException ioe) {
           // This error means we could not delete the directory but should not affect the
           // correctness of the method since the data has already been deleted. It is not
           // necessary to throw an exception here.
-          LOG.error("Failed to clean up user: {} with directory: {}", userId, userFolder.getPath());
+          LOG.error("Failed to clean up user: {} with directory: {}", userId, userFolderPath);
         }
       }
     }
@@ -444,7 +444,7 @@ public class TieredBlockStore implements BlockStore {
       }
 
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
-      FileUtils.delete(new File(path));
+      FileUtils.delete(path);
 
       mMetadataLock.writeLock().lock();
       try {
@@ -493,7 +493,7 @@ public class TieredBlockStore implements BlockStore {
       }
 
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
-      FileUtils.move(new File(srcPath), new File(dstPath));
+      FileUtils.move(srcPath, dstPath);
 
       mMetadataLock.writeLock().lock();
       try {
@@ -745,7 +745,7 @@ public class TieredBlockStore implements BlockStore {
       dstFilePath = dstTempBlock.getCommitPath();
 
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
-      FileUtils.move(new File(srcFilePath), new File(dstFilePath));
+      FileUtils.move(srcFilePath, dstFilePath);
 
       mMetadataLock.writeLock().lock();
       try {
@@ -797,7 +797,7 @@ public class TieredBlockStore implements BlockStore {
       }
 
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
-      FileUtils.delete(new File(filePath));
+      FileUtils.delete(filePath);
 
       mMetadataLock.writeLock().lock();
       try {
