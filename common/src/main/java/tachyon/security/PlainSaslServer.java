@@ -135,6 +135,11 @@ public class PlainSaslServer implements SaslServer {
 
   @Override
   public void dispose() {
+    if (mCompleted) {
+      // clean up the user in threadlocal, when client connection is closed.
+      RemoteClientUser.remove();
+    }
+
     mCompleted = false;
     mHandler = null;
     mAuthcid = null;
