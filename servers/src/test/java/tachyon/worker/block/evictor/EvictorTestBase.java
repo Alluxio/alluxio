@@ -59,8 +59,8 @@ public class EvictorTestBase {
    */
   protected void cache(long userId, long blockId, long bytes, int tierLevel, int dirIndex)
       throws Exception {
-    StorageDir dir = mMetaManager.getTiers().get(tierLevel).getDir(dirIndex);
-    TieredBlockStoreTestUtils.cache(userId, blockId, bytes, dir, mMetaManager, mEvictor);
+    TieredBlockStoreTestUtils.cache(userId, blockId, bytes, tierLevel, dirIndex, mMetaManager,
+        mEvictor);
   }
 
   /**
