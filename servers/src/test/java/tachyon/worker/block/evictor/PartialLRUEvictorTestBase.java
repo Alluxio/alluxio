@@ -26,7 +26,7 @@ import tachyon.worker.block.TieredBlockStoreTestUtils;
  * Sanity check on specific behavior of PartialLRUEvictor such as evicting/moving least recently
  * used blocks in StorageDir with max free space and cascading ParitialLRU eviction.
  */
-public class PartialLRUEvictorTest extends BaseEvictorTest {
+public class PartialLRUEvictorTestBase extends EvictorTestBase {
   @Before
   public final void before() throws Exception {
     init(PartialLRUEvictor.class.getName());
