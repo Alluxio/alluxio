@@ -16,14 +16,12 @@
 package tachyon.client;
 
 import java.io.IOException;
-import java.net.InetAddress;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.ClientWorkerInfo;
 
 /**
  * <code>BlockOutStream</code> interface for writing data to a block. This class is not client
