@@ -83,7 +83,7 @@ public class LRFUEvictorTest {
     ((BlockStoreEventListener) mEvictor).onAccessBlock(USER_ID, blockId);
   }
 
-  private double calculateFunction(long timeInterval) {
+  private double calculateAccessWeight(long timeInterval) {
     return Math.pow(1.0 / mAttenuationFactor, mStepFactor * timeInterval);
   }
   
@@ -122,7 +122,7 @@ public class LRFUEvictorTest {
     for (int i = 0; i < nDir; i ++) {
       cache(USER_ID, BLOCK_ID + i, bottomTierDirCapacity[i], bottomTierLevel, i);
       // update CRF of blocks when blocks are committed
-      blockIdToCRF.put(BLOCK_ID + i, calculateFunction(nDir - 1 - i));
+      blockIdToCRF.put(BLOCK_ID + i, calculateAccessWeight(nDir - 1 - i));
     }
     // access blocks in the order: 10, 10, 11, 10, 11, 12. Update CRF of all blocks
     // during each access
@@ -132,10 +132,10 @@ public class LRFUEvictorTest {
         for (int k = 0; k < nDir; k ++) {
           if (k == j) {
             blockIdToCRF.put(BLOCK_ID + k,
-                blockIdToCRF.get(BLOCK_ID + k) * calculateFunction(1L) + 1.0);
+                blockIdToCRF.get(BLOCK_ID + k) * calculateAccessWeight(1L) + 1.0);
           } else {
             blockIdToCRF.put(BLOCK_ID + k,
-                blockIdToCRF.get(BLOCK_ID + k) * calculateFunction(1L));
+                blockIdToCRF.get(BLOCK_ID + k) * calculateAccessWeight(1L));
           }
         }
       }
@@ -173,7 +173,7 @@ public class LRFUEvictorTest {
     for (int i = 0; i < nDir; i ++) {
       cache(USER_ID, BLOCK_ID + i, firstTierDirCapacity[i], firstTierLevel, i);
       // update CRF of blocks when blocks are committed
-      blockIdToCRF.put(BLOCK_ID + i, calculateFunction(nDir - 1 - i));
+      blockIdToCRF.put(BLOCK_ID + i, calculateAccessWeight(nDir - 1 - i));
     }
     // access blocks in the order: 10, 10, 11. Update CRF of all blocks
     // during each access
@@ -183,10 +183,10 @@ public class LRFUEvictorTest {
         for (int k = 0; k < nDir; k ++) {
           if (k == j) {
             blockIdToCRF.put(BLOCK_ID + k,
-                blockIdToCRF.get(BLOCK_ID + k) * calculateFunction(1L) + 1.0);
+                blockIdToCRF.get(BLOCK_ID + k) * calculateAccessWeight(1L) + 1.0);
           } else {
             blockIdToCRF.put(BLOCK_ID + k,
-                blockIdToCRF.get(BLOCK_ID + k) * calculateFunction(1L));
+                blockIdToCRF.get(BLOCK_ID + k) * calculateAccessWeight(1L));
           }
         }
       }
@@ -229,7 +229,7 @@ public class LRFUEvictorTest {
       for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx ++) {
         cache(USER_ID, blockId, tierCapacity[dirIdx], tierLevel, dirIdx);
         // update CRF of blocks when blocks are committed
-        blockIdToCRF.put(blockId, calculateFunction(totalBlocks - 1 - (blockId - BLOCK_ID)));
+        blockIdToCRF.put(blockId, calculateAccessWeight(totalBlocks - 1 - (blockId - BLOCK_ID)));
         blockId ++;
       }
     }
@@ -242,10 +242,10 @@ public class LRFUEvictorTest {
         for (int k = 0; k < totalBlocks; k ++) {
           if (k == j) {
             blockIdToCRF.put(BLOCK_ID + k,
-                blockIdToCRF.get(BLOCK_ID + k) * calculateFunction(1L) + 1.0);
+                blockIdToCRF.get(BLOCK_ID + k) * calculateAccessWeight(1L) + 1.0);
           } else {
             blockIdToCRF.put(BLOCK_ID + k,
-                blockIdToCRF.get(BLOCK_ID + k) * calculateFunction(1L));
+                blockIdToCRF.get(BLOCK_ID + k) * calculateAccessWeight(1L));
           }
         }
       }
