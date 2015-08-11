@@ -187,4 +187,21 @@ public class TieredBlockStoreTestUtils {
     }
   }
 
+  /**
+   * Cache bytes into StorageDir.
+   *
+   * @param userId user who caches the data
+   * @param blockId id of the cached block
+   * @param bytes size of the block in bytes
+   * @param tierLevel tier level of the StorageDir the block resides in
+   * @param dirIndex index of directory in the tierLevel the block resides in
+   * @param meta the metadata manager to update meta of the block
+   * @param evictor the evictor to be informed of the new block
+   * @throws Exception when fail to cache
+   */
+  public static void cache(long userId, long blockId, long bytes, int tierLevel, int dirIndex,
+      BlockMetadataManager meta, Evictor evictor) throws Exception {
+    StorageDir dir = meta.getTiers().get(tierLevel).getDir(dirIndex);
+    cache(userId, blockId, bytes, dir, meta, evictor);
+  }
 }
