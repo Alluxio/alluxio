@@ -9,5 +9,5 @@ cat > /spark/conf/spark-defaults.conf <<EOF
   spark.serializer org.apache.spark.serializer.KryoSerializer
   spark.tachyonStore.url tachyon://TachyonMaster:19998
   # externalBlockStore.url is needed in spark master branch
-  spark.externalBlockStore.url tachyon://TachyonMaster:19998 
+  spark.externalBlockStore.url tachyon://TachyonMaster:19998
 EOF
