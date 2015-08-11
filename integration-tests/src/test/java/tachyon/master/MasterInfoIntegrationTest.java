@@ -40,7 +40,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -241,7 +241,7 @@ public class MasterInfoIntegrationTest {
       TachyonException {
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
+    FileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
     Assert.assertEquals("", fileInfo.getUfsPath());
     mMasterInfo.addCheckpoint(-1, fileId, 1, new TachyonURI("/testPath"));
     fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
@@ -270,7 +270,7 @@ public class MasterInfoIntegrationTest {
   public void clientFileInfoDirectoryTest() throws InvalidPathException, FileDoesNotExistException,
       FileAlreadyExistException, TachyonException {
     Assert.assertTrue(mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true));
-    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
+    FileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals("testFolder", fileInfo.getName());
     Assert.assertEquals(2, fileInfo.getId());
     Assert.assertEquals(0, fileInfo.getLength());
@@ -286,7 +286,7 @@ public class MasterInfoIntegrationTest {
       FileAlreadyExistException, BlockInfoException, TachyonException {
     int fileId =
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
+    FileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
     Assert.assertEquals("testFile", fileInfo.getName());
     Assert.assertEquals(fileId, fileInfo.getId());
     Assert.assertEquals(0, fileInfo.getLength());
@@ -369,7 +369,7 @@ public class MasterInfoIntegrationTest {
   public void createDirectoryTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException {
     mMasterInfo.mkdirs(new TachyonURI("/testFolder"), true);
-    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
+    FileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertTrue(fileInfo.isFolder);
   }
 
@@ -539,7 +539,7 @@ public class MasterInfoIntegrationTest {
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     long opTimeMs = System.currentTimeMillis();
     mMasterInfo.addCheckpointInternal(-1, fileId, 1, new TachyonURI("/testPath"), opTimeMs);
-    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
+    FileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
 
@@ -551,7 +551,7 @@ public class MasterInfoIntegrationTest {
         mMasterInfo.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE);
     long opTimeMs = System.currentTimeMillis();
     mMasterInfo.completeFileInternal(fileId, opTimeMs);
-    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
+    FileInfo fileInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFile"));
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
 
@@ -562,7 +562,7 @@ public class MasterInfoIntegrationTest {
     long opTimeMs = System.currentTimeMillis();
     mMasterInfo.createFileInternal(false, new TachyonURI("/testFolder/testFile"), false,
         Constants.DEFAULT_BLOCK_SIZE_BYTE, opTimeMs);
-    ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
+    FileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }
 
@@ -577,7 +577,7 @@ public class MasterInfoIntegrationTest {
     Assert.assertEquals(fileId, mMasterInfo.getFileId(new TachyonURI("/testFolder/testFile")));
     long opTimeMs = System.currentTimeMillis();
     Assert.assertTrue(mMasterInfo.deleteInternal(fileId, true, opTimeMs));
-    ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
+    FileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }
 
@@ -591,7 +591,7 @@ public class MasterInfoIntegrationTest {
     long opTimeMs = System.currentTimeMillis();
     Assert.assertTrue(mMasterInfo.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"),
         opTimeMs));
-    ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
+    FileInfo folderInfo = mMasterInfo.getClientFileInfo(new TachyonURI("/testFolder"));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }
 

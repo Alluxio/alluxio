@@ -40,7 +40,7 @@ import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.network.protocol.RPCResponse;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.InvalidPathException;
@@ -192,7 +192,7 @@ public class DataServerIntegrationTest {
 
     CommonUtils.sleepMs(null, mWorkerTachyonConf.getInt(
         Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS) * 2 + 10);
-    ClientFileInfo fileInfo = mTFS.getFileStatus(-1, new TachyonURI("/readFile1"));
+    FileInfo fileInfo = mTFS.getFileStatus(-1, new TachyonURI("/readFile1"));
     Assert.assertEquals(0, fileInfo.inMemoryPercentage);
   }
 

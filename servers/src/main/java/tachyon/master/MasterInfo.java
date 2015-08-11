@@ -58,7 +58,7 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientDependencyInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
@@ -1237,12 +1237,12 @@ public class MasterInfo extends ImageWriter {
    * @param fid The id of the file
    * @return the file info
    */
-  public ClientFileInfo getClientFileInfo(int fid) {
+  public FileInfo getClientFileInfo(int fid) {
     mMasterSource.incGetFileStatusOps();
     synchronized (mRootLock) {
       Inode inode = mFileIdToInodes.get(fid);
       if (inode == null) {
-        ClientFileInfo info = new ClientFileInfo();
+        FileInfo info = new FileInfo();
         info.id = -1;
         return info;
       }
@@ -1257,12 +1257,12 @@ public class MasterInfo extends ImageWriter {
    * @return the file info
    * @throws InvalidPathException
    */
-  public ClientFileInfo getClientFileInfo(TachyonURI path) throws InvalidPathException {
+  public FileInfo getClientFileInfo(TachyonURI path) throws InvalidPathException {
     mMasterSource.incGetFileStatusOps();
     synchronized (mRootLock) {
       Inode inode = getInode(path);
       if (inode == null) {
-        ClientFileInfo info = new ClientFileInfo();
+        FileInfo info = new FileInfo();
         info.id = -1;
         return info;
       }
@@ -1384,16 +1384,16 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
-   * <code>path</code> is a file, return its ClientFileInfo.
+   * <code>path</code> is a file, return its FileInfo.
    *
    * @param path the target directory/file path
-   * @return A list of ClientFileInfo
+   * @return A list of FileInfo
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public List<ClientFileInfo> getFilesInfo(TachyonURI path) throws FileDoesNotExistException,
+  public List<FileInfo> getFilesInfo(TachyonURI path) throws FileDoesNotExistException,
       InvalidPathException {
-    List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
+    List<FileInfo> ret = new ArrayList<FileInfo>();
 
     Inode inode = getInode(path);
     if (inode == null) {

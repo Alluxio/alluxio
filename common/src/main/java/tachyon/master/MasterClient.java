@@ -49,7 +49,7 @@ import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientDependencyInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
@@ -253,10 +253,10 @@ public final class MasterClient implements Closeable {
    *
    * @param fileId The id of the file
    * @param path The path of the file
-   * @return ClientFileInfo returned from master
+   * @return FileInfo returned from master
    * @throws IOException
    */
-  public synchronized ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
+  public synchronized FileInfo getFileStatus(int fileId, String path) throws IOException {
     if (path == null) {
       path = "";
     }
@@ -372,7 +372,7 @@ public final class MasterClient implements Closeable {
     return mConnected;
   }
 
-  public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
+  public synchronized List<FileInfo> listStatus(String path) throws IOException {
     while (!mIsClosed) {
       connect();
       try {

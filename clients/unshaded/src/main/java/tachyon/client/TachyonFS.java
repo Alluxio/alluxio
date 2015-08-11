@@ -39,7 +39,7 @@ import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.ClientDependencyInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileBlockInfo;
@@ -161,11 +161,11 @@ public class TachyonFS extends AbstractTachyonFS {
   private final Closer mCloser = Closer.create();
   /** Whether to use ZooKeeper or not */
   private final boolean mZookeeperMode;
-  // Cached ClientFileInfo
-  private final Map<String, ClientFileInfo> mPathToClientFileInfo =
-      new HashMap<String, ClientFileInfo>();
-  private final Map<Integer, ClientFileInfo> mIdToClientFileInfo =
-      new HashMap<Integer, ClientFileInfo>();
+  // Cached FileInfo
+  private final Map<String, FileInfo> mPathToClientFileInfo =
+      new HashMap<String, FileInfo>();
+  private final Map<Integer, FileInfo> mIdToClientFileInfo =
+      new HashMap<Integer, FileInfo>();
 
   private UnderFileSystem mUnderFileSystem;
 
@@ -416,7 +416,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the file does not exist, or connection issue.
    */
   public synchronized long getBlockId(int fileId, int blockIndex) throws IOException {
-    ClientFileInfo info = getFileStatus(fileId, true);
+    FileInfo info = getFileStatus(fileId, true);
 
     if (info == null) {
       throw new IOException("File " + fileId + " does not exist.");
@@ -488,8 +488,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return TachyonFile of the file id, or null if the file does not exist.
    */
   public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
-    ClientFileInfo clientFileInfo = getFileStatus(fid, TachyonURI.EMPTY_URI, useCachedMetadata);
-    if (clientFileInfo == null) {
+    FileInfo fileInfo = getFileStatus(fid, TachyonURI.EMPTY_URI, useCachedMetadata);
+    if (fileInfo == null) {
       return null;
     }
     return new TachyonFile(this, fid, mTachyonConf);
@@ -519,11 +519,11 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized TachyonFile getFile(TachyonURI path, boolean useCachedMetadata)
       throws IOException {
     validateUri(path);
-    ClientFileInfo clientFileInfo = getFileStatus(-1, path, useCachedMetadata);
-    if (clientFileInfo == null) {
+    FileInfo fileInfo = getFileStatus(-1, path, useCachedMetadata);
+    if (fileInfo == null) {
       return null;
     }
-    return new TachyonFile(this, clientFileInfo.getId(), mTachyonConf);
+    return new TachyonFile(this, fileInfo.getId(), mTachyonConf);
   }
 
   /**
@@ -546,7 +546,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized int getFileId(TachyonURI path) {
     try {
-      ClientFileInfo fileInfo = getFileStatus(-1, path, false);
+      FileInfo fileInfo = getFileStatus(-1, path, false);
       return fileInfo == null ? -1 : fileInfo.getId();
     } catch (IOException e) {
       return -1;
@@ -556,7 +556,7 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Gets file status.
    *
-   * @param cache ClientFileInfo cache.
+   * @param cache FileInfo cache.
    * @param key the key in the cache.
    * @param fileId the id of the queried file. If it is -1, uses path.
    * @param path the path of the queried file. If fielId is not -1, this parameter is ignored.
@@ -564,9 +564,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the clientFileInfo.
    * @throws IOException
    */
-  private synchronized <K> ClientFileInfo getFileStatus(Map<K, ClientFileInfo> cache, K key,
+  private synchronized <K> FileInfo getFileStatus(Map<K, FileInfo> cache, K key,
       int fileId, String path, boolean useCachedMetaData) throws IOException {
-    ClientFileInfo info = null;
+    FileInfo info = null;
     if (useCachedMetaData) {
       info = cache.get(key);
       if (info != null) {
@@ -593,15 +593,15 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Advanced API.
    *
-   * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
+   * Gets the FileInfo object that represents the fileId, or the path if fileId is -1.
    *
    * @param fileId the file id of the file or folder.
    * @param path the path of the file or folder. valid iff fileId is -1.
    * @param useCachedMetadata if true use the local cached meta data
-   * @return the ClientFileInfo of the file. null if the file does not exist.
+   * @return the FileInfo of the file. null if the file does not exist.
    * @throws IOException
    */
-  public synchronized ClientFileInfo getFileStatus(int fileId, TachyonURI path,
+  public synchronized FileInfo getFileStatus(int fileId, TachyonURI path,
       boolean useCachedMetadata) throws IOException {
     if (fileId != -1) {
       return getFileStatus(mIdToClientFileInfo, Integer.valueOf(fileId), fileId,
@@ -613,19 +613,19 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   @Override
-  public ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException {
+  public FileInfo getFileStatus(int fileId, TachyonURI path) throws IOException {
     return getFileStatus(fileId, path, false);
   }
 
   /**
-   * Get ClientFileInfo object based on fileId.
+   * Get FileInfo object based on fileId.
    *
    * @param fileId the file id of the file or folder.
    * @param useCachedMetadata if true use the local cached meta data
-   * @return the ClientFileInfo of the file. null if the file does not exist.
+   * @return the FileInfo of the file. null if the file does not exist.
    * @throws IOException
    */
-  public synchronized ClientFileInfo getFileStatus(int fileId, boolean useCachedMetadata)
+  public synchronized FileInfo getFileStatus(int fileId, boolean useCachedMetadata)
       throws IOException {
     return getFileStatus(fileId, TachyonURI.EMPTY_URI, useCachedMetadata);
   }
@@ -758,14 +758,14 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
-   * <code>path</code> is a file, return its ClientFileInfo.
+   * <code>path</code> is a file, return its FileInfo.
    *
    * @param path the target directory/file path
-   * @return A list of ClientFileInfo, null if the file or folder does not exist.
+   * @return A list of FileInfo, null if the file or folder does not exist.
    * @throws IOException
    */
   @Override
-  public synchronized List<ClientFileInfo> listStatus(TachyonURI path) throws IOException {
+  public synchronized List<FileInfo> listStatus(TachyonURI path) throws IOException {
     validateUri(path);
     return mMasterClient.listStatus(path.getPath());
   }

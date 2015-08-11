@@ -43,7 +43,7 @@ public class MasterService {
 
     public List<ClientWorkerInfo> getWorkersInfo() throws org.apache.thrift.TException;
 
-    public List<ClientFileInfo> liststatus(String path) throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException;
+    public List<FileInfo> liststatus(String path) throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException;
 
     /**
      * Worker register and synch up capacity of Tachyon space, used space bytes and blocks in each
@@ -118,7 +118,7 @@ public class MasterService {
      */
     public NetAddress user_getWorker(boolean random, String host) throws NoWorkerException, org.apache.thrift.TException;
 
-    public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException, org.apache.thrift.TException;
+    public FileInfo getFileStatus(int fileId, String path) throws InvalidPathException, org.apache.thrift.TException;
 
     /**
      * Get block's ClientBlockInfo.
@@ -331,7 +331,7 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getWorkersInfo failed: unknown result");
     }
 
-    public List<ClientFileInfo> liststatus(String path) throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException
+    public List<FileInfo> liststatus(String path) throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException
     {
       send_liststatus(path);
       return recv_liststatus();
@@ -344,7 +344,7 @@ public class MasterService {
       sendBase("liststatus", args);
     }
 
-    public List<ClientFileInfo> recv_liststatus() throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException
+    public List<FileInfo> recv_liststatus() throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException
     {
       liststatus_result result = new liststatus_result();
       receiveBase(result, "liststatus");
@@ -820,7 +820,7 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getWorker failed: unknown result");
     }
 
-    public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException, org.apache.thrift.TException
+    public FileInfo getFileStatus(int fileId, String path) throws InvalidPathException, org.apache.thrift.TException
     {
       send_getFileStatus(fileId, path);
       return recv_getFileStatus();
@@ -834,7 +834,7 @@ public class MasterService {
       sendBase("getFileStatus", args);
     }
 
-    public ClientFileInfo recv_getFileStatus() throws InvalidPathException, org.apache.thrift.TException
+    public FileInfo recv_getFileStatus() throws InvalidPathException, org.apache.thrift.TException
     {
       getFileStatus_result result = new getFileStatus_result();
       receiveBase(result, "getFileStatus");
@@ -1324,7 +1324,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public List<ClientFileInfo> getResult() throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException {
+      public List<FileInfo> getResult() throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1957,7 +1957,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public ClientFileInfo getResult() throws InvalidPathException, org.apache.thrift.TException {
+      public FileInfo getResult() throws InvalidPathException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -3480,7 +3480,7 @@ public class MasterService {
       }
     }
 
-    public static class liststatus<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, liststatus_args, List<ClientFileInfo>> {
+    public static class liststatus<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, liststatus_args, List<FileInfo>> {
       public liststatus() {
         super("liststatus");
       }
@@ -3489,10 +3489,10 @@ public class MasterService {
         return new liststatus_args();
       }
 
-      public AsyncMethodCallback<List<ClientFileInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<List<FileInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<List<ClientFileInfo>>() { 
-          public void onComplete(List<ClientFileInfo> o) {
+        return new AsyncMethodCallback<List<FileInfo>>() { 
+          public void onComplete(List<FileInfo> o) {
             liststatus_result result = new liststatus_result();
             result.success = o;
             try {
@@ -3537,7 +3537,7 @@ public class MasterService {
         return false;
       }
 
-      public void start(I iface, liststatus_args args, org.apache.thrift.async.AsyncMethodCallback<List<ClientFileInfo>> resultHandler) throws TException {
+      public void start(I iface, liststatus_args args, org.apache.thrift.async.AsyncMethodCallback<List<FileInfo>> resultHandler) throws TException {
         iface.liststatus(args.path,resultHandler);
       }
     }
@@ -4530,7 +4530,7 @@ public class MasterService {
       }
     }
 
-    public static class getFileStatus<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getFileStatus_args, ClientFileInfo> {
+    public static class getFileStatus<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getFileStatus_args, FileInfo> {
       public getFileStatus() {
         super("getFileStatus");
       }
@@ -4539,10 +4539,10 @@ public class MasterService {
         return new getFileStatus_args();
       }
 
-      public AsyncMethodCallback<ClientFileInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<FileInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<ClientFileInfo>() { 
-          public void onComplete(ClientFileInfo o) {
+        return new AsyncMethodCallback<FileInfo>() { 
+          public void onComplete(FileInfo o) {
             getFileStatus_result result = new getFileStatus_result();
             result.success = o;
             try {
@@ -4582,7 +4582,7 @@ public class MasterService {
         return false;
       }
 
-      public void start(I iface, getFileStatus_args args, org.apache.thrift.async.AsyncMethodCallback<ClientFileInfo> resultHandler) throws TException {
+      public void start(I iface, getFileStatus_args args, org.apache.thrift.async.AsyncMethodCallback<FileInfo> resultHandler) throws TException {
         iface.getFileStatus(args.fileId, args.path,resultHandler);
       }
     }
@@ -7757,7 +7757,7 @@ public class MasterService {
       schemes.put(TupleScheme.class, new liststatus_resultTupleSchemeFactory());
     }
 
-    public List<ClientFileInfo> success; // required
+    public List<FileInfo> success; // required
     public InvalidPathException eI; // required
     public FileDoesNotExistException eF; // required
 
@@ -7831,7 +7831,7 @@ public class MasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientFileInfo.class))));
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileInfo.class))));
       tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -7844,7 +7844,7 @@ public class MasterService {
     }
 
     public liststatus_result(
-      List<ClientFileInfo> success,
+      List<FileInfo> success,
       InvalidPathException eI,
       FileDoesNotExistException eF)
     {
@@ -7859,9 +7859,9 @@ public class MasterService {
      */
     public liststatus_result(liststatus_result other) {
       if (other.isSetSuccess()) {
-        List<ClientFileInfo> __this__success = new ArrayList<ClientFileInfo>(other.success.size());
-        for (ClientFileInfo other_element : other.success) {
-          __this__success.add(new ClientFileInfo(other_element));
+        List<FileInfo> __this__success = new ArrayList<FileInfo>(other.success.size());
+        for (FileInfo other_element : other.success) {
+          __this__success.add(new FileInfo(other_element));
         }
         this.success = __this__success;
       }
@@ -7888,22 +7888,22 @@ public class MasterService {
       return (this.success == null) ? 0 : this.success.size();
     }
 
-    public java.util.Iterator<ClientFileInfo> getSuccessIterator() {
+    public java.util.Iterator<FileInfo> getSuccessIterator() {
       return (this.success == null) ? null : this.success.iterator();
     }
 
-    public void addToSuccess(ClientFileInfo elem) {
+    public void addToSuccess(FileInfo elem) {
       if (this.success == null) {
-        this.success = new ArrayList<ClientFileInfo>();
+        this.success = new ArrayList<FileInfo>();
       }
       this.success.add(elem);
     }
 
-    public List<ClientFileInfo> getSuccess() {
+    public List<FileInfo> getSuccess() {
       return this.success;
     }
 
-    public liststatus_result setSuccess(List<ClientFileInfo> success) {
+    public liststatus_result setSuccess(List<FileInfo> success) {
       this.success = success;
       return this;
     }
@@ -7977,7 +7977,7 @@ public class MasterService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((List<ClientFileInfo>)value);
+          setSuccess((List<FileInfo>)value);
         }
         break;
 
@@ -8225,11 +8225,11 @@ public class MasterService {
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
                   org.apache.thrift.protocol.TList _list56 = iprot.readListBegin();
-                  struct.success = new ArrayList<ClientFileInfo>(_list56.size);
-                  ClientFileInfo _elem57;
+                  struct.success = new ArrayList<FileInfo>(_list56.size);
+                  FileInfo _elem57;
                   for (int _i58 = 0; _i58 < _list56.size; ++_i58)
                   {
-                    _elem57 = new ClientFileInfo();
+                    _elem57 = new FileInfo();
                     _elem57.read(iprot);
                     struct.success.add(_elem57);
                   }
@@ -8277,7 +8277,7 @@ public class MasterService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (ClientFileInfo _iter59 : struct.success)
+            for (FileInfo _iter59 : struct.success)
             {
               _iter59.write(oprot);
             }
@@ -8326,7 +8326,7 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (ClientFileInfo _iter60 : struct.success)
+            for (FileInfo _iter60 : struct.success)
             {
               _iter60.write(oprot);
             }
@@ -8347,11 +8347,11 @@ public class MasterService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TList _list61 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<ClientFileInfo>(_list61.size);
-            ClientFileInfo _elem62;
+            struct.success = new ArrayList<FileInfo>(_list61.size);
+            FileInfo _elem62;
             for (int _i63 = 0; _i63 < _list61.size; ++_i63)
             {
-              _elem62 = new ClientFileInfo();
+              _elem62 = new FileInfo();
               _elem62.read(iprot);
               struct.success.add(_elem62);
             }
@@ -25389,7 +25389,7 @@ public class MasterService {
       schemes.put(TupleScheme.class, new getFileStatus_resultTupleSchemeFactory());
     }
 
-    public ClientFileInfo success; // required
+    public FileInfo success; // required
     public InvalidPathException eI; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -25458,7 +25458,7 @@ public class MasterService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientFileInfo.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileInfo.class)));
       tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -25469,7 +25469,7 @@ public class MasterService {
     }
 
     public getFileStatus_result(
-      ClientFileInfo success,
+      FileInfo success,
       InvalidPathException eI)
     {
       this();
@@ -25482,7 +25482,7 @@ public class MasterService {
      */
     public getFileStatus_result(getFileStatus_result other) {
       if (other.isSetSuccess()) {
-        this.success = new ClientFileInfo(other.success);
+        this.success = new FileInfo(other.success);
       }
       if (other.isSetEI()) {
         this.eI = new InvalidPathException(other.eI);
@@ -25499,11 +25499,11 @@ public class MasterService {
       this.eI = null;
     }
 
-    public ClientFileInfo getSuccess() {
+    public FileInfo getSuccess() {
       return this.success;
     }
 
-    public getFileStatus_result setSuccess(ClientFileInfo success) {
+    public getFileStatus_result setSuccess(FileInfo success) {
       this.success = success;
       return this;
     }
@@ -25553,7 +25553,7 @@ public class MasterService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((ClientFileInfo)value);
+          setSuccess((FileInfo)value);
         }
         break;
 
@@ -25757,7 +25757,7 @@ public class MasterService {
           switch (schemeField.id) {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new ClientFileInfo();
+                struct.success = new FileInfo();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
@@ -25836,7 +25836,7 @@ public class MasterService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = new ClientFileInfo();
+          struct.success = new FileInfo();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }

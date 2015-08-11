@@ -34,7 +34,7 @@ import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfSpaceException;
@@ -193,14 +193,14 @@ public class BlockServiceHandlerIntegrationTest {
     int fId1 = TachyonFSTestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE, blockSize);
 
     // File should be in memory after it is written with MUST_CACHE
-    ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo(fId1);
+    FileInfo fileInfo1 = mMasterInfo.getClientFileInfo(fId1);
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
 
     int fId2 = TachyonFSTestUtils.createByteFile(mTfs, "/file2", WriteType.MUST_CACHE, blockSize);
 
     // Both file 1 and 2 should be in memory since the combined size is not larger than worker space
     fileInfo1 = mMasterInfo.getClientFileInfo(fId1);
-    ClientFileInfo fileInfo2 = mMasterInfo.getClientFileInfo(fId2);
+    FileInfo fileInfo2 = mMasterInfo.getClientFileInfo(fId2);
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
     Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
 
@@ -210,7 +210,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     fileInfo1 = mMasterInfo.getClientFileInfo(fId1);
     fileInfo2 = mMasterInfo.getClientFileInfo(fId2);
-    ClientFileInfo fileInfo3 = mMasterInfo.getClientFileInfo(fId3);
+    FileInfo fileInfo3 = mMasterInfo.getClientFileInfo(fId3);
 
     // File 3 should be in memory and one of file 1 or 2 should be in memory
     Assert.assertEquals(100, fileInfo3.inMemoryPercentage);

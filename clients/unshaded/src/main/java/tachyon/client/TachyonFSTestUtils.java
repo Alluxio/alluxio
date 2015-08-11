@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.TachyonURI;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 
 public final class TachyonFSTestUtils {
   /**
@@ -96,9 +96,9 @@ public final class TachyonFSTestUtils {
    * @throws IOException if <code>path</code> does not exist or is invalid
    */
   public static List<String> listFiles(TachyonFS tfs, String path) throws IOException {
-    List<ClientFileInfo> infos = tfs.listStatus(new TachyonURI(path));
+    List<FileInfo> infos = tfs.listStatus(new TachyonURI(path));
     List<String> res = new ArrayList<String>();
-    for (ClientFileInfo info : infos) {
+    for (FileInfo info : infos) {
       res.add(info.getPath());
 
       if (info.isFolder) {

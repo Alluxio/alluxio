@@ -44,7 +44,7 @@ import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientDependencyInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
@@ -152,12 +152,12 @@ public class FileSystemMaster implements Master {
 
   }
 
-  public ClientFileInfo getFileStatus(long fileId) {
+  public FileInfo getFileStatus(long fileId) {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode == null) {
-        ClientFileInfo info = new ClientFileInfo();
+        FileInfo info = new FileInfo();
         info.id = -1;
         return info;
       }
@@ -166,12 +166,12 @@ public class FileSystemMaster implements Master {
 
   }
 
-  public ClientFileInfo getFileStatus(TachyonURI path) throws InvalidPathException {
+  public FileInfo getFileStatus(TachyonURI path) throws InvalidPathException {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeByPath(path);
       if (inode == null) {
-        ClientFileInfo info = new ClientFileInfo();
+        FileInfo info = new FileInfo();
         info.id = -1;
         return info;
       }
@@ -179,7 +179,7 @@ public class FileSystemMaster implements Master {
     }
   }
 
-  public List<ClientFileInfo> listStatus(TachyonURI path) throws FileDoesNotExistException,
+  public List<FileInfo> listStatus(TachyonURI path) throws FileDoesNotExistException,
       InvalidPathException {
     Inode inode = null;
     synchronized (mInodeTree) {
@@ -189,7 +189,7 @@ public class FileSystemMaster implements Master {
       throw new FileDoesNotExistException(path.toString());
     }
 
-    List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
+    List<FileInfo> ret = new ArrayList<FileInfo>();
     if (inode.isDirectory()) {
       for (Inode child : ((InodeDirectory) inode).getChildren()) {
         ret.add(child.generateClientFileInfo(PathUtils.concatPath(path, child.getName())));

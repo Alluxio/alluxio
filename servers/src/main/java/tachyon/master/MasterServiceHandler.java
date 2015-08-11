@@ -31,7 +31,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientDependencyInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
@@ -74,7 +74,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException,
+  public FileInfo getFileStatus(int fileId, String path) throws InvalidPathException,
       TException {
     if (fileId != -1) {
       return mMasterInfo.getClientFileInfo(fileId);
@@ -90,7 +90,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<ClientFileInfo> liststatus(String path) throws InvalidPathException,
+  public List<FileInfo> liststatus(String path) throws InvalidPathException,
       FileDoesNotExistException, TException {
     return mMasterInfo.getFilesInfo(new TachyonURI(path));
   }
