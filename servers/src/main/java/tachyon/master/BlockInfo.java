@@ -217,7 +217,7 @@ public class BlockInfo {
 
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("BlockInfo(mBlockIndex: ");
+    StringBuilder sb = new StringBuilder("MasterBlockInfo(mBlockIndex: ");
     sb.append(mBlockIndex);
     sb.append(", mBlockId: ").append(mBlockId);
     sb.append(", mOffset: ").append(mOffset);

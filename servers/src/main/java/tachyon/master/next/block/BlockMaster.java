@@ -32,11 +32,11 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.master.next.Master;
-import tachyon.master.next.block.meta.BlockInfo;
 import tachyon.master.next.block.meta.BlockWorkerInfo;
+import tachyon.master.next.block.meta.MasterBlockInfo;
 import tachyon.master.next.block.meta.MasterBlockLocation;
-import tachyon.master.next.block.meta.UserBlockInfo;
-import tachyon.master.next.block.meta.UserBlockLocation;
+import tachyon.thrift.BlockInfo;
+import tachyon.thrift.BlockLocation;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
@@ -46,7 +46,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Block metadata management.
-  private final Map<Long, BlockInfo> mBlocks;
+  private final Map<Long, MasterBlockInfo> mBlocks;
   private final BlockIdGenerator mBlockIdGenerator;
   private final Set<Long> mLostBlocks;
 
@@ -56,7 +56,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   private final AtomicInteger mWorkerCounter;
 
   public BlockMaster() {
-    mBlocks = new HashMap<Long, BlockInfo>();
+    mBlocks = new HashMap<Long, MasterBlockInfo>();
     mWorkers = new HashMap<Long, BlockWorkerInfo>();
     mAddressToWorkerId = new HashMap<NetAddress, Long>();
     mBlockIdGenerator = new BlockIdGenerator();
@@ -112,12 +112,12 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   public void removeBlocks(List<Long> blockIds) {
     for (long blockId : blockIds) {
-      BlockInfo blockInfo = mBlocks.get(blockId);
-      if (blockInfo == null) {
+      MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
+      if (masterBlockInfo == null) {
         return;
       }
-      for (long workerId : blockInfo.getWorkers()) {
-        blockInfo.removeWorker(workerId);
+      for (long workerId : masterBlockInfo.getWorkers()) {
+        masterBlockInfo.removeWorker(workerId);
         BlockWorkerInfo worker = getWorkerInfo(workerId);
         if (worker != null) {
           worker.updateToRemovedBlock(true, blockId);
@@ -141,32 +141,32 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     workerInfo.updateUsedBytes(tierAlias, usedBytesOnTier);
     workerInfo.updateLastUpdatedTimeMs();
 
-    BlockInfo blockInfo = mBlocks.get(blockId);
-    if (blockInfo == null) {
-      blockInfo = new BlockInfo(blockId, length);
-      mBlocks.put(blockId, blockInfo);
+    MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
+    if (masterBlockInfo == null) {
+      masterBlockInfo = new MasterBlockInfo(blockId, length);
+      mBlocks.put(blockId, masterBlockInfo);
     }
-    blockInfo.addWorker(workerId, tierAlias);
+    masterBlockInfo.addWorker(workerId, tierAlias);
     // TODO: update lost workers?
   }
 
-  public List<UserBlockInfo> getBlockInfoList(List<Long> blockIds) {
-    List<UserBlockInfo> ret = new ArrayList<UserBlockInfo>(blockIds.size());
+  public List<BlockInfo> getBlockInfoList(List<Long> blockIds) {
+    List<BlockInfo> ret = new ArrayList<BlockInfo>(blockIds.size());
     for (long blockId : blockIds) {
-      BlockInfo blockInfo = mBlocks.get(blockId);
-      if (blockInfo != null) {
+      MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
+      if (masterBlockInfo != null) {
         // Construct the block info object to return.
 
         // "Join" to get all the addresses of the workers.
-        List<UserBlockLocation> locations = new ArrayList<UserBlockLocation>();
-        for (MasterBlockLocation masterBlockLocation : blockInfo.getBlockLocations()) {
+        List<BlockLocation> locations = new ArrayList<BlockLocation>();
+        for (MasterBlockLocation masterBlockLocation : masterBlockInfo.getBlockLocations()) {
           BlockWorkerInfo workerInfo = mWorkers.get(masterBlockLocation.mWorkerId);
           if (workerInfo != null) {
-            locations.add(new UserBlockLocation(masterBlockLocation.mWorkerId,
+            locations.add(new BlockLocation(masterBlockLocation.mWorkerId,
                 workerInfo.getAddress(), masterBlockLocation.mTier));
           }
         }
-        UserBlockInfo retInfo = new UserBlockInfo(blockInfo.getBlockId(), blockInfo.getLength(),
+        BlockInfo retInfo = new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(),
             locations);
         ret.add(retInfo);
       }
@@ -254,13 +254,13 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       Collection<Long> removedBlockIds) {
     // TODO: lock mBlocks?
     for (long removedBlockId : removedBlockIds) {
-      BlockInfo blockInfo = mBlocks.get(removedBlockId);
-      if (blockInfo == null) {
+      MasterBlockInfo masterBlockInfo = mBlocks.get(removedBlockId);
+      if (masterBlockInfo == null) {
         continue;
       }
-      workerInfo.removeBlock(blockInfo.getBlockId());
-      blockInfo.removeWorker(workerInfo.getId());
-      if (blockInfo.getNumLocations() == 0) {
+      workerInfo.removeBlock(masterBlockInfo.getBlockId());
+      masterBlockInfo.removeWorker(workerInfo.getId());
+      if (masterBlockInfo.getNumLocations() == 0) {
         mLostBlocks.add(removedBlockId);
       }
     }
@@ -278,12 +278,12 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     for (Entry<Long, List<Long>> blockIds : addedBlockIds.entrySet()) {
       long storageDirId = blockIds.getKey();
       for (long blockId : blockIds.getValue()) {
-        BlockInfo blockInfo = mBlocks.get(blockId);
-        if (blockInfo != null) {
+        MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
+        if (masterBlockInfo != null) {
           workerInfo.addBlock(blockId);
           // TODO: change upper API so that this is tier level or type, not storage dir id.
           int tierAlias = StorageDirId.getStorageLevelAliasValue(storageDirId);
-          blockInfo.addWorker(workerInfo.getId(), tierAlias);
+          masterBlockInfo.addWorker(workerInfo.getId(), tierAlias);
           // TODO: update lost workers?
         } else {
           LOG.warn("failed to register workerId: " + workerInfo.getId() + " to blockId: "

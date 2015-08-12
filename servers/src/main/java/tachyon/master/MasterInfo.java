@@ -2475,7 +2475,7 @@ public class MasterInfo extends ImageWriter {
               List<BlockInfo> blockInfoList = ((InodeFile) inode).getBlockList();
               NetAddress workerAddress = mWorkers.get(workerId).getAddress();
               if (blockInfoList.size() <= blockIndex) {
-                throw new BlockInfoException("BlockInfo not found! blockIndex:" + blockIndex);
+                throw new BlockInfoException("MasterBlockInfo not found! blockIndex:" + blockIndex);
               } else {
                 BlockInfo blockInfo = blockInfoList.get(blockIndex);
                 blockInfo.addLocation(workerId, workerAddress, storageDirId);
