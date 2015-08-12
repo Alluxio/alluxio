@@ -18,7 +18,7 @@ package tachyon.master.next.filesystem.meta;
 import java.util.ArrayList;
 import java.util.List;
 
-import tachyon.master.next.block.meta.BlockId;
+import tachyon.master.block.BlockId;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.SuspectedFileSizeException;
