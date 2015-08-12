@@ -34,7 +34,7 @@ import tachyon.master.Dependency;
 import tachyon.master.next.Master;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.block.meta.BlockId;
-import tachyon.master.next.block.meta.BlockWorkerInfo;
+import tachyon.master.next.block.meta.MasterWorkerInfo;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
@@ -98,7 +98,7 @@ public class FileSystemMaster implements Master {
     LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
 
     if (workerId != -1) {
-      BlockWorkerInfo workerInfo = mBlockMaster.getWorkerInfo(workerId);
+      MasterWorkerInfo workerInfo = mBlockMaster.getWorkerInfo(workerId);
       workerInfo.updateLastUpdatedTimeMs();
     }
 

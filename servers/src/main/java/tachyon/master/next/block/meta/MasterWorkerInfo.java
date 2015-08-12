@@ -31,7 +31,7 @@ import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 
-public class BlockWorkerInfo {
+public class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Worker's address */
   public final NetAddress mWorkerAddress;
@@ -58,7 +58,7 @@ public class BlockWorkerInfo {
   /** IDs of blocks the worker should remove */
   private Set<Long> mToRemoveBlocks;
 
-  public BlockWorkerInfo(long id, NetAddress address) {
+  public MasterWorkerInfo(long id, NetAddress address) {
     mId = id;
     mWorkerAddress = address;
     mStartTimeMs = System.currentTimeMillis();
