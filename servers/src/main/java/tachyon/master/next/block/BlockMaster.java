@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
+import tachyon.master.next.IndexSet;
 import tachyon.master.next.Master;
 import tachyon.master.next.block.meta.BlockInfo;
 import tachyon.master.next.block.meta.BlockLocation;
@@ -46,23 +47,14 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Block metadata management.
-  private final Map<Long, BlockInfo> mBlocks;
-  private final BlockIdGenerator mBlockIdGenerator;
-  private final Set<Long> mLostBlocks;
+  private final Map<Long, BlockInfo> mBlocks = new HashMap<Long, BlockInfo>();
+  private final BlockIdGenerator mBlockIdGenerator = new BlockIdGenerator();
+  private final Set<Long> mLostBlocks = new HashSet<Long>();
 
   // Worker metadata management.
-  private final Map<Long, BlockWorkerInfo> mWorkers;
-  private final Map<NetAddress, Long> mAddressToWorkerId;
-  private final AtomicInteger mWorkerCounter;
-
-  public BlockMaster() {
-    mBlocks = new HashMap<Long, BlockInfo>();
-    mWorkers = new HashMap<Long, BlockWorkerInfo>();
-    mAddressToWorkerId = new HashMap<NetAddress, Long>();
-    mBlockIdGenerator = new BlockIdGenerator();
-    mWorkerCounter = new AtomicInteger(0);
-    mLostBlocks = new HashSet<Long>();
-  }
+  private final IndexSet<BlockWorkerInfo> mWorkers = new IndexSet<BlockWorkerInfo>("mId",
+      "mWorkerAddress");
+  private final AtomicInteger mWorkerCounter = new AtomicInteger(0);
 
   @Override
   public TProcessor getProcessor() {
@@ -77,7 +69,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   public BlockWorkerInfo getWorkerInfo(long workerId) {
     synchronized (mWorkers) {
-      return mWorkers.get(workerId);
+      return mWorkers.getSingle("mId", workerId);
     }
   }
 
@@ -89,7 +81,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public long getCapacityBytes() {
     long ret = 0;
     synchronized (mWorkers) {
-      for (BlockWorkerInfo worker : mWorkers.values()) {
+      for (BlockWorkerInfo worker : mWorkers.all()) {
         ret += worker.getCapacityBytes();
       }
     }
@@ -99,7 +91,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public long getUsedBytes() {
     long ret = 0;
     synchronized (mWorkers) {
-      for (BlockWorkerInfo worker : mWorkers.values()) {
+      for (BlockWorkerInfo worker : mWorkers.all()) {
         ret += worker.getUsedBytes();
       }
     }
@@ -160,7 +152,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         // "Join" to get all the addresses of the workers.
         List<UserBlockLocation> locations = new ArrayList<UserBlockLocation>();
         for (BlockLocation blockLocation : blockInfo.getBlockLocations()) {
-          BlockWorkerInfo workerInfo = mWorkers.get(blockLocation.mWorkerId);
+          BlockWorkerInfo workerInfo = getWorkerInfo(blockLocation.mWorkerId);
           if (workerInfo != null) {
             locations.add(new UserBlockLocation(blockLocation.mWorkerId, workerInfo.getAddress(),
                 blockLocation.mTier));
@@ -180,17 +172,16 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     LOG.info("registerWorker(): WorkerNetAddress: " + workerAddress);
 
     synchronized (mWorkers) {
-      if (mAddressToWorkerId.containsKey(workerAddress)) {
+      if (mWorkers.contains("mWorkerAddress", workerAddress)) {
         // This worker address is already mapped to a worker id.
-        long oldWorkerId = mAddressToWorkerId.get(workerAddress);
+        long oldWorkerId = mWorkers.getSingle("mWorkerAddress", workerAddress).getId();
         LOG.warn("The worker " + workerAddress + " already exists as id " + oldWorkerId + ".");
         return oldWorkerId;
       }
 
       // Generate a new worker id.
       long workerId = mWorkerCounter.incrementAndGet();
-      mAddressToWorkerId.put(workerAddress, workerId);
-      mWorkers.put(workerId, new BlockWorkerInfo(workerId, workerNetAddress));
+      mWorkers.add(new BlockWorkerInfo(workerId, workerNetAddress));
 
       return workerId;
     }
@@ -199,11 +190,11 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public long workerRegister(long workerId, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlockIds) {
     synchronized (mWorkers) {
-      if (!mWorkers.containsKey(workerId)) {
+      if (mWorkers.contains("mId", workerId)) {
         LOG.warn("Could not find worker id: " + workerId + " to register.");
         return 0;
       }
-      BlockWorkerInfo workerInfo = mWorkers.get(workerId);
+      BlockWorkerInfo workerInfo = getWorkerInfo(workerId);
       workerInfo.updateLastUpdatedTimeMs();
 
       // Gather all blocks on this worker.
@@ -225,11 +216,11 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds) {
     synchronized (mWorkers) {
-      if (!mWorkers.containsKey(workerId)) {
+      if (!mWorkers.contains("mId", workerId)) {
         LOG.warn("Could not find worker id: " + workerId + " for heartbeat.");
         return new Command(CommandType.Register, new ArrayList<Long>());
       }
-      BlockWorkerInfo workerInfo = mWorkers.get(workerId);
+      BlockWorkerInfo workerInfo = getWorkerInfo(workerId);
       processWorkerRemovedBlocks(workerInfo, removedBlockIds);
       processWorkerAddedBlocks(workerInfo, addedBlockIds);
 
