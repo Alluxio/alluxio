@@ -22,7 +22,6 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
-import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
@@ -39,7 +38,7 @@ import tachyon.security.authentication.AuthenticationProvider;
  * 3.Write a JCA provider that registers the factory
  */
 public class PlainSaslServer implements SaslServer {
-  private String mAuthcid;
+  private String mAuthzid;
   private boolean mCompleted;
   private CallbackHandler mHandler;
 
@@ -76,29 +75,31 @@ public class PlainSaslServer implements SaslServer {
         throw new IllegalArgumentException("Invalid message format, parts must contain 3 items");
       }
       String authzid = parts[0];
-      mAuthcid = parts[1];
+      String authcid = parts[1];
       String passwd = parts[2];
-      if (mAuthcid == null || mAuthcid.isEmpty()) {
+      if (authcid == null || authcid.isEmpty()) {
         throw new IllegalStateException("No authentication identity provided");
       }
       if (passwd == null || passwd.isEmpty()) {
         throw new IllegalStateException("No password provided");
       }
       if (authzid == null || authzid.isEmpty()) { // authzid = authcid
-        authzid = mAuthcid;
+        authzid = authcid;
       }
 
       NameCallback nameCallback = new NameCallback("User");
-      nameCallback.setName(mAuthcid);
+      nameCallback.setName(authcid);
       PasswordCallback passwordCallback = new PasswordCallback("Password", false);
       passwordCallback.setPassword(passwd.toCharArray());
-      AuthorizeCallback authCallback = new AuthorizeCallback(mAuthcid, authzid);
+      AuthorizeCallback authCallback = new AuthorizeCallback(authcid, authzid);
 
       Callback[] cbList = {nameCallback, passwordCallback, authCallback};
       mHandler.handle(cbList);
       if (!authCallback.isAuthorized()) {
         throw new SaslException("AuthorizeCallback authorized failure");
       }
+      mAuthzid = authCallback.getAuthorizedID();
+      RemoteClientUser.set(mAuthzid);
     } catch (Exception e) {
       throw new SaslException("Plain authentication failed: " + e.getMessage(), e);
     }
@@ -114,7 +115,7 @@ public class PlainSaslServer implements SaslServer {
   @Override
   public String getAuthorizationID() {
     throwIfNotComplete();
-    return mAuthcid;
+    return mAuthzid;
   }
 
   @Override
@@ -142,7 +143,7 @@ public class PlainSaslServer implements SaslServer {
 
     mCompleted = false;
     mHandler = null;
-    mAuthcid = null;
+    mAuthzid = null;
   }
 
   private void throwIfNotComplete() {
@@ -191,7 +192,6 @@ public class PlainSaslServer implements SaslServer {
 
       if (ac != null) {
         ac.setAuthorized(true);
-        RemoteClientUser.set(username);
       }
     }
   }
