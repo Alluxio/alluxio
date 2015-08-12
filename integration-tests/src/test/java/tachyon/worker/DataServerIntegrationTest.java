@@ -40,9 +40,9 @@ import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.network.protocol.RPCResponse;
-import tachyon.thrift.ClientBlockInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
@@ -148,7 +148,7 @@ public class DataServerIntegrationTest {
     final int length = 20;
     int fileId =
         TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    FileBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     DataServerMessage recvMsg = request(block, 0, length * -2);
     assertError(recvMsg, block.blockId);
   }
@@ -158,7 +158,7 @@ public class DataServerIntegrationTest {
     final int length = 20;
     int fileId =
         TachyonFSTestUtils.createByteFile(mTFS, "/multiReadTest", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    FileBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     for (int i = 0; i < 10; i ++) {
       DataServerMessage recvMsg = request(block);
       assertValid(recvMsg, length, block.getBlockId(), 0, length);
@@ -170,7 +170,7 @@ public class DataServerIntegrationTest {
     final int length = 10;
     int fileId =
         TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    FileBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     DataServerMessage recvMsg = request(block, length * -2, 1);
     assertError(recvMsg, block.blockId);
   }
@@ -180,19 +180,19 @@ public class DataServerIntegrationTest {
     final int length = WORKER_CAPACITY_BYTES / 2 + 1;
     int fileId1 =
         TachyonFSTestUtils.createByteFile(mTFS, "/readFile1", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block1 = mTFS.getFileBlocks(fileId1).get(0);
+    FileBlockInfo block1 = mTFS.getFileBlocks(fileId1).get(0);
     DataServerMessage recvMsg1 = request(block1);
     assertValid(recvMsg1, length, block1.getBlockId(), 0, length);
 
     int fileId2 =
         TachyonFSTestUtils.createByteFile(mTFS, "/readFile2", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block2 = mTFS.getFileBlocks(fileId2).get(0);
+    FileBlockInfo block2 = mTFS.getFileBlocks(fileId2).get(0);
     DataServerMessage recvMsg2 = request(block2);
     assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
 
     CommonUtils.sleepMs(null, mWorkerTachyonConf.getInt(
         Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS) * 2 + 10);
-    ClientFileInfo fileInfo = mTFS.getFileStatus(-1, new TachyonURI("/readFile1"));
+    FileInfo fileInfo = mTFS.getFileStatus(-1, new TachyonURI("/readFile1"));
     Assert.assertEquals(0, fileInfo.inMemoryPercentage);
   }
 
@@ -200,7 +200,7 @@ public class DataServerIntegrationTest {
   public void readPartialTest1() throws InvalidPathException, FileAlreadyExistException,
       IOException {
     int fileId = TachyonFSTestUtils.createByteFile(mTFS, "/testFile", WriteType.MUST_CACHE, 10);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    FileBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     final int offset = 0;
     final int length = 6;
     DataServerMessage recvMsg = request(block, offset, length);
@@ -211,7 +211,7 @@ public class DataServerIntegrationTest {
   public void readPartialTest2() throws InvalidPathException, FileAlreadyExistException,
       IOException {
     int fileId = TachyonFSTestUtils.createByteFile(mTFS, "/testFile", WriteType.MUST_CACHE, 10);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    FileBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     final int offset = 2;
     final int length = 6;
     DataServerMessage recvMsg = request(block, offset, length);
@@ -223,7 +223,7 @@ public class DataServerIntegrationTest {
   public void readTest() throws InvalidPathException, FileAlreadyExistException, IOException {
     final int length = 10;
     int fileId = TachyonFSTestUtils.createByteFile(mTFS, "/testFile", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    FileBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     DataServerMessage recvMsg = request(block);
     assertValid(recvMsg, length, block.getBlockId(), 0, length);
   }
@@ -233,7 +233,7 @@ public class DataServerIntegrationTest {
       throws InvalidPathException, FileAlreadyExistException, IOException {
     final int length = 10;
     int fileId = TachyonFSTestUtils.createByteFile(mTFS, "/testFile", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    FileBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
 
     RemoteBlockReader client =
         RemoteBlockReader.Factory.createRemoteBlockReader(mWorkerTachyonConf);
@@ -249,12 +249,12 @@ public class DataServerIntegrationTest {
       throws InvalidPathException, FileAlreadyExistException, IOException {
     final int length = 10;
     int fileId = TachyonFSTestUtils.createByteFile(mTFS, "/testFile", WriteType.MUST_CACHE, length);
-    List<ClientBlockInfo> blocks = mTFS.getFileBlocks(fileId);
-    ClientBlockInfo block = blocks.get(0);
+    List<FileBlockInfo> blocks = mTFS.getFileBlocks(fileId);
+    FileBlockInfo block = blocks.get(0);
 
     // Get the maximum block id, for use in determining a non-existent block id.
     long maxBlockId = block.getBlockId();
-    for (ClientBlockInfo b : blocks) {
+    for (FileBlockInfo b : blocks) {
       if (b.getBlockId() > maxBlockId) {
         maxBlockId = b.getBlockId();
       }
@@ -273,7 +273,7 @@ public class DataServerIntegrationTest {
     final int length = 20;
     int fileId =
         TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    FileBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     DataServerMessage recvMsg = request(block, 0, length * 2);
     assertError(recvMsg, block.blockId);
   }
@@ -281,7 +281,7 @@ public class DataServerIntegrationTest {
   /**
    * Requests a block from the server. This call will read the full block.
    */
-  private DataServerMessage request(final ClientBlockInfo block) throws IOException {
+  private DataServerMessage request(final FileBlockInfo block) throws IOException {
     return request(block, 0, -1);
   }
 
@@ -289,7 +289,7 @@ public class DataServerIntegrationTest {
    * Create a new socket to the data port and send a block request. The returned value is the
    * response from the server.
    */
-  private DataServerMessage request(final ClientBlockInfo block, final long offset,
+  private DataServerMessage request(final FileBlockInfo block, final long offset,
       final long length) throws IOException {
     DataServerMessage sendMsg =
         DataServerMessage.createBlockRequestMessage(block.blockId, offset, length);
@@ -319,7 +319,7 @@ public class DataServerIntegrationTest {
     final int length = 10;
     int fileId =
         TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    FileBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     DataServerMessage recvMsg = request(block, length * 2, 1);
     assertError(recvMsg, block.blockId);
   }

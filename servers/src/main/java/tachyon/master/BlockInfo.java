@@ -16,7 +16,6 @@
 package tachyon.master;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,10 +27,9 @@ import tachyon.Pair;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
-import tachyon.underfs.UnderFileSystem;
-import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.util.network.NetworkAddressUtils;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * Block info on the master side.
@@ -114,8 +112,8 @@ public class BlockInfo {
    *
    * @return the generated ClientBlockInfo
    */
-  public synchronized ClientBlockInfo generateClientBlockInfo(TachyonConf tachyonConf) {
-    ClientBlockInfo ret = new ClientBlockInfo();
+  public synchronized FileBlockInfo generateClientBlockInfo(TachyonConf tachyonConf) {
+    FileBlockInfo ret = new FileBlockInfo();
 
     ret.blockId = mBlockId;
     ret.offset = mOffset;

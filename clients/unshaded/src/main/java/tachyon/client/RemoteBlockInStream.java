@@ -15,8 +15,8 @@
 
 package tachyon.client;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.network.NetworkAddressUtils;
@@ -39,7 +39,7 @@ public class RemoteBlockInStream extends BlockInStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The block info of the block we are reading */
-  private ClientBlockInfo mBlockInfo;
+  private FileBlockInfo mBlockInfo;
   /**
    * An input stream for the checkpointed copy of the block. If we are ever unable to read part of
    * the block from the workers, we use this checkpoint stream
@@ -164,7 +164,7 @@ public class RemoteBlockInStream extends BlockInStream {
    * when we close the dummy stream.)
    * 
    * <p>
-   * See {@link tachyon.client.TachyonFile#readRemoteByteBuffer(ClientBlockInfo)} for usage.
+   * See {@link tachyon.client.TachyonFile#readRemoteByteBuffer(FileBlockInfo)} for usage.
    * 
    * @return a dummy RemoteBlockInStream object.
    */
@@ -296,7 +296,7 @@ public class RemoteBlockInStream extends BlockInStream {
     return len;
   }
 
-  public ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, ClientBlockInfo blockInfo,
+  public ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, FileBlockInfo blockInfo,
       long offset, long len, TachyonConf conf) {
     ByteBuffer buf = null;
 

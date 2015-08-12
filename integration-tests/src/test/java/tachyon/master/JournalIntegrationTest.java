@@ -33,7 +33,7 @@ import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.underfs.UnderFileSystem;
@@ -64,7 +64,7 @@ public class JournalIntegrationTest {
       os.write(k);
     }
     os.close();
-    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(uri);
+    FileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(uri);
     mLocalTachyonCluster.stopTFS();
     AddBlockTestUtil(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
@@ -72,7 +72,7 @@ public class JournalIntegrationTest {
     AddBlockTestUtil(fInfo);
   }
 
-  private void AddBlockTestUtil(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
+  private void AddBlockTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
     String masterJournal =
         mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, Constants.DEFAULT_JOURNAL_FOLDER);
@@ -98,10 +98,10 @@ public class JournalIntegrationTest {
   @Test
   public void AddCheckpointTest() throws Exception {
     TachyonFSTestUtils.createByteFile(mTfs, "/xyz", WriteType.THROUGH, 10);
-    ClientFileInfo fInfo =
+    FileInfo fInfo =
         mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
     mTfs.createFile(new TachyonURI("/xyz_ck"), new TachyonURI(fInfo.getUfsPath()));
-    ClientFileInfo ckFileInfo =
+    FileInfo ckFileInfo =
         mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz_ck"));
     mLocalTachyonCluster.stopTFS();
     AddCheckpointTestUtil(fInfo, ckFileInfo);
@@ -110,7 +110,7 @@ public class JournalIntegrationTest {
     AddCheckpointTestUtil(fInfo, ckFileInfo);
   }
 
-  private void AddCheckpointTestUtil(ClientFileInfo fileInfo, ClientFileInfo ckFileInfo)
+  private void AddCheckpointTestUtil(FileInfo fileInfo, FileInfo ckFileInfo)
       throws IOException, InvalidPathException, FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
@@ -277,7 +277,7 @@ public class JournalIntegrationTest {
   @Test
   public void FileTest() throws Exception {
     mTfs.createFile(new TachyonURI("/xyz"), 64);
-    ClientFileInfo fInfo =
+    FileInfo fInfo =
         mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
     mLocalTachyonCluster.stopTFS();
     FileTestUtil(fInfo);
@@ -286,7 +286,7 @@ public class JournalIntegrationTest {
     FileTestUtil(fInfo);
   }
 
-  private void FileTestUtil(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
+  private void FileTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
@@ -312,9 +312,9 @@ public class JournalIntegrationTest {
     int file0Id = mTfs.createFile(new TachyonURI("/myFolder/file0"), 64);
     mTfs.setPinned(file0Id, false);
     int file1Id = mTfs.createFile(new TachyonURI("/myFolder/file1"), 64);
-    ClientFileInfo folderInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(folderId);
-    ClientFileInfo file0Info = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(file0Id);
-    ClientFileInfo file1Info = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(file1Id);
+    FileInfo folderInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(folderId);
+    FileInfo file0Info = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(file0Id);
+    FileInfo file1Info = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(file1Id);
     mLocalTachyonCluster.stopTFS();
     PinTestUtil(folderInfo, file0Info, file1Info);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
@@ -322,7 +322,7 @@ public class JournalIntegrationTest {
     PinTestUtil(folderInfo, file0Info, file1Info);
   }
 
-  private void PinTestUtil(ClientFileInfo folder, ClientFileInfo file0, ClientFileInfo file1)
+  private void PinTestUtil(FileInfo folder, FileInfo file0, FileInfo file1)
       throws IOException, InvalidPathException, FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);
@@ -353,7 +353,7 @@ public class JournalIntegrationTest {
   @Test
   public void FolderTest() throws Exception {
     mTfs.mkdir(new TachyonURI("/xyz"));
-    ClientFileInfo fInfo =
+    FileInfo fInfo =
         mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
     mLocalTachyonCluster.stopTFS();
     FolderTest(fInfo);
@@ -362,7 +362,7 @@ public class JournalIntegrationTest {
     FolderTest(fInfo);
   }
 
-  private void FolderTest(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
+  private void FolderTest(FileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
     String masterJournal =
         mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, Constants.DEFAULT_JOURNAL_FOLDER);
@@ -543,7 +543,7 @@ public class JournalIntegrationTest {
   @Test
   public void TableTest() throws Exception {
     mTfs.createRawTable(new TachyonURI("/xyz"), 10);
-    ClientFileInfo fInfo =
+    FileInfo fInfo =
         mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
     mLocalTachyonCluster.stopTFS();
     TableTest(fInfo);
@@ -552,7 +552,7 @@ public class JournalIntegrationTest {
     TableTest(fInfo);
   }
 
-  private void TableTest(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
+  private void TableTest(FileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
     String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
         Constants.DEFAULT_JOURNAL_FOLDER);

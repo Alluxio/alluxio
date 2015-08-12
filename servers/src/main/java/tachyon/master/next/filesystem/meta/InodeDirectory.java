@@ -16,9 +16,7 @@
 package tachyon.master.next.filesystem.meta;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -28,7 +26,7 @@ import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
 import tachyon.master.next.IndexSet;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 
 /**
  * Tachyon file system's folder representation in master.
@@ -74,11 +72,11 @@ public class InodeDirectory extends Inode {
    * Generates client file info for the folder.
    *
    * @param path The path of the folder in the filesystem
-   * @return the generated ClientFileInfo
+   * @return the generated FileInfo
    */
   @Override
-  public ClientFileInfo generateClientFileInfo(String path) {
-    ClientFileInfo ret = new ClientFileInfo();
+  public FileInfo generateClientFileInfo(String path) {
+    FileInfo ret = new FileInfo();
 
     // TODO: change id to long.
     ret.id = (int) getId();

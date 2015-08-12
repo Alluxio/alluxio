@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import tachyon.TachyonURI;
 import tachyon.master.MasterInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 
 /**
@@ -61,7 +61,7 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
     List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(inMemoryFiles.size());
     for (TachyonURI file : inMemoryFiles) {
       try {
-        ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(file);
+        FileInfo fileInfo = mMasterInfo.getClientFileInfo(file);
         if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
           fileInfos.add(new UiFileInfo(fileInfo));
         }

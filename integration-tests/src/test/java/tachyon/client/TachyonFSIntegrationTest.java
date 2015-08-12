@@ -30,7 +30,7 @@ import tachyon.TachyonURI;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
@@ -224,7 +224,7 @@ public class TachyonFSIntegrationTest {
     TachyonFile file = sTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
     Assert.assertTrue(sTfs.exist(uri));
-    ClientFileInfo fileInfo = sTfs.getFileStatus(fileId, false);
+    FileInfo fileInfo = sTfs.getFileStatus(fileId, false);
     Assert.assertTrue(fileInfo.getPath().equals(uniqPath));
   }
 
@@ -237,10 +237,10 @@ public class TachyonFSIntegrationTest {
     TachyonFile file = sTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
     Assert.assertTrue(sTfs.exist(uri));
-    ClientFileInfo fileInfo = sTfs.getFileStatus(fileId, false);
+    FileInfo fileInfo = sTfs.getFileStatus(fileId, false);
     Assert.assertTrue(fileInfo.getPath().equals(uniqPath));
-    ClientFileInfo fileInfoCached = sTfs.getFileStatus(fileId, true);
-    ClientFileInfo fileInfoNotCached = sTfs.getFileStatus(fileId, false);
+    FileInfo fileInfoCached = sTfs.getFileStatus(fileId, true);
+    FileInfo fileInfoNotCached = sTfs.getFileStatus(fileId, false);
     Assert.assertTrue(fileInfo == fileInfoCached);
     Assert.assertFalse(fileInfo == fileInfoNotCached);
   }
