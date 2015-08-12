@@ -31,7 +31,7 @@ import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
@@ -178,7 +178,7 @@ public class TachyonFSIntegrationTest {
   @Test
   public void deleteFileTest() throws IOException {
     String uniqPath = PathUtils.uniqPath();
-    List<ClientWorkerInfo> workers = sTfs.getWorkersInfo();
+    List<WorkerInfo> workers = sTfs.getWorkersInfo();
     Assert.assertEquals(1, workers.size());
     Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;

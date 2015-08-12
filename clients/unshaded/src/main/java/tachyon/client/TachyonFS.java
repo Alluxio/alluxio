@@ -41,7 +41,7 @@ import tachyon.master.MasterClient;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.ThreadFactoryUtils;
@@ -725,7 +725,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return all the works' info
    * @throws IOException
    */
-  public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
+  public synchronized List<WorkerInfo> getWorkersInfo() throws IOException {
     return mMasterClient.getWorkersInfo();
   }
 

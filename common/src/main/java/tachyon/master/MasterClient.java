@@ -51,7 +51,7 @@ import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -316,7 +316,7 @@ public final class MasterClient implements Closeable {
    * @return A list of worker info returned by master
    * @throws IOException
    */
-  public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
+  public synchronized List<WorkerInfo> getWorkersInfo() throws IOException {
     while (!mIsClosed) {
       connect();
 

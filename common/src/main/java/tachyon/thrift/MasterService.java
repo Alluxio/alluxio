@@ -41,7 +41,7 @@ public class MasterService {
 
     public boolean addCheckpoint(long workerId, int fileId, long length, String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException;
 
-    public List<ClientWorkerInfo> getWorkersInfo() throws org.apache.thrift.TException;
+    public List<WorkerInfo> getWorkersInfo() throws org.apache.thrift.TException;
 
     public List<FileInfo> liststatus(String path) throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException;
 
@@ -309,7 +309,7 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "addCheckpoint failed: unknown result");
     }
 
-    public List<ClientWorkerInfo> getWorkersInfo() throws org.apache.thrift.TException
+    public List<WorkerInfo> getWorkersInfo() throws org.apache.thrift.TException
     {
       send_getWorkersInfo();
       return recv_getWorkersInfo();
@@ -321,7 +321,7 @@ public class MasterService {
       sendBase("getWorkersInfo", args);
     }
 
-    public List<ClientWorkerInfo> recv_getWorkersInfo() throws org.apache.thrift.TException
+    public List<WorkerInfo> recv_getWorkersInfo() throws org.apache.thrift.TException
     {
       getWorkersInfo_result result = new getWorkersInfo_result();
       receiveBase(result, "getWorkersInfo");
@@ -1292,7 +1292,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public List<ClientWorkerInfo> getResult() throws org.apache.thrift.TException {
+      public List<WorkerInfo> getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -3429,7 +3429,7 @@ public class MasterService {
       }
     }
 
-    public static class getWorkersInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getWorkersInfo_args, List<ClientWorkerInfo>> {
+    public static class getWorkersInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getWorkersInfo_args, List<WorkerInfo>> {
       public getWorkersInfo() {
         super("getWorkersInfo");
       }
@@ -3438,10 +3438,10 @@ public class MasterService {
         return new getWorkersInfo_args();
       }
 
-      public AsyncMethodCallback<List<ClientWorkerInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<List<WorkerInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<List<ClientWorkerInfo>>() { 
-          public void onComplete(List<ClientWorkerInfo> o) {
+        return new AsyncMethodCallback<List<WorkerInfo>>() { 
+          public void onComplete(List<WorkerInfo> o) {
             getWorkersInfo_result result = new getWorkersInfo_result();
             result.success = o;
             try {
@@ -3475,7 +3475,7 @@ public class MasterService {
         return false;
       }
 
-      public void start(I iface, getWorkersInfo_args args, org.apache.thrift.async.AsyncMethodCallback<List<ClientWorkerInfo>> resultHandler) throws TException {
+      public void start(I iface, getWorkersInfo_args args, org.apache.thrift.async.AsyncMethodCallback<List<WorkerInfo>> resultHandler) throws TException {
         iface.getWorkersInfo(resultHandler);
       }
     }
@@ -6979,7 +6979,7 @@ public class MasterService {
       schemes.put(TupleScheme.class, new getWorkersInfo_resultTupleSchemeFactory());
     }
 
-    public List<ClientWorkerInfo> success; // required
+    public List<WorkerInfo> success; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -7045,7 +7045,7 @@ public class MasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientWorkerInfo.class))));
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, WorkerInfo.class))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getWorkersInfo_result.class, metaDataMap);
     }
@@ -7054,7 +7054,7 @@ public class MasterService {
     }
 
     public getWorkersInfo_result(
-      List<ClientWorkerInfo> success)
+      List<WorkerInfo> success)
     {
       this();
       this.success = success;
@@ -7065,9 +7065,9 @@ public class MasterService {
      */
     public getWorkersInfo_result(getWorkersInfo_result other) {
       if (other.isSetSuccess()) {
-        List<ClientWorkerInfo> __this__success = new ArrayList<ClientWorkerInfo>(other.success.size());
-        for (ClientWorkerInfo other_element : other.success) {
-          __this__success.add(new ClientWorkerInfo(other_element));
+        List<WorkerInfo> __this__success = new ArrayList<WorkerInfo>(other.success.size());
+        for (WorkerInfo other_element : other.success) {
+          __this__success.add(new WorkerInfo(other_element));
         }
         this.success = __this__success;
       }
@@ -7086,22 +7086,22 @@ public class MasterService {
       return (this.success == null) ? 0 : this.success.size();
     }
 
-    public java.util.Iterator<ClientWorkerInfo> getSuccessIterator() {
+    public java.util.Iterator<WorkerInfo> getSuccessIterator() {
       return (this.success == null) ? null : this.success.iterator();
     }
 
-    public void addToSuccess(ClientWorkerInfo elem) {
+    public void addToSuccess(WorkerInfo elem) {
       if (this.success == null) {
-        this.success = new ArrayList<ClientWorkerInfo>();
+        this.success = new ArrayList<WorkerInfo>();
       }
       this.success.add(elem);
     }
 
-    public List<ClientWorkerInfo> getSuccess() {
+    public List<WorkerInfo> getSuccess() {
       return this.success;
     }
 
-    public getWorkersInfo_result setSuccess(List<ClientWorkerInfo> success) {
+    public getWorkersInfo_result setSuccess(List<WorkerInfo> success) {
       this.success = success;
       return this;
     }
@@ -7127,7 +7127,7 @@ public class MasterService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((List<ClientWorkerInfo>)value);
+          setSuccess((List<WorkerInfo>)value);
         }
         break;
 
@@ -7285,11 +7285,11 @@ public class MasterService {
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
                   org.apache.thrift.protocol.TList _list48 = iprot.readListBegin();
-                  struct.success = new ArrayList<ClientWorkerInfo>(_list48.size);
-                  ClientWorkerInfo _elem49;
+                  struct.success = new ArrayList<WorkerInfo>(_list48.size);
+                  WorkerInfo _elem49;
                   for (int _i50 = 0; _i50 < _list48.size; ++_i50)
                   {
-                    _elem49 = new ClientWorkerInfo();
+                    _elem49 = new WorkerInfo();
                     _elem49.read(iprot);
                     struct.success.add(_elem49);
                   }
@@ -7319,7 +7319,7 @@ public class MasterService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (ClientWorkerInfo _iter51 : struct.success)
+            for (WorkerInfo _iter51 : struct.success)
             {
               _iter51.write(oprot);
             }
@@ -7352,7 +7352,7 @@ public class MasterService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (ClientWorkerInfo _iter52 : struct.success)
+            for (WorkerInfo _iter52 : struct.success)
             {
               _iter52.write(oprot);
             }
@@ -7367,11 +7367,11 @@ public class MasterService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TList _list53 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<ClientWorkerInfo>(_list53.size);
-            ClientWorkerInfo _elem54;
+            struct.success = new ArrayList<WorkerInfo>(_list53.size);
+            WorkerInfo _elem54;
             for (int _i55 = 0; _i55 < _list53.size; ++_i55)
             {
-              _elem54 = new ClientWorkerInfo();
+              _elem54 = new WorkerInfo();
               _elem54.read(iprot);
               struct.success.add(_elem54);
             }

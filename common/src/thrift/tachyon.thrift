@@ -18,7 +18,7 @@ struct FileBlockInfo {
   4: list<NetAddress> locations
 }
 
-struct ClientWorkerInfo {
+struct WorkerInfo {
   1: i64 id
   2: NetAddress address
   3: i32 lastContactSec
@@ -127,7 +127,7 @@ service MasterService {
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: BlockInfoException eB)
 
-  list<ClientWorkerInfo> getWorkersInfo()
+  list<WorkerInfo> getWorkersInfo()
 
   list<FileInfo> liststatus(1: string path)
     throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
