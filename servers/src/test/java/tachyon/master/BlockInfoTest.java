@@ -29,7 +29,7 @@ import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
 
 /**
- * Unit tests for tachyon.BlockInfo.
+ * Unit tests for tachyon.MasterBlockInfo.
  */
 public class BlockInfoTest {
   private TachyonConf mTachyonConf;

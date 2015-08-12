@@ -5,17 +5,11 @@ namespace java tachyon.thrift
 // Version 2: 0.5.0
 // Version 1: before 0.5.0
 
+// Information about workers.
 struct NetAddress {
   1: string mHost
   2: i32 mPort
   3: i32 mSecondaryPort
-}
-
-struct FileBlockInfo {
-  1: i64 blockId
-  2: i64 offset
-  3: i64 length
-  4: list<NetAddress> locations
 }
 
 struct WorkerInfo {
@@ -26,6 +20,27 @@ struct WorkerInfo {
   5: i64 capacityBytes
   6: i64 usedBytes
   7: i64 starttimeMs
+}
+
+// Information about blocks.
+struct BlockLocation {
+  1: i64 workerId
+  2: NetAddress workerAddress
+  3: i32 tier
+}
+
+struct BlockInfo {
+  1: i64 blockId
+  2: i64 length
+  3: list<BlockLocation> locations
+}
+
+// Information about files.
+struct FileBlockInfo {
+  1: i64 blockId
+  2: i64 offset
+  3: i64 length
+  4: list<NetAddress> locations
 }
 
 struct FileInfo {
@@ -46,6 +61,7 @@ struct FileInfo {
   15: i64 lastModificationTimeMs
 }
 
+// Information about lineage.
 struct DependencyInfo {
   1: i32 id
   2: list<i32> parents
@@ -53,6 +69,7 @@ struct DependencyInfo {
   4: list<binary> data
 }
 
+// Information about raw tables.
 struct RawTableInfo {
   1: i32 id
   2: string name

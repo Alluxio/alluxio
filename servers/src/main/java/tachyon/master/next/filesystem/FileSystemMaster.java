@@ -35,20 +35,20 @@ import tachyon.master.next.Master;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.block.meta.BlockId;
 import tachyon.master.next.block.meta.BlockWorkerInfo;
-import tachyon.master.next.block.meta.UserBlockInfo;
-import tachyon.master.next.block.meta.UserBlockLocation;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
+import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.DependencyInfo;
-import tachyon.thrift.FileInfo;
+import tachyon.thrift.BlockLocation;
 import tachyon.thrift.DependencyDoesNotExistException;
+import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -358,35 +358,35 @@ public class FileSystemMaster implements Master {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
       InodeFile tFile = (InodeFile) inode;
-      List<UserBlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(tFile.getBlockIds());
+      List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(tFile.getBlockIds());
       List<FileBlockInfo> ret = new ArrayList<FileBlockInfo>();
 
-      for (UserBlockInfo blockInfo : blockInfoList) {
+      for (BlockInfo blockInfo : blockInfoList) {
         // Construct an file block info object to return.
-        FileBlockInfo clientBlockInfo = new FileBlockInfo();
+        FileBlockInfo fileBlockInfo = new FileBlockInfo();
 
-        clientBlockInfo.blockId = blockInfo.mBlockId;
-        clientBlockInfo.length = blockInfo.mLength;
+        fileBlockInfo.blockId = blockInfo.blockId;
+        fileBlockInfo.length = blockInfo.length;
         // TODO: change ClientBlockInfo to return the richer worker location info.
         List<NetAddress> addressList = new ArrayList<NetAddress>();
-        for (UserBlockLocation blockLocation : blockInfo.mLocations) {
-          addressList.add(blockLocation.mAddress);
+        for (BlockLocation blockLocation : blockInfo.locations) {
+          addressList.add(blockLocation.workerAddress);
         }
-        clientBlockInfo.locations = addressList;
+        fileBlockInfo.locations = addressList;
 
         // The sequence number part of the block id is the offset.
-        clientBlockInfo.offset =
-            tFile.getBlockSizeByte() * BlockId.getSequenceNumber(blockInfo.mBlockId);
+        fileBlockInfo.offset =
+            tFile.getBlockSizeByte() * BlockId.getSequenceNumber(blockInfo.blockId);
 
-        if (clientBlockInfo.locations.isEmpty() && tFile.hasCheckpointed()) {
+        if (fileBlockInfo.locations.isEmpty() && tFile.hasCheckpointed()) {
           // No tachyon locations, but there is a checkpoint in the under storage system. Add the
           // locations from the under storage system.
           UnderFileSystem ufs = UnderFileSystem.get(tFile.getUfsPath(), mTachyonConf);
           List<String> locs = null;
           try {
-            locs = ufs.getFileLocations(tFile.getUfsPath(), clientBlockInfo.offset);
+            locs = ufs.getFileLocations(tFile.getUfsPath(), fileBlockInfo.offset);
           } catch (IOException e) {
-            ret.add(clientBlockInfo);
+            ret.add(fileBlockInfo);
             continue;
           }
           if (locs != null) {
@@ -403,11 +403,11 @@ public class FileSystemMaster implements Master {
                 continue;
               }
               // The resolved port is the data transfer port not the rpc port
-              clientBlockInfo.locations.add(new NetAddress(resolvedHost, -1, resolvedPort));
+              fileBlockInfo.locations.add(new NetAddress(resolvedHost, -1, resolvedPort));
             }
           }
         }
-        ret.add(clientBlockInfo);
+        ret.add(fileBlockInfo);
       }
 
       LOG.debug("getFileLocations: {} {}", fileId, ret);
