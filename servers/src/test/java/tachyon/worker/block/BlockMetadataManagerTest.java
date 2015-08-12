@@ -33,6 +33,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
@@ -55,7 +56,7 @@ public class BlockMetadataManagerTest {
 
   @Before
   public void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = WorkerContext.getConf();
     // Setup a two-tier storage
     mTachyonHome = mFolder.newFolder().getAbsolutePath();;
     tachyonConf.set(Constants.TACHYON_HOME, mTachyonHome);
@@ -71,8 +72,7 @@ public class BlockMetadataManagerTest {
         mTachyonHome + "/disk1," + mTachyonHome + "/disk2");
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
         3000 + "," + 5000);
-
-    mMetaManager = BlockMetadataManager.newBlockMetadataManager(tachyonConf);
+    mMetaManager = BlockMetadataManager.newBlockMetadataManager();
   }
 
   @Test

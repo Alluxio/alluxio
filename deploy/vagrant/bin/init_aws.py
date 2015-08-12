@@ -17,26 +17,32 @@ import yaml
 from util import info, warn, error
 
 
-def get_or_make_group(conn, name):
-    groups = conn.get_all_security_groups()
-    group = [g for g in groups if g.name == name]
-    if len(group) > 0:
-        return group[0]
+def get_or_make_group(conn, name, vpc=None):
+    groups = [g for g in conn.get_all_security_groups() if (g.name == name)]
+    if (vpc == ''):
+        vpc = None
+    if (vpc is not None):
+        groups = [g for g in groups if (g.vpc_id == vpc)]
+    if len(groups) > 0:
+        return groups[0]
     else:
         info("Creating security group {name} in {region}".format(name=name, region=conn.region))
-        return conn.create_security_group(name, "Auto created by Tachyon deploy")
+        group = conn.create_security_group(name, "Auto created by Tachyon deploy", vpc)
+        info("Created security group ID {id}".format(id=group.id))
+        return group
 
 
-def set_security_group(conn, name):
+def set_security_group(conn, name, vpc=None):
     info("Setting up security group {} in {}".format(name, conn.region))
-    sg = get_or_make_group(conn, name)
+    sg = get_or_make_group(conn, name, vpc)
     if sg.rules != []:
         warn('security group {} in {} already has rules, no modification will happen then'.format(name, conn.region))
-        return
+        return sg.id
     proto = ['tcp', 'udp']
     authorized_ip = '0.0.0.0/0' # all IP
     for p in proto:
         sg.authorize(p, 0, 65535, authorized_ip)
+    return sg.id
 
 
 def get_aws_secret():
@@ -81,8 +87,9 @@ def configure_aws():
     gen_boto_config(access_key, secret_key)
 
     conn = get_conn()
-    set_security_group(conn, get_ec2_conf()['Security_Group'])
+    ec2conf = get_ec2_conf()
+    return set_security_group(conn, ec2conf['Security_Group'], ec2conf.get('VPC', None))
 
 
 if __name__ == '__main__':
-    configure_aws()
+    print configure_aws()

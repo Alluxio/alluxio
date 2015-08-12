@@ -428,7 +428,7 @@ public class RemoteBlockInStream extends BlockInStream {
    */
   private boolean updateCurrentBuffer() throws IOException {
     long bufferSize =
-        mTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, 8 * Constants.MB);
+        mTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE);
     if (mCurrentBuffer != null && mBufferStartPos <= mBlockPos
         && mBlockPos < Math.min(mBufferStartPos + bufferSize, mBlockInfo.length)) {
       // We move the buffer to read at mBlockPos

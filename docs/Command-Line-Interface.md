@@ -68,6 +68,11 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>Get number of bytes used in the TachyonFS.</td>
   </tr>
   <tr>
+    <td>load</td>
+    <td>load "path"</td>
+    <td>Loads a file or a directory in TachyonFS into memory.</td>
+  </tr>
+  <tr>
     <td>location</td>
     <td>location "path"</td>
     <td>Displays a list of hosts that have the file data.</td>

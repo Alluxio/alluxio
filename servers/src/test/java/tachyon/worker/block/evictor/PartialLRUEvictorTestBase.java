@@ -15,54 +15,21 @@
 
 package tachyon.worker.block.evictor;
 
-import java.io.File;
-import java.util.Collections;
-
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
-import tachyon.Constants;
-import tachyon.conf.TachyonConf;
-import tachyon.worker.block.BlockMetadataManager;
-import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
-import tachyon.worker.block.meta.StorageDir;
 
 /**
  * Sanity check on specific behavior of PartialLRUEvictor such as evicting/moving least recently
  * used blocks in StorageDir with max free space and cascading ParitialLRU eviction.
  */
-public class PartialLRUEvictorTest {
-  private static final long USER_ID = 2;
-  private static final long BLOCK_ID = 10;
-
-  private BlockMetadataManager mMetaManager;
-  private BlockMetadataManagerView mManagerView;
-  private Evictor mEvictor;
-
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
-
+public class PartialLRUEvictorTestBase extends EvictorTestBase {
   @Before
   public final void before() throws Exception {
-    File tempFolder = mTestFolder.newFolder();
-    mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
-            Collections.<Long>emptySet());
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, PartialLRUEvictor.class.getName());
-    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
-  }
-
-  private void cache(long userId, long blockId, long bytes, int tierLevel, int dirIdx)
-      throws Exception {
-    StorageDir dir = mMetaManager.getTiers().get(tierLevel).getDir(dirIdx);
-    TieredBlockStoreTestUtils.cache(userId, blockId, bytes, dir, mMetaManager, mEvictor);
+    init(PartialLRUEvictor.class.getName());
   }
 
   @Test
