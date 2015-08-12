@@ -70,7 +70,6 @@ public class PlainClientCallbackHandlerTest {
     validateCallbacks(user, password, callbacks);
   }
 
-
   @Test
   public void nullPasswordCallbackTest() throws Exception {
 
@@ -89,6 +88,9 @@ public class PlainClientCallbackHandlerTest {
 
   @Test
   public void nullCallbackTest() throws Exception {
+
+    mThrown.expect(UnsupportedCallbackException.class);
+    mThrown.expectMessage(null + " is unsupported.");
 
     Callback[] callbacks = new Callback[3];
     callbacks[0] = new NameCallback("Username:");

@@ -23,6 +23,7 @@ import javax.security.sasl.SaslException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
@@ -48,6 +49,7 @@ public class AuthenticationFactoryTest {
   TachyonConf mTachyonConf = new TachyonConf();
   InetSocketAddress mServerAddress = new InetSocketAddress("localhost",
       Constants.DEFAULT_MASTER_PORT);
+  TSocket mServerTSocket = AuthenticationFactory.createTSocket(mServerAddress);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -122,8 +124,7 @@ public class AuthenticationFactoryTest {
 
     // when connecting, authentication happens. It is a no-op in Simple mode.
     TTransport client =
-        PlainSaslHelper.getPlainClientTransport("anyone", "whatever",
-            AuthenticationFactory.createTSocket(mServerAddress));
+        PlainSaslHelper.getPlainClientTransport("anyone", "whatever", mServerTSocket);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -142,9 +143,7 @@ public class AuthenticationFactoryTest {
     // check case that user is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    TTransport client =
-        PlainSaslHelper.getPlainClientTransport(null, "whatever",
-            AuthenticationFactory.createTSocket(mServerAddress));
+    TTransport client = PlainSaslHelper.getPlainClientTransport(null, "whatever", mServerTSocket);
   }
 
   /**
@@ -157,9 +156,7 @@ public class AuthenticationFactoryTest {
     // check case that password is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    TTransport client =
-        PlainSaslHelper.getPlainClientTransport("anyone", null,
-            AuthenticationFactory.createTSocket(mServerAddress));
+    TTransport client = PlainSaslHelper.getPlainClientTransport("anyone", null, mServerTSocket);
   }
 
   /**
@@ -176,9 +173,7 @@ public class AuthenticationFactoryTest {
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
         + " identity provided");
-    TTransport client =
-        PlainSaslHelper.getPlainClientTransport("", "whatever",
-            AuthenticationFactory.createTSocket(mServerAddress));
+    TTransport client = PlainSaslHelper.getPlainClientTransport("", "whatever", mServerTSocket);
     try {
       client.open();
     } finally {
@@ -202,9 +197,7 @@ public class AuthenticationFactoryTest {
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No password "
         + "provided");
-    TTransport client =
-        PlainSaslHelper.getPlainClientTransport("anyone", "",
-            AuthenticationFactory.createTSocket(mServerAddress));
+    TTransport client = PlainSaslHelper.getPlainClientTransport("anyone", "", mServerTSocket);
     try {
       client.open();
     } finally {
@@ -228,8 +221,7 @@ public class AuthenticationFactoryTest {
 
     // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
     TTransport client =
-        PlainSaslHelper.getPlainClientTransport("tachyon", "correct-password",
-            AuthenticationFactory.createTSocket(mServerAddress));
+        PlainSaslHelper.getPlainClientTransport("tachyon", "correct-password", mServerTSocket);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -253,8 +245,7 @@ public class AuthenticationFactoryTest {
 
     // User with wrong password can not pass auth, and throw exception.
     TTransport wrongClient =
-        PlainSaslHelper.getPlainClientTransport("tachyon", "wrong-password",
-            AuthenticationFactory.createTSocket(mServerAddress));
+        PlainSaslHelper.getPlainClientTransport("tachyon", "wrong-password", mServerTSocket);
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: "
         + "User authentication fails");
@@ -276,8 +267,7 @@ public class AuthenticationFactoryTest {
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     TTransport client =
-        PlainSaslHelper.getPlainClientTransport(null, "correct-password",
-            AuthenticationFactory.createTSocket(mServerAddress));
+        PlainSaslHelper.getPlainClientTransport(null, "correct-password", mServerTSocket);
   }
 
   /**
@@ -290,9 +280,7 @@ public class AuthenticationFactoryTest {
     // check case that password is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    TTransport client =
-        PlainSaslHelper.getPlainClientTransport("tachyon", null,
-            AuthenticationFactory.createTSocket(mServerAddress));
+    TTransport client = PlainSaslHelper.getPlainClientTransport("tachyon", null, mServerTSocket);
   }
 
   /**
@@ -312,8 +300,7 @@ public class AuthenticationFactoryTest {
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
         + " identity provided");
     TTransport client =
-        PlainSaslHelper.getPlainClientTransport("", "correct-password",
-            AuthenticationFactory.createTSocket(mServerAddress));
+        PlainSaslHelper.getPlainClientTransport("", "correct-password", mServerTSocket);
     try {
       client.open();
     } finally {
@@ -337,9 +324,7 @@ public class AuthenticationFactoryTest {
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No password "
         + "provided");
-    TTransport client =
-        PlainSaslHelper.getPlainClientTransport("tachyon", "",
-            AuthenticationFactory.createTSocket(mServerAddress));
+    TTransport client = PlainSaslHelper.getPlainClientTransport("tachyon", "", mServerTSocket);
     try {
       client.open();
     } finally {

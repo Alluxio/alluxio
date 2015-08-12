@@ -88,30 +88,31 @@ public class PlainSaslHelper {
         new PlainClientCallbackHandler(username, password), wrappedTransport);
   }
 
+  /**
+   * A client side callback to put application provided username/password into SASL transport.
+   */
   public static class PlainClientCallbackHandler implements CallbackHandler {
 
     private final String mUserName;
     private final String mPassword;
 
     public PlainClientCallbackHandler(String userName, String password) {
-      this.mUserName = userName;
-      this.mPassword = password;
+      mUserName = userName;
+      mPassword = password;
     }
 
     @Override
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
       for (Callback callback : callbacks) {
-        if (callback != null) {
-          if (callback instanceof NameCallback) {
-            NameCallback nameCallback = (NameCallback) callback;
-            nameCallback.setName(mUserName);
-          } else if (callback instanceof PasswordCallback) {
-            PasswordCallback passCallback = (PasswordCallback) callback;
-            passCallback.setPassword(mPassword == null ? null : mPassword.toCharArray());
-          } else {
-            throw new UnsupportedCallbackException(callback, callback.getClass()
-                + " is unsupported.");
-          }
+        if (callback instanceof NameCallback) {
+          NameCallback nameCallback = (NameCallback) callback;
+          nameCallback.setName(mUserName);
+        } else if (callback instanceof PasswordCallback) {
+          PasswordCallback passCallback = (PasswordCallback) callback;
+          passCallback.setPassword(mPassword == null ? null : mPassword.toCharArray());
+        } else {
+          Class<?> callbackClass = (callback == null) ? null : callback.getClass();
+          throw new UnsupportedCallbackException(callback, callbackClass + " is unsupported.");
         }
       }
     }
