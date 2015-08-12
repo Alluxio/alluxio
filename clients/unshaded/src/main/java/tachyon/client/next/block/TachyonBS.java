@@ -1,7 +1,5 @@
 package tachyon.client.next.block;
 
-import tachyon.client.BlockInStream;
-import tachyon.client.BlockOutStream;
 import tachyon.client.next.ClientOptions;
 
 public class TachyonBS {
