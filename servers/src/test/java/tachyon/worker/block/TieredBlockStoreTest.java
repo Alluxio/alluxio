@@ -143,8 +143,7 @@ public class TieredBlockStoreTest {
 
   @Test
   public void commitBlockTest() throws Exception {
-    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1
-    );
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
     Assert.assertFalse(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
     mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
     Assert.assertTrue(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
@@ -155,8 +154,7 @@ public class TieredBlockStoreTest {
 
   @Test
   public void abortBlockTest() throws Exception {
-    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1
-    );
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
     mBlockStore.abortBlock(USER_ID1, TEMP_BLOCK_ID);
     Assert.assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
     Assert.assertFalse(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
@@ -276,8 +274,7 @@ public class TieredBlockStoreTest {
     mBlockStore.moveBlock(USER_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
 
     Assert.assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
-    Assert.assertEquals(mTestDir2.getCapacityBytes() - BLOCK_SIZE,
-        mTestDir2.getAvailableBytes());
+    Assert.assertEquals(mTestDir2.getCapacityBytes() - BLOCK_SIZE, mTestDir2.getAvailableBytes());
   }
 
   // When free the space of a location, if the space of the target location is currently taken by
