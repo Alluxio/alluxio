@@ -1,5 +1,5 @@
 package tachyon.client.next;
 
-public class ClientOptions {
+public class TachyonFile {
   // TODO: Implement me
 }
