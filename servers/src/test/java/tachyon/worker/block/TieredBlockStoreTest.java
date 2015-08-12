@@ -32,6 +32,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.util.io.FileUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
@@ -52,7 +53,6 @@ public class TieredBlockStoreTest {
   private StorageDir mTestDir2;
   private Evictor mEvictor;
 
-
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
@@ -62,10 +62,12 @@ public class TieredBlockStoreTest {
   @Before
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
-    TachyonConf tachyonConf =
+    TachyonConf testConf =
         TieredBlockStoreTestUtils.defaultTachyonConf(tempFolder.getAbsolutePath());
-    mBlockStore = new TieredBlockStore(tachyonConf);
+    WorkerContext.getConf().merge(testConf);
+    mBlockStore = new TieredBlockStore();
 
+    // TODO: avoid using reflection to get private members.
     Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
     field.setAccessible(true);
     mMetaManager = (BlockMetadataManager) field.get(mBlockStore);
@@ -110,7 +112,7 @@ public class TieredBlockStoreTest {
   public void sameUserLockDifferentBlocksTest() throws Exception {
     TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
-    TieredBlockStoreTestUtils.cache(USER_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
+    TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
         mEvictor);
 
     long lockId1 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
@@ -131,7 +133,7 @@ public class TieredBlockStoreTest {
   }
 
   @Test
-  public void unlockNonExistingBlockTest() throws Exception {
+  public void unlockNonExistingLockTest() throws Exception {
     long badLockId = 1003;
     mThrown.expect(NotFoundException.class);
     mThrown.expectMessage("Failed to unlockBlock: lockId " + badLockId + " has no lock record");
@@ -141,8 +143,8 @@ public class TieredBlockStoreTest {
 
   @Test
   public void commitBlockTest() throws Exception {
-    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1,
-        mMetaManager);
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1
+    );
     Assert.assertFalse(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
     mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
     Assert.assertTrue(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
@@ -153,8 +155,8 @@ public class TieredBlockStoreTest {
 
   @Test
   public void abortBlockTest() throws Exception {
-    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1,
-        mMetaManager);
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1
+    );
     mBlockStore.abortBlock(USER_ID1, TEMP_BLOCK_ID);
     Assert.assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
     Assert.assertFalse(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
@@ -198,7 +200,7 @@ public class TieredBlockStoreTest {
 
   @Test
   public void requestSpaceTest() throws Exception {
-    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, 1, mTestDir1, mMetaManager);
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, 1, mTestDir1);
     mBlockStore.requestSpace(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE - 1);
     Assert.assertTrue(mTestDir1.hasTempBlockMeta(TEMP_BLOCK_ID));
     Assert.assertEquals(BLOCK_SIZE, mTestDir1.getTempBlockMeta(TEMP_BLOCK_ID).getBlockSize());
@@ -227,6 +229,8 @@ public class TieredBlockStoreTest {
     Assert.assertEquals(mTestDir1, tempBlockMeta.getParentDir());
   }
 
+  // When creating a block, if the space of the target location is currently taken by another block
+  // being locked, this creation operation will fail until the lock released.
   @Test
   public void createBlockMetaWithBlockLockedTest() throws Exception {
     TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
@@ -235,19 +239,21 @@ public class TieredBlockStoreTest {
     // User1 locks a block first
     long lockId = mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
 
-    // Expect an exception as no eviction plan is feasible
+    // Expect an exception because no eviction plan is feasible
     mThrown.expect(OutOfSpaceException.class);
     mThrown.expectMessage("Failed to free space: no eviction plan by evictor");
-
     mBlockStore.createBlockMeta(USER_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
         mTestDir1.getCapacityBytes());
 
-    // Expect createBlockMeta to succeed after unlock this block.
+    // Expect createBlockMeta to succeed after unlocking this block.
     mBlockStore.unlockBlock(lockId);
     mBlockStore.createBlockMeta(USER_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
         mTestDir1.getCapacityBytes());
+    Assert.assertEquals(0, mTestDir1.getAvailableBytes());
   }
 
+  // When moving a block, if the space of the target location is currently taken by another block
+  // being locked, this freeSpace operation will fail until the lock released.
   @Test
   public void freeSpaceWithBlockLockedTest() throws Exception {
     TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
