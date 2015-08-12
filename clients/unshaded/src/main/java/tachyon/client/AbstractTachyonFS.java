@@ -40,8 +40,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @throws IOException If file already exists, or path is invalid.
    */
   public synchronized int createFile(TachyonURI path) throws IOException {
-    long defaultBlockSize = mTachyonConf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE,
-        Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    long defaultBlockSize = mTachyonConf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
     return createFile(path, defaultBlockSize);
   }
 
