@@ -144,8 +144,11 @@ public class AuthenticationFactory {
   }
 
   /**
-   * Create a transport per the connection options. Supported transport options are: NOSASL,
-   * SIMPLE, CUSTOM, KERBEROS
+   * Create a transport per the connection options. Supported transport options are: NOSASL, SIMPLE,
+   * CUSTOM, KERBEROS. With NOSASL as input, an unmodified TTransport is returned; with
+   * SIMPLE/CUSTOM as input, a PlainCLientTransport is returned; KERBEROS is not supported
+   * currently. If the auth type is not supported or recognized, an UnsupportedOperationException is
+   * thrown.
    * 
    * @param serverAddress the server address which clients will connect to
    * @return a TTransport for client
@@ -157,6 +160,7 @@ public class AuthenticationFactory {
       case NOSASL:
         return new TFramedTransport(tTransport);
       case SIMPLE:
+        // indent to fall through after case SIMPLE
       case CUSTOM:
         String username = LoginUser.get(mTachyonConf).getName();
         return PlainSaslHelper.getPlainClientTransport(username, "noPassword", tTransport);
