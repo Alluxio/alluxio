@@ -16,20 +16,17 @@
 package tachyon.master.next.filesystem.meta;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
-
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
+import tachyon.master.next.IndexSet;
 import tachyon.master.next.block.meta.BlockId;
 import tachyon.master.next.block.ContainerIdGenerator;
 import tachyon.thrift.BlockInfoException;
@@ -43,10 +40,7 @@ public class InodeTree {
 
   private InodeDirectory mRoot;
 
-  /** A map from Inode id to Inode */
-  private final Map<Long, Inode> mInodeIdToInodes;
-  /** A set of inode ids representing pinned inode files */
-  private final Set<Long> mPinnedInodeFileIds;
+  private final IndexSet<Inode> mInodes = new IndexSet<Inode>("mId", "mPinned");
 
   /**
    * Inode id management. Inode ids are essentially block ids.
@@ -61,14 +55,11 @@ public class InodeTree {
   public InodeTree(ContainerIdGenerator containerIdGenerator) {
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(containerIdGenerator);
-
-    mInodeIdToInodes = new HashMap<Long, Inode>();
-    mPinnedInodeFileIds = new HashSet<Long>();
     // TODO
   }
 
   public Inode getInodeById(long id) {
-    return mInodeIdToInodes.get(id);
+    return mInodes.getSingle("mId", id);
   }
 
   public Inode getInodeByPath(TachyonURI path) throws InvalidPathException {
@@ -94,7 +85,7 @@ public class InodeTree {
     if (isRootId(inode.getParentId())) {
       return new TachyonURI(TachyonURI.SEPARATOR + inode.getName());
     }
-    return getPath(mInodeIdToInodes.get(inode.getParentId())).join(inode.getName());
+    return getPath(getInodeById(inode.getParentId())).join(inode.getName());
   }
 
   public Inode createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
@@ -152,7 +143,7 @@ public class InodeTree {
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
-      mInodeIdToInodes.put(dir.getId(), dir);
+      mInodes.add(dir);
       currentInodeDirectory = (InodeDirectory) dir;
     }
 
@@ -175,14 +166,10 @@ public class InodeTree {
       ret =
           new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
               currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs);
-      if (currentInodeDirectory.isPinned()) {
-        // Update set of pinned file ids.
-        mPinnedInodeFileIds.add(ret.getId());
-      }
     }
     ret.setPinned(currentInodeDirectory.isPinned());
 
-    mInodeIdToInodes.put(ret.getId(), ret);
+    mInodes.add(ret);
     currentInodeDirectory.addChild(ret);
     currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
 
@@ -218,8 +205,7 @@ public class InodeTree {
     parent.removeChild(inode);
     parent.setLastModificationTimeMs(System.currentTimeMillis());
 
-    mInodeIdToInodes.remove(inode.getId());
-    mPinnedInodeFileIds.remove(inode.getId());
+    mInodes.remove(inode);
     inode.reverseId();
   }
 
@@ -234,13 +220,7 @@ public class InodeTree {
     inode.setPinned(pinned);
     inode.setLastModificationTimeMs(System.currentTimeMillis());
 
-    if (inode.isFile()) {
-      if (inode.isPinned()) {
-        mPinnedInodeFileIds.add(inode.getId());
-      } else {
-        mPinnedInodeFileIds.remove(inode.getId());
-      }
-    } else {
+    if (inode.isDirectory()) {
       // inode is a directory. Set the pinned state for all children.
       for (Inode child : ((InodeDirectory) inode).getChildren()) {
         setPinned(child, pinned);
@@ -250,7 +230,12 @@ public class InodeTree {
 
   // TODO: this should return block container ids, not file ids.
   public Set<Long> getPinIdSet() {
-    return Sets.newHashSet(mPinnedInodeFileIds);
+    Set<Inode> pinnedInodes = mInodes.get("mPinned", true);
+    Set<Long> ret = new HashSet<Long>(pinnedInodes.size());
+    for (Inode inode : pinnedInodes) {
+      ret.add(inode.getId());
+    }
+    return ret;
   }
 
 
