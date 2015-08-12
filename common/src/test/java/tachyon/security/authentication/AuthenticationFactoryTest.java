@@ -43,8 +43,7 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.security.RemoteClientUser;
-import tachyon.security.authentication.thrift.ClientUserTestService;
+import tachyon.thrift.MasterService;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -387,9 +386,9 @@ public class AuthenticationFactoryTest {
 
     TServerSocket wrappedServerSocket = new TServerSocket(mServerAddress);
 
-    ClientUserTestServiceHandler handler = new ClientUserTestServiceHandler();
-    ClientUserTestService.Processor<ClientUserTestServiceHandler> processor = new
-        ClientUserTestService.Processor<ClientUserTestServiceHandler>(handler);
+    MockMasterServiceHandler handler = new MockMasterServiceHandler();
+    MasterService.Processor<MockMasterServiceHandler> processor = new MasterService
+        .Processor<MockMasterServiceHandler>(handler);
 
     mServer = new TThreadPoolServer(new TThreadPoolServer.Args(wrappedServerSocket)
         .maxWorkerThreads(2).minWorkerThreads(1)
@@ -425,9 +424,12 @@ public class AuthenticationFactoryTest {
    * @throws Exception
    */
   private void verifyClientUser(TTransport clientTransport, String userName) throws Exception {
-    ClientUserTestService.Client mClient = new ClientUserTestService.Client(
-        new TBinaryProtocol(clientTransport));
-    Assert.assertEquals(userName, mClient.whoAmI());
+    MasterService.Client mClient = new MasterService.Client(new TBinaryProtocol(clientTransport));
+
+    /** user_getUfsAddress() method, which is in the mocked handler {@link tachyon
+     * .security.authentication.MockMasterServiceHandler), returns the username.
+     */
+    Assert.assertEquals(userName, mClient.user_getUfsAddress());
   }
 
   /**
@@ -447,21 +449,6 @@ public class AuthenticationFactoryTest {
         }
       }
       throw new AuthenticationException("User authentication fails");
-    }
-  }
-
-  /**
-   * In order to test whether the client user is saved in the threadlocal variable of server
-   * side, a very simple thrift RPC service is defined at {@link tachyon.security.authentication
-   * .thrift.ClientUserTestService}. This class is the server side handler implementation of it.
-   *
-   * This handler fetch the client user maintained in threadlocal and return it to client for
-   * verification. The returned user should be the same as the one used for building connection.
-   */
-  private static class ClientUserTestServiceHandler implements ClientUserTestService.Iface {
-    @Override
-    public String whoAmI() {
-      return RemoteClientUser.get().getName();
     }
   }
 
