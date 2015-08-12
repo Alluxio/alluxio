@@ -22,10 +22,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.conf.TachyonConf;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
-import tachyon.thrift.ClientBlockInfo;
+import tachyon.conf.TachyonConf;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
 
 /**
@@ -101,7 +101,7 @@ public class BlockInfoTest {
     tInfo.addLocation(15, new NetAddress("abc", 1, 11), storageDirId);
     tInfo.addLocation(22, new NetAddress("def", 2, 21), storageDirId);
     tInfo.addLocation(29, new NetAddress("gh", 3, 31), storageDirId);
-    ClientBlockInfo clientBlockInfo = tInfo.generateClientBlockInfo(mTachyonConf);
+    FileBlockInfo clientBlockInfo = tInfo.generateClientBlockInfo(mTachyonConf);
     Assert.assertEquals((long) Constants.DEFAULT_BLOCK_SIZE_BYTE * 300, clientBlockInfo.offset);
     Assert.assertEquals(800, clientBlockInfo.length);
     Assert.assertEquals(3, clientBlockInfo.locations.size());

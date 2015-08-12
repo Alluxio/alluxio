@@ -33,7 +33,7 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -77,7 +77,7 @@ public class HdfsFileInputStreamIntegrationTest {
 
   @Before
   public final void before() throws IOException {
-    ClientFileInfo fileInfo = sTFS.getFileStatus(-1, new TachyonURI("/testFile1"));
+    FileInfo fileInfo = sTFS.getFileStatus(-1, new TachyonURI("/testFile1"));
     mInMemInputStream = new HdfsFileInputStream(sTFS, fileInfo.getId(),
         new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE,
         sLocalTachyonCluster.getMasterTachyonConf());

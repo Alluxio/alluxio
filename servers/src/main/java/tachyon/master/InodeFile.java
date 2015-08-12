@@ -25,8 +25,8 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientBlockInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 
@@ -146,8 +146,8 @@ public class InodeFile extends Inode {
   }
 
   @Override
-  public ClientFileInfo generateClientFileInfo(String path) {
-    ClientFileInfo ret = new ClientFileInfo();
+  public FileInfo generateClientFileInfo(String path) {
+    FileInfo ret = new FileInfo();
 
     ret.id = getId();
     ret.name = getName();
@@ -257,7 +257,7 @@ public class InodeFile extends Inode {
    * @return the generated ClientBlockInfo
    * @throws BlockInfoException
    */
-  public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex, TachyonConf tachyonConf)
+  public synchronized FileBlockInfo getClientBlockInfo(int blockIndex, TachyonConf tachyonConf)
       throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
@@ -271,8 +271,8 @@ public class InodeFile extends Inode {
    *
    * @return all blocks ClientBlockInfo
    */
-  public synchronized List<ClientBlockInfo> getClientBlockInfos(TachyonConf tachyonConf) {
-    List<ClientBlockInfo> ret = new ArrayList<ClientBlockInfo>(mBlocks.size());
+  public synchronized List<FileBlockInfo> getClientBlockInfos(TachyonConf tachyonConf) {
+    List<FileBlockInfo> ret = new ArrayList<FileBlockInfo>(mBlocks.size());
     for (BlockInfo tInfo : mBlocks) {
       ret.add(tInfo.generateClientBlockInfo(tachyonConf));
     }

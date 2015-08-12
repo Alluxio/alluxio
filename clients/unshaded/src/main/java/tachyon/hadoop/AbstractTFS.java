@@ -36,17 +36,16 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
+import tachyon.client.UfsUtils;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.client.UfsUtils;
 import tachyon.util.CommonUtils;
-import tachyon.util.UnderFileSystemUtils;
 
 /**
  * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
@@ -292,9 +291,9 @@ abstract class AbstractTFS extends FileSystem {
     }
 
     List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
-    List<ClientBlockInfo> blocks = mTFS.getFileBlocks(fileId);
+    List<FileBlockInfo> blocks = mTFS.getFileBlocks(fileId);
     for (int k = 0; k < blocks.size(); k ++) {
-      ClientBlockInfo info = blocks.get(k);
+      FileBlockInfo info = blocks.get(k);
       long offset = info.getOffset();
       long end = offset + info.getLength();
       // Check if there is any overlapping between [start, start+len] and [offset, end]
@@ -423,10 +422,10 @@ abstract class AbstractTFS extends FileSystem {
       throw new FileNotFoundException("File does not exist: " + path);
     }
 
-    List<ClientFileInfo> files = mTFS.listStatus(tPath);
+    List<FileInfo> files = mTFS.listStatus(tPath);
     FileStatus[] ret = new FileStatus[files.size()];
     for (int k = 0; k < files.size(); k ++) {
-      ClientFileInfo info = files.get(k);
+      FileInfo info = files.get(k);
       // TODO replicate 3 with the number of disk replications.
       ret[k] =
           new FileStatus(info.getLength(), info.isFolder, 3, info.getBlockSizeByte(),
@@ -477,7 +476,7 @@ abstract class AbstractTFS extends FileSystem {
     LOG.info("rename(" + src + ", " + dst + ")");
     TachyonURI srcPath = new TachyonURI(Utils.getPathWithoutScheme(src));
     TachyonURI dstPath = new TachyonURI(Utils.getPathWithoutScheme(dst));
-    ClientFileInfo info = mTFS.getFileStatus(-1, dstPath);
+    FileInfo info = mTFS.getFileStatus(-1, dstPath);
     // If the destination is an existing folder, try to move the src into the folder
     if (info != null && info.isFolder) {
       dstPath = dstPath.join(srcPath.getName());

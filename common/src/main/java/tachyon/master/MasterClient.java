@@ -48,14 +48,14 @@ import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
-import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.FileInfo;
+import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.MasterService;
@@ -253,10 +253,10 @@ public final class MasterClient implements Closeable {
    *
    * @param fileId The id of the file
    * @param path The path of the file
-   * @return ClientFileInfo returned from master
+   * @return FileInfo returned from master
    * @throws IOException
    */
-  public synchronized ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
+  public synchronized FileInfo getFileStatus(int fileId, String path) throws IOException {
     if (path == null) {
       path = "";
     }
@@ -372,7 +372,7 @@ public final class MasterClient implements Closeable {
     return mConnected;
   }
 
-  public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
+  public synchronized List<FileInfo> listStatus(String path) throws IOException {
     while (!mIsClosed) {
       connect();
       try {
@@ -558,7 +558,7 @@ public final class MasterClient implements Closeable {
     return -1;
   }
 
-  public synchronized ClientBlockInfo user_getClientBlockInfo(long blockId) throws IOException {
+  public synchronized FileBlockInfo user_getClientBlockInfo(long blockId) throws IOException {
     while (!mIsClosed) {
       connect();
 
@@ -576,7 +576,7 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized ClientRawTableInfo user_getClientRawTableInfo(int id, String path)
+  public synchronized RawTableInfo user_getClientRawTableInfo(int id, String path)
       throws IOException {
     parameterCheck(id, path);
 
@@ -584,7 +584,7 @@ public final class MasterClient implements Closeable {
       connect();
 
       try {
-        ClientRawTableInfo ret = mClient.user_getClientRawTableInfo(id, path);
+        RawTableInfo ret = mClient.user_getClientRawTableInfo(id, path);
         ret.setMetadata(BufferUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
         return ret;
       } catch (TableDoesNotExistException e) {
@@ -599,7 +599,7 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized List<ClientBlockInfo> user_getFileBlocks(int fileId, String path)
+  public synchronized List<FileBlockInfo> user_getFileBlocks(int fileId, String path)
       throws IOException {
     parameterCheck(fileId, path);
 
