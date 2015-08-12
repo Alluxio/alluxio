@@ -76,12 +76,12 @@ public class BlockInfo {
    *
    * @return the net addresses of the locations
    */
-  public synchronized List<BlockLocation> getBlockLocations() {
-    List<BlockLocation> ret = new ArrayList<BlockLocation>(mWorkerIdToAlias.size());
+  public synchronized List<MasterBlockLocation> getBlockLocations() {
+    List<MasterBlockLocation> ret = new ArrayList<MasterBlockLocation>(mWorkerIdToAlias.size());
     for (StorageLevelAlias alias : StorageLevelAlias.values()) {
       for (Map.Entry<Long, Integer> entry : mWorkerIdToAlias.entrySet()) {
         if (alias.getValue() == entry.getValue()) {
-          ret.add(new BlockLocation(entry.getKey(), alias.getValue()));
+          ret.add(new MasterBlockLocation(entry.getKey(), alias.getValue()));
         }
       }
     }

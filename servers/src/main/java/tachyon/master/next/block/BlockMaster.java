@@ -33,8 +33,8 @@ import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.master.next.Master;
 import tachyon.master.next.block.meta.BlockInfo;
-import tachyon.master.next.block.meta.BlockLocation;
 import tachyon.master.next.block.meta.BlockWorkerInfo;
+import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.master.next.block.meta.UserBlockInfo;
 import tachyon.master.next.block.meta.UserBlockLocation;
 import tachyon.thrift.Command;
@@ -159,11 +159,11 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
         // "Join" to get all the addresses of the workers.
         List<UserBlockLocation> locations = new ArrayList<UserBlockLocation>();
-        for (BlockLocation blockLocation : blockInfo.getBlockLocations()) {
-          BlockWorkerInfo workerInfo = mWorkers.get(blockLocation.mWorkerId);
+        for (MasterBlockLocation masterBlockLocation : blockInfo.getBlockLocations()) {
+          BlockWorkerInfo workerInfo = mWorkers.get(masterBlockLocation.mWorkerId);
           if (workerInfo != null) {
-            locations.add(new UserBlockLocation(blockLocation.mWorkerId, workerInfo.getAddress(),
-                blockLocation.mTier));
+            locations.add(new UserBlockLocation(masterBlockLocation.mWorkerId,
+                workerInfo.getAddress(), masterBlockLocation.mTier));
           }
         }
         UserBlockInfo retInfo = new UserBlockInfo(blockInfo.getBlockId(), blockInfo.getLength(),
