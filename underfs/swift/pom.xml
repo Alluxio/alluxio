@@ -32,28 +32,28 @@
       <version>${hadoop-openstack.version}</version>
       <exclusions>
         <exclusion>
-          <artifactId>servlet-api</artifactId>
           <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
         </exclusion>
         <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
           <artifactId>jetty</artifactId>
-          <groupId>org.mortbay.jetty</groupId>
         </exclusion>
         <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
           <artifactId>jetty-util</artifactId>
-          <groupId>org.mortbay.jetty</groupId>
         </exclusion>
         <exclusion>
+          <groupId>tomcat</groupId>
           <artifactId>jasper-compiler</artifactId>
-          <groupId>tomcat</groupId>
         </exclusion>
         <exclusion>
+          <groupId>tomcat</groupId>
           <artifactId>jasper-runtime</artifactId>
-          <groupId>tomcat</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>jsp-api</artifactId>
           <groupId>javax.servlet.jsp</groupId>
+          <artifactId>jsp-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
