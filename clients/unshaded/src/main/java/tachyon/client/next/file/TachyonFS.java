@@ -1,8 +1,9 @@
-package tachyon.client.next;
+package tachyon.client.next.file;
 
 import tachyon.TachyonURI;
 import tachyon.client.FileInStream;
 import tachyon.client.FileOutStream;
+import tachyon.client.next.ClientOptions;
 import tachyon.thrift.FileInfo;
 
 import java.util.List;
