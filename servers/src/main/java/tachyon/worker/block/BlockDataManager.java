@@ -98,9 +98,9 @@ public class BlockDataManager {
             mMasterClientExecutorService, mTachyonConf);
 
     // Create Under FileSystem Client
-    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
     String ufsAddress =
-        mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
+        mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
 
     // Connect to UFS to handle UFS security

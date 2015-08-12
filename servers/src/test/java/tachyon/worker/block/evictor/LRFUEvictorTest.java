@@ -66,9 +66,9 @@ public class LRFUEvictorTest {
             Collections.<Long>emptySet());
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, LRFUEvictor.class.getName());
-    mStepFactor = conf.getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_STEP_FACTOR, 0.25);
+    mStepFactor = conf.getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_STEP_FACTOR);
     mAttenuationFactor =
-        conf.getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_ATTENUATION_FACTOR, 2.0);
+        conf.getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_ATTENUATION_FACTOR);
     mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
   }
 

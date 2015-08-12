@@ -77,7 +77,7 @@ public class BlockMetadataManager {
   private void initBlockMetadataManager() throws AlreadyExistsException,
       IOException, OutOfSpaceException {
     // Initialize storage tiers
-    int totalTiers = WorkerContext.getConf().getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
+    int totalTiers = WorkerContext.getConf().getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
     mTiers = new ArrayList<StorageTier>(totalTiers);
     for (int level = 0; level < totalTiers; level ++) {

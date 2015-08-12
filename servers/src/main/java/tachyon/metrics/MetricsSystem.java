@@ -82,7 +82,7 @@ public class MetricsSystem {
   public MetricsSystem(String instance, TachyonConf tachyonConf) {
     mInstance = instance;
     mTachyonConf = tachyonConf;
-    mMetricsConfig = new MetricsConfig(mTachyonConf.get(Constants.METRICS_CONF_FILE, null));
+    mMetricsConfig = new MetricsConfig(mTachyonConf.get(Constants.METRICS_CONF_FILE));
   }
 
   /**
