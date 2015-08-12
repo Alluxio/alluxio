@@ -15,8 +15,6 @@
 
 package tachyon.worker.block;
 
-import java.io.File;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,12 +22,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
 
 import tachyon.Constants;
-import tachyon.Pair;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.BufferUtils;
-import tachyon.util.io.PathUtils;
 import tachyon.util.io.FileUtils;
+import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.io.BlockWriter;
@@ -146,7 +143,7 @@ public class TieredBlockStoreTestUtils {
       dirs[i] = new String[len];
       for (int j = 0; j < len; j ++) {
         dirs[i][j] = PathUtils.concatPath(baseDir, TIER_PATH[i][j]);
-        FileUtils.createDir(new File(dirs[i][j]));
+        FileUtils.createDir(dirs[i][j]);
       }
     }
     return newTachyonConf(TIER_LEVEL, TIER_ALIAS, dirs, TIER_CAPACITY);
@@ -165,13 +162,11 @@ public class TieredBlockStoreTestUtils {
    */
   public static void cache(long userId, long blockId, long bytes, StorageDir dir,
       BlockMetadataManager meta, Evictor evictor) throws Exception {
-    Pair<TempBlockMeta, File> result = createTempBlock(userId, blockId, bytes, dir, meta);
-    TempBlockMeta block = result.getFirst();
-    File tempFile = result.getSecond();
+    TempBlockMeta tempBlockMeta = createTempBlock(userId, blockId, bytes, dir);
 
     // commit block
-    FileUtils.move(tempFile, new File(block.getCommitPath()));
-    meta.commitTempBlockMeta(block);
+    FileUtils.move(tempBlockMeta.getPath(), tempBlockMeta.getCommitPath());
+    meta.commitTempBlockMeta(tempBlockMeta);
 
     // update evictor
     if (evictor instanceof BlockStoreEventListener) {
@@ -196,28 +191,26 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Make a temp block in StorageDir.
+   * Make a temp block of a given size in StorageDir.
    *
    * @param userId user who caches the data
    * @param blockId id of the cached block
    * @param bytes size of the block in bytes
    * @param dir the StorageDir the block resides in
-   * @param meta the metadata manager to update meta of the block
-   * @return a pair of temp block meta and the file handler
+   * @return the temp block meta
    * @throws Exception when fail to create this block
    */
-  public static Pair<TempBlockMeta, File> createTempBlock(long userId, long blockId, long bytes,
-      StorageDir dir, BlockMetadataManager meta) throws Exception {
+  public static TempBlockMeta createTempBlock(long userId, long blockId, long bytes, StorageDir dir)
+      throws Exception {
     // prepare temp block
-    TempBlockMeta block = new TempBlockMeta(userId, blockId, bytes, dir);
-    meta.addTempBlockMeta(block);
+    TempBlockMeta tempBlockMeta = new TempBlockMeta(userId, blockId, bytes, dir);
+    dir.addTempBlockMeta(tempBlockMeta);
 
     // write data
-    File tempFile = new File(block.getPath());
-    FileUtils.createFile(tempFile);
-    BlockWriter writer = new LocalFileBlockWriter(block);
+    FileUtils.createFile(tempBlockMeta.getPath());
+    BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta);
     writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
     writer.close();
-    return new Pair<TempBlockMeta, File>(block, tempFile);
+    return tempBlockMeta;
   }
 }
