@@ -30,6 +30,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.io.FileUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockWriter;
@@ -124,8 +125,9 @@ public class TieredBlockStoreTestUtils {
    * @throws Exception when error happens during creating temporary folder
    */
   public static BlockMetadataManager defaultMetadataManager(String baseDir) throws Exception {
-    TachyonConf tachyonConf = defaultTachyonConf(baseDir);
-    return BlockMetadataManager.newBlockMetadataManager(tachyonConf);
+    TachyonConf tachyonConf = WorkerContext.getConf();
+    tachyonConf.merge(defaultTachyonConf(baseDir));
+    return BlockMetadataManager.newBlockMetadataManager();
   }
 
   /**
@@ -176,6 +178,21 @@ public class TieredBlockStoreTestUtils {
       ((BlockStoreEventListener) evictor)
           .onCommitBlock(userId, blockId, dir.toBlockStoreLocation());
     }
+  }
+
+  /**
+   * Cache bytes into StorageDir.
+   *
+   * @param tierLevel tier level of the StorageDir the block resides in
+   * @param dirIndex index of directory in the tierLevel the block resides in
+   * @param meta the metadata manager to update meta of the block
+   * @param evictor the evictor to be informed of the new block
+   * @throws Exception when fail to cache
+   */
+  public static void cache(long userId, long blockId, long bytes, int tierLevel, int dirIndex,
+      BlockMetadataManager meta, Evictor evictor) throws Exception {
+    StorageDir dir = meta.getTiers().get(tierLevel).getDir(dirIndex);
+    cache(userId, blockId, bytes, dir, meta, evictor);
   }
 
   /**

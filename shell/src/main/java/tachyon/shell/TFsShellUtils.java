@@ -67,7 +67,7 @@ public class TFsShellUtils {
       }
     } else {
       String hostname = tachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
-      int port =  tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+      int port =  tachyonConf.getInt(Constants.MASTER_PORT);
       if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }

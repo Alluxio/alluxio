@@ -62,8 +62,8 @@ public class RemoteBlockOutStream extends BlockOutStream {
    */
   RemoteBlockOutStream(TachyonFile file, WriteType opType, int blockIndex, TachyonConf tachyonConf)
       throws IOException {
-    this(file, opType, blockIndex, tachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES,
-        8 * Constants.MB), tachyonConf);
+    this(file, opType, blockIndex, tachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES),
+        tachyonConf);
   }
 
   /**
@@ -91,7 +91,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
     mCloser = Closer.create();
 
     // Create a local buffer.
-    mBufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB);
+    mBufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     mBuffer = ByteBuffer.allocate(Ints.checkedCast(mBufferBytes));
 
     // Open the remote writer.
