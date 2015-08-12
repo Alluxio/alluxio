@@ -19,13 +19,15 @@ from util import info, warn, error
 
 def get_or_make_group(conn, name, vpc=None):
     groups_with_name = [g for g in conn.get_all_security_groups() if (g.name == name)]
-    if (vpc is not None and vpc != ''):
+    if (vpc == ''):
+        vpc = None
+    if (vpc is not None):
         groups = [g for g in groups_with_name if (g.vpc_id == vpc)]
     if len(groups) > 0:
         return groups[0]
     else:
         info("Creating security group {name} in {region}".format(name=name, region=conn.region))
-        group =  conn.create_security_group(name, "Auto created by Tachyon deploy",vpc)
+        group = conn.create_security_group(name, "Auto created by Tachyon deploy", vpc)
         info("Created security group ID {id}".format(id=group.id))
         return group
 
@@ -86,10 +88,7 @@ def configure_aws():
 
     conn = get_conn()
     ec2conf = get_ec2_conf()
-    if (ec2conf.get('VPC','') == ''):
-      return set_security_group(conn, ec2conf['Security_Group'])
-    else:
-      return set_security_group(conn, ec2conf['Security_Group'], ec2conf['VPC'])
+    return set_security_group(conn, ec2conf['Security_Group'], ec2conf.get('VPC', None))
 
 
 if __name__ == '__main__':
