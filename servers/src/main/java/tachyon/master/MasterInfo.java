@@ -60,7 +60,7 @@ import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.DependencyDoesNotExistException;
@@ -1839,8 +1839,8 @@ public class MasterInfo extends ImageWriter {
    *
    * @return a list of worker infos
    */
-  public List<ClientWorkerInfo> getWorkersInfo() {
-    List<ClientWorkerInfo> ret = new ArrayList<ClientWorkerInfo>();
+  public List<WorkerInfo> getWorkersInfo() {
+    List<WorkerInfo> ret = new ArrayList<WorkerInfo>();
 
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers.values()) {
@@ -1856,8 +1856,8 @@ public class MasterInfo extends ImageWriter {
    *
    * @return a list of worker info
    */
-  public List<ClientWorkerInfo> getLostWorkersInfo() {
-    List<ClientWorkerInfo> ret = new ArrayList<ClientWorkerInfo>();
+  public List<WorkerInfo> getLostWorkersInfo() {
+    List<WorkerInfo> ret = new ArrayList<WorkerInfo>();
 
     for (MasterWorkerInfo worker : mLostWorkers) {
       ret.add(worker.generateClientWorkerInfo());
