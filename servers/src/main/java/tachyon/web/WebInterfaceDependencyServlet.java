@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import tachyon.master.MasterInfo;
-import tachyon.thrift.ClientDependencyInfo;
+import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileDoesNotExistException;
 
@@ -48,7 +48,7 @@ public class WebInterfaceDependencyServlet extends HttpServlet {
     List<String> parentFileNames = new ArrayList<String>();
     List<String> childrenFileNames = new ArrayList<String>();
     try {
-      ClientDependencyInfo dependencyInfo = mMasterInfo.getClientDependencyInfo(dependencyId);
+      DependencyInfo dependencyInfo = mMasterInfo.getClientDependencyInfo(dependencyId);
       for (int pId : dependencyInfo.parents) {
         parentFileNames.add(mMasterInfo.getPath(pId).toString());
       }

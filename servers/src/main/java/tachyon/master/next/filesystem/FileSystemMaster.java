@@ -43,7 +43,7 @@ import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientDependencyInfo;
+import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -582,7 +582,7 @@ public class FileSystemMaster implements Master {
     // TODO
   }
 
-  public ClientDependencyInfo getClientDependencyInfo(int dependencyId)
+  public DependencyInfo getClientDependencyInfo(int dependencyId)
       throws DependencyDoesNotExistException {
     Dependency dependency = mDependencyMap.getFromDependencyId(dependencyId);
     if (dependency == null) {

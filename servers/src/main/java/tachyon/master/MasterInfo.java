@@ -57,7 +57,7 @@ import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientDependencyInfo;
+import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -1219,7 +1219,7 @@ public class MasterInfo extends ImageWriter {
    * @return the dependency info
    * @throws DependencyDoesNotExistException
    */
-  public ClientDependencyInfo getClientDependencyInfo(int dependencyId)
+  public DependencyInfo getClientDependencyInfo(int dependencyId)
       throws DependencyDoesNotExistException {
     Dependency dep = null;
     synchronized (mFileIdToDependency) {

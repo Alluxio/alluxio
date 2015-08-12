@@ -46,7 +46,7 @@ struct FileInfo {
   15: i64 lastModificationTimeMs
 }
 
-struct ClientDependencyInfo {
+struct DependencyInfo {
   1: i32 id
   2: list<i32> parents
   3: list<i32> children
@@ -173,7 +173,7 @@ service MasterService {
     throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF,
       3: FileAlreadyExistException eA, 4: BlockInfoException eB, 5: TachyonException eT)
 
-  ClientDependencyInfo user_getClientDependencyInfo(1: i32 dependencyId)
+  DependencyInfo user_getClientDependencyInfo(1: i32 dependencyId)
     throws (1: DependencyDoesNotExistException e)
 
   void user_reportLostFile(1: i32 fileId)

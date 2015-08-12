@@ -48,7 +48,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientDependencyInfo;
+import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -228,10 +228,10 @@ public final class MasterClient implements Closeable {
    * Get the client dependency info from master server.
    *
    * @param did Dependency id.
-   * @return ClientDependencyInfo returned from master
+   * @return DependencyInfo returned from master
    * @throws IOException
    */
-  public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
+  public synchronized DependencyInfo getClientDependencyInfo(int did) throws IOException {
     while (!mIsClosed) {
       connect();
 
