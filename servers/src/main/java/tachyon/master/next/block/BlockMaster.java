@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.master.next.Master;
-import tachyon.master.next.block.meta.BlockWorkerInfo;
+import tachyon.master.next.block.meta.MasterWorkerInfo;
 import tachyon.master.next.block.meta.MasterBlockInfo;
 import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.thrift.BlockInfo;
@@ -51,13 +51,13 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   private final Set<Long> mLostBlocks;
 
   // Worker metadata management.
-  private final Map<Long, BlockWorkerInfo> mWorkers;
+  private final Map<Long, MasterWorkerInfo> mWorkers;
   private final Map<NetAddress, Long> mAddressToWorkerId;
   private final AtomicInteger mWorkerCounter;
 
   public BlockMaster() {
     mBlocks = new HashMap<Long, MasterBlockInfo>();
-    mWorkers = new HashMap<Long, BlockWorkerInfo>();
+    mWorkers = new HashMap<Long, MasterWorkerInfo>();
     mAddressToWorkerId = new HashMap<NetAddress, Long>();
     mBlockIdGenerator = new BlockIdGenerator();
     mWorkerCounter = new AtomicInteger(0);
@@ -75,13 +75,13 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     return "BlockMaster";
   }
 
-  public BlockWorkerInfo getWorkerInfo(long workerId) {
+  public MasterWorkerInfo getWorkerInfo(long workerId) {
     synchronized (mWorkers) {
       return mWorkers.get(workerId);
     }
   }
 
-  public List<BlockWorkerInfo> getWorkersForClient() {
+  public List<MasterWorkerInfo> getWorkersForClient() {
     // TODO
     return null;
   }
@@ -89,7 +89,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public long getCapacityBytes() {
     long ret = 0;
     synchronized (mWorkers) {
-      for (BlockWorkerInfo worker : mWorkers.values()) {
+      for (MasterWorkerInfo worker : mWorkers.values()) {
         ret += worker.getCapacityBytes();
       }
     }
@@ -99,7 +99,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public long getUsedBytes() {
     long ret = 0;
     synchronized (mWorkers) {
-      for (BlockWorkerInfo worker : mWorkers.values()) {
+      for (MasterWorkerInfo worker : mWorkers.values()) {
         ret += worker.getUsedBytes();
       }
     }
@@ -118,7 +118,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       }
       for (long workerId : masterBlockInfo.getWorkers()) {
         masterBlockInfo.removeWorker(workerId);
-        BlockWorkerInfo worker = getWorkerInfo(workerId);
+        MasterWorkerInfo worker = getWorkerInfo(workerId);
         if (worker != null) {
           worker.updateToRemovedBlock(true, blockId);
         }
@@ -136,7 +136,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     LOG.debug("Commit block: {}",
         FormatUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
 
-    BlockWorkerInfo workerInfo = getWorkerInfo(workerId);
+    MasterWorkerInfo workerInfo = getWorkerInfo(workerId);
     workerInfo.addBlock(blockId);
     workerInfo.updateUsedBytes(tierAlias, usedBytesOnTier);
     workerInfo.updateLastUpdatedTimeMs();
@@ -160,7 +160,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         // "Join" to get all the addresses of the workers.
         List<BlockLocation> locations = new ArrayList<BlockLocation>();
         for (MasterBlockLocation masterBlockLocation : masterBlockInfo.getBlockLocations()) {
-          BlockWorkerInfo workerInfo = mWorkers.get(masterBlockLocation.mWorkerId);
+          MasterWorkerInfo workerInfo = mWorkers.get(masterBlockLocation.mWorkerId);
           if (workerInfo != null) {
             locations.add(new BlockLocation(masterBlockLocation.mWorkerId,
                 workerInfo.getAddress(), masterBlockLocation.mTier));
@@ -190,7 +190,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       // Generate a new worker id.
       long workerId = mWorkerCounter.incrementAndGet();
       mAddressToWorkerId.put(workerAddress, workerId);
-      mWorkers.put(workerId, new BlockWorkerInfo(workerId, workerNetAddress));
+      mWorkers.put(workerId, new MasterWorkerInfo(workerId, workerNetAddress));
 
       return workerId;
     }
@@ -203,7 +203,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         LOG.warn("Could not find worker id: " + workerId + " to register.");
         return 0;
       }
-      BlockWorkerInfo workerInfo = mWorkers.get(workerId);
+      MasterWorkerInfo workerInfo = mWorkers.get(workerId);
       workerInfo.updateLastUpdatedTimeMs();
 
       // Gather all blocks on this worker.
@@ -229,7 +229,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         LOG.warn("Could not find worker id: " + workerId + " for heartbeat.");
         return new Command(CommandType.Register, new ArrayList<Long>());
       }
-      BlockWorkerInfo workerInfo = mWorkers.get(workerId);
+      MasterWorkerInfo workerInfo = mWorkers.get(workerId);
       processWorkerRemovedBlocks(workerInfo, removedBlockIds);
       processWorkerAddedBlocks(workerInfo, addedBlockIds);
 
@@ -250,7 +250,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
    * @param workerInfo The worker metadata object
    * @param removedBlockIds A list of block ids removed from the worker
    */
-  private void processWorkerRemovedBlocks(BlockWorkerInfo workerInfo,
+  private void processWorkerRemovedBlocks(MasterWorkerInfo workerInfo,
       Collection<Long> removedBlockIds) {
     // TODO: lock mBlocks?
     for (long removedBlockId : removedBlockIds) {
@@ -272,7 +272,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
    * @param workerInfo The worker metadata object
    * @param addedBlockIds Mapping from StorageDirId to a list of block ids added to the directory.
    */
-  private void processWorkerAddedBlocks(BlockWorkerInfo workerInfo,
+  private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
       Map<Long, List<Long>> addedBlockIds) {
     // TODO: lock mBlocks?
     for (Entry<Long, List<Long>> blockIds : addedBlockIds.entrySet()) {
