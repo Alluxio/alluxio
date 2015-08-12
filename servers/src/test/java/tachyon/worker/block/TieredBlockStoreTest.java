@@ -252,8 +252,36 @@ public class TieredBlockStoreTest {
     Assert.assertEquals(0, mTestDir1.getAvailableBytes());
   }
 
-  // When moving a block, if the space of the target location is currently taken by another block
-  // being locked, this freeSpace operation will fail until the lock released.
+  // When moving a block from src location to dst, if the space of the dst location is currently
+  // taken by another block being locked, this move operation will fail until the lock released.
+  @Test
+  public void moveBlockMetaWithBlockLockedTest() throws Exception {
+    // Setup the src dir containing the block to move
+    TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    // Setup the dst dir whose space is totally taken by another block
+    TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID2, mTestDir2.getCapacityBytes(), mTestDir2,
+        mMetaManager, mEvictor);
+
+    // User1 locks block2 first
+    long lockId = mBlockStore.lockBlock(USER_ID1, BLOCK_ID2);
+
+    // Expect an exception because no eviction plan is feasible
+    mThrown.expect(OutOfSpaceException.class);
+    mThrown.expectMessage("Failed to free space: no eviction plan by evictor");
+    mBlockStore.moveBlock(USER_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
+
+    // Expect createBlockMeta to succeed after unlocking this block.
+    mBlockStore.unlockBlock(lockId);
+    mBlockStore.moveBlock(USER_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
+
+    Assert.assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
+    Assert.assertEquals(mTestDir2.getCapacityBytes() - BLOCK_SIZE,
+        mTestDir2.getAvailableBytes());
+  }
+
+  // When free the space of a location, if the space of the target location is currently taken by
+  // another block being locked, this freeSpace operation will fail until the lock released.
   @Test
   public void freeSpaceWithBlockLockedTest() throws Exception {
     TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
