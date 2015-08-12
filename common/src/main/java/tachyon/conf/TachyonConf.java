@@ -265,16 +265,17 @@ public class TachyonConf {
     return defaultValue;
   }
 
-  private double getDouble(String key, final double defaultValue) {
+  public double getDouble(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       try {
         return Double.parseDouble(lookup(rawValue));
       } catch (NumberFormatException e) {
-        LOG.warn("Configuration cannot evaluate key " + key + " as double.");
+        throw new RuntimeException("Configuration cannot evaluate key " + key + " as double.");
       }
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
   private float getFloat(String key, final float defaultValue) {
@@ -314,15 +315,6 @@ public class TachyonConf {
       return null == val ? defaultValue : Enum.valueOf(defaultValue.getDeclaringClass(), val);
     }
     return defaultValue;
-  }
-
-  private long getBytes(String key, long defaultValue) {
-    String rawValue = get(key, "");
-    try {
-      return FormatUtils.parseSpaceSize(rawValue);
-    } catch (Exception ex) {
-      return defaultValue;
-    }
   }
 
   public long getBytes(String key) {
