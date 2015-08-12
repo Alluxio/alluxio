@@ -23,6 +23,7 @@ import org.junit.rules.TemporaryFolder;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
 
 public class BlockMetaBaseTest {
@@ -56,14 +57,14 @@ public class BlockMetaBaseTest {
   public void before() throws Exception {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
     // Set up tier with one storage dir under mTestDirPath with 100 bytes capacity.
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = WorkerContext.getConf();
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
         mTestDirPath);
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
         "100b");
     tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
 
-    mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
+    mTier = StorageTier.newStorageTier(0 /* level */);
     mDir = mTier.getDir(0);
     mBlockMeta = new BlockMetaBaseForTest(TEST_BLOCK_ID, mDir);
   }

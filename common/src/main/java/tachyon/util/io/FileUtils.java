@@ -30,6 +30,11 @@ import com.google.common.io.Files;
 import tachyon.TachyonURI;
 import tachyon.thrift.InvalidPathException;
 
+/**
+ * Provides utility methods for working with files and directories.
+ * 
+ * By convention, methods take file path strings as parameters.
+ */
 public class FileUtils {
   private static final Logger LOG = LoggerFactory.getLogger("");
 
@@ -38,7 +43,7 @@ public class FileUtils {
    *
    * @param filePath that will change permission
    * @param perms the permission, e.g. "775"
-   * @throws java.io.IOException
+   * @throws IOException when fails to change permission
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
     // TODO switch to java's Files.setPosixFilePermissions() if java 6 support is dropped
@@ -90,7 +95,7 @@ public class FileUtils {
    * Change local file's permission to be 777.
    *
    * @param filePath that will change permission
-   * @throws java.io.IOException
+   * @throws IOException when fails to change file's permission to 777
    */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
     changeLocalFilePermission(filePath, "777");
@@ -101,6 +106,7 @@ public class FileUtils {
    * of the folder containing the 'file'.
    *
    * @param file file path to set the sticky bit
+   * @throws IOException when fails to set sticky bit
    */
   public static void setLocalFileStickyBit(String file) {
     try {
@@ -118,7 +124,8 @@ public class FileUtils {
    * permissions.
    *
    * @param path The path of the block.
-   * @throws java.io.IOException
+   * @throws IOException when fails to create block path and parent directories with appropriate
+   *         permissions.
    */
   public static void createBlockPath(String path) throws IOException {
     try {
@@ -137,27 +144,28 @@ public class FileUtils {
    * Current implementation uses {@link com.google.common.io.Files#move(File, File);}, may change if
    * there is a better solution.
    *
-   * @param from source file
-   * @param to destination file
+   * @param srcPath pathname string of source file
+   * @param dstPath pathname string of destination file
    * @throws IOException when fails to move
    */
-  public static void move(File from, File to) throws IOException {
-    Files.move(from, to);
+  public static void move(String srcPath, String dstPath) throws IOException {
+    Files.move(new File(srcPath), new File(dstPath));
   }
 
   /**
-   * Delete the file or directory
+   * Delete the file or directory.
    *
-   * Current implementation uses {@link java.io.File#delete();}, may change if
+   * Current implementation uses {@link java.io.File#delete()}, may change if
    * there is a better solution.
    *
-   * @param file file to delete
+   * @param path pathname string of file or directory
    * @throws IOException when fails to delete
    */
-  public static void delete(File file) throws IOException {
+  public static void delete(String path) throws IOException {
+    File file = new File(path);
     boolean deletionSucceeded = file.delete();
     if (deletionSucceeded == false) {
-      throw new IOException("Failed to delete " + file);
+      throw new IOException("Failed to delete " + path);
     }
   }
   
@@ -187,13 +195,14 @@ public class FileUtils {
   /**
    * Creates a file and its intermediate directories if necessary.
    *
-   * @param file the file to create
+   * @param filePath pathname string of the file to create
    * @throws IOException if an I/O error occurred or file already exists
    */
-  public static void createFile(File file) throws IOException {
+  public static void createFile(String filePath) throws IOException {
+    File file = new File(filePath);
     Files.createParentDirs(file);
     if (!file.createNewFile()) {
-      throw new IOException("File already exists " + file.getPath());
+      throw new IOException("File already exists " + filePath);
     }
   }
 }

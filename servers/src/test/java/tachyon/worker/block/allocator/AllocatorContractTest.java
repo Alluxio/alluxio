@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.reflect.ClassPath;
@@ -36,13 +36,16 @@ import tachyon.conf.TachyonConf;
  * i.e., the general properties the allocators need to follow
  */
 public class AllocatorContractTest extends BaseAllocatorTest {
-  protected static List<String> sStrategies = new ArrayList<String>();
+  protected List<String> mStrategies;
 
-  @BeforeClass
   /**
    *  Try to find all implementation classes of {@link Allocator} in the same package
    */
-  public static void beforeClass() {
+  @Before
+  @Override
+  public void before() throws Exception {
+    super.before();
+    mStrategies = new ArrayList<String>();
     try {
       String packageName = Reflection.getPackageName(Allocator.class);
       ClassPath path = ClassPath.from(Thread.currentThread().getContextClassLoader());
@@ -52,7 +55,7 @@ public class AllocatorContractTest extends BaseAllocatorTest {
         Set<Class<?>> interfaces =
             new HashSet<Class<?>>(Arrays.asList(clazz.load().getInterfaces()));
         if (interfaces.size() > 0 && interfaces.contains(Allocator.class)) {
-          sStrategies.add(clazz.getName());
+          mStrategies.add(clazz.getName());
         }
       }
     } catch (Exception e) {
@@ -63,7 +66,7 @@ public class AllocatorContractTest extends BaseAllocatorTest {
   @Test
   public void shouldNotAllocateTest() throws Exception {
     TachyonConf conf = createTestTachyonConf();
-    for (String strategyName : sStrategies) {
+    for (String strategyName : mStrategies) {
       conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, strategyName);
       resetManagerView();
       Allocator allocator = Allocator.Factory.createAllocator(conf, mManagerView);
@@ -78,7 +81,7 @@ public class AllocatorContractTest extends BaseAllocatorTest {
   @Test
   public void shouldAllocateTest() throws Exception {
     TachyonConf conf = createTestTachyonConf();
-    for (String strategyName : sStrategies) {
+    for (String strategyName : mStrategies) {
       conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, strategyName);
       resetManagerView();
       Allocator tierAllocator = Allocator.Factory.createAllocator(conf, mManagerView);

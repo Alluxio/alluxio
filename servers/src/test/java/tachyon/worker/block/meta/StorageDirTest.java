@@ -39,6 +39,7 @@ import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.util.io.BufferUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
 
 public class StorageDirTest {
@@ -66,14 +67,14 @@ public class StorageDirTest {
   public void before() throws Exception {
     // Creates a dummy test dir under mTestDirPath with 1 byte space so initialization can occur
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = WorkerContext.getConf();
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
         mFolder.newFolder().getAbsolutePath());
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
         "1b");
     tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
 
-    mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
+    mTier = StorageTier.newStorageTier(0 /* level */);
     mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, mTestDirPath);
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta =
