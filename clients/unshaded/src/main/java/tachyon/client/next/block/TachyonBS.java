@@ -15,9 +15,11 @@
 
 package tachyon.client.next.block;
 
+import java.io.Closeable;
+
 import tachyon.client.next.ClientOptions;
 
-public class TachyonBS {
+public class TachyonBS implements Closeable {
 
   public static TachyonBS get() {
     // TODO: Implement me

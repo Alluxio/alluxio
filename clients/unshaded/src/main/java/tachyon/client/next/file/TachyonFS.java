@@ -15,17 +15,22 @@
 
 package tachyon.client.next.file;
 
+import java.io.Closeable;
 import java.util.List;
 
 import tachyon.client.next.ClientOptions;
 import tachyon.client.next.TachyonURI;
 import tachyon.thrift.FileInfo;
 
-public class TachyonFS {
+public class TachyonFS implements Closeable {
 
   public static TachyonFS get() {
     // TODO: Implement me
     return null;
+  }
+
+  public void close() {
+    // TODO: Implement me
   }
 
   public void deleteFile(TachyonFile file) {
