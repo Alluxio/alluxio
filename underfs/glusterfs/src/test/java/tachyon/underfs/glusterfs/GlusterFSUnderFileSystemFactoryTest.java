@@ -41,9 +41,8 @@ public class GlusterFSUnderFileSystemFactoryTest {
   @Before
   public final void before() throws IOException {
     mTachyonConf = new TachyonConf();
-    mMount =  mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR,
-        "glusterfs:///mapred/system");
-    mVolume = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null);
+    mMount =  mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR);
+    mVolume = mTachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES);
   }
 
   @Test

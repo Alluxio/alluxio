@@ -66,7 +66,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     LOG.debug("PartitionInputStreamHdfs({}, {}, {}, {}, {}, {})", tfs, fileId, hdfsPath, conf,
         bufferSize, stats);
     mTachyonConf = tachyonConf;
-    long bufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, 0);
+    long bufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
     mTFS = tfs;

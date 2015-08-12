@@ -76,10 +76,9 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
     mManagerView = view;
     mTachyonConf = new TachyonConf();
     mStepFactor = mTachyonConf
-        .getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_STEP_FACTOR, DEFAULT_STEP_FACTOR);
+        .getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_STEP_FACTOR);
     mAttenuationFactor = mTachyonConf
-        .getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_ATTENUATION_FACTOR, 
-            DEFAULT_ATTENUATION_FACTOR);
+        .getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_ATTENUATION_FACTOR);
     Preconditions.checkArgument(mStepFactor >= 0.0 && mStepFactor <= 1.0, 
         "Step factor should be in the range of [0.0, 1.0]");
     Preconditions.checkArgument(mAttenuationFactor >= 2.0,
