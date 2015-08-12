@@ -41,7 +41,8 @@ public class AllocatorContractTest extends BaseAllocatorTest {
   /**
    *  Try to find all implementation classes of {@link Allocator} in the same package
    */
-  @Before @Override
+  @Before
+  @Override
   public void before() throws Exception {
     super.before();
     mStrategies = new ArrayList<String>();
