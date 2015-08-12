@@ -32,7 +32,7 @@ import tachyon.thrift.InvalidPathException;
 
 /**
  * Provides utility methods for working with files and directories.
- * 
+ *
  * By convention, methods take file path strings as parameters.
  */
 public class FileUtils {
@@ -194,11 +194,11 @@ public class FileUtils {
   /**
    * Creates an empty directory and its intermediate directories if necessary.
    *
-   * @param file the file to create
-   * @throws IOException if an I/O error occurred or file already exists
+   * @param path path of the directory to create
+   * @throws IOException if an I/O error occurred or directory already exists
    */
-  public static void createDir(File file) throws IOException {
-    file.mkdirs();
+  public static void createDir(String path) throws IOException {
+    new File(path).mkdirs();
   }
 
   /**
