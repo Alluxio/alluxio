@@ -41,6 +41,12 @@ public class BufferUtils {
    * Force to unmap direct buffer if the buffer is no longer used. It is unsafe operation and
    * currently a walk-around to avoid huge memory occupation caused by memory map.
    *
+   * <p>
+   * NOTE: DirectByteBuffers are not guaranteed to be garbage-collected immediately after their
+   * references are released and may lead to OutOfMemoryError. This function helps by calling the
+   * Cleaner method of a DirectByteBuffer explicitly. See <a href=" http://stackoverflow
+   * .com/questions/1854398/how-to-garbage-collect-a-direct-buffer-java">more discussion</a>
+   *
    * @param buffer the byte buffer to be unmapped
    */
   public static void cleanDirectBuffer(ByteBuffer buffer) {
