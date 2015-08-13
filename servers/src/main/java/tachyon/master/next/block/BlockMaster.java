@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
-import tachyon.master.next.IndexSet;
+import tachyon.master.next.IndexedSet;
 import tachyon.master.next.Master;
 import tachyon.master.next.block.meta.BlockInfo;
 import tachyon.master.next.block.meta.BlockLocation;
@@ -52,7 +52,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   private final Set<Long> mLostBlocks = new HashSet<Long>();
 
   // Worker metadata management.
-  private final IndexSet<BlockWorkerInfo> mWorkers = new IndexSet<BlockWorkerInfo>("mId",
+  private final IndexedSet<BlockWorkerInfo> mWorkers = new IndexedSet<BlockWorkerInfo>("mId",
       "mWorkerAddress");
   private final AtomicInteger mWorkerCounter = new AtomicInteger(0);
 
