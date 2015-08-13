@@ -15,6 +15,10 @@
 
 package tachyon.client.next;
 
+/**
+ * Represents a path in Tachyon. Contains the scheme, authority, and path components of a Java
+ * URI. All TachyonURIs are validated on creation.
+ */
 public class TachyonURI {
   // TODO: Implement me
 }

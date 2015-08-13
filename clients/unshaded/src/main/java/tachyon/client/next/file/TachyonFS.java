@@ -22,6 +22,11 @@ import tachyon.client.next.ClientOptions;
 import tachyon.client.next.TachyonURI;
 import tachyon.thrift.FileInfo;
 
+/**
+ * Tachyon File System client. This class is the entry point for all file level operations on
+ * Tachyon files. An instance of this class can be obtained via {@link TachyonFS#get}. This class
+ * is thread safe.
+ */
 public class TachyonFS implements Closeable {
 
   public static TachyonFS get() {
