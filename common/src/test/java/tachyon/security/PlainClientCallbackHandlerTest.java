@@ -66,6 +66,20 @@ public class PlainClientCallbackHandlerTest {
     CallbackHandler clientCBHandler =
         new PlainSaslHelper.PlainClientCallbackHandler(user, password);
     clientCBHandler.handle(callbacks);
+  }
+
+  @Test
+  public void nullNameCallbackTest() throws Exception {
+
+    Callback[] callbacks = new Callback[2];
+    callbacks[0] = new NameCallback("Username:");
+    callbacks[1] = new PasswordCallback("Password:", true);
+
+    String user = null;
+    String password = "tachyon-user-3-password";
+    CallbackHandler clientCBHandler =
+        new PlainSaslHelper.PlainClientCallbackHandler(user, password);
+    clientCBHandler.handle(callbacks);
 
     validateCallbacks(user, password, callbacks);
   }
@@ -77,7 +91,7 @@ public class PlainClientCallbackHandlerTest {
     callbacks[0] = new NameCallback("Username:");
     callbacks[1] = new PasswordCallback("Password:", true);
 
-    String user = "tachyon-user-3";
+    String user = "tachyon-user-4";
     String password = null;
     CallbackHandler clientCBHandler =
         new PlainSaslHelper.PlainClientCallbackHandler(user, password);
@@ -97,13 +111,11 @@ public class PlainClientCallbackHandlerTest {
     callbacks[1] = new PasswordCallback("Password:", true);
     callbacks[2] = null;
 
-    String user = "tachyon-user-4";
-    String password = "tachyon-user-4-password";
+    String user = "tachyon-user-5";
+    String password = "tachyon-user-5-password";
     CallbackHandler clientCBHandler =
         new PlainSaslHelper.PlainClientCallbackHandler(user, password);
     clientCBHandler.handle(callbacks);
-
-    validateCallbacks(user, password, callbacks);
   }
 
   private void validateCallbacks(String user, String passwd, Callback[] callbacks)
