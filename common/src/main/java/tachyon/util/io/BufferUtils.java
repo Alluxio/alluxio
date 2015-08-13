@@ -38,8 +38,9 @@ public class BufferUtils {
   private static Method sByteBufferCleanerMethod;
 
   /**
-   * Force to unmap direct buffer if the buffer is no longer used. It is unsafe operation and
-   * currently a walk-around to avoid huge memory occupation caused by memory map.
+   * Force to unmap a direct buffer if this buffer is no longer used. After calling this method,
+   * this direct buffer should be discarded. This is unsafe operation and currently a walk-around to
+   * avoid huge memory occupation caused by memory map.
    *
    * <p>
    * NOTE: DirectByteBuffers are not guaranteed to be garbage-collected immediately after their
@@ -47,7 +48,7 @@ public class BufferUtils {
    * Cleaner method of a DirectByteBuffer explicitly. See <a href=" http://stackoverflow
    * .com/questions/1854398/how-to-garbage-collect-a-direct-buffer-java">more discussion</a>
    *
-   * @param buffer the byte buffer to be unmapped
+   * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
   public static void cleanDirectBuffer(ByteBuffer buffer) {
     Preconditions.checkNotNull(buffer);
@@ -67,7 +68,7 @@ public class BufferUtils {
       }
       sCleanerCleanMethod.invoke(cleaner);
     } catch (Exception e) {
-      LOG.warn("Fail to unmap direct buffer due to ", e);
+      LOG.warn("Fail to unmap direct buffer due to " + e.getMessage(), e);
     } finally {
       buffer = null;
     }
