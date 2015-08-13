@@ -15,18 +15,14 @@
 
 package tachyon.client.next.block;
 
-import java.io.InputStream;
-
 /**
- * Provides a stream API to read a block from Tachyon. An instance of this extending class can be
- * obtained by calling {@link TachyonBS#getInStream}. Multiple BlockInStreams can be opened for a
- * block. This class is thread safe.
- *
- * The type of BlockInStream returned will depend on the data location and user configuration. A
- * {@link LocalBlockInStream} is returned if the data can be directly read from the local storage
- * of the machine the client is on and the user has enabled this optimization. Otherwise, a
- * {@link RemoteBlockInStream} will be returned which will read the data through a Tachyon worker.
+ * This class provides a streaming API to read a block in Tachyon. The data will be transferred
+ * through a Tachyon worker's dataserver to the client.
  */
-public abstract class BlockInStream extends InputStream {
-  // TODO: Implement me
+public class RemoteBlockInStream extends BlockInStream {
+  @Override
+  public int read() {
+    // TODO: Implement me
+    return 0;
+  }
 }
