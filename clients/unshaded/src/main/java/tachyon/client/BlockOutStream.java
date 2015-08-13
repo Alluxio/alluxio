@@ -65,7 +65,7 @@ public abstract class BlockOutStream extends OutStream {
             Constants.MASTER_BALANCER_STRATEGY_CLASS, "tachyon.master.balancer.LocalFirstBalancer")
             .equalsIgnoreCase("tachyon.master.balancer.LocalFirstBalancer"))) {
       LOG.info("Writing with local stream. tachyonFile: " + tachyonFile + ", blockIndex: "
-              + blockIndex + ", opType: " + opType);
+          + blockIndex + ", opType: " + opType);
       return new LocalBlockOutStream(tachyonFile, opType, blockIndex, initialBytes, tachyonConf);
     }
 
