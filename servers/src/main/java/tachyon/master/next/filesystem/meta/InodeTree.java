@@ -23,6 +23,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
+
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
@@ -40,7 +42,10 @@ public class InodeTree {
 
   private InodeDirectory mRoot;
 
-  private final IndexedSet<Inode> mInodes = new IndexedSet<Inode>("mId", "mPinned");
+  private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex("mId");
+  private final IndexedSet<Inode> mInodes = new IndexedSet<Inode>(mIdIndex);
+  /** A set of inode ids representing pinned inode files */
+  private final Set<Long> mPinnedInodeFileIds = new HashSet<Long>();
 
   /**
    * Inode id management. Inode ids are essentially block ids.
@@ -55,11 +60,12 @@ public class InodeTree {
   public InodeTree(ContainerIdGenerator containerIdGenerator) {
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(containerIdGenerator);
+
     // TODO
   }
 
   public Inode getInodeById(long id) {
-    return mInodes.getFirst("mId", id);
+    return mInodes.getFirst(mIdIndex, id);
   }
 
   public Inode getInodeByPath(TachyonURI path) throws InvalidPathException {
@@ -166,6 +172,10 @@ public class InodeTree {
       ret =
           new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
               currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs);
+      if (currentInodeDirectory.isPinned()) {
+        // Update set of pinned file ids.
+        mPinnedInodeFileIds.add(ret.getId());
+      }
     }
     ret.setPinned(currentInodeDirectory.isPinned());
 
@@ -206,6 +216,7 @@ public class InodeTree {
     parent.setLastModificationTimeMs(System.currentTimeMillis());
 
     mInodes.remove(inode);
+    mPinnedInodeFileIds.remove(inode.getId());
     inode.reverseId();
   }
 
@@ -220,7 +231,13 @@ public class InodeTree {
     inode.setPinned(pinned);
     inode.setLastModificationTimeMs(System.currentTimeMillis());
 
-    if (inode.isDirectory()) {
+    if (inode.isFile()) {
+      if (inode.isPinned()) {
+        mPinnedInodeFileIds.add(inode.getId());
+      } else {
+        mPinnedInodeFileIds.remove(inode.getId());
+      }
+    } else {
       // inode is a directory. Set the pinned state for all children.
       for (Inode child : ((InodeDirectory) inode).getChildren()) {
         setPinned(child, pinned);
@@ -230,12 +247,7 @@ public class InodeTree {
 
   // TODO: this should return block container ids, not file ids.
   public Set<Long> getPinIdSet() {
-    Set<Inode> pinnedInodes = mInodes.getByField("mPinned", true);
-    Set<Long> ret = new HashSet<Long>(pinnedInodes.size());
-    for (Inode inode : pinnedInodes) {
-      ret.add(inode.getId());
-    }
-    return ret;
+    return Sets.newHashSet(mPinnedInodeFileIds);
   }
 
 
