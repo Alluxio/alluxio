@@ -40,6 +40,7 @@ import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
@@ -51,8 +52,6 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * thread-safe.
  */
 public class BlockDataManager {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /** Block store delta reporter for master heartbeat */
   private final BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
@@ -79,15 +78,15 @@ public class BlockDataManager {
   /**
    * Creates a BlockDataManager based on the configuration values.
    *
-   * @param tachyonConf the configuration values to use
    * @param workerSource object for collecting the worker metrics
    * @throws IOException if fail to connect to under filesystem
    */
-  public BlockDataManager(TachyonConf tachyonConf, WorkerSource workerSource)
+  public BlockDataManager(WorkerSource workerSource)
       throws IOException {
+    // TODO: We may not need to assign the conf to a variable
+    mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
-    mBlockStore = new TieredBlockStore(tachyonConf);
-    mTachyonConf = tachyonConf;
+    mBlockStore = new TieredBlockStore();
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
@@ -99,9 +98,9 @@ public class BlockDataManager {
             mMasterClientExecutorService, mTachyonConf);
 
     // Create Under FileSystem Client
-    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
     String ufsAddress =
-        mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
+        mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
 
     // Connect to UFS to handle UFS security
@@ -194,7 +193,6 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to commit
-   * @return true if successful, false otherwise
    * @throws AlreadyExistsException if blockId already exists in committed blocks
    * @throws NotFoundException if the temporary block cannot be found
    * @throws InvalidStateException if blockId does not belong to userId
@@ -214,13 +212,13 @@ public class BlockDataManager {
       Long storageDirId = loc.getStorageDirId();
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
-      Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierLevel());
+      Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
       mMasterClient
           .worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);
     } catch (TException te) {
       throw new IOException("Failed to commit block to master.", te);
     } finally {
-      mBlockStore.unlockBlock(userId, blockId);
+      mBlockStore.unlockBlock(lockId);
     }
   }
 
@@ -517,7 +515,7 @@ public class BlockDataManager {
    * Set the pinlist for the underlying blockstore.
    * Typically called by PinListSync.
    *
-   * @param pinnedInodes, a set of pinned inodes
+   * @param pinnedInodes a set of pinned inodes
    */
   public void updatePinList(Set<Integer> pinnedInodes) {
     mBlockStore.updatePinnedInodes(pinnedInodes);

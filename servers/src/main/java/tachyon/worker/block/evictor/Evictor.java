@@ -52,7 +52,7 @@ public interface Evictor {
    * After eviction, at least one StorageDir in the location
    * has the specific amount of free space after eviction. The location can be a specific
    * StorageDir, or {@link BlockStoreLocation#anyTier} or {@link BlockStoreLocation#anyDirInTier}.
-   * The view is generated and passed by the calling {@link BlockStore}.
+   * The view is generated and passed by the calling {@link tachyon.worker.block.BlockStore}.
    *
    * <P>
    * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,

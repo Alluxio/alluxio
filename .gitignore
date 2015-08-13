@@ -1,5 +1,7 @@
 **/tachyon-site.properties
 *.iml
+*.swp
+*.swo
 .DS_STORE
 .checkstyle
 .classpath
