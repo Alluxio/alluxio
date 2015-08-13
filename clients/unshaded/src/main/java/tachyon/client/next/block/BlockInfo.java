@@ -15,6 +15,10 @@
 
 package tachyon.client.next.block;
 
+/**
+ * Represents the metadata of a Tachyon block. This is returned from querying the Block Master
+ * with a blockID.
+ */
 public class BlockInfo {
   // TODO: Make me a thrift object
 }
