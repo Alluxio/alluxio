@@ -114,7 +114,7 @@ public class StorageDir {
       // TODO: Make this a utility method
       if (dir.mkdirs()) {
         FileUtils.changeLocalFilePermission(mDirPath, "777");
-        FileUtils.setLocalFileStickyBit(mDirPath);
+        FileUtils.setLocalDirStickyBit(mDirPath);
       } else {
         throw new IOException("Failed to create storage dir " + mDirPath);
       }
