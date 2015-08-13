@@ -106,8 +106,6 @@ public class LocalBlockOutStream extends BlockOutStream {
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
     // change the permission of the temporary file in order that the worker can move it.
     FileUtils.changeLocalFileToFullPermission(mLocalFilePath);
-    // use the sticky bit, only the client and the worker can write to the block
-    FileUtils.setLocalFileStickyBit(mLocalFilePath);
     LOG.info(mLocalFilePath + " was created! tachyonFile: " + file + ", blockIndex: " + blockIndex
         + ", blockId: " + mBlockId + ", blockCapacityByte: " + mBlockCapacityByte);
     mAvailableBytes += initialBytes;
