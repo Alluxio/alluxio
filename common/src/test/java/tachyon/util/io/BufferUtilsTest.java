@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class ByteUtilsTest {
+public class BufferUtilsTest {
   @Test
   public void cloneByteBufferTest() {
     final int bufferSize = 10;
