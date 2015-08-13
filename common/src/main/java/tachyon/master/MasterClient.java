@@ -30,8 +30,6 @@ import java.util.concurrent.Future;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +45,7 @@ import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
+import tachyon.security.authentication.AuthenticationFactory;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -182,9 +181,8 @@ public final class MasterClient implements Closeable {
       LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect with master"
           + " @ " + mMasterAddress);
 
-      mProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(
-              NetworkAddressUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
+      AuthenticationFactory factory = new AuthenticationFactory(mTachyonConf);
+      mProtocol = new TBinaryProtocol(factory.getClientTransport(mMasterAddress));
       mClient = new MasterService.Client(mProtocol);
       try {
         mProtocol.getTransport().open();
