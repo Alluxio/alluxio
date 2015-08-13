@@ -29,7 +29,7 @@ import com.google.common.collect.Maps;
  * In operations that need field name as the parameter, if the object does not have the field, a
  * RuntimeException will be thrown.
  */
-public class IndexSet<T> {
+public class IndexedSet<T> {
   private Set<T> mSet = new HashSet<T>();
   /** Map from fieldName to a map from fieldValue to set of T */
   private Map<String, Map<Object, Set<T>>> mSetIndexedByFieldValue;
@@ -41,7 +41,7 @@ public class IndexSet<T> {
    *
    * @param fields the field names to index the set of objects
    */
-  public IndexSet(String... fields) {
+  public IndexedSet(String... fields) {
     mFields = Maps.newHashMap();
     for (String field : fields) {
       mFields.put(field, null);

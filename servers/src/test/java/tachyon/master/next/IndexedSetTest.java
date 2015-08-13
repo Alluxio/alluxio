@@ -24,7 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.Assert;
 
-public class IndexSetTest {
+public class IndexedSetTest {
   class Pair {
     // mInt is private, mDouble is public, this is deliberate to assure both private and public
     // fields can be accessed.
@@ -41,11 +41,11 @@ public class IndexSetTest {
     }
   }
 
-  private IndexSet<Pair> mSet;
+  private IndexedSet<Pair> mSet;
 
   @Before
   public void before() {
-    mSet = new IndexSet<Pair>("mInt", "mDouble");
+    mSet = new IndexedSet<Pair>("mInt", "mDouble");
     for (int i = 0; i < 3; i ++) {
       for (double d = 0; d < 3.0; d ++) {
         mSet.add(new Pair(i, d));

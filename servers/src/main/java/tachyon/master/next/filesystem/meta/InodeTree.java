@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
-import tachyon.master.next.IndexSet;
+import tachyon.master.next.IndexedSet;
 import tachyon.master.next.block.meta.BlockId;
 import tachyon.master.next.block.ContainerIdGenerator;
 import tachyon.thrift.BlockInfoException;
@@ -40,7 +40,7 @@ public class InodeTree {
 
   private InodeDirectory mRoot;
 
-  private final IndexSet<Inode> mInodes = new IndexSet<Inode>("mId", "mPinned");
+  private final IndexedSet<Inode> mInodes = new IndexedSet<Inode>("mId", "mPinned");
 
   /**
    * Inode id management. Inode ids are essentially block ids.

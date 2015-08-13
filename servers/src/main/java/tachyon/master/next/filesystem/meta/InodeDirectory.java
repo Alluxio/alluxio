@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
-import tachyon.master.next.IndexSet;
+import tachyon.master.next.IndexedSet;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -34,7 +34,7 @@ import tachyon.thrift.FileInfo;
 public class InodeDirectory extends Inode {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private IndexSet<Inode> mChildren = new IndexSet<Inode>("mId", "mName");
+  private IndexedSet<Inode> mChildren = new IndexedSet<Inode>("mId", "mName");
 
   /**
    * Create a new InodeFolder.
