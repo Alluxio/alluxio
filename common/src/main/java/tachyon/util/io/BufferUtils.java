@@ -62,6 +62,7 @@ public class BufferUtils {
       sCleanerCleanMethod.invoke(cleaner);
     } catch (Exception e) {
       LOG.warn("Fail to unmap direct buffer due to ", e);
+    } finally {
       buffer = null;
     }
   }
