@@ -66,12 +66,12 @@ public class BlockMasterServiceHandler implements BlockMasterService.Iface {
   }
 
   @Override
-  public long userGetCapacityBytes() throws TException {
+  public long getCapacityBytes() throws TException {
     return mBlockMaster.getCapacityBytes();
   }
 
   @Override
-  public long userGetUsedBytes() throws TException {
+  public long getUsedBytes() throws TException {
     return mBlockMaster.getUsedBytes();
   }
 }
