@@ -15,9 +15,15 @@
 
 package tachyon.web;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import tachyon.conf.TachyonConf;
 import tachyon.master.BlockInfo;
+import tachyon.thrift.NetAddress;
 
 public final class UiBlockInfo {
+  private final List<String> mLocations = new ArrayList<String>();
   private final long mId;
   private final long mBlockLength;
   private final boolean mInMemory;
@@ -28,13 +34,27 @@ public final class UiBlockInfo {
     mBlockLength = blockInfo.mLength;
     mInMemory = blockInfo.isInMemory();
     mLastAccessTimeMs = -1;
+    List<NetAddress> workers = blockInfo.getLocations(new TachyonConf());
+    if (workers != null) {
+      addLocations(workers);
+    }
   }
 
-  public UiBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs, boolean inMemory) {
+  public UiBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs,
+      boolean inMemory, List<NetAddress> locations) {
     mId = blockId;
     mBlockLength = blockLength;
     mInMemory = inMemory;
     mLastAccessTimeMs = blockLastAccessTimeMs;
+    if (locations != null) {
+      addLocations(locations);
+    }
+  }
+
+  public void addLocations(List<NetAddress> locations) {
+    for (NetAddress location : locations) {
+      mLocations.add(location.getMHost());
+    }
   }
 
   public long getBlockLength() {
@@ -51,5 +71,9 @@ public final class UiBlockInfo {
 
   public long getLastAccessTimeMs() {
     return mLastAccessTimeMs;
+  }
+
+  public List<String> getLocations() {
+    return mLocations;
   }
 }

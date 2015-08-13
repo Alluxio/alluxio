@@ -201,7 +201,7 @@ public class Dependency extends ImageWriter {
     // TODO We should support different types of command in the future.
     // For now, assume there is only one command model.
     StringBuilder sb = new StringBuilder(parseCommandPrefix());
-    sb.append(" ").append(mTachyonConf.get(Constants.MASTER_ADDRESS, null));
+    sb.append(" ").append(mTachyonConf.get(Constants.MASTER_ADDRESS));
     sb.append(" ").append(mId);
     for (int k = 0; k < mChildrenFiles.size(); k ++) {
       int id = mChildrenFiles.get(k);

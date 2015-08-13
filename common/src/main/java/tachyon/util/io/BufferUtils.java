@@ -17,17 +17,23 @@ package tachyon.util.io;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import sun.misc.Cleaner;
-import sun.nio.ch.DirectBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import tachyon.Constants;
 /**
  * Utilities related to buffers, not only ByteBuffer.
  */
 public class BufferUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static Method sCleanMethod;
+  private static Method sCleanerMethod;
+
   /**
    * Force to unmap direct buffer if the buffer is no longer used. It is unsafe operation and
    * currently a walk-around to avoid huge memory occupation caused by memory map.
@@ -39,8 +45,22 @@ public class BufferUtils {
       return;
     }
     if (buffer.isDirect()) {
-      Cleaner cleaner = ((DirectBuffer) buffer).cleaner();
-      cleaner.clean();
+      try {
+        if (sCleanerMethod == null) {
+          sCleanerMethod = buffer.getClass().getMethod("cleaner");
+          sCleanerMethod.setAccessible(true);
+        }
+        final Object cleaner = sCleanerMethod.invoke(buffer);
+        if (cleaner != null) {
+          if (sCleanMethod == null) {
+            sCleanMethod = cleaner.getClass().getMethod("clean");
+          }
+          sCleanMethod.invoke(cleaner);
+        }
+      } catch (Exception e) {
+        LOG.warn("Fail to unmap direct buffer due to ", e);
+        buffer = null;
+      }
     }
   }
 
@@ -148,7 +168,7 @@ public class BufferUtils {
   }
 
   /**
-   * * Writes buffer to the given file path
+   * Writes buffer to the given file path.
    *
    * @param path file path to write the data
    * @param buffer raw data

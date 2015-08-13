@@ -27,12 +27,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
+import tachyon.client.InStream;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
 
 /**
  * Integration tests for {@link tachyon.worker.block.meta.StorageTier}.
@@ -63,7 +68,43 @@ public class TieredStoreIntegrationTest {
     mTFS = mLocalTachyonCluster.getClient();
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
-        mWorkerConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+        mWorkerConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+  }
+
+  // Tests that deletes go through despite failing initially due to concurrent read
+  @Test
+  public void deleteWhileReadTest() throws Exception {
+    int fileId =
+        TachyonFSTestUtils.createByteFile(mTFS, "/test1", WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    TachyonFile file = mTFS.getFile(fileId);
+
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+
+    Assert.assertTrue(file.isInMemory());
+    // Open the file
+    InStream in = mTFS.getFile(fileId).getInStream(ReadType.NO_CACHE);
+
+    // Delete the file
+    mTFS.delete(fileId, false);
+
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+
+    // After the delete, the master should no longer serve the file
+    Assert.assertFalse(mTFS.exist(new TachyonURI("/test1")));
+
+    // However, the previous read should still be able to read it as the data still exists
+    byte[] res = new byte[MEM_CAPACITY_BYTES];
+    Assert.assertEquals(MEM_CAPACITY_BYTES, in.read(res, 0, MEM_CAPACITY_BYTES));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(MEM_CAPACITY_BYTES, res));
+    in.close();
+
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+
+    // After the file is closed, the master's delete should go through and new files can be created
+    int newFile = TachyonFSTestUtils.createByteFile(mTFS, "/test2", WriteType.MUST_CACHE,
+        MEM_CAPACITY_BYTES);
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+    Assert.assertTrue(mTFS.getFile(newFile).isInMemory());
   }
 
   // Tests that pinning a file prevents it from being evicted.

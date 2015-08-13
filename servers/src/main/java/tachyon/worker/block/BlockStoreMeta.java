@@ -16,6 +16,7 @@
 package tachyon.worker.block;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,6 +24,7 @@ import java.util.Map;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.StorageLevelAlias;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
@@ -34,10 +36,20 @@ import tachyon.worker.block.meta.StorageTier;
 public class BlockStoreMeta {
   // TODO: the following two fields don't need to be computed on the creation of each
   // {@link BlockStoreMeta} instance.
-  private final List<Long> mCapacityBytesOnTiers = new ArrayList<Long>();
+  /**
+   * Capacity bytes on each tier alias (MEM, SSD and HDD).
+   * E.g., for two tiers [MEM: 1GB][HDD: 10GB], this list will be [0:1GB][1:0][2:10GB].
+   */
+  private final List<Long> mCapacityBytesOnTiers = new ArrayList<Long>(Collections.nCopies(
+      StorageLevelAlias.SIZE, 0L));
   private final Map<Long, Long> mCapacityBytesOnDirs = new HashMap<Long, Long>();
 
-  private final List<Long> mUsedBytesOnTiers = new ArrayList<Long>();
+  /**
+   * Used bytes on each tier alias (MEM, SSD and HDD).
+   * This list has the same format with <code>mCapacityBytesOnTiers</code>.
+   */
+  private final List<Long> mUsedBytesOnTiers = new ArrayList<Long>(Collections.nCopies(
+      StorageLevelAlias.SIZE, 0L));
   private final Map<Long, List<Long>> mBlockIdsOnDirs = new HashMap<Long, List<Long>>();
   private final Map<Long, Long> mUsedBytesOnDirs = new HashMap<Long, Long>();
   private final Map<Long, String> mDirPaths = new LinkedHashMap<Long, String>();
@@ -45,8 +57,11 @@ public class BlockStoreMeta {
   public BlockStoreMeta(BlockMetadataManager manager) {
     Preconditions.checkNotNull(manager);
     for (StorageTier tier : manager.getTiers()) {
-      mCapacityBytesOnTiers.add(tier.getCapacityBytes());
-      mUsedBytesOnTiers.add(tier.getCapacityBytes() - tier.getAvailableBytes());
+      int aliasIndex = tier.getTierAlias() - 1;
+      mCapacityBytesOnTiers.set(aliasIndex, mCapacityBytesOnTiers.get(aliasIndex)
+          + tier.getCapacityBytes());
+      mUsedBytesOnTiers.set(aliasIndex, mUsedBytesOnTiers.get(aliasIndex)
+          + (tier.getCapacityBytes() - tier.getAvailableBytes()));
       for (StorageDir dir : tier.getStorageDirs()) {
         mBlockIdsOnDirs.put(dir.getStorageDirId(), dir.getBlockIds());
         mCapacityBytesOnDirs.put(dir.getStorageDirId(), dir.getCapacityBytes());
@@ -83,7 +98,7 @@ public class BlockStoreMeta {
 
   public int getNumberOfBlocks() {
     int numberOfBlocks = 0;
-    for (List blockIds : mBlockIdsOnDirs.values()) {
+    for (List<Long> blockIds : mBlockIdsOnDirs.values()) {
       numberOfBlocks += blockIds.size();
     }
     return numberOfBlocks;

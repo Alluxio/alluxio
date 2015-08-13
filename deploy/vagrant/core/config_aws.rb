@@ -16,7 +16,6 @@ def config_aws(config, i, total, name)
     aws.access_key_id = ENV['AWS_ACCESS_KEY_ID']
     aws.secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
     aws.keypair_name = KEYPAIR
-    aws.security_groups = SECURITY_GROUP
     aws.ami = AMI
     aws.region = REGION
     aws.instance_type = INSTANCE_TYPE
@@ -25,6 +24,13 @@ def config_aws(config, i, total, name)
       'Name' => TAG + "-" + name,
     }
 	  aws.availability_zone = AVAILABILITY_ZONE
+    if (SUBNET != nil and SUBNET != "")
+      aws.subnet_id = SUBNET
+      aws.associate_public_ip = TRUE
+      aws.security_groups = ENV['AWS_SECURITY_GROUP_ID_TACH']
+    else
+      aws.security_groups = SECURITY_GROUP
+    end
     aws.user_data = "#!/bin/bash\necho 'Defaults:root !requiretty' > /etc/sudoers.d/998-vagrant-cloud-init-requiretty && echo 'Defaults:ec2-user !requiretty' > /etc/sudoers.d/999-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/998-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/999-vagrant-cloud-init-requiretty"
   end
 end

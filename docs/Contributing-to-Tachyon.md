@@ -7,11 +7,12 @@ group: Development
 
 Thank you for your interest in Tachyon! We greatly appreciate any new features or fixes.
 
+### toc
 * [Submitting Code](#submitting-code)
-  * [Testing](#testing)
-  * [Coding Style](#coding-style)
-  * [FindBugs](#findbugs)
-* [Startup Tasks for New Contributors](#startup-tasks-for-new-contributors)
+    * [Testing](#testing)
+    * [Coding Style](#coding-style)
+    * [FindBugs](#findbugs)
+* [New Contributor Tasks](#startup-tasks-for-new-contributors)
 * [IDE](#ide)
 * [Presentations](#presentations)
 * [Readings](#readings)
@@ -48,7 +49,7 @@ request, please include a link to the JIRA ticket.
 [SMALLFIX] Fix a typo in Foo
 ~~~~~
 
-### Testing
+#### Testing
 
 -   Run all unit tests with ``mvn test`` (will use the local filesystem as the under filesystem and
 HDFS 1.0.4 as the under filesystem in the HDFS module.). ``mvn -Dhadoop.version=2.4.0 test`` will use
@@ -74,7 +75,7 @@ leverage the Scala shell, as discussed in this
 -   Run tests with Hadoop FileSystem contract tests (uses hadoop 2.6.0):
 ``mvn -PcontractTest clean test``
 
-### Coding Style
+#### Coding Style
 
 -   Please follow the style of the existing codebase. Specifically, we use
     [Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html),
@@ -121,7 +122,7 @@ leverage the Scala shell, as discussed in this
 
         $ mvn checkstyle:checkstyle
 
-### FindBugs
+#### FindBugs
 
 Before submitting the pull-request, run the latest code against
 [FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.

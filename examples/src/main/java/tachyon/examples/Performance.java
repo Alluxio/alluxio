@@ -524,7 +524,7 @@ public class Performance {
 
     TachyonConf tachyonConf = new TachyonConf();
 
-    long fileBufferBytes = tachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, 0);
+    long fileBufferBytes = tachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     sResultPrefix =
         String.format("Threads %d FilesPerThread %d TotalFiles %d "
             + "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d "
