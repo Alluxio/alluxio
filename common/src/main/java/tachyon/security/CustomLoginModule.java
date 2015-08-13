@@ -46,6 +46,8 @@ public class CustomLoginModule implements LoginModule {
    */
   @Override
   public boolean login() throws LoginException {
+    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    //instead of System.getProperty for retrieving user name.
     String userName = System.getProperty(Constants.TACHYON_SECURITY_USERNAME, "");
     if (userName != "") {
       mUser = new User(userName);
