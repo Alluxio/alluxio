@@ -186,6 +186,14 @@ public class InodeFile extends Inode {
     return BlockId.createBlockId(mBlockContainerId, mBlocks.size());
   }
 
+  public synchronized long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
+    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
+      throw new BlockInfoException("blockIndex " + blockIndex + " is out of range. File blocks: "
+          + mBlocks.size());
+    }
+    return mBlocks.get(blockIndex);
+  }
+
   /**
    * Get the number of the blocks of the file
    *
