@@ -75,11 +75,11 @@ public class PlainSaslHelper {
   }
 
   /**
-   * Get a ClientTransport for Plain
+   * Get a PLAIN mechanism transport for client side.
    * @param username User Name of PlainClient
    * @param password Password of PlainClient
    * @param wrappedTransport The original Transport
-   * @return Wrapped Transport with Plain
+   * @return Wrapped transport with PLAIN mechanism
    * @throws SaslException if an AuthenticationProvider is not found
    */
   public static TTransport getPlainClientTransport(String username, String password,
