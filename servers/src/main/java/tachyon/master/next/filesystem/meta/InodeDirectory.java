@@ -166,7 +166,7 @@ public class InodeDirectory extends Inode {
    * @return true if the inode was removed, false otherwise.
    */
   public synchronized boolean removeChild(String name) {
-    return mChildren.remove("mName", name);
+    return mChildren.removeByField("mName", name);
   }
 
   @Override
