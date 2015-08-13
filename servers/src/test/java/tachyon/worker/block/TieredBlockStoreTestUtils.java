@@ -213,4 +213,32 @@ public class TieredBlockStoreTestUtils {
     writer.close();
     return tempBlockMeta;
   }
+  
+  /**
+   * Get the total capacity of all tiers in bytes.
+   * 
+   * @return total capacity of all tiers in bytes
+   */
+  public static long getDefaultTotalCapacityBytes() {
+    long totalCapacity = 0;
+    for (int i = 0; i < TIER_CAPACITY.length; i ++) {
+      for (int j = 0; j < TIER_CAPACITY[i].length; j ++) {
+        totalCapacity += TIER_CAPACITY[i][j];
+      }
+    }
+    return totalCapacity;
+  }
+  
+  /**
+   * Get the number of testing directories of all tiers.
+   * 
+   * @return number of testing directories of all tiers.
+   */
+  public static long getDefaultDirNum() {
+    int dirNum = 0;
+    for (int i = 0; i < TIER_PATH.length; i ++) {
+      dirNum += TIER_PATH[i].length;
+    }
+    return dirNum;
+  }
 }
