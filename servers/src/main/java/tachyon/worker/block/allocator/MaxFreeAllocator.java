@@ -33,66 +33,41 @@ public class MaxFreeAllocator implements Allocator {
   }
 
   @Override
-  public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
-      BlockStoreLocation location, BlockMetadataManagerView view) {
+  public TempBlockMeta allocateBlockWithView(final long userId, final long blockId,
+      final long blockSize, final BlockStoreLocation location,
+      final BlockMetadataManagerView view) {
     mManagerView = view;
-    return allocateBlock(userId, blockId, blockSize, location);
-  }
 
-  /**
-   * Should only be accessed by {@link allocateBlockWithView} inside class.
-   * Allocates a block from the given block store location. The location can be a specific location,
-   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
-   *
-   * @param userId the ID of user to apply for the block allocation
-   * @param blockId the ID of the block
-   * @param blockSize the size of block in bytes
-   * @param location the location in block store
-   * @return a temp block meta if success, null otherwise
-   * @throws IllegalArgumentException if block location is invalid
-   */
-  private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
-      BlockStoreLocation location) {
-    StorageDirView candidateDirView = null;
+    BlockMetadataManagerView.DirVisitor visitor = new BlockMetadataManagerView.DirVisitor() {
+      private long mMaxFreeBytes = blockSize - 1;
+      private StorageDirView mDir = null;
+      private StorageTierView mTier = null; // the highest tier that can allocate the space
 
-    if (location.equals(BlockStoreLocation.anyTier())) {
-      for (StorageTierView tierView : mManagerView.getTierViews()) {
-        candidateDirView = getCandidateDirInTier(tierView, blockSize);
-        if (candidateDirView != null) {
-          return candidateDirView.createTempBlockMeta(userId, blockId, blockSize);
+      @Override
+      public boolean visit(StorageDirView dirView) {
+        StorageTierView tier = dirView.getParentTierView();
+        if (mTier != null && mTier != tier) {
+          // there is already a higher tier to allocate the space, stop the iteration
+          return true;
         }
+        if (dirView.getAvailableBytes() > mMaxFreeBytes) {
+          mMaxFreeBytes = dirView.getAvailableBytes();
+          mDir = dirView;
+          if (mTier == null) {
+            mTier = tier; // the highest tier to allocate the space
+          }
+        }
+        return false;
       }
-    } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
-      candidateDirView = getCandidateDirInTier(tierView, blockSize);
-    } else {
-      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
-      StorageDirView dirView = tierView.getDirView(location.dir());
-      if (dirView.getAvailableBytes() >= blockSize) {
-        candidateDirView = dirView;
-      }
-    }
 
-    return candidateDirView != null
-        ? candidateDirView.createTempBlockMeta(userId, blockId, blockSize) : null;
-  }
-
-  /**
-   * Find a directory view in a tier view that has max free space and is able to store the block.
-   *
-   * @param tierView the storage tier view
-   * @param blockSize the size of block in bytes
-   * @return the storage directory view if found, null otherwise
-   */
-  private StorageDirView getCandidateDirInTier(StorageTierView tierView, long blockSize) {
-    StorageDirView candidateDirView = null;
-    long maxFreeBytes = blockSize - 1;
-    for (StorageDirView dirView : tierView.getDirViews()) {
-      if (dirView.getAvailableBytes() > maxFreeBytes) {
-        maxFreeBytes = dirView.getAvailableBytes();
-        candidateDirView = dirView;
+      @Override
+      public StorageDirView getDir() {
+        return mDir;
       }
-    }
-    return candidateDirView;
+    };
+
+    mManagerView.visitDirs(location, visitor);
+    StorageDirView dir = visitor.getDir();
+    return dir == null ? null : dir.createTempBlockMeta(userId, blockId, blockSize);
   }
 }

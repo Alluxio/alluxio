@@ -64,6 +64,6 @@ public interface Allocator {
    * @return a temp block meta if success, null otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
-  TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
-      BlockStoreLocation location, BlockMetadataManagerView view);
+  TempBlockMeta allocateBlockWithView(final long userId, final long blockId, final long blockSize,
+      final BlockStoreLocation location, final BlockMetadataManagerView view);
 }

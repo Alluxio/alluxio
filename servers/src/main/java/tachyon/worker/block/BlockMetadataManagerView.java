@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import tachyon.exception.NotFoundException;
 import tachyon.master.BlockInfo;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.StorageTierView;
 
@@ -173,5 +174,64 @@ public class BlockMetadataManagerView {
     } else {
       return null;
     }
+  }
+
+  /**
+   * The visitor used in {@link #visitDirs}. Example implementation can be found in implementations
+   * of {@link tachyon.worker.block.evictor.Evictor} and
+   * {@link tachyon.worker.block.allocator.Allocator}.
+   */
+  public static interface DirVisitor {
+    /**
+     * The visitor is now visiting the dir.
+     * @param dir the dir currently visited.
+     * @return true to stop from visiting other dirs anymore, otherwise false.
+     */
+    boolean visit(StorageDirView dir);
+
+    /**
+     * If special dirView needs to be returned after the visiting process, it can be saved during
+     * {@link #visit} and retrieved by this method later.
+     *
+     * @return the StorageDirView saved during the visiting process.
+     */
+    StorageDirView getDir();
+  }
+
+  /**
+   * Visit {@link StorageDirView}s contained in location by visitor.
+   *
+   * The visiting sequence is from higher tier to lower tier(MEM is the highest tier), in each tier,
+   * the StorageDirViews visited is in the sequence of the returned list by
+   * {@link StorageTierView#getDirViews()}.
+   *
+   * @param location
+   * @param visitor
+   */
+  public void visitDirs(BlockStoreLocation location, DirVisitor visitor) {
+    if (location.equals(BlockStoreLocation.anyTier())) {
+      for (StorageTierView tierView : getTierViews()) {
+        for (StorageDirView dirView : tierView.getDirViews()) {
+          if (visitor.visit(dirView)) {
+            return;
+          }
+        }
+      }
+      return;
+    }
+
+    int tierAlias = location.tierAlias();
+    StorageTierView tierView = getTierView(tierAlias);
+    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        if (visitor.visit(dirView)) {
+          return;
+        }
+      }
+      return;
+    }
+
+    StorageDirView dirView = tierView.getDirView(location.dir());
+    visitor.visit(dirView);
   }
 }
