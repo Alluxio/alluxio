@@ -66,7 +66,6 @@ public class ServiceSocketBindIntegrationTest {
     for (ServiceType service : ServiceType.values()) {
       tachyonConf.set(service.mBindHostKey, bindHost);
     }
-    mLocalTachyonCluster.start();
     mClientMetrics = new ClientMetrics();
     mLocalTachyonCluster = new LocalTachyonCluster(100, 100, Constants.GB);
     mLocalTachyonCluster.start(tachyonConf);
@@ -86,7 +85,7 @@ public class ServiceSocketBindIntegrationTest {
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, mMasterTachyonConf);
     mMasterWebService =
         (HttpURLConnection) new URL("http://" + masterWebAddr.getAddress().getHostAddress() + ":"
-            + masterWebAddr.getPort() + "/configuration").openConnection();
+            + masterWebAddr.getPort() + "/css/tachyoncustom.min.css").openConnection();
     mMasterWebService.connect();
 
     // connect Worker RPC service
@@ -104,7 +103,7 @@ public class ServiceSocketBindIntegrationTest {
         NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_WEB, mWorkerTachyonConf);
     mWorkerWebService =
         (HttpURLConnection) new URL("http://" + workerWebAddr.getAddress().getHostAddress() + ":"
-            + workerWebAddr.getPort() + "/home").openConnection();
+            + workerWebAddr.getPort() + "/css/tachyoncustom.min.css").openConnection();
     mWorkerWebService.connect();
   }
 

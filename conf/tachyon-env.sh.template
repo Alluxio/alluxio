@@ -12,6 +12,27 @@
 # - TACHYON_UNDERFS_HDFS_IMPL, to set which HDFS implementation to use (e.g. com.mapr.fs.MapRFileSystem,
 #   org.apache.hadoop.hdfs.DistributedFileSystem)
 
+
+# Support for Multihomed Networks.
+# You can specify a hostname to bind each of services. If a wildcard
+# is applied, you should select one of network interfaces and use its hostname to connect the service.
+# If no hostname is defined, Tachyon will automatically select an externally visible localhost name.
+#
+# Bind environment variables
+# TACHYON_MASTER_BIND_HOST=`hostname -A | cut -d" " -f1`
+# TACHYON_MASTER_WEB_BIND_HOST=0.0.0.0
+# TACHYON_WORKER_BIND_HOST=`hostname -A | cut -d" " -f1`
+# TACHYON_WORKER_DATA_BIND_HOST=`hostname -A | cut -d" " -f2`
+# TACHYON_WORKER_WEB_BIND_HOST=0.0.0.0
+#
+# Connection environment variables
+# TACHYON_MASTER_HOSTNAME=`hostname -A | cut -d" " -f1`
+# TACHYON_MASTER_WEB_HOSTNAME=`hostname -A | cut -d" " -f1`
+# TACHYON_WORKER_HOSTNAME=`hostname -A | cut -d" " -f1`
+# TACHYON_WORKER_DATA_HOSTNAME=`hostname -A | cut -d" " -f1`
+# TACHYON_WORKER_WEB_HOSTNAME=`hostname -A | cut -d" " -f1`
+
+
 # The following gives an example:
 
 # Uncomment this section to add a local installation of Hadoop to Tachyon's CLASSPATH.
