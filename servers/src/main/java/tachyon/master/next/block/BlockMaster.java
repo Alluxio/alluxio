@@ -52,8 +52,10 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   private final Set<Long> mLostBlocks = new HashSet<Long>();
 
   // Worker metadata management.
-  private final IndexedSet<BlockWorkerInfo> mWorkers = new IndexedSet<BlockWorkerInfo>("mId",
-      "mWorkerAddress");
+  private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex("mId");
+  private final IndexedSet.FieldIndex mAddressIndex = new IndexedSet.FieldIndex("mWorkerAddress");
+  private final IndexedSet<BlockWorkerInfo> mWorkers = new IndexedSet<BlockWorkerInfo>(mIdIndex,
+      mAddressIndex);
   private final AtomicInteger mWorkerCounter = new AtomicInteger(0);
 
   @Override
@@ -69,7 +71,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   public BlockWorkerInfo getWorkerInfo(long workerId) {
     synchronized (mWorkers) {
-      return mWorkers.getFirst("mId", workerId);
+      return mWorkers.getFirst(mIdIndex, workerId);
     }
   }
 
@@ -172,9 +174,9 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     LOG.info("registerWorker(): WorkerNetAddress: " + workerAddress);
 
     synchronized (mWorkers) {
-      if (mWorkers.contains("mWorkerAddress", workerAddress)) {
+      if (mWorkers.contains(mAddressIndex, workerAddress)) {
         // This worker address is already mapped to a worker id.
-        long oldWorkerId = mWorkers.getFirst("mWorkerAddress", workerAddress).getId();
+        long oldWorkerId = mWorkers.getFirst(mAddressIndex, workerAddress).getId();
         LOG.warn("The worker " + workerAddress + " already exists as id " + oldWorkerId + ".");
         return oldWorkerId;
       }
@@ -190,7 +192,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public long workerRegister(long workerId, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlockIds) {
     synchronized (mWorkers) {
-      if (mWorkers.contains("mId", workerId)) {
+      if (mWorkers.contains(mIdIndex, workerId)) {
         LOG.warn("Could not find worker id: " + workerId + " to register.");
         return 0;
       }
@@ -216,7 +218,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds) {
     synchronized (mWorkers) {
-      if (!mWorkers.contains("mId", workerId)) {
+      if (!mWorkers.contains(mIdIndex, workerId)) {
         LOG.warn("Could not find worker id: " + workerId + " for heartbeat.");
         return new Command(CommandType.Register, new ArrayList<Long>());
       }
