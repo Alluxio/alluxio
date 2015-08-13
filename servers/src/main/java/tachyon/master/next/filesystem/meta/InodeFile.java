@@ -48,13 +48,13 @@ public class InodeFile extends Inode {
    *
    * @param name The name of the file
    * @param blockContainerId The block container id for this file. All blocks for this file will
-   *                         belong to this block container.
+   *        belong to this block container.
    * @param parentId The inode id of the parent of the file
    * @param blockSizeBytes The block size of the file, in bytes
    * @param creationTimeMs The creation time of the file, in milliseconds
    */
   public InodeFile(String name, long blockContainerId, long parentId, long blockSizeBytes,
-                   long creationTimeMs) {
+      long creationTimeMs) {
     super(name, BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber()), parentId,
         false, creationTimeMs);
     mBlocks = new ArrayList<Long>(3);
@@ -84,8 +84,8 @@ public class InodeFile extends Inode {
     }
     int blockIndex = BlockId.getSequenceNumber(blockId);
     if (blockIndex != mBlocks.size()) {
-      throw new BlockInfoException("block index mismatch: expected index: " + mBlocks.size()
-          + " this index: " + blockIndex);
+      throw new BlockInfoException(
+          "block index mismatch: expected index: " + mBlocks.size() + " this index: " + blockIndex);
     }
     if (lengthBytes > mBlockSizeBytes) {
       throw new BlockInfoException("Block length is too large: file block size: " + mBlockSizeBytes
@@ -100,8 +100,7 @@ public class InodeFile extends Inode {
   public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
 
-    // TODO: change id to long.
-    ret.id = (int) getId();
+    ret.fileId = getId();
     ret.name = getName();
     ret.path = path;
     ret.ufsPath = mUfsPath;
@@ -128,16 +127,12 @@ public class InodeFile extends Inode {
     return new ArrayList<Long>(mBlocks);
   }
 
-  public long getBlockContainerId() {
-    return mBlockContainerId;
-  }
-
   /**
    * Get the block size of the file
    *
    * @return the block size in bytes
    */
-  public long getBlockSizeByte() {
+  public long getBlockSizeBytes() {
     return mBlockSizeBytes;
   }
 
@@ -169,7 +164,7 @@ public class InodeFile extends Inode {
   }
 
   /**
-   * Get the length of the file in bytes.
+   * Get the length of the file in bytes. This is not accurate before the file is closed.
    *
    * @return the length of the file in bytes
    */
@@ -178,18 +173,21 @@ public class InodeFile extends Inode {
   }
 
   /**
-   * Get the id for a new block of the file. Also the id of the next block added into the file.
+   * Get the id for a new block of the file.
    *
    * @return the id of a new block of the file
    */
   public synchronized long getNewBlockId() {
-    return BlockId.createBlockId(mBlockContainerId, mBlocks.size());
+    long blockId = BlockId.createBlockId(mBlockContainerId, mBlocks.size());
+    // TODO: check for max block sequence number.
+    mBlocks.add(blockId);
+    return blockId;
   }
 
   public synchronized long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
-      throw new BlockInfoException("blockIndex " + blockIndex + " is out of range. File blocks: "
-          + mBlocks.size());
+      throw new BlockInfoException(
+          "blockIndex " + blockIndex + " is out of range. File blocks: " + mBlocks.size());
     }
     return mBlocks.get(blockIndex);
   }
@@ -204,8 +202,8 @@ public class InodeFile extends Inode {
   }
 
   /**
-   * Return whether the file has checkpointed or not. Note that the file has checkpointed only
-   * if the under file system path is not empty.
+   * Return whether the file has checkpointed or not. Note that the file has checkpointed only if
+   * the under file system path is not empty.
    *
    * @return true if the file has checkpointed, false otherwise
    */
@@ -268,15 +266,6 @@ public class InodeFile extends Inode {
   }
 
   /**
-   * Set the complete flag of the file
-   *
-   * @param complete If true, the file is complete
-   */
-  public synchronized void setComplete(boolean complete) {
-    mIsComplete = complete;
-  }
-
-  /**
    * Set the length of the file. Cannot set the length if the file is complete or the length is
    * negative.
    *
@@ -284,8 +273,8 @@ public class InodeFile extends Inode {
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */
-  public synchronized void setLength(long length) throws SuspectedFileSizeException,
-      BlockInfoException {
+  public synchronized void setLength(long length)
+      throws SuspectedFileSizeException, BlockInfoException {
     if (isComplete()) {
       throw new SuspectedFileSizeException("InodeFile length was set previously.");
     }

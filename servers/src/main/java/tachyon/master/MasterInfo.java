@@ -57,22 +57,22 @@ import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.DependencyInfo;
-import tachyon.thrift.FileInfo;
-import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.DependencyDoesNotExistException;
+import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.thrift.WorkerInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystem.SpaceType;
 import tachyon.util.CommonUtils;
@@ -1243,7 +1243,7 @@ public class MasterInfo extends ImageWriter {
       Inode inode = mFileIdToInodes.get(fid);
       if (inode == null) {
         FileInfo info = new FileInfo();
-        info.id = -1;
+        info.fileId = -1;
         return info;
       }
       return inode.generateClientFileInfo(getPath(inode).toString());
@@ -1263,7 +1263,7 @@ public class MasterInfo extends ImageWriter {
       Inode inode = getInode(path);
       if (inode == null) {
         FileInfo info = new FileInfo();
-        info.id = -1;
+        info.fileId = -1;
         return info;
       }
       return inode.generateClientFileInfo(path.toString());
@@ -1331,9 +1331,9 @@ public class MasterInfo extends ImageWriter {
    * @return the block infos of the file
    * @throws FileDoesNotExistException
    */
-  public List<FileBlockInfo> getFileBlocks(int fileId) throws FileDoesNotExistException {
+  public List<FileBlockInfo> getFileBlocks(long fileId) throws FileDoesNotExistException {
     synchronized (mRootLock) {
-      Inode inode = mFileIdToInodes.get(fileId);
+      Inode inode = mFileIdToInodes.get((int) fileId);
       if (inode == null || inode.isDirectory()) {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
