@@ -31,9 +31,10 @@ import tachyon.exception.OutOfSpaceException;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.io.PathUtils;
 import tachyon.util.UnderFileSystemUtils;
-import tachyon.worker.block.BlockWorker;
 import tachyon.worker.WorkerContext;
+import tachyon.worker.block.BlockWorker;
 
 /**
  * Local Tachyon cluster for unit tests.
@@ -141,7 +142,6 @@ public final class LocalTachyonCluster {
   /**
    * Configure and start master
    *
-   * @param tachyonConf Master's configuration
    * @throws IOException
    */
   public void startMaster() throws IOException {
@@ -151,7 +151,7 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
     mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
     mMasterConf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(mUserBlockSize));
-    mMasterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "64");
+    mMasterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, Integer.toString(64));
 
     mMaster = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
     mMaster.start();
@@ -160,39 +160,39 @@ public final class LocalTachyonCluster {
   /**
    * Configure and start worker
    *
-   * @param tachyonConf Worker's configuration
    * @throws IOException
    */
   public void startWorker() throws IOException {
     mWorkerConf = WorkerContext.getConf();
     mWorkerConf.merge(mMasterConf);
     mWorkerConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
-    mWorkerConf.set(Constants.MASTER_PORT, getMasterPort() + "");
-    mWorkerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
-    mWorkerConf.set(Constants.WORKER_PORT, "0");
-    mWorkerConf.set(Constants.WORKER_DATA_PORT, "0");
-    mWorkerConf.set(Constants.WORKER_WEB_PORT, "0");
+    mWorkerConf.set(Constants.MASTER_PORT, Integer.toString(getMasterPort()));
+    mWorkerConf.set(Constants.MASTER_WEB_PORT, Integer.toString(getMasterPort() + 1));
+    mWorkerConf.set(Constants.WORKER_PORT, Integer.toString(0));
+    mWorkerConf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
+    mWorkerConf.set(Constants.WORKER_WEB_PORT, Integer.toString(0));
     mWorkerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
     mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
-    mWorkerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, "15");
-    mWorkerConf.set(Constants.WORKER_MIN_WORKER_THREADS, "1");
-    mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, "100");
-    mWorkerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, "2");
+    mWorkerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
+    mWorkerConf.set(Constants.WORKER_MIN_WORKER_THREADS, Integer.toString(1));
+    mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, Integer.toString(100));
+    mWorkerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, Integer.toString(2));
 
     // Perform immediate shutdown of data server. Graceful shutdown is unnecessary and slow
-    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, "0");
-    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, "0");
+    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
+    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
-    mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
+    mWorkerConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, Integer.toString(250));
 
+    String ramdiskPath = PathUtils.concatPath(mTachyonHome, "/ramdisk");
     mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 0), "MEM");
     mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
-        mTachyonHome + "/ramdisk");
+        ramdiskPath);
     mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
-        mWorkerCapacityBytes + "");
-    UnderFileSystemUtils.mkdirIfNotExists(mTachyonHome + "/ramdisk", mWorkerConf);
+        Long.toString(mWorkerCapacityBytes));
+    UnderFileSystemUtils.mkdirIfNotExists(ramdiskPath, mWorkerConf);
 
     int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     for (int level = 1; level < maxLevel; level ++) {
