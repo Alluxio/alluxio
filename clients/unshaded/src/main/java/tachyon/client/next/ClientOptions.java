@@ -15,6 +15,10 @@
 
 package tachyon.client.next;
 
+/**
+ * Represents the set of operation specific configuration options a user can pass in to a Tachyon
+ * client. Not all options will be valid for all operations.
+ */
 public class ClientOptions {
   // TODO: Implement me
 }
