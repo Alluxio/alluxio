@@ -230,7 +230,7 @@ public class InodeTree {
 
   // TODO: this should return block container ids, not file ids.
   public Set<Long> getPinIdSet() {
-    Set<Inode> pinnedInodes = mInodes.get("mPinned", true);
+    Set<Inode> pinnedInodes = mInodes.getByField("mPinned", true);
     Set<Long> ret = new HashSet<Long>(pinnedInodes.size());
     for (Inode inode : pinnedInodes) {
       ret.add(inode.getId());
