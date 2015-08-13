@@ -115,7 +115,7 @@ public class FileUtils {
         Runtime.getRuntime().exec("chmod o+t " + dir);
       }
     } catch (IOException e) {
-      LOG.info("Can not set the sticky bit to the direcotry : " + dir);
+      LOG.info("Can not set the sticky bit of the direcotry : " + dir);
     }
   }
 
