@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
@@ -69,6 +70,10 @@ public class BlockMasterSync implements Runnable {
   private volatile boolean mRunning;
   /** The id of the worker */
   private long mWorkerId;
+  /** The thread pool to remove block */
+  private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
+  private final ExecutorService mFixedExecutionService =
+          Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
       NetAddress workerAddress) {
@@ -82,9 +87,9 @@ public class BlockMasterSync implements Runnable {
         new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
             mMasterClientExecutorService, mTachyonConf);
     mHeartbeatIntervalMs =
-        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     mHeartbeatTimeoutMs =
-        mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS, 10 * Constants.SECOND_MS);
+        mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
     mWorkerId = 0;
@@ -186,13 +191,8 @@ public class BlockMasterSync implements Runnable {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
-          try {
-            mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
-          } catch (NotFoundException nfe) {
-            // TODO: Throw a better exception here
-            // NotFoundException will be thrown if the block is unable to be locked.
-            LOG.warn("Failed master free block cmd for: " + block + " due to concurrent read.");
-          }
+          mFixedExecutionService.execute(new BlockRemover(mBlockDataManager,
+                  Users.MASTER_COMMAND_USER_ID, block));
         }
         break;
       // No action required
@@ -219,5 +219,34 @@ public class BlockMasterSync implements Runnable {
     mMasterClient =
         new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
             mMasterClientExecutorService, mTachyonConf);
+  }
+
+  /**
+   * Thread to remove block from master
+   */
+  private class BlockRemover implements Runnable {
+    private BlockDataManager mBlockDataManager;
+    private long mUserId;
+    private long mBlockId;
+
+    public BlockRemover(BlockDataManager blockDataManager, long userId, long blockId) {
+      mBlockDataManager = blockDataManager;
+      mUserId = userId;
+      mBlockId = blockId;
+    }
+
+    @Override
+    public void run() {
+      try {
+        mBlockDataManager.removeBlock(mUserId, mBlockId);
+      } catch (IOException ioe) {
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
+      } catch (InvalidStateException e) {
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block uncommitted.");
+      } catch (NotFoundException e) {
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block not found.");
+      }
+    }
+
   }
 }

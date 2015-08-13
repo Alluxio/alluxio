@@ -171,7 +171,7 @@ public class TachyonFSIntegrationTest {
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest4() throws IOException {
-    int maxColumns = mMasterTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
+    int maxColumns = mMasterTachyonConf.getInt(Constants.MAX_COLUMNS);
     sTfs.createRawTable(new TachyonURI(PathUtils.uniqPath()), maxColumns);
   }
 
@@ -206,8 +206,7 @@ public class TachyonFSIntegrationTest {
       sTfs.delete(fileId, true);
       Assert.assertFalse(sTfs.exist(fileURI));
       int timeOutMs =
-          mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
-              Constants.SECOND_MS) * 2 + 10;
+          mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 2 + 10;
       CommonUtils.sleepMs(null, timeOutMs);
       workers = sTfs.getWorkersInfo();
       Assert.assertEquals(1, workers.size());

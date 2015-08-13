@@ -220,6 +220,10 @@ public class TachyonConf {
     return updated;
   }
 
+  public String get(String key) {
+    return get(key, null);
+  }
+
   public boolean containsKey(String key) {
     return mProperties.containsKey(key);
   }
@@ -236,7 +240,20 @@ public class TachyonConf {
     return defaultValue;
   }
 
-  public long getLong(String key, final long defaultValue) {
+  public int getInt(String key) {
+    if (mProperties.containsKey(key)) {
+      String rawValue = mProperties.getProperty(key);
+      try {
+        return Integer.parseInt(lookup(rawValue));
+      } catch (NumberFormatException e) {
+        throw new RuntimeException("Configuration cannot evaluate key " + key + " as integer.");
+      }
+    }
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
+  }
+
+  private long getLong(String key, final long defaultValue) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       try {
@@ -248,19 +265,20 @@ public class TachyonConf {
     return defaultValue;
   }
 
-  public double getDouble(String key, final double defaultValue) {
+  public double getDouble(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       try {
         return Double.parseDouble(lookup(rawValue));
       } catch (NumberFormatException e) {
-        LOG.warn("Configuration cannot evaluate key " + key + " as double.");
+        throw new RuntimeException("Configuration cannot evaluate key " + key + " as double.");
       }
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  public float getFloat(String key, final float defaultValue) {
+  private float getFloat(String key, final float defaultValue) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       try {
@@ -299,13 +317,16 @@ public class TachyonConf {
     return defaultValue;
   }
 
-  public long getBytes(String key, long defaultValue) {
-    String rawValue = get(key, "");
-    try {
-      return FormatUtils.parseSpaceSize(rawValue);
-    } catch (Exception ex) {
-      return defaultValue;
+  public long getBytes(String key) {
+    if (mProperties.containsKey(key)) {
+      String rawValue = get(key);
+      try {
+        return FormatUtils.parseSpaceSize(rawValue);
+      } catch (Exception ex) {
+        throw new RuntimeException("Configuration cannot evaluate key " + key + " as bytes.");
+      }
     }
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
   public <T> Class<T> getClass(String key, Class<T> defaultValue) {

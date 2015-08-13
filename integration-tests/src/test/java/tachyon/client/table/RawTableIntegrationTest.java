@@ -51,7 +51,7 @@ public class RawTableIntegrationTest {
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
-    mMaxCols =  mLocalTachyonCluster.getMasterTachyonConf().getInt(Constants.MAX_COLUMNS, 1000);
+    mMaxCols =  mLocalTachyonCluster.getMasterTachyonConf().getInt(Constants.MAX_COLUMNS);
   }
 
   @Test
