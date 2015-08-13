@@ -19,5 +19,13 @@ package tachyon.client.next.file;
  * A file handler for a file in Tachyon. It is just a wrapper around the file ID for now.
  */
 public class TachyonFile {
-  // TODO: Implement me
+  private final long mFileId;
+
+  public TachyonFile(long fileId) {
+    mFileId = fileId;
+  }
+
+  public long getFileId() {
+    return mFileId;
+  }
 }
