@@ -141,9 +141,9 @@ public final class LocalTachyonCluster {
    *
    * @throws IOException
    */
-  public void startMaster() throws IOException {
+  public void startMaster(TachyonConf conf) throws IOException {
     // TODO: Would be good to have a masterContext as well
-    mMasterConf = new TachyonConf();
+    mMasterConf = conf;
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
     mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
@@ -230,6 +230,10 @@ public final class LocalTachyonCluster {
   }
 
   public void start() throws IOException {
+    start(new TachyonConf());
+  }
+  
+  public void start(TachyonConf conf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";
