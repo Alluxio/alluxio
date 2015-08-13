@@ -40,6 +40,7 @@ import tachyon.thrift.BlockLocation;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerInfo;
 import tachyon.util.FormatUtils;
 
 public class BlockMaster implements Master, ContainerIdGenerator {
@@ -75,15 +76,14 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     return "BlockMaster";
   }
 
-  public MasterWorkerInfo getWorkerInfo(long workerId) {
+  public List<WorkerInfo> getWorkerInfoList() {
+    List<WorkerInfo> workerInfoList = new ArrayList<WorkerInfo>(mWorkers.size());
     synchronized (mWorkers) {
-      return mWorkers.get(workerId);
+      for (MasterWorkerInfo masterWorkerInfo : mWorkers.values()) {
+        workerInfoList.add(masterWorkerInfo.generateClientWorkerInfo());
+      }
     }
-  }
-
-  public List<MasterWorkerInfo> getWorkersForClient() {
-    // TODO
-    return null;
+    return workerInfoList;
   }
 
   public long getCapacityBytes() {
@@ -106,6 +106,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     return ret;
   }
 
+  // TODO: expose through thrift
   public Set<Long> getLostBlocks() {
     return mLostBlocks;
   }
@@ -118,7 +119,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       }
       for (long workerId : masterBlockInfo.getWorkers()) {
         masterBlockInfo.removeWorker(workerId);
-        MasterWorkerInfo worker = getWorkerInfo(workerId);
+        MasterWorkerInfo worker = mWorkers.get(workerId);
         if (worker != null) {
           worker.updateToRemovedBlock(true, blockId);
         }
@@ -126,6 +127,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     }
   }
 
+  // TODO: expose through thrift
   @Override
   public long getNewContainerId() {
     return mBlockIdGenerator.getNewBlockContainerId();
@@ -136,7 +138,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     LOG.debug("Commit block: {}",
         FormatUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
 
-    MasterWorkerInfo workerInfo = getWorkerInfo(workerId);
+    MasterWorkerInfo workerInfo = mWorkers.get(workerId);
     workerInfo.addBlock(blockId);
     workerInfo.updateUsedBytes(tierAlias, usedBytesOnTier);
     workerInfo.updateLastUpdatedTimeMs();
@@ -150,6 +152,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     // TODO: update lost workers?
   }
 
+  // TODO: expose through thrift
   public List<BlockInfo> getBlockInfoList(List<Long> blockIds) {
     List<BlockInfo> ret = new ArrayList<BlockInfo>(blockIds.size());
     for (long blockId : blockIds) {
@@ -197,18 +200,18 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   }
 
   public long workerRegister(long workerId, List<Long> totalBytesOnTiers,
-      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlockIds) {
+      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) {
     synchronized (mWorkers) {
       if (!mWorkers.containsKey(workerId)) {
         LOG.warn("Could not find worker id: " + workerId + " to register.");
-        return 0;
+        return -1;
       }
       MasterWorkerInfo workerInfo = mWorkers.get(workerId);
       workerInfo.updateLastUpdatedTimeMs();
 
       // Gather all blocks on this worker.
       HashSet<Long> newBlocks = new HashSet<Long>();
-      for (List<Long> blockIds : currentBlockIds.values()) {
+      for (List<Long> blockIds : currentBlocksOnTiers.values()) {
         newBlocks.addAll(blockIds);
       }
 
@@ -216,14 +219,14 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       Set<Long> removedBlocks = workerInfo.register(totalBytesOnTiers, usedBytesOnTiers, newBlocks);
 
       processWorkerRemovedBlocks(workerInfo, removedBlocks);
-      processWorkerAddedBlocks(workerInfo, currentBlockIds);
+      processWorkerAddedBlocks(workerInfo, currentBlocksOnTiers);
       LOG.info("registerWorker(): " + workerInfo);
     }
-    return 0;
+    return workerId;
   }
 
   public Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds) {
+      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlocksOnTiers) {
     synchronized (mWorkers) {
       if (!mWorkers.containsKey(workerId)) {
         LOG.warn("Could not find worker id: " + workerId + " for heartbeat.");
@@ -231,7 +234,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       }
       MasterWorkerInfo workerInfo = mWorkers.get(workerId);
       processWorkerRemovedBlocks(workerInfo, removedBlockIds);
-      processWorkerAddedBlocks(workerInfo, addedBlockIds);
+      processWorkerAddedBlocks(workerInfo, addedBlocksOnTiers);
 
       workerInfo.updateUsedBytes(usedBytesOnTiers);
       workerInfo.updateLastUpdatedTimeMs();
@@ -256,6 +259,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     for (long removedBlockId : removedBlockIds) {
       MasterBlockInfo masterBlockInfo = mBlocks.get(removedBlockId);
       if (masterBlockInfo == null) {
+        // TODO: throw exception?
         continue;
       }
       workerInfo.removeBlock(masterBlockInfo.getBlockId());
@@ -286,6 +290,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
           masterBlockInfo.addWorker(workerInfo.getId(), tierAlias);
           // TODO: update lost workers?
         } else {
+          // TODO: throw exception?
           LOG.warn("failed to register workerId: " + workerInfo.getId() + " to blockId: "
               + blockId);
         }

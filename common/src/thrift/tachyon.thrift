@@ -139,6 +139,143 @@ exception DependencyDoesNotExistException {
   1: string message
 }
 
+service BlockMasterService {
+  i64 workerGetWorkerId(1: NetAddress workerNetAddress)
+
+  i64 workerRegister(1: i64 workerId, 2: list<i64> totalBytesOnTiers, 3: list<i64> usedBytesOnTiers,
+      4: map<i64, list<i64>> currentBlocksOnTiers)
+    throws (1: BlockInfoException bie)
+
+  Command workerHeartbeat(1: i64 workerId, 2: list<i64> usedBytesOnTiers,
+      3: list<i64> removedBlockIds, 4: map<i64, list<i64>> addedBlocksOnTiers)
+    throws (1: BlockInfoException bie)
+
+  void workerCommitBlock(1: i64 workerId, 2: i64 usedBytesOnTier, 3: i32 tier, 4: i64 blockId,
+      5: i64 length)
+    throws (1: BlockInfoException bie)
+
+  list<WorkerInfo> getWorkerInfoList()
+
+  i64 userGetCapacityBytes()
+
+  i64 userGetUsedBytes()
+}
+
+service FileSystemMasterService {
+  bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 length, 4: string checkpointPath)
+    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
+      3: BlockInfoException bie)
+
+  list<FileInfo> liststatus(1: string path)
+    throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
+
+  /**
+   * Update information of the block newly cached to master, including used Tachyon space size in
+   * bytes, the id of the storage directory in which the block is, the id of the block and the size
+   * of the block in bytes.
+   */
+  void workerCacheBlock(1: i64 workerId, 2: i64 usedBytesOnTier, 3: i64 storageDirId,
+      4: i64 blockId, 5: i64 length)
+    throws (1: FileDoesNotExistException eP, 2: BlockInfoException eB)
+
+  set<i32> workerGetPinIdList()
+
+  list<i32> workerGetPriorityDependencyList()
+
+  // Services to Users
+  i32 userCreateDependency(1: list<string> parents, 2: list<string> children,
+      3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework,
+      7: string frameworkVersion, 8: i32 dependencyType, 9: i64 childrenBlockSizeByte)
+    throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF,
+      3: FileAlreadyExistException eA, 4: BlockInfoException eB, 5: TachyonException eT)
+
+  DependencyInfo userGetClientDependencyInfo(1: i32 dependencyId)
+    throws (1: DependencyDoesNotExistException e)
+
+  void userReportLostFile(1: i32 fileId)
+    throws (1: FileDoesNotExistException e)
+
+  void userRequestFilesInDependency(1: i32 depId)
+    throws (1: DependencyDoesNotExistException e)
+
+  i32 userCreateFile(1: string path, 2: string ufsPath, 3: i64 blockSizeByte, 4: bool recursive)
+    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: BlockInfoException eB,
+      4: SuspectedFileSizeException eS, 5: TachyonException eT)
+
+  i64 userCreateNewBlock(1: i32 fileId)
+    throws (1: FileDoesNotExistException e)
+
+  void userCompleteFile(1: i32 fileId)
+    throws (1: FileDoesNotExistException e)
+
+  i64 userGetUserId()
+
+  i64 userGetBlockId(1: i32 fileId, 2: i32 index)
+    throws (1: FileDoesNotExistException e)
+
+  FileInfo getFileStatus(1: i32 fileId, 2: string path)
+    throws (1: InvalidPathException eI)
+
+  /**
+   * Get block's ClientBlockInfo.
+   */
+  FileBlockInfo userGetClientBlockInfo(1: i64 blockId)
+    throws (1: FileDoesNotExistException eF, 2: BlockInfoException eB)
+
+  /**
+   * Get file blocks info.
+   */
+  list<FileBlockInfo> userGetFileBlocks(1: i32 fileId, 2: string path)
+    throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
+
+
+  bool userDelete(1: i32 fileId, 2: string path, 3: bool recursive)
+    throws (1: TachyonException e)
+
+  bool userRename(1: i32 fileId, 2: string srcPath, 3: string dstPath)
+    throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF,
+      3: InvalidPathException eI)
+
+  void userSetPinned(1: i32 fileId, 2: bool pinned)
+    throws (1: FileDoesNotExistException e)
+
+  bool userMkdirs(1: string path, 2: bool recursive)
+    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TachyonException eT)
+
+  bool userFreePath(1: i32 fileId, 2: string path, 3: bool recursive)
+    throws (1: FileDoesNotExistException e)
+
+  string userGetUfsAddress()
+
+  /**
+   * Returns if the message was received. Intended to check if the client can still connect to the
+   * master.
+   */
+  void userHeartbeat();
+}
+
+service RawTableMasterService {
+  i32 userCreateRawTable(1: string path, 2: i32 columns, 3: binary metadata)
+    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TableColumnException eT,
+      4: TachyonException eTa)
+
+  /**
+   * Return 0 if does not contain the Table, return fileId if it exists.
+   */
+  i32 userGetRawTableId(1: string path)
+    throws (1: InvalidPathException e)
+
+  /**
+   * Get RawTable's info; Return a ClientRawTable instance with id 0 if the system does not contain
+   * the table. path if valid iff id is -1.
+   */
+  RawTableInfo userGetClientRawTableInfo(1: i32 id, 2: string path)
+    throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI)
+
+  void userUpdateRawTableMetadata(1: i32 tableId, 2: binary metadata)
+    throws (1: TableDoesNotExistException eT, 2: TachyonException eTa)
+}
+
 service MasterService {
   bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 length, 4: string checkpointPath)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,

@@ -98,8 +98,8 @@ public class FileSystemMaster implements Master {
     LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
 
     if (workerId != -1) {
-      MasterWorkerInfo workerInfo = mBlockMaster.getWorkerInfo(workerId);
-      workerInfo.updateLastUpdatedTimeMs();
+      // TODO: how to update worker timestamp?
+      // workerInfo.updateLastUpdatedTimeMs();
     }
 
     synchronized (mInodeTree) {
