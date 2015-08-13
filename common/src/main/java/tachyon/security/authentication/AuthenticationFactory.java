@@ -15,18 +15,24 @@
 
 package tachyon.security.authentication;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Locale;
 
 import javax.security.sasl.SaslException;
 
 import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.security.LoginUser;
 import tachyon.security.PlainSaslHelper;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * This class is the main entry for Tachyon authentication.
@@ -137,6 +143,41 @@ public class AuthenticationFactory {
     }
   }
 
-  // TODO: get client side TTransport based on auth type
-  // public TTransport getClientTransport(InetSocketAddress serverAddress) throws SaslException {}
+  /**
+   * Create a transport per the connection options. Supported transport options are: NOSASL, SIMPLE,
+   * CUSTOM, KERBEROS. With NOSASL as input, an unmodified TTransport is returned; with
+   * SIMPLE/CUSTOM as input, a PlainCLientTransport is returned; KERBEROS is not supported
+   * currently. If the auth type is not supported or recognized, an UnsupportedOperationException is
+   * thrown.
+   * 
+   * @param serverAddress the server address which clients will connect to
+   * @return a TTransport for client
+   * @throws IOException if building a TransportFactory fails or user login fails
+   */
+  public TTransport getClientTransport(InetSocketAddress serverAddress) throws IOException {
+    TTransport tTransport = AuthenticationFactory.createTSocket(serverAddress);
+    switch (mAuthType) {
+      case NOSASL:
+        return new TFramedTransport(tTransport);
+      case SIMPLE:
+        // indent to fall through after case SIMPLE
+      case CUSTOM:
+        String username = LoginUser.get(mTachyonConf).getName();
+        return PlainSaslHelper.getPlainClientTransport(username, "noPassword", tTransport);
+      case KERBEROS:
+        throw new SaslException("Kerberos is not supported currently.");
+      default:
+        throw new SaslException("Unsupported authentication type: " + mAuthType.getAuthName());
+    }
+  }
+
+  /**
+   * Create a new Thrift socket what will connect to the given address
+   * @param address The given address to connect
+   * @return An unconnected socket
+   */
+  public static TSocket createTSocket(InetSocketAddress address) {
+    return new TSocket(NetworkAddressUtils.getFqdnHost(address), address.getPort());
+  }
+
 }
