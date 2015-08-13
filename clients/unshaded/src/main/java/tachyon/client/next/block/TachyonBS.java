@@ -35,25 +35,25 @@ public class TachyonBS implements Closeable {
     // TODO: Implement me
   }
 
-  public void deleteBlock(long blockId) {
+  public void delete(long blockId) {
     // TODO: Implement me
   }
 
-  public void freeBlock(long blockId) {
+  public void free(long blockId) {
     // TODO: Implement me
   }
 
-  public BlockInfo getBlockInfo(long blockId) {
-    // TODO: Implement me
-    return null;
-  }
-
-  public BlockInStream getBlockInStream(long blockId, ClientOptions options) {
+  public BlockInfo getInfo(long blockId) {
     // TODO: Implement me
     return null;
   }
 
-  public BlockOutStream getBlockOutStream(long blockId, ClientOptions options) {
+  public BlockInStream getInStream(long blockId, ClientOptions options) {
+    // TODO: Implement me
+    return null;
+  }
+
+  public BlockOutStream getOutStream(long blockId, ClientOptions options) {
     // TODO: Implement me
     return null;
   }
