@@ -59,7 +59,7 @@ public class FileSystemMasterService {
 
     public String getUfsAddress() throws org.apache.thrift.TException;
 
-    public int createFile(long fileId, String ufsPath, long blockSizeByte, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
+    public int createFile(long fileId, String ufsPath, long blockSizeBytes, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
 
     public void completeFile(long fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
 
@@ -113,7 +113,7 @@ public class FileSystemMasterService {
 
     public void getUfsAddress(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void createFile(long fileId, String ufsPath, long blockSizeByte, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void createFile(long fileId, String ufsPath, long blockSizeBytes, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void completeFile(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -412,18 +412,18 @@ public class FileSystemMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUfsAddress failed: unknown result");
     }
 
-    public int createFile(long fileId, String ufsPath, long blockSizeByte, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public int createFile(long fileId, String ufsPath, long blockSizeBytes, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
     {
-      send_createFile(fileId, ufsPath, blockSizeByte, recursive);
+      send_createFile(fileId, ufsPath, blockSizeBytes, recursive);
       return recv_createFile();
     }
 
-    public void send_createFile(long fileId, String ufsPath, long blockSizeByte, boolean recursive) throws org.apache.thrift.TException
+    public void send_createFile(long fileId, String ufsPath, long blockSizeBytes, boolean recursive) throws org.apache.thrift.TException
     {
       createFile_args args = new createFile_args();
       args.setFileId(fileId);
       args.setUfsPath(ufsPath);
-      args.setBlockSizeByte(blockSizeByte);
+      args.setBlockSizeBytes(blockSizeBytes);
       args.setRecursive(recursive);
       sendBase("createFile", args);
     }
@@ -1116,9 +1116,9 @@ public class FileSystemMasterService {
       }
     }
 
-    public void createFile(long fileId, String ufsPath, long blockSizeByte, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void createFile(long fileId, String ufsPath, long blockSizeBytes, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      createFile_call method_call = new createFile_call(fileId, ufsPath, blockSizeByte, recursive, resultHandler, this, ___protocolFactory, ___transport);
+      createFile_call method_call = new createFile_call(fileId, ufsPath, blockSizeBytes, recursive, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -1126,13 +1126,13 @@ public class FileSystemMasterService {
     public static class createFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long fileId;
       private String ufsPath;
-      private long blockSizeByte;
+      private long blockSizeBytes;
       private boolean recursive;
-      public createFile_call(long fileId, String ufsPath, long blockSizeByte, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public createFile_call(long fileId, String ufsPath, long blockSizeBytes, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fileId = fileId;
         this.ufsPath = ufsPath;
-        this.blockSizeByte = blockSizeByte;
+        this.blockSizeBytes = blockSizeBytes;
         this.recursive = recursive;
       }
 
@@ -1141,7 +1141,7 @@ public class FileSystemMasterService {
         createFile_args args = new createFile_args();
         args.setFileId(fileId);
         args.setUfsPath(ufsPath);
-        args.setBlockSizeByte(blockSizeByte);
+        args.setBlockSizeBytes(blockSizeBytes);
         args.setRecursive(recursive);
         args.write(prot);
         prot.writeMessageEnd();
@@ -1875,7 +1875,7 @@ public class FileSystemMasterService {
       public createFile_result getResult(I iface, createFile_args args) throws org.apache.thrift.TException {
         createFile_result result = new createFile_result();
         try {
-          result.success = iface.createFile(args.fileId, args.ufsPath, args.blockSizeByte, args.recursive);
+          result.success = iface.createFile(args.fileId, args.ufsPath, args.blockSizeBytes, args.recursive);
           result.setSuccessIsSet(true);
         } catch (FileAlreadyExistException faee) {
           result.faee = faee;
@@ -2865,7 +2865,7 @@ public class FileSystemMasterService {
       }
 
       public void start(I iface, createFile_args args, org.apache.thrift.async.AsyncMethodCallback<Integer> resultHandler) throws TException {
-        iface.createFile(args.fileId, args.ufsPath, args.blockSizeByte, args.recursive,resultHandler);
+        iface.createFile(args.fileId, args.ufsPath, args.blockSizeBytes, args.recursive,resultHandler);
       }
     }
 
@@ -11529,7 +11529,7 @@ public class FileSystemMasterService {
 
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField UFS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsPath", org.apache.thrift.protocol.TType.STRING, (short)2);
-    private static final org.apache.thrift.protocol.TField BLOCK_SIZE_BYTE_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSizeByte", org.apache.thrift.protocol.TType.I64, (short)3);
+    private static final org.apache.thrift.protocol.TField BLOCK_SIZE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSizeBytes", org.apache.thrift.protocol.TType.I64, (short)3);
     private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -11540,14 +11540,14 @@ public class FileSystemMasterService {
 
     public long fileId; // required
     public String ufsPath; // required
-    public long blockSizeByte; // required
+    public long blockSizeBytes; // required
     public boolean recursive; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       FILE_ID((short)1, "fileId"),
       UFS_PATH((short)2, "ufsPath"),
-      BLOCK_SIZE_BYTE((short)3, "blockSizeByte"),
+      BLOCK_SIZE_BYTES((short)3, "blockSizeBytes"),
       RECURSIVE((short)4, "recursive");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -11567,8 +11567,8 @@ public class FileSystemMasterService {
             return FILE_ID;
           case 2: // UFS_PATH
             return UFS_PATH;
-          case 3: // BLOCK_SIZE_BYTE
-            return BLOCK_SIZE_BYTE;
+          case 3: // BLOCK_SIZE_BYTES
+            return BLOCK_SIZE_BYTES;
           case 4: // RECURSIVE
             return RECURSIVE;
           default:
@@ -11612,7 +11612,7 @@ public class FileSystemMasterService {
 
     // isset id assignments
     private static final int __FILEID_ISSET_ID = 0;
-    private static final int __BLOCKSIZEBYTE_ISSET_ID = 1;
+    private static final int __BLOCKSIZEBYTES_ISSET_ID = 1;
     private static final int __RECURSIVE_ISSET_ID = 2;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
@@ -11622,7 +11622,7 @@ public class FileSystemMasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.BLOCK_SIZE_BYTE, new org.apache.thrift.meta_data.FieldMetaData("blockSizeByte", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.BLOCK_SIZE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("blockSizeBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
@@ -11636,15 +11636,15 @@ public class FileSystemMasterService {
     public createFile_args(
       long fileId,
       String ufsPath,
-      long blockSizeByte,
+      long blockSizeBytes,
       boolean recursive)
     {
       this();
       this.fileId = fileId;
       setFileIdIsSet(true);
       this.ufsPath = ufsPath;
-      this.blockSizeByte = blockSizeByte;
-      setBlockSizeByteIsSet(true);
+      this.blockSizeBytes = blockSizeBytes;
+      setBlockSizeBytesIsSet(true);
       this.recursive = recursive;
       setRecursiveIsSet(true);
     }
@@ -11658,7 +11658,7 @@ public class FileSystemMasterService {
       if (other.isSetUfsPath()) {
         this.ufsPath = other.ufsPath;
       }
-      this.blockSizeByte = other.blockSizeByte;
+      this.blockSizeBytes = other.blockSizeBytes;
       this.recursive = other.recursive;
     }
 
@@ -11671,8 +11671,8 @@ public class FileSystemMasterService {
       setFileIdIsSet(false);
       this.fileId = 0;
       this.ufsPath = null;
-      setBlockSizeByteIsSet(false);
-      this.blockSizeByte = 0;
+      setBlockSizeBytesIsSet(false);
+      this.blockSizeBytes = 0;
       setRecursiveIsSet(false);
       this.recursive = false;
     }
@@ -11724,27 +11724,27 @@ public class FileSystemMasterService {
       }
     }
 
-    public long getBlockSizeByte() {
-      return this.blockSizeByte;
+    public long getBlockSizeBytes() {
+      return this.blockSizeBytes;
     }
 
-    public createFile_args setBlockSizeByte(long blockSizeByte) {
-      this.blockSizeByte = blockSizeByte;
-      setBlockSizeByteIsSet(true);
+    public createFile_args setBlockSizeBytes(long blockSizeBytes) {
+      this.blockSizeBytes = blockSizeBytes;
+      setBlockSizeBytesIsSet(true);
       return this;
     }
 
-    public void unsetBlockSizeByte() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __BLOCKSIZEBYTE_ISSET_ID);
+    public void unsetBlockSizeBytes() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __BLOCKSIZEBYTES_ISSET_ID);
     }
 
-    /** Returns true if field blockSizeByte is set (has been assigned a value) and false otherwise */
-    public boolean isSetBlockSizeByte() {
-      return EncodingUtils.testBit(__isset_bitfield, __BLOCKSIZEBYTE_ISSET_ID);
+    /** Returns true if field blockSizeBytes is set (has been assigned a value) and false otherwise */
+    public boolean isSetBlockSizeBytes() {
+      return EncodingUtils.testBit(__isset_bitfield, __BLOCKSIZEBYTES_ISSET_ID);
     }
 
-    public void setBlockSizeByteIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKSIZEBYTE_ISSET_ID, value);
+    public void setBlockSizeBytesIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKSIZEBYTES_ISSET_ID, value);
     }
 
     public boolean isRecursive() {
@@ -11788,11 +11788,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case BLOCK_SIZE_BYTE:
+      case BLOCK_SIZE_BYTES:
         if (value == null) {
-          unsetBlockSizeByte();
+          unsetBlockSizeBytes();
         } else {
-          setBlockSizeByte((Long)value);
+          setBlockSizeBytes((Long)value);
         }
         break;
 
@@ -11815,8 +11815,8 @@ public class FileSystemMasterService {
       case UFS_PATH:
         return getUfsPath();
 
-      case BLOCK_SIZE_BYTE:
-        return Long.valueOf(getBlockSizeByte());
+      case BLOCK_SIZE_BYTES:
+        return Long.valueOf(getBlockSizeBytes());
 
       case RECURSIVE:
         return Boolean.valueOf(isRecursive());
@@ -11836,8 +11836,8 @@ public class FileSystemMasterService {
         return isSetFileId();
       case UFS_PATH:
         return isSetUfsPath();
-      case BLOCK_SIZE_BYTE:
-        return isSetBlockSizeByte();
+      case BLOCK_SIZE_BYTES:
+        return isSetBlockSizeBytes();
       case RECURSIVE:
         return isSetRecursive();
       }
@@ -11875,12 +11875,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_blockSizeByte = true;
-      boolean that_present_blockSizeByte = true;
-      if (this_present_blockSizeByte || that_present_blockSizeByte) {
-        if (!(this_present_blockSizeByte && that_present_blockSizeByte))
+      boolean this_present_blockSizeBytes = true;
+      boolean that_present_blockSizeBytes = true;
+      if (this_present_blockSizeBytes || that_present_blockSizeBytes) {
+        if (!(this_present_blockSizeBytes && that_present_blockSizeBytes))
           return false;
-        if (this.blockSizeByte != that.blockSizeByte)
+        if (this.blockSizeBytes != that.blockSizeBytes)
           return false;
       }
 
@@ -11910,10 +11910,10 @@ public class FileSystemMasterService {
       if (present_ufsPath)
         list.add(ufsPath);
 
-      boolean present_blockSizeByte = true;
-      list.add(present_blockSizeByte);
-      if (present_blockSizeByte)
-        list.add(blockSizeByte);
+      boolean present_blockSizeBytes = true;
+      list.add(present_blockSizeBytes);
+      if (present_blockSizeBytes)
+        list.add(blockSizeBytes);
 
       boolean present_recursive = true;
       list.add(present_recursive);
@@ -11951,12 +11951,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetBlockSizeByte()).compareTo(other.isSetBlockSizeByte());
+      lastComparison = Boolean.valueOf(isSetBlockSizeBytes()).compareTo(other.isSetBlockSizeBytes());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetBlockSizeByte()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockSizeByte, other.blockSizeByte);
+      if (isSetBlockSizeBytes()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockSizeBytes, other.blockSizeBytes);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -12003,8 +12003,8 @@ public class FileSystemMasterService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("blockSizeByte:");
-      sb.append(this.blockSizeByte);
+      sb.append("blockSizeBytes:");
+      sb.append(this.blockSizeBytes);
       first = false;
       if (!first) sb.append(", ");
       sb.append("recursive:");
@@ -12071,10 +12071,10 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 3: // BLOCK_SIZE_BYTE
+            case 3: // BLOCK_SIZE_BYTES
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.blockSizeByte = iprot.readI64();
-                struct.setBlockSizeByteIsSet(true);
+                struct.blockSizeBytes = iprot.readI64();
+                struct.setBlockSizeBytesIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -12110,8 +12110,8 @@ public class FileSystemMasterService {
           oprot.writeString(struct.ufsPath);
           oprot.writeFieldEnd();
         }
-        oprot.writeFieldBegin(BLOCK_SIZE_BYTE_FIELD_DESC);
-        oprot.writeI64(struct.blockSizeByte);
+        oprot.writeFieldBegin(BLOCK_SIZE_BYTES_FIELD_DESC);
+        oprot.writeI64(struct.blockSizeBytes);
         oprot.writeFieldEnd();
         oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
         oprot.writeBool(struct.recursive);
@@ -12140,7 +12140,7 @@ public class FileSystemMasterService {
         if (struct.isSetUfsPath()) {
           optionals.set(1);
         }
-        if (struct.isSetBlockSizeByte()) {
+        if (struct.isSetBlockSizeBytes()) {
           optionals.set(2);
         }
         if (struct.isSetRecursive()) {
@@ -12153,8 +12153,8 @@ public class FileSystemMasterService {
         if (struct.isSetUfsPath()) {
           oprot.writeString(struct.ufsPath);
         }
-        if (struct.isSetBlockSizeByte()) {
-          oprot.writeI64(struct.blockSizeByte);
+        if (struct.isSetBlockSizeBytes()) {
+          oprot.writeI64(struct.blockSizeBytes);
         }
         if (struct.isSetRecursive()) {
           oprot.writeBool(struct.recursive);
@@ -12174,8 +12174,8 @@ public class FileSystemMasterService {
           struct.setUfsPathIsSet(true);
         }
         if (incoming.get(2)) {
-          struct.blockSizeByte = iprot.readI64();
-          struct.setBlockSizeByteIsSet(true);
+          struct.blockSizeBytes = iprot.readI64();
+          struct.setBlockSizeBytesIsSet(true);
         }
         if (incoming.get(3)) {
           struct.recursive = iprot.readBool();

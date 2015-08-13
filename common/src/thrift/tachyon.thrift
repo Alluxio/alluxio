@@ -190,7 +190,7 @@ service FileSystemMasterService {
   // TODO: is this necessary?
   string getUfsAddress()
 
-  i32 createFile(1: i64 fileId, 2: string ufsPath, 3: i64 blockSizeByte, 4: bool recursive)
+  i32 createFile(1: i64 fileId, 2: string ufsPath, 3: i64 blockSizeBytes, 4: bool recursive)
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 

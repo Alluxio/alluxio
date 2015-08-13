@@ -179,7 +179,7 @@ public class InodeFile extends Inode {
    */
   public synchronized long getNewBlockId() {
     long blockId = BlockId.createBlockId(mBlockContainerId, mBlocks.size());
-    // TODO: check for max block sequence number.
+    // TODO: check for max block sequence number, and sanity check the sequence number.
     mBlocks.add(blockId);
     return blockId;
   }

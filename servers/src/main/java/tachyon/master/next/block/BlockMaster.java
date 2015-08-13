@@ -152,7 +152,13 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     // TODO: update lost workers?
   }
 
-  // TODO: expose through thrift
+  /**
+   * Retrieves information for the given list of block ids.
+   *
+   * @param blockIds A list of block ids to retrieve the information for
+   * @return A list of {@link BlockInfo} objects corresponding to the input list of block ids. The
+   *         list is in the same order as the input list.
+   */
   public List<BlockInfo> getBlockInfoList(List<Long> blockIds) {
     List<BlockInfo> ret = new ArrayList<BlockInfo>(blockIds.size());
     for (long blockId : blockIds) {
@@ -165,12 +171,12 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         for (MasterBlockLocation masterBlockLocation : masterBlockInfo.getBlockLocations()) {
           MasterWorkerInfo workerInfo = mWorkers.get(masterBlockLocation.mWorkerId);
           if (workerInfo != null) {
-            locations.add(new BlockLocation(masterBlockLocation.mWorkerId,
-                workerInfo.getAddress(), masterBlockLocation.mTier));
+            locations.add(new BlockLocation(masterBlockLocation.mWorkerId, workerInfo.getAddress(),
+                masterBlockLocation.mTier));
           }
         }
-        BlockInfo retInfo = new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(),
-            locations);
+        BlockInfo retInfo =
+            new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), locations);
         ret.add(retInfo);
       }
     }
@@ -291,8 +297,8 @@ public class BlockMaster implements Master, ContainerIdGenerator {
           // TODO: update lost workers?
         } else {
           // TODO: throw exception?
-          LOG.warn("failed to register workerId: " + workerInfo.getId() + " to blockId: "
-              + blockId);
+          LOG.warn(
+              "failed to register workerId: " + workerInfo.getId() + " to blockId: " + blockId);
         }
       }
     }
