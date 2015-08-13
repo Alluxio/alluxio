@@ -19,6 +19,11 @@ import java.io.Closeable;
 
 import tachyon.client.next.ClientOptions;
 
+/**
+ * Tachyon Block Store client. This is an internal client for all block level operations in
+ * Tachyon. An instance of this class can be obtained via {@link TachyonBS#get}. This class
+ * is thread safe.
+ */
 public class TachyonBS implements Closeable {
 
   public static TachyonBS get() {

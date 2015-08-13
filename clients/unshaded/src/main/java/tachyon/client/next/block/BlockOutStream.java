@@ -15,6 +15,11 @@
 
 package tachyon.client.next.block;
 
+/**
+ * Provides a stream API to write a block to Tachyon. An instance of this class can be obtained by
+ * calling {@link TachyonBS#getBlockOutStream}. Only one BlockOutStream should be opened for a
+ * block. This class is thread safe.
+ */
 public class BlockOutStream {
   // TODO: Implement me
 }
