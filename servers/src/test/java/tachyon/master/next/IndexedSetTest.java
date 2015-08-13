@@ -68,7 +68,7 @@ public class IndexedSetTest {
   @Test
   public void getTest() {
     for (int i = 0; i < 3; i ++) {
-      Set<Pair> set = mSet.get("mInt", i);
+      Set<Pair> set = mSet.getByField("mInt", i);
       Assert.assertEquals(3, set.size());
       List<Double> doubles = new ArrayList<Double>(set.size());
       for (Pair o : set) {
@@ -79,9 +79,9 @@ public class IndexedSetTest {
         Assert.assertEquals(new Double(j), doubles.get(j));
       }
 
-      set = mSet.get("mDouble", i);
+      set = mSet.getByField("mDouble", i);
       Assert.assertEquals(0, set.size()); // i is integer, must be in the same type
-      set = mSet.get("mDouble", (double)i);
+      set = mSet.getByField("mDouble", (double) i);
       Assert.assertEquals(3, set.size());
       List<Integer> ints = new ArrayList<Integer>(set.size());
       for (Pair o : set) {
@@ -97,15 +97,15 @@ public class IndexedSetTest {
   @Test
   public void removeTest1() {
     Pair toRemove = mSet.all().iterator().next();
-    Assert.assertEquals(3, mSet.get("mDouble", toRemove.mDouble).size());
+    Assert.assertEquals(3, mSet.getByField("mDouble", toRemove.mDouble).size());
     Assert.assertTrue(mSet.remove(toRemove));
-    Assert.assertEquals(2, mSet.get("mDouble", toRemove.mDouble).size());
+    Assert.assertEquals(2, mSet.getByField("mDouble", toRemove.mDouble).size());
   }
 
   @Test
   public void removeTest2() {
-    Assert.assertEquals(3, mSet.get("mInt", 1).size());
+    Assert.assertEquals(3, mSet.getByField("mInt", 1).size());
     Assert.assertTrue(mSet.remove("mInt", 1));
-    Assert.assertEquals(0, mSet.get("mInt", 1).size());
+    Assert.assertEquals(0, mSet.getByField("mInt", 1).size());
   }
 }

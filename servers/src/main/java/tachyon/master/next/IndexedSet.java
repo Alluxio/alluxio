@@ -91,7 +91,7 @@ public class IndexedSet<T> {
    * @return true if there is one such object, otherwise false
    */
   public boolean contains(String fieldName, Object value) {
-    return !get(fieldName, value).isEmpty();
+    return !getByField(fieldName, value).isEmpty();
   }
 
   /**
@@ -101,7 +101,7 @@ public class IndexedSet<T> {
    * @param value the field value to be satisfied
    * @return the set of objects or an empty set if no such object exists
    */
-  public Set<T> get(String fieldName, Object value) {
+  public Set<T> getByField(String fieldName, Object value) {
     Set<T> set = mSetIndexedByFieldValue.get(fieldName).get(value);
     return set == null ? new HashSet<T>() : set;
   }
@@ -114,7 +114,7 @@ public class IndexedSet<T> {
    * @return the object or null if there is no such object
    */
   public T getFirst(String fieldName, Object value) {
-    Set<T> all = get(fieldName, value);
+    Set<T> all = getByField(fieldName, value);
     return all.isEmpty() ? null : all.iterator().next();
   }
 
