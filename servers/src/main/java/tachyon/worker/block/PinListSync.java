@@ -61,7 +61,6 @@ public class PinListSync implements Runnable {
    *
    * @param blockDataManager the blockDataManager this syncer is updating to
    * @param tachyonConf the configuration values to be used
-   * @return PinListSync constructed
    */
   public PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
     mBlockDataManager = blockDataManager;
@@ -73,9 +72,9 @@ public class PinListSync implements Runnable {
         new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
             mMasterClientExecutorService, mTachyonConf);
     mSyncIntervalMs =
-        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     mSyncTimeoutMs =
-        mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS, 10 * Constants.SECOND_MS);
+        mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
   }

@@ -159,7 +159,6 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
     NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
 
-    request.setAttribute("workerWebPort", mTachyonConf.getInt(Constants.WORKER_WEB_PORT,
-        Constants.DEFAULT_WORKER_WEB_PORT));
+    request.setAttribute("workerWebPort", mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
   }
 }

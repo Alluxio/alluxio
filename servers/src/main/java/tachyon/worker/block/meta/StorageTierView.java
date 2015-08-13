@@ -38,8 +38,7 @@ public class StorageTierView {
    * Create a StorageTierView using the actual StorageTier and the above BlockMetadataView
    *
    * @param tier which the tierView is constructed from
-   * @param view, the BlockMetadataManagerView this tierView is associated with
-   * @return BlockMetadataManagerView constructed
+   * @param view the BlockMetadataManagerView this tierView is associated with
    */
   public StorageTierView(StorageTier tier, BlockMetadataManagerView view) {
     mTier = Preconditions.checkNotNull(tier);

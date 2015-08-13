@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 
@@ -44,11 +45,13 @@ public class BlockLockManager {
   /** The number of locks, larger value leads to finer locking granularity, but more space. */
   // TODO: Make this configurable
   private static final int NUM_LOCKS = 1000;
+  /** Time to wait to acquire a lock */
+  private static final int LOCK_ACQUIRE_TIMEOUT_MS = 5000;
   /** The unique id of each lock */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
+  /** A hashing function to map blockId to one of the locks */
+  private static final HashFunction HASH_FUNC = Hashing.murmur3_32();
 
-  /** The object that serves all metadata requests for the block store */
-  private final BlockMetadataManager mMetaManager;
   /** A map from a block ID to its lock */
   private final ClientRWLock[] mLockArray = new ClientRWLock[NUM_LOCKS];
   /** A map from a user ID to all the locks hold by this user */
@@ -57,30 +60,36 @@ public class BlockLockManager {
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
   /** To guard access on mLockIdToRecordMap and mUserIdToLockIdsMap */
   private final Object mSharedMapsLock = new Object();
-  /** A hashing function to map blockId to one of the locks */
-  private final HashFunction mHashFunc = Hashing.murmur3_32();
 
-  public BlockLockManager(BlockMetadataManager metaManager) {
-    mMetaManager = Preconditions.checkNotNull(metaManager);
+  public BlockLockManager() {
     for (int i = 0; i < NUM_LOCKS; i ++) {
       mLockArray[i] = new ClientRWLock();
     }
   }
 
   /**
-   * Locks a block if it exists, throws NotFoundException otherwise.
+   * Get index of the lock that will be used to lock the block
+   *
+   * @param blockId the id of the block
+   * @return hash index of the lock
+   */
+  public static int blockHashIndex(long blockId) {
+    return Math.abs(HASH_FUNC.hashLong(blockId).asInt()) % NUM_LOCKS;
+  }
+
+  /**
+   * Locks a block. Note that, lock striping is used so even this block does not exist, a lock id
+   * is still returned.
    *
    * @param userId the ID of user
    * @param blockId the ID of block
    * @param blockLockType READ or WRITE
-   * @return lock id if the block exists
-   * @throws NotFoundException when blockId can not be found
+   * @return lock ID
    */
-  public long lockBlock(long userId, long blockId, BlockLockType blockLockType)
-      throws NotFoundException {
+  public long lockBlock(long userId, long blockId, BlockLockType blockLockType) {
     // hashing blockId into the range of [0, NUM_LOCKS-1]
-    int hashValue = Math.abs(mHashFunc.hashLong(blockId).asInt()) % NUM_LOCKS;
-    ClientRWLock blockLock = mLockArray[hashValue];
+    int index = blockHashIndex(blockId);
+    ClientRWLock blockLock = mLockArray[index];
     Lock lock;
     if (blockLockType == BlockLockType.READ) {
       lock = blockLock.readLock();
@@ -88,10 +97,6 @@ public class BlockLockManager {
       lock = blockLock.writeLock();
     }
     lock.lock();
-    if (!mMetaManager.hasBlockMeta(blockId)) {
-      lock.unlock();
-      throw new NotFoundException("Failed to lockBlock: no blockId " + blockId + " found");
-    }
     long lockId = LOCK_ID_GEN.getAndIncrement();
     synchronized (mSharedMapsLock) {
       mLockIdToRecordMap.put(lockId, new LockRecord(userId, blockId, lock));

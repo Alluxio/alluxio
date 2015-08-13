@@ -30,6 +30,7 @@ public class BlockMeta extends BlockMetaBase {
 
   public BlockMeta(TempBlockMeta tempBlock) {
     super(tempBlock.getBlockId(), tempBlock.getParentDir());
+    // NOTE: TempBlockMeta must be committed after the actual data block file is moved.
     mBlockSize = new File(tempBlock.getCommitPath()).length();
   }
 

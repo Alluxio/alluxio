@@ -4,6 +4,15 @@ title: Configuration Settings
 group: More
 ---
 
+### toc
+* [Configuration Properties](#configuration-properties)
+    * [Common Config](#common-configuration)
+    * [Master Config](#master-configuration)
+    * [Worker Config](#worker-configuration)
+    * [User Config](#user-configuration)
+    * [MapReduce Config](#working-with-apache-hadoop-mapreduce-configuration)
+* [System Environment](#system-environment-properties)
+
 There are two types of configuration parameters for Tachyon:
 
 1. Configuration properties, which are used to configure the runtime settings of Tachyon
@@ -14,7 +23,7 @@ There are two types of configuration parameters for Tachyon:
 Tachyon introduces default and site specific configuration properties files to set the configuration
 properties.
 
-Each site deployment and application client can override the default via tachyon.site.properties
+Each site deployment and application client can override the default via tachyon-site.properties
 file. This file has to be located in the classpath of the Java VM where Tachyon is running.
 
 The easiest way is to put the site properties file in a directory specified by `$TACHYON_CONF_DIR`,
@@ -354,8 +363,8 @@ The user configuration specifies values regarding file system access.
   <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.
     Valid options are MUST_CACHE (write must cache), TRY_CACHE (write will try to cache),
     CACHE_THROUGH (try to cache, write to UnderFS synchronously), THROUGH (no cache, write to
-    UnderFS synchronously), ASYNC_THROUGH (must cache and write to UnderFS asynchronously, or
-    synchronous write to UnderFS).</td>
+    UnderFS synchronously), ASYNC_THROUGH (Experimental, must cache and write to UnderFS asynchronously,
+    or synchronous write to UnderFS).</td>
 </tr>
 <tr>
   <td>tachyon.user.quota.unit.bytes</td>
