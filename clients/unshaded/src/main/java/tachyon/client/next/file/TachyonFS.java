@@ -38,30 +38,25 @@ public class TachyonFS implements Closeable {
     // TODO: Implement me
   }
 
-  public void deleteFile(TachyonFile file) {
+  public void delete(TachyonFile file) {
     // TODO: Implement me
   }
 
-  public void freeFile(TachyonFile file) {
+  public void free(TachyonFile file) {
     // TODO: Implement me
   }
 
-  public TachyonFile getFile(TachyonURI path) {
-    // TODO: Implement me
-    return null;
-  }
-
-  public FileInfo getFileInfo(TachyonFile file) {
+  public FileInfo getInfo(TachyonFile file) {
     // TODO: Implement me
     return null;
   }
 
-  public FileInStream getFileInStream(TachyonFile file, ClientOptions options) {
+  public FileInStream getInStream(TachyonFile file, ClientOptions options) {
     // TODO: Implement me
     return null;
   }
 
-  public FileOutStream getFileOutStream(TachyonFile file, ClientOptions options) {
+  public FileOutStream getOutStream(TachyonFile file, ClientOptions options) {
     // TODO: Implement me
     return null;
   }
@@ -76,12 +71,17 @@ public class TachyonFS implements Closeable {
     return false;
   }
 
+  public TachyonFile open(TachyonURI path) {
+    // TODO: Implement me
+    return null;
+  }
+
   public boolean promote(TachyonFile file) {
     // TODO: Implement me
     return false;
   }
 
-  public boolean renameFile(TachyonFile file, TachyonURI dst) {
+  public boolean rename(TachyonFile file, TachyonURI dst) {
     // TODO: Implement me
     return false;
   }

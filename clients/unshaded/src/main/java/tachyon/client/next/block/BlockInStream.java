@@ -17,7 +17,7 @@ package tachyon.client.next.block;
 
 /**
  * Provides a stream API to read a block from Tachyon. An instance of this class can be obtained by
- * calling {@link TachyonBS#getBlockInStream}. Multiple BlockInStreams can be opened for a
+ * calling {@link TachyonBS#getInStream}. Multiple BlockInStreams can be opened for a
  * block. This class is thread safe.
  */
 public class BlockInStream {
