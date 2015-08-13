@@ -15,18 +15,13 @@
 
 package tachyon.client.next.block;
 
-import java.io.OutputStream;
-
 /**
- * Provides a stream API to write a block to Tachyon. An instance of this class can be obtained by
- * calling {@link TachyonBS#getOutStream}. Only one BlockOutStream should be opened for a
- * block. This class is thread safe.
- *
- * The type of BlockOutStream returned will depend on the user configuration and cluster setup. A
- * {@link LocalBlockOutStream} is returned if the client is co-located with a Tachyon worker and
- * the user has enabled this optimization. Otherwise, a {@link RemoteBlockOutStream} will be
- * returned which will write the data through a Tachyon worker.
+ * Provides a streaming API to write to a Tachyon block. This output stream will directly write
+ * the input to a file in local Tachyon storage.
  */
-public abstract class BlockOutStream extends OutputStream {
-  // TODO: Implement me
+public class LocalBlockOutStream extends BlockOutStream {
+  @Override
+  public void write(int b) {
+    // TODO: Implement me
+  }
 }
