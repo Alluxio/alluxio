@@ -107,14 +107,13 @@ public class IndexedSet<T> {
   }
 
   /**
-   * Get an object with the specified field value from the set. Assumption is, in the set of
-   * objects, only one object has the field value.
+   * Get the first object from the set of objects with the specified field value.
    *
    * @param fieldName the field name
    * @param value the field value
    * @return the object or null if there is no such object
    */
-  public T getSingle(String fieldName, Object value) {
+  public T getFirst(String fieldName, Object value) {
     Set<T> all = get(fieldName, value);
     return all.isEmpty() ? null : all.iterator().next();
   }
