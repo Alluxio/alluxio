@@ -85,6 +85,9 @@ public class PlainSaslServer implements SaslServer {
       }
       if (authzid == null || authzid.isEmpty()) { // authzid = authcid
         authzid = authcid;
+      } else if (!authzid.equals(authcid)) {
+        // TODO: support impersonation
+        throw new UnsupportedOperationException("Impersonation is not supported now.");
       }
 
       NameCallback nameCallback = new NameCallback("User");
@@ -99,6 +102,8 @@ public class PlainSaslServer implements SaslServer {
         throw new SaslException("AuthorizeCallback authorized failure");
       }
       mAuthzid = authCallback.getAuthorizedID();
+
+      // After verification succeeds, a user with this authz id will be set to a Threadlocal.
       RemoteClientUser.set(mAuthzid);
     } catch (Exception e) {
       throw new SaslException("Plain authentication failed: " + e.getMessage(), e);
@@ -156,10 +161,6 @@ public class PlainSaslServer implements SaslServer {
    * PlainServerCallbackHandler is used by the SASL mechanisms to get further information
    * to complete the authentication. For example, a SASL mechanism might use this callback handler
    * to do verification operation.
-   *
-   * After verification succeeds, a {@link tachyon.security.User} with this authenticated username
-   * will be created and set to a Threadlocal variable. Following methods executed in this thread
-   * could get this user, which represents the client user connecting to this server.
    */
   public static final class PlainServerCallbackHandler implements CallbackHandler {
     private final AuthenticationProvider mAuthenticationPrivoder;
