@@ -144,10 +144,9 @@ public class IndexedSet<T> {
    *
    * @param fieldName the field name
    * @param value the field value
-   * @return the set of objects that are removed, if no object is removed, the returned set is empty
    * @return true if the objects are removed, otherwise false
    */
-  public boolean remove(String fieldName, Object value) {
+  public boolean removeByField(String fieldName, Object value) {
     Set<T> toRemove = mSetIndexedByFieldValue.get(fieldName).remove(value);
     boolean success = true;
     if (toRemove != null) {

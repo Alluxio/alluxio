@@ -95,7 +95,7 @@ public class IndexedSetTest {
   }
 
   @Test
-  public void removeTest1() {
+  public void removeTest() {
     Pair toRemove = mSet.all().iterator().next();
     Assert.assertEquals(3, mSet.getByField("mDouble", toRemove.mDouble).size());
     Assert.assertTrue(mSet.remove(toRemove));
@@ -103,9 +103,9 @@ public class IndexedSetTest {
   }
 
   @Test
-  public void removeTest2() {
+  public void removeByFieldTest() {
     Assert.assertEquals(3, mSet.getByField("mInt", 1).size());
-    Assert.assertTrue(mSet.remove("mInt", 1));
+    Assert.assertTrue(mSet.removeByField("mInt", 1));
     Assert.assertEquals(0, mSet.getByField("mInt", 1).size());
   }
 }
