@@ -179,7 +179,7 @@ public class FileSystemMaster implements Master {
     }
   }
 
-  public void completeFile(long fileId) throws FileDoesNotExistException {
+  public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
@@ -188,7 +188,23 @@ public class FileSystemMaster implements Master {
         throw new FileDoesNotExistException("File id " + fileId + " is not a file.");
       }
 
-      // TODO: verify all the blocks.
+      InodeFile fileInode = (InodeFile) inode;
+      List<Long> blockIdList = fileInode.getBlockIds();
+      List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
+      if (blockInfoList.size() != blockIdList.size()) {
+        throw new BlockInfoException("Cannot complete file without all the blocks committed");
+      }
+
+      // Verify that all the blocks (except the last one) is the same size as the file block size.
+      long fileBlockSize = fileInode.getBlockSizeBytes();
+      for (int i = 0; i < blockInfoList.size() - 1; i ++) {
+        BlockInfo blockInfo = blockInfoList.get(i);
+        if (blockInfo.getLength() != fileBlockSize) {
+          throw new BlockInfoException(
+              "Block index " + i + " has a block size smaller than the file block size ("
+                  + fileInode.getBlockSizeBytes() + ")");
+        }
+      }
 
       mDependencyMap.addFileCheckpoint(fileId);
       ((InodeFile) inode).setComplete();
@@ -319,8 +335,8 @@ public class FileSystemMaster implements Master {
       blockIdList.add(tFile.getBlockIdByIndex(fileBlockIndex));
       List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
       if (blockInfoList.size() != 1) {
-        throw new BlockInfoException("FileId " + fileId + " BlockIndex " + fileBlockIndex
-            + " is not a valid block.");
+        throw new BlockInfoException(
+            "FileId " + fileId + " BlockIndex " + fileBlockIndex + " is not a valid block.");
       }
       return generateFileBlockInfo(tFile, blockInfoList.get(0));
     }
@@ -543,8 +559,7 @@ public class FileSystemMaster implements Master {
     fileBlockInfo.locations = addressList;
 
     // The sequence number part of the block id is the block index.
-    fileBlockInfo.offset =
-        file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.blockId);
+    fileBlockInfo.offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.blockId);
 
     if (fileBlockInfo.locations.isEmpty() && file.hasCheckpointed()) {
       // No tachyon locations, but there is a checkpoint in the under storage system. Add the
