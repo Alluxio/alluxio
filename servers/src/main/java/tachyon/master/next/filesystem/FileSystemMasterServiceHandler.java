@@ -15,7 +15,12 @@
 
 package tachyon.master.next.filesystem;
 
+import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.thrift.TException;
+
 import tachyon.TachyonURI;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
@@ -28,10 +33,6 @@ import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
-
-import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.Set;
 
 public class FileSystemMasterServiceHandler implements FileSystemMasterService.Iface {
   private final FileSystemMaster mFileSystemMaster;
@@ -79,70 +80,77 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
 
   @Override
   public long getUserId() throws TException {
+    // TODO
     return 0;
   }
 
   @Override
-  public long getFileBlockId(long fileId, int fileBlockIndex)
+  public long getNewBlockIdForFile(long fileId)
       throws FileDoesNotExistException, BlockInfoException, TException {
-    return 0;
+    return mFileSystemMaster.getNewBlockIdForFile(fileId);
   }
 
   @Override
   public String getUfsAddress() throws TException {
-    return null;
+    return mFileSystemMaster.getUfsAddress();
   }
 
   @Override
   public int createFile(long fileId, String ufsPath, long blockSizeByte, boolean recursive)
       throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
       TachyonException, TException {
+    // TODO
     return 0;
   }
 
   @Override
   public void completeFile(long fileId) throws FileDoesNotExistException, TException {
-
+    mFileSystemMaster.completeFile(fileId);
   }
 
   @Override
   public boolean deleteFile(long fileId, String path, boolean recursive)
       throws TachyonException, TException {
+    // TODO
     return false;
   }
 
   @Override
   public boolean renameFile(long fileId, String dstPath) throws FileAlreadyExistException,
       FileDoesNotExistException, InvalidPathException, TException {
+    // TODO
     return false;
   }
 
   @Override
   public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException, TException {
-
+    // TODO
   }
 
   @Override
   public boolean createDirectory(long fileId, boolean recursive)
       throws FileAlreadyExistException, TachyonException, TException {
+    // TODO
     return false;
   }
 
   @Override
   public boolean freePath(long fileId, boolean recursive)
       throws FileDoesNotExistException, TException {
+    // TODO
     return false;
   }
 
   @Override
   public boolean addCheckpoint(long workerId, long fileId, long length, String checkpointPath)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
+    // TODO
     return false;
   }
 
   @Override
   public void userHeartbeat() throws TException {
-
+    // TODO
   }
 
   @Override
@@ -151,24 +159,26 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
       int dependencyType, long childrenBlockSizeByte)
           throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
           BlockInfoException, TachyonException, TException {
+    // TODO
     return 0;
   }
 
   @Override
   public DependencyInfo getDependencyInfo(int dependencyId)
       throws DependencyDoesNotExistException, TException {
+    // TODO
     return null;
   }
 
   @Override
   public void reportLostFile(long fileId) throws FileDoesNotExistException, TException {
-
+    // TODO
   }
 
   @Override
   public void requestFilesInDependency(int depId)
       throws DependencyDoesNotExistException, TException {
-
+    // TODO
   }
 
 }

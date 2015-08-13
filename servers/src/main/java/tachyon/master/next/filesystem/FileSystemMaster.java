@@ -34,7 +34,6 @@ import tachyon.master.Dependency;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.Master;
 import tachyon.master.next.block.BlockMaster;
-import tachyon.master.next.block.meta.MasterWorkerInfo;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
@@ -189,6 +188,8 @@ public class FileSystemMaster implements Master {
         throw new FileDoesNotExistException("File id " + fileId + " is not a file.");
       }
 
+      // TODO: verify all the blocks.
+
       mDependencyMap.addFileCheckpoint(fileId);
       ((InodeFile) inode).setComplete();
       inode.setLastModificationTimeMs(opTimeMs);
@@ -222,6 +223,7 @@ public class FileSystemMaster implements Master {
     return ((InodeFile) inode).getNewBlockId();
   }
 
+  // TODO: dont commit blocks at the file system level.
   public void commitFileBlock(long workerId, long usedBytesOnTier, int tierAlias, long blockId,
       long length) throws FileDoesNotExistException, BlockInfoException {
     // TODO: metrics
@@ -303,11 +305,6 @@ public class FileSystemMaster implements Master {
       mInodeTree.deleteInode(delInode);
     }
     return true;
-  }
-
-  public long getBlockId(long fileId, int blockIndex) {
-    // TODO: expose block ids in the file system master?
-    return 0;
   }
 
   public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
@@ -547,7 +544,7 @@ public class FileSystemMaster implements Master {
 
     // The sequence number part of the block id is the block index.
     fileBlockInfo.offset =
-        file.getBlockSizeByte() * BlockId.getSequenceNumber(blockInfo.blockId);
+        file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.blockId);
 
     if (fileBlockInfo.locations.isEmpty() && file.hasCheckpointed()) {
       // No tachyon locations, but there is a checkpoint in the under storage system. Add the

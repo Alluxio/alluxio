@@ -45,7 +45,7 @@ struct FileBlockInfo {
 }
 
 struct FileInfo {
-  1: i32 id
+  1: i64 fileId
   2: string name
   3: string path
   4: string ufsPath
@@ -184,7 +184,7 @@ service FileSystemMasterService {
 
   i64 getUserId()
 
-  i64 getFileBlockId(1: i64 fileId, 2: i32 fileBlockIndex)
+  i64 getNewBlockIdForFile(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
 
   // TODO: is this necessary?

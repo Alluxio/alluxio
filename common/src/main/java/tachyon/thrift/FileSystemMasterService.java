@@ -55,7 +55,7 @@ public class FileSystemMasterService {
 
     public long getUserId() throws org.apache.thrift.TException;
 
-    public long getFileBlockId(long fileId, int fileBlockIndex) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
+    public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
 
     public String getUfsAddress() throws org.apache.thrift.TException;
 
@@ -109,7 +109,7 @@ public class FileSystemMasterService {
 
     public void getUserId(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void getFileBlockId(long fileId, int fileBlockIndex, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getNewBlockIdForFile(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void getUfsAddress(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -361,24 +361,23 @@ public class FileSystemMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUserId failed: unknown result");
     }
 
-    public long getFileBlockId(long fileId, int fileBlockIndex) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
+    public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
     {
-      send_getFileBlockId(fileId, fileBlockIndex);
-      return recv_getFileBlockId();
+      send_getNewBlockIdForFile(fileId);
+      return recv_getNewBlockIdForFile();
     }
 
-    public void send_getFileBlockId(long fileId, int fileBlockIndex) throws org.apache.thrift.TException
+    public void send_getNewBlockIdForFile(long fileId) throws org.apache.thrift.TException
     {
-      getFileBlockId_args args = new getFileBlockId_args();
+      getNewBlockIdForFile_args args = new getNewBlockIdForFile_args();
       args.setFileId(fileId);
-      args.setFileBlockIndex(fileBlockIndex);
-      sendBase("getFileBlockId", args);
+      sendBase("getNewBlockIdForFile", args);
     }
 
-    public long recv_getFileBlockId() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
+    public long recv_getNewBlockIdForFile() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
     {
-      getFileBlockId_result result = new getFileBlockId_result();
-      receiveBase(result, "getFileBlockId");
+      getNewBlockIdForFile_result result = new getNewBlockIdForFile_result();
+      receiveBase(result, "getNewBlockIdForFile");
       if (result.isSetSuccess()) {
         return result.success;
       }
@@ -388,7 +387,7 @@ public class FileSystemMasterService {
       if (result.bie != null) {
         throw result.bie;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getFileBlockId failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getNewBlockIdForFile failed: unknown result");
     }
 
     public String getUfsAddress() throws org.apache.thrift.TException
@@ -1056,27 +1055,24 @@ public class FileSystemMasterService {
       }
     }
 
-    public void getFileBlockId(long fileId, int fileBlockIndex, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getNewBlockIdForFile(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getFileBlockId_call method_call = new getFileBlockId_call(fileId, fileBlockIndex, resultHandler, this, ___protocolFactory, ___transport);
+      getNewBlockIdForFile_call method_call = new getNewBlockIdForFile_call(fileId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class getFileBlockId_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class getNewBlockIdForFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long fileId;
-      private int fileBlockIndex;
-      public getFileBlockId_call(long fileId, int fileBlockIndex, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public getNewBlockIdForFile_call(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fileId = fileId;
-        this.fileBlockIndex = fileBlockIndex;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getFileBlockId", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        getFileBlockId_args args = new getFileBlockId_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getNewBlockIdForFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getNewBlockIdForFile_args args = new getNewBlockIdForFile_args();
         args.setFileId(fileId);
-        args.setFileBlockIndex(fileBlockIndex);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1087,7 +1083,7 @@ public class FileSystemMasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_getFileBlockId();
+        return (new Client(prot)).recv_getNewBlockIdForFile();
       }
     }
 
@@ -1614,7 +1610,7 @@ public class FileSystemMasterService {
       processMap.put("getFileBlockInfo", new getFileBlockInfo());
       processMap.put("getFileBlockInfoList", new getFileBlockInfoList());
       processMap.put("getUserId", new getUserId());
-      processMap.put("getFileBlockId", new getFileBlockId());
+      processMap.put("getNewBlockIdForFile", new getNewBlockIdForFile());
       processMap.put("getUfsAddress", new getUfsAddress());
       processMap.put("createFile", new createFile());
       processMap.put("completeFile", new completeFile());
@@ -1816,23 +1812,23 @@ public class FileSystemMasterService {
       }
     }
 
-    public static class getFileBlockId<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getFileBlockId_args> {
-      public getFileBlockId() {
-        super("getFileBlockId");
+    public static class getNewBlockIdForFile<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getNewBlockIdForFile_args> {
+      public getNewBlockIdForFile() {
+        super("getNewBlockIdForFile");
       }
 
-      public getFileBlockId_args getEmptyArgsInstance() {
-        return new getFileBlockId_args();
+      public getNewBlockIdForFile_args getEmptyArgsInstance() {
+        return new getNewBlockIdForFile_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public getFileBlockId_result getResult(I iface, getFileBlockId_args args) throws org.apache.thrift.TException {
-        getFileBlockId_result result = new getFileBlockId_result();
+      public getNewBlockIdForFile_result getResult(I iface, getNewBlockIdForFile_args args) throws org.apache.thrift.TException {
+        getNewBlockIdForFile_result result = new getNewBlockIdForFile_result();
         try {
-          result.success = iface.getFileBlockId(args.fileId, args.fileBlockIndex);
+          result.success = iface.getNewBlockIdForFile(args.fileId);
           result.setSuccessIsSet(true);
         } catch (FileDoesNotExistException fdnee) {
           result.fdnee = fdnee;
@@ -2223,7 +2219,7 @@ public class FileSystemMasterService {
       processMap.put("getFileBlockInfo", new getFileBlockInfo());
       processMap.put("getFileBlockInfoList", new getFileBlockInfoList());
       processMap.put("getUserId", new getUserId());
-      processMap.put("getFileBlockId", new getFileBlockId());
+      processMap.put("getNewBlockIdForFile", new getNewBlockIdForFile());
       processMap.put("getUfsAddress", new getUfsAddress());
       processMap.put("createFile", new createFile());
       processMap.put("completeFile", new completeFile());
@@ -2686,20 +2682,20 @@ public class FileSystemMasterService {
       }
     }
 
-    public static class getFileBlockId<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getFileBlockId_args, Long> {
-      public getFileBlockId() {
-        super("getFileBlockId");
+    public static class getNewBlockIdForFile<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getNewBlockIdForFile_args, Long> {
+      public getNewBlockIdForFile() {
+        super("getNewBlockIdForFile");
       }
 
-      public getFileBlockId_args getEmptyArgsInstance() {
-        return new getFileBlockId_args();
+      public getNewBlockIdForFile_args getEmptyArgsInstance() {
+        return new getNewBlockIdForFile_args();
       }
 
       public AsyncMethodCallback<Long> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<Long>() { 
           public void onComplete(Long o) {
-            getFileBlockId_result result = new getFileBlockId_result();
+            getNewBlockIdForFile_result result = new getNewBlockIdForFile_result();
             result.success = o;
             result.setSuccessIsSet(true);
             try {
@@ -2713,7 +2709,7 @@ public class FileSystemMasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            getFileBlockId_result result = new getFileBlockId_result();
+            getNewBlockIdForFile_result result = new getNewBlockIdForFile_result();
             if (e instanceof FileDoesNotExistException) {
                         result.fdnee = (FileDoesNotExistException) e;
                         result.setFdneeIsSet(true);
@@ -2744,8 +2740,8 @@ public class FileSystemMasterService {
         return false;
       }
 
-      public void start(I iface, getFileBlockId_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
-        iface.getFileBlockId(args.fileId, args.fileBlockIndex,resultHandler);
+      public void start(I iface, getNewBlockIdForFile_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
+        iface.getNewBlockIdForFile(args.fileId,resultHandler);
       }
     }
 
@@ -9985,25 +9981,22 @@ public class FileSystemMasterService {
 
   }
 
-  public static class getFileBlockId_args implements org.apache.thrift.TBase<getFileBlockId_args, getFileBlockId_args._Fields>, java.io.Serializable, Cloneable, Comparable<getFileBlockId_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileBlockId_args");
+  public static class getNewBlockIdForFile_args implements org.apache.thrift.TBase<getNewBlockIdForFile_args, getNewBlockIdForFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<getNewBlockIdForFile_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getNewBlockIdForFile_args");
 
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField FILE_BLOCK_INDEX_FIELD_DESC = new org.apache.thrift.protocol.TField("fileBlockIndex", org.apache.thrift.protocol.TType.I32, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getFileBlockId_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getFileBlockId_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getNewBlockIdForFile_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getNewBlockIdForFile_argsTupleSchemeFactory());
     }
 
     public long fileId; // required
-    public int fileBlockIndex; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FILE_ID((short)1, "fileId"),
-      FILE_BLOCK_INDEX((short)2, "fileBlockIndex");
+      FILE_ID((short)1, "fileId");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -10020,8 +10013,6 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 1: // FILE_ID
             return FILE_ID;
-          case 2: // FILE_BLOCK_INDEX
-            return FILE_BLOCK_INDEX;
           default:
             return null;
         }
@@ -10063,59 +10054,50 @@ public class FileSystemMasterService {
 
     // isset id assignments
     private static final int __FILEID_ISSET_ID = 0;
-    private static final int __FILEBLOCKINDEX_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.FILE_BLOCK_INDEX, new org.apache.thrift.meta_data.FieldMetaData("fileBlockIndex", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileBlockId_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getNewBlockIdForFile_args.class, metaDataMap);
     }
 
-    public getFileBlockId_args() {
+    public getNewBlockIdForFile_args() {
     }
 
-    public getFileBlockId_args(
-      long fileId,
-      int fileBlockIndex)
+    public getNewBlockIdForFile_args(
+      long fileId)
     {
       this();
       this.fileId = fileId;
       setFileIdIsSet(true);
-      this.fileBlockIndex = fileBlockIndex;
-      setFileBlockIndexIsSet(true);
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getFileBlockId_args(getFileBlockId_args other) {
+    public getNewBlockIdForFile_args(getNewBlockIdForFile_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.fileId = other.fileId;
-      this.fileBlockIndex = other.fileBlockIndex;
     }
 
-    public getFileBlockId_args deepCopy() {
-      return new getFileBlockId_args(this);
+    public getNewBlockIdForFile_args deepCopy() {
+      return new getNewBlockIdForFile_args(this);
     }
 
     @Override
     public void clear() {
       setFileIdIsSet(false);
       this.fileId = 0;
-      setFileBlockIndexIsSet(false);
-      this.fileBlockIndex = 0;
     }
 
     public long getFileId() {
       return this.fileId;
     }
 
-    public getFileBlockId_args setFileId(long fileId) {
+    public getNewBlockIdForFile_args setFileId(long fileId) {
       this.fileId = fileId;
       setFileIdIsSet(true);
       return this;
@@ -10134,29 +10116,6 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
     }
 
-    public int getFileBlockIndex() {
-      return this.fileBlockIndex;
-    }
-
-    public getFileBlockId_args setFileBlockIndex(int fileBlockIndex) {
-      this.fileBlockIndex = fileBlockIndex;
-      setFileBlockIndexIsSet(true);
-      return this;
-    }
-
-    public void unsetFileBlockIndex() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FILEBLOCKINDEX_ISSET_ID);
-    }
-
-    /** Returns true if field fileBlockIndex is set (has been assigned a value) and false otherwise */
-    public boolean isSetFileBlockIndex() {
-      return EncodingUtils.testBit(__isset_bitfield, __FILEBLOCKINDEX_ISSET_ID);
-    }
-
-    public void setFileBlockIndexIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEBLOCKINDEX_ISSET_ID, value);
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case FILE_ID:
@@ -10167,14 +10126,6 @@ public class FileSystemMasterService {
         }
         break;
 
-      case FILE_BLOCK_INDEX:
-        if (value == null) {
-          unsetFileBlockIndex();
-        } else {
-          setFileBlockIndex((Integer)value);
-        }
-        break;
-
       }
     }
 
@@ -10182,9 +10133,6 @@ public class FileSystemMasterService {
       switch (field) {
       case FILE_ID:
         return Long.valueOf(getFileId());
-
-      case FILE_BLOCK_INDEX:
-        return Integer.valueOf(getFileBlockIndex());
 
       }
       throw new IllegalStateException();
@@ -10199,8 +10147,6 @@ public class FileSystemMasterService {
       switch (field) {
       case FILE_ID:
         return isSetFileId();
-      case FILE_BLOCK_INDEX:
-        return isSetFileBlockIndex();
       }
       throw new IllegalStateException();
     }
@@ -10209,12 +10155,12 @@ public class FileSystemMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getFileBlockId_args)
-        return this.equals((getFileBlockId_args)that);
+      if (that instanceof getNewBlockIdForFile_args)
+        return this.equals((getNewBlockIdForFile_args)that);
       return false;
     }
 
-    public boolean equals(getFileBlockId_args that) {
+    public boolean equals(getNewBlockIdForFile_args that) {
       if (that == null)
         return false;
 
@@ -10224,15 +10170,6 @@ public class FileSystemMasterService {
         if (!(this_present_fileId && that_present_fileId))
           return false;
         if (this.fileId != that.fileId)
-          return false;
-      }
-
-      boolean this_present_fileBlockIndex = true;
-      boolean that_present_fileBlockIndex = true;
-      if (this_present_fileBlockIndex || that_present_fileBlockIndex) {
-        if (!(this_present_fileBlockIndex && that_present_fileBlockIndex))
-          return false;
-        if (this.fileBlockIndex != that.fileBlockIndex)
           return false;
       }
 
@@ -10248,16 +10185,11 @@ public class FileSystemMasterService {
       if (present_fileId)
         list.add(fileId);
 
-      boolean present_fileBlockIndex = true;
-      list.add(present_fileBlockIndex);
-      if (present_fileBlockIndex)
-        list.add(fileBlockIndex);
-
       return list.hashCode();
     }
 
     @Override
-    public int compareTo(getFileBlockId_args other) {
+    public int compareTo(getNewBlockIdForFile_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -10270,16 +10202,6 @@ public class FileSystemMasterService {
       }
       if (isSetFileId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetFileBlockIndex()).compareTo(other.isSetFileBlockIndex());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetFileBlockIndex()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileBlockIndex, other.fileBlockIndex);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -10301,15 +10223,11 @@ public class FileSystemMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getFileBlockId_args(");
+      StringBuilder sb = new StringBuilder("getNewBlockIdForFile_args(");
       boolean first = true;
 
       sb.append("fileId:");
       sb.append(this.fileId);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("fileBlockIndex:");
-      sb.append(this.fileBlockIndex);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -10338,15 +10256,15 @@ public class FileSystemMasterService {
       }
     }
 
-    private static class getFileBlockId_argsStandardSchemeFactory implements SchemeFactory {
-      public getFileBlockId_argsStandardScheme getScheme() {
-        return new getFileBlockId_argsStandardScheme();
+    private static class getNewBlockIdForFile_argsStandardSchemeFactory implements SchemeFactory {
+      public getNewBlockIdForFile_argsStandardScheme getScheme() {
+        return new getNewBlockIdForFile_argsStandardScheme();
       }
     }
 
-    private static class getFileBlockId_argsStandardScheme extends StandardScheme<getFileBlockId_args> {
+    private static class getNewBlockIdForFile_argsStandardScheme extends StandardScheme<getNewBlockIdForFile_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getFileBlockId_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getNewBlockIdForFile_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -10364,14 +10282,6 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // FILE_BLOCK_INDEX
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.fileBlockIndex = iprot.readI32();
-                struct.setFileBlockIndexIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -10383,15 +10293,12 @@ public class FileSystemMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getFileBlockId_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getNewBlockIdForFile_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
         oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
         oprot.writeI64(struct.fileId);
-        oprot.writeFieldEnd();
-        oprot.writeFieldBegin(FILE_BLOCK_INDEX_FIELD_DESC);
-        oprot.writeI32(struct.fileBlockIndex);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -10399,52 +10306,42 @@ public class FileSystemMasterService {
 
     }
 
-    private static class getFileBlockId_argsTupleSchemeFactory implements SchemeFactory {
-      public getFileBlockId_argsTupleScheme getScheme() {
-        return new getFileBlockId_argsTupleScheme();
+    private static class getNewBlockIdForFile_argsTupleSchemeFactory implements SchemeFactory {
+      public getNewBlockIdForFile_argsTupleScheme getScheme() {
+        return new getNewBlockIdForFile_argsTupleScheme();
       }
     }
 
-    private static class getFileBlockId_argsTupleScheme extends TupleScheme<getFileBlockId_args> {
+    private static class getNewBlockIdForFile_argsTupleScheme extends TupleScheme<getNewBlockIdForFile_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getFileBlockId_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getNewBlockIdForFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetFileId()) {
           optionals.set(0);
         }
-        if (struct.isSetFileBlockIndex()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
+        oprot.writeBitSet(optionals, 1);
         if (struct.isSetFileId()) {
           oprot.writeI64(struct.fileId);
-        }
-        if (struct.isSetFileBlockIndex()) {
-          oprot.writeI32(struct.fileBlockIndex);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getFileBlockId_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getNewBlockIdForFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           struct.fileId = iprot.readI64();
           struct.setFileIdIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.fileBlockIndex = iprot.readI32();
-          struct.setFileBlockIndexIsSet(true);
         }
       }
     }
 
   }
 
-  public static class getFileBlockId_result implements org.apache.thrift.TBase<getFileBlockId_result, getFileBlockId_result._Fields>, java.io.Serializable, Cloneable, Comparable<getFileBlockId_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileBlockId_result");
+  public static class getNewBlockIdForFile_result implements org.apache.thrift.TBase<getNewBlockIdForFile_result, getNewBlockIdForFile_result._Fields>, java.io.Serializable, Cloneable, Comparable<getNewBlockIdForFile_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getNewBlockIdForFile_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
     private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
@@ -10452,8 +10349,8 @@ public class FileSystemMasterService {
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getFileBlockId_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getFileBlockId_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getNewBlockIdForFile_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getNewBlockIdForFile_resultTupleSchemeFactory());
     }
 
     public long success; // required
@@ -10537,13 +10434,13 @@ public class FileSystemMasterService {
       tmpMap.put(_Fields.BIE, new org.apache.thrift.meta_data.FieldMetaData("bie", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileBlockId_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getNewBlockIdForFile_result.class, metaDataMap);
     }
 
-    public getFileBlockId_result() {
+    public getNewBlockIdForFile_result() {
     }
 
-    public getFileBlockId_result(
+    public getNewBlockIdForFile_result(
       long success,
       FileDoesNotExistException fdnee,
       BlockInfoException bie)
@@ -10558,7 +10455,7 @@ public class FileSystemMasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getFileBlockId_result(getFileBlockId_result other) {
+    public getNewBlockIdForFile_result(getNewBlockIdForFile_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
       if (other.isSetFdnee()) {
@@ -10569,8 +10466,8 @@ public class FileSystemMasterService {
       }
     }
 
-    public getFileBlockId_result deepCopy() {
-      return new getFileBlockId_result(this);
+    public getNewBlockIdForFile_result deepCopy() {
+      return new getNewBlockIdForFile_result(this);
     }
 
     @Override
@@ -10585,7 +10482,7 @@ public class FileSystemMasterService {
       return this.success;
     }
 
-    public getFileBlockId_result setSuccess(long success) {
+    public getNewBlockIdForFile_result setSuccess(long success) {
       this.success = success;
       setSuccessIsSet(true);
       return this;
@@ -10608,7 +10505,7 @@ public class FileSystemMasterService {
       return this.fdnee;
     }
 
-    public getFileBlockId_result setFdnee(FileDoesNotExistException fdnee) {
+    public getNewBlockIdForFile_result setFdnee(FileDoesNotExistException fdnee) {
       this.fdnee = fdnee;
       return this;
     }
@@ -10632,7 +10529,7 @@ public class FileSystemMasterService {
       return this.bie;
     }
 
-    public getFileBlockId_result setBie(BlockInfoException bie) {
+    public getNewBlockIdForFile_result setBie(BlockInfoException bie) {
       this.bie = bie;
       return this;
     }
@@ -10717,12 +10614,12 @@ public class FileSystemMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getFileBlockId_result)
-        return this.equals((getFileBlockId_result)that);
+      if (that instanceof getNewBlockIdForFile_result)
+        return this.equals((getNewBlockIdForFile_result)that);
       return false;
     }
 
-    public boolean equals(getFileBlockId_result that) {
+    public boolean equals(getNewBlockIdForFile_result that) {
       if (that == null)
         return false;
 
@@ -10779,7 +10676,7 @@ public class FileSystemMasterService {
     }
 
     @Override
-    public int compareTo(getFileBlockId_result other) {
+    public int compareTo(getNewBlockIdForFile_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -10833,7 +10730,7 @@ public class FileSystemMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getFileBlockId_result(");
+      StringBuilder sb = new StringBuilder("getNewBlockIdForFile_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -10882,15 +10779,15 @@ public class FileSystemMasterService {
       }
     }
 
-    private static class getFileBlockId_resultStandardSchemeFactory implements SchemeFactory {
-      public getFileBlockId_resultStandardScheme getScheme() {
-        return new getFileBlockId_resultStandardScheme();
+    private static class getNewBlockIdForFile_resultStandardSchemeFactory implements SchemeFactory {
+      public getNewBlockIdForFile_resultStandardScheme getScheme() {
+        return new getNewBlockIdForFile_resultStandardScheme();
       }
     }
 
-    private static class getFileBlockId_resultStandardScheme extends StandardScheme<getFileBlockId_result> {
+    private static class getNewBlockIdForFile_resultStandardScheme extends StandardScheme<getNewBlockIdForFile_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getFileBlockId_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getNewBlockIdForFile_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -10937,7 +10834,7 @@ public class FileSystemMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getFileBlockId_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getNewBlockIdForFile_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -10962,16 +10859,16 @@ public class FileSystemMasterService {
 
     }
 
-    private static class getFileBlockId_resultTupleSchemeFactory implements SchemeFactory {
-      public getFileBlockId_resultTupleScheme getScheme() {
-        return new getFileBlockId_resultTupleScheme();
+    private static class getNewBlockIdForFile_resultTupleSchemeFactory implements SchemeFactory {
+      public getNewBlockIdForFile_resultTupleScheme getScheme() {
+        return new getNewBlockIdForFile_resultTupleScheme();
       }
     }
 
-    private static class getFileBlockId_resultTupleScheme extends TupleScheme<getFileBlockId_result> {
+    private static class getNewBlockIdForFile_resultTupleScheme extends TupleScheme<getNewBlockIdForFile_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getFileBlockId_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getNewBlockIdForFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -10996,7 +10893,7 @@ public class FileSystemMasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getFileBlockId_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getNewBlockIdForFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
