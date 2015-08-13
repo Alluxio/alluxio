@@ -48,8 +48,9 @@ done
 echo "TachyonMaster" >> files/workers
 
 # create virtual machine without provisioning
-[[ "$PROVIDER" == "aws" ]] && python bin/init_aws.py
-
+[[ "$PROVIDER" == "aws" ]] && sgid=`python bin/init_aws.py|tail -n 1`
+# pass security group id to vagrant up
+export AWS_SECURITY_GROUP_ID_TACH=$sgid
 IS_SPOT=`python bin/is_aws_spot.py`
 if [[ "$PROVIDER" == "aws" && "$IS_SPOT" == 0 ]]; then
  # register handler to be run when exit 1

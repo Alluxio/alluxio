@@ -52,8 +52,6 @@ public class BlockLockManager {
   /** A hashing function to map blockId to one of the locks */
   private static final HashFunction HASH_FUNC = Hashing.murmur3_32();
 
-  /** The object that serves all metadata requests for the block store */
-  private final BlockMetadataManager mMetaManager;
   /** A map from a block ID to its lock */
   private final ClientRWLock[] mLockArray = new ClientRWLock[NUM_LOCKS];
   /** A map from a user ID to all the locks hold by this user */
@@ -63,8 +61,7 @@ public class BlockLockManager {
   /** To guard access on mLockIdToRecordMap and mUserIdToLockIdsMap */
   private final Object mSharedMapsLock = new Object();
 
-  public BlockLockManager(BlockMetadataManager metaManager) {
-    mMetaManager = Preconditions.checkNotNull(metaManager);
+  public BlockLockManager() {
     for (int i = 0; i < NUM_LOCKS; i ++) {
       mLockArray[i] = new ClientRWLock();
     }
@@ -81,16 +78,15 @@ public class BlockLockManager {
   }
 
   /**
-   * Attempts to lock a block if it exists.
+   * Locks a block. Note that, lock striping is used so even this block does not exist, a lock id
+   * is still returned.
    *
    * @param userId the ID of user
    * @param blockId the ID of block
    * @param blockLockType READ or WRITE
    * @return lock ID
-   * @throws NotFoundException if the block does not exist or the block lock timeout is exceeded
    */
-  public long lockBlock(long userId, long blockId, BlockLockType blockLockType)
-      throws NotFoundException {
+  public long lockBlock(long userId, long blockId, BlockLockType blockLockType) {
     // hashing blockId into the range of [0, NUM_LOCKS-1]
     int index = blockHashIndex(blockId);
     ClientRWLock blockLock = mLockArray[index];
@@ -100,27 +96,7 @@ public class BlockLockManager {
     } else { // blockLockType == BlockLockType.WRITE
       lock = blockLock.writeLock();
     }
-
-    // The block lock may be busy, wait up to five seconds to obtain it.
-    boolean success;
-    try {
-      success = lock.tryLock(LOCK_ACQUIRE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException ie) {
-      // The UserLock implementation does not throw this exception, something is wrong if it happens
-      LOG.error("Interrupted exception in tryLock, this should not occur!");
-      // TODO: Throw an appropriate exception here
-      throw new NotFoundException(ie.getMessage(), ie.getCause());
-    }
-    if (!success) {
-      String errMsg = "5s timeout when attempting lockBlock: " + blockId + " for user: " + userId;
-      LOG.error(errMsg);
-      // TODO: Throw an appropriate exception here
-      throw new NotFoundException(errMsg);
-    }
-    if (!mMetaManager.hasBlockMeta(blockId)) {
-      lock.unlock();
-      throw new NotFoundException("Failed to lockBlock: no blockId " + blockId + " found");
-    }
+    lock.lock();
     long lockId = LOCK_ID_GEN.getAndIncrement();
     synchronized (mSharedMapsLock) {
       mLockIdToRecordMap.put(lockId, new LockRecord(userId, blockId, lock));

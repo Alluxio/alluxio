@@ -28,9 +28,54 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>Print the content of the file to the console.</td>
   </tr>
   <tr>
+    <td>copyFromLocal</td>
+    <td>copyFromLocal "source path" "remote path"</td>
+    <td>Copy the specified file specified by "source path" to the path specified by "remote path". This command will fail if "remote path" already exists.</td>
+  </tr>
+  <tr>
+    <td>copyToLocal</td>
+    <td>copyToLocal "remote path" "local path"</td>
+    <td>Copy the specified file from the path specified by "remote source" to a local destination.</td>
+  </tr>
+  <tr>
     <td>count</td>
     <td>count "path"</td>
-    <td>Display the number of folders and files matching the specified prefix in "path".</td>
+    <td>Displays the number of folders and files matching the specified prefix in "path".</td>
+  </tr>
+  <tr>
+    <td>du</td>
+    <td>du "path"</td>
+    <td>Displays the size of a file or a directory specified by the input path.</td>
+  </tr>
+  <tr>
+    <td>fileinfo</td>
+    <td>fileinfo "path"</td>
+    <td>Print the information of the blocks of a specified file.</td>
+  </tr>
+  <tr>
+    <td>free</td>
+    <td>free "path"</td>
+    <td>Free a file or all files under a directory from memory. File/directory will still be available in underfs.</td>
+  </tr>
+  <tr>
+    <td>getCapacityBytes</td>
+    <td>getCapacityBytes</td>
+    <td>Get the capacity of the TachyonFS.</td>
+  </tr>
+  <tr>
+    <td>getUsedBytes</td>
+    <td>getUsedBytes</td>
+    <td>Get number of bytes used in the TachyonFS.</td>
+  </tr>
+  <tr>
+    <td>load</td>
+    <td>load "path"</td>
+    <td>Loads a file or a directory in TachyonFS into memory.</td>
+  </tr>
+  <tr>
+    <td>location</td>
+    <td>location "path"</td>
+    <td>Displays a list of hosts that have the file data.</td>
   </tr>
   <tr>
     <td>ls</td>
@@ -46,6 +91,26 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>mkdir</td>
     <td>mkdir "path"</td>
     <td>Create a directory under the given path, along with any necessary parent directories. This command will fail if the given path already exists.</td>
+  </tr>
+  <tr>
+    <td>mv</td>
+    <td>mv "source" "destination"</td>
+    <td>Move a file or directory specified by "source" to a new location "destination". This command will fail if "destination" already exists.</td>
+  </tr>
+  <tr>
+    <td>pin</td>
+    <td>pin "path"</td>
+    <td>Pin the given file to avoid evicting it from memory. If the given path is a directory, it recursively pins all the files contained and any new files created within this directory.</td>
+  </tr>
+  <tr>
+    <td>report</td>
+    <td>report "path"</td>
+    <td>Report to the master that a file is lost.</td>
+  </tr>
+  <tr>
+    <td>request</td>
+    <td>request "path" "dependency ID"</td>
+    <td>Request the file for a given dependency ID.</td>
   </tr>
   <tr>
     <td>rm</td>
@@ -68,53 +133,8 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>Create a 0-byte file at the specified location.</td>
   </tr>
   <tr>
-    <td>mv</td>
-    <td>mv "source" "destination"</td>
-    <td>Move a file or directory specified by "source" to a new location "destination". This command will fail if "destination" already exists.</td>
-  </tr>
-  <tr>
-    <td>copyFromLocal</td>
-    <td>copyFromLocal "source path" "remote path"</td>
-    <td>Copy the specified file specified by "source path" to the path specified by "remote path". This command will fail if "remote path" already exists.</td>
-  </tr>
-  <tr>
-    <td>copyToLocal</td>
-    <td>copyToLocal "remote path" "local path"</td>
-    <td>Copy the specified file from the path specified by "remote source" to a local destination.</td>
-  </tr>
-  <tr>
-    <td>fileinfo</td>
-    <td>fileinfo "path"</td>
-    <td>Print the information of the blocks of a specified file.</td>
-  </tr>
-  <tr>
-    <td>location</td>
-    <td>location "path"</td>
-    <td>Display a list of hosts that have the file data.</td>
-  </tr>
-  <tr>
-    <td>report</td>
-    <td>report "path"</td>
-    <td>Report to the master that a file is lost.</td>
-  </tr>
-  <tr>
-    <td>request</td>
-    <td>request "path" "dependency ID"</td>
-    <td>Request the file for a given dependency ID.</td>
-  </tr>
-  <tr>
-    <td>pin</td>
-    <td>pin "path"</td>
-    <td>Pin the given file to avoid evicting it from memory. If the given path is a directory, it recursively pins all the files contained and any new files created within this directory.</td>
-  </tr>
-  <tr>
     <td>unpin</td>
     <td>unpin "path"</td>
     <td>Unpin the given file to allow Tachyon to evict this file again. If the given path is a directory, it recursively unpins all files contained and any new files created within this directory.</td>
-  </tr>
-  <tr>
-    <td>free</td>
-    <td>free "path"</td>
-    <td>Free a file or all files under a directory from memory. File/directory will still be available in underfs.</td>
   </tr>
 </table>

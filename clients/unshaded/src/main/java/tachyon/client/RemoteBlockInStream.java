@@ -162,9 +162,11 @@ public class RemoteBlockInStream extends BlockInStream {
    * The object can be used to perform near-stateless read using {@link #readRemoteByteBuffer}.
    * (The only state kept is a handler for the underlying reader, so we can close the reader
    * when we close the dummy stream.)
-   *
+   * 
+   * <p>
+   * See {@link tachyon.client.TachyonFile#readRemoteByteBuffer(ClientBlockInfo)} for usage.
+   * 
    * @return a dummy RemoteBlockInStream object.
-   * @see {@link tachyon.client.TachyonFile#readRemoteByteBuffer(ClientBlockInfo)} for usage
    */
   public static RemoteBlockInStream getDummyStream() {
     return new RemoteBlockInStream(new TachyonFile(null, -1, null),
@@ -426,7 +428,7 @@ public class RemoteBlockInStream extends BlockInStream {
    */
   private boolean updateCurrentBuffer() throws IOException {
     long bufferSize =
-        mTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, 8 * Constants.MB);
+        mTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE);
     if (mCurrentBuffer != null && mBufferStartPos <= mBlockPos
         && mBlockPos < Math.min(mBufferStartPos + bufferSize, mBlockInfo.length)) {
       // We move the buffer to read at mBlockPos

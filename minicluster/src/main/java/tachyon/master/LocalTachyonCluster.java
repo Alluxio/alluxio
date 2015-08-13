@@ -32,6 +32,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockWorker;
 
 /**
@@ -157,17 +158,14 @@ public final class LocalTachyonCluster {
   }
 
   public void start() throws IOException {
-    start(new TachyonConf());
-  }
-
-  public void start(TachyonConf tachyonConf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";
 
     mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
 
-    mMasterConf = tachyonConf;
+    // TODO: Would be good to have a masterContext as well
+    mMasterConf = new TachyonConf();
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
     mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
@@ -196,7 +194,8 @@ public final class LocalTachyonCluster {
 
     CommonUtils.sleepMs(null, 10);
 
-    mWorkerConf = new TachyonConf(mMasterConf);
+    mWorkerConf = WorkerContext.getConf();
+    mWorkerConf.merge(mMasterConf);
     mWorkerConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
     mWorkerConf.set(Constants.MASTER_PORT, getMasterPort() + "");
     mWorkerConf.set(Constants.MASTER_WEB_PORT, (getMasterPort() + 1) + "");
@@ -225,7 +224,7 @@ public final class LocalTachyonCluster {
         mWorkerCapacityBytes + "");
     mkdir(mTachyonHome + "/ramdisk");
 
-    int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
+    int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath = String.format(
           Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
@@ -240,7 +239,7 @@ public final class LocalTachyonCluster {
           Joiner.on(',').join(newPaths));
     }
 
-    mWorker = new BlockWorker(mWorkerConf);
+    mWorker = new BlockWorker();
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {

@@ -100,4 +100,17 @@ AMI: "ami-1ecae776"
 Security_Group: "tachyon-vagrant-test"
 
 Region: "us-east-1"
+
 Availability_Zone: "us-east-1a"
+
+# VPC and Subnet ID
+#
+# http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/default-vpc.html#default-vpc-basics
+# Some users do not have access to default VPC in all regions, and creating them involves contacting Amazon support.
+# This particular AMI would not launch under ec2-classic mode, it requires a VPC. 
+# If you do not have a default VPC, you may need to create one for your region, and enable the VPC and Subnet
+# settings to specify where you will launch your instance.
+#
+# Availability_Zone: "us-east-1b"
+# VPC: "vpc-id"
+# Subnet: "subnet-id"
