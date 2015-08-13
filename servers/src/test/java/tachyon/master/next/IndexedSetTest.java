@@ -42,10 +42,14 @@ public class IndexedSetTest {
   }
 
   private IndexedSet<Pair> mSet;
+  private IndexedSet.FieldIndex mIntIndex;
+  private IndexedSet.FieldIndex mDoubleIndex;
 
   @Before
   public void before() {
-    mSet = new IndexedSet<Pair>("mInt", "mDouble");
+    mIntIndex = new IndexedSet.FieldIndex("mInt");
+    mDoubleIndex = new IndexedSet.FieldIndex("mDouble");
+    mSet = new IndexedSet<Pair>(mIntIndex, mDoubleIndex);
     for (int i = 0; i < 3; i ++) {
       for (double d = 0; d < 3.0; d ++) {
         mSet.add(new Pair(i, d));
@@ -56,19 +60,19 @@ public class IndexedSetTest {
   @Test
   public void containsTest() {
     for (int i = 0; i < 3; i ++) {
-      Assert.assertTrue(mSet.contains("mInt", i));
+      Assert.assertTrue(mSet.contains(mIntIndex, i));
     }
-    Assert.assertFalse(mSet.contains("mInt", 4));
+    Assert.assertFalse(mSet.contains(mIntIndex, 4));
     for (double d = 0; d < 3.0; d ++) {
-      Assert.assertTrue(mSet.contains("mDouble", d));
+      Assert.assertTrue(mSet.contains(mDoubleIndex, d));
     }
-    Assert.assertFalse(mSet.contains("mDouble", 2.9));
+    Assert.assertFalse(mSet.contains(mDoubleIndex, 2.9));
   }
 
   @Test
   public void getTest() {
     for (int i = 0; i < 3; i ++) {
-      Set<Pair> set = mSet.getByField("mInt", i);
+      Set<Pair> set = mSet.getByField(mIntIndex, i);
       Assert.assertEquals(3, set.size());
       List<Double> doubles = new ArrayList<Double>(set.size());
       for (Pair o : set) {
@@ -79,9 +83,9 @@ public class IndexedSetTest {
         Assert.assertEquals(new Double(j), doubles.get(j));
       }
 
-      set = mSet.getByField("mDouble", i);
+      set = mSet.getByField(mDoubleIndex, i);
       Assert.assertEquals(0, set.size()); // i is integer, must be in the same type
-      set = mSet.getByField("mDouble", (double) i);
+      set = mSet.getByField(mDoubleIndex, (double) i);
       Assert.assertEquals(3, set.size());
       List<Integer> ints = new ArrayList<Integer>(set.size());
       for (Pair o : set) {
@@ -97,15 +101,25 @@ public class IndexedSetTest {
   @Test
   public void removeTest() {
     Pair toRemove = mSet.all().iterator().next();
-    Assert.assertEquals(3, mSet.getByField("mDouble", toRemove.mDouble).size());
+    Assert.assertEquals(3, mSet.getByField(mDoubleIndex, toRemove.mDouble).size());
+    Assert.assertEquals(9, mSet.size());
     Assert.assertTrue(mSet.remove(toRemove));
-    Assert.assertEquals(2, mSet.getByField("mDouble", toRemove.mDouble).size());
+    Assert.assertEquals(8, mSet.size());
+    Assert.assertEquals(2, mSet.getByField(mIntIndex, toRemove.intValue()).size());
+    Assert.assertEquals(2, mSet.getByField(mDoubleIndex, toRemove.mDouble).size());
   }
 
   @Test
   public void removeByFieldTest() {
-    Assert.assertEquals(3, mSet.getByField("mInt", 1).size());
-    Assert.assertTrue(mSet.removeByField("mInt", 1));
-    Assert.assertEquals(0, mSet.getByField("mInt", 1).size());
+    Assert.assertEquals(3, mSet.getByField(mIntIndex, 1).size());
+    Assert.assertEquals(9, mSet.size());
+    Assert.assertTrue(mSet.removeByField(mIntIndex, 1));
+    Assert.assertEquals(6, mSet.size());
+    Assert.assertEquals(0, mSet.getByField(mIntIndex, 1).size());
+    Assert.assertEquals(3, mSet.getByField(mIntIndex, 0).size());
+    Assert.assertEquals(3, mSet.getByField(mIntIndex, 2).size());
+    for (double d = 0; d < 3; d ++) {
+      Assert.assertEquals(2, mSet.getByField(mDoubleIndex, d).size());
+    }
   }
 }
