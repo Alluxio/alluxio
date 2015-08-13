@@ -45,10 +45,10 @@ public class RoundRobinAllocator implements Allocator {
   }
 
   @Override
-  public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
-      BlockStoreLocation location, BlockMetadataManagerView view) {
+  public StorageDirView allocateBlockWithView(long blockSize, BlockStoreLocation location,
+      BlockMetadataManagerView view) {
     mManagerView = view;
-    return allocateBlock(userId, blockId, blockSize, location);
+    return allocateBlock(blockSize, location);
   }
 
   /**
@@ -56,15 +56,12 @@ public class RoundRobinAllocator implements Allocator {
    * the given block store location. The location can be a specific location, or
    * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
    *
-   * @param userId the ID of user to apply for the block allocation
-   * @param blockId the ID of the block
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @return a temp block meta if success, null otherwise
+   * @return a StorageDirView in which to create the temp block meta if success, null otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
-  private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
-      BlockStoreLocation location) {
+  private StorageDirView allocateBlock(long blockSize, BlockStoreLocation location) {
     if (location.equals(BlockStoreLocation.anyTier())) {
       int tierIndex = 0; // always starting from the first tier
       for (int i = 0; i < mManagerView.getTierViews().size(); i ++) {
@@ -72,7 +69,7 @@ public class RoundRobinAllocator implements Allocator {
         int dirViewIndex = getNextAvailDirInTier(tierView, blockSize);
         if (dirViewIndex >= 0) {
           mTierToLastDirMap.put(tierView, dirViewIndex); // update
-          return tierView.getDirView(dirViewIndex).createTempBlockMeta(userId, blockId, blockSize);
+          return tierView.getDirView(dirViewIndex);
         } else { // we didn't find one in this tier, go to next tier
           tierIndex ++;
         }
@@ -82,13 +79,13 @@ public class RoundRobinAllocator implements Allocator {
       int dirViewIndex = getNextAvailDirInTier(tierView, blockSize);
       if (dirViewIndex >= 0) {
         mTierToLastDirMap.put(tierView, dirViewIndex); // update
-        return tierView.getDirView(dirViewIndex).createTempBlockMeta(userId, blockId, blockSize);
+        return tierView.getDirView(dirViewIndex);
       }
     } else {
       StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
       StorageDirView dirView = tierView.getDirView(location.dir());
       if (dirView.getAvailableBytes() >= blockSize) {
-        return dirView.createTempBlockMeta(userId, blockId, blockSize);
+        return dirView;
       }
     }
 

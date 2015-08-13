@@ -148,6 +148,20 @@ public class BlockMetadataManagerView {
   }
 
   /**
+   * Get the next storage tier view.
+   *
+   * @param tierView the storage tier view
+   * @return the next storage tier view, null if this is the last tier view.
+   */
+  public StorageTierView getNextTier(StorageTierView tierView) {
+    int nextLevel = tierView.getTierViewLevel() + 1;
+    if (nextLevel < mTierViews.size()) {
+      return mTierViews.get(nextLevel);
+    }
+    return null;
+  }
+
+  /**
    * Get available bytes given certain location Redirecting to
    * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}
    *
