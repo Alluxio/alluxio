@@ -31,6 +31,7 @@ import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
@@ -42,6 +43,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final boolean LINKED_HASH_MAP_ACCESS_ORDERED = true;
   private static final boolean UNUSED_MAP_VALUE = true;
 
+  private final Allocator mAllocator;
   private BlockMetadataManagerView mManagerView;
 
   /**
@@ -53,8 +55,9 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       .synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
-  public LRUEvictor(BlockMetadataManagerView view) {
+  public LRUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     mManagerView = view;
+    mAllocator = allocator;
 
     // preload existing blocks loaded by StorageDir to Evictor
     for (StorageTierView tierView : mManagerView.getTierViews()) {
@@ -156,27 +159,36 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     // blocks only when it can not be moved to next tiers
     candidateDirView = dirCandidates.candidateDir();
     List<Long> candidateBlocks = dirCandidates.candidateBlocks();
-    List<StorageTierView> tierViewsBelow =
-        mManagerView.getTierViewsBelow(candidateDirView.getParentTierView().getTierViewAlias());
-    // find a dir in below tiers to transfer blocks there, from top tier to bottom tier
-    StorageDirView candidateNextDir = null;
-    for (StorageTierView tierView : tierViewsBelow) {
-      candidateNextDir =
-          cascadingEvict(dirCandidates.candidateSize() - candidateDirView.getAvailableBytes(),
-              BlockStoreLocation.anyDirInTier(tierView.getTierViewAlias()), plan);
-      if (candidateNextDir != null) {
-        break;
-      }
-    }
-    if (candidateNextDir == null) {
-      // nowhere to transfer blocks to, so evict them
+    StorageTierView nextTierView = mManagerView.getNextTier(candidateDirView.getParentTierView());
+    if (nextTierView == null) {
+      // This is the last tier, evict all the blocks.
       plan.toEvict().addAll(candidateBlocks);
     } else {
-      BlockStoreLocation dest = candidateNextDir.toBlockStoreLocation();
-      for (long block : candidateBlocks) {
-        plan.toMove().add(new Pair<Long, BlockStoreLocation>(block, dest));
+      for (Long blockId : candidateBlocks) {
+        try {
+          BlockMeta block = mManagerView.getBlockMeta(blockId);
+          StorageDirView nextDirView =
+              mAllocator.allocateBlockWithView(block.getBlockSize(),
+                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
+          if (nextDirView == null) {
+            nextDirView =
+                cascadingEvict(block.getBlockSize(),
+                    BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan);
+          }
+          if (nextDirView == null) {
+            // If we failed to find a dir in the next tier to move this block, evict it and
+            // continue. Normally this should not happen.
+            plan.toEvict().add(blockId);
+            continue;
+          }
+          plan.toMove().add(
+              new Pair<Long, BlockStoreLocation>(blockId, nextDirView.toBlockStoreLocation()));
+        } catch (NotFoundException nfe) {
+          continue;
+        }
       }
     }
+
     return candidateDirView;
   }
 

@@ -71,6 +71,7 @@ public class LRUEvictorTestBase extends EvictorTestBase {
     // the first tier, leave the second tier empty. Request space from the first tier, blocks should
     // be moved from the first to the second tier without eviction.
     int firstTierLevel = TieredBlockStoreTestUtils.TIER_LEVEL[0];
+    int secondTierLevel = TieredBlockStoreTestUtils.TIER_LEVEL[1];
     long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[0];
     int nDir = firstTierDirCapacity.length;
     for (int i = 0; i < nDir; i ++) {
@@ -86,6 +87,10 @@ public class LRUEvictorTestBase extends EvictorTestBase {
       Assert.assertEquals(1, plan.toMove().size());
       long blockId = plan.toMove().get(0).getFirst();
       Assert.assertEquals(BLOCK_ID + i, blockId);
+      BlockStoreLocation dstLocation = plan.toMove().get(0).getSecond();
+      // The block should be moved to the dir that has max free space.
+      Assert.assertEquals(new BlockStoreLocation(secondTierLevel + 1, secondTierLevel, 2),
+          dstLocation);
 
       access(blockId);
     }
