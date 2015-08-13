@@ -30,7 +30,6 @@ import com.google.common.collect.Maps;
  * RuntimeException will be thrown.
  */
 public class IndexedSet<T> {
-  private Set<T> mSet = new HashSet<T>();
   /** Map from fieldName to a map from fieldValue to set of T */
   private Map<String, Map<Object, Set<T>>> mSetIndexedByFieldValue;
   /** Map to cache the relation from fieldName to Field which is set accessible */
@@ -59,8 +58,6 @@ public class IndexedSet<T> {
    * @param object the object to add
    */
   public void add(T object) {
-    mSet.add(object);
-
     for (String field : mFields.keySet()) {
       Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(field);
       Object value = getField(object, field);
@@ -78,7 +75,12 @@ public class IndexedSet<T> {
    * @return a set of all objects
    */
   public Set<T> all() {
-    return mSet;
+    Map<Object, Set<T>> setForOneField = mSetIndexedByFieldValue.values().iterator().next();
+    Set<T> ret = new HashSet<T>();
+    for (Set<T> set : setForOneField.values()) {
+      ret.addAll(set);
+    }
+    return ret;
   }
 
   /**
@@ -124,8 +126,7 @@ public class IndexedSet<T> {
    * @return true if removed successfully, otherwise false
    */
   public boolean remove(T object) {
-    boolean success = mSet.remove(object);
-
+    boolean success = true;
     for (String field : mFields.keySet()) {
       Object fieldValue = getField(object, field);
       Set<T> set = mSetIndexedByFieldValue.get(field).remove(fieldValue);
@@ -136,7 +137,6 @@ public class IndexedSet<T> {
         }
       }
     }
-
     return success;
   }
 
@@ -152,8 +152,12 @@ public class IndexedSet<T> {
     Set<T> toRemove = mSetIndexedByFieldValue.get(fieldName).remove(value);
     boolean success = true;
     if (toRemove != null) {
-      for (T obj : toRemove) {
-        success = success && mSet.remove(obj);
+        for (Map<Object, Set<T>> index : mSetIndexedByFieldValue.values()) {
+          for (Set<T> set : index.values()) {
+            for (T obj : toRemove) {
+            success = success && set.remove(obj);
+          }
+        }
       }
     }
     return success;
@@ -163,7 +167,7 @@ public class IndexedSet<T> {
    * @return number of all objects
    */
   public int size() {
-    return mSet.size();
+    return all().size();
   }
 
   /**
