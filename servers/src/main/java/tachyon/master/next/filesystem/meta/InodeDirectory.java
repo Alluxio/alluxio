@@ -34,7 +34,9 @@ import tachyon.thrift.FileInfo;
 public class InodeDirectory extends Inode {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private IndexedSet<Inode> mChildren = new IndexedSet<Inode>("mId", "mName");
+  private IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex("mId");
+  private IndexedSet.FieldIndex mNameIndex = new IndexedSet.FieldIndex("mName");
+  private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
 
   /**
    * Create a new InodeFolder.
@@ -104,7 +106,7 @@ public class InodeDirectory extends Inode {
    * @return the inode with the given id, or null if there is no child with that id
    */
   public synchronized Inode getChild(int id) {
-    return mChildren.getFirst("mId", id);
+    return mChildren.getFirst(mIdIndex, id);
   }
 
   /**
@@ -114,7 +116,7 @@ public class InodeDirectory extends Inode {
    * @return the inode with the given name, or null if there is no child with that name
    */
   public synchronized Inode getChild(String name) {
-    return mChildren.getFirst("mName", name);
+    return mChildren.getFirst(mNameIndex, name);
   }
 
   /**
@@ -166,7 +168,7 @@ public class InodeDirectory extends Inode {
    * @return true if the inode was removed, false otherwise.
    */
   public synchronized boolean removeChild(String name) {
-    return mChildren.removeByField("mName", name);
+    return mChildren.removeByField(mNameIndex, name);
   }
 
   @Override
