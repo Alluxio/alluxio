@@ -21,10 +21,10 @@ import java.net.InetSocketAddress;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.ServerConstants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.netty.NettyDataServer;
 
 /**
  * Defines how to interact with a server running the data protocol.
@@ -36,7 +36,7 @@ public interface DataServer extends Closeable {
         final BlockDataManager blockDataManager, TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.getClass(Constants.WORKER_DATA_SERVER, ServerConstants.WORKER_DATA_SERVER_CLASS),
+            conf.getClass(Constants.WORKER_DATA_SERVER, NettyDataServer.class),
             new Class[] { InetSocketAddress.class, BlockDataManager.class, TachyonConf.class },
             new Object[] { dataAddress, blockDataManager, conf });
       } catch (Exception e) {

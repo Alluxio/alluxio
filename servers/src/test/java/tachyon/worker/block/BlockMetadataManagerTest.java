@@ -16,6 +16,7 @@
 package tachyon.worker.block;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -32,6 +33,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
@@ -54,7 +56,7 @@ public class BlockMetadataManagerTest {
 
   @Before
   public void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = WorkerContext.getConf();
     // Setup a two-tier storage
     mTachyonHome = mFolder.newFolder().getAbsolutePath();;
     tachyonConf.set(Constants.TACHYON_HOME, mTachyonHome);
@@ -70,8 +72,7 @@ public class BlockMetadataManagerTest {
         mTachyonHome + "/disk1," + mTachyonHome + "/disk2");
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
         3000 + "," + 5000);
-
-    mMetaManager = BlockMetadataManager.newBlockMetadataManager(tachyonConf);
+    mMetaManager = BlockMetadataManager.newBlockMetadataManager();
   }
 
   @Test
@@ -302,6 +303,13 @@ public class BlockMetadataManagerTest {
 
   @Test
   public void getBlockStoreMetaTest() throws Exception {
-    Assert.assertNotNull(mMetaManager.getBlockStoreMeta());
+    BlockStoreMeta meta = mMetaManager.getBlockStoreMeta();
+    Assert.assertNotNull(meta);
+
+    // Assert the capacities are at alias level [MEM: 1000][SSD: 0][HDD: 8000]
+    List<Long> exceptedCapacityBytesOnTiers = new ArrayList<Long>(Arrays.asList(1000L, 0L, 8000L));
+    List<Long> exceptedUsedBytesOnTiers = new ArrayList<Long>(Arrays.asList(0L, 0L, 0L));
+    Assert.assertEquals(exceptedCapacityBytesOnTiers, meta.getCapacityBytesOnTiers());
+    Assert.assertEquals(exceptedUsedBytesOnTiers, meta.getUsedBytesOnTiers());
   }
 }

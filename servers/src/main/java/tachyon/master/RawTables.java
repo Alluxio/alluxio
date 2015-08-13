@@ -172,7 +172,7 @@ public class RawTables extends ImageWriter {
     if (metadata == null) {
       data.setSecond(ByteBuffer.allocate(0));
     } else {
-      long maxVal = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE, 0L);
+      long maxVal = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
       if (metadata.limit() - metadata.position() >= maxVal) {
         throw new TachyonException("Too big table metadata: " + metadata.toString());
       }
