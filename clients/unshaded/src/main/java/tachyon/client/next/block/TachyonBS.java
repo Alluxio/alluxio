@@ -17,7 +17,10 @@ package tachyon.client.next.block;
 
 import java.io.Closeable;
 
+import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.client.next.ClientOptions;
+import tachyon.conf.TachyonConf;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in
@@ -26,9 +29,21 @@ import tachyon.client.next.ClientOptions;
  */
 public class TachyonBS implements Closeable {
 
-  public static TachyonBS get() {
-    // TODO: Implement me
-    return null;
+  public static TachyonBS sCachedClient = null;
+
+  public static synchronized TachyonBS get(TachyonConf conf) {
+    if (sCachedClient != null) {
+      return sCachedClient;
+    }
+    sCachedClient = new TachyonBS(conf);
+    return sCachedClient;
+  }
+
+  private BlockMasterClientPool mMasterClientPool;
+
+  public TachyonBS(TachyonConf conf) {
+    // TODO: Fix the default
+    TachyonURI masterURI = new TachyonURI(conf.get(Constants.MASTER_ADDRESS, ""));
   }
 
   public void close() {
