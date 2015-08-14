@@ -104,15 +104,14 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   }
 
   @Override
-  public void completeFile(long fileId) throws FileDoesNotExistException, TException {
+  public void completeFile(long fileId)
+      throws FileDoesNotExistException, BlockInfoException, TException {
     mFileSystemMaster.completeFile(fileId);
   }
 
   @Override
-  public boolean deleteFile(long fileId, String path, boolean recursive)
-      throws TachyonException, TException {
-    // TODO
-    return false;
+  public boolean deleteFile(long fileId, boolean recursive) throws TachyonException, TException {
+    return mFileSystemMaster.deleteFile(fileId, recursive);
   }
 
   @Override

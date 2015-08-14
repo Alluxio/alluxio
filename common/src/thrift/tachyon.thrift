@@ -195,9 +195,9 @@ service FileSystemMasterService {
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
   void completeFile(1: i64 fileId)
-    throws (1: FileDoesNotExistException fdnee)
+    throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
 
-  bool deleteFile(1: i64 fileId, 2: string path, 3: bool recursive)
+  bool deleteFile(1: i64 fileId, 2: bool recursive)
     throws (1: TachyonException te)
 
   bool renameFile(1: i64 fileId, 2: string dstPath)

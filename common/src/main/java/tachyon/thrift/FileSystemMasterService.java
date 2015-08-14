@@ -61,9 +61,9 @@ public class FileSystemMasterService {
 
     public int createFile(long fileId, String ufsPath, long blockSizeBytes, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
 
-    public void completeFile(long fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
+    public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
 
-    public boolean deleteFile(long fileId, String path, boolean recursive) throws TachyonException, org.apache.thrift.TException;
+    public boolean deleteFile(long fileId, boolean recursive) throws TachyonException, org.apache.thrift.TException;
 
     public boolean renameFile(long fileId, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
@@ -117,7 +117,7 @@ public class FileSystemMasterService {
 
     public void completeFile(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void deleteFile(long fileId, String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void deleteFile(long fileId, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void renameFile(long fileId, String dstPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -450,7 +450,7 @@ public class FileSystemMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "createFile failed: unknown result");
     }
 
-    public void completeFile(long fileId) throws FileDoesNotExistException, org.apache.thrift.TException
+    public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
     {
       send_completeFile(fileId);
       recv_completeFile();
@@ -463,27 +463,29 @@ public class FileSystemMasterService {
       sendBase("completeFile", args);
     }
 
-    public void recv_completeFile() throws FileDoesNotExistException, org.apache.thrift.TException
+    public void recv_completeFile() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
     {
       completeFile_result result = new completeFile_result();
       receiveBase(result, "completeFile");
       if (result.fdnee != null) {
         throw result.fdnee;
       }
+      if (result.bie != null) {
+        throw result.bie;
+      }
       return;
     }
 
-    public boolean deleteFile(long fileId, String path, boolean recursive) throws TachyonException, org.apache.thrift.TException
+    public boolean deleteFile(long fileId, boolean recursive) throws TachyonException, org.apache.thrift.TException
     {
-      send_deleteFile(fileId, path, recursive);
+      send_deleteFile(fileId, recursive);
       return recv_deleteFile();
     }
 
-    public void send_deleteFile(long fileId, String path, boolean recursive) throws org.apache.thrift.TException
+    public void send_deleteFile(long fileId, boolean recursive) throws org.apache.thrift.TException
     {
       deleteFile_args args = new deleteFile_args();
       args.setFileId(fileId);
-      args.setPath(path);
       args.setRecursive(recursive);
       sendBase("deleteFile", args);
     }
@@ -1179,7 +1181,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
+      public void getResult() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1189,21 +1191,19 @@ public class FileSystemMasterService {
       }
     }
 
-    public void deleteFile(long fileId, String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void deleteFile(long fileId, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      deleteFile_call method_call = new deleteFile_call(fileId, path, recursive, resultHandler, this, ___protocolFactory, ___transport);
+      deleteFile_call method_call = new deleteFile_call(fileId, recursive, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class deleteFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long fileId;
-      private String path;
       private boolean recursive;
-      public deleteFile_call(long fileId, String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public deleteFile_call(long fileId, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fileId = fileId;
-        this.path = path;
         this.recursive = recursive;
       }
 
@@ -1211,7 +1211,6 @@ public class FileSystemMasterService {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("deleteFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
         deleteFile_args args = new deleteFile_args();
         args.setFileId(fileId);
-        args.setPath(path);
         args.setRecursive(recursive);
         args.write(prot);
         prot.writeMessageEnd();
@@ -1909,6 +1908,8 @@ public class FileSystemMasterService {
           iface.completeFile(args.fileId);
         } catch (FileDoesNotExistException fdnee) {
           result.fdnee = fdnee;
+        } catch (BlockInfoException bie) {
+          result.bie = bie;
         }
         return result;
       }
@@ -1930,7 +1931,7 @@ public class FileSystemMasterService {
       public deleteFile_result getResult(I iface, deleteFile_args args) throws org.apache.thrift.TException {
         deleteFile_result result = new deleteFile_result();
         try {
-          result.success = iface.deleteFile(args.fileId, args.path, args.recursive);
+          result.success = iface.deleteFile(args.fileId, args.recursive);
           result.setSuccessIsSet(true);
         } catch (TachyonException te) {
           result.te = te;
@@ -2900,6 +2901,11 @@ public class FileSystemMasterService {
                         result.setFdneeIsSet(true);
                         msg = result;
             }
+            else             if (e instanceof BlockInfoException) {
+                        result.bie = (BlockInfoException) e;
+                        result.setBieIsSet(true);
+                        msg = result;
+            }
              else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
@@ -2979,7 +2985,7 @@ public class FileSystemMasterService {
       }
 
       public void start(I iface, deleteFile_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
-        iface.deleteFile(args.fileId, args.path, args.recursive,resultHandler);
+        iface.deleteFile(args.fileId, args.recursive,resultHandler);
       }
     }
 
@@ -13338,6 +13344,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("completeFile_result");
 
     private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField BIE_FIELD_DESC = new org.apache.thrift.protocol.TField("bie", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -13346,10 +13353,12 @@ public class FileSystemMasterService {
     }
 
     public FileDoesNotExistException fdnee; // required
+    public BlockInfoException bie; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FDNEE((short)1, "fdnee");
+      FDNEE((short)1, "fdnee"),
+      BIE((short)2, "bie");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -13366,6 +13375,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 1: // FDNEE
             return FDNEE;
+          case 2: // BIE
+            return BIE;
           default:
             return null;
         }
@@ -13411,6 +13422,8 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.BIE, new org.apache.thrift.meta_data.FieldMetaData("bie", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(completeFile_result.class, metaDataMap);
     }
@@ -13419,10 +13432,12 @@ public class FileSystemMasterService {
     }
 
     public completeFile_result(
-      FileDoesNotExistException fdnee)
+      FileDoesNotExistException fdnee,
+      BlockInfoException bie)
     {
       this();
       this.fdnee = fdnee;
+      this.bie = bie;
     }
 
     /**
@@ -13431,6 +13446,9 @@ public class FileSystemMasterService {
     public completeFile_result(completeFile_result other) {
       if (other.isSetFdnee()) {
         this.fdnee = new FileDoesNotExistException(other.fdnee);
+      }
+      if (other.isSetBie()) {
+        this.bie = new BlockInfoException(other.bie);
       }
     }
 
@@ -13441,6 +13459,7 @@ public class FileSystemMasterService {
     @Override
     public void clear() {
       this.fdnee = null;
+      this.bie = null;
     }
 
     public FileDoesNotExistException getFdnee() {
@@ -13467,6 +13486,30 @@ public class FileSystemMasterService {
       }
     }
 
+    public BlockInfoException getBie() {
+      return this.bie;
+    }
+
+    public completeFile_result setBie(BlockInfoException bie) {
+      this.bie = bie;
+      return this;
+    }
+
+    public void unsetBie() {
+      this.bie = null;
+    }
+
+    /** Returns true if field bie is set (has been assigned a value) and false otherwise */
+    public boolean isSetBie() {
+      return this.bie != null;
+    }
+
+    public void setBieIsSet(boolean value) {
+      if (!value) {
+        this.bie = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case FDNEE:
@@ -13477,6 +13520,14 @@ public class FileSystemMasterService {
         }
         break;
 
+      case BIE:
+        if (value == null) {
+          unsetBie();
+        } else {
+          setBie((BlockInfoException)value);
+        }
+        break;
+
       }
     }
 
@@ -13484,6 +13535,9 @@ public class FileSystemMasterService {
       switch (field) {
       case FDNEE:
         return getFdnee();
+
+      case BIE:
+        return getBie();
 
       }
       throw new IllegalStateException();
@@ -13498,6 +13552,8 @@ public class FileSystemMasterService {
       switch (field) {
       case FDNEE:
         return isSetFdnee();
+      case BIE:
+        return isSetBie();
       }
       throw new IllegalStateException();
     }
@@ -13524,6 +13580,15 @@ public class FileSystemMasterService {
           return false;
       }
 
+      boolean this_present_bie = true && this.isSetBie();
+      boolean that_present_bie = true && that.isSetBie();
+      if (this_present_bie || that_present_bie) {
+        if (!(this_present_bie && that_present_bie))
+          return false;
+        if (!this.bie.equals(that.bie))
+          return false;
+      }
+
       return true;
     }
 
@@ -13535,6 +13600,11 @@ public class FileSystemMasterService {
       list.add(present_fdnee);
       if (present_fdnee)
         list.add(fdnee);
+
+      boolean present_bie = true && (isSetBie());
+      list.add(present_bie);
+      if (present_bie)
+        list.add(bie);
 
       return list.hashCode();
     }
@@ -13553,6 +13623,16 @@ public class FileSystemMasterService {
       }
       if (isSetFdnee()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetBie()).compareTo(other.isSetBie());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetBie()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.bie, other.bie);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -13582,6 +13662,14 @@ public class FileSystemMasterService {
         sb.append("null");
       } else {
         sb.append(this.fdnee);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("bie:");
+      if (this.bie == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.bie);
       }
       first = false;
       sb.append(")");
@@ -13636,6 +13724,15 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // BIE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.bie = new BlockInfoException();
+                struct.bie.read(iprot);
+                struct.setBieIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -13654,6 +13751,11 @@ public class FileSystemMasterService {
         if (struct.fdnee != null) {
           oprot.writeFieldBegin(FDNEE_FIELD_DESC);
           struct.fdnee.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.bie != null) {
+          oprot.writeFieldBegin(BIE_FIELD_DESC);
+          struct.bie.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -13677,20 +13779,31 @@ public class FileSystemMasterService {
         if (struct.isSetFdnee()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetBie()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetFdnee()) {
           struct.fdnee.write(oprot);
+        }
+        if (struct.isSetBie()) {
+          struct.bie.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, completeFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.fdnee = new FileDoesNotExistException();
           struct.fdnee.read(iprot);
           struct.setFdneeIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.bie = new BlockInfoException();
+          struct.bie.read(iprot);
+          struct.setBieIsSet(true);
         }
       }
     }
@@ -13701,8 +13814,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("deleteFile_args");
 
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)2);
-    private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)3);
+    private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -13711,14 +13823,12 @@ public class FileSystemMasterService {
     }
 
     public long fileId; // required
-    public String path; // required
     public boolean recursive; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       FILE_ID((short)1, "fileId"),
-      PATH((short)2, "path"),
-      RECURSIVE((short)3, "recursive");
+      RECURSIVE((short)2, "recursive");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -13735,9 +13845,7 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 1: // FILE_ID
             return FILE_ID;
-          case 2: // PATH
-            return PATH;
-          case 3: // RECURSIVE
+          case 2: // RECURSIVE
             return RECURSIVE;
           default:
             return null;
@@ -13787,8 +13895,6 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -13800,13 +13906,11 @@ public class FileSystemMasterService {
 
     public deleteFile_args(
       long fileId,
-      String path,
       boolean recursive)
     {
       this();
       this.fileId = fileId;
       setFileIdIsSet(true);
-      this.path = path;
       this.recursive = recursive;
       setRecursiveIsSet(true);
     }
@@ -13817,9 +13921,6 @@ public class FileSystemMasterService {
     public deleteFile_args(deleteFile_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.fileId = other.fileId;
-      if (other.isSetPath()) {
-        this.path = other.path;
-      }
       this.recursive = other.recursive;
     }
 
@@ -13831,7 +13932,6 @@ public class FileSystemMasterService {
     public void clear() {
       setFileIdIsSet(false);
       this.fileId = 0;
-      this.path = null;
       setRecursiveIsSet(false);
       this.recursive = false;
     }
@@ -13857,30 +13957,6 @@ public class FileSystemMasterService {
 
     public void setFileIdIsSet(boolean value) {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
-    }
-
-    public String getPath() {
-      return this.path;
-    }
-
-    public deleteFile_args setPath(String path) {
-      this.path = path;
-      return this;
-    }
-
-    public void unsetPath() {
-      this.path = null;
-    }
-
-    /** Returns true if field path is set (has been assigned a value) and false otherwise */
-    public boolean isSetPath() {
-      return this.path != null;
-    }
-
-    public void setPathIsSet(boolean value) {
-      if (!value) {
-        this.path = null;
-      }
     }
 
     public boolean isRecursive() {
@@ -13916,14 +13992,6 @@ public class FileSystemMasterService {
         }
         break;
 
-      case PATH:
-        if (value == null) {
-          unsetPath();
-        } else {
-          setPath((String)value);
-        }
-        break;
-
       case RECURSIVE:
         if (value == null) {
           unsetRecursive();
@@ -13939,9 +14007,6 @@ public class FileSystemMasterService {
       switch (field) {
       case FILE_ID:
         return Long.valueOf(getFileId());
-
-      case PATH:
-        return getPath();
 
       case RECURSIVE:
         return Boolean.valueOf(isRecursive());
@@ -13959,8 +14024,6 @@ public class FileSystemMasterService {
       switch (field) {
       case FILE_ID:
         return isSetFileId();
-      case PATH:
-        return isSetPath();
       case RECURSIVE:
         return isSetRecursive();
       }
@@ -13989,15 +14052,6 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_path = true && this.isSetPath();
-      boolean that_present_path = true && that.isSetPath();
-      if (this_present_path || that_present_path) {
-        if (!(this_present_path && that_present_path))
-          return false;
-        if (!this.path.equals(that.path))
-          return false;
-      }
-
       boolean this_present_recursive = true;
       boolean that_present_recursive = true;
       if (this_present_recursive || that_present_recursive) {
@@ -14018,11 +14072,6 @@ public class FileSystemMasterService {
       list.add(present_fileId);
       if (present_fileId)
         list.add(fileId);
-
-      boolean present_path = true && (isSetPath());
-      list.add(present_path);
-      if (present_path)
-        list.add(path);
 
       boolean present_recursive = true;
       list.add(present_recursive);
@@ -14046,16 +14095,6 @@ public class FileSystemMasterService {
       }
       if (isSetFileId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -14092,14 +14131,6 @@ public class FileSystemMasterService {
 
       sb.append("fileId:");
       sb.append(this.fileId);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("path:");
-      if (this.path == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.path);
-      }
       first = false;
       if (!first) sb.append(", ");
       sb.append("recursive:");
@@ -14158,15 +14189,7 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // PATH
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.path = iprot.readString();
-                struct.setPathIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 3: // RECURSIVE
+            case 2: // RECURSIVE
               if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
                 struct.recursive = iprot.readBool();
                 struct.setRecursiveIsSet(true);
@@ -14192,11 +14215,6 @@ public class FileSystemMasterService {
         oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
         oprot.writeI64(struct.fileId);
         oprot.writeFieldEnd();
-        if (struct.path != null) {
-          oprot.writeFieldBegin(PATH_FIELD_DESC);
-          oprot.writeString(struct.path);
-          oprot.writeFieldEnd();
-        }
         oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
         oprot.writeBool(struct.recursive);
         oprot.writeFieldEnd();
@@ -14221,18 +14239,12 @@ public class FileSystemMasterService {
         if (struct.isSetFileId()) {
           optionals.set(0);
         }
-        if (struct.isSetPath()) {
+        if (struct.isSetRecursive()) {
           optionals.set(1);
         }
-        if (struct.isSetRecursive()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetFileId()) {
           oprot.writeI64(struct.fileId);
-        }
-        if (struct.isSetPath()) {
-          oprot.writeString(struct.path);
         }
         if (struct.isSetRecursive()) {
           oprot.writeBool(struct.recursive);
@@ -14242,16 +14254,12 @@ public class FileSystemMasterService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, deleteFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.fileId = iprot.readI64();
           struct.setFileIdIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.path = iprot.readString();
-          struct.setPathIsSet(true);
-        }
-        if (incoming.get(2)) {
           struct.recursive = iprot.readBool();
           struct.setRecursiveIsSet(true);
         }
