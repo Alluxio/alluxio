@@ -204,10 +204,10 @@ def main(args):
         for r in requests:
             instance_id = r.instance_id
             info('waiting for ip to be allocated to the machine')
-            ip = None
+            ip = conn.get_only_instances([instance_id])[0].ip_address
             while ip is None:
-                ip = conn.get_only_instances([instance_id])[0].ip_address
                 time.sleep(1)
+                ip = conn.get_only_instances([instance_id])[0].ip_address
             instance_id_to_tag_ip[instance_id] = (rid_tag[r.id], ip)
         info('mocking vagrant info under .vagrant...')
         mock_vagrant_info(instance_id_to_tag_ip)
