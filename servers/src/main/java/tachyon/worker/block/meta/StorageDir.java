@@ -107,18 +107,10 @@ public class StorageDir {
    * @throws OutOfSpaceException when meta data can not be added due to limited left space
    */
   private void initializeMeta() throws AlreadyExistsException, IOException, OutOfSpaceException {
+    // Create the storage directory path
+    FileUtils.createStorageDirPath(mDirPath);
+    
     File dir = new File(mDirPath);
-
-    // Create the storage directory path if it does not exist
-    if (!dir.exists()) {
-      // TODO: Make this a utility method
-      if (dir.mkdirs()) {
-        FileUtils.changeLocalFilePermission(mDirPath, "777");
-        FileUtils.setLocalDirStickyBit(mDirPath);
-      } else {
-        throw new IOException("Failed to create storage dir " + mDirPath);
-      }
-    }
     File[] paths = dir.listFiles();
     if (paths == null) {
       return;
