@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.HashSet;
 import java.lang.reflect.Field;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -39,8 +38,8 @@ import com.google.common.collect.Sets;
  * This class is thread safe.
  */
 public class IndexedSet<T> {
-  /** Map from field name to an index of field related object in the internal lists */
-  private final Map<String, Integer> mIndexMap;
+  /** Map from field index to an index of field related object in the internal lists */
+  private final Map<FieldIndex<T>, Integer> mIndexMap;
   /** List of maps from fieldValue to set of T which is indexed by field name */
   private final List<Map<Object, Set<T>>> mSetIndexedByFieldValue;
   /** List of {@link Field} which is indexed by field name */
@@ -53,16 +52,8 @@ public class IndexedSet<T> {
    * reuse the instance of this class as parameters later other than directly use the error prone
    * raw Strings.
    */
-  public static class FieldIndex {
-    private String mFieldName;
-
-    public FieldIndex(String fieldName) {
-      mFieldName = fieldName;
-    }
-
-    public String getFieldName() {
-      return mFieldName;
-    }
+  public static interface FieldIndex<T> {
+    Object getFieldValue(T o);
   }
 
   /**
@@ -75,11 +66,11 @@ public class IndexedSet<T> {
    * @param otherFields other fields to index the set
    */
   // TODO: if reflections on T can be gotten in the constructor, validate the passed fields
-  public IndexedSet(FieldIndex field, FieldIndex... otherFields) {
-    mIndexMap = new HashMap<String, Integer>(otherFields.length + 1);
-    mIndexMap.put(field.getFieldName(), 0);
+  public IndexedSet(FieldIndex<T> field, FieldIndex<T>... otherFields) {
+    mIndexMap = new HashMap<FieldIndex<T>, Integer>(otherFields.length + 1);
+    mIndexMap.put(field, 0);
     for (int i = 1; i <= otherFields.length; i ++) {
-      mIndexMap.put(otherFields[i - 1].getFieldName(), i);
+      mIndexMap.put(otherFields[i - 1], i);
     }
 
     mFields = new ArrayList<Field>(mIndexMap.size());
@@ -103,9 +94,9 @@ public class IndexedSet<T> {
   public boolean add(T object) {
     synchronized (mFields) {
       boolean success = true;
-      for (String field : mIndexMap.keySet()) {
+      for (FieldIndex<T> field : mIndexMap.keySet()) {
         Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(mIndexMap.get(field));
-        Object value = getField(object, field);
+        Object value = field.getFieldValue(object);
         if (fieldValueToSet.containsKey(value)) {
           if (!fieldValueToSet.get(value).add(object)) {
             success = false;
@@ -145,7 +136,7 @@ public class IndexedSet<T> {
    * @param value the field value
    * @return true if there is one such object, otherwise false
    */
-  public boolean contains(FieldIndex index, Object value) {
+  public boolean contains(FieldIndex<T> index, Object value) {
     synchronized (mFields) {
       return getByFieldInternal(index, value) != null;
     }
@@ -159,7 +150,7 @@ public class IndexedSet<T> {
    * @param value the field value to be satisfied
    * @return the set of objects or an empty set if no such object exists
    */
-  public Set<T> getByField(FieldIndex index, Object value) {
+  public Set<T> getByField(FieldIndex<T> index, Object value) {
     synchronized (mFields) {
       Set<T> set = getByFieldInternal(index, value);
       return set == null ? new HashSet<T>() : Sets.newHashSet(set);
@@ -174,7 +165,7 @@ public class IndexedSet<T> {
    * @param value the field value
    * @return the object or null if there is no such object
    */
-  public T getFirstByField(FieldIndex index, Object value) {
+  public T getFirstByField(FieldIndex<T> index, Object value) {
     synchronized (mFields) {
       Set<T> all = getByFieldInternal(index, value);
       return all == null ? null : all.iterator().next();
@@ -190,8 +181,9 @@ public class IndexedSet<T> {
   public boolean remove(T object) {
     boolean removed = true;
     boolean triedToRemove = false;
-    for (String field : mIndexMap.keySet()) {
-      Object fieldValue = getField(object, field);
+    for (FieldIndex<T> field : mIndexMap.keySet()) {
+      Object fieldValue = field.getFieldValue(object);
+
       int id = mIndexMap.get(field);
       synchronized (mFields) {
         Set<T> set = mSetIndexedByFieldValue.get(id).get(fieldValue);
@@ -223,7 +215,7 @@ public class IndexedSet<T> {
    * @return true if the objects are removed, otherwise if some objects fail to be removed or no
    *         objects are removed, return false
    */
-  public boolean removeByField(FieldIndex index, Object value) {
+  public boolean removeByField(FieldIndex<T> index, Object value) {
     synchronized (mFields) {
       Set<T> toRemove = getByFieldInternal(index, value);
       if (toRemove == null) {
@@ -245,35 +237,7 @@ public class IndexedSet<T> {
     return mSize;
   }
 
-  /**
-   * Get the value of the field from the object.
-   *
-   * @param object the object
-   * @param field the field name
-   * @return the field value
-   * @throws RuntimeException when object doesn't have field
-   */
-  private Object getField(T object, String field) {
-    try {
-      synchronized (mFields) {
-        Field f = mFields.get(mIndexMap.get(field));
-        if (f == null) {
-          f = object.getClass().getDeclaredField(field);
-          f.setAccessible(true);
-          mFields.set(mIndexMap.get(field), f);
-        }
-        return f.get(object);
-      }
-    } catch (Exception e) {
-      throw Throwables.propagate(e); // No exception should happen
-    }
-  }
-
-  private Set<T> getByFieldInternal(FieldIndex index, Object value) {
-    return mSetIndexedByFieldValue.get(getIndex(index)).get(value);
-  }
-
-  private int getIndex(FieldIndex index) {
-    return mIndexMap.get(index.getFieldName());
+  private Set<T> getByFieldInternal(FieldIndex<T> index, Object value) {
+    return mSetIndexedByFieldValue.get(mIndexMap.get(index)).get(value);
   }
 }
