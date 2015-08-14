@@ -228,7 +228,7 @@ public class WorkerClient implements Closeable {
         String localHostName = NetworkAddressUtils.getLocalHostName(mTachyonConf);
         LOG.info("Trying to get local worker host : " + localHostName);
         workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
-        mIsLocal = true;
+        mIsLocal = NetworkAddressUtils.getFqdnHost(workerNetAddress).equals(localHostName);
       } catch (NoWorkerException e) {
         LOG.info(e.getMessage());
         workerNetAddress = null;
