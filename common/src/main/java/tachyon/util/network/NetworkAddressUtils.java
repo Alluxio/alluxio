@@ -23,7 +23,9 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 
 import org.apache.thrift.transport.TServerSocket;
 import org.slf4j.Logger;
@@ -46,6 +48,129 @@ public final class NetworkAddressUtils {
   private static String sLocalIP;
 
   private NetworkAddressUtils() {}
+
+  /**
+   * Different types of services that client uses to connect. These types also indicate the service
+   * bind address
+   */
+  public enum ServiceType {
+
+    /**
+     * Master RPC service (Thrift)
+     */
+    MASTER_RPC("Tachyon Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
+        Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT),
+
+    /**
+     * Master web service (Jetty)
+     */
+    MASTER_WEB("Tachyon Master Web service", Constants.MASTER_WEB_HOSTNAME,
+        Constants.MASTER_WEB_BIND_HOST, Constants.MASTER_WEB_PORT,
+        Constants.DEFAULT_MASTER_WEB_PORT),
+
+    /**
+     * Worker RPC service (Thrift)
+     */
+    WORKER_RPC("Tachyon Worker RPC service", Constants.WORKER_HOSTNAME, Constants.WORKER_BIND_HOST,
+        Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT),
+
+    /**
+     * Worker data service (Netty)
+     */
+    WORKER_DATA("Tachyon Worker data service", Constants.WORKER_DATA_HOSTNAME,
+        Constants.WORKER_DATA_BIND_HOST, Constants.WORKER_DATA_PORT,
+        Constants.DEFAULT_WORKER_DATA_PORT),
+
+    /**
+     * Worker web service (Jetty)
+     */
+    WORKER_WEB("Tachyon Worker Web service", Constants.WORKER_WEB_HOSTNAME,
+        Constants.WORKER_WEB_BIND_HOST, Constants.WORKER_WEB_PORT,
+        Constants.DEFAULT_WORKER_WEB_PORT);
+
+    // service name
+    public final String mServiceName;
+
+    // the key of connect hostname
+    public final String mHostNameKey;
+
+    // the key of bind hostname
+    public final String mBindHostKey;
+
+    // the key of port
+    public final String mPortKey;
+
+    // default port number
+    public final int mDefaultPort;
+
+    ServiceType(String serviceName, String hostNameKey, String bindHostKey, String portKey,
+        int defaultPort) {
+      this.mServiceName = serviceName;
+      this.mHostNameKey = hostNameKey;
+      this.mBindHostKey = bindHostKey;
+      this.mPortKey = portKey;
+      this.mDefaultPort = defaultPort;
+    }
+  }
+
+  /**
+   * Gets service connection hostname. If the connection hostname is not explicitly specified,
+   * Tachyon will try bind hostname. If the bind hostname is wildcard, Tachyon will automatically
+   * select an appropriate local hostname.
+   *
+   * @param service Service type used to connect
+   * @param conf Tachyon configuration used to look up the host resolution timeout
+   * @return the connection hostname that a client can use to reach the service.
+   */
+  public static String getConnectHost(ServiceType service, TachyonConf conf) {
+    String connectHost = conf.get(service.mHostNameKey, "");
+    String bindHost = conf.get(service.mBindHostKey, "");
+
+    if (!connectHost.equals("0.0.0.0") && !connectHost.isEmpty()) {
+      return connectHost;
+    } else if (!bindHost.equals("0.0.0.0") && !bindHost.isEmpty()) {
+      return bindHost;
+    } else {
+      return getLocalHostName(conf);
+    }
+  }
+
+  /**
+   * Helper method to get the {@link InetSocketAddress} connection address on a given service.
+   *
+   * @param service the service name used to connect
+   * @param conf the configuration of Tachyon
+   * @return a connection endpoint that a client uses to communicate with service.
+   */
+  public static InetSocketAddress getConnectAddress(ServiceType service, TachyonConf conf) {
+    return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
+  }
+
+  /**
+   * Helper method to get the {@link InetSocketAddress} bind address on a given service.
+   * <p>
+   * Host binding strategy on multihomed networks:
+   * <ol>
+   * <li>Environment variables via tachyon-env.sh or from OS settings
+   * <li>Default properties via tachyon-default.properties file
+   * <li>A reachable local host name for the host this JVM is running on
+   * </ol>
+   *
+   * @param service the service name used to connect
+   * @param conf the configuration of Tachyon
+   * @return the {@link InetSocketAddress} the service will bind to
+   */
+  public static InetSocketAddress getBindAddress(ServiceType service, TachyonConf conf) {
+    String host = conf.get(service.mBindHostKey, "");
+    int port = getPort(service, conf);
+    TachyonConf.assertValidPort(port, conf);
+
+    if (!host.isEmpty()) {
+      return new InetSocketAddress(host, port);
+    } else {
+      return new InetSocketAddress(getLocalHostName(conf), port);
+    }
+  }
 
   /**
    * Gets a local host name for the host this JVM is running on
@@ -84,10 +209,14 @@ public final class NetworkAddressUtils {
   }
 
   /**
+   * Check if the underlying OS is Windows.
+   */
+  public static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
+
+  /**
    * Gets a local IP address for the host this JVM is running on
    *
-   * @param timeout Timeout in milliseconds to use for checking that a possible local IP is
-   *        reachable
+   * @param conf Tachyon configuration
    * @return the local ip address, which is not a loopback address and is reachable
    */
   public static String getLocalIpAddress(TachyonConf conf) {
@@ -119,8 +248,20 @@ public final class NetworkAddressUtils {
       // Make sure that the address is actually reachable since in some network configurations
       // it is possible for the InetAddress.getLocalHost() call to return a non-reachable
       // address e.g. a broadcast address
-      if (address.isLoopbackAddress() || !address.isReachable(timeout)) {
+      if (address.isAnyLocalAddress() || address.isLoopbackAddress()
+          || !address.isReachable(timeout) || !(address instanceof Inet4Address)) {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+
+        // Make getNetworkInterfaces have the same order of network interfaces as listed on
+        // unix-like systems. This optimization can help avoid to get some special addresses, such
+        // as loopback address"127.0.0.1", virtual bridge address "192.168.122.1" as far as
+        // possible.
+        if (!WINDOWS) {
+          List<NetworkInterface> netIFs = Collections.list(networkInterfaces);
+          Collections.reverse(netIFs);
+          networkInterfaces = Collections.enumeration(netIFs);
+        }
+
         while (networkInterfaces.hasMoreElements()) {
           NetworkInterface ni = networkInterfaces.nextElement();
           Enumeration<InetAddress> addresses = ni.getInetAddresses();
@@ -203,6 +344,18 @@ public final class NetworkAddressUtils {
 
   public static String getFqdnHost(NetAddress addr) throws UnknownHostException {
     return resolveHostName(addr.getMHost());
+  }
+
+  /**
+   * Gets the port number on a given service type. If user defined port number is not explicitly
+   * specified, Tachyon will select the default port number on the service.
+   *
+   * @param service Service type used to connect
+   * @param conf Tachyon configuration used to look up the host resolution timeout
+   * @return the service port number.
+   */
+  public static int getPort(ServiceType service, TachyonConf conf) {
+    return conf.getInt(service.mPortKey, service.mDefaultPort);
   }
 
   /**

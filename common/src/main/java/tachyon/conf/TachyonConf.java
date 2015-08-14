@@ -109,6 +109,7 @@ public class TachyonConf {
    *
    * Here is the order of the sources to load the properties:
    *   -) System properties if desired
+   *   -) Environment variables via tachyon-env.sh or from OS settings
    *   -) Site specific properties via tachyon-site.properties file
    *   -) Default properties via tachyon-default.properties file
    */
@@ -161,8 +162,8 @@ public class TachyonConf {
     String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
     String masterPort = mProperties.getProperty(Constants.MASTER_PORT);
     boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.USE_ZOOKEEPER));
-    String masterAddress = (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":"
-        + masterPort;
+    String masterAddress =
+        (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
     mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
   }
 
