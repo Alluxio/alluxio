@@ -59,9 +59,9 @@ public class FileSystemMasterService {
 
     public String getUfsAddress() throws org.apache.thrift.TException;
 
-    public int createFile(long fileId, long blockSizeBytes, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
+    public long createFile(long fileId, long blockSizeBytes, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
 
-    public int loadFileFromUfs(long fileId, String ufsPath, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
+    public long loadFileFromUfs(long fileId, String ufsPath, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
 
     public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
 
@@ -416,7 +416,7 @@ public class FileSystemMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUfsAddress failed: unknown result");
     }
 
-    public int createFile(long fileId, long blockSizeBytes, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public long createFile(long fileId, long blockSizeBytes, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
     {
       send_createFile(fileId, blockSizeBytes, recursive);
       return recv_createFile();
@@ -431,7 +431,7 @@ public class FileSystemMasterService {
       sendBase("createFile", args);
     }
 
-    public int recv_createFile() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public long recv_createFile() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
     {
       createFile_result result = new createFile_result();
       receiveBase(result, "createFile");
@@ -453,7 +453,7 @@ public class FileSystemMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "createFile failed: unknown result");
     }
 
-    public int loadFileFromUfs(long fileId, String ufsPath, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public long loadFileFromUfs(long fileId, String ufsPath, boolean recursive) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
     {
       send_loadFileFromUfs(fileId, ufsPath, recursive);
       return recv_loadFileFromUfs();
@@ -468,7 +468,7 @@ public class FileSystemMasterService {
       sendBase("loadFileFromUfs", args);
     }
 
-    public int recv_loadFileFromUfs() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public long recv_loadFileFromUfs() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
     {
       loadFileFromUfs_result result = new loadFileFromUfs_result();
       receiveBase(result, "loadFileFromUfs");
@@ -1186,7 +1186,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public int getResult() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException {
+      public long getResult() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1224,7 +1224,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public int getResult() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException {
+      public long getResult() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -2905,7 +2905,7 @@ public class FileSystemMasterService {
       }
     }
 
-    public static class createFile<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, createFile_args, Integer> {
+    public static class createFile<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, createFile_args, Long> {
       public createFile() {
         super("createFile");
       }
@@ -2914,10 +2914,10 @@ public class FileSystemMasterService {
         return new createFile_args();
       }
 
-      public AsyncMethodCallback<Integer> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<Long> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Integer>() { 
-          public void onComplete(Integer o) {
+        return new AsyncMethodCallback<Long>() { 
+          public void onComplete(Long o) {
             createFile_result result = new createFile_result();
             result.success = o;
             result.setSuccessIsSet(true);
@@ -2973,12 +2973,12 @@ public class FileSystemMasterService {
         return false;
       }
 
-      public void start(I iface, createFile_args args, org.apache.thrift.async.AsyncMethodCallback<Integer> resultHandler) throws TException {
+      public void start(I iface, createFile_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
         iface.createFile(args.fileId, args.blockSizeBytes, args.recursive,resultHandler);
       }
     }
 
-    public static class loadFileFromUfs<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, loadFileFromUfs_args, Integer> {
+    public static class loadFileFromUfs<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, loadFileFromUfs_args, Long> {
       public loadFileFromUfs() {
         super("loadFileFromUfs");
       }
@@ -2987,10 +2987,10 @@ public class FileSystemMasterService {
         return new loadFileFromUfs_args();
       }
 
-      public AsyncMethodCallback<Integer> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<Long> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Integer>() { 
-          public void onComplete(Integer o) {
+        return new AsyncMethodCallback<Long>() { 
+          public void onComplete(Long o) {
             loadFileFromUfs_result result = new loadFileFromUfs_result();
             result.success = o;
             result.setSuccessIsSet(true);
@@ -3046,7 +3046,7 @@ public class FileSystemMasterService {
         return false;
       }
 
-      public void start(I iface, loadFileFromUfs_args args, org.apache.thrift.async.AsyncMethodCallback<Integer> resultHandler) throws TException {
+      public void start(I iface, loadFileFromUfs_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
         iface.loadFileFromUfs(args.fileId, args.ufsPath, args.recursive,resultHandler);
       }
     }
@@ -12271,7 +12271,7 @@ public class FileSystemMasterService {
   public static class createFile_result implements org.apache.thrift.TBase<createFile_result, createFile_result._Fields>, java.io.Serializable, Cloneable, Comparable<createFile_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createFile_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I32, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
     private static final org.apache.thrift.protocol.TField FAEE_FIELD_DESC = new org.apache.thrift.protocol.TField("faee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField BIE_FIELD_DESC = new org.apache.thrift.protocol.TField("bie", org.apache.thrift.protocol.TType.STRUCT, (short)2);
     private static final org.apache.thrift.protocol.TField SFSE_FIELD_DESC = new org.apache.thrift.protocol.TField("sfse", org.apache.thrift.protocol.TType.STRUCT, (short)3);
@@ -12283,7 +12283,7 @@ public class FileSystemMasterService {
       schemes.put(TupleScheme.class, new createFile_resultTupleSchemeFactory());
     }
 
-    public int success; // required
+    public long success; // required
     public FileAlreadyExistException faee; // required
     public BlockInfoException bie; // required
     public SuspectedFileSizeException sfse; // required
@@ -12366,7 +12366,7 @@ public class FileSystemMasterService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.FAEE, new org.apache.thrift.meta_data.FieldMetaData("faee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.BIE, new org.apache.thrift.meta_data.FieldMetaData("bie", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -12383,7 +12383,7 @@ public class FileSystemMasterService {
     }
 
     public createFile_result(
-      int success,
+      long success,
       FileAlreadyExistException faee,
       BlockInfoException bie,
       SuspectedFileSizeException sfse,
@@ -12432,11 +12432,11 @@ public class FileSystemMasterService {
       this.te = null;
     }
 
-    public int getSuccess() {
+    public long getSuccess() {
       return this.success;
     }
 
-    public createFile_result setSuccess(int success) {
+    public createFile_result setSuccess(long success) {
       this.success = success;
       setSuccessIsSet(true);
       return this;
@@ -12557,7 +12557,7 @@ public class FileSystemMasterService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((Integer)value);
+          setSuccess((Long)value);
         }
         break;
 
@@ -12599,7 +12599,7 @@ public class FileSystemMasterService {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case SUCCESS:
-        return Integer.valueOf(getSuccess());
+        return Long.valueOf(getSuccess());
 
       case FAEE:
         return getFaee();
@@ -12890,8 +12890,8 @@ public class FileSystemMasterService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.success = iprot.readI32();
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.success = iprot.readI64();
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -12950,7 +12950,7 @@ public class FileSystemMasterService {
         oprot.writeStructBegin(STRUCT_DESC);
         if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeI32(struct.success);
+          oprot.writeI64(struct.success);
           oprot.writeFieldEnd();
         }
         if (struct.faee != null) {
@@ -13008,7 +13008,7 @@ public class FileSystemMasterService {
         }
         oprot.writeBitSet(optionals, 5);
         if (struct.isSetSuccess()) {
-          oprot.writeI32(struct.success);
+          oprot.writeI64(struct.success);
         }
         if (struct.isSetFaee()) {
           struct.faee.write(oprot);
@@ -13029,7 +13029,7 @@ public class FileSystemMasterService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(5);
         if (incoming.get(0)) {
-          struct.success = iprot.readI32();
+          struct.success = iprot.readI64();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
@@ -13623,7 +13623,7 @@ public class FileSystemMasterService {
   public static class loadFileFromUfs_result implements org.apache.thrift.TBase<loadFileFromUfs_result, loadFileFromUfs_result._Fields>, java.io.Serializable, Cloneable, Comparable<loadFileFromUfs_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("loadFileFromUfs_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I32, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
     private static final org.apache.thrift.protocol.TField FAEE_FIELD_DESC = new org.apache.thrift.protocol.TField("faee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField BIE_FIELD_DESC = new org.apache.thrift.protocol.TField("bie", org.apache.thrift.protocol.TType.STRUCT, (short)2);
     private static final org.apache.thrift.protocol.TField SFSE_FIELD_DESC = new org.apache.thrift.protocol.TField("sfse", org.apache.thrift.protocol.TType.STRUCT, (short)3);
@@ -13635,7 +13635,7 @@ public class FileSystemMasterService {
       schemes.put(TupleScheme.class, new loadFileFromUfs_resultTupleSchemeFactory());
     }
 
-    public int success; // required
+    public long success; // required
     public FileAlreadyExistException faee; // required
     public BlockInfoException bie; // required
     public SuspectedFileSizeException sfse; // required
@@ -13718,7 +13718,7 @@ public class FileSystemMasterService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.FAEE, new org.apache.thrift.meta_data.FieldMetaData("faee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.BIE, new org.apache.thrift.meta_data.FieldMetaData("bie", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -13735,7 +13735,7 @@ public class FileSystemMasterService {
     }
 
     public loadFileFromUfs_result(
-      int success,
+      long success,
       FileAlreadyExistException faee,
       BlockInfoException bie,
       SuspectedFileSizeException sfse,
@@ -13784,11 +13784,11 @@ public class FileSystemMasterService {
       this.te = null;
     }
 
-    public int getSuccess() {
+    public long getSuccess() {
       return this.success;
     }
 
-    public loadFileFromUfs_result setSuccess(int success) {
+    public loadFileFromUfs_result setSuccess(long success) {
       this.success = success;
       setSuccessIsSet(true);
       return this;
@@ -13909,7 +13909,7 @@ public class FileSystemMasterService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((Integer)value);
+          setSuccess((Long)value);
         }
         break;
 
@@ -13951,7 +13951,7 @@ public class FileSystemMasterService {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case SUCCESS:
-        return Integer.valueOf(getSuccess());
+        return Long.valueOf(getSuccess());
 
       case FAEE:
         return getFaee();
@@ -14242,8 +14242,8 @@ public class FileSystemMasterService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.success = iprot.readI32();
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.success = iprot.readI64();
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -14302,7 +14302,7 @@ public class FileSystemMasterService {
         oprot.writeStructBegin(STRUCT_DESC);
         if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeI32(struct.success);
+          oprot.writeI64(struct.success);
           oprot.writeFieldEnd();
         }
         if (struct.faee != null) {
@@ -14360,7 +14360,7 @@ public class FileSystemMasterService {
         }
         oprot.writeBitSet(optionals, 5);
         if (struct.isSetSuccess()) {
-          oprot.writeI32(struct.success);
+          oprot.writeI64(struct.success);
         }
         if (struct.isSetFaee()) {
           struct.faee.write(oprot);
@@ -14381,7 +14381,7 @@ public class FileSystemMasterService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(5);
         if (incoming.get(0)) {
-          struct.success = iprot.readI32();
+          struct.success = iprot.readI64();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
