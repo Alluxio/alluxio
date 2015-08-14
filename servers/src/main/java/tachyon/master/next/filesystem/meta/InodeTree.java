@@ -65,7 +65,7 @@ public class InodeTree {
   }
 
   public Inode getInodeById(long id) {
-    return mInodes.getFirst(mIdIndex, id);
+    return mInodes.getFirstByField(mIdIndex, id);
   }
 
   public Inode getInodeByPath(TachyonURI path) throws InvalidPathException {

@@ -71,7 +71,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   public BlockWorkerInfo getWorkerInfo(long workerId) {
     synchronized (mWorkers) {
-      return mWorkers.getFirst(mIdIndex, workerId);
+      return mWorkers.getFirstByField(mIdIndex, workerId);
     }
   }
 
@@ -176,7 +176,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     synchronized (mWorkers) {
       if (mWorkers.contains(mAddressIndex, workerAddress)) {
         // This worker address is already mapped to a worker id.
-        long oldWorkerId = mWorkers.getFirst(mAddressIndex, workerAddress).getId();
+        long oldWorkerId = mWorkers.getFirstByField(mAddressIndex, workerAddress).getId();
         LOG.warn("The worker " + workerAddress + " already exists as id " + oldWorkerId + ".");
         return oldWorkerId;
       }
