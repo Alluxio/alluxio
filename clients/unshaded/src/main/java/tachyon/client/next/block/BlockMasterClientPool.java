@@ -15,6 +15,7 @@
 
 package tachyon.client.next.block;
 
+import com.google.common.base.Throwables;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.util.ThreadFactoryUtils;
@@ -47,11 +48,17 @@ public class BlockMasterClientPool {
 
   /**
    * Acquires a {@link MasterClient}, this operation is blocking if no clients are available.
+   *
    * @return a MasterClient, guaranteed to be only available to the caller
-   * @throws InterruptedException if the thread is interrupted while waiting for a client
    */
-  public MasterClient acquire() throws InterruptedException {
-    return mClients.take();
+  public MasterClient acquire() {
+    try {
+      return mClients.take();
+    } catch (InterruptedException ie) {
+      // TODO: Investigate the best way to handle this
+      // Failed to get a client, panic
+      throw new RuntimeException(ie);
+    }
   }
 
   /**
@@ -65,6 +72,7 @@ public class BlockMasterClientPool {
   /**
    * Releases a {@link MasterClient}, this must be called after the thread is done using a client
    * obtained by acquire.
+   *
    * @param masterClient the MasterClient to be released, the client should not be used by the
    *                     thread after this call
    */

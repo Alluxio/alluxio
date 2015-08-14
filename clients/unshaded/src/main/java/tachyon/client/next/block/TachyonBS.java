@@ -16,11 +16,13 @@
 package tachyon.client.next.block;
 
 import java.io.Closeable;
+import java.net.InetSocketAddress;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.next.ClientOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterClient;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in
@@ -31,27 +33,31 @@ public class TachyonBS implements Closeable {
 
   public static TachyonBS sCachedClient = null;
 
-  public static synchronized TachyonBS get(TachyonConf conf) {
+  public static synchronized TachyonBS get(InetSocketAddress masterAddress, TachyonConf conf) {
     if (sCachedClient != null) {
       return sCachedClient;
     }
-    sCachedClient = new TachyonBS(conf);
+    sCachedClient = new TachyonBS(masterAddress, conf);
     return sCachedClient;
   }
 
-  private BlockMasterClientPool mMasterClientPool;
+  private final BlockMasterClientPool mMasterClientPool;
 
-  public TachyonBS(TachyonConf conf) {
-    // TODO: Fix the default
-    TachyonURI masterURI = new TachyonURI(conf.get(Constants.MASTER_ADDRESS, ""));
+  public TachyonBS(InetSocketAddress masterAddress, TachyonConf conf) {
+    mMasterClientPool = new BlockMasterClientPool(masterAddress, conf);
   }
 
   public void close() {
-    // TODO: Implement me
+    mMasterClientPool.close();
   }
 
   public void delete(long blockId) {
-    // TODO: Implement me
+    MasterClient masterClient = mMasterClientPool.acquire();
+    try {
+      // TODO: Implement delete RPC
+    } finally {
+      mMasterClientPool.release(masterClient);
+    }
   }
 
   public void free(long blockId) {
@@ -59,8 +65,8 @@ public class TachyonBS implements Closeable {
   }
 
   public BlockInfo getInfo(long blockId) {
-    // TODO: Implement me
-    return null;
+    MasterClient masterClient = mMasterClientPool.acquire();
+
   }
 
   public BlockInStream getInStream(long blockId, ClientOptions options) {
