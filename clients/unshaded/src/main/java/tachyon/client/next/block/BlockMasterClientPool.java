@@ -25,6 +25,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * Class for managing block master clients. After obtaining a client with Acquire, Release must
+ * be called when the thread is done using the client.
+ */
 public class BlockMasterClientPool {
   private final BlockingQueue<MasterClient> mClients;
   private final ExecutorService mExecutorService;
@@ -41,18 +45,30 @@ public class BlockMasterClientPool {
     }
   }
 
+  /**
+   * Acquires a {@link MasterClient}, this operation is blocking if no clients are available.
+   * @return a MasterClient, guaranteed to be only available to the caller
+   * @throws InterruptedException if the thread is interrupted while waiting for a client
+   */
   public MasterClient acquire() throws InterruptedException {
     return mClients.take();
   }
 
+  /**
+   * Closes the client pool. After this call, the object should be discarded.
+   */
   public void close() {
     // TODO: Consider collecting all the clients and shutting them down
     mExecutorService.shutdown();
   }
 
+  /**
+   * Releases a {@link MasterClient}, this must be called after the thread is done using a client
+   * obtained by acquire.
+   * @param masterClient the MasterClient to be released, the client should not be used by the
+   *                     thread after this call
+   */
   public void release(MasterClient masterClient) {
     mClients.add(masterClient);
   }
-
-
 }
