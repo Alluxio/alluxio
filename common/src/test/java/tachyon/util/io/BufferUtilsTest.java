@@ -48,10 +48,13 @@ public class BufferUtilsTest {
   @Test
   public void cleanDirectBufferTest() {
     final int MAX_ITERATIONS = 1024;
+    final int BUFFER_SIZE = 16 * 1024 * 1024;
+    // bufferArray keeps reference to each buffer to avoid auto GC
+    ByteBuffer[] bufferArray = new ByteBuffer[MAX_ITERATIONS];
     try {
       for (int i = 0; i < MAX_ITERATIONS; ++i) {
-        final int bufferSize = 16 * 1024 * 1024;
-        ByteBuffer buf = ByteBuffer.allocateDirect(bufferSize);
+        ByteBuffer buf = ByteBuffer.allocateDirect(BUFFER_SIZE);
+        bufferArray[i] = buf;
         BufferUtils.cleanDirectBuffer(buf);
       }
     } catch (OutOfMemoryError ooe) {
