@@ -44,4 +44,18 @@ public class BufferUtilsTest {
     bufClone = BufferUtils.cloneByteBuffer(bufDirect);
     Assert.assertTrue(bufClone.equals(bufDirect));
   }
+
+  @Test
+  public void cleanDirectBufferTest() {
+    final int MAX_ITERATIONS = 1024;
+    try {
+      for (int i = 0; i < MAX_ITERATIONS; ++i) {
+        final int bufferSize = 16 * 1024 * 1024;
+        ByteBuffer buf = ByteBuffer.allocateDirect(bufferSize);
+        BufferUtils.cleanDirectBuffer(buf);
+      }
+    } catch (OutOfMemoryError ooe) {
+      Assert.fail("cleanDirectBuffer is causing memory leak." + ooe.getMessage());
+    }
+  }
 }
