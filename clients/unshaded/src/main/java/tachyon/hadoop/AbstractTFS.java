@@ -41,7 +41,7 @@ import tachyon.client.TachyonFile;
 import tachyon.client.UfsUtils;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.ClientDependencyInfo;
+import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
@@ -148,7 +148,7 @@ abstract class AbstractTFS extends FileSystem {
       depPath = path.getPath();
       depPath = depPath.substring(depPath.indexOf("part-") + 5);
       int index = Integer.parseInt(depPath);
-      ClientDependencyInfo info = mTFS.getClientDependencyInfo(depId);
+      DependencyInfo info = mTFS.getClientDependencyInfo(depId);
       int fileId = info.getChildren().get(index);
       LOG.info("create(" + cPath + ") : " + depPath + " " + index + " " + info + " " + fileId);
 
@@ -168,7 +168,7 @@ abstract class AbstractTFS extends FileSystem {
       depPath = path.getPath();
       depPath = depPath.substring(depPath.indexOf("part-") + 5);
       int index = Integer.parseInt(depPath);
-      ClientDependencyInfo info = mTFS.getClientDependencyInfo(depId);
+      DependencyInfo info = mTFS.getClientDependencyInfo(depId);
       int fileId = info.getChildren().get(index);
       LOG.info("create(" + cPath + ") : " + depPath + " " + index + " " + info + " " + fileId);
 

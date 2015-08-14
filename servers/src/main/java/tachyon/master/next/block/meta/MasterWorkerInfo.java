@@ -27,11 +27,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 
-public class BlockWorkerInfo {
+public class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Worker's address */
   public final NetAddress mWorkerAddress;
@@ -58,7 +58,7 @@ public class BlockWorkerInfo {
   /** IDs of blocks the worker should remove */
   private Set<Long> mToRemoveBlocks;
 
-  public BlockWorkerInfo(long id, NetAddress address) {
+  public MasterWorkerInfo(long id, NetAddress address) {
     mId = id;
     mWorkerAddress = address;
     mStartTimeMs = System.currentTimeMillis();
@@ -127,10 +127,10 @@ public class BlockWorkerInfo {
   }
 
   /**
-   * @return Generated {@link ClientWorkerInfo} for this worker
+   * @return Generated {@link WorkerInfo} for this worker
    */
-  public synchronized ClientWorkerInfo generateClientWorkerInfo() {
-    ClientWorkerInfo ret = new ClientWorkerInfo();
+  public synchronized WorkerInfo generateClientWorkerInfo() {
+    WorkerInfo ret = new WorkerInfo();
     ret.id = mId;
     ret.address = mWorkerAddress;
     ret.lastContactSec =

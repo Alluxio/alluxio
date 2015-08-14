@@ -29,10 +29,11 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
 import tachyon.master.next.IndexedSet;
-import tachyon.master.next.block.meta.BlockId;
+import tachyon.master.block.BlockId;
 import tachyon.master.next.block.ContainerIdGenerator;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
@@ -68,18 +69,19 @@ public class InodeTree {
     // TODO
   }
 
-  public Inode getInodeById(long id) {
-    return mInodes.getFirstByField(mIdIndex, id);
+  public Inode getInodeById(long id) throws FileDoesNotExistException {
+    Inode inode = mInodes.getFirstByField(mIdIndex, id);
+    if (inode == null) {
+      throw new FileDoesNotExistException("Inode id " + id + " does not exist.");
+    }
+    return inode;
   }
 
   public Inode getInodeByPath(TachyonURI path) throws InvalidPathException {
-    return getInodeByPath(PathUtils.getPathComponents(path.toString()));
-  }
-
-  private Inode getInodeByPath(String[] pathComponents) throws InvalidPathException {
-    Pair<Inode, Integer> inodeTraversal = traverseToInode(pathComponents);
+    Pair<Inode, Integer> inodeTraversal =
+        traverseToInode(PathUtils.getPathComponents(path.toString()));
     if (!traversalSucceeded(inodeTraversal)) {
-      return null;
+      throw new InvalidPathException("Could not find path: " + path);
     }
     return inodeTraversal.getFirst();
   }
@@ -95,7 +97,7 @@ public class InodeTree {
     if (isRootId(inode.getParentId())) {
       return new TachyonURI(TachyonURI.SEPARATOR + inode.getName());
     }
-    return getPath(getInodeById(inode.getParentId())).join(inode.getName());
+    return getPath(mInodes.getFirstByField(mIdIndex, inode.getParentId())).join(inode.getName());
   }
 
   public Inode createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
@@ -214,7 +216,7 @@ public class InodeTree {
    *
    * @param inode The {@link Inode} to delete
    */
-  public void deleteInode(Inode inode) {
+  public void deleteInode(Inode inode) throws FileDoesNotExistException {
     InodeDirectory parent = (InodeDirectory) getInodeById(inode.getParentId());
     parent.removeChild(inode);
     parent.setLastModificationTimeMs(System.currentTimeMillis());

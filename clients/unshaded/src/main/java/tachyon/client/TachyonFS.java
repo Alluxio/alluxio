@@ -38,10 +38,10 @@ import tachyon.TachyonURI;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
-import tachyon.thrift.ClientDependencyInfo;
+import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.ThreadFactoryUtils;
@@ -448,13 +448,13 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get a ClientDependencyInfo by the dependency id
+   * Get a DependencyInfo by the dependency id
    *
    * @param depId the dependency id
-   * @return the ClientDependencyInfo of the specified dependency
+   * @return the DependencyInfo of the specified dependency
    * @throws IOException
    */
-  public synchronized ClientDependencyInfo getClientDependencyInfo(int depId) throws IOException {
+  public synchronized DependencyInfo getClientDependencyInfo(int depId) throws IOException {
     return mMasterClient.getClientDependencyInfo(depId);
   }
 
@@ -725,7 +725,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return all the works' info
    * @throws IOException
    */
-  public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
+  public synchronized List<WorkerInfo> getWorkersInfo() throws IOException {
     return mMasterClient.getWorkersInfo();
   }
 

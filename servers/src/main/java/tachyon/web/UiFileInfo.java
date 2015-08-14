@@ -63,7 +63,7 @@ public final class UiFileInfo {
     }
   }
 
-  private final int mId;
+  private final long mId;
   private final int mDependencyId;
   private final String mName;
   private final String mAbsolutePath;
@@ -84,7 +84,7 @@ public final class UiFileInfo {
       StorageLevelAlias.SIZE, 0L));
 
   public UiFileInfo(FileInfo fileInfo) {
-    mId = fileInfo.getId();
+    mId = fileInfo.getFileId();
     mDependencyId = fileInfo.getDependencyId();
     mName = fileInfo.getName();
     mAbsolutePath = fileInfo.getPath();
@@ -172,7 +172,7 @@ public final class UiFileInfo {
     return mFileLocations;
   }
 
-  public int getId() {
+  public long getId() {
     return mId;
   }
 
