@@ -17,6 +17,7 @@ package tachyon.client;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +28,8 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.InStream;
+import tachyon.client.ReadType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.underfs.UnderFileSystem;
@@ -107,6 +110,8 @@ public class TachyonFSIntegrationTestIso {
   public void lockBlockTest2() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
+    InStream is = null;
+    ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
@@ -117,7 +122,11 @@ public class TachyonFSIntegrationTestIso {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
-      Assert.assertNotNull(tFile.readByteBuffer(0));
+      is = tFile.getInStream(ReadType.CACHE);
+      buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
+      is.read(buf.array());
+      Assert.assertNotNull(buf);
+      is.close();
     }
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
         WriteType.CACHE_THROUGH, fileSize));
@@ -135,6 +144,8 @@ public class TachyonFSIntegrationTestIso {
   public void lockBlockTest3() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
+    InStream is = null;
+    ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
@@ -145,9 +156,13 @@ public class TachyonFSIntegrationTestIso {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
+      is = tFile.getInStream(ReadType.CACHE);
+      buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
+      is.read(buf.array());
       if (k < numOfFiles - 1) {
-        Assert.assertNotNull(tFile.readByteBuffer(0));
+        Assert.assertNotNull(buf);
       }
+      is.close();
     }
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
         WriteType.CACHE_THROUGH, fileSize));
@@ -167,6 +182,8 @@ public class TachyonFSIntegrationTestIso {
   public void lockBlockTest4() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
+    InStream is = null;
+    ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
@@ -174,19 +191,39 @@ public class TachyonFSIntegrationTestIso {
       fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, WriteType.CACHE_THROUGH,
           fileSize));
     }
+
+    // TODO: test cache stream, since file.recache() is to be removed
     for (int k = 0; k <= numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
-      CommonUtils.sleepMs(null, getSleepMs());
       Assert.assertFalse(tFile.isInMemory());
-      if (k < numOfFiles) {
-        Assert.assertNull(tFile.readByteBuffer(0));
-        Assert.assertTrue(tFile.recache());
-        Assert.assertNotNull(tFile.readByteBuffer(0));
-      } else {
-        Assert.assertNull(tFile.readByteBuffer(0));
-        Assert.assertFalse(tFile.recache());
-        Assert.assertNull(tFile.readByteBuffer(0));
+      is = tFile.getInStream(ReadType.NO_CACHE);
+      buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
+      CommonUtils.sleepMs(null, getSleepMs());
+      if (is.markSupported()) {
+        is.mark((int) tFile.getBlockSizeByte());
       }
+      if (k < numOfFiles) {
+        is.read(buf.array());
+        Assert.assertNull(buf);
+        Assert.assertTrue(tFile.recache());
+        if (is.markSupported()) {
+          is.reset();
+          buf.clear();
+          is.read(buf.array());
+          Assert.assertNotNull(buf);
+        }
+      } else {
+        is.read(buf.array());
+        Assert.assertNull(buf);
+        Assert.assertFalse(tFile.recache());
+        if (is.markSupported()) {
+          is.reset();
+          buf.clear();
+          is.read(buf.array());
+          Assert.assertNull(buf);
+        }
+      }
+      is.close();
     }
   }
 
@@ -194,6 +231,8 @@ public class TachyonFSIntegrationTestIso {
   public void unlockBlockTest1() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
+    InStream is = null;
+    ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
@@ -203,10 +242,12 @@ public class TachyonFSIntegrationTestIso {
     }
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
+      is = tFile.getInStream(ReadType.CACHE);
+      buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
       Assert.assertTrue(tFile.isInMemory());
-      TachyonByteBuffer tBuf = tFile.readByteBuffer(0);
-      Assert.assertNotNull(tBuf);
-      tBuf.close();
+      is.read(buf.array());
+      Assert.assertNotNull(buf);
+      is.close();
     }
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
         WriteType.CACHE_THROUGH, fileSize));
@@ -224,6 +265,8 @@ public class TachyonFSIntegrationTestIso {
   public void unlockBlockTest2() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
+    InStream is = null;
+    ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
@@ -234,11 +277,20 @@ public class TachyonFSIntegrationTestIso {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
-      TachyonByteBuffer tBuf = tFile.readByteBuffer(0);
-      Assert.assertNotNull(tBuf);
-      tBuf = tFile.readByteBuffer(0);
-      Assert.assertNotNull(tBuf);
-      tBuf.close();
+      is = tFile.getInStream(ReadType.CACHE);
+      if (is.markSupported()) {
+        is.mark((int) tFile.getBlockSizeByte());
+      }
+      buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
+      is.read(buf.array());
+      Assert.assertNotNull(buf);
+      if (is.markSupported()) {
+        is.reset();
+        buf.clear();
+        is.read(buf.array());
+        Assert.assertNotNull(buf);
+      }
+      is.close();
     }
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
         WriteType.CACHE_THROUGH, fileSize));
@@ -256,6 +308,9 @@ public class TachyonFSIntegrationTestIso {
   public void unlockBlockTest3() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
+    InStream is = null;
+    ByteBuffer buf1 = null;
+    ByteBuffer buf2 = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
@@ -266,12 +321,20 @@ public class TachyonFSIntegrationTestIso {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
-      TachyonByteBuffer tBuf1 = tFile.readByteBuffer(0);
-      Assert.assertNotNull(tBuf1);
-      TachyonByteBuffer tBuf2 = tFile.readByteBuffer(0);
-      Assert.assertNotNull(tBuf2);
-      tBuf1.close();
-      tBuf2.close();
+      is = tFile.getInStream(ReadType.CACHE);
+      if (is.markSupported()) {
+        is.mark((int) tFile.getBlockSizeByte());
+      }
+      buf1 = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
+      is.read(buf1.array());
+      Assert.assertNotNull(buf1);
+      if (is.markSupported()) {
+        buf2 = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
+        is.reset();
+        is.read(buf2.array());
+        Assert.assertNotNull(buf2);
+      }
+      is.close();
     }
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
         WriteType.CACHE_THROUGH, fileSize));
