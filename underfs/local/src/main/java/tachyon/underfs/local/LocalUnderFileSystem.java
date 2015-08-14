@@ -59,7 +59,6 @@ public class LocalUnderFileSystem extends UnderFileSystem {
       stream.close();
       throw e;
     }
-    FileUtils.setLocalFileStickyBit(path);
     return stream;
   }
 
@@ -177,7 +176,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     File file = new File(path);
     boolean created = createParent ? file.mkdirs() : file.mkdir();
     setPermission(path, "777");
-    FileUtils.setLocalFileStickyBit(path);
+    FileUtils.setLocalDirStickyBit(path);
     return created;
   }
 
