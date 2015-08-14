@@ -151,9 +151,7 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, Integer.toString(64));
 
     mMasterConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
-    mMasterConf.set(Constants.MASTER_BIND_HOST, mLocalhostName);
     mMasterConf.set(Constants.MASTER_PORT, Integer.toString(0));
-    mMasterConf.set(Constants.MASTER_WEB_BIND_HOST, mLocalhostName);
     mMasterConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
 
     mMaster = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
@@ -168,11 +166,8 @@ public final class LocalTachyonCluster {
   public void startWorker() throws IOException {
     mWorkerConf = WorkerContext.getConf();
     mWorkerConf.merge(mMasterConf);
-    mWorkerConf.set(Constants.WORKER_BIND_HOST, mLocalhostName);
     mWorkerConf.set(Constants.WORKER_PORT, Integer.toString(0));
-    mWorkerConf.set(Constants.WORKER_DATA_BIND_HOST, mLocalhostName);
     mWorkerConf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
-    mWorkerConf.set(Constants.WORKER_WEB_BIND_HOST, mLocalhostName);
     mWorkerConf.set(Constants.WORKER_WEB_PORT, Integer.toString(0));
     mWorkerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
     mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
@@ -242,7 +237,7 @@ public final class LocalTachyonCluster {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
-    startMaster();
+    startMaster(conf);
 
     UnderFileSystemUtils.mkdirIfNotExists(
         mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"), mMasterConf);

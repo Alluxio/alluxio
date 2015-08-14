@@ -148,7 +148,7 @@ The common configuration contains constants which specify paths and the log appe
   <td>tachyon.host.resolution.timeout.ms</td>
   <td>5000</td>
   <td>During startup of Master and Worker processes Tachyon needs to ensure that they are listening
-    on externally visible and reachable host names.  To do this Tachyon will automatically attempt
+    on externally resolvable and reachable host names.  To do this Tachyon will automatically attempt
     to select an appropriate host name if one was not explicitly specified.  This represents the
     maximum amount of time spent waiting to determine if a candidate host name is resolvable over
     the network.</td>
@@ -170,7 +170,7 @@ number.
 <tr>
   <td>tachyon.master.hostname</td>
   <td>localhost</td>
-  <td>The externally visible hostname of Tachyon's master address.</td>
+  <td>The externally resolvable hostname of Tachyon's master address.</td>
 </tr>
 <tr>
   <td>tachyon.master.hostname.listening</td>
@@ -192,7 +192,7 @@ number.
 <tr>
   <td>tachyon.master.web.hostname</td>
   <td>localhost</td>
-  <td>The connection hostname of master's web service that an external client uses to communicate with the service.</td>
+  <td>The externally resolvable hostname of master's web service that a client uses to communicate with the service.</td>
 </tr>
 <tr>
   <td>tachyon.master.web.bind.host</td>
@@ -237,7 +237,7 @@ number.
 <tr>
   <td>tachyon.worker.hostname</td>
   <td>localhost</td>
-  <td>The connection hostname of worker's RPC service that an external client uses to communicate with the service.</td>
+  <td>The externally resolvable hostname of worker's RPC service that an client uses to communicate with the service.</td>
 </tr>
 <tr>
   <td>tachyon.worker.bind.host</td>
@@ -252,7 +252,7 @@ number.
 <tr>
   <td>tachyon.worker.data.hostname</td>
   <td>localhost</td>
-  <td>The connection hostname of worker's data service that an external client uses to communicate with the service.</td>
+  <td>The externally resolvable hostname of worker's data service that a client uses to communicate with the service.</td>
 </tr>
 <tr>
   <td>tachyon.worker.data.bind.host</td>
@@ -267,7 +267,7 @@ number.
 <tr>
   <td>tachyon.worker.web.hostname</td>
   <td>localhost</td>
-  <td>The connection hostname of worker's web service that an external client uses to communicate with the service.</td>
+  <td>The externally resolvable hostname of worker's web service that a client uses to communicate with the service.</td>
 </tr>
 <tr>
   <td>tachyon.worker.web.bind.host</td>

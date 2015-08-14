@@ -18,14 +18,14 @@
 # is applied, you should select one of network interfaces and use its hostname to connect the service.
 # If no hostname is defined, Tachyon will automatically select an externally visible localhost name.
 #
-# Bind environment variables
+# Environment variables for service bind
 # TACHYON_MASTER_BIND_HOST=`hostname -A | cut -d" " -f1`
 # TACHYON_MASTER_WEB_BIND_HOST=0.0.0.0
 # TACHYON_WORKER_BIND_HOST=`hostname -A | cut -d" " -f1`
 # TACHYON_WORKER_DATA_BIND_HOST=`hostname -A | cut -d" " -f2`
 # TACHYON_WORKER_WEB_BIND_HOST=0.0.0.0
 #
-# Connection environment variables
+# Environment variables for service connection
 # TACHYON_MASTER_HOSTNAME=`hostname -A | cut -d" " -f1`
 # TACHYON_MASTER_WEB_HOSTNAME=`hostname -A | cut -d" " -f1`
 # TACHYON_WORKER_HOSTNAME=`hostname -A | cut -d" " -f1`
