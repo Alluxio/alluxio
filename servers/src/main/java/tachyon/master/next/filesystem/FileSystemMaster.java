@@ -261,13 +261,12 @@ public class FileSystemMaster implements Master {
     }
   }
 
-  public boolean deleteFileId(long fileId, boolean recursive)
+  public boolean deleteFile(long fileId, boolean recursive)
       throws TachyonException, FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      deleteInodeInternal(inode, recursive);
-      return true;
+      return deleteInodeInternal(inode, recursive);
       // TODO: write to journal
     }
   }
