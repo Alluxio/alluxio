@@ -82,7 +82,7 @@ def get_host(tag):
 def request_id_to_tag(requests):
     ret = {}
     for i, rid in enumerate([r.id for r in requests]):
-        host = u'TachyonMaster' if i == 0 else "TachyonWorker{}".format(i)
+        host = "TachyonMaster" if i == 0 else "TachyonWorker{}".format(i)
         ret[rid] = add_tag(host)
     return ret
 
@@ -161,14 +161,13 @@ def mock_vagrant_info(instance_id_to_tag_ip):
 
 
 def is_ssh_ready(host):
-    args = ['ssh',
+    s = subprocess.Popen(['ssh', 
         '-o', 'StrictHostKeyChecking=no', 
         '-o', 'UserKnownHostsFile=/dev/null',
         '-o', 'ConnectTimeout=30',
         '-i', os.path.expanduser(get_ec2_conf()['Key_Path']),
-        str('%s@%s' % ('ec2-user', host)),
-        'true']
-    s = subprocess.Popen(args,
+        '%s@%s' % ('ec2-user', host),
+        'true'], 
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
     s.communicate()
