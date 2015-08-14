@@ -77,7 +77,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Clear all marks about blocks to move in/out in all dir views.
+   * Clear all marks of blocks to move in/out in all dir views.
    */
   public void clearBlockMarks() {
     for (StorageTierView tierView : mTierViews) {

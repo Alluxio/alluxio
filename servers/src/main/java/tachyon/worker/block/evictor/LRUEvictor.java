@@ -156,7 +156,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     }
 
     // 4. cascading eviction: try to allocate space in the next tier to move candidate blocks
-    // there.If allocation fails, the next tier will continue evict its blocks to free space.
+    // there. If allocation fails, the next tier will continue to evict its blocks to free space.
     // Blocks are only evicted from the last tier or it can not be moved to the next tier.
     candidateDirView = dirCandidates.candidateDir();
     List<Long> candidateBlocks = dirCandidates.candidateBlocks();
