@@ -235,6 +235,7 @@ public class Performance {
           TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
           InputStream is = file.getInStream(ReadType.CACHE);
           is.read(buf.array());
+          buf.order(ByteOrder.nativeOrder());
           for (int i = 0; i < sBlocksPerFile; i ++) {
             for (int k = 0; k < sBlockSizeBytes / 4; k ++) {
               int tmp = buf.getInt();
@@ -276,6 +277,7 @@ public class Performance {
           sum += mBuf.get(pId % 16);
 
           if (sDebugMode) {
+            mBuf.order(ByteOrder.nativeOrder());
             mBuf.flip();
             FormatUtils.printByteBuffer(LOG, mBuf);
           }
