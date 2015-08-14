@@ -16,13 +16,13 @@
 package tachyon.client.next.block;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import tachyon.Constants;
-import tachyon.TachyonURI;
 import tachyon.client.next.ClientOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
+import tachyon.thrift.FileBlockInfo;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in
@@ -64,12 +64,33 @@ public class TachyonBS implements Closeable {
     // TODO: Implement me
   }
 
-  public BlockInfo getInfo(long blockId) {
+  public FileBlockInfo getInfo(long blockId) throws IOException {
     MasterClient masterClient = mMasterClientPool.acquire();
-
+    try {
+      return masterClient.user_getClientBlockInfo(blockId);
+    } finally {
+      mMasterClientPool.release(masterClient);
+    }
   }
 
-  public BlockInStream getInStream(long blockId, ClientOptions options) {
+  public BlockInStream getInStream(long blockId, ClientOptions options) throws IOException {
+    MasterClient masterClient = mMasterClientPool.acquire();
+    try {
+      // Try to connect with the worker in options, if it exists
+      if (null != options.getLocation()) {
+        // TODO: Fill in this code block
+        return null; // Avoid checkstyle empty if
+      }
+
+      // Optimistically try the local worker, if one exists.
+      // TODO: Add a configuration option for this
+
+      // If the local worker does not have the block in Tachyon space, get locations from master
+      FileBlockInfo info = masterClient.user_getClientBlockInfo(blockId);
+
+    } finally {
+      mMasterClientPool.release(masterClient);
+    }
     // TODO: Implement me
     return null;
   }

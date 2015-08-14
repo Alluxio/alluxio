@@ -18,8 +18,8 @@ package tachyon.client.next.file;
 import java.io.Closeable;
 import java.util.List;
 
+import tachyon.TachyonURI;
 import tachyon.client.next.ClientOptions;
-import tachyon.client.next.TachyonURI;
 import tachyon.thrift.FileInfo;
 
 /**
