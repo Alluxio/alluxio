@@ -78,12 +78,12 @@ public class HdfsFileInputStreamIntegrationTest {
   @Before
   public final void before() throws IOException {
     FileInfo fileInfo = sTFS.getFileStatus(-1, new TachyonURI("/testFile1"));
-    mInMemInputStream = new HdfsFileInputStream(sTFS, fileInfo.getId(),
+    mInMemInputStream = new HdfsFileInputStream(sTFS, fileInfo.getFileId(),
         new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE,
         sLocalTachyonCluster.getMasterTachyonConf());
 
     fileInfo = sTFS.getFileStatus(-1, new TachyonURI("/testFile2"));
-    mUfsInputStream = new HdfsFileInputStream(sTFS, fileInfo.getId(),
+    mUfsInputStream = new HdfsFileInputStream(sTFS, fileInfo.getFileId(),
         new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE,
         sLocalTachyonCluster.getMasterTachyonConf());
   }
