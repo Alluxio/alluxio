@@ -96,10 +96,18 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   }
 
   @Override
-  public int createFile(long fileId, String ufsPath, long blockSizeBytes, boolean recursive)
+  public int createFile(long fileId, long blockSizeBytes, boolean recursive)
       throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
       TachyonException, TException {
-    // TODO
+    // TODO: should this take a string path?
+    return 0;
+  }
+
+  @Override
+  public int loadFileFromUfs(long fileId, String ufsPath, boolean recursive)
+      throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
+      TachyonException, TException {
+    // TODO: should this take a string path?
     return 0;
   }
 
