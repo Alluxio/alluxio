@@ -42,7 +42,11 @@ public class InodeTree {
 
   private InodeDirectory mRoot;
 
-  private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex("mId");
+  private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<Inode>() {
+    public Object getFieldValue(Inode o) {
+      return o.getId();
+    }
+  };
   private final IndexedSet<Inode> mInodes = new IndexedSet<Inode>(mIdIndex);
   /** A set of inode ids representing pinned inode files */
   private final Set<Long> mPinnedInodeFileIds = new HashSet<Long>();

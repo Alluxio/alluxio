@@ -42,6 +42,7 @@ import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
 import tachyon.util.FormatUtils;
+import tachyon.worker.block.BlockWorker;
 
 public class BlockMaster implements Master, ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -52,8 +53,16 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   private final Set<Long> mLostBlocks = new HashSet<Long>();
 
   // Worker metadata management.
-  private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex("mId");
-  private final IndexedSet.FieldIndex mAddressIndex = new IndexedSet.FieldIndex("mWorkerAddress");
+  private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<BlockWorkerInfo>() {
+    public Object getFieldValue(BlockWorkerInfo o) {
+      return o.getId();
+    }
+  };
+  private final IndexedSet.FieldIndex mAddressIndex = new IndexedSet.FieldIndex<BlockWorkerInfo>() {
+    public Object getFieldValue(BlockWorkerInfo o) {
+      return o.getAddress();
+    }
+  };
   private final IndexedSet<BlockWorkerInfo> mWorkers = new IndexedSet<BlockWorkerInfo>(mIdIndex,
       mAddressIndex);
   private final AtomicInteger mWorkerCounter = new AtomicInteger(0);

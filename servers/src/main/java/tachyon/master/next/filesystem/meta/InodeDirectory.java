@@ -34,8 +34,16 @@ import tachyon.thrift.FileInfo;
 public class InodeDirectory extends Inode {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex("mId");
-  private IndexedSet.FieldIndex mNameIndex = new IndexedSet.FieldIndex("mName");
+  private IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<Inode>() {
+    public Object getFieldValue(Inode o) {
+      return o.getId();
+    }
+  };
+  private IndexedSet.FieldIndex mNameIndex = new IndexedSet.FieldIndex<Inode>() {
+    public Object getFieldValue(Inode o) {
+      return o.getName();
+    }
+  };
   private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
 
   /**

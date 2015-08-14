@@ -42,13 +42,21 @@ public class IndexedSetTest {
   }
 
   private IndexedSet<Pair> mSet;
-  private IndexedSet.FieldIndex mIntIndex;
-  private IndexedSet.FieldIndex mDoubleIndex;
+  private IndexedSet.FieldIndex<Pair> mIntIndex;
+  private IndexedSet.FieldIndex<Pair> mDoubleIndex;
 
   @Before
   public void before() {
-    mIntIndex = new IndexedSet.FieldIndex("mInt");
-    mDoubleIndex = new IndexedSet.FieldIndex("mDouble");
+    mIntIndex = new IndexedSet.FieldIndex<Pair>() {
+      public Object getFieldValue(Pair o) {
+        return o.intValue();
+      }
+    };
+    mDoubleIndex = new IndexedSet.FieldIndex<Pair>() {
+      public Object getFieldValue(Pair o) {
+        return o.mDouble;
+      }
+    };
     mSet = new IndexedSet<Pair>(mIntIndex, mDoubleIndex);
     for (int i = 0; i < 3; i ++) {
       for (double d = 0; d < 3.0; d ++) {
