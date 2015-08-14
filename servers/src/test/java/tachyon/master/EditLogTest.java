@@ -16,7 +16,6 @@
 package tachyon.master;
 
 import java.io.DataInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,10 +23,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -39,69 +39,85 @@ import tachyon.conf.TachyonConf;
  * Unit Test for EditLog. Test the read/write correctness of each operation.
  */
 public class EditLogTest {
+  private static final long TEST_OP_TIME_MS = 1409349750338L;
+  private static final long TEST_TRANSACTION_ID = 100L;
+
   private EditLog mEditLog = null;
+  private String mEditLogPath = null;
   private TachyonConf mTachyonConf = new TachyonConf();
-  private String mTmpPath = null;
+
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
+
+  @Before
+  public final void before() throws Exception {
+    mEditLogPath = mTestFolder.newFile().getAbsolutePath();
+    mEditLog = new EditLog(mEditLogPath, false, TEST_TRANSACTION_ID, mTachyonConf);
+  }
+
+  /**
+   * A util method to load an EditLogOperation from the edit log file. In this test, each edit log
+   * file has exact one operation.
+   * @param path the path of edit log file
+   * @return the loaded operation
+   * @throws IOException
+   */
+  private EditLogOperation getSingleOpFromFile(String path) throws IOException {
+    DataInputStream is = new DataInputStream(new FileInputStream(path));
+    JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(is);
+    EditLogOperation ret = parser.readValueAs(EditLogOperation.class);
+    is.close();
+    return ret;
+  }
 
   @Test
   public void addBlockTest() throws IOException {
     // Write ADD_BLOCK
-    mEditLog.addBlock(1, 2, 128L, 1409349750338L);
+    mEditLog.addBlock(1, 2, 128L, TEST_OP_TIME_MS);
     mEditLog.flush();
     mEditLog.close();
 
     // Read ADD_BLOCK and check
-    EditLogOperation op = getSingleOpFromFile(mTmpPath);
-    Assert.assertEquals(101, op.mTransId);
+    EditLogOperation op = getSingleOpFromFile(mEditLogPath);
+    Assert.assertEquals(TEST_TRANSACTION_ID + 1, op.mTransId);
     Assert.assertEquals(EditLogOperationType.ADD_BLOCK, op.mType);
     Assert.assertEquals(1, op.getInt("fileId").intValue());
     Assert.assertEquals(2, op.getInt("blockIndex").intValue());
     Assert.assertEquals(128L, op.getLong("blockLength").longValue());
-    Assert.assertEquals(1409349750338L, op.getLong("opTimeMs").longValue());
+    Assert.assertEquals(TEST_OP_TIME_MS, op.getLong("opTimeMs").longValue());
   }
 
   @Test
   public void addCheckpointTest() throws IOException {
     // Write ADD_CHECKPOINT
     TachyonURI checkpointPath = new TachyonURI("/test/checkpoint");
-    mEditLog.addCheckpoint(1, 256L, checkpointPath, 1409349750338L);
+    mEditLog.addCheckpoint(1, 256L, checkpointPath, TEST_OP_TIME_MS);
     mEditLog.flush();
     mEditLog.close();
 
     // Read ADD_CHECKPOINT and check
-    EditLogOperation op = getSingleOpFromFile(mTmpPath);
-    Assert.assertEquals(101, op.mTransId);
+    EditLogOperation op = getSingleOpFromFile(mEditLogPath);
+    Assert.assertEquals(TEST_TRANSACTION_ID + 1, op.mTransId);
     Assert.assertEquals(EditLogOperationType.ADD_CHECKPOINT, op.mType);
     Assert.assertEquals(1, op.getInt("fileId").intValue());
     Assert.assertEquals(256L, op.getLong("length").longValue());
     Assert.assertEquals(checkpointPath.toString(), op.getString("path"));
-    Assert.assertEquals(1409349750338L, op.getLong("opTimeMs").longValue());
-  }
-
-  @After
-  public final void after() throws Exception {
-    new File(mTmpPath).delete();
-  }
-
-  @Before
-  public final void before() throws Exception {
-    mTmpPath = File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
-    mEditLog = new EditLog(mTmpPath, false, 100, mTachyonConf);
+    Assert.assertEquals(TEST_OP_TIME_MS, op.getLong("opTimeMs").longValue());
   }
 
   @Test
   public void completeFileTest() throws IOException {
     // Write COMPLETE_FILE
-    mEditLog.completeFile(1, 1409349750338L);
+    mEditLog.completeFile(1, TEST_OP_TIME_MS);
     mEditLog.flush();
     mEditLog.close();
 
     // Read COMPLETE_FILE and check
-    EditLogOperation op = getSingleOpFromFile(mTmpPath);
-    Assert.assertEquals(101, op.mTransId);
+    EditLogOperation op = getSingleOpFromFile(mEditLogPath);
+    Assert.assertEquals(TEST_TRANSACTION_ID + 1, op.mTransId);
     Assert.assertEquals(EditLogOperationType.COMPLETE_FILE, op.mType);
     Assert.assertEquals(1, op.getInt("fileId").intValue());
-    Assert.assertEquals(1409349750338L, op.getLong("opTimeMs").longValue());
+    Assert.assertEquals(TEST_OP_TIME_MS, op.getLong("opTimeMs").longValue());
   }
 
   @Test
@@ -111,13 +127,13 @@ public class EditLogTest {
     List<Integer> children = Arrays.asList(4, 5, 6, 7);
     List<ByteBuffer> data = Arrays.asList(ByteBuffer.wrap(Base64.decodeBase64("AAAAAAAAAAAAA==")));
     mEditLog.createDependency(parents, children, "fake command", data, "Comment Test",
-        "Tachyon Examples", "0.3", DependencyType.Narrow, 1, 1409349750338L);
+        "Tachyon Examples", "0.3", DependencyType.Narrow, 1, TEST_OP_TIME_MS);
     mEditLog.flush();
     mEditLog.close();
 
     // Read CREATE_DEPENDENCY and check
-    EditLogOperation op = getSingleOpFromFile(mTmpPath);
-    Assert.assertEquals(101, op.mTransId);
+    EditLogOperation op = getSingleOpFromFile(mEditLogPath);
+    Assert.assertEquals(TEST_TRANSACTION_ID + 1, op.mTransId);
     Assert.assertEquals(EditLogOperationType.CREATE_DEPENDENCY, op.mType);
     Assert.assertEquals(parents, op.get("parents", new TypeReference<List<Integer>>() {}));
     Assert.assertEquals(children, op.get("children", new TypeReference<List<Integer>>() {}));
@@ -128,26 +144,26 @@ public class EditLogTest {
     Assert.assertEquals("0.3", op.getString("frameworkVersion"));
     Assert.assertEquals(DependencyType.Narrow, op.get("dependencyType", DependencyType.class));
     Assert.assertEquals(1, op.getInt("dependencyId").intValue());
-    Assert.assertEquals(1409349750338L, op.getLong("creationTimeMs").longValue());
+    Assert.assertEquals(TEST_OP_TIME_MS, op.getLong("creationTimeMs").longValue());
   }
 
   @Test
   public void createFileTest() throws IOException {
     // Write CREATE_FILE
     TachyonURI createFilePath = new TachyonURI("/test/createFilePath");
-    mEditLog.createFile(true, createFilePath, false, 128L, 1409349750338L);
+    mEditLog.createFile(true, createFilePath, false, 128L, TEST_OP_TIME_MS);
     mEditLog.flush();
     mEditLog.close();
 
     // Read CREATE_FILE and check
-    EditLogOperation op = getSingleOpFromFile(mTmpPath);
-    Assert.assertEquals(101, op.mTransId);
+    EditLogOperation op = getSingleOpFromFile(mEditLogPath);
+    Assert.assertEquals(TEST_TRANSACTION_ID + 1, op.mTransId);
     Assert.assertEquals(EditLogOperationType.CREATE_FILE, op.mType);
     Assert.assertTrue(op.getBoolean("recursive"));
     Assert.assertEquals(createFilePath.toString(), op.getString("path"));
     Assert.assertFalse(op.getBoolean("directory"));
     Assert.assertEquals(128L, op.getLong("blockSizeByte").longValue());
-    Assert.assertEquals(1409349750338L, op.getLong("creationTimeMs").longValue());
+    Assert.assertEquals(TEST_OP_TIME_MS, op.getLong("creationTimeMs").longValue());
   }
 
   @Test
@@ -159,8 +175,8 @@ public class EditLogTest {
     mEditLog.close();
 
     // Read CREATE_RAW_TABLE and check
-    EditLogOperation op = getSingleOpFromFile(mTmpPath);
-    Assert.assertEquals(101, op.mTransId);
+    EditLogOperation op = getSingleOpFromFile(mEditLogPath);
+    Assert.assertEquals(TEST_TRANSACTION_ID + 1, op.mTransId);
     Assert.assertEquals(EditLogOperationType.CREATE_RAW_TABLE, op.mType);
     Assert.assertEquals(1, op.getInt("tableId").intValue());
     Assert.assertEquals(2, op.getInt("columns").intValue());
@@ -170,58 +186,50 @@ public class EditLogTest {
   @Test
   public void deleteTest() throws IOException {
     // Write DELETE
-    mEditLog.delete(1, true, 1409349750338L);
+    mEditLog.delete(1, true, TEST_OP_TIME_MS);
     mEditLog.flush();
     mEditLog.close();
 
     // Read DELETE and check
-    EditLogOperation op = getSingleOpFromFile(mTmpPath);
-    Assert.assertEquals(101, op.mTransId);
+    EditLogOperation op = getSingleOpFromFile(mEditLogPath);
+    Assert.assertEquals(TEST_TRANSACTION_ID + 1, op.mTransId);
     Assert.assertEquals(EditLogOperationType.DELETE, op.mType);
     Assert.assertEquals(1, op.getInt("fileId").intValue());
     Assert.assertTrue(op.getBoolean("recursive"));
-    Assert.assertEquals(1409349750338L, op.getLong("opTimeMs").longValue());
-  }
-
-  private EditLogOperation getSingleOpFromFile(String path) throws IOException {
-    DataInputStream is = new DataInputStream(new FileInputStream(path));
-    JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(is);
-    EditLogOperation ret = parser.readValueAs(EditLogOperation.class);
-    is.close();
-    return ret;
+    Assert.assertEquals(TEST_OP_TIME_MS, op.getLong("opTimeMs").longValue());
   }
 
   @Test
   public void renameTest() throws IOException {
     // Write RENAME
     TachyonURI renamePath = new TachyonURI("/test/renamePath");
-    mEditLog.rename(1, renamePath, 1409349750338L);
+    mEditLog.rename(1, renamePath, TEST_OP_TIME_MS);
     mEditLog.flush();
     mEditLog.close();
 
     // Read RENAME and check
-    EditLogOperation op = getSingleOpFromFile(mTmpPath);
-    Assert.assertEquals(101, op.mTransId);
+    EditLogOperation op = getSingleOpFromFile(mEditLogPath);
+    Assert.assertEquals(TEST_TRANSACTION_ID + 1, op.mTransId);
     Assert.assertEquals(EditLogOperationType.RENAME, op.mType);
     Assert.assertEquals(1, op.getInt("fileId").intValue());
     Assert.assertEquals(renamePath.toString(), op.getString("dstPath"));
-    Assert.assertEquals(1409349750338L, op.getLong("opTimeMs").longValue());
+    Assert.assertEquals(TEST_OP_TIME_MS, op.getLong("opTimeMs").longValue());
   }
 
   @Test
   public void setPinnedTest() throws IOException {
     // Write SET_PINNED
-    mEditLog.setPinned(1, true, 1409349750338L);
+    mEditLog.setPinned(1, true, TEST_OP_TIME_MS);
     mEditLog.flush();
     mEditLog.close();
 
     // Read SET_PINNED and check
-    EditLogOperation op = getSingleOpFromFile(mTmpPath);
-    Assert.assertEquals(101, op.mTransId);
+    EditLogOperation op = getSingleOpFromFile(mEditLogPath);
+    Assert.assertEquals(TEST_TRANSACTION_ID + 1, op.mTransId);
     Assert.assertEquals(EditLogOperationType.SET_PINNED, op.mType);
     Assert.assertEquals(1, op.getInt("fileId").intValue());
     Assert.assertTrue(op.getBoolean("pinned"));
-    Assert.assertEquals(1409349750338L, op.getLong("opTimeMs").longValue());
+    Assert.assertEquals(TEST_OP_TIME_MS, op.getLong("opTimeMs").longValue());
   }
 
   @Test
@@ -233,8 +241,8 @@ public class EditLogTest {
     mEditLog.close();
 
     // Read UPDATE_RAW_TABLE_METADATA and check
-    EditLogOperation op = getSingleOpFromFile(mTmpPath);
-    Assert.assertEquals(101, op.mTransId);
+    EditLogOperation op = getSingleOpFromFile(mEditLogPath);
+    Assert.assertEquals(TEST_TRANSACTION_ID + 1, op.mTransId);
     Assert.assertEquals(EditLogOperationType.UPDATE_RAW_TABLE_METADATA, op.mType);
     Assert.assertEquals(1, op.getInt("tableId").intValue());
     Assert.assertEquals(Base64.encodeBase64String(metadata.array()), op.getString("metadata"));
