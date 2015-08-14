@@ -32,7 +32,7 @@ import tachyon.thrift.InvalidPathException;
 
 /**
  * Provides utility methods for working with files and directories.
- * 
+ *
  * By convention, methods take file path strings as parameters.
  */
 public class FileUtils {
@@ -102,20 +102,28 @@ public class FileUtils {
   }
 
   /**
-   * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
-   * of the folder containing the 'file'.
+   * Sticky bit can be set primarily on directories in UNIX / Linux.
+   * 
+   * If the sticky bit of is enabled on a directory, only the owner and the root user can 
+   * delete / rename the files or directories within that directory. No one else can delete 
+   * other users data in this directory(Where sticky bit is set).
    *
-   * @param file file path to set the sticky bit
+   * This is a security measure to avoid deletion of folders and their content
+   * (sub-folders and files), though other users have full permissions.
+   * 
+   * Setting the sticky bit on a file is pretty much useless, and it doesn’t do anything.
+   * 
+   * @param dir absolute dir path to set the sticky bit
    * @throws IOException when fails to set sticky bit
    */
-  public static void setLocalFileStickyBit(String file) {
+  public static void setLocalDirStickyBit(String dir) {
     try {
       // sticky bit is not implemented in PosixFilePermission
-      if (file.startsWith(TachyonURI.SEPARATOR)) {
-        Runtime.getRuntime().exec("chmod o+t " + new File(file).getAbsolutePath());
+      if (dir.startsWith(TachyonURI.SEPARATOR)) {
+        Runtime.getRuntime().exec("chmod o+t " + new File(dir).getAbsolutePath());
       }
     } catch (IOException e) {
-      LOG.info("Can not set the sticky bit of the file : " + file);
+      LOG.info("Can not set the sticky bit of the direcotry : " + dir);
     }
   }
 
@@ -184,7 +192,7 @@ public class FileUtils {
     if (!dir.exists()) {
       if (dir.mkdirs()) {
         changeLocalFileToFullPermission(absolutePath);
-        setLocalFileStickyBit(absolutePath);
+        setLocalDirStickyBit(absolutePath);
         LOG.info("Folder {} was created!", path);
       } else {
         throw new IOException("Failed to create folder " + path);
@@ -193,7 +201,7 @@ public class FileUtils {
   }
 
   /**
-   * Creates a file and its intermediate directories if necessary.
+   * Creates an empty file and its intermediate directories if necessary.
    *
    * @param filePath pathname string of the file to create
    * @throws IOException if an I/O error occurred or file already exists
@@ -204,5 +212,25 @@ public class FileUtils {
     if (!file.createNewFile()) {
       throw new IOException("File already exists " + filePath);
     }
+  }
+
+  /**
+   * Creates an empty directory and its intermediate directories if necessary.
+   *
+   * @param path path of the directory to create
+   * @throws IOException if an I/O error occurred or directory already exists
+   */
+  public static void createDir(String path) throws IOException {
+    new File(path).mkdirs();
+  }
+
+  /**
+   * Checks if a path exists.
+   *
+   * @param path the given path
+   * @return true if path exists, false otherwise
+   */
+  public static boolean exists(String path) {
+    return new File(path).exists();
   }
 }
