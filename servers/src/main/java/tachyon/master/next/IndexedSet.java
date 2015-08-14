@@ -38,14 +38,14 @@ import com.google.common.collect.Sets;
  * This class is thread safe.
  */
 public class IndexedSet<T> {
+  /** All objects in the set */
+  private final Set<T> mObjects;
   /** Map from field index to an index of field related object in the internal lists */
   private final Map<FieldIndex<T>, Integer> mIndexMap;
   /** List of maps from fieldValue to set of T which is indexed by field name */
   private final List<Map<Object, Set<T>>> mSetIndexedByFieldValue;
   /** List of {@link Field} which is indexed by field name */
   private final List<Field> mFields;
-  /** Number of all objects */
-  private int mSize = 0;
 
   /**
    * A wrapper around a field name string to force the user to predefine the indexes, the user can
@@ -65,8 +65,9 @@ public class IndexedSet<T> {
    * @param field at least one field is needed to index the set of objects
    * @param otherFields other fields to index the set
    */
-  // TODO: if reflections on T can be gotten in the constructor, validate the passed fields
   public IndexedSet(FieldIndex<T> field, FieldIndex<T>... otherFields) {
+    mObjects = new HashSet<T>();
+
     mIndexMap = new HashMap<FieldIndex<T>, Integer>(otherFields.length + 1);
     mIndexMap.put(field, 0);
     for (int i = 1; i <= otherFields.length; i ++) {
@@ -93,39 +94,29 @@ public class IndexedSet<T> {
    */
   public boolean add(T object) {
     synchronized (mFields) {
-      boolean success = true;
+      boolean success = mObjects.add(object);
       for (FieldIndex<T> field : mIndexMap.keySet()) {
         Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(mIndexMap.get(field));
         Object value = field.getFieldValue(object);
         if (fieldValueToSet.containsKey(value)) {
-          if (!fieldValueToSet.get(value).add(object)) {
-            success = false;
-          }
+          success = success && fieldValueToSet.get(value).add(object);
         } else {
           fieldValueToSet.put(value, Sets.newHashSet(object));
         }
-      }
-      if (success) {
-        mSize += 1;
       }
       return success;
     }
   }
 
   /**
-   * Return the set of all objects, this method could be expensive, O(n) in worst case, n is the
-   * number of all objects.
+   * Return the set of all objects, the returned set is backed up by the internal set, any changes
+   * to the internal set are reflected in the returned set, and vice-versa.
    *
    * @return a set of all objects
    */
   public Set<T> all() {
     synchronized (mFields) {
-      Map<Object, Set<T>> setForOneField = mSetIndexedByFieldValue.get(0);
-      Set<T> ret = new HashSet<T>();
-      for (Set<T> set : setForOneField.values()) {
-        ret.addAll(set);
-      }
-      return ret;
+      return mObjects;
     }
   }
 
@@ -179,32 +170,21 @@ public class IndexedSet<T> {
    * @return true if the object is in the set and removed successfully, otherwise false
    */
   public boolean remove(T object) {
-    boolean removed = true;
-    boolean triedToRemove = false;
-    for (FieldIndex<T> field : mIndexMap.keySet()) {
-      Object fieldValue = field.getFieldValue(object);
-
-      int id = mIndexMap.get(field);
-      synchronized (mFields) {
-        Set<T> set = mSetIndexedByFieldValue.get(id).get(fieldValue);
+    synchronized (mFields) {
+      boolean success = mObjects.remove(object);
+      for (FieldIndex<T> field : mIndexMap.keySet()) {
+        Object fieldValue = field.getFieldValue(object);
+        Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(mIndexMap.get(field));
+        Set<T> set = fieldValueToSet.get(fieldValue);
         if (set != null) {
-          triedToRemove = true;
-          if (!set.remove(object)) {
-            removed = false;
-          }
+          success = success && set.remove(object);
           if (set.isEmpty()) {
-            mSetIndexedByFieldValue.get(id).remove(fieldValue);
+            fieldValueToSet.remove(fieldValue);
           }
         }
       }
+      return success;
     }
-    boolean success = removed && triedToRemove;
-    if (success) {
-      synchronized (mFields) {
-        mSize -= 1;
-      }
-    }
-    return success;
   }
 
   /**
@@ -234,7 +214,9 @@ public class IndexedSet<T> {
    * @return number of all objects, O(1)
    */
   public int size() {
-    return mSize;
+    synchronized (mFields) {
+      return mObjects.size();
+    }
   }
 
   private Set<T> getByFieldInternal(FieldIndex<T> index, Object value) {
