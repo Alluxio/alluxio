@@ -105,22 +105,23 @@ public final class NetworkAddressUtils {
 
     ServiceType(String serviceName, String hostNameKey, String bindHostKey, String portKey,
         int defaultPort) {
-      this.mServiceName = serviceName;
-      this.mHostNameKey = hostNameKey;
-      this.mBindHostKey = bindHostKey;
-      this.mPortKey = portKey;
-      this.mDefaultPort = defaultPort;
+      mServiceName = serviceName;
+      mHostNameKey = hostNameKey;
+      mBindHostKey = bindHostKey;
+      mPortKey = portKey;
+      mDefaultPort = defaultPort;
     }
   }
 
   /**
-   * Gets service connection hostname. If the connection hostname is not explicitly specified,
-   * Tachyon will try bind hostname. If the bind hostname is wildcard, Tachyon will automatically
-   * select an appropriate local hostname.
+   * Provides an externally resolvable hostname for client to communicate with the service. If the
+   * hostname is not explicitly specified, Tachyon will try to use the bind host. If the bind host
+   * is wildcard, Tachyon will automatically determine an appropriate hostname from local machine.
    *
    * @param service Service type used to connect
    * @param conf Tachyon configuration used to look up the host resolution timeout
-   * @return the connection hostname that a client can use to reach the service.
+   * @return the externally resolvable hostname that the client can use to communicate with the
+   *         service.
    */
   public static String getConnectHost(ServiceType service, TachyonConf conf) {
     String connectHost = conf.get(service.mHostNameKey, "");
@@ -137,10 +138,10 @@ public final class NetworkAddressUtils {
 
   /**
    * Gets the port number on a given service type. If user defined port number is not explicitly
-   * specified, Tachyon will select the default port number on the service.
+   * specified, Tachyon will use the default service port.
    *
    * @param service Service type used to connect
-   * @param conf Tachyon configuration used to look up the host resolution timeout
+   * @param conf Tachyon configuration
    * @return the service port number.
    */
   public static int getPort(ServiceType service, TachyonConf conf) {
@@ -148,11 +149,13 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Helper method to get the {@link InetSocketAddress} connection address on a given service.
+   * Helper method to get the {@link InetSocketAddress} address for client to communicate with the
+   * service.
    *
    * @param service the service name used to connect
    * @param conf the configuration of Tachyon
-   * @return a connection endpoint that a client uses to communicate with service.
+   * @return the service address that a client (typically outside the service machine) uses to
+   *         communicate with service.
    */
   public static InetSocketAddress getConnectAddress(ServiceType service, TachyonConf conf) {
     return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
@@ -161,16 +164,16 @@ public final class NetworkAddressUtils {
   /**
    * Helper method to get the {@link InetSocketAddress} bind address on a given service.
    * <p>
-   * Host binding strategy on multihomed networks:
+   * Host bind information searching order:
    * <ol>
-   * <li>Environment variables via tachyon-env.sh or from OS settings
+   * <li>System properties or environment variables via tachyon-env.sh
    * <li>Default properties via tachyon-default.properties file
-   * <li>A reachable local host name for the host this JVM is running on
+   * <li>A externally resolvable local hostname for the host this JVM is running on
    * </ol>
    *
    * @param service the service name used to connect
    * @param conf the configuration of Tachyon
-   * @return the {@link InetSocketAddress} the service will bind to
+   * @return the InetSocketAddress the service will bind to
    */
   public static InetSocketAddress getBindAddress(ServiceType service, TachyonConf conf) {
     String host = conf.get(service.mBindHostKey, "");
