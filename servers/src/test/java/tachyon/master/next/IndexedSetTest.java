@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.Assert;
 
 public class IndexedSetTest {
-  class Pair {
+  private static class Pair {
     // mInt is private, mDouble is public, this is deliberate to assure both private and public
     // fields can be accessed.
     private int mInt;
@@ -107,6 +107,13 @@ public class IndexedSetTest {
     Assert.assertEquals(8, mSet.size());
     Assert.assertEquals(2, mSet.getByField(mIntIndex, toRemove.intValue()).size());
     Assert.assertEquals(2, mSet.getByField(mDoubleIndex, toRemove.mDouble).size());
+  }
+
+  @Test
+  public void removeNonExistTest() {
+    Assert.assertFalse(mSet.remove(new Pair(-1, -1)));
+    Assert.assertFalse(mSet.removeByField(mIntIndex, -1));
+    Assert.assertFalse(mSet.removeByField(mDoubleIndex, -1.0));
   }
 
   @Test

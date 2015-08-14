@@ -106,7 +106,7 @@ public class InodeDirectory extends Inode {
    * @return the inode with the given id, or null if there is no child with that id
    */
   public synchronized Inode getChild(int id) {
-    return mChildren.getFirst(mIdIndex, id);
+    return mChildren.getFirstByField(mIdIndex, id);
   }
 
   /**
@@ -116,7 +116,7 @@ public class InodeDirectory extends Inode {
    * @return the inode with the given name, or null if there is no child with that name
    */
   public synchronized Inode getChild(String name) {
-    return mChildren.getFirst(mNameIndex, name);
+    return mChildren.getFirstByField(mNameIndex, name);
   }
 
   /**
