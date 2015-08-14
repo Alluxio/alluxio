@@ -6,7 +6,7 @@
   var nFilePerPage = 20;
   var nMaxPageShown = 10;
 
-  var baseUrl = "/blockInfo";
+  var baseUrl = "/masterBlockInfo";
   var nFilePerPageCookie = "nFilePerPageMemory";
   var nMaxPageShownCookie = "nMaxPageShownMemory";
 

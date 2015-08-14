@@ -15,20 +15,15 @@
 
 package tachyon.master.next.block.meta;
 
-import tachyon.thrift.NetAddress;
-
 /**
- * The location of the block, exposed to by the block master.
+ * The location of the block.
  */
-public class UserBlockLocation {
-  // TODO: this should become a thrift object.
+public class MasterBlockLocation {
   public long mWorkerId;
-  public NetAddress mAddress;
   public int mTier;
 
-  public UserBlockLocation(long workerId, NetAddress address, int tier) {
+  MasterBlockLocation(long workerId, int tier) {
     mWorkerId = workerId;
-    mAddress = address;
     mTier = tier;
   }
 }
