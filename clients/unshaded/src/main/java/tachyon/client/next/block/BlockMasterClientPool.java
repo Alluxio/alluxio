@@ -15,49 +15,32 @@
 
 package tachyon.client.next.block;
 
-import com.google.common.base.Throwables;
-import tachyon.conf.TachyonConf;
-import tachyon.master.MasterClient;
-import tachyon.util.ThreadFactoryUtils;
-
 import java.net.InetSocketAddress;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import tachyon.client.next.ResourcePool;
+import tachyon.conf.TachyonConf;
+import tachyon.master.MasterClient;
+import tachyon.util.ThreadFactoryUtils;
 
 /**
  * Class for managing block master clients. After obtaining a client with Acquire, Release must
  * be called when the thread is done using the client.
  */
-public class BlockMasterClientPool {
-  private final BlockingQueue<MasterClient> mClients;
+public class BlockMasterClientPool extends ResourcePool<MasterClient> {
   private final ExecutorService mExecutorService;
 
   public BlockMasterClientPool(InetSocketAddress masterAddress, TachyonConf conf) {
     // TODO: Get capacity from conf
-    mClients = new LinkedBlockingQueue<MasterClient>(10);
-    mExecutorService = Executors.newFixedThreadPool(10, ThreadFactoryUtils.build
-        ("block-master-heartbeat-%d", true));
+    mResources = new LinkedBlockingQueue<MasterClient>(10);
+    mExecutorService = Executors.newFixedThreadPool(10, ThreadFactoryUtils.build(
+        "block-master-heartbeat-%d", true));
 
     // Initialize Clients
-    for(int i = 0; i < mClients.size(); i++) {
-      mClients.add(new MasterClient(masterAddress, mExecutorService, conf));
-    }
-  }
-
-  /**
-   * Acquires a {@link MasterClient}, this operation is blocking if no clients are available.
-   *
-   * @return a MasterClient, guaranteed to be only available to the caller
-   */
-  public MasterClient acquire() {
-    try {
-      return mClients.take();
-    } catch (InterruptedException ie) {
-      // TODO: Investigate the best way to handle this
-      // Failed to get a client, panic
-      throw new RuntimeException(ie);
+    for (int i = 0; i < mResources.size(); i ++) {
+      mResources.add(new MasterClient(masterAddress, mExecutorService, conf));
     }
   }
 
@@ -67,16 +50,5 @@ public class BlockMasterClientPool {
   public void close() {
     // TODO: Consider collecting all the clients and shutting them down
     mExecutorService.shutdown();
-  }
-
-  /**
-   * Releases a {@link MasterClient}, this must be called after the thread is done using a client
-   * obtained by acquire.
-   *
-   * @param masterClient the MasterClient to be released, the client should not be used by the
-   *                     thread after this call
-   */
-  public void release(MasterClient masterClient) {
-    mClients.add(masterClient);
   }
 }
