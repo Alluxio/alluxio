@@ -102,17 +102,25 @@ public class FileUtils {
   }
 
   /**
-   * If the sticky bit of is set on the directory 'dir', the 'dir' can only 
-   * be deleted or renamed by the owner 
+   * Sticky bit can be set primarily on directories in UNIX / Linux.
+   * 
+   * If the sticky bit of is enabled on a directory, only the owner and the root user can 
+   * delete / rename the files or directories within that directory. No one else can delete 
+   * other users data in this directory(Where sticky bit is set).
    *
-   * @param dir absolute dir path
+   * This is a security measure to avoid deletion of folders and their content
+   * (sub-folders and files), though other users have full permissions.
+   * 
+   * Setting the sticky bit on a file is pretty much useless, and it doesn’t do anything.
+   * 
+   * @param dir absolute dir path to set the sticky bit
    * @throws IOException when fails to set sticky bit
    */
   public static void setLocalDirStickyBit(String dir) {
     try {
       // sticky bit is not implemented in PosixFilePermission
       if (dir.startsWith(TachyonURI.SEPARATOR)) {
-        Runtime.getRuntime().exec("chmod o+t " + dir);
+        Runtime.getRuntime().exec("chmod o+t " + new File(dir).getAbsolutePath());
       }
     } catch (IOException e) {
       LOG.info("Can not set the sticky bit of the direcotry : " + dir);
@@ -128,20 +136,12 @@ public class FileUtils {
    *         permissions.
    */
   public static void createBlockPath(String path) throws IOException {
-    File localFolder;
     try {
-      localFolder = new File(PathUtils.getParent(path));
+      createStorageDirPath(PathUtils.getParent(path));
     } catch (InvalidPathException e) {
-      throw new IOException(e);
-    }
-
-    if (!localFolder.exists()) {
-      if (localFolder.mkdirs()) {
-        changeLocalFileToFullPermission(localFolder.getAbsolutePath());
-        LOG.info("Folder {} was created!", localFolder);
-      } else {
-        throw new IOException("Failed to create folder " + localFolder);
-      }
+      throw new IOException("Failed to create block path, get parent path of " + path + "failed");
+    } catch (IOException ioe) {
+      throw new IOException("Failed to create block path " + path);
     }
   }
 
@@ -174,6 +174,29 @@ public class FileUtils {
     boolean deletionSucceeded = file.delete();
     if (deletionSucceeded == false) {
       throw new IOException("Failed to delete " + path);
+    }
+  }
+  
+  /**
+   * Create the storage directory path, including any necessary but nonexistent parent directories.
+   * If the directory already exists, do nothing. 
+   * 
+   * Also, appropriate directory permissions (777 + StickyBit, namely "drwxrwxrwt") are set.
+   * 
+   * @param path storage directory path to create
+   * @throws IOException when fails to create storage directory path
+   */
+  public static void createStorageDirPath(String path) throws IOException {
+    File dir = new File(path);
+    String absolutePath = dir.getAbsolutePath();
+    if (!dir.exists()) {
+      if (dir.mkdirs()) {
+        changeLocalFileToFullPermission(absolutePath);
+        setLocalDirStickyBit(absolutePath);
+        LOG.info("Folder {} was created!", path);
+      } else {
+        throw new IOException("Failed to create folder " + path);
+      }
     }
   }
 
