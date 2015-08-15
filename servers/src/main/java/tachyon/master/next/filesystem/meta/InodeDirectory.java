@@ -15,6 +15,8 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,9 +26,14 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
+import tachyon.master.next.ImageEntry;
+import tachyon.master.next.ImageEntryType;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -34,6 +41,45 @@ import tachyon.thrift.FileInfo;
  */
 public class InodeDirectory extends Inode {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  public static InodeDirectory load(JsonParser parser, ImageEntry entry) throws IOException {
+    final long creationTimeMs = entry.getLong("creationTimeMs");
+    final int fileId = entry.getInt("id");
+    final boolean isPinned = entry.getBoolean("pinned");
+    final String fileName = entry.getString("name");
+    final int parentId = entry.getInt("parentId");
+    List<Integer> childrenIds = entry.get("childrenIds", new TypeReference<List<Integer>>() {});
+    final long lastModificationTimeMs = entry.getLong("lastModificationTimeMs");
+    int numberOfChildren = childrenIds.size();
+    Inode[] children = new Inode[numberOfChildren];
+    for (int k = 0; k < numberOfChildren; k ++) {
+      try {
+        entry = parser.readValueAs(ImageEntry.class);
+        LOG.debug("Read Element: {}", entry);
+      } catch (IOException e) {
+        throw e;
+      }
+
+      switch (entry.type()) {
+        case InodeFile: {
+          children[k] = InodeFile.load(entry);
+          break;
+        }
+        case InodeDirectory: {
+          children[k] = InodeDirectory.load(parser, entry);
+          break;
+        }
+        default:
+          throw new IOException("Invalid entryment type " + entry);
+      }
+    }
+
+    InodeDirectory dir = new InodeDirectory(fileName, fileId, parentId, creationTimeMs);
+    dir.setPinned(isPinned);
+    dir.addChildren(children);
+    dir.setLastModificationTimeMs(lastModificationTimeMs);
+    return dir;
+  }
 
   private Map<Long, Inode> mChildrenIds = new HashMap<Long, Inode>();
   private Map<String, Inode> mChildrenNames = new HashMap<String, Inode>();
@@ -169,6 +215,25 @@ public class InodeDirectory extends Inode {
       return true;
     }
     return false;
+  }
+
+  @Override
+  public void dump(ObjectWriter objWriter, DataOutputStream dos) throws IOException {
+    ImageEntry entry =
+        new ImageEntry(ImageEntryType.InodeDirectory)
+            .withParameter("creationTimeMs", getCreationTimeMs())
+            .withParameter("id", getId())
+            .withParameter("name", getName())
+            .withParameter("parentId", getParentId())
+            .withParameter("pinned", isPinned())
+            .withParameter("childrenIds", getChildrenIds())
+            .withParameter("lastModificationTimeMs", getLastModificationTimeMs());
+
+    entry.dump(objWriter, dos);
+
+    for (Inode inode : getChildren()) {
+      inode.dump(objWriter, dos);
+    }
   }
 
   @Override

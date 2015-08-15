@@ -36,7 +36,7 @@ import com.google.common.collect.Maps;
 /**
  * Base class of all Json objects in Tachyon.
  */
-abstract class JsonObject {
+public abstract class JsonObject {
   /** Creates a JSON ObjectMapper configured not to close the underlying stream. */
   public static ObjectMapper createObjectMapper() {
     // TODO: Could disable field name quoting, though this would produce technically invalid JSON
@@ -164,12 +164,4 @@ abstract class JsonObject {
    * @throws IOException when I/O exception happens during writing to output stream
    */
   public abstract void dump(ObjectWriter objWriter, DataOutputStream dos) throws IOException;
-
-  /**
-   * Load serialized object from the JsonParser into this JsonObject.
-   *
-   * @param parser the JsonParser to load serialized object from
-   * @throws IOException when I/O exception happens during loading data from the parser
-   */
-  public abstract void load(JsonParser parser) throws IOException;
 }
