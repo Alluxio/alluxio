@@ -15,12 +15,13 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import tachyon.master.next.JsonObject;
 import tachyon.thrift.FileInfo;
 
 /**
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
-public abstract class Inode {
+public abstract class Inode extends JsonObject {
   private final long mCreationTimeMs;
   protected final boolean mIsFolder;
 

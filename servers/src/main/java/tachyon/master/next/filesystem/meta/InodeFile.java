@@ -15,10 +15,16 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
+
 import tachyon.master.block.BlockId;
+import tachyon.master.next.ImageEntry;
+import tachyon.master.next.ImageEntryType;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -27,6 +33,36 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Tachyon file system's file representation in master.
  */
 public class InodeFile extends Inode {
+  public static InodeFile load(ImageEntry entry) throws IOException {
+    final long creationTimeMs = entry.getLong("creationTimeMs");
+    final int fileId = entry.getInt("id");
+    final String fileName = entry.getString("name");
+    final int parentId = entry.getInt("parentId");
+    final long blockSizeByte = entry.getLong("blockSizeByte");
+    final long length = entry.getLong("length");
+    final boolean isComplete = entry.getBoolean("complete");
+    final boolean isPinned = entry.getBoolean("pin");
+    final boolean isCache = entry.getBoolean("cache");
+    final String ufsPath = entry.getString("ufsPath");
+    final long lastModificationTimeMs = entry.getLong("lastModificationTimeMs");
+
+    InodeFile inode = new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
+
+    try {
+      inode.setLength(length);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+    if (isComplete) {
+      inode.setComplete();
+    }
+    inode.setPinned(isPinned);
+    inode.setCache(isCache);
+    inode.setUfsPath(ufsPath);
+    inode.setLastModificationTimeMs(lastModificationTimeMs);
+    return inode;
+  }
+
   private final long mBlockContainerId;
   private final long mBlockSizeBytes;
 
@@ -292,6 +328,24 @@ public class InodeFile extends Inode {
       length -= blockSize;
     }
     mIsComplete = true;
+  }
+
+  @Override
+  public void dump(ObjectWriter objWriter, DataOutputStream dos) throws IOException {
+    ImageEntry entry = new ImageEntry(ImageEntryType.InodeFile)
+        .withParameter("createTimeMs", getCreationTimeMs())
+        .withParameter("id", getId())
+        .withParameter("name", getName())
+        .withParameter("parentId", getParentId())
+        .withParameter("blockSizeByte", getBlockSizeBytes())
+        .withParameter("length", getLength())
+        .withParameter("complete", isComplete())
+        .withParameter("pin", isPinned())
+        .withParameter("cache", isCache())
+        .withParameter("ufsPath", getUfsPath())
+        .withParameter("lastModificationTimeMs", getLastModificationTimeMs());
+
+    entry.dump(objWriter, dos);
   }
 
   @Override
