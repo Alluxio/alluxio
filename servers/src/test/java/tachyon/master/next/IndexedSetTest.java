@@ -59,8 +59,8 @@ public class IndexedSetTest {
     };
     mSet = new IndexedSet<Pair>(mIntIndex, mDoubleIndex);
     for (int i = 0; i < 3; i ++) {
-      for (double d = 0; d < 3.0; d ++) {
-        mSet.add(new Pair(i, d));
+      for (int d = 0; d < 3; d ++) {
+        mSet.add(new Pair(i, (double)d));
       }
     }
   }
@@ -71,8 +71,8 @@ public class IndexedSetTest {
       Assert.assertTrue(mSet.contains(mIntIndex, i));
     }
     Assert.assertFalse(mSet.contains(mIntIndex, 4));
-    for (double d = 0; d < 3.0; d ++) {
-      Assert.assertTrue(mSet.contains(mDoubleIndex, d));
+    for (int d = 0; d < 3; d ++) {
+      Assert.assertTrue(mSet.contains(mDoubleIndex, (double)d));
     }
     Assert.assertFalse(mSet.contains(mDoubleIndex, 2.9));
   }
@@ -133,8 +133,8 @@ public class IndexedSetTest {
     Assert.assertEquals(0, mSet.getByField(mIntIndex, 1).size());
     Assert.assertEquals(3, mSet.getByField(mIntIndex, 0).size());
     Assert.assertEquals(3, mSet.getByField(mIntIndex, 2).size());
-    for (double d = 0; d < 3; d ++) {
-      Assert.assertEquals(2, mSet.getByField(mDoubleIndex, d).size());
+    for (int d = 0; d < 3; d ++) {
+      Assert.assertEquals(2, mSet.getByField(mDoubleIndex, (double)d).size());
     }
   }
 }
