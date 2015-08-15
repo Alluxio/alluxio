@@ -47,7 +47,7 @@ abstract class JsonObject {
 
   private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
 
-  public Map<String, JsonNode> mParameters = Maps.newHashMap();
+  protected Map<String, JsonNode> mParameters = Maps.newHashMap();
 
   /**
    * Generic parameter getter, useful for custom classes or enums. Use a more specific getter, like
