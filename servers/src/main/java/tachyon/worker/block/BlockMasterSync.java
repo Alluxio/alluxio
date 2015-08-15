@@ -50,7 +50,6 @@ import tachyon.util.ThreadFactoryUtils;
  */
 public class BlockMasterSync implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** The thread pool to remove block */
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
@@ -71,6 +70,7 @@ public class BlockMasterSync implements Runnable {
   private volatile boolean mRunning;
   /** The id of the worker */
   private long mWorkerId;
+  /** The thread pool to remove block */
   private final ExecutorService mFixedExecutionService =
           Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
