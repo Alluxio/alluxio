@@ -15,6 +15,8 @@
 
 package tachyon.master.next;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +24,11 @@ import java.util.Map;
 import org.apache.commons.codec.binary.Base64;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -151,4 +155,21 @@ abstract class JsonObject {
     mParameters.put(name, OBJECT_MAPPER.convertValue(value, JsonNode.class));
     return this;
   }
+
+  /**
+   * Dump this JsonObject to an DataOutputStream by ObjectWriter.
+   *
+   * @param objWriter the ObjectWriter to serialize this JsonObject
+   * @param dos the destination DataOutputStream
+   * @throws IOException when I/O exception happens during writing to output stream
+   */
+  public abstract void dump(ObjectWriter objWriter, DataOutputStream dos) throws IOException;
+
+  /**
+   * Load serialized object from the JsonParser into this JsonObject.
+   *
+   * @param parser the JsonParser to load serialized object from
+   * @throws IOException when I/O exception happens during loading data from the parser
+   */
+  public abstract void load(JsonParser parser) throws IOException;
 }
