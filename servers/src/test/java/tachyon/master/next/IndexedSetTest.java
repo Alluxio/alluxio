@@ -26,24 +26,26 @@ import org.junit.Assert;
 
 public class IndexedSetTest {
   private static class Pair {
-    // mInt is private, mDouble is public, this is deliberate to assure both private and public
-    // fields can be accessed.
     private int mInt;
-    public double mDouble;
+    private long mLong;
 
-    public Pair(int i, double d) {
+    public Pair(int i, long l) {
       mInt = i;
-      mDouble = d;
+      mLong = l;
     }
 
     public int intValue() {
       return mInt;
     }
+
+    public long longValue() {
+      return mLong;
+    }
   }
 
   private IndexedSet<Pair> mSet;
   private IndexedSet.FieldIndex<Pair> mIntIndex;
-  private IndexedSet.FieldIndex<Pair> mDoubleIndex;
+  private IndexedSet.FieldIndex<Pair> mLongIndex;
 
   @Before
   public void before() {
@@ -52,15 +54,15 @@ public class IndexedSetTest {
         return o.intValue();
       }
     };
-    mDoubleIndex = new IndexedSet.FieldIndex<Pair>() {
+    mLongIndex = new IndexedSet.FieldIndex<Pair>() {
       public Object getFieldValue(Pair o) {
-        return o.mDouble;
+        return o.longValue();
       }
     };
-    mSet = new IndexedSet<Pair>(mIntIndex, mDoubleIndex);
+    mSet = new IndexedSet<Pair>(mIntIndex, mLongIndex);
     for (int i = 0; i < 3; i ++) {
-      for (int d = 0; d < 3; d ++) {
-        mSet.add(new Pair(i, (double)d));
+      for (long l = 0; l < 3; l ++) {
+        mSet.add(new Pair(i, l));
       }
     }
   }
@@ -71,10 +73,10 @@ public class IndexedSetTest {
       Assert.assertTrue(mSet.contains(mIntIndex, i));
     }
     Assert.assertFalse(mSet.contains(mIntIndex, 4));
-    for (int d = 0; d < 3; d ++) {
-      Assert.assertTrue(mSet.contains(mDoubleIndex, (double)d));
+    for (long l = 0; l < 3; l ++) {
+      Assert.assertTrue(mSet.contains(mLongIndex, l));
     }
-    Assert.assertFalse(mSet.contains(mDoubleIndex, 2.9));
+    Assert.assertFalse(mSet.contains(mLongIndex, 4L));
   }
 
   @Test
@@ -82,18 +84,18 @@ public class IndexedSetTest {
     for (int i = 0; i < 3; i ++) {
       Set<Pair> set = mSet.getByField(mIntIndex, i);
       Assert.assertEquals(3, set.size());
-      List<Double> doubles = new ArrayList<Double>(set.size());
+      List<Long> longs = new ArrayList<Long>(set.size());
       for (Pair o : set) {
-        doubles.add(o.mDouble);
+        longs.add(o.longValue());
       }
-      Collections.sort(doubles);
+      Collections.sort(longs);
       for (int j = 0; j < 3; j ++) {
-        Assert.assertEquals(new Double(j), doubles.get(j));
+        Assert.assertEquals(new Long(j), longs.get(j));
       }
 
-      set = mSet.getByField(mDoubleIndex, i);
+      set = mSet.getByField(mLongIndex, i);
       Assert.assertEquals(0, set.size()); // i is integer, must be in the same type
-      set = mSet.getByField(mDoubleIndex, (double) i);
+      set = mSet.getByField(mLongIndex, (long) i);
       Assert.assertEquals(3, set.size());
       List<Integer> ints = new ArrayList<Integer>(set.size());
       for (Pair o : set) {
@@ -109,19 +111,19 @@ public class IndexedSetTest {
   @Test
   public void removeTest() {
     Pair toRemove = mSet.all().iterator().next();
-    Assert.assertEquals(3, mSet.getByField(mDoubleIndex, toRemove.mDouble).size());
+    Assert.assertEquals(3, mSet.getByField(mLongIndex, toRemove.longValue()).size());
     Assert.assertEquals(9, mSet.size());
     Assert.assertTrue(mSet.remove(toRemove));
     Assert.assertEquals(8, mSet.size());
     Assert.assertEquals(2, mSet.getByField(mIntIndex, toRemove.intValue()).size());
-    Assert.assertEquals(2, mSet.getByField(mDoubleIndex, toRemove.mDouble).size());
+    Assert.assertEquals(2, mSet.getByField(mLongIndex, toRemove.longValue()).size());
   }
 
   @Test
   public void removeNonExistTest() {
     Assert.assertFalse(mSet.remove(new Pair(-1, -1)));
     Assert.assertFalse(mSet.removeByField(mIntIndex, -1));
-    Assert.assertFalse(mSet.removeByField(mDoubleIndex, -1.0));
+    Assert.assertFalse(mSet.removeByField(mLongIndex, -1L));
   }
 
   @Test
@@ -133,8 +135,8 @@ public class IndexedSetTest {
     Assert.assertEquals(0, mSet.getByField(mIntIndex, 1).size());
     Assert.assertEquals(3, mSet.getByField(mIntIndex, 0).size());
     Assert.assertEquals(3, mSet.getByField(mIntIndex, 2).size());
-    for (int d = 0; d < 3; d ++) {
-      Assert.assertEquals(2, mSet.getByField(mDoubleIndex, (double)d).size());
+    for (long l = 0; l < 3; l ++) {
+      Assert.assertEquals(2, mSet.getByField(mLongIndex, l).size());
     }
   }
 }
