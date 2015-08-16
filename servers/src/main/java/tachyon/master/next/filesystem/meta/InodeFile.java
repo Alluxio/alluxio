@@ -100,7 +100,8 @@ public class InodeFile extends Inode {
   public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
 
-    ret.fileId = getId();
+    // TODO: make this a long.
+    ret.fileId = (int) getId();
     ret.name = getName();
     ret.path = path;
     ret.ufsPath = mUfsPath;
@@ -180,6 +181,9 @@ public class InodeFile extends Inode {
   public synchronized long getNewBlockId() {
     long blockId = BlockId.createBlockId(mBlockContainerId, mBlocks.size());
     // TODO: check for max block sequence number, and sanity check the sequence number.
+    // TODO: check isComplete?
+    // TODO: This will not work with existing lineage implementation, since a new writer will not be
+    // able to get the same block ids (to write the same block ids).
     mBlocks.add(blockId);
     return blockId;
   }

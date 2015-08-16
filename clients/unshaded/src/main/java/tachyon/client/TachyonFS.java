@@ -523,7 +523,7 @@ public class TachyonFS extends AbstractTachyonFS {
     if (fileInfo == null) {
       return null;
     }
-    return new TachyonFile(this, fileInfo.getId(), mTachyonConf);
+    return new TachyonFile(this, fileInfo.getFileId(), mTachyonConf);
   }
 
   /**
@@ -547,7 +547,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized int getFileId(TachyonURI path) {
     try {
       FileInfo fileInfo = getFileStatus(-1, path, false);
-      return fileInfo == null ? -1 : fileInfo.getId();
+      return fileInfo == null ? -1 : fileInfo.getFileId();
     } catch (IOException e) {
       return -1;
     }
@@ -576,7 +576,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
     info = mMasterClient.getFileStatus(fileId, path);
 
-    fileId = info.getId();
+    fileId = info.getFileId();
     if (fileId == -1) {
       cache.remove(key);
       return null;
