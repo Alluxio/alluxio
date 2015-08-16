@@ -139,4 +139,17 @@ public class IndexedSetTest {
       Assert.assertEquals(2, mSet.getByField(mLongIndex, l).size());
     }
   }
+
+  @Test
+  public void addTheSameObjectMultipleTimesTest() {
+    for (int i = 0; i < 3; i ++) {
+      Assert.assertEquals(9, mSet.size());
+      Assert.assertEquals(3, mSet.getByField(mIntIndex, i).size());
+      for (Pair p : mSet.getByField(mIntIndex, i)) {
+        mSet.add(p);
+      }
+      Assert.assertEquals(9, mSet.size());
+      Assert.assertEquals(3, mSet.getByField(mIntIndex, i).size());
+    }
+  }
 }
