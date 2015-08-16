@@ -37,44 +37,45 @@ import tachyon.Constants;
  * must not be changed after being added to the set, otherwise, behavior for all operations is not
  * specified.
  *
- * In operations that need field name as the parameter, if the object does not have the field, a
- * RuntimeException will be thrown.
- *
  * This class is thread safe.
  */
 public class IndexedSet<T> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** All objects in the set */
-  private final Set<T> mObjects;
+  private final Set<T> mObjects = new HashSet<T>();
   /** Map from field index to an index of field related object in the internal lists */
   private final Map<FieldIndex<T>, Integer> mIndexMap;
-  /** List of maps from fieldValue to set of T which is indexed by field name */
+  /** List of maps from value of a specific field to set of objects with the field value */
   private final List<Map<Object, Set<T>>> mSetIndexedByFieldValue;
   /** Final object for synchronization */
   private final Object mLock = new Object();
 
   /**
-   * A wrapper around a field name string to force the user to predefine the indexes, the user can
-   * reuse the instance of this class as parameters later other than directly use the error prone
-   * raw Strings.
+   * An interface representing an index for this IndexedSet, each index for this set must implement
+   * the interface to define how to get the value of the field chosen as the index. Users must use
+   * the same instance of the implementation of this interface as the parameter in all methods of
+   * IndexedSet to represent the same index.
+   *
+   * @param <T> type of objects in this IndexedSet
    */
   public static interface FieldIndex<T> {
+    /**
+     * Get the value of the field that serves as index.
+     *
+     * @param o the instance to get the field value from
+     * @return the field value, which is just an Object
+     */
     Object getFieldValue(T o);
   }
 
   /**
-   * Construct a new IndexedSet with at least one field as the index, the field can be either public
-   * or private. The {@link Field}s for these fields aren't retrieved until {@link #add(Object)} is
-   * called for the first time, it will be cached once it is retrieved so that reflection will only
-   * be needed once for a field.
+   * Construct a new IndexedSet with at least one field as the index.
    *
    * @param field at least one field is needed to index the set of objects
    * @param otherFields other fields to index the set
    */
   public IndexedSet(FieldIndex<T> field, FieldIndex<T>... otherFields) {
-    mObjects = new HashSet<T>();
-
     mIndexMap = new HashMap<FieldIndex<T>, Integer>(otherFields.length + 1);
     mIndexMap.put(field, 0);
     for (int i = 1; i <= otherFields.length; i ++) {
@@ -97,9 +98,9 @@ public class IndexedSet<T> {
   public boolean add(T object) {
     synchronized (mLock) {
       boolean success = mObjects.add(object);
-      for (FieldIndex<T> field : mIndexMap.keySet()) {
-        Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(mIndexMap.get(field));
-        Object value = field.getFieldValue(object);
+      for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
+        Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
+        Object value = index.getKey().getFieldValue(object);
         if (fieldValueToSet.containsKey(value)) {
           success = success && fieldValueToSet.get(value).add(object);
         } else {
@@ -138,8 +139,9 @@ public class IndexedSet<T> {
   }
 
   /**
-   * Get a subset of objects with the specified field value. O(n) in worst case due to the copy of
-   * the internal set.
+   * Get a subset of objects with the specified field value. If there is no object withthe specified
+   * field value, a newly created empty set is returned. Otherwise, the returned set is backed up by
+   * an internal set, so changes in internal set will be reflected in returned set and vice-versa.
    *
    * @param index the field index
    * @param value the field value to be satisfied
@@ -148,7 +150,7 @@ public class IndexedSet<T> {
   public Set<T> getByField(FieldIndex<T> index, Object value) {
     synchronized (mLock) {
       Set<T> set = getByFieldInternal(index, value);
-      return set == null ? new HashSet<T>() : Sets.newHashSet(set);
+      return set == null ? new HashSet<T>() : set;
     }
   }
 
@@ -175,9 +177,9 @@ public class IndexedSet<T> {
   public boolean remove(T object) {
     synchronized (mLock) {
       boolean success = mObjects.remove(object);
-      for (FieldIndex<T> field : mIndexMap.keySet()) {
-        Object fieldValue = field.getFieldValue(object);
-        Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(mIndexMap.get(field));
+      for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
+        Object fieldValue = index.getKey().getFieldValue(object);
+        Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
         Set<T> set = fieldValueToSet.get(fieldValue);
         if (set != null) {
           if (!set.remove(object)) {
@@ -207,6 +209,7 @@ public class IndexedSet<T> {
       if (toRemove == null) {
         return false;
       }
+      // Copy the set so that no ConcurrentModificationException happens
       toRemove = ImmutableSet.copyOf(toRemove);
       boolean success = true;
       for (T o : toRemove) {
