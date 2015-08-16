@@ -88,7 +88,8 @@ public class InodeDirectory extends Inode {
   public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
 
-    ret.fileId = getId();
+    // TODO: make this a long.
+    ret.fileId = (int) getId();
     ret.name = getName();
     ret.path = path;
     ret.ufsPath = "";
