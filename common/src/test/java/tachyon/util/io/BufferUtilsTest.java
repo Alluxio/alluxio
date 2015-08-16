@@ -44,4 +44,28 @@ public class BufferUtilsTest {
     bufClone = BufferUtils.cloneByteBuffer(bufDirect);
     Assert.assertTrue(bufClone.equals(bufDirect));
   }
+
+  /**
+   *{@link BufferUtils#cleanDirectBuffer(ByteBuffer)} } forces to unmap an unused direct buffer.
+   * This test repeated allocates and de-allocates a direct buffer of size 16MB to make sure
+   * cleanDirectBuffer is doing its job. The bufferArray is used to store references to the direct
+   * buffers so that they won't get garbage collected automatically. It has been tested that if the
+   * call to cleanDirectBuffer is removed, this test will fail
+   */
+  @Test
+  public void cleanDirectBufferTest() {
+    final int MAX_ITERATIONS = 1024;
+    final int BUFFER_SIZE = 16 * 1024 * 1024;
+    // bufferArray keeps reference to each buffer to avoid auto GC
+    ByteBuffer[] bufferArray = new ByteBuffer[MAX_ITERATIONS];
+    try {
+      for (int i = 0; i < MAX_ITERATIONS; i ++) {
+        ByteBuffer buf = ByteBuffer.allocateDirect(BUFFER_SIZE);
+        bufferArray[i] = buf;
+        BufferUtils.cleanDirectBuffer(buf);
+      }
+    } catch (OutOfMemoryError ooe) {
+      Assert.fail("cleanDirectBuffer is causing memory leak." + ooe.getMessage());
+    }
+  }
 }
