@@ -238,7 +238,7 @@ public class StorageDir {
   }
 
   /**
-   * Gets the BlockMeta from this storage dir by its block ID or throws IOException.
+   * Gets the BlockMeta from this storage dir by its block ID or throws NotFoundException.
    *
    * @param blockId the block ID
    * @return BlockMeta of the given block or null
@@ -254,7 +254,7 @@ public class StorageDir {
   }
 
   /**
-   * Gets the BlockMeta from this storage dir by its block ID or throws IOException.
+   * Gets the BlockMeta from this storage dir by its block ID or throws NotFoundException.
    *
    * @param blockId the block ID
    * @return TempBlockMeta of the given block or null
@@ -270,7 +270,7 @@ public class StorageDir {
   }
 
   /**
-   * Adds the metadata of a new block into this storage dir or throws IOException.
+   * Adds the metadata of a new block into this storage dir or throws Exception.
    *
    * @param blockMeta the meta data of the block
    * @throws AlreadyExistsException if blockId already exists
@@ -293,7 +293,7 @@ public class StorageDir {
   }
 
   /**
-   * Adds the metadata of a new block into this storage dir or throws IOException.
+   * Adds the metadata of a new block into this storage dir or throws Exception.
    *
    * @param tempBlockMeta the meta data of a temp block to add
    * @throws AlreadyExistsException if blockId already exists
@@ -326,7 +326,7 @@ public class StorageDir {
   }
 
   /**
-   * Removes a block from this storage dir or throws IOException.
+   * Removes a block from this storage dir or throws Exception.
    *
    * @param blockMeta the meta data of the block
    * @throws NotFoundException if no block is found
@@ -342,7 +342,7 @@ public class StorageDir {
   }
 
   /**
-   * Removes a temp block from this storage dir or throws IOException.
+   * Removes a temp block from this storage dir or throws Exception.
    *
    * @param tempBlockMeta the meta data of the temp block to remove
    * @throws NotFoundException if no temp block is found
@@ -373,7 +373,7 @@ public class StorageDir {
   }
 
   /**
-   * Changes the size of a temp block or throws IOException.
+   * Changes the size of a temp block or throws Exception.
    *
    * @param tempBlockMeta the meta data of the temp block to resize
    * @param newSize the new size after change in bytes
