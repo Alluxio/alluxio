@@ -36,7 +36,7 @@ import tachyon.util.network.NetworkAddressUtils;
 /**
  * Block info on the master side.
  */
-public class BlockInfo {
+public final class BlockInfo {
   /**
    * Compute the block id based on its inode id and its index among all blocks of the inode. In
    * Tachyon, blockId is calculated by ((inodeId << 30) + blockIndex).
