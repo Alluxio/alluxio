@@ -17,8 +17,10 @@ package tachyon.worker.block;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.google.common.collect.Lists;
 
@@ -130,9 +132,17 @@ public class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
    * @param blockId The block to remove
    */
   private void removeBlockFromAddedBlocks(long blockId) {
-    for (List<Long> blockList : mAddedBlocks.values()) {
+    Iterator<Entry<Long, List<Long>>> iterator = mAddedBlocks.entrySet().iterator();
+    while (iterator.hasNext()) {
+      Entry<Long, List<Long>> entry = iterator.next();
+      List<Long> blockList = entry.getValue();
       if (blockList.contains(blockId)) {
         blockList.remove(blockId);
+        if (blockList.isEmpty()) {
+          iterator.remove();
+        }
+        // exit the loop when already find and remove blockId from mAddedBlocks
+        break;
       }
     }
   }
