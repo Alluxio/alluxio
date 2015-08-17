@@ -369,9 +369,12 @@ public class FileSystemMaster implements Master {
 
   }
 
-  public boolean rename(TachyonURI srcPath, TachyonURI dstPath) throws InvalidPathException {
+  public boolean rename(long fileId, TachyonURI dstPath)
+      throws InvalidPathException, FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
+      Inode srcInode = mInodeTree.getInodeById(fileId);
+      TachyonURI srcPath = mInodeTree.getPath(srcInode);
       if (srcPath.equals(dstPath)) {
         return true;
       }
@@ -396,15 +399,13 @@ public class FileSystemMaster implements Master {
         }
       }
 
-      TachyonURI srcParentURI = srcPath.getParent();
       TachyonURI dstParentURI = dstPath.getParent();
 
-      // We traverse down to the source and destinations' parent paths
-      Inode srcParentInode = mInodeTree.getInodeByPath(srcParentURI);
+      // Get the inodes of the src and dst parents.
+      Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
       if (!srcParentInode.isDirectory()) {
         return false;
       }
-
       Inode dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
       if (!dstParentInode.isDirectory()) {
         return false;
@@ -413,11 +414,7 @@ public class FileSystemMaster implements Master {
       InodeDirectory srcParentDirectory = (InodeDirectory) srcParentInode;
       InodeDirectory dstParentDirectory = (InodeDirectory) dstParentInode;
 
-      // We make sure that the source path exists and the destination path doesn't
-      Inode srcInode = srcParentDirectory.getChild(srcComponents[srcComponents.length - 1]);
-      if (srcInode == null) {
-        return false;
-      }
+      // Make sure destination path does not exist
       if (dstParentDirectory.getChild(dstComponents[dstComponents.length - 1]) != null) {
         return false;
       }
