@@ -21,11 +21,12 @@ import org.junit.Test;
 public final class BlockIdTests {
 
   private static final long MAX_SEQUENCE_NUMBER = 16777215L;
-  
+
   @Test
   public void createBlockIdWithMaxSequenceNumberTest() {
     Assert.assertEquals(33554431L, BlockId.createBlockId(1, BlockId.getMaxSequenceNumber()));
-    Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.createBlockId(0, BlockId.getMaxSequenceNumber()));
+    Assert.assertEquals(MAX_SEQUENCE_NUMBER,
+        BlockId.createBlockId(0, BlockId.getMaxSequenceNumber()));
     Assert.assertEquals(4294967295L, BlockId.createBlockId(255, BlockId.getMaxSequenceNumber()));
   }
 
