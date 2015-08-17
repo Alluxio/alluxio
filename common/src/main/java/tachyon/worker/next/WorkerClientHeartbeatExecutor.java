@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.worker.next;
 
 import java.io.IOException;
 
