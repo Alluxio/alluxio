@@ -36,8 +36,7 @@ public class UserInfoTest {
   @Before
   public final void before() {
     TachyonConf tachyonConf = new TachyonConf();
-    mUserTimeoutMs = tachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS,
-        10 * Constants.SECOND_MS);
+    mUserTimeoutMs = tachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS);
   }
 
   @Test

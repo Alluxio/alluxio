@@ -13,24 +13,27 @@
  * the License.
  */
 
-package tachyon.underfs.swift;
-
-import org.apache.hadoop.conf.Configuration;
+package tachyon.worker;
 
 import tachyon.conf.TachyonConf;
 
-public class SwiftUnderFileSystemUtils {
+/**
+ * A WorkerContext object stores TachyonConf
+ */
+public class WorkerContext {
+  /**
+   * The static configuration object. There is only one TachyonConf object shared within the same
+   * worker process.
+   */
+  private static TachyonConf sTachyonConf = new TachyonConf();
 
   /**
-   * Replace default key with user provided key 
-   * @param conf
-   * @param key
+   * Returns the one and only static {@link TachyonConf} object which is shared among all classes
+   * within the worker process
+   *
+   * @return the tachyonConf for the worker process
    */
-  public static void addKey(Configuration conf, TachyonConf tachyonConf, String key) {
-    if (System.getProperty(key) != null && conf.get(key) == null) {
-      conf.set(key, System.getProperty(key));
-    } else if (tachyonConf.containsKey(key)) {
-      conf.set(key, tachyonConf.get(key));
-    }
+  public static TachyonConf getConf() {
+    return sTachyonConf;
   }
 }
