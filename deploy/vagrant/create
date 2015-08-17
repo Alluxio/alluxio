@@ -6,6 +6,7 @@ BOLD_RED='\033[1;31m'
 GREEN='\033[32m'
 BOLD_PURPLE='\033[1;35m'
 NO_COLOR='\033[0m'
+
 error() {
  echo -e "${BOLD_RED}>>> $1${NO_COLOR}"
 }
@@ -17,8 +18,13 @@ error_exit() {
  error "$1"
  exit 1
 }
+
 PROVIDERS=("aws" "vb")
-[ "$#" -ne 2 ] && error_exit "usage: start <number of machines> <provider(${PROVIDERS[@]})>"
+
+if [ "$#" -ne 2 ]; then
+  MSG="Usage start <number of machines> <provider(${PROVIDERS[@]})>"
+  error_exit "$MSG"
+fi
 
 TOTAL="$1"
 PROVIDER="$2"
@@ -48,8 +54,9 @@ done
 echo "TachyonMaster" >> files/workers
 
 # create virtual machine without provisioning
-[[ "$PROVIDER" == "aws" ]] && python bin/init_aws.py
-
+[[ "$PROVIDER" == "aws" ]] && sgid=`python bin/init_aws.py|tail -n 1`
+# pass security group id to vagrant up
+export AWS_SECURITY_GROUP_ID_TACH=$sgid
 IS_SPOT=`python bin/is_aws_spot.py`
 if [[ "$PROVIDER" == "aws" && "$IS_SPOT" == 0 ]]; then
  # register handler to be run when exit 1
@@ -70,11 +77,9 @@ fi
 #   inet:addr 127.0.0.1  VS. inet 127.0.0.1
 # use `ip addr show` instead
 rm -f files/hosts
-IFACE=eth0
-[[ "$PROVIDER" == "vb" ]] && IFACE=eth1 # because of dhcp
 for host in `cat files/workers`; do
  info "looking up IP of $host..."
- IP=`vagrant ssh $host -c "ip addr show $IFACE | grep -w inet" | grep -w inet | awk '{print $2}' | cut -d'/' -f1`
+ IP=`vagrant ssh $host -c "ip addr show | grep -w inet| tail -1" | grep -w inet | awk '{print $2}' | cut -d'/' -f1`
  info "IP for $host is $IP"
  echo "$IP ${host}" >> files/hosts
 done

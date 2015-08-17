@@ -191,7 +191,7 @@ public class DataServerIntegrationTest {
     assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
 
     CommonUtils.sleepMs(null, mWorkerTachyonConf.getInt(
-        Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS) * 2 + 10);
+        Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 2 + 10);
     FileInfo fileInfo = mTFS.getFileStatus(-1, new TachyonURI("/readFile1"));
     Assert.assertEquals(0, fileInfo.inMemoryPercentage);
   }

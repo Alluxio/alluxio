@@ -508,7 +508,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       inputStream.skip(offset);
 
       int bufferBytes =
-          (int) mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, Constants.MB);
+          (int) mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
       byte[] buffer = new byte[bufferBytes];
       bos = BlockOutStream.get(this, WriteType.TRY_CACHE, blockIndex, mTachyonConf);
       int limit;

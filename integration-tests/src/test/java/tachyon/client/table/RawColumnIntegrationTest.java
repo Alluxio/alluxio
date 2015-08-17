@@ -46,7 +46,7 @@ public class RawColumnIntegrationTest {
   @Test
   public void basicTest() throws IOException, TException {
     TachyonConf conf = mLocalTachyonCluster.getMasterTachyonConf();
-    int maxCols = conf.getInt(Constants.MAX_COLUMNS, 1000);
+    int maxCols = conf.getInt(Constants.MAX_COLUMNS);
 
     int fileId = mTfs.createRawTable(new TachyonURI("/table"), maxCols / 10);
     RawTable table = mTfs.getRawTable(fileId);
