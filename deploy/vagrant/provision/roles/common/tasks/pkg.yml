@@ -5,6 +5,10 @@
   yum: name=libselinux-python
   sudo: yes
 
+- name: install rsync
+  yum: name=rsync
+  sudo: yes
+
 - name: install java
   script: java.sh
 
