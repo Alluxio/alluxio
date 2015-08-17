@@ -36,8 +36,8 @@ public final class BlockId {
     return (blockId >> SEQUENCE_NUMBER_BITS) & CONTAINER_ID_MASK;
   }
 
-  public static int getSequenceNumber(long blockId) {
-    return (int) (blockId & SEQUENCE_NUMBER_MASK);
+  public static long getSequenceNumber(long blockId) {
+    return (blockId & SEQUENCE_NUMBER_MASK);
   }
 
   public static long getMaxSequenceNumber() {
