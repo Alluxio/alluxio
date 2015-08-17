@@ -36,7 +36,7 @@ public interface DataServer extends Closeable {
         final BlockDataManager blockDataManager, TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.getClass(Constants.WORKER_DATA_SERVER, NettyDataServer.class),
+            conf.<DataServer>getClass(Constants.WORKER_DATA_SERVER),
             new Class[] { InetSocketAddress.class, BlockDataManager.class, TachyonConf.class },
             new Object[] { dataAddress, blockDataManager, conf });
       } catch (Exception e) {
