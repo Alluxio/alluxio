@@ -38,7 +38,7 @@ public interface Evictor {
     public static Evictor createEvictor(TachyonConf conf, BlockMetadataManagerView view) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.getClass(Constants.WORKER_EVICT_STRATEGY_CLASS, LRUEvictor.class),
+            conf.<Evictor>getClass(Constants.WORKER_EVICT_STRATEGY_CLASS),
             new Class[]{BlockMetadataManagerView.class},
             new Object[]{view});
       } catch (Exception e) {
