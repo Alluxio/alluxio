@@ -36,9 +36,17 @@ import tachyon.security.authentication.AuthenticationProvider;
  * 1.Write a class that implements the SaslServer interface
  * 2.Write a factory class implements the SaslServerFactory
  * 3.Write a JCA provider that registers the factory
+ *
+ * When this SaslServer does authentication work (in the method evaluateResponse()),
+ * it always assign authentication ID to authorization ID currently.
+ * TODO: Authorization ID and authentication ID could be different after supporting impersonation.
  */
 public class PlainSaslServer implements SaslServer {
-  private String mAuthzid;
+  /**
+   * This ID represent the authorized client user, who has been authenticated successfully.
+   * It is associated with the client connection thread for following action authorization usage.
+   */
+  private String mAuthorizationId;
   private boolean mCompleted;
   private CallbackHandler mHandler;
 
@@ -61,8 +69,8 @@ public class PlainSaslServer implements SaslServer {
     }
     try {
       // parse the response
-      // message   = [authzid] UTF8NUL authcid UTF8NUL passwd'
-      // authzid may be empty,then the authzid = authcid
+      // message   = [authorizationId] UTF8NUL authenticationId UTF8NUL passwd'
+      // authorizationId may be empty,then the authorizationId = authenticationId
       String payload;
       try {
         payload = new String(response, "UTF-8");
@@ -74,37 +82,37 @@ public class PlainSaslServer implements SaslServer {
       if (parts.length != 3) {
         throw new IllegalArgumentException("Invalid message format, parts must contain 3 items");
       }
-      String authzid = parts[0];
-      String authcid = parts[1];
+      String authorizationId = parts[0];
+      String authenticationId = parts[1];
       String passwd = parts[2];
-      if (authcid == null || authcid.isEmpty()) {
+      if (authenticationId == null || authenticationId.isEmpty()) {
         throw new IllegalStateException("No authentication identity provided");
       }
       if (passwd == null || passwd.isEmpty()) {
         throw new IllegalStateException("No password provided");
       }
-      if (authzid == null || authzid.isEmpty()) { // authzid = authcid
-        authzid = authcid;
-      } else if (!authzid.equals(authcid)) {
+      if (authorizationId == null || authorizationId.isEmpty()) {
+        authorizationId = authenticationId;
+      } else if (!authorizationId.equals(authenticationId)) {
         // TODO: support impersonation
         throw new UnsupportedOperationException("Impersonation is not supported now.");
       }
 
       NameCallback nameCallback = new NameCallback("User");
-      nameCallback.setName(authcid);
+      nameCallback.setName(authenticationId);
       PasswordCallback passwordCallback = new PasswordCallback("Password", false);
       passwordCallback.setPassword(passwd.toCharArray());
-      AuthorizeCallback authCallback = new AuthorizeCallback(authcid, authzid);
+      AuthorizeCallback authCallback = new AuthorizeCallback(authenticationId, authorizationId);
 
       Callback[] cbList = {nameCallback, passwordCallback, authCallback};
       mHandler.handle(cbList);
       if (!authCallback.isAuthorized()) {
         throw new SaslException("AuthorizeCallback authorized failure");
       }
-      mAuthzid = authCallback.getAuthorizedID();
+      mAuthorizationId = authCallback.getAuthorizedID();
 
       // After verification succeeds, a user with this authz id will be set to a Threadlocal.
-      RemoteClientUser.set(mAuthzid);
+      AuthorizedClientUser.set(mAuthorizationId);
     } catch (Exception e) {
       throw new SaslException("Plain authentication failed: " + e.getMessage(), e);
     }
@@ -120,7 +128,7 @@ public class PlainSaslServer implements SaslServer {
   @Override
   public String getAuthorizationID() {
     throwIfNotComplete();
-    return mAuthzid;
+    return mAuthorizationId;
   }
 
   @Override
@@ -143,12 +151,12 @@ public class PlainSaslServer implements SaslServer {
   public void dispose() {
     if (mCompleted) {
       // clean up the user in threadlocal, when client connection is closed.
-      RemoteClientUser.remove();
+      AuthorizedClientUser.remove();
     }
 
     mCompleted = false;
     mHandler = null;
-    mAuthzid = null;
+    mAuthorizationId = null;
   }
 
   private void throwIfNotComplete() {

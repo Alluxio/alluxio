@@ -24,19 +24,19 @@ package tachyon.security;
  * all the RPC happens in this thread. These RPC methods implemented in server side could
  * get the client user by this class.
  */
-public class RemoteClientUser {
+public class AuthorizedClientUser {
 
   /**
    * A ThreadLocal variable to maintain the client user along with a specific thread.
    */
-  private static final ThreadLocal<User> USER_THREAD_LOCAL = new ThreadLocal<User>();
+  private static ThreadLocal<User> sUserThreadLocal = new ThreadLocal<User>();
 
   /**
    * Create a {@link tachyon.security.User} and set it to the ThreadLocal variable.
    * @param userName the name of the client user
    */
   public static void set(String userName) {
-    USER_THREAD_LOCAL.set(new User(userName));
+    sUserThreadLocal.set(new User(userName));
   }
 
   /**
@@ -44,13 +44,13 @@ public class RemoteClientUser {
    * @return the client user
    */
   public static User get() {
-    return USER_THREAD_LOCAL.get();
+    return sUserThreadLocal.get();
   }
 
   /**
    * Remove the {@link tachyon.security.User} from the ThreadLocal variable.
    */
   public static void remove() {
-    USER_THREAD_LOCAL.remove();
+    sUserThreadLocal.remove();
   }
 }
