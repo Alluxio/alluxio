@@ -82,7 +82,7 @@ public class InodeFile extends Inode {
           + "file block size: " + mBlockSizeBytes + ", previous block size: " + mLastBlockSizeBytes
           + ", this block size: " + lengthBytes);
     }
-    int blockIndex = BlockId.getSequenceNumber(blockId);
+    long blockIndex = BlockId.getSequenceNumber(blockId);
     if (blockIndex != mBlocks.size()) {
       throw new BlockInfoException(
           "block index mismatch: expected index: " + mBlocks.size() + " this index: " + blockIndex);
