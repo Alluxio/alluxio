@@ -215,7 +215,7 @@ service FileSystemMasterService {
   bool createDirectory(1: i64 fileId, 2: bool recursive)
     throws (1: FileAlreadyExistException faee, 2: TachyonException te)
 
-  bool freePath(1: i64 fileId, 2: bool recursive)
+  bool free(1: i64 fileId, 2: bool recursive)
     throws (1: FileDoesNotExistException fdnee)
 
   bool addCheckpoint(1: i64 workerId, 2: i64 fileId, 3: i64 length, 4: string checkpointPath)

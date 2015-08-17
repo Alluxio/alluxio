@@ -442,10 +442,11 @@ public class FileSystemMaster implements Master {
     }
   }
 
-  public boolean freePath(TachyonURI path, boolean recursive) throws InvalidPathException {
+  public boolean free(long fileId, boolean recursive)
+      throws InvalidPathException, FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(path);
+      Inode inode = mInodeTree.getInodeById(fileId);
 
       if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
         // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
