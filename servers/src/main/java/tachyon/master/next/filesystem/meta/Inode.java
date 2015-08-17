@@ -24,7 +24,7 @@ public abstract class Inode {
   private final long mCreationTimeMs;
   protected final boolean mIsFolder;
 
-  private long mId;
+  private final long mId;
   private String mName;
   private long mParentId;
 
@@ -38,6 +38,11 @@ public abstract class Inode {
    * The last modification time of this inode, in milliseconds.
    */
   private long mLastModificationTimeMs;
+
+  /**
+   * Indicates whether an inode is deleted or not.
+   */
+  private boolean mDeleted = false;
 
   /**
    * Create an inode.
@@ -55,6 +60,13 @@ public abstract class Inode {
     mName = name;
     mParentId = parentId;
     mLastModificationTimeMs = creationTimeMs;
+  }
+
+  /**
+   * Marks the inode as deleted
+   */
+  public synchronized void delete() {
+    mDeleted = true;
   }
 
   @Override
@@ -92,6 +104,15 @@ public abstract class Inode {
   }
 
   /**
+   * Get the last modification time of the inode
+   *
+   * @return the last modification time, in milliseconds
+   */
+  public synchronized long getLastModificationTimeMs() {
+    return mLastModificationTimeMs;
+  }
+
+  /**
    * Get the name of the inode
    *
    * @return the name of the inode
@@ -109,27 +130,18 @@ public abstract class Inode {
     return mParentId;
   }
 
-  /**
-   * Get the pinned flag of the inode
-   *
-   * @return true if the inode is pinned, false otherwise
-   */
-  public synchronized boolean isPinned() {
-    return mPinned;
-  }
-
-  /**
-   * Get the last modification time of the inode
-   *
-   * @return the last modification time, in milliseconds
-   */
-  public synchronized long getLastModificationTimeMs() {
-    return mLastModificationTimeMs;
-  }
-
   @Override
   public synchronized int hashCode() {
     return ((Long) mId).hashCode();
+  }
+
+  /**
+   * Return whether the inode is deleted or not.
+   * 
+   * @return true if the inode is deleted, false otherwise
+   */
+  public boolean isDeleted() {
+    return mDeleted;
   }
 
   /**
@@ -151,10 +163,28 @@ public abstract class Inode {
   }
 
   /**
-   * Reverse the id of the inode. Only used for a delete operation.
+   * Get the pinned flag of the inode
+   *
+   * @return true if the inode is pinned, false otherwise
    */
-  public synchronized void reverseId() {
-    mId = -mId;
+  public synchronized boolean isPinned() {
+    return mPinned;
+  }
+
+  /**
+   * Restore a deleted inode.
+   */
+  public synchronized void restore() {
+    mDeleted = false;
+  }
+
+  /**
+   * Set the last modification time of the inode
+   *
+   * @param lastModificationTimeMs The last modification time, in milliseconds
+   */
+  public synchronized void setLastModificationTimeMs(long lastModificationTimeMs) {
+    mLastModificationTimeMs = lastModificationTimeMs;
   }
 
   /**
@@ -184,21 +214,12 @@ public abstract class Inode {
     mPinned = pinned;
   }
 
-  /**
-   * Set the last modification time of the inode
-   *
-   * @param lastModificationTimeMs The last modification time, in milliseconds
-   */
-  public synchronized void setLastModificationTimeMs(long lastModificationTimeMs) {
-    mLastModificationTimeMs = lastModificationTimeMs;
-  }
-
   @Override
   public synchronized String toString() {
     return new StringBuilder("Inode(").append("ID:").append(mId).append(", NAME:").append(mName)
         .append(", PARENT_ID:").append(mParentId).append(", CREATION_TIME_MS:")
-        .append(mCreationTimeMs).append(", PINNED:").append(mPinned)
-        .append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs).append(")")
-        .toString();
+        .append(mCreationTimeMs).append(", PINNED:").append(mPinned).append("DELETED:")
+        .append(mDeleted).append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs)
+        .append(")").toString();
   }
 }
