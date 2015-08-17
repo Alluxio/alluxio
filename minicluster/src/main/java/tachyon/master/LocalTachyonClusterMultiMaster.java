@@ -98,6 +98,10 @@ public class LocalTachyonClusterMultiMaster {
     return mClientPool.getClient(mMasterConf);
   }
 
+  public TachyonConf getMasterTachyonConf() {
+    return mMasterConf;
+  }
+
   public String getUri() {
     return Constants.HEADER_FT + mCuratorServer.getConnectString();
   }
