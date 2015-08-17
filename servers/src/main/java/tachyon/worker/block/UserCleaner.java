@@ -49,7 +49,7 @@ public class UserCleaner implements Runnable {
     mBlockDataManager = blockDataManager;
     mTachyonConf = tachyonConf;
     mCheckIntervalMs =
-        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
 
     mRunning = true;
   }

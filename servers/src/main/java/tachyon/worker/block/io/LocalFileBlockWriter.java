@@ -88,8 +88,9 @@ public class LocalFileBlockWriter implements BlockWriter {
     ByteBuffer outputBuf =
         mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, offset, inputBufLength);
     outputBuf.put(inputBuf);
+    int bytesWritten = outputBuf.limit();
     BufferUtils.cleanDirectBuffer(outputBuf);
-    return outputBuf.limit();
+    return bytesWritten;
   }
 
   @Override

@@ -16,10 +16,8 @@
 package tachyon.master.next.filesystem.meta;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -30,6 +28,7 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
+import tachyon.master.next.IndexedSet;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.block.ContainerIdGenerator;
 import tachyon.thrift.BlockInfoException;
@@ -42,19 +41,21 @@ import tachyon.util.io.PathUtils;
 public class InodeTree {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private InodeDirectory mRoot;
+  private final InodeDirectory mRoot;
 
-  /** A map from Inode id to Inode */
-  private final Map<Long, Inode> mInodeIdToInodes;
+  private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<Inode>() {
+    public Object getFieldValue(Inode o) {
+      return o.getId();
+    }
+  };
+  private final IndexedSet<Inode> mInodes = new IndexedSet<Inode>(mIdIndex);
   /** A set of inode ids representing pinned inode files */
-  private final Set<Long> mPinnedInodeFileIds;
+  private final Set<Long> mPinnedInodeFileIds = new HashSet<Long>();
 
   /**
-   * Inode id management. Inode ids are essentially block ids.
-   * inode files: Each file id will be composed of a unique block container id, with the maximum
-   *              sequence number.
-   * inode directories: Each directory id will be a unique block id, in order to avoid any collision
-   *                    with file ids.
+   * Inode id management. Inode ids are essentially block ids. inode files: Each file id will be
+   * composed of a unique block container id, with the maximum sequence number. inode directories:
+   * Each directory id will be a unique block id, in order to avoid any collision with file ids.
    */
   private final ContainerIdGenerator mContainerIdGenerator;
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
@@ -63,13 +64,13 @@ public class InodeTree {
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(containerIdGenerator);
 
-    mInodeIdToInodes = new HashMap<Long, Inode>();
-    mPinnedInodeFileIds = new HashSet<Long>();
-    // TODO
+    mRoot = new InodeDirectory("", mDirectoryIdGenerator.getNewDirectoryId(), -1,
+        System.currentTimeMillis());
+    mInodes.add(mRoot);
   }
 
   public Inode getInodeById(long id) throws FileDoesNotExistException {
-    Inode inode = mInodeIdToInodes.get(id);
+    Inode inode = mInodes.getFirstByField(mIdIndex, id);
     if (inode == null) {
       throw new FileDoesNotExistException("Inode id " + id + " does not exist.");
     }
@@ -96,12 +97,12 @@ public class InodeTree {
     if (isRootId(inode.getParentId())) {
       return new TachyonURI(TachyonURI.SEPARATOR + inode.getName());
     }
-    return getPath(mInodeIdToInodes.get(inode.getParentId())).join(inode.getName());
+    return getPath(mInodes.getFirstByField(mIdIndex, inode.getParentId())).join(inode.getName());
   }
 
   public Inode createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
-      boolean directory) throws FileAlreadyExistException, BlockInfoException,
-      InvalidPathException {
+      boolean directory)
+          throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
 
     if (path.isRoot()) {
       LOG.info("FileAlreadyExistException: " + path);
@@ -148,13 +149,12 @@ public class InodeTree {
     InodeDirectory currentInodeDirectory = (InodeDirectory) inodeTraversal.getFirst();
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k ++) {
-      Inode dir =
-          new InodeDirectory(pathComponents[k], mDirectoryIdGenerator.getNewDirectoryId(),
-              currentInodeDirectory.getId(), creationTimeMs);
+      Inode dir = new InodeDirectory(pathComponents[k], mDirectoryIdGenerator.getNewDirectoryId(),
+          currentInodeDirectory.getId(), creationTimeMs);
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
-      mInodeIdToInodes.put(dir.getId(), dir);
+      mInodes.add(dir);
       currentInodeDirectory = (InodeDirectory) dir;
     }
 
@@ -170,13 +170,11 @@ public class InodeTree {
       throw new FileAlreadyExistException(path.toString());
     }
     if (directory) {
-      ret =
-          new InodeDirectory(name, mDirectoryIdGenerator.getNewDirectoryId(),
-              currentInodeDirectory.getId(), creationTimeMs);
+      ret = new InodeDirectory(name, mDirectoryIdGenerator.getNewDirectoryId(),
+          currentInodeDirectory.getId(), creationTimeMs);
     } else {
-      ret =
-          new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
-              currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs);
+      ret = new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
+          currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs);
       if (currentInodeDirectory.isPinned()) {
         // Update set of pinned file ids.
         mPinnedInodeFileIds.add(ret.getId());
@@ -184,7 +182,7 @@ public class InodeTree {
     }
     ret.setPinned(currentInodeDirectory.isPinned());
 
-    mInodeIdToInodes.put(ret.getId(), ret);
+    mInodes.add(ret);
     currentInodeDirectory.addChild(ret);
     currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
 
@@ -220,7 +218,7 @@ public class InodeTree {
     parent.removeChild(inode);
     parent.setLastModificationTimeMs(System.currentTimeMillis());
 
-    mInodeIdToInodes.remove(inode.getId());
+    mInodes.remove(inode);
     mPinnedInodeFileIds.remove(inode.getId());
     inode.reverseId();
   }
