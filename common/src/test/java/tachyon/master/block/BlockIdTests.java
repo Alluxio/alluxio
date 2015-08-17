@@ -20,29 +20,31 @@ import org.junit.Test;
 
 public final class BlockIdTests {
 
+  private static final long MAX_SEQUENCE_NUMBER = 16777215L;
+  
   @Test
-  public void testCreateBlockIdWithMaxSequenceNumber() {
+  public void createBlockIdWithMaxSequenceNumberTest() {
     Assert.assertEquals(33554431L, BlockId.createBlockId(1, BlockId.getMaxSequenceNumber()));
-    Assert.assertEquals(16777215L, BlockId.createBlockId(0, BlockId.getMaxSequenceNumber()));
+    Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.createBlockId(0, BlockId.getMaxSequenceNumber()));
     Assert.assertEquals(4294967295L, BlockId.createBlockId(255, BlockId.getMaxSequenceNumber()));
   }
 
   @Test
-  public void testCreateBlockId() {
+  public void createBlockIdTest() {
     Assert.assertEquals(16797216L, BlockId.createBlockId(1, 20000L));
     Assert.assertEquals(20000L, BlockId.createBlockId(0, 20000L));
   }
 
   @Test
-  public void testGetContainerIdAndSequenceNumber() {
+  public void getContainerIdAndSequenceNumberTest() {
     Assert.assertEquals(1L, BlockId.getContainerId(33554431L));
-    Assert.assertEquals(16777215, BlockId.getSequenceNumber(33554431L));
+    Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getSequenceNumber(33554431L));
     Assert.assertEquals(255L, BlockId.getContainerId(4294967295L));
-    Assert.assertEquals(16777215, BlockId.getSequenceNumber(4294967295L));
+    Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getSequenceNumber(4294967295L));
   }
 
   @Test
-  public void testGetMaxSequenceNumber() {
-    Assert.assertEquals(16777215L, BlockId.getMaxSequenceNumber());
+  public void getMaxSequenceNumberTest() {
+    Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getMaxSequenceNumber());
   }
 }
