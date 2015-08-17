@@ -125,13 +125,12 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   @Override
   public boolean renameFile(long fileId, String dstPath) throws FileAlreadyExistException,
       FileDoesNotExistException, InvalidPathException, TException {
-    // TODO
-    return false;
+    return mFileSystemMaster.rename(fileId, new TachyonURI(dstPath));
   }
 
   @Override
   public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException, TException {
-    // TODO
+    mFileSystemMaster.setPinned(fileId, pinned);
   }
 
   @Override
