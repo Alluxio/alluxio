@@ -13,38 +13,20 @@
  * the License.
  */
 
-package tachyon.master.next.rawtable;
+package tachyon.master.next;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.thrift.TProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public interface PeriodicTask extends Runnable {
+  class PeriodicRate {
+    private final long mPeriod;
+    private final TimeUnit mTimeUnit;
 
-import tachyon.Constants;
-import tachyon.master.next.Master;
-import tachyon.master.next.PeriodicTask;
-
-// TODO: implement this master, but should be deprecated.
-public class RawTableMaster implements Master {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  public RawTableMaster() {
+    public PeriodicRate(long period, TimeUnit timeUnit) {
+      mPeriod = period;
+      mTimeUnit = timeUnit;
+    }
   }
 
-  @Override
-  public TProcessor getProcessor() {
-    return null;
-  }
-
-  @Override
-  public String getProcessorName() {
-    return "RawTableMaster";
-  }
-
-  public List<PeriodicTask> getPeriodicTaskList() {
-    // TODO
-    return Collections.emptyList();
-  }
+  PeriodicRate getPeriodicRate();
 }

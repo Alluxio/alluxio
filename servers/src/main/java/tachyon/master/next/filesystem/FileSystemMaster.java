@@ -18,6 +18,7 @@ package tachyon.master.next.filesystem;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +34,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.Dependency;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.Master;
+import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -87,6 +89,11 @@ public class FileSystemMaster implements Master {
   @Override
   public String getProcessorName() {
     return "FileSystemMaster";
+  }
+
+  public List<PeriodicTask> getPeriodicTaskList() {
+    // TODO: return tasks for periodic detection of required lineage recomputation
+    return Collections.emptyList();
   }
 
   public boolean addCheckpoint(long workerId, int fileId, long length, TachyonURI checkpointPath)

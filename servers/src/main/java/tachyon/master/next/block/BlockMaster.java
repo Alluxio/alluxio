@@ -17,6 +17,7 @@ package tachyon.master.next.block;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +34,7 @@ import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.Master;
+import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.meta.MasterBlockInfo;
 import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.master.next.block.meta.MasterWorkerInfo;
@@ -84,6 +86,11 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   @Override
   public String getProcessorName() {
     return "BlockMaster";
+  }
+
+  public List<PeriodicTask> getPeriodicTaskList() {
+    // TODO: return tasks for detecting lost workers
+    return Collections.emptyList();
   }
 
   public List<WorkerInfo> getWorkerInfoList() {
