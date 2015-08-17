@@ -19,10 +19,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import com.google.common.base.Throwables;
 import tachyon.client.next.ClientOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.NetAddress;
+import tachyon.thrift.NoWorkerException;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in
@@ -42,13 +46,39 @@ public class TachyonBS implements Closeable {
   }
 
   private final BlockMasterClientPool mMasterClientPool;
+  private final BlockWorkerClientPool mWorkerClientPool;
+  private final TachyonConf mTachyonConf;
 
   public TachyonBS(InetSocketAddress masterAddress, TachyonConf conf) {
     mMasterClientPool = new BlockMasterClientPool(masterAddress, conf);
+
+    // Get the worker address
+    // TODO: Simplify this, and use worker master client
+    NetAddress workerNetAddress;
+    String localHostName = NetworkAddressUtils.getLocalHostName(conf);
+    MasterClient masterClient = mMasterClientPool.acquire();
+    try {
+      workerNetAddress = masterClient.user_getWorker(false, localHostName);
+    } catch (NoWorkerException nwe) {
+      workerNetAddress = null;
+    } catch (IOException ioe) {
+      workerNetAddress = null;
+    }
+    if (null == workerNetAddress) {
+      try {
+        workerNetAddress = masterClient.user_getWorker(true, "");
+      } catch (Exception e) {
+        Throwables.propagate(e);
+      }
+    }
+
+    mWorkerClientPool = new BlockWorkerClientPool(workerNetAddress, conf);
+    mTachyonConf = conf;
   }
 
   public void close() {
     mMasterClientPool.close();
+    mWorkerClientPool.close();
   }
 
   public void delete(long blockId) {
@@ -74,23 +104,6 @@ public class TachyonBS implements Closeable {
   }
 
   public BlockInStream getInStream(long blockId, ClientOptions options) throws IOException {
-    MasterClient masterClient = mMasterClientPool.acquire();
-    try {
-      // Try to connect with the worker in options, if it exists
-      if (null != options.getLocation()) {
-        // TODO: Fill in this code block
-        return null; // Avoid checkstyle empty if
-      }
-
-      // Optimistically try the local worker, if one exists.
-      // TODO: Add a configuration option for this
-
-      // If the local worker does not have the block in Tachyon space, get locations from master
-      FileBlockInfo info = masterClient.user_getClientBlockInfo(blockId);
-
-    } finally {
-      mMasterClientPool.release(masterClient);
-    }
     // TODO: Implement me
     return null;
   }
