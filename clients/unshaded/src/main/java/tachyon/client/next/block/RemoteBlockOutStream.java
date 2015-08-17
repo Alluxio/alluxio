@@ -20,6 +20,7 @@ package tachyon.client.next.block;
  * through a Tachyon worker which will then write the block to a file in Tachyon storage.
  */
 public class RemoteBlockOutStream extends BlockOutStream {
+  @Override
   public void write(int b) {
     // TODO: Implement me
   }
