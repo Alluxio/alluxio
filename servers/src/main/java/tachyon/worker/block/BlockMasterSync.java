@@ -53,8 +53,6 @@ public class BlockMasterSync implements Runnable {
 
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
-  /** The executor service for the master client thread */
-  private final ExecutorService mMasterClientExecutorService;
   /** The net address of the worker */
   private final NetAddress mWorkerAddress;
   /** The configuration values */
@@ -76,16 +74,11 @@ public class BlockMasterSync implements Runnable {
           Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
-      NetAddress workerAddress) {
+      NetAddress workerAddress, MasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;
     mTachyonConf = tachyonConf;
-    mMasterClientExecutorService =
-        Executors.newFixedThreadPool(1,
-            ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mMasterClient =
-        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
-            mMasterClientExecutorService, mTachyonConf);
+    mMasterClient = masterClient;
     mHeartbeatIntervalMs =
         mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     mHeartbeatTimeoutMs =
@@ -167,8 +160,6 @@ public class BlockMasterSync implements Runnable {
    */
   public void stop() {
     mRunning = false;
-    mMasterClient.close();
-    mMasterClientExecutorService.shutdown();
   }
 
   /**
@@ -212,13 +203,15 @@ public class BlockMasterSync implements Runnable {
   }
 
   /**
-   * Closes and creates a new master client, in case the master changes.
+   * Disconnect and reconnect the master client, in case the master changes.
    */
   private void resetMasterClient() {
-    mMasterClient.close();
-    mMasterClient =
-        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
-            mMasterClientExecutorService, mTachyonConf);
+    mMasterClient.disconnect();
+    try {
+      mMasterClient.connect();
+    } catch (IOException e) {
+      LOG.error("Failed to connect to master.", e);
+    }
   }
 
   /**
