@@ -15,16 +15,20 @@
 
 package tachyon.master.block;
 
-public class BlockId {
+public final class BlockId {
 
   private static final int CONTAINER_ID_BITS = 40;
   private static final int SEQUENCE_NUMBER_BITS = 64 - CONTAINER_ID_BITS;
   private static final long CONTAINER_ID_MASK = (1 << CONTAINER_ID_BITS) - 1;
   private static final long SEQUENCE_NUMBER_MASK = (1 << SEQUENCE_NUMBER_BITS) - 1;
 
+  private BlockId() {
+    // util class
+  }
+
   public static long createBlockId(long containerId, long sequenceNumber) {
     // TODO: check for valid ids here?
-    return (containerId & CONTAINER_ID_MASK << SEQUENCE_NUMBER_BITS)
+    return ((containerId & CONTAINER_ID_MASK) << SEQUENCE_NUMBER_BITS)
         | (sequenceNumber & SEQUENCE_NUMBER_MASK);
   }
 
@@ -32,8 +36,8 @@ public class BlockId {
     return (blockId >> SEQUENCE_NUMBER_BITS) & CONTAINER_ID_MASK;
   }
 
-  public static int getSequenceNumber(long blockId) {
-    return (int) (blockId & SEQUENCE_NUMBER_MASK);
+  public static long getSequenceNumber(long blockId) {
+    return (blockId & SEQUENCE_NUMBER_MASK);
   }
 
   public static long getMaxSequenceNumber() {
