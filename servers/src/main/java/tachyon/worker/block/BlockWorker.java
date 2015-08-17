@@ -155,7 +155,7 @@ public class BlockWorker {
     mBlockMasterSync.registerWithMaster();
 
     // Setup PinListSyncer
-    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf,mMasterClient);
+    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mMasterClient);
 
     // Setup UserCleaner
     mUserCleanerThread = new UserCleaner(mBlockDataManager, mTachyonConf);
