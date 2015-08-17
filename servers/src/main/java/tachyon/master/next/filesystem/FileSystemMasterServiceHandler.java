@@ -141,7 +141,7 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   }
 
   @Override
-  public boolean freePath(long fileId, boolean recursive)
+  public boolean free(long fileId, boolean recursive)
       throws FileDoesNotExistException, TException {
     return mFileSystemMaster.free(fileId, recursive);
   }
