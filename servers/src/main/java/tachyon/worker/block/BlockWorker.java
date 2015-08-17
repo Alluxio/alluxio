@@ -45,6 +45,7 @@ import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 
 /**
@@ -91,16 +92,15 @@ public class BlockWorker {
   /**
    * Creates a Tachyon Block Worker.
    *
-   * @param tachyonConf the configuration values to be used
    * @throws IOException for other exceptions
    */
-  public BlockWorker(TachyonConf tachyonConf) throws IOException {
-    mTachyonConf = tachyonConf;
+  public BlockWorker() throws IOException {
+    mTachyonConf = WorkerContext.getConf();
     mStartTimeMs = System.currentTimeMillis();
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
-    mBlockDataManager = new BlockDataManager(tachyonConf, workerSource);
+    mBlockDataManager = new BlockDataManager(workerSource);
 
     // Setup metrics collection
     mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
@@ -109,9 +109,9 @@ public class BlockWorker {
 
     // Set up DataServer
     int dataServerPort =
-        tachyonConf.getInt(Constants.WORKER_DATA_PORT, Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
+        mTachyonConf.getInt(Constants.WORKER_DATA_PORT);
     InetSocketAddress dataServerAddress =
-        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(tachyonConf), dataServerPort);
+        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(mTachyonConf), dataServerPort);
     mDataServer =
         DataServer.Factory.createDataServer(dataServerAddress, mBlockDataManager, mTachyonConf);
 
@@ -125,7 +125,7 @@ public class BlockWorker {
             .getHostAddress(), thriftServerPort, mDataServer.getPort());
 
     // Set up web server
-    int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT, Constants.DEFAULT_WORKER_WEB_PORT);
+    int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT);
     mWebServer =
         new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(mWorkerNetAddress.getMHost(),
             webPort), mBlockDataManager, NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf),
@@ -148,11 +148,11 @@ public class BlockWorker {
     // Setup user metadata mapping
     // TODO: Have a top level register that gets the worker id.
     long workerId = mBlockMasterSync.getWorkerId();
-    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
     String ufsAddress =
-        mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
+        mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     String ufsWorkerFolder =
-        mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, ufsAddress + "/tachyon/workers");
+        mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
     Users users = new Users(PathUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
 
     // Give BlockDataManager a pointer to the user metadata mapping
@@ -232,8 +232,7 @@ public class BlockWorker {
         mTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS, Runtime.getRuntime()
             .availableProcessors());
     int maxWorkerThreads =
-        mTachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS,
-            Constants.DEFAULT_WORKER_MAX_WORKER_THREADS);
+        mTachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS);
     WorkerService.Processor<BlockServiceHandler> processor =
         new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
     return new TThreadPoolServer(new TThreadPoolServer.Args(mThriftServerSocket)

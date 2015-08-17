@@ -15,21 +15,19 @@
 
 package tachyon.worker.block;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.Files;
 import com.google.common.primitives.Ints;
 
 import tachyon.Constants;
+import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.BufferUtils;
+import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.io.LocalFileBlockWriter;
@@ -47,10 +45,11 @@ public class TieredBlockStoreTestUtils {
    * 2000, 3000 bytes separately in the SSD tier.
    */
   public static final int[] TIER_LEVEL = {0, 1};
-  public static final String[] TIER_ALIAS = {"MEM", "SSD"};
+  public static final StorageLevelAlias[] TIER_ALIAS = {StorageLevelAlias.MEM,
+      StorageLevelAlias.SSD};
   public static final String[][] TIER_PATH =
       { {"/mem/0", "/mem/1"}, {"/ssd/0", "/ssd/1", "/ssd/2"}};
-  public static final long[][] TIER_CAPACITY = { {100, 200}, {1000, 2000, 3000}};
+  public static final long[][] TIER_CAPACITY = { {2000, 3000}, {10000, 20000, 30000}};
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -66,7 +65,7 @@ public class TieredBlockStoreTestUtils {
    *        each element is the capacity of the corresponding dir in tierPath
    * @return the created TachyonConf
    */
-  public static TachyonConf newTachyonConf(int[] tierLevel, String[] tierAlias,
+  public static TachyonConf newTachyonConf(int[] tierLevel, StorageLevelAlias[] tierAlias,
       String[][] tierPath, long[][] tierCapacity) {
     // make sure dimensions are legal
     Preconditions.checkNotNull(tierLevel);
@@ -92,7 +91,7 @@ public class TieredBlockStoreTestUtils {
     for (int i = 0; i < nTier; i ++) {
       int level = tierLevel[i];
       tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level),
-          tierAlias[i]);
+          tierAlias[i].toString());
 
       StringBuilder sb = new StringBuilder();
       for (String path : tierPath[i]) {
@@ -123,8 +122,9 @@ public class TieredBlockStoreTestUtils {
    * @throws Exception when error happens during creating temporary folder
    */
   public static BlockMetadataManager defaultMetadataManager(String baseDir) throws Exception {
-    TachyonConf tachyonConf = defaultTachyonConf(baseDir);
-    return BlockMetadataManager.newBlockMetadataManager(tachyonConf);
+    TachyonConf tachyonConf = WorkerContext.getConf();
+    tachyonConf.merge(defaultTachyonConf(baseDir));
+    return BlockMetadataManager.newBlockMetadataManager();
   }
 
   /**
@@ -143,7 +143,7 @@ public class TieredBlockStoreTestUtils {
       dirs[i] = new String[len];
       for (int j = 0; j < len; j ++) {
         dirs[i][j] = PathUtils.concatPath(baseDir, TIER_PATH[i][j]);
-        FileUtils.forceMkdir(new File(dirs[i][j]));
+        FileUtils.createDir(dirs[i][j]);
       }
     }
     return newTachyonConf(TIER_LEVEL, TIER_ALIAS, dirs, TIER_CAPACITY);
@@ -162,23 +162,11 @@ public class TieredBlockStoreTestUtils {
    */
   public static void cache(long userId, long blockId, long bytes, StorageDir dir,
       BlockMetadataManager meta, Evictor evictor) throws Exception {
-    // prepare temp block
-    TempBlockMeta block = new TempBlockMeta(userId, blockId, bytes, dir);
-    meta.addTempBlockMeta(block);
-
-    // write data
-    File tempFile = new File(block.getPath());
-    if (!tempFile.getParentFile().mkdir()) {
-      throw new IOException(String.format(
-          "Parent directory of %s can not be created for temp block", block.getPath()));
-    }
-    BlockWriter writer = new LocalFileBlockWriter(block);
-    writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
-    writer.close();
+    TempBlockMeta tempBlockMeta = createTempBlock(userId, blockId, bytes, dir);
 
     // commit block
-    Files.move(tempFile, new File(block.getCommitPath()));
-    meta.commitTempBlockMeta(block);
+    FileUtils.move(tempBlockMeta.getPath(), tempBlockMeta.getCommitPath());
+    meta.commitTempBlockMeta(tempBlockMeta);
 
     // update evictor
     if (evictor instanceof BlockStoreEventListener) {
@@ -187,4 +175,70 @@ public class TieredBlockStoreTestUtils {
     }
   }
 
+  /**
+   * Cache bytes into StorageDir.
+   *
+   * @param tierLevel tier level of the StorageDir the block resides in
+   * @param dirIndex index of directory in the tierLevel the block resides in
+   * @param meta the metadata manager to update meta of the block
+   * @param evictor the evictor to be informed of the new block
+   * @throws Exception when fail to cache
+   */
+  public static void cache(long userId, long blockId, long bytes, int tierLevel, int dirIndex,
+      BlockMetadataManager meta, Evictor evictor) throws Exception {
+    StorageDir dir = meta.getTiers().get(tierLevel).getDir(dirIndex);
+    cache(userId, blockId, bytes, dir, meta, evictor);
+  }
+
+  /**
+   * Make a temp block of a given size in StorageDir.
+   *
+   * @param userId user who caches the data
+   * @param blockId id of the cached block
+   * @param bytes size of the block in bytes
+   * @param dir the StorageDir the block resides in
+   * @return the temp block meta
+   * @throws Exception when fail to create this block
+   */
+  public static TempBlockMeta createTempBlock(long userId, long blockId, long bytes, StorageDir dir)
+      throws Exception {
+    // prepare temp block
+    TempBlockMeta tempBlockMeta = new TempBlockMeta(userId, blockId, bytes, dir);
+    dir.addTempBlockMeta(tempBlockMeta);
+
+    // write data
+    FileUtils.createFile(tempBlockMeta.getPath());
+    BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta);
+    writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
+    writer.close();
+    return tempBlockMeta;
+  }
+  
+  /**
+   * Get the total capacity of all tiers in bytes.
+   * 
+   * @return total capacity of all tiers in bytes
+   */
+  public static long getDefaultTotalCapacityBytes() {
+    long totalCapacity = 0;
+    for (int i = 0; i < TIER_CAPACITY.length; i ++) {
+      for (int j = 0; j < TIER_CAPACITY[i].length; j ++) {
+        totalCapacity += TIER_CAPACITY[i][j];
+      }
+    }
+    return totalCapacity;
+  }
+  
+  /**
+   * Get the number of testing directories of all tiers.
+   * 
+   * @return number of testing directories of all tiers.
+   */
+  public static long getDefaultDirNum() {
+    int dirNum = 0;
+    for (int i = 0; i < TIER_PATH.length; i ++) {
+      dirNum += TIER_PATH[i].length;
+    }
+    return dirNum;
+  }
 }

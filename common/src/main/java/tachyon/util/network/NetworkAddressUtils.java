@@ -243,6 +243,8 @@ public final class NetworkAddressUtils {
   public static InetSocketAddress getMasterAddress(TachyonConf conf) {
     String masterHostname =
         conf.get(Constants.MASTER_HOSTNAME, getLocalHostName(conf));
+    // Cannot rely on tachyon-default.properties because GetMasterWorkerAddressTest will test with
+    // fake conf
     int masterPort = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
     return new InetSocketAddress(masterHostname, masterPort);
   }
@@ -257,6 +259,8 @@ public final class NetworkAddressUtils {
    */
   public static InetSocketAddress getLocalWorkerAddress(TachyonConf conf) {
     String workerHostname = getLocalHostName(conf);
+    // Cannot rely on tachyon-default.properties because GetMasterWorkerAddressTest will test with
+    // fake conf
     int workerPort = conf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
     return new InetSocketAddress(workerHostname, workerPort);
   }
