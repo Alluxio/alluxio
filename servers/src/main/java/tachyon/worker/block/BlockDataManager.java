@@ -56,8 +56,6 @@ public class BlockDataManager {
   private final BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
   private final BlockStore mBlockStore;
-  /** Master client thread pool */
-  private final ExecutorService mMasterClientExecutorService;
   /** Configuration values */
   private final TachyonConf mTachyonConf;
   /** WorkerSource for collecting worker metrics */
@@ -65,7 +63,6 @@ public class BlockDataManager {
   /** Metrics reporter that listens on block events and increases metrics counters*/
   private final BlockMetricsReporter mMetricsReporter;
 
-  // TODO: See if this can be removed from the class
   /** MasterClient, only used to inform the master of a new block in commitBlock */
   private MasterClient mMasterClient;
   /** UnderFileSystem Client */
@@ -81,7 +78,7 @@ public class BlockDataManager {
    * @param workerSource object for collecting the worker metrics
    * @throws IOException if fail to connect to under filesystem
    */
-  public BlockDataManager(WorkerSource workerSource)
+  public BlockDataManager(WorkerSource workerSource, MasterClient masterClient)
       throws IOException {
     // TODO: We may not need to assign the conf to a variable
     mTachyonConf = WorkerContext.getConf();
@@ -90,12 +87,7 @@ public class BlockDataManager {
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
-    mMasterClientExecutorService =
-        Executors.newFixedThreadPool(1,
-            ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mMasterClient =
-        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
-            mMasterClientExecutorService, mTachyonConf);
+    mMasterClient = masterClient;
 
     // Create Under FileSystem Client
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
@@ -481,8 +473,6 @@ public class BlockDataManager {
    * Stop the block data manager. This method should only be called when terminating the worker.
    */
   public void stop() {
-    mMasterClient.close();
-    mMasterClientExecutorService.shutdown();
   }
 
   /**
