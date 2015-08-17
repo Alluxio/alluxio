@@ -32,7 +32,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Tachyon file system's folder representation in master.
  */
-public class InodeDirectory extends Inode {
+public final class InodeDirectory extends Inode {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private Map<Long, Inode> mChildrenIds = new HashMap<Long, Inode>();
@@ -106,7 +106,7 @@ public class InodeDirectory extends Inode {
    * @param id The inode id of the child
    * @return the inode with the given id, or null if there is no child with that id
    */
-  public synchronized Inode getChild(int id) {
+  public synchronized Inode getChild(long id) {
     return mChildrenIds.get(id);
   }
 
