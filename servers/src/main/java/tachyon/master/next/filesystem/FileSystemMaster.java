@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +36,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.Dependency;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.Master;
+import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -89,6 +91,11 @@ public class FileSystemMaster implements Master {
   @Override
   public String getProcessorName() {
     return "FileSystemMaster";
+  }
+
+  public List<PeriodicTask> getPeriodicTaskList() {
+    // TODO: return tasks for periodic detection of required lineage recomputation
+    return Collections.emptyList();
   }
 
   public boolean addCheckpoint(long workerId, int fileId, long length, TachyonURI checkpointPath)
@@ -371,9 +378,12 @@ public class FileSystemMaster implements Master {
 
   }
 
-  public boolean rename(TachyonURI srcPath, TachyonURI dstPath) throws InvalidPathException {
+  public boolean rename(long fileId, TachyonURI dstPath)
+      throws InvalidPathException, FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
+      Inode srcInode = mInodeTree.getInodeById(fileId);
+      TachyonURI srcPath = mInodeTree.getPath(srcInode);
       if (srcPath.equals(dstPath)) {
         return true;
       }
@@ -398,15 +408,13 @@ public class FileSystemMaster implements Master {
         }
       }
 
-      TachyonURI srcParentURI = srcPath.getParent();
       TachyonURI dstParentURI = dstPath.getParent();
 
-      // We traverse down to the source and destinations' parent paths
-      Inode srcParentInode = mInodeTree.getInodeByPath(srcParentURI);
+      // Get the inodes of the src and dst parents.
+      Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
       if (!srcParentInode.isDirectory()) {
         return false;
       }
-
       Inode dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
       if (!dstParentInode.isDirectory()) {
         return false;
@@ -415,11 +423,7 @@ public class FileSystemMaster implements Master {
       InodeDirectory srcParentDirectory = (InodeDirectory) srcParentInode;
       InodeDirectory dstParentDirectory = (InodeDirectory) dstParentInode;
 
-      // We make sure that the source path exists and the destination path doesn't
-      Inode srcInode = srcParentDirectory.getChild(srcComponents[srcComponents.length - 1]);
-      if (srcInode == null) {
-        return false;
-      }
+      // Make sure destination path does not exist
       if (dstParentDirectory.getChild(dstComponents[dstComponents.length - 1]) != null) {
         return false;
       }
@@ -447,10 +451,11 @@ public class FileSystemMaster implements Master {
     }
   }
 
-  public boolean freePath(TachyonURI path, boolean recursive) throws InvalidPathException {
+  public boolean free(long fileId, boolean recursive)
+      throws InvalidPathException, FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(path);
+      Inode inode = mInodeTree.getInodeById(fileId);
 
       if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
         // inode is nonempty, and we don't want to free a nonempty directory unless recursive is

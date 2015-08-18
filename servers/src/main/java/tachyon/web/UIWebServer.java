@@ -66,7 +66,7 @@ public abstract class UIWebServer {
     mTachyonConf = conf;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = mTachyonConf.getInt(Constants.WEB_THREAD_COUNT, 1);
+    int webThreadCount = mTachyonConf.getInt(Constants.WEB_THREAD_COUNT);
 
     mServer = new Server();
     SelectChannelConnector connector = new SelectChannelConnector();
@@ -81,7 +81,7 @@ public abstract class UIWebServer {
 
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(TachyonURI.SEPARATOR);
-    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
     File warPath =
         new File(mTachyonConf.get(Constants.WEB_RESOURCES, tachyonHome + "/core/src/main/webapp"));
     mWebAppContext.setWar(warPath.getAbsolutePath());

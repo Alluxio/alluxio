@@ -18,6 +18,7 @@ package tachyon.master.next;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 import org.apache.thrift.TProcessor;
 
@@ -29,9 +30,12 @@ public interface Master extends Serialization, Deserialization {
 
   String getProcessorName();
 
+  List<PeriodicTask> getPeriodicTaskList();
+
   @Override
   void serialize(OutputStream os) throws IOException;
 
   @Override
   void deserialize(InputStream is) throws IOException;
+
 }
