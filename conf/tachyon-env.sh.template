@@ -17,6 +17,18 @@
 # You can specify a hostname to bind each of services. If a wildcard
 # is applied, you should select one of network interfaces and use its hostname to connect the service.
 # If no hostname is defined, Tachyon will automatically select an externally visible localhost name.
+# The various possibilities shown in the following table:
+#
+# +--------------------+------------------------+---------------------+
+# | TACHYON_*_HOSTNAME |  TACHYON_*_BIND_HOST   | Actual Connect Host |
+# +--------------------+------------------------+---------------------+
+# | hostname           | hostname               | hostname            |
+# | not defined        | hostname               | hostname            |
+# | hostname           | 0.0.0.0 or not defined | hostname            |
+# | not defined        | 0.0.0.0 or not defined | localhost           |
+# +--------------------+------------------------+---------------------+
+#
+# Configuration Examples:
 #
 # Environment variables for service bind
 # TACHYON_MASTER_BIND_HOST=`hostname -A | cut -d" " -f1`

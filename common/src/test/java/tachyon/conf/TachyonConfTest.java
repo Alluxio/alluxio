@@ -141,14 +141,14 @@ public class TachyonConfTest {
 
     value = sDefaultTachyonConf.get(Constants.MASTER_BIND_HOST);
     Assert.assertTrue(value != null);
-    Assert.assertTrue(Constants.WILDCARD_ADDRESS.equals(value));
+    Assert.assertTrue(NetworkAddressUtils.WILDCARD_ADDRESS.equals(value));
 
     int intValue = sDefaultTachyonConf.getInt(Constants.MASTER_PORT);
     Assert.assertTrue(intValue == 19998);
 
     value = sDefaultTachyonConf.get(Constants.MASTER_WEB_BIND_HOST);
     Assert.assertTrue(value != null);
-    Assert.assertTrue(Constants.WILDCARD_ADDRESS.equals(value));
+    Assert.assertTrue(NetworkAddressUtils.WILDCARD_ADDRESS.equals(value));
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WEB_PORT);
     Assert.assertTrue(intValue == 19999);
@@ -174,21 +174,21 @@ public class TachyonConfTest {
 
     value = sDefaultTachyonConf.get(Constants.WORKER_BIND_HOST);
     Assert.assertTrue(value != null);
-    Assert.assertTrue(Constants.WILDCARD_ADDRESS.equals(value));
+    Assert.assertTrue(NetworkAddressUtils.WILDCARD_ADDRESS.equals(value));
 
     int intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PORT);
     Assert.assertTrue(intValue == 29998);
 
     value = sDefaultTachyonConf.get(Constants.WORKER_DATA_BIND_HOST);
     Assert.assertTrue(value != null);
-    Assert.assertTrue(Constants.WILDCARD_ADDRESS.equals(value));
+    Assert.assertTrue(NetworkAddressUtils.WILDCARD_ADDRESS.equals(value));
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_DATA_PORT);
     Assert.assertTrue(intValue == 29999);
 
     value = sDefaultTachyonConf.get(Constants.WORKER_WEB_BIND_HOST);
     Assert.assertTrue(value != null);
-    Assert.assertTrue(Constants.WILDCARD_ADDRESS.equals(value));
+    Assert.assertTrue(NetworkAddressUtils.WILDCARD_ADDRESS.equals(value));
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_WEB_PORT);
     Assert.assertTrue(intValue == 30000);

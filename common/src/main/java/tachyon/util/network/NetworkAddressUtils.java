@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -42,6 +42,12 @@ import tachyon.thrift.NetAddress;
  * Common network address related utilities shared by all components in Tachyon.
  */
 public final class NetworkAddressUtils {
+  public static final String WILDCARD_ADDRESS = "0.0.0.0";
+
+  /**
+   * Check if the underlying OS is Windows.
+   */
+  public static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static String sLocalHost;
@@ -54,8 +60,8 @@ public final class NetworkAddressUtils {
    * bind address
    */
   public enum ServiceType {
-
     /**
+     * 
      * Master RPC service (Thrift)
      */
     MASTER_RPC("Tachyon Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
@@ -89,19 +95,19 @@ public final class NetworkAddressUtils {
         Constants.DEFAULT_WORKER_WEB_PORT);
 
     // service name
-    public final String mServiceName;
+    private final String mServiceName;
 
     // the key of connect hostname
-    public final String mHostNameKey;
+    private final String mHostNameKey;
 
     // the key of bind hostname
-    public final String mBindHostKey;
+    private final String mBindHostKey;
 
-    // the key of port
-    public final String mPortKey;
+    // the key of service port
+    private final String mPortKey;
 
     // default port number
-    public final int mDefaultPort;
+    private final int mDefaultPort;
 
     ServiceType(String serviceName, String hostNameKey, String bindHostKey, String portKey,
         int defaultPort) {
@@ -111,12 +117,93 @@ public final class NetworkAddressUtils {
       mPortKey = portKey;
       mDefaultPort = defaultPort;
     }
+
+    /**
+     * Gets service name
+     */
+    public String getServiceName() {
+      return mServiceName;
+    }
+
+    /**
+     * Gets the key of connect hostname
+     */
+    public String getHostNameKey() {
+      return mHostNameKey;
+    }
+
+    /**
+     * Gets the key of bind hostname
+     */
+    public String getBindHostKey() {
+      return mBindHostKey;
+    }
+
+    /**
+     * Gets the key of service port
+     */
+    public String getPortKey() {
+      return mPortKey;
+    }
+
+    /**
+     * Gets the default port number on service
+     */
+    public int getDefaultPort() {
+      return mDefaultPort;
+    }
+  }
+
+  /**
+   * Helper method to get the {@link InetSocketAddress} address for client to communicate with the
+   * service.
+   *
+   * @param service the service name used to connect
+   * @param conf the configuration of Tachyon
+   * @return the service address that a client (typically outside the service machine) uses to
+   *         communicate with service.
+   */
+  public static InetSocketAddress getConnectAddress(ServiceType service, TachyonConf conf) {
+    return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
   }
 
   /**
    * Provides an externally resolvable hostname for client to communicate with the service. If the
    * hostname is not explicitly specified, Tachyon will try to use the bind host. If the bind host
    * is wildcard, Tachyon will automatically determine an appropriate hostname from local machine.
+   * The various possibilities shown in the following table:
+   * <P>
+   * <table>
+   * <thead>
+   * <tr>
+   * <th>Specified Hostname</th>
+   * <th>Specified Bind Host</th>
+   * <th>Returned Connect Host</th>
+   * </tr>
+   * <thead> <tbody>
+   * <tr>
+   * <td>hostname</td>
+   * <td>hostname</td>
+   * <td>hostname</td>
+   * </tr>
+   * <tr>
+   * <td>not defined</td>
+   * <td>hostname</td>
+   * <td>hostname</td>
+   * </tr>
+   * <tr>
+   * <td>hostname</td>
+   * <td>0.0.0.0 or not defined</td>
+   * <td>hostname</td>
+   * </tr>
+   * <tr>
+   * <td>not defined</td>
+   * <td>0.0.0.0 or not defined</td>
+   * <td>localhost</td>
+   * </tr>
+   * </tbody>
+   * </table>
+   * </P>
    *
    * @param service Service type used to connect
    * @param conf Tachyon configuration used to look up the host resolution timeout
@@ -127,9 +214,9 @@ public final class NetworkAddressUtils {
     String connectHost = conf.get(service.mHostNameKey, "");
     String bindHost = conf.get(service.mBindHostKey, "");
 
-    if (!connectHost.equals("0.0.0.0") && !connectHost.isEmpty()) {
+    if (!connectHost.equals(WILDCARD_ADDRESS) && !connectHost.isEmpty()) {
       return connectHost;
-    } else if (!bindHost.equals("0.0.0.0") && !bindHost.isEmpty()) {
+    } else if (!bindHost.equals(WILDCARD_ADDRESS) && !bindHost.isEmpty()) {
       return bindHost;
     } else {
       return getLocalHostName(conf);
@@ -146,19 +233,6 @@ public final class NetworkAddressUtils {
    */
   public static int getPort(ServiceType service, TachyonConf conf) {
     return conf.getInt(service.mPortKey, service.mDefaultPort);
-  }
-
-  /**
-   * Helper method to get the {@link InetSocketAddress} address for client to communicate with the
-   * service.
-   *
-   * @param service the service name used to connect
-   * @param conf the configuration of Tachyon
-   * @return the service address that a client (typically outside the service machine) uses to
-   *         communicate with service.
-   */
-  public static InetSocketAddress getConnectAddress(ServiceType service, TachyonConf conf) {
-    return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
   }
 
   /**
@@ -225,11 +299,6 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Check if the underlying OS is Windows.
-   */
-  public static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
-
-  /**
    * Gets a local IP address for the host this JVM is running on
    *
    * @param conf Tachyon configuration
@@ -265,8 +334,7 @@ public final class NetworkAddressUtils {
       // Make sure that the address is actually reachable since in some network configurations
       // it is possible for the InetAddress.getLocalHost() call to return a non-reachable
       // address e.g. a broadcast address
-      if (address.isAnyLocalAddress() || address.isLoopbackAddress()
-          || !address.isReachable(timeout) || !(address instanceof Inet4Address)) {
+      if (!isValidedAddress(address, timeout)) {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
 
         // Make getNetworkInterfaces have the same order of network interfaces as listed on
@@ -286,8 +354,7 @@ public final class NetworkAddressUtils {
             address = addresses.nextElement();
 
             // Address must not be link local or loopback. And it must be reachable
-            if (!address.isLinkLocalAddress() && !address.isLoopbackAddress()
-                && (address instanceof Inet4Address) && address.isReachable(timeout)) {
+            if (isValidedAddress(address, timeout)) {
               sLocalIP = address.getHostAddress();
               return sLocalIP;
             }
@@ -305,6 +372,23 @@ public final class NetworkAddressUtils {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
+  }
+
+  /**
+   * Test if the address is externally resolvable. Address must not be wildcard, link local,
+   * loopback address, non-IPv4, or other unreachable addresses.
+   *
+   * @param address The testing address
+   * @param timeout Timeout in milliseconds to use for checking that a possible local IP is
+   *        reachable
+   * @return a <code>boolean</code> indicating if the given address is externally resolvable
+   *         address.
+   * @throws IOException
+   */
+  private static boolean isValidedAddress(InetAddress address, int timeout) throws IOException {
+    return (!address.isAnyLocalAddress() && !address.isLinkLocalAddress()
+        && !address.isLoopbackAddress() && !(address instanceof Inet4Address) && !address
+          .isReachable(timeout));
   }
 
   /**
