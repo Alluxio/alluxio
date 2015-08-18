@@ -13,29 +13,10 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.serialize.json;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-
-import org.apache.thrift.TProcessor;
-
-import tachyon.master.next.serialize.Deserialization;
-import tachyon.master.next.serialize.Serialization;
-
-public interface Master extends Serialization, Deserialization {
-  TProcessor getProcessor();
-
-  String getProcessorName();
-
-  List<PeriodicTask> getPeriodicTaskList();
-
-  @Override
-  void serialize(OutputStream os) throws IOException;
-
-  @Override
-  void deserialize(InputStream is) throws IOException;
-
+/** Type of Image entry. */
+public enum ImageElementType {
+  InodeFile,
+  InodeDirectory,
 }

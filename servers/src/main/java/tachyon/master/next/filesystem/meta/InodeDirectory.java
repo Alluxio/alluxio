@@ -15,6 +15,8 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -22,9 +24,14 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
+import tachyon.master.next.serialize.Serializer;
+import tachyon.master.next.serialize.json.ImageElement;
+import tachyon.master.next.serialize.json.ImageElementType;
 import tachyon.master.next.IndexedSet;
 import tachyon.thrift.FileInfo;
 
@@ -32,7 +39,64 @@ import tachyon.thrift.FileInfo;
  * Tachyon file system's folder representation in master.
  */
 public class InodeDirectory extends Inode {
+  static class JsonSerializer implements Serializer<InodeDirectory> {
+    @Override
+    public void serialize(InodeDirectory o, OutputStream os) throws IOException {
+      new ImageElement(ImageElementType.InodeDirectory)
+          .withParameter("creationTimeMs", o.getCreationTimeMs()).withParameter("id", o.getId())
+          .withParameter("name", o.getName()).withParameter("parentId", o.getParentId())
+          .withParameter("pinned", o.isPinned()).withParameter("childrenIds", o.getChildrenIds())
+          .withParameter("lastModificationTimeMs", o.getLastModificationTimeMs())
+          .dump(os);
+
+      for (Inode inode : o.getChildren()) {
+        inode.serialize(os);
+      }
+    }
+
+    public static InodeDirectory deserialize(ImageElement ele, JsonParser parser)
+        throws IOException {
+      final long creationTimeMs = ele.getLong("creationTimeMs");
+      final int fileId = ele.getInt("id");
+      final boolean isPinned = ele.getBoolean("pinned");
+      final String fileName = ele.getString("name");
+      final int parentId = ele.getInt("parentId");
+      List<Integer> childrenIds = ele.get("childrenIds", new TypeReference<List<Integer>>() {});
+      final long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
+      int numberOfChildren = childrenIds.size();
+      Inode[] children = new Inode[numberOfChildren];
+      for (int k = 0; k < numberOfChildren; k ++) {
+        try {
+          ele = parser.readValueAs(ImageElement.class);
+          LOG.debug("Read Element: {}", ele);
+        } catch (IOException e) {
+          throw e;
+        }
+
+        switch (ele.mType) {
+          case InodeFile: {
+            children[k] = InodeFile.JsonSerializer.deserialize(ele);
+            break;
+          }
+          case InodeDirectory: {
+            children[k] = InodeDirectory.JsonSerializer.deserialize(ele, parser);
+            break;
+          }
+          default:
+            throw new IOException("Invalid element type " + ele);
+        }
+      }
+
+      InodeDirectory directory = new InodeDirectory(fileName, fileId, parentId, creationTimeMs);
+      directory.setPinned(isPinned);
+      directory.addChildren(children);
+      directory.setLastModificationTimeMs(lastModificationTimeMs);
+      return directory;
+    }
+  }
+
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Serializer<InodeDirectory> SERIALIZER = new JsonSerializer();
 
   private IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     public Object getFieldValue(Inode o) {
@@ -184,5 +248,10 @@ public class InodeDirectory extends Inode {
     StringBuilder sb = new StringBuilder("InodeFolder(");
     sb.append(super.toString()).append(",").append(mChildren.all()).append(")");
     return sb.toString();
+  }
+
+  @Override
+  public void serialize(OutputStream os) throws IOException {
+    SERIALIZER.serialize(this, os);
   }
 }

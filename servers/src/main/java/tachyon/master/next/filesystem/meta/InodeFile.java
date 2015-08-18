@@ -15,10 +15,15 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.master.block.BlockId;
+import tachyon.master.next.serialize.Serializer;
+import tachyon.master.next.serialize.json.ImageElement;
+import tachyon.master.next.serialize.json.ImageElementType;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -27,6 +32,53 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Tachyon file system's file representation in master.
  */
 public class InodeFile extends Inode {
+  static class JsonSerializer implements Serializer<InodeFile> {
+    @Override
+    public void serialize(InodeFile o, OutputStream os) throws IOException {
+      new ImageElement(ImageElementType.InodeFile)
+          .withParameter("creationTimeMs", o.getCreationTimeMs()).withParameter("id", o.getId())
+          .withParameter("name", o.getName()).withParameter("parentId", o.getParentId())
+          .withParameter("blockSizeBytes", o.getBlockSizeBytes())
+          .withParameter("length", o.getLength()).withParameter("complete", o.isComplete())
+          .withParameter("pin", o.isPinned()).withParameter("cache", o.isCache())
+          .withParameter("ufsPath", o.getUfsPath())
+          .withParameter("lastModificationTimeMs", o.getLastModificationTimeMs())
+          .dump(os);
+    }
+
+    public static InodeFile deserialize(ImageElement ele) throws IOException {
+      final long creationTimeMs = ele.getLong("creationTimeMs");
+      final int fileId = ele.getInt("id");
+      final String fileName = ele.getString("name");
+      final int parentId = ele.getInt("parentId");
+      final long blockSizeByte = ele.getLong("blockSizeBytes");
+      final long length = ele.getLong("length");
+      final boolean isComplete = ele.getBoolean("complete");
+      final boolean isPinned = ele.getBoolean("pin");
+      final boolean isCache = ele.getBoolean("cache");
+      final String ufsPath = ele.getString("ufsPath");
+      final long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
+
+      InodeFile inode = new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
+
+      try {
+        inode.setLength(length);
+      } catch (Exception e) {
+        throw new IOException(e);
+      }
+      if (isComplete) {
+        inode.setComplete();
+      }
+      inode.setPinned(isPinned);
+      inode.setCache(isCache);
+      inode.setUfsPath(ufsPath);
+      inode.setLastModificationTimeMs(lastModificationTimeMs);
+      return inode;
+    }
+  }
+
+  private static final Serializer<InodeFile> SERIALIZER = new JsonSerializer();
+
   private final long mBlockContainerId;
   private final long mBlockSizeBytes;
 
@@ -301,5 +353,10 @@ public class InodeFile extends Inode {
     sb.append(", UfsPath: ").append(mUfsPath);
     sb.append(", mBlocks: ").append(mBlocks);
     return sb.toString();
+  }
+
+  @Override
+  public void serialize(OutputStream os) throws IOException {
+    SERIALIZER.serialize(this, os);
   }
 }

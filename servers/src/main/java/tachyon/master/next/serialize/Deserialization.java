@@ -13,29 +13,14 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.serialize;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
 
-import org.apache.thrift.TProcessor;
-
-import tachyon.master.next.serialize.Deserialization;
-import tachyon.master.next.serialize.Serialization;
-
-public interface Master extends Serialization, Deserialization {
-  TProcessor getProcessor();
-
-  String getProcessorName();
-
-  List<PeriodicTask> getPeriodicTaskList();
-
-  @Override
-  void serialize(OutputStream os) throws IOException;
-
-  @Override
+/**
+ * Interface for classes that can be deserialized from an InputStream.
+ */
+public interface Deserialization {
   void deserialize(InputStream is) throws IOException;
-
 }

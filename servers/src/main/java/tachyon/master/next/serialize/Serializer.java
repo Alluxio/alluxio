@@ -13,29 +13,21 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.serialize;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
-import org.apache.thrift.TProcessor;
-
-import tachyon.master.next.serialize.Deserialization;
-import tachyon.master.next.serialize.Serialization;
-
-public interface Master extends Serialization, Deserialization {
-  TProcessor getProcessor();
-
-  String getProcessorName();
-
-  List<PeriodicTask> getPeriodicTaskList();
-
-  @Override
-  void serialize(OutputStream os) throws IOException;
-
-  @Override
-  void deserialize(InputStream is) throws IOException;
-
+/**
+ * For each class that needs serialization ability, it should hide the logic of (de)serialization
+ * in an implementation of this interface, the implementation is often a static inner class.
+ *
+ * Although there is no general method for deserialization in this interface because interface for
+ * deserialization is implementation related, it is recommended to put deserialization logic as a
+ * static method in the implementation of this interface for easy maintainence.
+ *
+ * @param <T> type of the class that needs serialization ability
+ */
+public interface Serializer<T> {
+  void serialize(T o, OutputStream os) throws IOException;
 }
