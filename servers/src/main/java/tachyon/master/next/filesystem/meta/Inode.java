@@ -137,7 +137,7 @@ public abstract class Inode {
 
   /**
    * Return whether the inode is deleted or not.
-   * 
+   *
    * @return true if the inode is deleted, false otherwise
    */
   public boolean isDeleted() {
