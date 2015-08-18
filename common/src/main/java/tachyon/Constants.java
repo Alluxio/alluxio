@@ -121,7 +121,6 @@ public class Constants {
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
 
-  public static final String WILDCARD_ADDRESS = "0.0.0.0";
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";
   public static final String MASTER_HOSTNAME_LISTENING = "tachyon.master.hostname.listening";
   public static final String MASTER_JOURNAL_FOLDER = "tachyon.master.journal.folder";

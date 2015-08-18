@@ -482,3 +482,12 @@ For example, if you would like to enable Java remote debugging at port 7001 in t
 `TACHYON_MASTER_JAVA_OPTS` like this:
 
 `export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"`
+
+# Configuration of multihomed networks
+
+| Specified Hostname |  Specified Bind Host   | Returned Connect Host |
+|--------------------|------------------------|-----------------------|
+| hostname           | hostname               | hostname              |
+| not defined        | hostname               | hostname              |
+| hostname           | 0.0.0.0 or not defined | hostname              |
+| not defined        | 0.0.0.0 or not defined | localhost             |
