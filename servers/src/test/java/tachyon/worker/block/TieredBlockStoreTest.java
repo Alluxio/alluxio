@@ -29,6 +29,8 @@ import com.google.common.collect.Sets;
 
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.util.io.FileUtils;
@@ -307,4 +309,33 @@ public final class TieredBlockStoreTest {
     Assert.assertTrue(mLockManager.getLockedBlocks().isEmpty());
   }
 
+  @Test
+  public void abortNonExistingBlock() throws Exception {
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + BLOCK_ID1 + " not found");
+
+    mBlockStore.abortBlock(USER_ID1, BLOCK_ID1);
+    Assert.assertTrue(mLockManager.getLockedBlocks().isEmpty());
+  }
+
+  @Test
+  public void abortBlockNotOwnedByUserId() throws Exception {
+    mThrown.expect(InvalidStateException.class);
+    mThrown.expectMessage("checkTempBlockOwnedByUser failed: ownerUserId of blockId "
+        + TEMP_BLOCK_ID + " is " + USER_ID1 + " but userId passed in is " + USER_ID2);
+
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    mBlockStore.abortBlock(USER_ID2, TEMP_BLOCK_ID);
+  }
+
+  @Test
+  public void abortExistingBlock() throws Exception {
+    mThrown.expect(AlreadyExistsException.class);
+    mThrown.expectMessage(
+        "checkTempBlockOwnedByUser failed: blockId " + TEMP_BLOCK_ID + " is committed");
+
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
+    mBlockStore.abortBlock(USER_ID2, TEMP_BLOCK_ID);
+  }
 }
