@@ -38,7 +38,7 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
 
-public class TieredBlockStoreTest {
+public final class TieredBlockStoreTest {
   private static final long USER_ID1 = 2;
   private static final long USER_ID2 = 3;
   private static final long BLOCK_ID1 = 1000;
