@@ -119,7 +119,7 @@ public class BlockMetadataManagerView {
    * @return boolean, true if the block can be evicted
    */
   public boolean isBlockEvictable(long blockId) {
-    return (!isBlockPinned(blockId) && !isBlockLocked(blockId) && !isMarkedToMoveOut(blockId));
+    return (!isBlockPinned(blockId) && !isBlockLocked(blockId) && !isBlockMarked(blockId));
   }
 
   /**
@@ -128,7 +128,7 @@ public class BlockMetadataManagerView {
    * @param blockId the Id of the block
    * @return boolean, true if the block is marked to move out
    */
-  public boolean isMarkedToMoveOut(long blockId) {
+  public boolean isBlockMarked(long blockId) {
     for (StorageTierView tierView : mTierViews) {
       for (StorageDirView dirView : tierView.getDirViews()) {
         if (dirView.isMarkedToMoveOut(blockId)) {

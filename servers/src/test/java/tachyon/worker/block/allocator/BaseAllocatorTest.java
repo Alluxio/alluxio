@@ -147,7 +147,7 @@ public class BaseAllocatorTest {
     mTestBlockId ++;
 
     StorageDirView dirView =
-        allocator.allocateBlockWithView(blockSize, location, mManagerView);
+        allocator.allocateBlockWithView(USER_ID, blockSize, location, mManagerView);
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(USER_ID, mTestBlockId, blockSize);
 
@@ -172,7 +172,8 @@ public class BaseAllocatorTest {
 
     mTestBlockId ++;
 
-    StorageDirView dirView = allocator.allocateBlockWithView(blockSize, location, mManagerView);
+    StorageDirView dirView =
+        allocator.allocateBlockWithView(USER_ID, blockSize, location, mManagerView);
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(USER_ID, mTestBlockId, blockSize);
 
