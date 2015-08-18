@@ -249,6 +249,11 @@ public class RemoteBlockInStream extends BlockInStream {
         LOG.warn("Recache attempt failed.", ioe);
         cancelRecache();
       }
+      // TACHYON-813: Only cache locally
+      if (mBlockOutStream instanceof RemoteBlockOutStream) {
+        LOG.info("Cannot find a local worker to write to, recache attempt cancelled.");
+        cancelRecache();
+      }
     }
 
     // While we still have bytes to read, make sure the buffer is set to read the byte at mBlockPos.
@@ -256,8 +261,7 @@ public class RemoteBlockInStream extends BlockInStream {
     while (bytesLeft > 0 && mAttemptReadFromWorkers && updateCurrentBuffer()) {
       int bytesToRead = Math.min(bytesLeft, mCurrentBuffer.remaining());
       mCurrentBuffer.get(b, off, bytesToRead);
-      // TACHYON-813: Only cache locally
-      if (mRecache && mBlockOutStream instanceof LocalBlockOutStream) {
+      if (mRecache) {
         mBlockOutStream.write(b, off, bytesToRead);
       }
       off += bytesToRead;
@@ -284,8 +288,7 @@ public class RemoteBlockInStream extends BlockInStream {
           LOG.error("Checkpoint stream read 0 bytes, which shouldn't ever happen");
           return len - bytesLeft;
         }
-        // TACHYON-813: Only cache locally
-        if (mRecache && mBlockOutStream instanceof LocalBlockOutStream) {
+        if (mRecache) {
           mBlockOutStream.write(b, off, readBytes);
         }
         off += readBytes;
