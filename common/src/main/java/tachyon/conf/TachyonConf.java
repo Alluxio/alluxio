@@ -278,7 +278,7 @@ public class TachyonConf {
     throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  private float getFloat(String key) {
+  public float getFloat(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       try {
