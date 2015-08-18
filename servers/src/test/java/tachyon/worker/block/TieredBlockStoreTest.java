@@ -310,7 +310,7 @@ public final class TieredBlockStoreTest {
   }
 
   @Test
-  public void abortNonExistingBlock() throws Exception {
+  public void abortNonExistingBlockTest() throws Exception {
     mThrown.expect(NotFoundException.class);
     mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + BLOCK_ID1 + " not found");
 
@@ -319,7 +319,7 @@ public final class TieredBlockStoreTest {
   }
 
   @Test
-  public void abortBlockNotOwnedByUserId() throws Exception {
+  public void abortBlockNotOwnedByUserIdTest() throws Exception {
     mThrown.expect(InvalidStateException.class);
     mThrown.expectMessage("checkTempBlockOwnedByUser failed: ownerUserId of blockId "
         + TEMP_BLOCK_ID + " is " + USER_ID1 + " but userId passed in is " + USER_ID2);
@@ -329,7 +329,7 @@ public final class TieredBlockStoreTest {
   }
 
   @Test
-  public void abortExistingBlock() throws Exception {
+  public void abortCommitedBlockTest() throws Exception {
     mThrown.expect(AlreadyExistsException.class);
     mThrown.expectMessage(
         "checkTempBlockOwnedByUser failed: blockId " + TEMP_BLOCK_ID + " is committed");
