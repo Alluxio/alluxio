@@ -43,7 +43,7 @@ public interface Allocator {
       BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
       try {
         return CommonUtils.createNewClassInstance(
-            conf.getClass(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class),
+            conf.<Allocator>getClass(Constants.WORKER_ALLOCATE_STRATEGY_CLASS),
             new Class[]{BlockMetadataManagerView.class}, new Object[]{managerView});
       } catch (Exception e) {
         throw Throwables.propagate(e);

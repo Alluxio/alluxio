@@ -42,8 +42,6 @@ public class PinListSync implements Runnable {
 
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
-  /** The executor service for the master client thread */
-  private final ExecutorService mMasterClientExecutorService;
   /** The configuration values */
   private final TachyonConf mTachyonConf;
   /** Milliseconds between each sync */
@@ -62,19 +60,13 @@ public class PinListSync implements Runnable {
    * @param blockDataManager the blockDataManager this syncer is updating to
    * @param tachyonConf the configuration values to be used
    */
-  public PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
+  public PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
+      MasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mTachyonConf = tachyonConf;
-    mMasterClientExecutorService =
-        Executors.newFixedThreadPool(1,
-            ThreadFactoryUtils.build("worker-client-pinlist-%d", true));
-    mMasterClient =
-        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
-            mMasterClientExecutorService, mTachyonConf);
-    mSyncIntervalMs =
-        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    mSyncTimeoutMs =
-        mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
+    mMasterClient = masterClient;
+    mSyncIntervalMs = mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    mSyncTimeoutMs = mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
   }
@@ -118,17 +110,17 @@ public class PinListSync implements Runnable {
    */
   public void stop() {
     mRunning = false;
-    mMasterClient.close();
-    mMasterClientExecutorService.shutdown();
   }
 
   /**
-   * Closes and creates a new master client, in case the master changes.
+   * Disconnect and reconnect the master client, in case the master changes.
    */
   private void resetMasterClient() {
-    mMasterClient.close();
-    mMasterClient =
-        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
-            mMasterClientExecutorService, mTachyonConf);
+    mMasterClient.disconnect();
+    try {
+      mMasterClient.connect();
+    } catch (IOException e) {
+      LOG.error("Failed to connect to master.", e);
+    }
   }
 }

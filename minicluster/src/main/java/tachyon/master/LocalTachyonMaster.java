@@ -145,22 +145,15 @@ public final class LocalTachyonMaster {
   }
 
   /**
-   * Creates a new local tachyon master with a isolated port. tachyonHome is expected to be clean
-   * before calling this method.
-   * <p />
-   * Clean is defined as
-   *
-   * <pre>
-   * {@code
-   *   UnderFileSystems.deleteDir(tachyonHome);
-   *   UnderFileSystems.mkdirIfNotExists(tachyonHome);
-   * }
-   * </pre>
+   * Creates a new local tachyon master with a isolated port.
    *
    * @throws IOException unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create(final String tachyonHome, TachyonConf tachyonConf)
       throws IOException {
+    UnderFileSystemUtils.deleteDir(tachyonHome, tachyonConf);
+    UnderFileSystemUtils.mkdirIfNotExists(tachyonHome, tachyonConf);
+
     return new LocalTachyonMaster(Preconditions.checkNotNull(tachyonHome), tachyonConf);
   }
 

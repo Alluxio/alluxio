@@ -113,7 +113,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Test if the block is evictable
+   * Test if the block is evictable.
    *
    * @param blockId to be tested
    * @return boolean, true if the block can be evicted
@@ -140,7 +140,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Provide StorageTierView given tierAlias
+   * Provide StorageTierView given tierAlias.
    *
    * @param tierAlias the alias of this tierView
    * @return the StorageTierView object associated with the alias
@@ -156,7 +156,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Get all tierViews under this managerView
+   * Get all tierViews under this managerView.
    *
    * @return the list of StorageTierViews
    */
@@ -165,7 +165,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Get all tierViews before certain tierView
+   * Get all tierViews before certain tierView.
    *
    * @param tierAlias the alias of a tierView
    * @return the list of StorageTierView
@@ -192,7 +192,7 @@ public class BlockMetadataManagerView {
 
   /**
    * Get available bytes given certain location Redirecting to
-   * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}
+   * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}.
    *
    * @param location location the check available bytes
    * @return available bytes
@@ -204,7 +204,7 @@ public class BlockMetadataManagerView {
 
   /**
    * Return null if block is pinned or currently being locked, otherwise return
-   * {@link BlockMetadataManager#getBlockMeta(long)}
+   * {@link BlockMetadataManager#getBlockMeta(long)}.
    *
    * @param blockId the block ID
    * @return metadata of the block or null

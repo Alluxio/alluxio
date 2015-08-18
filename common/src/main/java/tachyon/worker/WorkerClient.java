@@ -79,14 +79,13 @@ public class WorkerClient implements Closeable {
   /**
    * Create a WorkerClient, with a given MasterClient.
    *
-   * @param masterClient
-   * @param executorService
-   * @param conf
-   * @param clientMetrics
-   * @throws IOException
+   * @param masterClient a master client to retrieve user id and worker hostname info
+   * @param executorService an executor for the worker client's heartbeat thread
+   * @param conf the Tachyon Configuration to use
+   * @param clientMetrics metrics collection object for this client's operations
    */
   public WorkerClient(MasterClient masterClient, ExecutorService executorService,
-      TachyonConf conf, ClientMetrics clientMetrics) throws IOException {
+      TachyonConf conf, ClientMetrics clientMetrics) {
     mMasterClient = masterClient;
     mExecutorService = executorService;
     mTachyonConf = conf;

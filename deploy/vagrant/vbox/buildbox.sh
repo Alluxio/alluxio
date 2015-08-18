@@ -12,16 +12,9 @@ if [ -f tachyon-dev.box ]; then
   rm -f tachyon-dev.box
 fi
 
-echo "sudo yum install -y libselinux-python git rsync wget" > provision.sh
-# java
-cat ../provision/roles/common/files/java.sh >> provision.sh
-# maven
-cat ../provision/roles/lib/files/maven.sh >> provision.sh
-
 vagrant up
 vagrant package --output tachyon-dev.box default
 vagrant destroy -f
-rm -f provision.sh
 vagrant box add tachyon-dev tachyon-dev.box
 
 popd >/dev/null
