@@ -81,7 +81,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
  * </ul>
  */
-public class TieredBlockStore implements BlockStore {
+public final class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO: change maxRetry to be configurable.
   private static final int MAX_RETRIES = 3;
@@ -413,8 +413,8 @@ public class TieredBlockStore implements BlockStore {
   private void checkTempBlockOwnedByUser(long userId, long blockId) throws NotFoundException,
       AlreadyExistsException, InvalidStateException {
     if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException("checkTempBlockOwnedByUser failed: blockId " + blockId + ""
-          + " is committed");
+      throw new AlreadyExistsException(
+          "checkTempBlockOwnedByUser failed: blockId " + blockId + " is committed");
     }
     TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
     long ownerUserId = tempBlockMeta.getUserId();
