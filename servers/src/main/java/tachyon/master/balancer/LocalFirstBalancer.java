@@ -44,7 +44,7 @@ public class LocalFirstBalancer implements Balancer {
       Map<Long, MasterWorkerInfo> mWorkers,
       Map<NetAddress , Long> mWorkerAddressToId) throws UnknownHostException {
     if (random) {
-      int index = new Random(mWorkerAddressToId.size())
+      int index = new Random()
           .nextInt(mWorkerAddressToId.size());
       for (NetAddress address : mWorkerAddressToId.keySet()) {
         if (index == 0) {
