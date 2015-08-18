@@ -381,7 +381,7 @@ public class StorageDirTest {
     mDir.resizeTempBlockMeta(mTempBlockMeta, TEST_DIR_CAPACITY);
     Assert.assertEquals(TEST_DIR_CAPACITY, mTempBlockMeta.getBlockSize());
     mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage("Available bytes should always be non-negative ");
+    mThrown.expectMessage("Available bytes should always be non-negative");
     // resize again, now the newSize is more than available bytes, exception thrown
     mDir.resizeTempBlockMeta(mTempBlockMeta, TEST_DIR_CAPACITY + 1);
   }
