@@ -132,7 +132,6 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage("Failed to lockBlock: no blockId " + BLOCK_ID1 + " found");
 
     mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
-    Assert.assertTrue(mLockManager.getLockedBlocks().isEmpty());
   }
 
   @Test
@@ -306,7 +305,6 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + BLOCK_ID1 + " not found");
 
     mBlockStore.getBlockWriter(USER_ID1, BLOCK_ID1);
-    Assert.assertTrue(mLockManager.getLockedBlocks().isEmpty());
   }
 
   @Test
