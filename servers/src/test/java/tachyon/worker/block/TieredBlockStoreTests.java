@@ -40,7 +40,7 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
 
-public final class TieredBlockStoreTest {
+public final class TieredBlockStoreTests {
   private static final long USER_ID1 = 2;
   private static final long USER_ID2 = 3;
   private static final long BLOCK_ID1 = 1000;
@@ -333,6 +333,6 @@ public final class TieredBlockStoreTest {
 
     TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
     mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
-    mBlockStore.abortBlock(USER_ID2, TEMP_BLOCK_ID);
+    mBlockStore.abortBlock(USER_ID1, TEMP_BLOCK_ID);
   }
 }
