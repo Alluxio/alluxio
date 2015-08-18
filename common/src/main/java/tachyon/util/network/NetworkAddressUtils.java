@@ -341,11 +341,11 @@ public final class NetworkAddressUtils {
         // unix-like systems. This optimization can help avoid to get some special addresses, such
         // as loopback address"127.0.0.1", virtual bridge address "192.168.122.1" as far as
         // possible.
-        if (!WINDOWS) {
-          List<NetworkInterface> netIFs = Collections.list(networkInterfaces);
-          Collections.reverse(netIFs);
-          networkInterfaces = Collections.enumeration(netIFs);
-        }
+//        if (!WINDOWS) {
+//          List<NetworkInterface> netIFs = Collections.list(networkInterfaces);
+//          Collections.reverse(netIFs);
+//          networkInterfaces = Collections.enumeration(netIFs);
+//        }
 
         while (networkInterfaces.hasMoreElements()) {
           NetworkInterface ni = networkInterfaces.nextElement();
@@ -387,8 +387,7 @@ public final class NetworkAddressUtils {
    */
   private static boolean isValidedAddress(InetAddress address, int timeout) throws IOException {
     return (!address.isAnyLocalAddress() && !address.isLinkLocalAddress()
-        && !address.isLoopbackAddress() && !(address instanceof Inet4Address) && !address
-          .isReachable(timeout));
+        && !address.isLoopbackAddress() && !(address instanceof Inet4Address));
   }
 
   /**

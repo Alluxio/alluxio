@@ -109,8 +109,10 @@ public final class BlockWorker {
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mMasterClient = new MasterClient(NetworkAddressUtils.getMasterConnectAddress(mTachyonConf),
-        mMasterClientExecutorService, mTachyonConf);
+    mMasterClient =
+        new MasterClient(
+            NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
+            mMasterClientExecutorService, mTachyonConf);
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
@@ -122,10 +124,6 @@ public final class BlockWorker {
     mWorkerMetricsSystem.registerSource(workerSource);
 
     // Set up DataServer
-    int dataServerPort =
-        mTachyonConf.getInt(Constants.WORKER_DATA_PORT);
-    InetSocketAddress dataServerAddress =
-        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(mTachyonConf), dataServerPort);
     mDataServer =
         DataServer.Factory.createDataServer(
             NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mTachyonConf),
@@ -141,8 +139,8 @@ public final class BlockWorker {
     mTachyonConf.set(Constants.WORKER_PORT, Integer.toString(mPort));
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
-        new NetAddress(NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf)
-            .getAddress().getCanonicalHostName(), mPort, mDataServer.getPort());
+        new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
+            mPort, mDataServer.getPort());
 
     // Set up web server
     mWebServer =
