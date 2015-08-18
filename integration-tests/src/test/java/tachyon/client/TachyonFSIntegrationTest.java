@@ -253,28 +253,38 @@ public class TachyonFSIntegrationTest {
     Assert.assertFalse(fileInfo == fileInfoNotCached);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void getTestAbnormal1() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage("Tachyon scheme cannot be null. Use tachyon or tachyon-ft");
     TachyonFS.get(new TachyonURI("/" + sHost + ":" + sPort), mMasterTachyonConf);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void getTestAbnormal2() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage("Tachyon scheme cannot be null. Use tachyon or tachyon-ft.");
     TachyonFS.get(new TachyonURI("/" + sHost + sPort), mMasterTachyonConf);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void getTestAbnormal3() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage("Tachyon scheme cannot be null. Use tachyon or tachyon-ft.");
     TachyonFS.get(new TachyonURI("/" + sHost + ":" + (sPort - 1)), mMasterTachyonConf);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void getTestAbnormal4() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage("Tachyon scheme cannot be null. Use tachyon or tachyon-ft.");
     TachyonFS.get(new TachyonURI("/" + sHost + ":" + sPort + "/ab/c.txt"), mMasterTachyonConf);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void getTestAbnormal5() throws IOException {
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage("Tachyon scheme must be either tachyon or tachyon-ft.");
     // API user may have this typo: tacyon
     TachyonFS.get(new TachyonURI("tacyon://" + sHost + ":" + sPort), mMasterTachyonConf);
   }
