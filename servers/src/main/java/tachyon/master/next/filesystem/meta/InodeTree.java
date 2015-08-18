@@ -39,7 +39,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
-public class InodeTree {
+public final class InodeTree {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private InodeDirectory mRoot;
