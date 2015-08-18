@@ -313,7 +313,6 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + BLOCK_ID1 + " not found");
 
     mBlockStore.abortBlock(USER_ID1, BLOCK_ID1);
-    Assert.assertTrue(mLockManager.getLockedBlocks().isEmpty());
   }
 
   @Test
