@@ -35,6 +35,7 @@ import tachyon.Users;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.master.MasterClient;
 import tachyon.metrics.MetricsSystem;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
@@ -72,6 +73,10 @@ public class BlockWorker {
   private final BlockDataManager mBlockDataManager;
   /** Server for data requests and responses. */
   private final DataServer mDataServer;
+  /** Client for all master communication */
+  private final MasterClient mMasterClient;
+  /** The executor service for the master client thread */
+  private final ExecutorService mMasterClientExecutorService;
   /** Threadpool for the master sync */
   private final ExecutorService mSyncExecutorService;
   /** Net address of this worker */
@@ -98,9 +103,16 @@ public class BlockWorker {
     mTachyonConf = WorkerContext.getConf();
     mStartTimeMs = System.currentTimeMillis();
 
+    // Setup MasterClient along with its heartbeat ExecutorService
+    mMasterClientExecutorService =
+        Executors.newFixedThreadPool(1,
+            ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
+    mMasterClient = new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
+        mMasterClientExecutorService, mTachyonConf);
+
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
-    mBlockDataManager = new BlockDataManager(workerSource);
+    mBlockDataManager = new BlockDataManager(workerSource, mMasterClient);
 
     // Setup metrics collection
     mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
@@ -136,11 +148,14 @@ public class BlockWorker {
     // mPinListSync and mUserCleanerThread
     mSyncExecutorService =
         Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
-    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress);
+
+    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress,
+        mMasterClient);
+    // In registerWithMaster mMasterClient tries to connect to master
     mBlockMasterSync.registerWithMaster();
 
     // Setup PinListSyncer
-    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf);
+    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mMasterClient);
 
     // Setup UserCleaner
     mUserCleanerThread = new UserCleaner(mBlockDataManager, mTachyonConf);
@@ -205,6 +220,8 @@ public class BlockWorker {
     mBlockMasterSync.stop();
     mPinListSync.stop();
     mUserCleanerThread.stop();
+    mMasterClient.close();
+    mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
     try {
       mWebServer.shutdownWebServer();
