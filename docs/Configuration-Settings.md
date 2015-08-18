@@ -485,9 +485,32 @@ For example, if you would like to enable Java remote debugging at port 7001 in t
 
 # Configuration of multihomed networks
 
-| Specified Hostname |  Specified Bind Host   | Returned Connect Host |
-|--------------------|------------------------|-----------------------|
-| hostname           | hostname               | hostname              |
-| not defined        | hostname               | hostname              |
-| hostname           | 0.0.0.0 or not defined | hostname              |
-| not defined        | 0.0.0.0 or not defined | localhost             |
+<table>
+  <tbody>
+    <tr>
+      <th>Specified Hostname</th>
+      <th>Specified Bind Host</th>
+      <th>Returned Connect Host</th>
+    </tr>
+    <tr>
+      <td>hostname</td>
+      <td>hostname</td>
+      <td>hostname</td>
+    </tr>
+    <tr>
+      <td>not defined</td>
+      <td>hostname</td>
+      <td>hostname</td>
+    </tr>
+    <tr>
+      <td>hostname</td>
+      <td>0.0.0.0 or not defined</td>
+      <td>hostname</td>
+    </tr>
+    <tr>
+      <td>not defined</td>
+      <td>0.0.0.0 or not defined</td>
+      <td>localhost</td>
+    </tr>
+  </tbody>
+</table>
