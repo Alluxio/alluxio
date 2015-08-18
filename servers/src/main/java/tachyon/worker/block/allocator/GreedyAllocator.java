@@ -33,10 +33,10 @@ public class GreedyAllocator implements Allocator {
   }
 
   @Override
-  public StorageDirView allocateBlockWithView(long blockSize, BlockStoreLocation location,
-      BlockMetadataManagerView view) {
+  public StorageDirView allocateBlockWithView(long userId, long blockSize,
+      BlockStoreLocation location, BlockMetadataManagerView view) {
     mManagerView = view;
-    return allocateBlock(blockSize, location);
+    return allocateBlock(userId, blockSize, location);
   }
 
   /**
@@ -44,12 +44,13 @@ public class GreedyAllocator implements Allocator {
    * Allocates a block from the given block store location. The location can be a specific location,
    * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
    *
+   * @param userId the ID of user to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @return a StorageDirView in which to create the temp block meta if success, null otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
-  private StorageDirView allocateBlock(long blockSize, BlockStoreLocation location) {
+  private StorageDirView allocateBlock(long userId, long blockSize, BlockStoreLocation location) {
     if (location.equals(BlockStoreLocation.anyTier())) {
       // When any tier is ok, loop over all tier views and dir views,
       // and return a temp block meta from the first available dirview.

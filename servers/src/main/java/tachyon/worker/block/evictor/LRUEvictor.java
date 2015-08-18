@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Pair;
+import tachyon.Users;
 import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
@@ -182,7 +183,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
             continue;
           }
           StorageDirView nextDirView =
-              mAllocator.allocateBlockWithView(block.getBlockSize(),
+              mAllocator.allocateBlockWithView(Users.MIGRATE_DATA_USER_ID, block.getBlockSize(),
                   BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
           if (nextDirView == null) {
             nextDirView =

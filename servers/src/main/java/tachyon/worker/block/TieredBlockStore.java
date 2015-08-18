@@ -539,11 +539,13 @@ public class TieredBlockStore implements BlockStore {
         checkTempBlockIdAvailable(blockId);
       }
       StorageDirView dirView =
-          mAllocator.allocateBlockWithView(initialBlockSize, location, getUpdatedView());
+          mAllocator.allocateBlockWithView(userId, initialBlockSize, location, getUpdatedView());
       if (dirView == null) {
         // Allocator fails to find a proper place for this new block.
         return null;
       }
+      // TODO: Add tempBlock to corresponding storageDir and remove the use of
+      // StorageDirView.createTempBlockMeta
       TempBlockMeta tempBlock = dirView.createTempBlockMeta(userId, blockId, initialBlockSize);
       try {
         // Add allocated temp block to metadata manager. This should never fail if allocator
