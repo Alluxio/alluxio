@@ -97,17 +97,17 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public static synchronized TachyonFS get(final TachyonURI tachyonURI, TachyonConf tachyonConf)
       throws IOException {
-    Preconditions.checkNotNull(tachyonConf, "Could not pass a null TachyonConf instance.");
-    Preconditions.checkNotNull(tachyonURI, "Tachyon URI cannot be null. Use " + Constants.HEADER
-        + "host:port/ ," + Constants.HEADER_FT + "host:port/.");
+    Preconditions.checkArgument(tachyonConf != null, "Could not pass a null TachyonConf instance.");
+    Preconditions.checkArgument(tachyonURI != null, "Tachyon URI cannot be null. Use "
+        + Constants.HEADER + "host:port/ ," + Constants.HEADER_FT + "host:port/.");
     String scheme = tachyonURI.getScheme();
-    Preconditions.checkNotNull(scheme, "Tachyon scheme cannot be null. Use tachyon:// "
-        + "or tachyon-ft://.");
+    Preconditions.checkNotNull(scheme, "Tachyon scheme cannot be null. Use " + Constants.SCHEME
+        + " or " + Constants.SCHEME_FT + ".");
     Preconditions.checkNotNull(tachyonURI.getHost(), "Tachyon hostname cannot be null.");
-    Preconditions.checkArgument(tachyonURI.getPort() != -1, "Tachyon URI must have a port number.");
-    Preconditions.checkArgument(
+    Preconditions.checkState(tachyonURI.getPort() != -1, "Tachyon URI must have a port number.");
+    Preconditions.checkState(
         (Constants.SCHEME.equals(scheme) || Constants.SCHEME_FT.equals(scheme)),
-        "Tachyon scheme must be either \"tachyon\" or \"tachyon-ft\".");
+        "Tachyon scheme must be either " + Constants.SCHEME + " or " + Constants.SCHEME_FT + ".");
 
     boolean useZookeeper = scheme.equals(Constants.SCHEME_FT);
     tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(useZookeeper));
@@ -140,7 +140,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the corresponding TachyonFS handler
    */
   public static synchronized TachyonFS get(TachyonConf tachyonConf) {
-    Preconditions.checkNotNull(tachyonConf, "Could not pass a null TachyonConf instance.");
+    Preconditions.checkArgument(tachyonConf != null, "Could not pass a null TachyonConf instance.");
     return new TachyonFS(tachyonConf);
   }
 
