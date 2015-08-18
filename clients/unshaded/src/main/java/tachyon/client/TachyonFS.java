@@ -981,27 +981,20 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Validates the given uri, throwing an IOException if the uri is invalid.
+   * Validates the given uri, throws an appropriate Exception if the uri is invalid.
    *
    * @param uri The uri to validate
    */
-  private void validateUri(TachyonURI uri) throws IOException {
-    String err = null;
-    if (uri == null) {
-      err = "URI cannot be null";
-    } else if (!uri.isPathAbsolute() && !TachyonURI.EMPTY_URI.equals(uri)) {
-      err = "URI must be absolute";
-    } else if (uri.hasScheme() && !mRootUri.getScheme().equals(uri.getScheme())) {
-      err =
-          "URI's scheme: " + uri.getScheme() + " must match the file system's scheme: "
-              + mRootUri.getScheme();
-    } else if (uri.hasAuthority() && !mRootUri.getAuthority().equals(uri.getAuthority())) {
-      err =
-          "URI's authority: " + uri.getAuthority() + " must match the file system's authority: "
-              + mRootUri.getAuthority();
-    }
-    if (err != null) {
-      throw new IOException("Uri is invalid: " + err);
-    }
+  private void validateUri(TachyonURI uri) {
+    Preconditions.checkNotNull(uri, "URI cannot be null.");
+    Preconditions.checkArgument(uri.isPathAbsolute() || TachyonURI.EMPTY_URI.equals(uri),
+        "URI must be absolute, unless it's empty.");
+    Preconditions.checkArgument(!uri.hasScheme() || mRootUri.getScheme().equals(uri.getScheme()),
+        "URI's scheme: " + uri.getScheme() + " must match the file system's scheme: "
+            + mRootUri.getScheme() + ", unless it doesn't have a scheme.");
+    Preconditions.checkArgument(!uri.hasAuthority()
+        || mRootUri.getAuthority().equals(uri.getAuthority()), "URI's authority: "
+        + uri.getAuthority() + " must match the file system's authority: "
+        + mRootUri.getAuthority() + ", unless it doesn't have an authority.");
   }
 }

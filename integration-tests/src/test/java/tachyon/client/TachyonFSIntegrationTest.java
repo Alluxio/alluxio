@@ -23,7 +23,9 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -48,6 +50,9 @@ public class TachyonFSIntegrationTest {
   private static TachyonFS sTfs = null;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public final void before() throws IOException {
@@ -95,8 +100,10 @@ public class TachyonFSIntegrationTest {
     fileId = sTfs.createFile(uri);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void createFileWithInvalidPathExceptionTest() throws IOException {
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("URI must be absolute, unless it's empty.");
     sTfs.createFile(new TachyonURI("root/testFile1"));
   }
 
@@ -143,8 +150,10 @@ public class TachyonFSIntegrationTest {
     sTfs.createRawTable(uri, 20);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void createRawTableWithInvalidPathExceptionTest1() throws IOException {
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("URI must be absolute, unless it's empty.");
     sTfs.createRawTable(new TachyonURI("tables/table1"), 20);
   }
 
