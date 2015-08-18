@@ -95,5 +95,6 @@ if [[ "$?" == "0" ]]; then
   master=`tail -n 1 files/hosts | cut -d' ' -f1`
  fi
  info ">>> TachyonMaster public IP is ${master} <<<"
- info ">>> visit default port of the web UI of what you deployed <<<"
+ info ">>> Please visit default port of the web UI of what you deployed <<<"
+ info ">>> For Tachyon, the web UI is at http://${master}:19999 <<<"
 fi
