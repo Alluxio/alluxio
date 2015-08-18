@@ -256,7 +256,8 @@ public class RemoteBlockInStream extends BlockInStream {
     while (bytesLeft > 0 && mAttemptReadFromWorkers && updateCurrentBuffer()) {
       int bytesToRead = Math.min(bytesLeft, mCurrentBuffer.remaining());
       mCurrentBuffer.get(b, off, bytesToRead);
-      if (mRecache) {
+      // TACHYON-813: Only cache locally
+      if (mRecache && mBlockOutStream instanceof LocalBlockOutStream) {
         mBlockOutStream.write(b, off, bytesToRead);
       }
       off += bytesToRead;
@@ -283,7 +284,8 @@ public class RemoteBlockInStream extends BlockInStream {
           LOG.error("Checkpoint stream read 0 bytes, which shouldn't ever happen");
           return len - bytesLeft;
         }
-        if (mRecache) {
+        // TACHYON-813: Only cache locally
+        if (mRecache && mBlockOutStream instanceof LocalBlockOutStream) {
           mBlockOutStream.write(b, off, readBytes);
         }
         off += readBytes;
