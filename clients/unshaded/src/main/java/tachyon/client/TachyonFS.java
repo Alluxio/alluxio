@@ -64,11 +64,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param tachyonPath a Tachyon path contains master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
    * @return the corresponding TachyonFS handler
-   * @throws IOException
    * @see #get(tachyon.TachyonURI, tachyon.conf.TachyonConf)
    */
   @Deprecated
-  public static synchronized TachyonFS get(String tachyonPath) throws IOException {
+  public static synchronized TachyonFS get(String tachyonPath) {
     return get(new TachyonURI(tachyonPath), new TachyonConf());
   }
 
@@ -78,11 +77,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param tachyonURI a Tachyon URI to indicate master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
    * @return the corresponding TachyonFS handler
-   * @throws IOException
    * @see #get(tachyon.TachyonURI, tachyon.conf.TachyonConf)
    */
   @Deprecated
-  public static synchronized TachyonFS get(final TachyonURI tachyonURI) throws IOException {
+  public static synchronized TachyonFS get(final TachyonURI tachyonURI) {
     return get(tachyonURI, new TachyonConf());
   }
 
@@ -93,10 +91,8 @@ public class TachyonFS extends AbstractTachyonFS {
    *        tachyon://localhost:19998/ab/c.txt
    * @param tachyonConf The TachyonConf instance.
    * @return the corresponding TachyonFS handler
-   * @throws IOException
    */
-  public static synchronized TachyonFS get(final TachyonURI tachyonURI, TachyonConf tachyonConf)
-      throws IOException {
+  public static synchronized TachyonFS get(final TachyonURI tachyonURI, TachyonConf tachyonConf) {
     Preconditions.checkArgument(tachyonConf != null, "TachyonConf cannot be null.");
     Preconditions.checkArgument(tachyonURI != null, "Tachyon URI cannot be null. Use "
         + Constants.HEADER + "host:port/ ," + Constants.HEADER_FT + "host:port/.");
