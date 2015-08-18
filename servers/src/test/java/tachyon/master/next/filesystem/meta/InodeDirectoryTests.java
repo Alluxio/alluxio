@@ -121,7 +121,7 @@ public final class InodeDirectoryTests {
   @Test
   public void setLastModificationTimeTest() {
     long createTimeMs = System.currentTimeMillis();
-    long modificationTimeMs = createTimeMs + 1000;
+    long modificationTimeMs = Constants.SECOND_MS;
     InodeDirectory inodeDirectory = createInodeDirectory();
     Assert.assertEquals(createTimeMs, inodeDirectory.getLastModificationTimeMs());
     inodeDirectory.setLastModificationTimeMs(modificationTimeMs);
@@ -183,6 +183,6 @@ public final class InodeDirectoryTests {
   }
 
   private InodeFile createInodeFile(long id) {
-    return new InodeFile("testFile" + id, id, 1, 1000, System.currentTimeMillis());
+    return new InodeFile("testFile" + id, id, 1, Constants.KB, System.currentTimeMillis());
   }
 }
