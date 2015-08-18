@@ -91,17 +91,18 @@ public final class TieredBlockStoreTest {
         mEvictor);
 
     long lockId1 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
-    Assert.assertTrue(Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1))
-        .isEmpty());
+    Assert.assertTrue(
+        Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1)).isEmpty());
 
     long lockId2 = mBlockStore.lockBlock(USER_ID2, BLOCK_ID2);
     Assert.assertNotEquals(lockId1, lockId2);
-    Assert.assertTrue(Sets.difference(mLockManager.getLockedBlocks(),
-        Sets.newHashSet(BLOCK_ID1, BLOCK_ID2)).isEmpty());
+    Assert.assertTrue(
+        Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1, BLOCK_ID2))
+            .isEmpty());
 
     mBlockStore.unlockBlock(lockId2);
-    Assert.assertTrue(Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1))
-        .isEmpty());
+    Assert.assertTrue(
+        Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1)).isEmpty());
 
     mBlockStore.unlockBlock(lockId1);
     Assert.assertTrue(mLockManager.getLockedBlocks().isEmpty());
@@ -116,8 +117,8 @@ public final class TieredBlockStoreTest {
         mEvictor);
 
     long lockId1 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
-    Assert.assertTrue(Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1))
-        .isEmpty());
+    Assert.assertTrue(
+        Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1)).isEmpty());
 
     long lockId2 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID2);
     Assert.assertNotEquals(lockId1, lockId2);
@@ -217,9 +218,8 @@ public final class TieredBlockStoreTest {
   public void createBlockMetaWithEvictionTest() throws Exception {
     TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
-    TempBlockMeta tempBlockMeta =
-        mBlockStore.createBlockMeta(USER_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
-            mTestDir1.getCapacityBytes());
+    TempBlockMeta tempBlockMeta = mBlockStore.createBlockMeta(USER_ID1, TEMP_BLOCK_ID,
+        mTestDir1.toBlockStoreLocation(), mTestDir1.getCapacityBytes());
     // Expect BLOCK_ID1 evicted from mTestDir1
     Assert.assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
     Assert.assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
@@ -297,4 +297,14 @@ public final class TieredBlockStoreTest {
     mBlockStore.freeSpace(USER_ID1, mTestDir1.getCapacityBytes(), mTestDir1.toBlockStoreLocation());
     Assert.assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
   }
+
+  @Test
+  public void getBlockWriterForNonExistingBlockTest() throws Exception {
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + BLOCK_ID1 + " not found");
+
+    mBlockStore.getBlockWriter(USER_ID1, BLOCK_ID1);
+    Assert.assertTrue(mLockManager.getLockedBlocks().isEmpty());
+  }
+
 }
