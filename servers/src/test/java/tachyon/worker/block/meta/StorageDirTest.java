@@ -27,8 +27,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
@@ -36,6 +34,7 @@ import com.google.common.primitives.Ints;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.util.io.BufferUtils;
@@ -43,7 +42,6 @@ import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
 
 public class StorageDirTest {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final long TEST_USER_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_BLOCK_SIZE = 20;
@@ -360,6 +358,32 @@ public class StorageDirTest {
     final long newSize = TEST_TEMP_BLOCK_SIZE + 10;
     mDir.resizeTempBlockMeta(mTempBlockMeta, newSize);
     Assert.assertEquals(TEST_DIR_CAPACITY - newSize, mDir.getAvailableBytes());
+  }
+
+  @Test
+  public void resizeTempBlockMetaInvalidStateExceptionTest() throws Exception {
+    mDir.addTempBlockMeta(mTempBlockMeta);
+    final long newSize = TEST_TEMP_BLOCK_SIZE - 10;
+    try {
+      mDir.resizeTempBlockMeta(mTempBlockMeta, newSize);
+      Assert.fail("Should throw an Exception when newSize is smaller than oldSize");
+    } catch (Exception e) {
+      Assert.assertTrue(e instanceof InvalidStateException);
+      Assert.assertTrue(e.getMessage().equals("Shrinking block, not supported!"));
+      Assert.assertEquals(TEST_TEMP_BLOCK_SIZE, mTempBlockMeta.getBlockSize());
+    }
+  }
+
+  @Test
+  public void resizeTempBlockMetaNoAvailableBytesTest() throws Exception {
+    mDir.addTempBlockMeta(mTempBlockMeta);
+    // resize the temp block size to the dir capacity, which is the limit
+    mDir.resizeTempBlockMeta(mTempBlockMeta, TEST_DIR_CAPACITY);
+    Assert.assertEquals(TEST_DIR_CAPACITY, mTempBlockMeta.getBlockSize());
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage("Available bytes should always be non-negative ");
+    // resize again, now the newSize is more than available bytes, exception thrown
+    mDir.resizeTempBlockMeta(mTempBlockMeta, TEST_DIR_CAPACITY + 1);
   }
 
   // TODO: also test claimed space
