@@ -48,10 +48,10 @@ import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientDependencyInfo;
+import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -174,7 +174,7 @@ public final class MasterClient implements Closeable {
     }
 
     Exception lastException = null;
-    int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT, 29);
+    int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT);
     RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, maxConnectsTry);
     do {
       mMasterAddress = getMasterAddress();
@@ -193,7 +193,7 @@ public final class MasterClient implements Closeable {
 
         String threadName = "master-heartbeat-" + mMasterAddress;
         int interval =
-            mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+            mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
         mHeartbeat =
             mExecutorService.submit(new HeartbeatThread(threadName, heartBeater, interval / 2));
       } catch (TTransportException e) {
@@ -228,10 +228,10 @@ public final class MasterClient implements Closeable {
    * Get the client dependency info from master server.
    *
    * @param did Dependency id.
-   * @return ClientDependencyInfo returned from master
+   * @return DependencyInfo returned from master
    * @throws IOException
    */
-  public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
+  public synchronized DependencyInfo getClientDependencyInfo(int did) throws IOException {
     while (!mIsClosed) {
       connect();
 
@@ -285,8 +285,8 @@ public final class MasterClient implements Closeable {
     }
 
     LeaderInquireClient leaderInquireClient =
-        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS, null),
-            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, null));
+        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS),
+            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH));
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);
@@ -316,7 +316,7 @@ public final class MasterClient implements Closeable {
    * @return A list of worker info returned by master
    * @throws IOException
    */
-  public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
+  public synchronized List<WorkerInfo> getWorkersInfo() throws IOException {
     while (!mIsClosed) {
       connect();
 

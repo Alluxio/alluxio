@@ -32,6 +32,7 @@ import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.BlockMetaBase;
 import tachyon.worker.block.meta.StorageDir;
@@ -54,12 +55,13 @@ public class BlockMetadataManager {
   /** A map from tier alias to StorageTier */
   private Map<Integer, StorageTier> mAliasToTiers;
 
+
   private BlockMetadataManager() {}
 
-  public static BlockMetadataManager newBlockMetadataManager(TachyonConf tachyonConf) {
+  public static BlockMetadataManager newBlockMetadataManager() {
     BlockMetadataManager ret = new BlockMetadataManager();
     try {
-      ret.initBlockMetadataManager(tachyonConf);
+      ret.initBlockMetadataManager();
       // caller of newBlockMetadataManager should not be forced to catch and handle these exceptions
       // since it is the responsibility of BlockMetadataManager.
     } catch (AlreadyExistsException aee) {
@@ -72,14 +74,14 @@ public class BlockMetadataManager {
     return ret;
   }
 
-  private void initBlockMetadataManager(TachyonConf tachyonConf) throws AlreadyExistsException,
+  private void initBlockMetadataManager() throws AlreadyExistsException,
       IOException, OutOfSpaceException {
     // Initialize storage tiers
-    int totalTiers = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
+    int totalTiers = WorkerContext.getConf().getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
     mTiers = new ArrayList<StorageTier>(totalTiers);
     for (int level = 0; level < totalTiers; level ++) {
-      StorageTier tier = StorageTier.newStorageTier(tachyonConf, level);
+      StorageTier tier = StorageTier.newStorageTier(level);
       mTiers.add(tier);
       mAliasToTiers.put(tier.getTierAlias(), tier);
     }

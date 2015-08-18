@@ -133,7 +133,7 @@ public class InodeFolder extends Inode {
   public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
 
-    ret.id = getId();
+    ret.fileId = getId();
     ret.name = getName();
     ret.path = path;
     ret.ufsPath = "";

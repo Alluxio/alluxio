@@ -27,6 +27,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.WorkerContext;
 
 /**
  * Simple tests for the MASTER_HOSTNAME_LISTENING configuration option.
@@ -45,11 +46,11 @@ public class MasterHostnameListeningIntegrationTest {
 
   private final void startCluster(String hostnameListening) throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(100, 100, Constants.GB);
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = WorkerContext.getConf();
     if (hostnameListening != null) {
       tachyonConf.set(Constants.MASTER_HOSTNAME_LISTENING, hostnameListening);
     }
-    mLocalTachyonCluster.start(tachyonConf);
+    mLocalTachyonCluster.start();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
   }

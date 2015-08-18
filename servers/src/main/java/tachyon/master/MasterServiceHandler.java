@@ -30,10 +30,10 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientDependencyInfo;
+import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -85,7 +85,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<ClientWorkerInfo> getWorkersInfo() throws TException {
+  public List<WorkerInfo> getWorkersInfo() throws TException {
     return mMasterInfo.getWorkersInfo();
   }
 
@@ -184,7 +184,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public ClientDependencyInfo user_getClientDependencyInfo(int dependencyId)
+  public DependencyInfo user_getClientDependencyInfo(int dependencyId)
       throws DependencyDoesNotExistException, TException {
     return mMasterInfo.getClientDependencyInfo(dependencyId);
   }

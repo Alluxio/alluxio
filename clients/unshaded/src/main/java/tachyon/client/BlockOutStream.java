@@ -43,7 +43,7 @@ public abstract class BlockOutStream extends OutStream {
   public static BlockOutStream get(TachyonFile tachyonFile, WriteType opType, int blockIndex,
       TachyonConf tachyonConf) throws IOException {
     return get(tachyonFile, opType, blockIndex,
-        tachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES, 8 * Constants.MB), tachyonConf);
+        tachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES), tachyonConf);
   }
 
   /**

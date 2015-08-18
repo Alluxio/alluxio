@@ -15,16 +15,14 @@
 
 package tachyon.master.next.block.meta;
 
-import tachyon.thrift.NetAddress;
-
 /**
  * The location of the block.
  */
-public class BlockLocation {
+public class MasterBlockLocation {
   public long mWorkerId;
   public int mTier;
 
-  BlockLocation(long workerId, int tier) {
+  MasterBlockLocation(long workerId, int tier) {
     mWorkerId = workerId;
     mTier = tier;
   }

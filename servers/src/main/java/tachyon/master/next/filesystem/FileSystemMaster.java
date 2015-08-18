@@ -18,6 +18,7 @@ package tachyon.master.next.filesystem;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -31,24 +32,24 @@ import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.Dependency;
+import tachyon.master.block.BlockId;
 import tachyon.master.next.Master;
+import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.BlockMaster;
-import tachyon.master.next.block.meta.BlockId;
-import tachyon.master.next.block.meta.BlockWorkerInfo;
-import tachyon.master.next.block.meta.UserBlockInfo;
-import tachyon.master.next.block.meta.UserBlockLocation;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
+import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.ClientDependencyInfo;
-import tachyon.thrift.FileInfo;
+import tachyon.thrift.BlockLocation;
 import tachyon.thrift.DependencyDoesNotExistException;
+import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -75,9 +76,8 @@ public class FileSystemMaster implements Master {
     mInodeTree = new InodeTree(mBlockMaster);
     mDependencyMap = new DependencyMap();
 
-    mWhitelist =
-        new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ",",
-            new LinkedList<String>()));
+    mWhitelist = new PrefixList(
+        mTachyonConf.getList(Constants.MASTER_WHITELIST, ",", new LinkedList<String>()));
   }
 
   @Override
@@ -91,23 +91,25 @@ public class FileSystemMaster implements Master {
     return "FileSystemMaster";
   }
 
+  public List<PeriodicTask> getPeriodicTaskList() {
+    // TODO: return tasks for periodic detection of required lineage recomputation
+    return Collections.emptyList();
+  }
+
   public boolean addCheckpoint(long workerId, int fileId, long length, TachyonURI checkpointPath)
-      throws FileNotFoundException, SuspectedFileSizeException, BlockInfoException {
+      throws FileNotFoundException, SuspectedFileSizeException, BlockInfoException,
+      FileDoesNotExistException {
     // TODO: metrics
     long opTimeMs = System.currentTimeMillis();
     LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
 
     if (workerId != -1) {
-      BlockWorkerInfo workerInfo = mBlockMaster.getWorkerInfo(workerId);
-      workerInfo.updateLastUpdatedTimeMs();
+      // TODO: how to update worker timestamp?
+      // workerInfo.updateLastUpdatedTimeMs();
     }
 
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-
-      if (inode == null) {
-        throw new FileNotFoundException("File id " + fileId + " does not exist.");
-      }
       if (inode.isDirectory()) {
         throw new FileNotFoundException("File id " + fileId + " is a directory, not a file.");
       }
@@ -117,8 +119,8 @@ public class FileSystemMaster implements Master {
 
       if (tFile.isComplete()) {
         if (tFile.getLength() != length) {
-          throw new SuspectedFileSizeException(fileId + ". Original Size: " + tFile.getLength()
-              + ". New Size: " + length);
+          throw new SuspectedFileSizeException(
+              fileId + ". Original Size: " + tFile.getLength() + ". New Size: " + length);
         }
       } else {
         tFile.setLength(length);
@@ -152,65 +154,63 @@ public class FileSystemMaster implements Master {
 
   }
 
-  public FileInfo getFileStatus(long fileId) {
+  public long getFileId(TachyonURI path) throws InvalidPathException {
+    synchronized (mInodeTree) {
+      Inode inode = mInodeTree.getInodeByPath(path);
+      return inode.getId();
+    }
+  }
+
+  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      if (inode == null) {
-        FileInfo info = new FileInfo();
-        info.id = -1;
-        return info;
-      }
       return inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     }
-
   }
 
-  public FileInfo getFileStatus(TachyonURI path) throws InvalidPathException {
-    // TODO: metrics
+  public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(path);
-      if (inode == null) {
-        FileInfo info = new FileInfo();
-        info.id = -1;
-        return info;
+      Inode inode = mInodeTree.getInodeById(fileId);
+      TachyonURI path = mInodeTree.getPath(inode);
+
+      List<FileInfo> ret = new ArrayList<FileInfo>();
+      if (inode.isDirectory()) {
+        for (Inode child : ((InodeDirectory) inode).getChildren()) {
+          ret.add(child.generateClientFileInfo(PathUtils.concatPath(path, child.getName())));
+        }
+      } else {
+        ret.add(inode.generateClientFileInfo(path.toString()));
       }
-      return inode.generateClientFileInfo(path.toString());
+      return ret;
     }
   }
 
-  public List<FileInfo> listStatus(TachyonURI path) throws FileDoesNotExistException,
-      InvalidPathException {
-    Inode inode = null;
-    synchronized (mInodeTree) {
-      inode = mInodeTree.getInodeByPath(path);
-    }
-    if (inode == null) {
-      throw new FileDoesNotExistException(path.toString());
-    }
-
-    List<FileInfo> ret = new ArrayList<FileInfo>();
-    if (inode.isDirectory()) {
-      for (Inode child : ((InodeDirectory) inode).getChildren()) {
-        ret.add(child.generateClientFileInfo(PathUtils.concatPath(path, child.getName())));
-      }
-    } else {
-      ret.add(inode.generateClientFileInfo(path.toString()));
-    }
-    return ret;
-  }
-
-  public void completeFile(long fileId) throws FileDoesNotExistException {
+  public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
-
-      if (inode == null) {
-        throw new FileDoesNotExistException("File id " + fileId + " does not exist.");
-      }
       if (!inode.isFile()) {
         throw new FileDoesNotExistException("File id " + fileId + " is not a file.");
+      }
+
+      InodeFile fileInode = (InodeFile) inode;
+      List<Long> blockIdList = fileInode.getBlockIds();
+      List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
+      if (blockInfoList.size() != blockIdList.size()) {
+        throw new BlockInfoException("Cannot complete file without all the blocks committed");
+      }
+
+      // Verify that all the blocks (except the last one) is the same size as the file block size.
+      long fileBlockSize = fileInode.getBlockSizeBytes();
+      for (int i = 0; i < blockInfoList.size() - 1; i ++) {
+        BlockInfo blockInfo = blockInfoList.get(i);
+        if (blockInfo.getLength() != fileBlockSize) {
+          throw new BlockInfoException(
+              "Block index " + i + " has a block size smaller than the file block size ("
+                  + fileInode.getBlockSizeBytes() + ")");
+        }
       }
 
       mDependencyMap.addFileCheckpoint(fileId);
@@ -239,10 +239,6 @@ public class FileSystemMaster implements Master {
     synchronized (mInodeTree) {
       inode = mInodeTree.getInodeById(fileId);
     }
-
-    if (inode == null) {
-      throw new FileDoesNotExistException("File id " + fileId + " does not exist.");
-    }
     if (!inode.isFile()) {
       throw new FileDoesNotExistException("File id " + fileId + " is not a file.");
     }
@@ -250,16 +246,13 @@ public class FileSystemMaster implements Master {
     return ((InodeFile) inode).getNewBlockId();
   }
 
+  // TODO: dont commit blocks at the file system level.
   public void commitFileBlock(long workerId, long usedBytesOnTier, int tierAlias, long blockId,
       long length) throws FileDoesNotExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
       long fileId = BlockId.getContainerId(blockId);
       Inode inode = mInodeTree.getInodeById(fileId);
-
-      if (inode == null) {
-        throw new FileDoesNotExistException("File " + fileId + " does not exist.");
-      }
       if (inode.isDirectory()) {
         throw new FileDoesNotExistException("File " + fileId + " is a directory.");
       }
@@ -275,28 +268,18 @@ public class FileSystemMaster implements Master {
     }
   }
 
-  public boolean deleteFileId(long fileId, boolean recursive) throws TachyonException {
+  public boolean deleteFile(long fileId, boolean recursive)
+      throws TachyonException, FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      deleteInodeInternal(inode, recursive);
-      return true;
+      return deleteInodeInternal(inode, recursive);
       // TODO: write to journal
     }
   }
 
-  public boolean deletePath(TachyonURI path, boolean recursive) throws InvalidPathException,
-      TachyonException {
-    // TODO: metrics
-    synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(path);
-      deleteInodeInternal(inode, recursive);
-      return true;
-      // TODO: write to journal
-    }
-  }
-
-  private boolean deleteInodeInternal(Inode inode, boolean recursive) throws TachyonException {
+  private boolean deleteInodeInternal(Inode inode, boolean recursive)
+      throws TachyonException, FileDoesNotExistException {
     if (inode == null) {
       return true;
     }
@@ -346,77 +329,44 @@ public class FileSystemMaster implements Master {
     return true;
   }
 
-  public long getBlockId(long fileId, int blockIndex) {
-    // TODO: expose block ids in the file system master?
-    return 0;
+  public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
+      throws FileDoesNotExistException, BlockInfoException {
+    synchronized (mInodeTree) {
+      Inode inode = mInodeTree.getInodeById(fileId);
+      if (inode.isDirectory()) {
+        throw new FileDoesNotExistException("FileId " + fileId + " is not a file.");
+      }
+      InodeFile tFile = (InodeFile) inode;
+      List<Long> blockIdList = new ArrayList<Long>(1);
+      blockIdList.add(tFile.getBlockIdByIndex(fileBlockIndex));
+      List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
+      if (blockInfoList.size() != 1) {
+        throw new BlockInfoException(
+            "FileId " + fileId + " BlockIndex " + fileBlockIndex + " is not a valid block.");
+      }
+      return generateFileBlockInfo(tFile, blockInfoList.get(0));
+    }
   }
 
   public List<FileBlockInfo> getFileBlockInfoList(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      if (inode == null || inode.isDirectory()) {
-        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
+      if (inode.isDirectory()) {
+        throw new FileDoesNotExistException("FileId " + fileId + " is not a file.");
       }
       InodeFile tFile = (InodeFile) inode;
-      List<UserBlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(tFile.getBlockIds());
+      List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(tFile.getBlockIds());
+
       List<FileBlockInfo> ret = new ArrayList<FileBlockInfo>();
-
-      for (UserBlockInfo blockInfo : blockInfoList) {
-        // Construct an file block info object to return.
-        FileBlockInfo clientBlockInfo = new FileBlockInfo();
-
-        clientBlockInfo.blockId = blockInfo.mBlockId;
-        clientBlockInfo.length = blockInfo.mLength;
-        // TODO: change ClientBlockInfo to return the richer worker location info.
-        List<NetAddress> addressList = new ArrayList<NetAddress>();
-        for (UserBlockLocation blockLocation : blockInfo.mLocations) {
-          addressList.add(blockLocation.mAddress);
-        }
-        clientBlockInfo.locations = addressList;
-
-        // The sequence number part of the block id is the offset.
-        clientBlockInfo.offset =
-            tFile.getBlockSizeByte() * BlockId.getSequenceNumber(blockInfo.mBlockId);
-
-        if (clientBlockInfo.locations.isEmpty() && tFile.hasCheckpointed()) {
-          // No tachyon locations, but there is a checkpoint in the under storage system. Add the
-          // locations from the under storage system.
-          UnderFileSystem ufs = UnderFileSystem.get(tFile.getUfsPath(), mTachyonConf);
-          List<String> locs = null;
-          try {
-            locs = ufs.getFileLocations(tFile.getUfsPath(), clientBlockInfo.offset);
-          } catch (IOException e) {
-            ret.add(clientBlockInfo);
-            continue;
-          }
-          if (locs != null) {
-            for (String loc : locs) {
-              String resolvedHost = loc;
-              int resolvedPort = -1;
-              try {
-                String[] ipport = loc.split(":");
-                if (ipport.length == 2) {
-                  resolvedHost = ipport[0];
-                  resolvedPort = Integer.parseInt(ipport[1]);
-                }
-              } catch (NumberFormatException nfe) {
-                continue;
-              }
-              // The resolved port is the data transfer port not the rpc port
-              clientBlockInfo.locations.add(new NetAddress(resolvedHost, -1, resolvedPort));
-            }
-          }
-        }
-        ret.add(clientBlockInfo);
+      for (BlockInfo blockInfo : blockInfoList) {
+        ret.add(generateFileBlockInfo(tFile, blockInfo));
       }
-
-      LOG.debug("getFileLocations: {} {}", fileId, ret);
       return ret;
     }
   }
 
-  public boolean mkdirs(TachyonURI path, boolean recursive) throws InvalidPathException,
-      FileAlreadyExistException, BlockInfoException {
+  public boolean mkdirs(TachyonURI path, boolean recursive)
+      throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
       mInodeTree.createPath(path, 0, recursive, true);
@@ -426,9 +376,12 @@ public class FileSystemMaster implements Master {
 
   }
 
-  public boolean rename(TachyonURI srcPath, TachyonURI dstPath) throws InvalidPathException {
+  public boolean rename(long fileId, TachyonURI dstPath)
+      throws InvalidPathException, FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
+      Inode srcInode = mInodeTree.getInodeById(fileId);
+      TachyonURI srcPath = mInodeTree.getPath(srcInode);
       if (srcPath.equals(dstPath)) {
         return true;
       }
@@ -448,33 +401,27 @@ public class FileSystemMaster implements Master {
           }
         }
         if (isPrefix) {
-          throw new InvalidPathException("Failed to rename: " + srcPath + " is a prefix of "
-              + dstPath);
+          throw new InvalidPathException(
+              "Failed to rename: " + srcPath + " is a prefix of " + dstPath);
         }
       }
 
-      TachyonURI srcParentURI = srcPath.getParent();
       TachyonURI dstParentURI = dstPath.getParent();
 
-      // We traverse down to the source and destinations' parent paths
-      Inode srcParentInode = mInodeTree.getInodeByPath(srcParentURI);
-      if (srcParentInode == null || !srcParentInode.isDirectory()) {
+      // Get the inodes of the src and dst parents.
+      Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
+      if (!srcParentInode.isDirectory()) {
         return false;
       }
-
       Inode dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
-      if (dstParentInode == null || !dstParentInode.isDirectory()) {
+      if (!dstParentInode.isDirectory()) {
         return false;
       }
 
       InodeDirectory srcParentDirectory = (InodeDirectory) srcParentInode;
       InodeDirectory dstParentDirectory = (InodeDirectory) dstParentInode;
 
-      // We make sure that the source path exists and the destination path doesn't
-      Inode srcInode = srcParentDirectory.getChild(srcComponents[srcComponents.length - 1]);
-      if (srcInode == null) {
-        return false;
-      }
+      // Make sure destination path does not exist
       if (dstParentDirectory.getChild(dstComponents[dstComponents.length - 1]) != null) {
         return false;
       }
@@ -493,7 +440,7 @@ public class FileSystemMaster implements Master {
 
   }
 
-  public void setPinned(long fileId, boolean pinned) {
+  public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -502,14 +449,11 @@ public class FileSystemMaster implements Master {
     }
   }
 
-  public boolean freePath(TachyonURI path, boolean recursive) throws InvalidPathException {
+  public boolean free(long fileId, boolean recursive)
+      throws InvalidPathException, FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(path);
-      if (inode == null) {
-        LOG.error("File path: " + path + " does not exist");
-        return true;
-      }
+      Inode inode = mInodeTree.getInodeById(fileId);
 
       if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
         // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
@@ -557,13 +501,9 @@ public class FileSystemMaster implements Master {
 
   }
 
-  public void reportLostFile(long fileId) {
+  public void reportLostFile(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      if (inode == null) {
-        LOG.warn("Tachyon does not have file id " + fileId);
-        return;
-      }
       if (inode.isDirectory()) {
         LOG.warn("Reported file is a directory " + inode);
         return;
@@ -582,7 +522,7 @@ public class FileSystemMaster implements Master {
     // TODO
   }
 
-  public ClientDependencyInfo getClientDependencyInfo(int dependencyId)
+  public DependencyInfo getClientDependencyInfo(int dependencyId)
       throws DependencyDoesNotExistException {
     Dependency dependency = mDependencyMap.getFromDependencyId(dependencyId);
     if (dependency == null) {
@@ -609,5 +549,50 @@ public class FileSystemMaster implements Master {
     synchronized (mDependencyMap) {
       return mDependencyMap.getPriorityDependencyList();
     }
+  }
+
+  private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
+    FileBlockInfo fileBlockInfo = new FileBlockInfo();
+
+    fileBlockInfo.blockId = blockInfo.blockId;
+    fileBlockInfo.length = blockInfo.length;
+    List<NetAddress> addressList = new ArrayList<NetAddress>();
+    for (BlockLocation blockLocation : blockInfo.locations) {
+      addressList.add(blockLocation.workerAddress);
+    }
+    fileBlockInfo.locations = addressList;
+
+    // The sequence number part of the block id is the block index.
+    fileBlockInfo.offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.blockId);
+
+    if (fileBlockInfo.locations.isEmpty() && file.hasCheckpointed()) {
+      // No tachyon locations, but there is a checkpoint in the under storage system. Add the
+      // locations from the under storage system.
+      UnderFileSystem ufs = UnderFileSystem.get(file.getUfsPath(), mTachyonConf);
+      List<String> locs = null;
+      try {
+        locs = ufs.getFileLocations(file.getUfsPath(), fileBlockInfo.offset);
+      } catch (IOException e) {
+        return fileBlockInfo;
+      }
+      if (locs != null) {
+        for (String loc : locs) {
+          String resolvedHost = loc;
+          int resolvedPort = -1;
+          try {
+            String[] ipport = loc.split(":");
+            if (ipport.length == 2) {
+              resolvedHost = ipport[0];
+              resolvedPort = Integer.parseInt(ipport[1]);
+            }
+          } catch (NumberFormatException nfe) {
+            continue;
+          }
+          // The resolved port is the data transfer port not the rpc port
+          fileBlockInfo.locations.add(new NetAddress(resolvedHost, -1, resolvedPort));
+        }
+      }
+    }
+    return fileBlockInfo;
   }
 }

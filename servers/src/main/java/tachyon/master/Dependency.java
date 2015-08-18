@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.io.Utils;
-import tachyon.thrift.ClientDependencyInfo;
+import tachyon.thrift.DependencyInfo;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -166,12 +166,12 @@ public class Dependency extends ImageWriter {
   }
 
   /**
-   * Generate a ClientDependencyInfo, which is used for the thrift server.
+   * Generate a DependencyInfo, which is used for the thrift server.
    *
-   * @return the generated ClientDependencyInfo
+   * @return the generated DependencyInfo
    */
-  public ClientDependencyInfo generateClientDependencyInfo() {
-    ClientDependencyInfo ret = new ClientDependencyInfo();
+  public DependencyInfo generateClientDependencyInfo() {
+    DependencyInfo ret = new DependencyInfo();
     ret.id = mId;
     ret.parents = new ArrayList<Integer>(mParentFiles.size());
     ret.parents.addAll(mParentFiles);
@@ -201,7 +201,7 @@ public class Dependency extends ImageWriter {
     // TODO We should support different types of command in the future.
     // For now, assume there is only one command model.
     StringBuilder sb = new StringBuilder(parseCommandPrefix());
-    sb.append(" ").append(mTachyonConf.get(Constants.MASTER_ADDRESS, null));
+    sb.append(" ").append(mTachyonConf.get(Constants.MASTER_ADDRESS));
     sb.append(" ").append(mId);
     for (int k = 0; k < mChildrenFiles.size(); k ++) {
       int id = mChildrenFiles.get(k);
