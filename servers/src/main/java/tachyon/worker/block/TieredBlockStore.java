@@ -408,8 +408,8 @@ public final class TieredBlockStore implements BlockStore {
   private void checkTempBlockOwnedByUser(long userId, long blockId) throws NotFoundException,
       AlreadyExistsException, InvalidStateException {
     if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException("checkTempBlockOwnedByUser failed: blockId " + blockId + ""
-          + " is committed");
+      throw new AlreadyExistsException(
+          "checkTempBlockOwnedByUser failed: blockId " + blockId + " is committed");
     }
     TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
     long ownerUserId = tempBlockMeta.getUserId();
