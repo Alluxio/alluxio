@@ -97,7 +97,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public static synchronized TachyonFS get(final TachyonURI tachyonURI, TachyonConf tachyonConf)
       throws IOException {
-    Preconditions.checkArgument(tachyonConf != null, "Could not pass a null TachyonConf instance.");
+    Preconditions.checkArgument(tachyonConf != null, "TachyonConf cannot be null.");
     Preconditions.checkArgument(tachyonURI != null, "Tachyon URI cannot be null. Use "
         + Constants.HEADER + "host:port/ ," + Constants.HEADER_FT + "host:port/.");
     String scheme = tachyonURI.getScheme();
@@ -140,7 +140,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the corresponding TachyonFS handler
    */
   public static synchronized TachyonFS get(TachyonConf tachyonConf) {
-    Preconditions.checkArgument(tachyonConf != null, "Could not pass a null TachyonConf instance.");
+    Preconditions.checkArgument(tachyonConf != null, "TachyonConf cannot be null.");
     return new TachyonFS(tachyonConf);
   }
 
