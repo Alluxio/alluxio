@@ -278,7 +278,7 @@ public class TachyonConf {
     throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  private float getFloat(String key, final float defaultValue) {
+  public float getFloat(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       try {
@@ -287,7 +287,8 @@ public class TachyonConf {
         LOG.warn("Configuration cannot evaluate key " + key + " as float.");
       }
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
   public boolean getBoolean(String key, boolean defaultValue) {
