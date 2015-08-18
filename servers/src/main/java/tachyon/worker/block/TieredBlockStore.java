@@ -80,7 +80,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
  * </ul>
  */
-public class TieredBlockStore implements BlockStore {
+public final class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO: change maxRetry to be configurable.
   private static final int MAX_RETRIES = 3;
