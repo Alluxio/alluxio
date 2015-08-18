@@ -28,7 +28,7 @@ import tachyon.master.block.BlockId;
  */
 public final class InodeDirectoryTests {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  
+
   @Test
   public void addChildrenTest() {
     InodeDirectory inodeDirectory = createInodeDirectory();
@@ -148,7 +148,7 @@ public final class InodeDirectoryTests {
     int nFiles = (int) 1E5;
     Inode[] inodes = new Inode[nFiles];
     for (int i = 0; i < nFiles; i ++) {
-      inodes[i] = createInodeFile(i+1);
+      inodes[i] = createInodeFile(i + 1);
       inodeDirectory.addChild(inodes[i]);
     }
 
@@ -174,12 +174,12 @@ public final class InodeDirectoryTests {
   private long createBlockId(long containerId) {
     return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());
   }
-  
+
   private static InodeDirectory createInodeDirectory() {
     return new InodeDirectory("test1", 1, 0, System.currentTimeMillis());
   }
-  
+
   private InodeFile createInodeFile(long id) {
-    return new InodeFile("testFile"+id, id, 1, 1000, System.currentTimeMillis()); 
+    return new InodeFile("testFile" + id, id, 1, 1000, System.currentTimeMillis());
   }
 }
