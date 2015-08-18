@@ -31,24 +31,26 @@ import tachyon.util.ThreadFactoryUtils;
  */
 public class BlockMasterClientPool extends ResourcePool<MasterClient> {
   private final ExecutorService mExecutorService;
+  private final InetSocketAddress mMasterAddress;
+  private final TachyonConf mTachyonConf;
 
   public BlockMasterClientPool(InetSocketAddress masterAddress, TachyonConf conf) {
     // TODO: Get capacity from conf
-    mResources = new LinkedBlockingQueue<MasterClient>(10);
+    super(10);
     mExecutorService = Executors.newFixedThreadPool(10, ThreadFactoryUtils.build(
         "block-master-heartbeat-%d", true));
-
-    // Initialize Clients
-    for (int i = 0; i < mResources.size(); i ++) {
-      mResources.add(new MasterClient(masterAddress, mExecutorService, conf));
-    }
+    mMasterAddress = masterAddress;
+    mTachyonConf = conf;
   }
 
-  /**
-   * Closes the client pool. After this call, the object should be discarded.
-   */
+  @Override
   public void close() {
     // TODO: Consider collecting all the clients and shutting them down
     mExecutorService.shutdown();
+  }
+
+  @Override
+  public MasterClient createNewResource() {
+    return new MasterClient(mMasterAddress, mExecutorService, mTachyonConf);
   }
 }
