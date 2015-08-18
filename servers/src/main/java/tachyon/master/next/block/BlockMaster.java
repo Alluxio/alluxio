@@ -15,6 +15,9 @@
 
 package tachyon.master.next.block;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -302,5 +305,15 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         }
       }
     }
+  }
+
+  @Override
+  public void serialize(OutputStream os) throws IOException {
+    // TODO(cc)
+  }
+
+  @Override
+  public void deserialize(InputStream is) throws IOException {
+    // TODO(cc)
   }
 }
