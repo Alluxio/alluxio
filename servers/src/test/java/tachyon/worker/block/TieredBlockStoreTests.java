@@ -335,4 +335,32 @@ public final class TieredBlockStoreTests {
     mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
     mBlockStore.abortBlock(USER_ID1, TEMP_BLOCK_ID);
   }
+
+  @Test
+  public void commitBlockTwice() throws Exception {
+    mThrown.expect(AlreadyExistsException.class);
+    mThrown.expectMessage(
+        "checkTempBlockOwnedByUser failed: blockId " + TEMP_BLOCK_ID + " is committed");
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
+    mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
+  }
+
+  @Test
+  public void commitNonExistingBlock() throws Exception {
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + BLOCK_ID1 + " not found");
+
+    mBlockStore.commitBlock(USER_ID1, BLOCK_ID1);
+  }
+
+  @Test
+  public void commitBlockNotOwnedByUserIdTest() throws Exception {
+    mThrown.expect(InvalidStateException.class);
+    mThrown.expectMessage("checkTempBlockOwnedByUser failed: ownerUserId of blockId "
+        + TEMP_BLOCK_ID + " is " + USER_ID1 + " but userId passed in is " + USER_ID2);
+
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    mBlockStore.commitBlock(USER_ID2, TEMP_BLOCK_ID);
+  }
 }
