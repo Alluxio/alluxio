@@ -38,10 +38,10 @@ import tachyon.TachyonURI;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
-import tachyon.thrift.ClientDependencyInfo;
+import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.ThreadFactoryUtils;
@@ -185,7 +185,7 @@ public class TachyonFS extends AbstractTachyonFS {
     String masterHost =
         tachyonConf.get(Constants.MASTER_HOSTNAME,
             NetworkAddressUtils.getLocalHostName(tachyonConf));
-    int masterPort = tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+    int masterPort = tachyonConf.getInt(Constants.MASTER_PORT);
 
     mMasterAddress = new InetSocketAddress(masterHost, masterPort);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
@@ -197,8 +197,7 @@ public class TachyonFS extends AbstractTachyonFS {
         mCloser.register(new WorkerClient(mMasterClient, mExecutorService, mTachyonConf,
             mClientMetrics));
     mUserFailedSpaceRequestLimits =
-        mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS,
-            Constants.DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS);
+        mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
 
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
     String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
@@ -368,7 +367,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized int createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws IOException {
     validateUri(path);
-    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
+    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
     if (columns < 1 || columns > maxColumns) {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
           + maxColumns);
@@ -448,13 +447,13 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get a ClientDependencyInfo by the dependency id
+   * Get a DependencyInfo by the dependency id
    *
    * @param depId the dependency id
-   * @return the ClientDependencyInfo of the specified dependency
+   * @return the DependencyInfo of the specified dependency
    * @throws IOException
    */
-  public synchronized ClientDependencyInfo getClientDependencyInfo(int depId) throws IOException {
+  public synchronized DependencyInfo getClientDependencyInfo(int depId) throws IOException {
     return mMasterClient.getClientDependencyInfo(depId);
   }
 
@@ -523,7 +522,7 @@ public class TachyonFS extends AbstractTachyonFS {
     if (fileInfo == null) {
       return null;
     }
-    return new TachyonFile(this, fileInfo.getId(), mTachyonConf);
+    return new TachyonFile(this, fileInfo.getFileId(), mTachyonConf);
   }
 
   /**
@@ -547,7 +546,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized int getFileId(TachyonURI path) {
     try {
       FileInfo fileInfo = getFileStatus(-1, path, false);
-      return fileInfo == null ? -1 : fileInfo.getId();
+      return fileInfo == null ? -1 : fileInfo.getFileId();
     } catch (IOException e) {
       return -1;
     }
@@ -576,7 +575,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
     info = mMasterClient.getFileStatus(fileId, path);
 
-    fileId = info.getId();
+    fileId = info.getFileId();
     if (fileId == -1) {
       cache.remove(key);
       return null;
@@ -725,7 +724,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return all the works' info
    * @throws IOException
    */
-  public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
+  public synchronized List<WorkerInfo> getWorkersInfo() throws IOException {
     return mMasterClient.getWorkersInfo();
   }
 
@@ -907,7 +906,7 @@ public class TachyonFS extends AbstractTachyonFS {
     }
 
     long userQuotaUnitBytes =
-        mTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES, 8 * Constants.MB);
+        mTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES);
 
     long toRequestSpaceBytes = Math.max(requestSpaceBytes, userQuotaUnitBytes);
     for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {

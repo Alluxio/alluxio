@@ -258,8 +258,7 @@ public class WorkerClient implements Closeable {
       mHeartbeatExecutor =
           new WorkerClientHeartbeatExecutor(this, mMasterClient.getUserId());
       String threadName = "worker-heartbeat-" + mWorkerAddress;
-      int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
-          Constants.SECOND_MS);
+      int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
       mHeartbeat =
           mExecutorService.submit(new HeartbeatThread(threadName, mHeartbeatExecutor, interval));
 

@@ -53,11 +53,11 @@ public final class NettyClient {
   // Use daemon threads so the JVM is allowed to shutdown even when daemon threads are alive.
   // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
   private static final EventLoopGroup WORKER_GROUP = NettyUtils.createEventLoop(CHANNEL_TYPE,
-      TACHYON_CONF.getInt(Constants.USER_NETTY_WORKER_THREADS, 0), "netty-client-worker-%d", true);
+      TACHYON_CONF.getInt(Constants.USER_NETTY_WORKER_THREADS), "netty-client-worker-%d", true);
 
   // The maximum number of milliseconds to wait for a response from the server.
   public static final long TIMEOUT_MS =
-      TACHYON_CONF.getInt(Constants.USER_NETTY_TIMEOUT_MS, 3000);
+      TACHYON_CONF.getInt(Constants.USER_NETTY_TIMEOUT_MS);
 
   /**
    * Creates and returns a new Netty client bootstrap for clients to connect to remote servers.

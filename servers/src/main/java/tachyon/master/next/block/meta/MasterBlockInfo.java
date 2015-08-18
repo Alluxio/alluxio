@@ -24,14 +24,14 @@ import com.google.common.collect.Lists;
 
 import tachyon.StorageLevelAlias;
 
-public class BlockInfo {
+public class MasterBlockInfo {
   private final long mBlockId;
   private final long mLength;
 
   /** Maps from the worker id to the alias the block is on. */
   private final Map<Long, Integer> mWorkerIdToAlias;
 
-  public BlockInfo(long blockId, long length) {
+  public MasterBlockInfo(long blockId, long length) {
     // TODO: check valid length?
     mBlockId = blockId;
     mLength = length;
@@ -76,12 +76,12 @@ public class BlockInfo {
    *
    * @return the net addresses of the locations
    */
-  public synchronized List<BlockLocation> getBlockLocations() {
-    List<BlockLocation> ret = new ArrayList<BlockLocation>(mWorkerIdToAlias.size());
+  public synchronized List<MasterBlockLocation> getBlockLocations() {
+    List<MasterBlockLocation> ret = new ArrayList<MasterBlockLocation>(mWorkerIdToAlias.size());
     for (StorageLevelAlias alias : StorageLevelAlias.values()) {
       for (Map.Entry<Long, Integer> entry : mWorkerIdToAlias.entrySet()) {
         if (alias.getValue() == entry.getValue()) {
-          ret.add(new BlockLocation(entry.getKey(), alias.getValue()));
+          ret.add(new MasterBlockLocation(entry.getKey(), alias.getValue()));
         }
       }
     }
@@ -103,7 +103,7 @@ public class BlockInfo {
   @Override
   public synchronized String toString() {
     // TODO
-    StringBuilder sb = new StringBuilder("BlockInfo(");
+    StringBuilder sb = new StringBuilder("MasterBlockInfo(");
     sb.append("mBlockId: ").append(mBlockId);
     return sb.toString();
   }

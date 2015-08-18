@@ -13,22 +13,27 @@
  * the License.
  */
 
-package tachyon.master.next.block.meta;
+package tachyon.worker;
 
-import java.util.List;
+import tachyon.conf.TachyonConf;
 
 /**
- * Block information exposed by the block master.
+ * A WorkerContext object stores TachyonConf
  */
-public class UserBlockInfo {
-  // TODO: this should become a thrift object.
-  public long mBlockId;
-  public long mLength;
-  public List<UserBlockLocation> mLocations;
+public class WorkerContext {
+  /**
+   * The static configuration object. There is only one TachyonConf object shared within the same
+   * worker process.
+   */
+  private static TachyonConf sTachyonConf = new TachyonConf();
 
-  public UserBlockInfo(long blockId, long length, List<UserBlockLocation> locations) {
-    mBlockId = blockId;
-    mLength = length;
-    mLocations = locations;
+  /**
+   * Returns the one and only static {@link TachyonConf} object which is shared among all classes
+   * within the worker process
+   *
+   * @return the tachyonConf for the worker process
+   */
+  public static TachyonConf getConf() {
+    return sTachyonConf;
   }
 }

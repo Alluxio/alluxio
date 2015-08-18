@@ -17,38 +17,68 @@ package tachyon.util.io;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import sun.misc.Cleaner;
-import sun.nio.ch.DirectBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
+import tachyon.Constants;
 
 /**
  * Utilities related to buffers, not only ByteBuffer.
  */
 public class BufferUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static Method sCleanerCleanMethod;
+  private static Method sByteBufferCleanerMethod;
+
   /**
-   * Force to unmap direct buffer if the buffer is no longer used. It is unsafe operation and
-   * currently a walk-around to avoid huge memory occupation caused by memory map.
+   * Force to unmap a direct buffer if this buffer is no longer used. After calling this method,
+   * this direct buffer should be discarded. This is unsafe operation and currently a walk-around to
+   * avoid huge memory occupation caused by memory map.
    *
-   * @param buffer the byte buffer to be unmapped
+   * <p>
+   * NOTE: DirectByteBuffers are not guaranteed to be garbage-collected immediately after their
+   * references are released and may lead to OutOfMemoryError. This function helps by calling the
+   * Cleaner method of a DirectByteBuffer explicitly. See <a href=" http://stackoverflow
+   * .com/questions/1854398/how-to-garbage-collect-a-direct-buffer-java">more discussion</a>
+   *
+   * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
   public static void cleanDirectBuffer(ByteBuffer buffer) {
-    if (buffer == null) {
-      return;
-    }
-    if (buffer.isDirect()) {
-      Cleaner cleaner = ((DirectBuffer) buffer).cleaner();
-      cleaner.clean();
+    Preconditions.checkNotNull(buffer);
+    Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
+    try {
+      if (sByteBufferCleanerMethod == null) {
+        sByteBufferCleanerMethod = buffer.getClass().getMethod("cleaner");
+        sByteBufferCleanerMethod.setAccessible(true);
+      }
+      final Object cleaner = sByteBufferCleanerMethod.invoke(buffer);
+      if (cleaner == null) {
+        LOG.error("Failed to get cleaner for ByteBuffer");
+        return;
+      }
+      if (sCleanerCleanMethod == null) {
+        sCleanerCleanMethod = cleaner.getClass().getMethod("clean");
+      }
+      sCleanerCleanMethod.invoke(cleaner);
+    } catch (Exception e) {
+      LOG.warn("Fail to unmap direct buffer due to " + e.getMessage(), e);
+    } finally {
+      buffer = null;
     }
   }
 
   /**
    * Clone a bytebuffer.
    * <p>
-   * The new bytebuffer will have the same content, but the type of the bytebuffer may not be
-   * the same.
+   * The new bytebuffer will have the same content, but the type of the bytebuffer may not be the
+   * same.
    *
    * @param buf The ByteBuffer to clone
    * @return The new ByteBuffer

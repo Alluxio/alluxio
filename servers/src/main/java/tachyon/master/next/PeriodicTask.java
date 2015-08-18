@@ -13,22 +13,20 @@
  * the License.
  */
 
-package tachyon.master.next.block.meta;
+package tachyon.master.next;
 
-import tachyon.thrift.NetAddress;
+import java.util.concurrent.TimeUnit;
 
-/**
- * The location of the block, exposed to by the block master.
- */
-public class UserBlockLocation {
-  // TODO: this should become a thrift object.
-  public long mWorkerId;
-  public NetAddress mAddress;
-  public int mTier;
+public interface PeriodicTask extends Runnable {
+  class PeriodicRate {
+    private final long mPeriod;
+    private final TimeUnit mTimeUnit;
 
-  public UserBlockLocation(long workerId, NetAddress address, int tier) {
-    mWorkerId = workerId;
-    mAddress = address;
-    mTier = tier;
+    public PeriodicRate(long period, TimeUnit timeUnit) {
+      mPeriod = period;
+      mTimeUnit = timeUnit;
+    }
   }
+
+  PeriodicRate getPeriodicRate();
 }
