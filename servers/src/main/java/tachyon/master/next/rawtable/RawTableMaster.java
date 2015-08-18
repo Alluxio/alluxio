@@ -15,6 +15,9 @@
 
 package tachyon.master.next.rawtable;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,5 +49,15 @@ public class RawTableMaster implements Master {
   public List<PeriodicTask> getPeriodicTaskList() {
     // TODO
     return Collections.emptyList();
+  }
+
+  @Override
+  public void serialize(OutputStream os) throws IOException {
+    // TODO(cc)
+  }
+
+  @Override
+  public void deserialize(InputStream is) throws IOException {
+    // TODO(cc)
   }
 }

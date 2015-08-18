@@ -54,7 +54,8 @@ public class InodeDirectory extends Inode {
       }
     }
 
-    public static InodeDirectory deserialize(ImageElement ele, JsonParser parser) throws IOException {
+    public static InodeDirectory deserialize(ImageElement ele, JsonParser parser)
+        throws IOException {
       final long creationTimeMs = ele.getLong("creationTimeMs");
       final int fileId = ele.getInt("id");
       final boolean isPinned = ele.getBoolean("pinned");
@@ -95,7 +96,7 @@ public class InodeDirectory extends Inode {
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final Serializer<InodeDirectory> mSerializer = new JsonSerializer();
+  private static final Serializer<InodeDirectory> SERIALIZER = new JsonSerializer();
 
   private IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     public Object getFieldValue(Inode o) {
@@ -251,6 +252,6 @@ public class InodeDirectory extends Inode {
 
   @Override
   public void serialize(OutputStream os) throws IOException {
-    mSerializer.serialize(this, os);
+    SERIALIZER.serialize(this, os);
   }
 }

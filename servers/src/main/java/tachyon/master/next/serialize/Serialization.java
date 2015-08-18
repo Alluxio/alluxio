@@ -18,6 +18,9 @@ package tachyon.master.next.serialize;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * Interface for classes that can be serialized to an OutputStream.
+ */
 public interface Serialization {
   void serialize(OutputStream os) throws IOException;
 }

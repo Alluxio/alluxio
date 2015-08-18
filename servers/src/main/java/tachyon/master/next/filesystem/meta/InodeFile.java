@@ -77,7 +77,7 @@ public class InodeFile extends Inode {
     }
   }
 
-  private final static Serializer<InodeFile> mSerializer = new JsonSerializer();
+  private static final Serializer<InodeFile> SERIALIZER = new JsonSerializer();
 
   private final long mBlockContainerId;
   private final long mBlockSizeBytes;
@@ -357,6 +357,6 @@ public class InodeFile extends Inode {
 
   @Override
   public void serialize(OutputStream os) throws IOException {
-    mSerializer.serialize(this, os);
+    SERIALIZER.serialize(this, os);
   }
 }
