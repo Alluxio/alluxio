@@ -32,12 +32,16 @@ import tachyon.worker.next.WorkerClient;
  */
 public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
   private final ExecutorService mExecutorService;
+  private final NetAddress mWorkerNetAddress;
+  private final TachyonConf mTachyonConf;
 
   public BlockWorkerClientPool(NetAddress workerNetAddress, TachyonConf conf) {
     // TODO: Get capacity from conf
-    mResources = new LinkedBlockingQueue<WorkerClient>(10);
+    super(10);
     mExecutorService = Executors.newFixedThreadPool(10, ThreadFactoryUtils.build(
         "block-master-heartbeat-%d", true));
+    mWorkerNetAddress = workerNetAddress;
+    mTachyonConf = conf;
 
     // Initialize Clients
     for (int i = 0; i < mResources.size(); i ++) {
@@ -48,11 +52,17 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
     }
   }
 
-  /**
-   * Closes the client pool. After this call, the object should be discarded.
-   */
+  @Override
   public void close() {
     // TODO: Consider collecting all the clients and shutting them down
     mExecutorService.shutdown();
+  }
+
+  @Override
+  public WorkerClient createNewResource() {
+    // TODO: Get a real client ID
+    long clientID = Math.round(Math.random() * 100000);
+    return new WorkerClient(mWorkerNetAddress, mExecutorService, mTachyonConf, clientID,
+        new ClientMetrics());
   }
 }

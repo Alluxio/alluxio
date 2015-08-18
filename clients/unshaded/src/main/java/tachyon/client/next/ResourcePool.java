@@ -16,6 +16,7 @@
 package tachyon.client.next;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Class representing a pool of resources to be temporarily used and returned. Inheriting classes
@@ -24,7 +25,16 @@ import java.util.concurrent.BlockingQueue;
  * @param <T> The type of resource this pool manages.
  */
 public abstract class ResourcePool<T> {
+  protected final Object mCapacityLock;
+  protected int mCurrentCapacity;
+  protected final int mMaxCapacity;
   protected BlockingQueue<T> mResources;
+
+  public ResourcePool(int maxCapacity) {
+    mCapacityLock = new Object();
+    mMaxCapacity = maxCapacity;
+    mResources = new LinkedBlockingQueue<T>(maxCapacity);
+  }
 
   /**
    * Acquires an object of type T, this operation is blocking if no clients are available.
@@ -32,6 +42,16 @@ public abstract class ResourcePool<T> {
    * @return a MasterClient, guaranteed to be only available to the caller
    */
   public T acquire() {
+    // If the resource pool is empty but capacity is not yet full, create a new resource.
+    synchronized (mCapacityLock) {
+      if (mResources.isEmpty() && mCurrentCapacity < mMaxCapacity) {
+        T newResource = createNewResource();
+        mCurrentCapacity ++;
+        return newResource;
+      }
+    }
+
+    // Otherwise, try to take a resource from the pool, blocking if none are available.
     try {
       return mResources.take();
     } catch (InterruptedException ie) {
@@ -45,6 +65,15 @@ public abstract class ResourcePool<T> {
    * classes should clean up all their resources here.
    */
   public abstract void close();
+
+  /**
+   * Creates a new resource which will be added to the resource pool after the user is done using
+   * it. This method should only be called when the capacity of the pool has not been reached. If
+   * creating the resource will take a significant amount of time, the inheriting class should
+   * avoid calling this method and instead initialize all the resources in the constructor.
+   * @return a resource which will be added to the pool of resources.
+   */
+  public abstract T createNewResource();
 
   /**
    * Releases an object of type T, this must be called after the thread is done using a resource
