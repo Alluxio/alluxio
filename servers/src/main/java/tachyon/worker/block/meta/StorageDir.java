@@ -110,7 +110,7 @@ public class StorageDir {
   private void initializeMeta() throws AlreadyExistsException, IOException, OutOfSpaceException {
     // Create the storage directory path
     FileUtils.createStorageDirPath(mDirPath);
-    
+
     File dir = new File(mDirPath);
     File[] paths = dir.listFiles();
     if (paths == null) {
@@ -393,7 +393,7 @@ public class StorageDir {
 
   private void reserveSpace(long size, boolean committed) {
     Preconditions.checkState(size <= mAvailableBytes.get(),
-        "Available bytes should always be non-negative ");
+        "Available bytes should always be non-negative");
     mAvailableBytes.addAndGet(-size);
     if (committed) {
       mCommittedBytes.addAndGet(size);
