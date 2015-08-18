@@ -124,10 +124,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param masterPort port master listens on
    * @param zkMode use zookeeper
    * @return the corresponding TachyonFS handler
-   * @throws IOException
    */
-  public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zkMode)
-      throws IOException {
+  public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zkMode) {
     TachyonConf tachyonConf = new TachyonConf();
     tachyonConf.set(Constants.MASTER_HOSTNAME, masterHost);
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(masterPort));
@@ -139,11 +137,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * Create a TachyonFS handler.
    *
    * @param tachyonConf The TachyonConf instance.
-   *
    * @return the corresponding TachyonFS handler
-   * @throws IOException
    */
-  public static synchronized TachyonFS get(TachyonConf tachyonConf) throws IOException {
+  public static synchronized TachyonFS get(TachyonConf tachyonConf) {
     Preconditions.checkArgument(tachyonConf != null, "Could not pass null TachyonConf instance.");
     return new TachyonFS(tachyonConf);
   }
@@ -179,7 +175,7 @@ public class TachyonFS extends AbstractTachyonFS {
   private TachyonURI mRootUri = null;
   private ClientMetrics mClientMetrics = new ClientMetrics();
 
-  private TachyonFS(TachyonConf tachyonConf) throws IOException {
+  private TachyonFS(TachyonConf tachyonConf) {
     super(tachyonConf);
 
     String masterHost =
