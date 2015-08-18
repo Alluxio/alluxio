@@ -75,8 +75,6 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         request.setAttribute("fileBlocksOnTier", uiFileInfo.getBlocksOnTier());
         request.setAttribute("blockSizeByte", uiFileInfo.getBlockSizeBytes());
         request.setAttribute("path", filePath);
-        tachyonClient.close();
-
         getServletContext().getRequestDispatcher("/worker/viewFileBlocks.jsp").forward(request,
             response);
         return;
@@ -96,6 +94,8 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
             response);
         return;
+      } finally {
+        tachyonClient.close();
       }
     }
 
@@ -116,7 +116,6 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       for (int fileId : subFileIds) {
         uiFileInfos.add(getUiFileInfo(tachyonClient, fileId));
       }
-      tachyonClient.close();
       request.setAttribute("fileInfos", uiFileInfos);
     } catch (FileDoesNotExistException fdne) {
       request.setAttribute("fatalError", "Error: Invalid FileId " + fdne.getMessage());
@@ -141,6 +140,8 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       request.setAttribute("fatalError", nfe.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
+    } finally {
+      tachyonClient.close();
     }
 
     getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
