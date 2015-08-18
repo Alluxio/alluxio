@@ -121,7 +121,7 @@ public final class InodeDirectoryTests {
   @Test
   public void setLastModificationTimeTest() {
     long createTimeMs = System.currentTimeMillis();
-    long modificationTimeMs = Constants.SECOND_MS;
+    long modificationTimeMs = createTimeMs + Constants.SECOND_MS;
     InodeDirectory inodeDirectory = createInodeDirectory();
     Assert.assertEquals(createTimeMs, inodeDirectory.getLastModificationTimeMs());
     inodeDirectory.setLastModificationTimeMs(modificationTimeMs);
