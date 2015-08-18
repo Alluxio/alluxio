@@ -86,7 +86,7 @@ public class WorkerClient implements Closeable {
    * @throws IOException
    */
   public WorkerClient(MasterClient masterClient, ExecutorService executorService,
-      TachyonConf conf, ClientMetrics clientMetrics) throws IOException {
+      TachyonConf conf, ClientMetrics clientMetrics) {
     mMasterClient = masterClient;
     mExecutorService = executorService;
     mTachyonConf = conf;
