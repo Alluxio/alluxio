@@ -26,7 +26,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 /**
  * Tachyon file system's file representation in master.
  */
-public class InodeFile extends Inode {
+public final class InodeFile extends Inode {
   private final long mBlockContainerId;
   private final long mBlockSizeBytes;
 
