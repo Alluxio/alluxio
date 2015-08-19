@@ -337,7 +337,7 @@ public final class TieredBlockStoreTests {
   }
 
   @Test
-  public void commitBlockTwice() throws Exception {
+  public void commitBlockTwiceTest() throws Exception {
     mThrown.expect(AlreadyExistsException.class);
     mThrown.expectMessage(
         "checkTempBlockOwnedByUser failed: blockId " + TEMP_BLOCK_ID + " is committed");
@@ -347,7 +347,7 @@ public final class TieredBlockStoreTests {
   }
 
   @Test
-  public void commitNonExistingBlock() throws Exception {
+  public void commitNonExistingBlockTest() throws Exception {
     mThrown.expect(NotFoundException.class);
     mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + BLOCK_ID1 + " not found");
 
