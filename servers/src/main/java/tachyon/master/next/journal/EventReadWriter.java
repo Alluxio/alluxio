@@ -22,5 +22,12 @@ import java.io.OutputStream;
 public interface EventReadWriter {
   void writeEvent(Event event, OutputStream os) throws IOException;
 
-  EventStream readEvent(InputStream is) throws IOException;
+  /**
+   * Read an {@link Event} from the stream.
+   *
+   * @param is the InputStream to read from
+   * @return a specific Event, or null if the stream reaches EOF
+   * @throws IOException when I/O exception happens during reading
+   */
+  Event readEvent(InputStream is) throws IOException;
 }

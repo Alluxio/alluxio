@@ -21,6 +21,12 @@ import java.io.OutputStream;
 
 public interface ImageReadWriter {
   void writeImage(Image image, OutputStream os) throws IOException;
-
-  ImageStream readImage(InputStream is) throws IOException;
+/**
+   * Read an {@link Image} from the stream.
+   *
+   * @param is the InputStream to read from
+   * @return a specific Image, or null if the stream reaches EOF
+   * @throws IOException when I/O exception happens during reading
+   */
+  Image readImage(InputStream is) throws IOException;
 }

@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import tachyon.master.next.journal.Event;
-import tachyon.master.next.journal.EventStream;
 
 public abstract class EventReadWriter implements tachyon.master.next.journal.EventReadWriter {
   @Override
@@ -36,7 +35,8 @@ public abstract class EventReadWriter implements tachyon.master.next.journal.Eve
   }
 
   @Override
-  public EventStream readEvent(InputStream is) throws IOException {
+  public Event readEvent(InputStream is) throws IOException {
+    // TODO(cc)
     return null;
   }
 

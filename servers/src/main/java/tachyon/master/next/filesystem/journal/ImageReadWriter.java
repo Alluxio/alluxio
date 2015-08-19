@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import tachyon.master.next.journal.Image;
-import tachyon.master.next.journal.ImageStream;
 
 public abstract class ImageReadWriter implements tachyon.master.next.journal.ImageReadWriter {
   @Override
@@ -40,7 +39,8 @@ public abstract class ImageReadWriter implements tachyon.master.next.journal.Ima
   }
 
   @Override
-  public ImageStream readImage(InputStream is) throws IOException {
+  public Image readImage(InputStream is) throws IOException {
+    // TODO(cc)
     return null;
   }
 
