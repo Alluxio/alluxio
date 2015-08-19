@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,11 +47,6 @@ public final class TachyonFileUpdateIntegrationTest {
         Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
-  }
-
-  @After
-  public final void after() throws Exception {
-    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Test
