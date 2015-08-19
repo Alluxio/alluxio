@@ -609,6 +609,7 @@ public class FileSystemMaster implements Master {
   @Override
   public void writeImage(OutputStream os) throws IOException {
     // TODO(cc)
+    mJournalManager.getImageManager().writeImage(mInodeTree.getRoot().toImage());
   }
 
   @Override
