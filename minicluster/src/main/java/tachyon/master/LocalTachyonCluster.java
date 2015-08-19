@@ -28,9 +28,9 @@ import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.util.network.NetworkAddressUtils;
-import tachyon.util.io.PathUtils;
 import tachyon.util.UnderFileSystemUtils;
+import tachyon.util.io.PathUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockWorker;
 
@@ -228,6 +228,9 @@ public final class LocalTachyonCluster {
     mWorkerDataFolder = "/datastore";
     mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
 
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     startMaster();
 
     UnderFileSystemUtils.mkdirIfNotExists(
@@ -247,6 +250,9 @@ public final class LocalTachyonCluster {
   public void stop() throws Exception {
     stopTFS();
     stopUFS();
+
+    // clear HDFS client caching
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   /**

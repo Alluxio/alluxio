@@ -366,4 +366,21 @@ public final class TieredBlockStoreTests {
         mEvictor);
     mBlockStore.moveBlock(USER_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
   }
+
+  @Test
+  public void removeTempBlockTest() throws Exception {
+    mThrown.expect(InvalidStateException.class);
+    mThrown.expectMessage("Failed to remove block " + TEMP_BLOCK_ID + ": block is uncommitted");
+
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    mBlockStore.removeBlock(USER_ID1, TEMP_BLOCK_ID);
+  }
+
+  @Test
+  public void removeNonExistingBlockTest() throws Exception {
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage("Failed to get BlockMeta: blockId " + BLOCK_ID1 + " not found");
+
+    mBlockStore.removeBlock(USER_ID1, BLOCK_ID1);
+  }
 }

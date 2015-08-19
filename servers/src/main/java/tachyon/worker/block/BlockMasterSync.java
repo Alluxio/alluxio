@@ -32,8 +32,6 @@ import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.util.network.NetworkAddressUtils;
-import tachyon.util.ThreadFactoryUtils;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
@@ -145,7 +143,7 @@ public class BlockMasterSync implements Runnable {
       } catch (Exception ioe) {
         // An error occurred, retry after 1 second or error if heartbeat timeout is reached
         LOG.error("Failed to receive or execute master heartbeat command.", ioe);
-        resetMasterClient();
+        mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {
           throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
@@ -198,18 +196,6 @@ public class BlockMasterSync implements Runnable {
         break;
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);
-    }
-  }
-
-  /**
-   * Disconnect and reconnect the master client, in case the master changes.
-   */
-  private void resetMasterClient() {
-    mMasterClient.disconnect();
-    try {
-      mMasterClient.connect();
-    } catch (IOException e) {
-      LOG.error("Failed to connect to master.", e);
     }
   }
 

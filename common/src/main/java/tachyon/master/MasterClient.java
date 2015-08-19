@@ -225,6 +225,21 @@ public final class MasterClient implements Closeable {
   }
 
   /**
+   * Reset the connection with the Tachyon Master.
+   * <p>
+   * Mainly used for worker to master syncer (e.g., BlockMasterSyncer, PinListSyncer, etc.) 
+   * to recover from Exception while running in case the master changes.
+   */
+  public synchronized void resetConnection() {
+    disconnect();
+    try {
+      connect();
+    } catch (IOException e) {
+      LOG.error("Failed to reset the connection with tachyon master.", e);
+    }
+  }
+
+  /**
    * Get the client dependency info from master server.
    *
    * @param did Dependency id.
