@@ -201,6 +201,12 @@ number.
   <td>Timeout between master and worker indicating a lost worker.  Specified in milliseconds</td>
 </tr>
 <tr>
+  <td>tachyon.master.balancer.strategy.class</td>
+  <td>tachyon.master.balancer.LocalFirstBalancer</td>
+  <td>The strategy to connect to a worker. Valid options
+  are: tachyon.master.balancer.LocalFirstBalancer, tachyon.master.balancer.MaxFreeBalancer</td>
+</tr>
+<tr>
   <td>tachyon.master.keytab.file</td>
   <td></td>
   <td>Kerberos keytab file for Tachyon master.</td>
