@@ -102,8 +102,9 @@ public final class InodeDirectoryTests {
   }
 
   @Test
-  public void deleteTest() {
+  public void deleteInodeTest() {
     InodeDirectory inode1 = createInodeDirectory();
+    Assert.assertFalse(inode1.isDeleted());
     inode1.delete();
     Assert.assertTrue(inode1.isDeleted());
     inode1.restore();
