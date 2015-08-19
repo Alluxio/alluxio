@@ -17,41 +17,31 @@ package tachyon.client.next.block;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 
-import com.google.common.base.Throwables;
-
-import tachyon.Constants;
 import tachyon.client.next.ClientOptions;
-import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.NetAddress;
-import tachyon.thrift.NoWorkerException;
-import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.next.WorkerClient;
 
 /**
- * Tachyon Block Store client. This is an internal client for all block level operations in
- * Tachyon. An instance of this class can be obtained via {@link TachyonBS#get}. This class
- * is thread safe.
+ * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
+ * An instance of this class can be obtained via {@link TachyonBS#get}. This class is thread safe.
  */
 public class TachyonBS implements Closeable {
 
   public static TachyonBS sCachedClient = null;
 
-  public static synchronized TachyonBS get(InetSocketAddress masterAddress, TachyonConf conf) {
+  public static synchronized TachyonBS get() {
     if (sCachedClient != null) {
       return sCachedClient;
     }
-    sCachedClient = new TachyonBS(masterAddress, conf);
+    sCachedClient = new TachyonBS();
     return sCachedClient;
   }
 
-  private final TachyonConf mTachyonConf;
+  private final BSContext mContext;
 
-  public TachyonBS(InetSocketAddress masterAddress, TachyonConf conf) {
-    mTachyonConf = conf;
+  public TachyonBS() {
+    mContext = BSContext.INSTANCE;
   }
 
   public void close() {
@@ -60,11 +50,11 @@ public class TachyonBS implements Closeable {
 
   // TODO: Evaluate if this is necessary for now, or if file level delete is sufficient
   public void delete(long blockId) {
-    MasterClient masterClient = mMasterClientPool.acquire();
+    MasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Implement delete RPC
     } finally {
-      mMasterClientPool.release(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
   }
 
@@ -74,62 +64,40 @@ public class TachyonBS implements Closeable {
   }
 
   public FileBlockInfo getInfo(long blockId) throws IOException {
-    MasterClient masterClient = mMasterClientPool.acquire();
+    MasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.user_getClientBlockInfo(blockId);
     } finally {
-      mMasterClientPool.release(masterClient);
+      mContext.releaseMasterClient(masterClient);
     }
   }
 
   public BlockInStream getInStream(long blockId, ClientOptions options) throws IOException {
-    WorkerClient workerClient = mWorkerClientPool.acquire();
-
-    try {
-      // No specified location to read from
-      if (null == options.getLocation()) {
-        // Local client, attempt to do direct read from local storage
-        if (workerClient.isLocal()) {
-          // Try to lock the block, if it succeeds, the data is available locally, otherwise
-          // default to using a remote stream
-          String localFile = workerClient.lockBlock(blockId);
-          if (null != localFile) {
-            return new LocalBlockInStream();
-          }
-        }
-
-        // Client is not local or the data is not available on the local worker, use remote stream
-        return new RemoteBlockInStream();
+    // No specified location to read from
+    if (null == options.getLocation()) {
+      // If a local worker exists, use short circuit read
+      // TODO: Add check on configuration
+      if (mContext.hasLocalWorker()) {
+        return new LocalBlockInStream();
       }
-
-      // TODO: Handle the case when a location is specified
-      return null;
-    } finally {
-      mWorkerClientPool.release(workerClient);
+      return new RemoteBlockInStream();
     }
+    // TODO: Handle the case when a location is specified
+    return null;
   }
 
   public BlockOutStream getOutStream(long blockId, ClientOptions options) throws IOException {
-    WorkerClient workerClient = mWorkerClientPool.acquire();
-    try {
-      // No specified location to read from
-      if (null == options.getLocation()) {
-        // Local client, attempt to do direct write to local storage
-        if (workerClient.isLocal()) {
-          // TODO: Read the initial size from the configuration
-          String localFile = workerClient.requestBlockLocation(blockId, 8 * Constants.MB);
-          return new LocalBlockOutStream();
-        }
-
-        // Client is not local or the data is not available on the local worker, use remote stream
-        return new RemoteBlockOutStream();
+    // No specified location to read from
+    if (null == options.getLocation()) {
+      // Local client, attempt to do direct write to local storage
+      if (mContext.hasLocalWorker()) {
+        return new LocalBlockOutStream();
       }
-
-      // TODO: Handle the case when a location is specified
-      return null;
-    } finally {
-      mWorkerClientPool.release(workerClient);
+      // Client is not local or the data is not available on the local worker, use remote stream
+      return new RemoteBlockOutStream();
     }
+    // TODO: Handle the case when a location is specified
+    return null;
   }
 
   // TODO: Evaluate if this is necessary for now, or if file level promote is sufficient

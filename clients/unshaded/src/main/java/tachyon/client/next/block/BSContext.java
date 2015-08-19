@@ -81,7 +81,18 @@ public enum BSContext {
     }
   }
 
-  public WorkerClient acquireRemoteWorkerClient(String hostname) {
+  public WorkerClient acquireWorkerClient(String hostname) {
+    if (hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
+      if (mLocalBlockWorkerClientPool != null) {
+        return mLocalBlockWorkerClientPool.acquire();
+      }
+      // TODO: Recover from initial worker failure
+      throw new RuntimeException("No Tachyon worker available for host: " + hostname);
+    }
+    return acquireRemoteWorkerClient(hostname);
+  }
+
+  private WorkerClient acquireRemoteWorkerClient(String hostname) {
     Preconditions.checkArgument(
         !hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
         "Acquire Remote Worker Client cannot not be called with local hostname");
@@ -106,5 +117,9 @@ public enum BSContext {
     } else {
       workerClient.close();
     }
+  }
+
+  public boolean hasLocalWorker() {
+    return mLocalBlockWorkerClientPool != null;
   }
 }
