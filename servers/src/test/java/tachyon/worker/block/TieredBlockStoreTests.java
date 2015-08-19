@@ -338,7 +338,7 @@ public final class TieredBlockStoreTests {
   }
 
   @Test
-  public void moveNonExistingBlock() throws Exception {
+  public void moveNonExistingBlockTest() throws Exception {
     mThrown.expect(NotFoundException.class);
     mThrown.expectMessage("Failed to get BlockMeta: blockId " + BLOCK_ID1 + " not found");
 
