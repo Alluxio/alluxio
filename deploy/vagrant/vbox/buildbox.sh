@@ -14,16 +14,10 @@ if [ -f tachyon-dev.box ]; then
   rm -f tachyon-dev.box
 fi
 
-BASE_BOX='chef/centos-7.0'
-AVAIL_BOX=$(vagrant box list | grep $BASE_BOX | grep '(virtualbox, 1.0.0)')
-
-if [ -z "$AVAIL_BOX" ]; then
-  vagrant box add chef/centos-7.0 --provider virtualbox
-fi
-
-echo "Generating 'tachyon-dev.box' based on box '$BASE_BOX' ..."
-vagrant box repackage $BASE_BOX virtualbox 1.0
-mv package.box tachyon-dev.box
+echo "Generating 'tachyon-dev.box' ..."
+vagrant up
+vagrant package --output tachyon-dev.box default
+vagrant destroy -f
 vagrant box add tachyon-dev tachyon-dev.box
 
 popd >/dev/null
