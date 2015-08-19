@@ -36,11 +36,13 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.Master;
 import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.BlockMaster;
+import tachyon.master.next.filesystem.journal.AddCheckpointEvent;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
+import tachyon.master.next.journal.JournalManager;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
@@ -69,9 +71,14 @@ public class FileSystemMaster implements Master {
 
   private final PrefixList mWhitelist;
 
-  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster) {
+  private final JournalManager mJournalManager;
+
+  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
+      JournalManager journalManager) {
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
+    mJournalManager = journalManager;
+    // TODO(cc) initialization logic related to journal manager like loading image
 
     mInodeTree = new InodeTree(mBlockMaster);
     mDependencyMap = new DependencyMap();
@@ -147,7 +154,8 @@ public class FileSystemMaster implements Master {
 
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);
-        // TODO: write to journal.
+        mJournalManager.getEventLogManager().writeEvent(
+            new AddCheckpointEvent(fileId, length, checkpointPath, opTimeMs));
       }
       return true;
     }
