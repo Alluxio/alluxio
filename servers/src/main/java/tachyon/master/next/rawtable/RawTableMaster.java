@@ -15,12 +15,16 @@
 
 package tachyon.master.next.rawtable;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.master.next.Master;
+import tachyon.master.next.PeriodicTask;
 
 // TODO: implement this master, but should be deprecated.
 public class RawTableMaster implements Master {
@@ -39,4 +43,8 @@ public class RawTableMaster implements Master {
     return "RawTableMaster";
   }
 
+  public List<PeriodicTask> getPeriodicTaskList() {
+    // TODO
+    return Collections.emptyList();
+  }
 }

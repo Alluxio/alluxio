@@ -23,6 +23,7 @@ import com.google.common.primitives.Ints;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
@@ -45,6 +46,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private Path mHdfsPath;
   private Configuration mHadoopConf;
   private int mHadoopBufferSize;
+  private Statistics mStatistics;
   private TachyonFile mTachyonFile;
 
   private FSDataInputStream mHdfsInputStream = null;
@@ -60,11 +62,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private final TachyonConf mTachyonConf;
 
   public HdfsFileInputStream(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
-      int bufferSize, TachyonConf tachyonConf) throws IOException {
-    LOG.debug("PartitionInputStreamHdfs({}, {}, {}, {}, {})", tfs, fileId, hdfsPath, conf,
-        bufferSize);
+      int bufferSize, FileSystem.Statistics stats, TachyonConf tachyonConf) throws IOException {
+    LOG.debug("PartitionInputStreamHdfs({}, {}, {}, {}, {}, {})", tfs, fileId, hdfsPath, conf,
+        bufferSize, stats);
     mTachyonConf = tachyonConf;
-    long bufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES, 0);
+    long bufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
     mTFS = tfs;
@@ -72,6 +74,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mHdfsPath = hdfsPath;
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
+    mStatistics = stats;
     mTachyonFile = mTFS.getFile(mFileId);
     if (mTachyonFile == null) {
       throw new FileNotFoundException("File " + hdfsPath + " with FID " + fileId
@@ -137,6 +140,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       int ret = 0;
       try {
         ret = mTachyonFileInputStream.read();
+        if (mStatistics != null && ret != -1) {
+          mStatistics.incrementBytesRead(1);
+        }
         mCurrentPosition ++;
         return ret;
       } catch (IOException e) {
@@ -162,6 +168,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       int ret = 0;
       try {
         ret = mTachyonFileInputStream.read(b, off, len);
+        if (mStatistics != null && ret != -1) {
+          mStatistics.incrementBytesRead(ret);
+        }
         mCurrentPosition += ret;
         return ret;
       } catch (IOException e) {
@@ -198,6 +207,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       try {
         mTachyonFileInputStream.seek(position);
         ret = mTachyonFileInputStream.read(buffer, offset, length);
+        if (mStatistics != null && ret != -1) {
+          mStatistics.incrementBytesRead(ret);
+        }
         return ret;
       } finally {
         mTachyonFileInputStream.seek(oldPos);
@@ -207,6 +219,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     try {
       getHdfsInputStream(position);
       ret = mHdfsInputStream.read(buffer, offset, length);
+      if (mStatistics != null && ret != -1) {
+        mStatistics.incrementBytesRead(ret);
+      }
       return ret;
     } finally {
       if (mHdfsInputStream != null) {
@@ -217,6 +232,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   private int readFromHdfsBuffer() throws IOException {
     if (mBufferPosition < mBufferLimit) {
+      if (mStatistics != null) {
+        mStatistics.incrementBytesRead(1);
+      }
       return mBuffer[mBufferPosition ++];
     }
     LOG.error("Reading from HDFS directly");
@@ -227,6 +245,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       return -1;
     }
     mBufferPosition = 0;
+    if (mStatistics != null) {
+      mStatistics.incrementBytesRead(1);
+    }
     return mBuffer[mBufferPosition ++];
   }
 

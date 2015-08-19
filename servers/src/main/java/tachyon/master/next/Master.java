@@ -15,10 +15,14 @@
 
 package tachyon.master.next;
 
+import java.util.List;
+
 import org.apache.thrift.TProcessor;
 
 public interface Master {
   TProcessor getProcessor();
 
   String getProcessorName();
+
+  List<PeriodicTask> getPeriodicTaskList();
 }
