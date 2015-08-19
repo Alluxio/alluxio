@@ -17,8 +17,6 @@ package tachyon.worker.block;
 
 import java.io.IOException;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +25,6 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterClient;
 import tachyon.util.CommonUtils;
-import tachyon.util.network.NetworkAddressUtils;
-import tachyon.util.ThreadFactoryUtils;
 
 /**
  * PinListSync periodically syncs the set of pinned inodes from master,
@@ -96,7 +92,7 @@ public class PinListSync implements Runnable {
       } catch (IOException ioe) {
         // An error occurred, retry after 1 second or error if sync timeout is reached
         LOG.error("Failed to receive pinlist.", ioe);
-        resetMasterClient();
+        mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastSyncMs >= mSyncTimeoutMs) {
           throw new RuntimeException("Master sync timeout exceeded: " + mSyncTimeoutMs);
@@ -110,17 +106,5 @@ public class PinListSync implements Runnable {
    */
   public void stop() {
     mRunning = false;
-  }
-
-  /**
-   * Disconnect and reconnect the master client, in case the master changes.
-   */
-  private void resetMasterClient() {
-    mMasterClient.disconnect();
-    try {
-      mMasterClient.connect();
-    } catch (IOException e) {
-      LOG.error("Failed to connect to master.", e);
-    }
   }
 }
