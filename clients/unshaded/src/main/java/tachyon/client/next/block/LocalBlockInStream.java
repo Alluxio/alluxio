@@ -21,8 +21,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 import com.google.common.io.Closer;
+import tachyon.client.next.ClientContext;
 import tachyon.client.next.ClientOptions;
 import tachyon.util.io.BufferUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.next.WorkerClient;
 
 /**
@@ -42,7 +44,8 @@ public class LocalBlockInStream extends BlockInStream {
     mBlockId = blockId;
     mClosed = false;
     mContext = BSContext.INSTANCE;
-    mWorkerClient = mContext.acquireWorkerClient();
+    mWorkerClient =
+        mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
     String blockPath = mWorkerClient.lockBlock(blockId);
 
     if (null == blockPath) {
