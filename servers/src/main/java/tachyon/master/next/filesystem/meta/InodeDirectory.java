@@ -26,6 +26,8 @@ import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
 import tachyon.master.next.IndexedSet;
+import tachyon.master.next.filesystem.journal.InodeDirectoryImage;
+import tachyon.master.next.filesystem.journal.InodeImage;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -177,6 +179,12 @@ public final class InodeDirectory extends Inode {
    */
   public synchronized boolean removeChild(String name) {
     return mChildren.removeByField(mNameIndex, name);
+  }
+
+  @Override
+  public InodeImage toImage() {
+    return new InodeDirectoryImage(getCreationTimeMs(), getId(), getName(), getParentId(),
+        isPinned(), getLastModificationTimeMs(), getChildren());
   }
 
   @Override

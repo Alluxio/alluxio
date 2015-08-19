@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.master.block.BlockId;
+import tachyon.master.next.filesystem.journal.InodeFileImage;
+import tachyon.master.next.filesystem.journal.InodeImage;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -292,6 +294,13 @@ public final class InodeFile extends Inode {
       length -= blockSize;
     }
     mIsComplete = true;
+  }
+
+  @Override
+  public synchronized InodeImage toImage() {
+    return new InodeFileImage(getCreationTimeMs(), getId(), getName(), getParentId(), isPinned(),
+        getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isComplete(), isCache(),
+        getUfsPath());
   }
 
   @Override
