@@ -102,10 +102,12 @@ public final class InodeDirectoryTests {
   }
 
   @Test
-  public void reverseIdTest() {
+  public void deleteTest() {
     InodeDirectory inode1 = createInodeDirectory();
-    inode1.reverseId();
-    Assert.assertEquals(-1, inode1.getId());
+    inode1.delete();
+    Assert.assertTrue(inode1.isDeleted());
+    inode1.restore();
+    Assert.assertFalse(inode1.isDeleted());
   }
 
   @Test
