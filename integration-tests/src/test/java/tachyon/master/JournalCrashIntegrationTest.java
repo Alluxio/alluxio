@@ -125,7 +125,7 @@ public class JournalCrashIntegrationTest {
   @Before
   public final void before() throws Exception {
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
-    mLocalClusterThreadGroup = new ThreadGroup("JournalCrashIntegrationTest Thread Group"){
+    mLocalClusterThreadGroup = new ThreadGroup("JournalCrashIntegrationTest Thread Group") {
       @Override public void uncaughtException(Thread t, Throwable e) {
         // Forcibly kill a thread may cause error. Ignore this since we want to crash.
       }
@@ -206,11 +206,7 @@ public class JournalCrashIntegrationTest {
     LocalTachyonCluster cluster = setupSingleMasterCluster();
     CommonUtils.sleepMs(null, TEST_TIME_MS);
     // Crash the cluster. Kill all the threads associated with the cluster.
-    try {
-      mLocalClusterThreadGroup.stop();
-    } catch (Error e) {
-      // Forcibly kill a thread may cause error. Ignore this since we want to crash.
-    }
+    mLocalClusterThreadGroup.stop();
     CommonUtils.sleepMs(null, TEST_TIME_MS);
     reproduceAndCheckState(mCreateFileThread.mSuccessNum, mCreateTableThread.mSuccessNum);
     // clean up
@@ -227,11 +223,7 @@ public class JournalCrashIntegrationTest {
     }
     CommonUtils.sleepMs(null, TEST_TIME_MS);
     // Crash the cluster. Kill all the threads associated with the cluster.
-    try {
-      mLocalClusterThreadGroup.stop();
-    } catch (Error e) {
-      // Forcibly kill a thread may cause error. Ignore this since we want to crash.
-    }
+    mLocalClusterThreadGroup.stop();
     CommonUtils.sleepMs(null, TEST_TIME_MS);
     reproduceAndCheckState(mCreateFileThread.mSuccessNum, mCreateTableThread.mSuccessNum);
     // clean up
