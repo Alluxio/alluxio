@@ -69,6 +69,10 @@ public class InodeTree {
     mInodes.add(mRoot);
   }
 
+  public InodeDirectory getRoot() {
+    return mRoot;
+  }
+
   public Inode getInodeById(long id) throws FileDoesNotExistException {
     Inode inode = mInodes.getFirstByField(mIdIndex, id);
     if (inode == null) {

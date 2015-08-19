@@ -17,6 +17,8 @@ package tachyon.master.next.filesystem;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -602,5 +604,20 @@ public class FileSystemMaster implements Master {
       }
     }
     return fileBlockInfo;
+  }
+
+  @Override
+  public void writeImage(OutputStream os) throws IOException {
+    // TODO(cc)
+  }
+
+  @Override
+  public void loadImage(InputStream is) throws IOException {
+    // TODO(cc)
+  }
+
+  @Override
+  public void loadEventLog(InputStream is) throws IOException {
+    // TODO(cc)
   }
 }

@@ -15,6 +15,9 @@
 
 package tachyon.master.next;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 import org.apache.thrift.TProcessor;
@@ -25,4 +28,10 @@ public interface Master {
   String getProcessorName();
 
   List<PeriodicTask> getPeriodicTaskList();
+
+  void writeImage(OutputStream os) throws IOException;
+
+  void loadImage(InputStream is) throws IOException;
+
+  void loadEventLog(InputStream is) throws IOException;
 }

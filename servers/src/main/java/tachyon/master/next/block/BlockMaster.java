@@ -15,6 +15,9 @@
 
 package tachyon.master.next.block;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -319,5 +322,20 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         }
       }
     }
+  }
+
+  @Override
+  public void writeImage(OutputStream os) throws IOException {
+    // TODO(cc)
+  }
+
+  @Override
+  public void loadImage(InputStream is) throws IOException {
+    // TODO(cc)
+  }
+
+  @Override
+  public void loadEventLog(InputStream is) throws IOException {
+    // TODO(cc)
   }
 }
