@@ -173,10 +173,14 @@ public class Dependency extends ImageWriter {
   public DependencyInfo generateClientDependencyInfo() {
     DependencyInfo ret = new DependencyInfo();
     ret.id = mId;
-    ret.parents = new ArrayList<Integer>(mParentFiles.size());
-    ret.parents.addAll(mParentFiles);
-    ret.children = new ArrayList<Integer>(mChildrenFiles.size());
-    ret.children.addAll(mChildrenFiles);
+    ret.parents = new ArrayList<Long>(mParentFiles.size());
+    for (int fid : mParentFiles) {
+      ret.parents.add((long) fid);
+    }
+    ret.children = new ArrayList<Long>(mChildrenFiles.size());
+    for (int fid : mChildrenFiles) {
+      ret.children.add((long) fid);
+    }
     ret.data = BufferUtils.cloneByteBufferList(mData);
     return ret;
   }

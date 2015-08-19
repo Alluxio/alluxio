@@ -41,9 +41,9 @@ public class Dependency {
   public final int mId;
 
   public final long mCreationTimeMs;
-  public final List<Integer> mParentFiles;
-  public final List<Integer> mChildrenFiles;
-  private final Set<Integer> mUncheckpointedChildrenFiles;
+  public final List<Long> mParentFiles;
+  public final List<Long> mChildrenFiles;
+  private final Set<Long> mUncheckpointedChildrenFiles;
   public final String mCommandPrefix;
 
   public final List<ByteBuffer> mData;
@@ -56,7 +56,7 @@ public class Dependency {
   public final List<Integer> mParentDependencies;
   private final List<Integer> mChildrenDependencies;
 
-  private final Set<Integer> mLostFileIds;
+  private final Set<Long> mLostFileIds;
 
   private final TachyonConf mTachyonConf;
 
@@ -76,18 +76,18 @@ public class Dependency {
    * @param creationTimeMs The create time of the dependency, in milliseconds
    * @param tachyonConf The TachyonConf instance.
    */
-  public Dependency(int id, List<Integer> parents, List<Integer> children, String commandPrefix,
+  public Dependency(int id, List<Long> parents, List<Long> children, String commandPrefix,
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
       DependencyType type, Collection<Integer> parentDependencies, long creationTimeMs,
       TachyonConf tachyonConf) {
     mId = id;
     mCreationTimeMs = creationTimeMs;
 
-    mParentFiles = new ArrayList<Integer>(parents.size());
+    mParentFiles = new ArrayList<Long>(parents.size());
     mParentFiles.addAll(parents);
-    mChildrenFiles = new ArrayList<Integer>(children.size());
+    mChildrenFiles = new ArrayList<Long>(children.size());
     mChildrenFiles.addAll(children);
-    mUncheckpointedChildrenFiles = new HashSet<Integer>();
+    mUncheckpointedChildrenFiles = new HashSet<Long>();
     mUncheckpointedChildrenFiles.addAll(mChildrenFiles);
     mCommandPrefix = commandPrefix;
     mData = BufferUtils.cloneByteBufferList(data);
@@ -101,7 +101,7 @@ public class Dependency {
     mParentDependencies = new ArrayList<Integer>(parentDependencies.size());
     mParentDependencies.addAll(parentDependencies);
     mChildrenDependencies = new ArrayList<Integer>(0);
-    mLostFileIds = new HashSet<Integer>(0);
+    mLostFileIds = new HashSet<Long>(0);
     mTachyonConf = tachyonConf;
   }
 
@@ -125,7 +125,7 @@ public class Dependency {
    *
    * @param fileId The id of the lost file
    */
-  public synchronized void addLostFile(int fileId) {
+  public synchronized void addLostFile(long fileId) {
     mLostFileIds.add(fileId);
   }
 
@@ -134,7 +134,7 @@ public class Dependency {
    *
    * @param childFileId The id of the checkpointed child file
    */
-  public synchronized void childCheckpointed(int childFileId) {
+  public synchronized void childCheckpointed(long childFileId) {
     mUncheckpointedChildrenFiles.remove(childFileId);
     LOG.debug("Child got checkpointed {} : {}", childFileId, toString());
   }
@@ -147,9 +147,9 @@ public class Dependency {
   public DependencyInfo generateClientDependencyInfo() {
     DependencyInfo ret = new DependencyInfo();
     ret.id = mId;
-    ret.parents = new ArrayList<Integer>(mParentFiles.size());
+    ret.parents = new ArrayList<Long>(mParentFiles.size());
     ret.parents.addAll(mParentFiles);
-    ret.children = new ArrayList<Integer>(mChildrenFiles.size());
+    ret.children = new ArrayList<Long>(mChildrenFiles.size());
     ret.children.addAll(mChildrenFiles);
     ret.data = BufferUtils.cloneByteBufferList(mData);
     return ret;
@@ -178,7 +178,7 @@ public class Dependency {
     sb.append(" ").append(mTachyonConf.get(Constants.MASTER_ADDRESS));
     sb.append(" ").append(mId);
     for (int k = 0; k < mChildrenFiles.size(); k ++) {
-      int id = mChildrenFiles.get(k);
+      long id = mChildrenFiles.get(k);
       if (mLostFileIds.contains(id)) {
         sb.append(" ").append(k);
       }
@@ -192,8 +192,8 @@ public class Dependency {
    *
    * @return the duplication of the lost files' id
    */
-  public synchronized List<Integer> getLostFiles() {
-    List<Integer> ret = new ArrayList<Integer>();
+  public synchronized List<Long> getLostFiles() {
+    List<Long> ret = new ArrayList<Long>();
     ret.addAll(mLostFileIds);
     return ret;
   }
@@ -203,8 +203,8 @@ public class Dependency {
    *
    * @return the duplication of the uncheckpointed children files' id
    */
-  synchronized List<Integer> getUncheckpointedChildrenFiles() {
-    List<Integer> ret = new ArrayList<Integer>(mUncheckpointedChildrenFiles.size());
+  synchronized List<Long> getUncheckpointedChildrenFiles() {
+    List<Long> ret = new ArrayList<Long>(mUncheckpointedChildrenFiles.size());
     ret.addAll(mUncheckpointedChildrenFiles);
     return ret;
   }
@@ -255,7 +255,7 @@ public class Dependency {
    *
    * @param uckdChildrenFiles The new uncheckpointed children files' id
    */
-  synchronized void resetUncheckpointedChildrenFiles(Collection<Integer> uckdChildrenFiles) {
+  synchronized void resetUncheckpointedChildrenFiles(Collection<Long> uckdChildrenFiles) {
     mUncheckpointedChildrenFiles.clear();
     mUncheckpointedChildrenFiles.addAll(uckdChildrenFiles);
   }

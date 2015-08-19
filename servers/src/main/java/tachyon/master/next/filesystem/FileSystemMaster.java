@@ -31,11 +31,11 @@ import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.master.Dependency;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.Master;
 import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.BlockMaster;
+import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
@@ -96,9 +96,9 @@ public class FileSystemMaster implements Master {
     return Collections.emptyList();
   }
 
-  public boolean addCheckpoint(long workerId, int fileId, long length, TachyonURI checkpointPath)
-      throws FileNotFoundException, SuspectedFileSizeException, BlockInfoException,
-      FileDoesNotExistException {
+  public boolean completeFileCheckpoint(long workerId, long fileId, long length,
+      TachyonURI checkpointPath)
+          throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
     // TODO: metrics
     long opTimeMs = System.currentTimeMillis();
     LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
@@ -111,7 +111,7 @@ public class FileSystemMaster implements Master {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {
-        throw new FileNotFoundException("File id " + fileId + " is a directory, not a file.");
+        throw new FileDoesNotExistException("File id " + fileId + " is a directory, not a file.");
       }
 
       InodeFile tFile = (InodeFile) inode;
