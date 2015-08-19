@@ -48,40 +48,14 @@ public class TachyonBS implements Closeable {
     return sCachedClient;
   }
 
-  private final BlockMasterClientPool mMasterClientPool;
-  private final BlockWorkerClientPool mWorkerClientPool;
   private final TachyonConf mTachyonConf;
 
   public TachyonBS(InetSocketAddress masterAddress, TachyonConf conf) {
-    mMasterClientPool = new BlockMasterClientPool(masterAddress, conf);
-
-    // Get the worker address
-    // TODO: Simplify this, and use worker master client
-    NetAddress workerNetAddress;
-    String localHostName = NetworkAddressUtils.getLocalHostName(conf);
-    MasterClient masterClient = mMasterClientPool.acquire();
-    try {
-      workerNetAddress = masterClient.user_getWorker(false, localHostName);
-    } catch (NoWorkerException nwe) {
-      workerNetAddress = null;
-    } catch (IOException ioe) {
-      workerNetAddress = null;
-    }
-    if (null == workerNetAddress) {
-      try {
-        workerNetAddress = masterClient.user_getWorker(true, "");
-      } catch (Exception e) {
-        Throwables.propagate(e);
-      }
-    }
-
-    mWorkerClientPool = new BlockWorkerClientPool(workerNetAddress, conf);
     mTachyonConf = conf;
   }
 
   public void close() {
-    mMasterClientPool.close();
-    mWorkerClientPool.close();
+
   }
 
   // TODO: Evaluate if this is necessary for now, or if file level delete is sufficient
