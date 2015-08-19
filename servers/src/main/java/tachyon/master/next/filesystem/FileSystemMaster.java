@@ -246,28 +246,6 @@ public class FileSystemMaster implements Master {
     return ((InodeFile) inode).getNewBlockId();
   }
 
-  // TODO: dont commit blocks at the file system level.
-  public void commitFileBlock(long workerId, long usedBytesOnTier, int tierAlias, long blockId,
-      long length) throws FileDoesNotExistException, BlockInfoException {
-    // TODO: metrics
-    synchronized (mInodeTree) {
-      long fileId = BlockId.getContainerId(blockId);
-      Inode inode = mInodeTree.getInodeById(fileId);
-      if (inode.isDirectory()) {
-        throw new FileDoesNotExistException("File " + fileId + " is a directory.");
-      }
-
-      // TODO: allow "committing" existing blocks, for lineage.
-      // Try to commit this block.
-      ((InodeFile) inode).commitBlock(blockId, length);
-
-      // Commit the block in the block master.
-      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
-
-      // TODO: write to journal
-    }
-  }
-
   public boolean deleteFile(long fileId, boolean recursive)
       throws TachyonException, FileDoesNotExistException {
     // TODO: metrics
