@@ -105,6 +105,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     // URL can not determine offset and limit, let javascript in jsp determine and redirect
     if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
+      tachyonClient.close();
       return;
     }
 
