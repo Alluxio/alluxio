@@ -143,7 +143,7 @@ public class FileSystemMaster implements Master {
         }
       }
       mDependencyMap.addFileCheckpoint(fileId);
-      tFile.setComplete();
+      tFile.setComplete(length);
 
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);
@@ -203,9 +203,11 @@ public class FileSystemMaster implements Master {
       }
 
       // Verify that all the blocks (except the last one) is the same size as the file block size.
+      long fileLength = 0;
       long fileBlockSize = fileInode.getBlockSizeBytes();
       for (int i = 0; i < blockInfoList.size() - 1; i ++) {
         BlockInfo blockInfo = blockInfoList.get(i);
+        fileLength += blockInfo.getLength();
         if (blockInfo.getLength() != fileBlockSize) {
           throw new BlockInfoException(
               "Block index " + i + " has a block size smaller than the file block size ("
@@ -214,7 +216,7 @@ public class FileSystemMaster implements Master {
       }
 
       mDependencyMap.addFileCheckpoint(fileId);
-      ((InodeFile) inode).setComplete();
+      ((InodeFile) inode).setComplete(fileLength);
       inode.setLastModificationTimeMs(opTimeMs);
       // TODO: write to journal
     }
