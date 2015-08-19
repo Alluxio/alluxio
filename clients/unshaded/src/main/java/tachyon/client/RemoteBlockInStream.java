@@ -245,13 +245,13 @@ public class RemoteBlockInStream extends BlockInStream {
     if (bytesLeft > 0 && mBlockOutStream == null && mRecache) {
       try {
         mBlockOutStream = BlockOutStream.get(mFile, WriteType.TRY_CACHE, mBlockIndex, mTachyonConf);
+        // We should only cache when we are writing to a local worker
+        if (mBlockOutStream instanceof RemoteBlockOutStream) {
+          LOG.info("Cannot find a local worker to write to, recache attempt cancelled.");
+          cancelRecache();
+        }
       } catch (IOException ioe) {
         LOG.warn("Recache attempt failed.", ioe);
-        cancelRecache();
-      }
-      // TACHYON-813: Only cache locally
-      if (mBlockOutStream instanceof RemoteBlockOutStream) {
-        LOG.info("Cannot find a local worker to write to, recache attempt cancelled.");
         cancelRecache();
       }
     }
