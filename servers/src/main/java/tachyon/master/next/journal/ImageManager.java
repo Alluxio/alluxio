@@ -13,25 +13,34 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.journal;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
-import org.apache.thrift.TProcessor;
+import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
+import tachyon.util.io.PathUtils;
 
-public interface Master {
-  TProcessor getProcessor();
+// TODO(cc)
+public class ImageManager {
+  private ImageReadWriter mReadWriter;
+  private OutputStream mOs;
 
-  String getProcessorName();
+  public ImageManager(String folder, String name, ImageReadWriter readWriter, TachyonConf conf)
+      throws IOException {
+    mReadWriter = readWriter;
+    UnderFileSystem ufs = UnderFileSystem.get(folder, conf);
+    // TODO(cc) connect to ufs, clean paths...
+    mOs = ufs.create(PathUtils.concatPath(folder, name));
+    // TODO(cc)
+  }
 
-  List<PeriodicTask> getPeriodicTaskList();
-
-  void writeImage(OutputStream os) throws IOException;
-
-  void loadImage(InputStream is) throws IOException;
-
-  void loadEventLog(InputStream is) throws IOException;
+  public void writeImage(Image image) {
+    try {
+      mReadWriter.writeImage(image, mOs);
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
+  }
 }

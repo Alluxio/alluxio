@@ -17,6 +17,8 @@ package tachyon.master.next.filesystem;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -36,11 +38,13 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.Master;
 import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.BlockMaster;
+import tachyon.master.next.filesystem.journal.AddCheckpointEvent;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
+import tachyon.master.next.journal.JournalManager;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
@@ -69,9 +73,14 @@ public class FileSystemMaster implements Master {
 
   private final PrefixList mWhitelist;
 
-  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster) {
+  private final JournalManager mJournalManager;
+
+  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
+      JournalManager journalManager) {
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
+    mJournalManager = journalManager;
+    // TODO(cc) initialization logic related to journal manager like loading image
 
     mInodeTree = new InodeTree(mBlockMaster);
     mDependencyMap = new DependencyMap();
@@ -147,7 +156,8 @@ public class FileSystemMaster implements Master {
 
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);
-        // TODO: write to journal.
+        mJournalManager.getEventLogManager().writeEvent(
+            new AddCheckpointEvent(fileId, length, checkpointPath, opTimeMs));
       }
       return true;
     }
@@ -594,5 +604,21 @@ public class FileSystemMaster implements Master {
       }
     }
     return fileBlockInfo;
+  }
+
+  @Override
+  public void writeImage(OutputStream os) throws IOException {
+    // TODO(cc)
+    mJournalManager.getImageManager().writeImage(mInodeTree.getRoot().toImage());
+  }
+
+  @Override
+  public void loadImage(InputStream is) throws IOException {
+    // TODO(cc)
+  }
+
+  @Override
+  public void loadEventLog(InputStream is) throws IOException {
+    // TODO(cc)
   }
 }

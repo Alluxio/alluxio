@@ -26,7 +26,7 @@ deploy/vagrant/.request_ids
 docs/_site
 docs/api
 docs/serve/
-journal/
+./journal/
 logs/
 script/
 target/

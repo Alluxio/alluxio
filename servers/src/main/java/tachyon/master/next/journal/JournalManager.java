@@ -13,25 +13,26 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.journal;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
+import tachyon.conf.TachyonConf;
+import tachyon.master.next.filesystem.journal.EventReadWriter;
 
-import org.apache.thrift.TProcessor;
+// TODO(cc)
+public class JournalManager {
+  private ImageManager mImageManager;
+  private EventLogManager mEventLogManager;
 
-public interface Master {
-  TProcessor getProcessor();
+  public JournalManager(String journalFolder, String imageName, ImageReadWriter imageReadWriter,
+      String eventLogName, EventReadWriter eventReadWriter, TachyonConf conf) {
+    // TODO(cc)
+  }
 
-  String getProcessorName();
+  public EventLogManager getEventLogManager() {
+    return mEventLogManager;
+  }
 
-  List<PeriodicTask> getPeriodicTaskList();
-
-  void writeImage(OutputStream os) throws IOException;
-
-  void loadImage(InputStream is) throws IOException;
-
-  void loadEventLog(InputStream is) throws IOException;
+  public ImageManager getImageManager() {
+    return mImageManager;
+  }
 }

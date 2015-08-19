@@ -13,25 +13,20 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.journal;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
-import org.apache.thrift.TProcessor;
-
-public interface Master {
-  TProcessor getProcessor();
-
-  String getProcessorName();
-
-  List<PeriodicTask> getPeriodicTaskList();
-
-  void writeImage(OutputStream os) throws IOException;
-
-  void loadImage(InputStream is) throws IOException;
-
-  void loadEventLog(InputStream is) throws IOException;
+public interface ImageReadWriter {
+  void writeImage(Image image, OutputStream os) throws IOException;
+/**
+   * Read an {@link Image} from the stream.
+   *
+   * @param is the InputStream to read from
+   * @return a specific Image, or null if the stream reaches EOF
+   * @throws IOException when I/O exception happens during reading
+   */
+  Image readImage(InputStream is) throws IOException;
 }

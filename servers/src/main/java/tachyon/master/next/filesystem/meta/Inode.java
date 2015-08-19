@@ -15,6 +15,7 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import tachyon.master.next.filesystem.journal.InodeImage;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -192,6 +193,8 @@ public abstract class Inode {
   public synchronized void setLastModificationTimeMs(long lastModificationTimeMs) {
     mLastModificationTimeMs = lastModificationTimeMs;
   }
+
+  public abstract InodeImage toImage();
 
   @Override
   public synchronized String toString() {

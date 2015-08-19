@@ -13,25 +13,33 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.filesystem.journal;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
-import org.apache.thrift.TProcessor;
+import tachyon.master.next.journal.Event;
 
-public interface Master {
-  TProcessor getProcessor();
+public abstract class EventReadWriter implements tachyon.master.next.journal.EventReadWriter {
+  @Override
+  public void writeEvent(Event event, OutputStream os) throws IOException {
+    switch (event.type()) {
+      case ADD_CHECKPOINT: {
+        writeAddCheckPointEvent((AddCheckpointEvent) event, os);
+        break;
+      }
+      default:
+        throw new IOException("Invalid op type " + event.type());
+    }
+  }
 
-  String getProcessorName();
+  @Override
+  public Event readEvent(InputStream is) throws IOException {
+    // TODO(cc)
+    return null;
+  }
 
-  List<PeriodicTask> getPeriodicTaskList();
-
-  void writeImage(OutputStream os) throws IOException;
-
-  void loadImage(InputStream is) throws IOException;
-
-  void loadEventLog(InputStream is) throws IOException;
+  protected abstract void writeAddCheckPointEvent(AddCheckpointEvent event, OutputStream os)
+      throws IOException;
 }
