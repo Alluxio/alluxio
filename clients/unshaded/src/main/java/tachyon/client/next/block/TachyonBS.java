@@ -78,7 +78,7 @@ public class TachyonBS implements Closeable {
       // If a local worker exists, use short circuit read
       // TODO: Add check on configuration
       if (mContext.hasLocalWorker()) {
-        return new LocalBlockInStream();
+        return new LocalBlockInStream(blockId, options);
       }
       return new RemoteBlockInStream();
     }

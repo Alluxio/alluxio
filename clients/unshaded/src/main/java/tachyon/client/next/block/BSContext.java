@@ -22,7 +22,6 @@ public enum BSContext {
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final BlockWorkerClientPool mLocalBlockWorkerClientPool;
   private final ExecutorService mRemoteBlockWorkerExecutor;
-  private final NetAddress mLocalWorkerAddress;
 
   private BSContext() {
     mBlockMasterClientPool =
@@ -32,15 +31,15 @@ public enum BSContext {
         Executors.newFixedThreadPool(10,
             ThreadFactoryUtils.build("remote-block-worker-heartbeat-%d", true));
 
-    mLocalWorkerAddress =
+    NetAddress localWorkerAddress =
         getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
     // If the local worker is not available, do not initialize the local worker client pool
-    if (null == mLocalWorkerAddress) {
+    if (null == localWorkerAddress) {
       mLocalBlockWorkerClientPool = null;
     } else {
       mLocalBlockWorkerClientPool =
-          new BlockWorkerClientPool(mLocalWorkerAddress, ClientContext.getConf());
+          new BlockWorkerClientPool(localWorkerAddress, ClientContext.getConf());
     }
   }
 
