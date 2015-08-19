@@ -90,7 +90,6 @@ public class BlockDataManager {
     mMasterClient = masterClient;
 
     // Create Under FileSystem Client
-    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
