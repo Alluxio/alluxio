@@ -66,8 +66,8 @@ struct FileInfo {
 // Information about lineage.
 struct DependencyInfo {
   1: i32 id
-  2: list<i32> parents
-  3: list<i32> children
+  2: list<i64> parents
+  3: list<i64> children
   4: list<binary> data
 }
 
@@ -195,6 +195,11 @@ service FileSystemMasterService {
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
+  bool completeFileCheckpoint(1: i64 workerId, 2: i64 fileId, 3: i64 length,
+      4: string checkpointPath)
+    throws (1: FileDoesNotExistException fdnee, 2: SuspectedFileSizeException sfse,
+      3: BlockInfoException bie)
+
   i64 loadFileFromUfs(1: i64 fileId, 2: string ufsPath, 3: bool recursive)
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
@@ -217,10 +222,6 @@ service FileSystemMasterService {
 
   bool free(1: i64 fileId, 2: bool recursive)
     throws (1: FileDoesNotExistException fdnee)
-
-  bool addCheckpoint(1: i64 workerId, 2: i64 fileId, 3: i64 length, 4: string checkpointPath)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
-      3: BlockInfoException bie)
 
   /**
    * Returns if the message was received. Intended to check if the client can still connect to the

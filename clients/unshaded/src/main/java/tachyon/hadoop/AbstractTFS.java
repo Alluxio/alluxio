@@ -156,7 +156,8 @@ abstract class AbstractTFS extends FileSystem {
       depPath = depPath.substring(depPath.indexOf("part-") + 5);
       int index = Integer.parseInt(depPath);
       DependencyInfo info = mTFS.getClientDependencyInfo(depId);
-      int fileId = info.getChildren().get(index);
+      // TODO: file id should be long
+      int fileId = info.getChildren().get(index).intValue();
       LOG.info("create(" + cPath + ") : " + depPath + " " + index + " " + info + " " + fileId);
 
       TachyonFile file = mTFS.getFile(fileId);
@@ -176,7 +177,8 @@ abstract class AbstractTFS extends FileSystem {
       depPath = depPath.substring(depPath.indexOf("part-") + 5);
       int index = Integer.parseInt(depPath);
       DependencyInfo info = mTFS.getClientDependencyInfo(depId);
-      int fileId = info.getChildren().get(index);
+      // TODO: file id should be long
+      int fileId = info.getChildren().get(index).intValue();
       LOG.info("create(" + cPath + ") : " + depPath + " " + index + " " + info + " " + fileId);
 
       TachyonFile file = mTFS.getFile(fileId);
