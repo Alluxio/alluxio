@@ -341,6 +341,7 @@ public final class TieredBlockStoreTests {
     mThrown.expect(AlreadyExistsException.class);
     mThrown.expectMessage(
         "checkTempBlockOwnedByUser failed: blockId " + TEMP_BLOCK_ID + " is committed");
+
     TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
     mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
     mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
