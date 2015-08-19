@@ -20,6 +20,7 @@ import java.lang.reflect.Field;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -353,6 +354,7 @@ public final class TieredBlockStoreTests {
     mBlockStore.moveBlock(USER_ID1, TEMP_BLOCK_ID, mTestDir2.toBlockStoreLocation());
   }
 
+  @Ignore
   @Test
   public void moveBlockToTheLocationWithExistingIdTest() throws Exception {
     mThrown.expect(AlreadyExistsException.class);
